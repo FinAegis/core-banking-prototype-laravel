@@ -2,7 +2,13 @@
 
 use App\Domain\Account\Models\Account;
 use App\Domain\Payment\Models\PaymentTransaction;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Tests\TestCase;
+
+// Eloquent + event sourcing resolve services from the container — without
+// the app TestCase these throw BindingResolutionException.
+uses(TestCase::class, RefreshDatabase::class);
 
 it('can create a payment transaction', function () {
     $transaction = PaymentTransaction::create([

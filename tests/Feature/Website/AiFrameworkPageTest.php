@@ -12,11 +12,13 @@ describe('AI Framework Feature Page', function (): void {
         $response->assertSee('AI Framework');
     });
 
-    it('displays the MCP tool count matching the live catalog', function (): void {
+    it('displays MCP tool count', function (): void {
         $response = get('/features/ai-framework');
 
+        // Derive the count from config so the page is forced to stay in sync
+        // with the real catalog (CLAUDE.md: stale tool counts in public views).
         $response->assertOk();
-        $response->assertSee(count(config('mcp.tools')) . ' MCP Tools');
+        $response->assertSee(count((array) config('mcp.tools')) . ' MCP Tools');
     });
 
     it('displays all six agents', function (): void {

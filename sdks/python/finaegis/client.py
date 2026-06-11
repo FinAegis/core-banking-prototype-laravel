@@ -31,8 +31,8 @@ class FinAegis:
     """
     
     ENVIRONMENTS = {
-        'production': 'https://api.finaegis.org/v2',
-        'sandbox': 'https://api-sandbox.finaegis.org/v2',
+        'production': 'https://api.zelta.app/v2',
+        'sandbox': 'https://api-sandbox.zelta.app/v2',
         'local': 'http://localhost:8000/api/v2',
     }
     

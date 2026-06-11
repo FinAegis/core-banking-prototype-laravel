@@ -1,0 +1,24 @@
+{
+    "$schema": "https://finaegis.io/schemas/module.json",
+    "name": "finaegis/microfinance",
+    "version": "1.0.0",
+    "description": "Microfinance operations \u2014 group lending, savings circles, and micro-loan management",
+    "type": "feature",
+    "dependencies": {
+        "required": {
+            "finaegis/shared": "^1.0"
+        },
+        "optional": {}
+    },
+    "provides": {
+        "interfaces": [],
+        "events": [],
+        "commands": []
+    },
+    "paths": {
+        "routes": "Routes/api.php",
+        "migrations": null,
+        "config": null,
+        "tests": null
+    }
+}

@@ -108,10 +108,15 @@ class NavigationTest extends TestCase
     }
 
     #[Test]
-    public function admin_panel_redirects_to_login_for_regular_users()
+    public function admin_panel_redirects_non_admin_users_to_dashboard(): void
     {
+        // Non-admins hitting /admin are redirected to /dashboard with a flash
+        // error by App\Filament\Http\Middleware\RedirectNonAdmins (replaces
+        // Filament's bundled Authenticate middleware and its bare 403).
         $response = $this->actingAs($this->user)->get('/admin');
-        $response->assertStatus(403); // Forbidden for non-admin users
+        $response->assertStatus(302);
+        $response->assertRedirect(route('dashboard'));
+        $response->assertSessionHas('error');
     }
 
     #[Test]

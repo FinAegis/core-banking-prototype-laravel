@@ -33,7 +33,7 @@ export class FinAegis {
       throw new FinAegisError('API key is required');
     }
 
-    const baseURL = this.getBaseURL(config.environment || 'production');
+    const baseURL = config.baseURL || this.getBaseURL(config.environment || 'production');
     
     this.client = axios.create({
       baseURL,
@@ -84,8 +84,8 @@ export class FinAegis {
 
   private getBaseURL(environment: FinAegisEnvironment): string {
     const urls: Record<FinAegisEnvironment, string> = {
-      'production': 'https://api.finaegis.org/v2',
-      'sandbox': 'https://api-sandbox.finaegis.org/v2',
+      'production': 'https://api.zelta.app/v2',
+      'sandbox': 'https://api-sandbox.zelta.app/v2',
       'local': 'http://localhost:8000/api/v2'
     };
     

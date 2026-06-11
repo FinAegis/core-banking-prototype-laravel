@@ -12,6 +12,7 @@ use App\Domain\Wallet\Services\Send\EvmUserOpPreparer;
 use App\Domain\Wallet\Services\Send\EvmUserOpSubmitter;
 use App\Domain\Wallet\Services\Send\SolanaSendPreparer;
 use App\Domain\Wallet\Services\Send\SolanaSendSubmitter;
+use App\Domain\Wallet\Services\SponsorshipCostTracker;
 use App\Http\Controllers\Api\Wallet\MobileWalletController;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -31,6 +32,8 @@ beforeEach(function (): void {
     $this->solanaSendSubmitter = Mockery::mock(SolanaSendSubmitter::class);
     $this->evmUserOpPreparer = Mockery::mock(EvmUserOpPreparer::class);
     $this->evmUserOpSubmitter = Mockery::mock(EvmUserOpSubmitter::class);
+    $this->sponsorshipCostTracker = Mockery::mock(SponsorshipCostTracker::class);
+    $this->sponsorshipCostTracker->shouldReceive('isDailyBudgetExhausted')->andReturn(false);
 });
 
 function makeWalletController($test): MobileWalletController
@@ -45,6 +48,7 @@ function makeWalletController($test): MobileWalletController
         $test->solanaSendSubmitter,
         $test->evmUserOpPreparer,
         $test->evmUserOpSubmitter,
+        $test->sponsorshipCostTracker,
     );
 }
 

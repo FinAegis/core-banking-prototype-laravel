@@ -34,8 +34,9 @@ class ScopeDebugTest extends TestCase
         $this->assertFalse($canNonsense, 'User should not have nonsense ability when no abilities specified');
         $this->assertNotNull($token, 'Current access token should exist');
 
-        // Test with explicit abilities
-        Sanctum::actingAs($user, ['read', 'write', 'delete']);
+        // Test with explicit abilities — deliberately WITHOUT 'delete', the
+        // assertions below prove unlisted abilities are not granted.
+        Sanctum::actingAs($user, ['read', 'write']);
 
         echo "\n=== Test 2: Sanctum::actingAs with ['read', 'write'] ===\n";
         $canRead = $user->tokenCan('read');

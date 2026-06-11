@@ -3,8 +3,6 @@
 declare(strict_types=1);
 
 use App\Domain\Banking\Services\IntelligentRoutingService;
-use App\Domain\ISO20022\ValueObjects\Pacs002;
-use App\Domain\ISO20022\ValueObjects\Pacs008;
 use App\Domain\PaymentRails\Services\AchService;
 use App\Domain\PaymentRails\Services\FedNowService;
 use App\Domain\PaymentRails\Services\FedwireService;
@@ -24,38 +22,12 @@ uses(Tests\TestCase::class);
  */
 function makeRouter(): PaymentRailRouter
 {
-    $pacs008 = new Pacs008(
-        messageId: 'stub',
-        creationDateTime: new DateTimeImmutable(),
-        numberOfTransactions: 0,
-        settlementMethod: 'CLRG',
-        instructingAgentBic: 'STUB',
-        instructedAgentBic: 'STUB',
-        endToEndId: 'stub',
-        uetr: '00000000-0000-0000-0000-000000000000',
-        amount: '0',
-        currency: 'USD',
-        debtorName: 'stub',
-        debtorIban: 'stub',
-        creditorName: 'stub',
-        creditorIban: 'stub',
-    );
-
-    $pacs002 = new Pacs002(
-        messageId: 'stub',
-        creationDateTime: new DateTimeImmutable(),
-        originalMessageId: 'stub',
-        originalMessageType: 'pacs.008.001.08',
-        groupStatus: 'ACSC',
-        transactionStatuses: [],
-    );
-
     return new PaymentRailRouter(
         routing: new IntelligentRoutingService(),
         ach: new AchService(new NachaFileGenerator(), new NachaFileParser()),
         fedwire: new FedwireService(),
         rtp: new RtpService(),
-        fednow: new FedNowService($pacs008, $pacs002),
+        fednow: new FedNowService(),
     );
 }
 

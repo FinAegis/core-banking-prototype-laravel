@@ -59,7 +59,7 @@ Welcome to the FinAegis documentation. This guide covers the platform's 56 domai
 - [API Integration Guide](09-DEVELOPER/API-INTEGRATION-GUIDE.md) - Integration patterns
 - [SDK Guide](09-DEVELOPER/SDK-GUIDE.md) - SDK usage (JS, PHP, Python)
 - [API Examples](09-DEVELOPER/API-EXAMPLES.md) - Code examples
-- [Postman Collection](09-DEVELOPER/finaegis-api-v2.postman_collection.json) - API testing
+- [Postman Collection](../public/postman/Zelta-API.postman_collection.json) - API testing (generated from the OpenAPI spec — see [09-DEVELOPER/README.md](09-DEVELOPER/README.md#testing) to regenerate)
 
 ### Operations
 - [Deployment Guide](10-OPERATIONS/DEPLOYMENT_GUIDE.md) - Deployment and configuration

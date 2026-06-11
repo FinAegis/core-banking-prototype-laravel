@@ -28,6 +28,9 @@ jobs:
     name: Run Slow Tests
     runs-on: ubuntu-latest
     timeout-minutes: 60  # Allow more time for slow tests
+    permissions:
+      contents: read
+      issues: write
     
     services:
       mysql:
@@ -95,17 +98,17 @@ jobs:
       - name: Run Slow Unit Tests
         run: |
           echo "Running slow unit tests..."
-          ./vendor/bin/pest --testsuite=Unit --configuration=phpunit.ci.xml --group=slow || true
+          ./vendor/bin/pest --testsuite=Unit --configuration=phpunit.ci.xml --group=slow
           
       - name: Run Slow Feature Tests
         run: |
           echo "Running slow feature tests..."
-          ./vendor/bin/pest --testsuite=Feature --configuration=phpunit.ci.xml --group=slow || true
+          ./vendor/bin/pest --testsuite=Feature --configuration=phpunit.ci.xml --group=slow
           
       - name: Run Slow Integration Tests
         run: |
           echo "Running slow integration tests..."
-          ./vendor/bin/pest --testsuite=Integration --configuration=phpunit.ci.xml --group=slow || true
+          ./vendor/bin/pest --testsuite=Integration --configuration=phpunit.ci.xml --group=slow
           
       - name: Generate Test Report
         if: always()
@@ -118,3 +121,37 @@ jobs:
           echo "- Performance under load" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "To run slow tests locally: \`./vendor/bin/pest --group=slow\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Open Issue On Scheduled Failure
+        # Nightly runs have no PR surface, so a failure would otherwise go
+        # unseen (the previous `|| true` suffixes meant this workflow could
+        # never fail at all). File/refresh a tracking issue instead.
+        if: failure() && github.event_name == 'schedule'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const title = 'Nightly slow-test suite failed';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = `The scheduled slow-test run failed: ${runUrl}`;
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              creator: 'github-actions[bot]',
+            });
+            const existing = issues.find(i => i.title === title);
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+              });
+            }

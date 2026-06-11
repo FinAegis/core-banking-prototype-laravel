@@ -1,0 +1,24 @@
+{
+    "$schema": "https://finaegis.io/schemas/module.json",
+    "name": "finaegis/pricing",
+    "version": "1.0.0",
+    "description": "Subscription pricing \u2014 quote generation and HMAC-signed price quotes",
+    "type": "feature",
+    "dependencies": {
+        "required": {
+            "finaegis/shared": "^1.0"
+        },
+        "optional": {}
+    },
+    "provides": {
+        "interfaces": [],
+        "events": [],
+        "commands": []
+    },
+    "paths": {
+        "routes": null,
+        "migrations": null,
+        "config": null,
+        "tests": null
+    }
+}

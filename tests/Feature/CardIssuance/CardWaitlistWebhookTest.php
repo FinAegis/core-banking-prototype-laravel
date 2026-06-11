@@ -8,9 +8,9 @@ use App\Domain\Subscription\Models\RevenueOutboxEvent;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
-use Tests\TestCase;
 
-uses(TestCase::class, RefreshDatabase::class);
+// TestCase is bound folder-wide in tests/Pest.php — re-binding it here makes Pest refuse to load the file.
+uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
     config(['cache.default' => 'array']);

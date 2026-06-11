@@ -149,3 +149,58 @@ it('throws misconfigured when app_id or app_secret is empty', function (): void 
     $client = new PrivyEmailOtpClient($http);
     expect(fn () => $client->sendCode('jane@example.com'))->toThrow(PrivyEmailOtpException::class, 'credentials');
 });
+
+it('sends an authenticated DELETE to the Privy users endpoint on deleteUser', function (): void {
+    /** @var ClientInterface&MockInterface $http */
+    $http = Mockery::mock(ClientInterface::class);
+    /** @var Mockery\Expectation $expect */
+    $expect = $http->shouldReceive('send');
+    $expect->once()->andReturnUsing(function (RequestInterface $request) {
+        expect($request->getMethod())->toBe('DELETE');
+        expect((string) $request->getUri())->toBe('https://auth.privy.io/api/v1/users/did%3Aprivy%3Aabc123');
+        expect($request->getHeaderLine('privy-app-id'))->toBe('test-app-id');
+        expect($request->getHeaderLine('Authorization'))->toBe('Basic ' . base64_encode('test-app-id:test-app-secret'));
+
+        return new PsrResponse(204, [], '');
+    });
+
+    $client = new PrivyEmailOtpClient($http);
+    $client->deleteUser('did:privy:abc123');
+});
+
+it('treats a 404 on deleteUser as idempotent success', function (): void {
+    /** @var ClientInterface&MockInterface $http */
+    $http = Mockery::mock(ClientInterface::class);
+    /** @var Mockery\Expectation $expect */
+    $expect = $http->shouldReceive('send');
+    $expect->once()->andReturn(new PsrResponse(404, [], '{"error":"User not found"}'));
+
+    $client = new PrivyEmailOtpClient($http);
+    $client->deleteUser('did:privy:already-gone');
+
+    expect(true)->toBeTrue(); // no exception thrown
+});
+
+it('throws apiError when Privy rejects deleteUser', function (): void {
+    /** @var ClientInterface&MockInterface $http */
+    $http = Mockery::mock(ClientInterface::class);
+    /** @var Mockery\Expectation $expect */
+    $expect = $http->shouldReceive('send');
+    $expect->once()->andReturn(new PsrResponse(500, [], '{"error":"internal"}'));
+
+    $client = new PrivyEmailOtpClient($http);
+    expect(fn () => $client->deleteUser('did:privy:abc123'))
+        ->toThrow(PrivyEmailOtpException::class, 'returned 500');
+});
+
+it('throws misconfigured on deleteUser when credentials are empty', function (): void {
+    config(['privy.app_id' => '', 'privy.app_secret' => '']);
+
+    /** @var ClientInterface&MockInterface $http */
+    $http = Mockery::mock(ClientInterface::class);
+    $http->shouldReceive('send')->never();
+
+    $client = new PrivyEmailOtpClient($http);
+    expect(fn () => $client->deleteUser('did:privy:abc123'))
+        ->toThrow(PrivyEmailOtpException::class, 'credentials');
+});

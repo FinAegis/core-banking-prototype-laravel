@@ -2,7 +2,7 @@
     "openapi": "3.0.0",
     "info": {
         "title": "Zelta API",
-        "description": "Core banking API — stablecoin-powered virtual cards, non-custodial wallet, AI agent card issuance, ISO 20022, Open Banking, US Payment Rails, Interledger, and Microfinance. Built with Laravel 12, featuring 56 DDD domains, event sourcing, CQRS, and privacy-preserving architecture.",
+        "description": "Core banking API — stablecoin-powered virtual cards, non-custodial wallet, AI agent card issuance, ISO 20022, Open Banking, US Payment Rails, Interledger, and Microfinance. Built with Laravel 12, featuring 61 DDD domains, event sourcing, CQRS, and privacy-preserving architecture.",
         "contact": {
             "name": "Zelta Support",
             "email": "support@finaegis.org"
@@ -11,19 +11,281 @@
             "name": "Apache 2.0",
             "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
         },
-        "version": "7.7.0"
+        "version": "7.15.0"
     },
     "servers": [
         {
-            "url": "http://finaegis.local/api/v2",
+            "url": "http://localhost/api/v2",
             "description": "API Server"
         },
         {
-            "url": "http://finaegis.local/api/v2",
+            "url": "http://localhost/api/v2",
             "description": "API Server"
         }
     ],
     "paths": {
+        "/api/v1/subscription/iap/verify": {
+            "post": {
+                "tags": [
+                    "Subscription"
+                ],
+                "summary": "Verify an Apple App Store / Google Play receipt and activate the IAP subscription",
+                "description": "Server-side validation of a store receipt (Apple JWS StoreKit 2 transaction or Google Play purchase token). Creates or updates the iap_subscriptions row and returns the unified subscription projection. Idempotent via the required Idempotency-Key header (handled by the idempotency.required middleware — not a body field).",
+                "operationId": "v1SubscriptionIapVerify",
+                "parameters": [
+                    {
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "description": "Required by the idempotency.required middleware. Same key + same body replays the original response; same key + different body → 409 IDEMPOTENCY_CONFLICT.",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "platform",
+                                    "receipt",
+                                    "productId"
+                                ],
+                                "properties": {
+                                    "platform": {
+                                        "type": "string",
+                                        "example": "apple_iap",
+                                        "enum": [
+                                            "apple_iap",
+                                            "google_play"
+                                        ]
+                                    },
+                                    "receipt": {
+                                        "description": "Apple: signed JWS transaction (StoreKit 2). Google: purchase token.",
+                                        "type": "string",
+                                        "example": "eyJhbGciOiJFUzI1NiIs..."
+                                    },
+                                    "originalTransactionId": {
+                                        "description": "Apple-only StoreKit 2 stable transaction id.",
+                                        "type": "string",
+                                        "example": "2000000123456789",
+                                        "nullable": true
+                                    },
+                                    "productId": {
+                                        "type": "string",
+                                        "example": "zelta_pro_monthly",
+                                        "enum": [
+                                            "zelta_pro_monthly",
+                                            "zelta_pro_annual"
+                                        ]
+                                    },
+                                    "appVersion": {
+                                        "type": "string",
+                                        "example": "1.3.0",
+                                        "nullable": true
+                                    },
+                                    "currency": {
+                                        "description": "ISO 4217, 3 chars. Defaults to EUR; non-EUR is rejected as ERR_CUR_001 (EUR-only in v1.3.x).",
+                                        "type": "string",
+                                        "example": "EUR",
+                                        "nullable": true
+                                    },
+                                    "withdrawalConsent": {
+                                        "description": "Optional in v1.3.0, required from v1.3.1 (§8.6).",
+                                        "properties": {
+                                            "given": {
+                                                "type": "boolean"
+                                            },
+                                            "shownAt": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            },
+                                            "acceptedAt": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            },
+                                            "consentText": {
+                                                "type": "string"
+                                            },
+                                            "version": {
+                                                "type": "integer",
+                                                "minimum": 1
+                                            }
+                                        },
+                                        "type": "object",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Receipt verified — unified subscription projection (also returned for an idempotent duplicate of the same store subscription)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "tier": {
+                                            "type": "string",
+                                            "example": "pro"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "active",
+                                            "nullable": true
+                                        },
+                                        "source": {
+                                            "type": "string",
+                                            "example": "apple",
+                                            "nullable": true
+                                        },
+                                        "plan": {
+                                            "type": "string",
+                                            "example": "monthly_pro",
+                                            "nullable": true
+                                        },
+                                        "currentPeriodEnd": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "nullable": true
+                                        },
+                                        "trialEndsAt": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "nullable": true
+                                        },
+                                        "cancelledAtPeriodEnd": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "pausedUntil": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "nullable": true
+                                        },
+                                        "reactivated": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "ERR_SUB_002 — IAP subscription conflict. Mobile branches on error.conflict.kind; existingSubscription is always present.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "ERR_SUB_002"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Already subscribed via different store."
+                                                },
+                                                "conflict": {
+                                                    "properties": {
+                                                        "kind": {
+                                                            "type": "string",
+                                                            "enum": [
+                                                                "two_stores_active",
+                                                                "different_zelta_user",
+                                                                "family_sharing_unsupported",
+                                                                "stale_receipt"
+                                                            ]
+                                                        },
+                                                        "attemptedSource": {
+                                                            "type": "string",
+                                                            "enum": [
+                                                                "apple_iap",
+                                                                "google_play"
+                                                            ]
+                                                        },
+                                                        "existingSubscription": {
+                                                            "properties": {
+                                                                "source": {
+                                                                    "type": "string",
+                                                                    "example": "google_play"
+                                                                },
+                                                                "currentPeriodEndsAt": {
+                                                                    "type": "string",
+                                                                    "format": "date-time",
+                                                                    "nullable": true
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "ERR_SUB_001 — invalid receipt (store rejected the receipt / unknown product id); also returned for request validation failures",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "ERR_SUB_001"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Invalid receipt."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/ai/query/transactions": {
             "post": {
                 "tags": [
@@ -5579,6 +5841,172 @@
                 }
             }
         },
+        "/api/v1/auth/privy-login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Exchange a Privy session JWT for a Sanctum token",
+                "description": "Verifies the Privy-issued session JWT against Privy's JWKS, extracts the linked email (or fetches it from the Privy users API as fallback), finds or creates the backing user with the real email, and returns a Sanctum bearer token with read/write/delete abilities.",
+                "operationId": "privyLogin",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "privy_token"
+                                ],
+                                "properties": {
+                                    "privy_token": {
+                                        "description": "Privy-issued session JWT (RS256)",
+                                        "type": "string",
+                                        "example": "eyJhbGciOiJSUzI1NiIs..."
+                                    },
+                                    "name": {
+                                        "description": "Optional display name captured during signup. Used only for new-user creation; ignored on returning logins.",
+                                        "type": "string",
+                                        "example": "Jane Doe",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Privy login successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "example": "jane@example.com"
+                                                        },
+                                                        "privy_user_id": {
+                                                            "type": "string",
+                                                            "example": "did:privy:cl9..."
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "token": {
+                                                    "type": "string",
+                                                    "example": "7|VVGVrIVokPBXkWLOi2yK..."
+                                                },
+                                                "token_type": {
+                                                    "type": "string",
+                                                    "example": "Bearer"
+                                                },
+                                                "is_new_user": {
+                                                    "description": "True on first login (user record was just created); false on returning logins.",
+                                                    "type": "boolean",
+                                                    "example": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid or expired Privy token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "INVALID_PRIVY_TOKEN"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Privy JWT signature is invalid."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Email already in use by a non-Privy user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "EMAIL_ALREADY_EXISTS"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "An account with this email already exists. Use a different Privy email or sign in with the existing credentials."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation failed or no email linked to Privy account",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The privy token field is required."
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/auth/logout": {
             "post": {
                 "tags": [
@@ -6906,125 +7334,6 @@
                                 }
                             }
                         }
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/api/v1/auth/sign-userop": {
-            "post": {
-                "tags": [
-                    "UserOp Signing"
-                ],
-                "summary": "Sign a UserOperation with authentication shard",
-                "description": "Sign a UserOperation hash with the server's authentication shard.\n\nThis endpoint is used by mobile apps to get the server's signature\nfor ERC-4337 UserOperations. The mobile app must provide:\n- The UserOperation hash (computed client-side)\n- A proof from the device's key shard\n- A biometric authentication token\n\nThe server validates the biometric token and signs with its auth shard.\nThe mobile app then combines both signatures for the final UserOp.",
-                "operationId": "signUserOperation",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "user_op_hash",
-                                    "device_shard_proof",
-                                    "biometric_token"
-                                ],
-                                "properties": {
-                                    "user_op_hash": {
-                                        "description": "32-byte hex hash of the UserOperation",
-                                        "type": "string",
-                                        "example": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
-                                    },
-                                    "device_shard_proof": {
-                                        "description": "Signature from device's key shard",
-                                        "type": "string",
-                                        "example": "0xabcdef..."
-                                    },
-                                    "biometric_token": {
-                                        "description": "Token from biometric authentication",
-                                        "type": "string",
-                                        "example": "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9..."
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "UserOperation signed successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "data": {
-                                            "properties": {
-                                                "auth_shard_signature": {
-                                                    "description": "Server's signature from auth shard",
-                                                    "type": "string"
-                                                },
-                                                "expires_at": {
-                                                    "description": "When the signature expires",
-                                                    "type": "string",
-                                                    "format": "date-time"
-                                                },
-                                                "signed_at": {
-                                                    "description": "When the signature was created",
-                                                    "type": "string",
-                                                    "format": "date-time"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Signing failed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": false
-                                        },
-                                        "error": {
-                                            "properties": {
-                                                "code": {
-                                                    "type": "string",
-                                                    "example": "ERR_RELAYER_203"
-                                                },
-                                                "message": {
-                                                    "type": "string",
-                                                    "example": "Biometric verification failed"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "422": {
-                        "description": "Validation error"
                     }
                 },
                 "security": [
@@ -29466,34 +29775,36 @@
                                                     "type": "string",
                                                     "example": "rcpt_abc123"
                                                 },
-                                                "transactionId": {
+                                                "merchantName": {
                                                     "type": "string",
-                                                    "example": "tx_abc123"
+                                                    "example": "Coffee Shop"
                                                 },
                                                 "amount": {
-                                                    "type": "number",
-                                                    "example": 25.5
+                                                    "type": "string",
+                                                    "example": "25.50"
                                                 },
                                                 "asset": {
                                                     "type": "string",
                                                     "example": "USDC"
                                                 },
-                                                "merchant": {
-                                                    "properties": {
-                                                        "displayName": {
-                                                            "type": "string",
-                                                            "example": "Coffee Shop"
-                                                        }
-                                                    },
-                                                    "type": "object"
-                                                },
-                                                "timestamp": {
+                                                "dateTime": {
                                                     "type": "string",
                                                     "format": "date-time"
                                                 },
-                                                "hash": {
-                                                    "description": "On-chain transaction hash",
-                                                    "type": "string"
+                                                "networkFee": {
+                                                    "type": "string",
+                                                    "example": "0.01 USD"
+                                                },
+                                                "sharePayload": {
+                                                    "description": "Public URL of the hosted receipt page",
+                                                    "type": "string",
+                                                    "example": "https://app.zelta.app/receipt/abc..."
+                                                },
+                                                "pdfUrl": {
+                                                    "description": "Public URL of the downloadable receipt PDF (null if generation failed)",
+                                                    "type": "string",
+                                                    "example": "https://app.zelta.app/storage/receipts/abc....pdf",
+                                                    "nullable": true
                                                 }
                                             },
                                             "type": "object"
@@ -29745,13 +30056,14 @@
                     {
                         "name": "asset",
                         "in": "query",
-                        "description": "Payment asset (currently only USDC supported)",
+                        "description": "Payment asset (USDC or USDT)",
                         "required": true,
                         "schema": {
                             "type": "string",
                             "example": "USDC",
                             "enum": [
-                                "USDC"
+                                "USDC",
+                                "USDT"
                             ]
                         }
                     },
@@ -35131,6 +35443,9 @@
                     },
                     "401": {
                         "description": "Unauthenticated"
+                    },
+                    "503": {
+                        "description": "Privacy pool not available"
                     }
                 },
                 "security": [
@@ -40012,79 +40327,6 @@
                     },
                     "401": {
                         "description": "Unauthorized"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/api/v1/rewards/quests/{id}/complete": {
-            "post": {
-                "tags": [
-                    "Rewards"
-                ],
-                "summary": "Complete a quest",
-                "description": "Marks a quest as completed and awards XP/points to the user.",
-                "operationId": "completeRewardsQuest",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Quest completed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "data": {
-                                            "properties": {
-                                                "quest_id": {
-                                                    "type": "string"
-                                                },
-                                                "xp_earned": {
-                                                    "type": "integer",
-                                                    "example": 50
-                                                },
-                                                "points_earned": {
-                                                    "type": "integer",
-                                                    "example": 100
-                                                },
-                                                "new_level": {
-                                                    "type": "integer",
-                                                    "example": 2
-                                                },
-                                                "level_up": {
-                                                    "type": "boolean",
-                                                    "example": true
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    },
-                    "422": {
-                        "description": "Quest already completed or not found"
                     }
                 },
                 "security": [
@@ -47483,6 +47725,182 @@
                 ]
             }
         },
+        "/api/v1/user/bridge-setup-status": {
+            "get": {
+                "tags": [
+                    "Bridge Setup"
+                ],
+                "summary": "Get Bridge.xyz KYC + virtual account setup status for the authenticated user",
+                "description": "Reads from local DB cache populated by Bridge webhooks; never hits Bridge synchronously.",
+                "operationId": "v1UserBridgeSetupStatus",
+                "responses": {
+                    "200": {
+                        "description": "Bridge setup state",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "kycStatus": {
+                                            "type": "string",
+                                            "example": "not_started",
+                                            "enum": [
+                                                "not_started",
+                                                "pending",
+                                                "approved",
+                                                "rejected"
+                                            ]
+                                        },
+                                        "virtualAccountReady": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "supportedRails": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "ach",
+                                                    "sepa",
+                                                    "sepa_instant"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/user/bridge-kyc-link": {
+            "post": {
+                "tags": [
+                    "Bridge Setup"
+                ],
+                "summary": "Issue a hosted KYC link the user opens in an in-app browser",
+                "description": "Lazily provisions the Bridge customer on first call (idempotent via Idempotency-Key: bridge_customer:{user_id}), then returns a hosted KYC link URL.",
+                "operationId": "v1UserBridgeKycLink",
+                "responses": {
+                    "200": {
+                        "description": "Hosted KYC link",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "url": {
+                                            "type": "string",
+                                            "format": "uri",
+                                            "example": "https://kyc.bridge.xyz/abc123"
+                                        },
+                                        "expiresAt": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "409": {
+                        "description": "KYC already approved or in progress"
+                    },
+                    "501": {
+                        "description": "Provider implementation deferred"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/user/bridge-va-provision": {
+            "post": {
+                "tags": [
+                    "Bridge Setup"
+                ],
+                "summary": "Trigger Bridge virtual account provisioning for the authenticated user",
+                "description": "Idempotent retry path for the ramp screen: if KYC is approved + a Polygon address exists + no VA yet, calls Bridge to provision one. Mobile calls this on screen mount when bridge-setup-status reports kycStatus=approved && !virtualAccountReady.",
+                "operationId": "v1UserBridgeVaProvision",
+                "responses": {
+                    "200": {
+                        "description": "Current VA state after the provisioning attempt. virtualAccountReady=false means Bridge is still processing OR the call failed (check /bridge-setup-status again, listen for bridge.virtual_account.ready WS event).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "virtualAccountReady": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "supportedRails": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "ach",
+                                                    "sepa",
+                                                    "sepa_instant"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "409": {
+                        "description": "KYC not approved, no Polygon address, or VA already provisioned"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/webhooks/bridge": {
+            "post": {
+                "tags": [
+                    "Bridge Webhooks"
+                ],
+                "summary": "Bridge.xyz event webhook (both KYC and ramp events)",
+                "description": "Signature-verified via the X-Webhook-Signature header (RSA-SHA256 against Bridge's per-endpoint public key; legacy HMAC Bridge-Signature accepted as fallback). Dispatches by event_type to either KYC or ramp handlers.",
+                "operationId": "v1BridgeWebhook",
+                "responses": {
+                    "200": {
+                        "description": "Event accepted (or ignored as no-op)"
+                    },
+                    "401": {
+                        "description": "Invalid signature"
+                    },
+                    "400": {
+                        "description": "Invalid payload"
+                    }
+                }
+            }
+        },
         "/api/v1/monitoring/live-dashboard": {
             "get": {
                 "tags": [
@@ -47676,6 +48094,21 @@
                                                 }
                                             },
                                             "type": "object"
+                                        },
+                                        "notifications": {
+                                            "description": "Flat alias of `data` for the mobile client.",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "total": {
+                                            "description": "Flat alias of `meta.total`.",
+                                            "type": "integer"
+                                        },
+                                        "unread": {
+                                            "description": "Flat alias of `meta.unread_count`.",
+                                            "type": "integer"
                                         }
                                     },
                                     "type": "object"
@@ -47898,7 +48331,7 @@
                                                 },
                                                 "provider": {
                                                     "type": "string",
-                                                    "example": "stripe_bridge"
+                                                    "example": "stripe_crypto_onramp"
                                                 },
                                                 "valid_until": {
                                                     "type": "string",
@@ -48062,7 +48495,7 @@
                                             "properties": {
                                                 "provider": {
                                                     "type": "string",
-                                                    "example": "stripe_bridge"
+                                                    "example": "stripe_crypto_onramp"
                                                 },
                                                 "fiat_currencies": {
                                                     "type": "array",
@@ -48116,7 +48549,7 @@
                 "tags": [
                     "Ramp"
                 ],
-                "summary": "Ramp provider webhook (Stripe Bridge, Onramper, etc.)",
+                "summary": "Ramp provider webhook (Stripe Crypto Onramp, Onramper, Bridge.xyz, etc.)",
                 "operationId": "v1RampWebhook",
                 "parameters": [
                     {
@@ -48124,11 +48557,13 @@
                         "in": "path",
                         "required": true,
                         "schema": {
+                            "description": "`stripe_bridge` is deprecated — use `stripe_crypto_onramp`",
                             "type": "string",
                             "enum": [
-                                "stripe_bridge",
+                                "stripe_crypto_onramp",
                                 "onramper",
-                                "mock"
+                                "mock",
+                                "stripe_bridge"
                             ]
                         }
                     }
@@ -53557,6 +53992,75 @@
                         "sanctum": []
                     }
                 ]
+            },
+            "post": {
+                "tags": [
+                    "Mobile Wallet"
+                ],
+                "summary": "Register Privy-derived addresses",
+                "description": "Stores the user's on-device-derived EVM smart-account address (same across all 4 EVM chains) plus their Solana ed25519 pubkey. Idempotent — re-posting the same payload is a no-op.",
+                "operationId": "walletRegisterAddresses",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "evm",
+                                    "solana"
+                                ],
+                                "properties": {
+                                    "evm": {
+                                        "required": [
+                                            "address"
+                                        ],
+                                        "properties": {
+                                            "address": {
+                                                "type": "string",
+                                                "example": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+                                            },
+                                            "ownerPasskeyCredentialId": {
+                                                "type": "string",
+                                                "example": "cred_abc123",
+                                                "nullable": true
+                                            }
+                                        },
+                                        "type": "object"
+                                    },
+                                    "solana": {
+                                        "required": [
+                                            "address"
+                                        ],
+                                        "properties": {
+                                            "address": {
+                                                "type": "string",
+                                                "example": "EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Addresses registered"
+                    },
+                    "422": {
+                        "description": "Invalid address or address already owned by a different user"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/api/v1/wallet/transactions": {
@@ -53701,61 +54205,28 @@
                 ]
             }
         },
-        "/api/v1/wallet/transactions/send": {
-            "post": {
+        "/api/v1/wallet/transactions/by-intent/{intentId}": {
+            "get": {
                 "tags": [
                     "Mobile Wallet"
                 ],
-                "summary": "Send a transaction",
-                "description": "Creates a payment intent and auto-submits it to send tokens to a recipient address.",
-                "operationId": "walletSend",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "to",
-                                    "token",
-                                    "amount",
-                                    "network"
-                                ],
-                                "properties": {
-                                    "to": {
-                                        "description": "Recipient address",
-                                        "type": "string",
-                                        "example": "0x1234...abcd"
-                                    },
-                                    "token": {
-                                        "description": "Token symbol",
-                                        "type": "string",
-                                        "example": "USDC",
-                                        "enum": [
-                                            "USDC",
-                                            "USDT",
-                                            "WETH",
-                                            "WBTC"
-                                        ]
-                                    },
-                                    "amount": {
-                                        "description": "Amount to send",
-                                        "type": "string",
-                                        "example": "100.00"
-                                    },
-                                    "network": {
-                                        "description": "Target network",
-                                        "type": "string",
-                                        "example": "polygon"
-                                    }
-                                },
-                                "type": "object"
-                            }
+                "summary": "Get wallet send status by intent id",
+                "description": "Returns the live status of a wallet send identified by its prepare/submit intent id.",
+                "operationId": "walletTransactionByIntent",
+                "parameters": [
+                    {
+                        "name": "intentId",
+                        "in": "path",
+                        "description": "Send intent id (pi_send_…)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
                         }
                     }
-                },
+                ],
                 "responses": {
-                    "201": {
-                        "description": "Transaction submitted",
+                    "200": {
+                        "description": "Wallet send status",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -53765,7 +54236,7 @@
                                             "example": true
                                         },
                                         "data": {
-                                            "description": "Payment intent result",
+                                            "description": "Wallet send status object",
                                             "type": "object"
                                         }
                                     },
@@ -53774,34 +54245,138 @@
                             }
                         }
                     },
-                    "422": {
-                        "description": "Send failed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": false
-                                        },
-                                        "error": {
-                                            "properties": {
-                                                "code": {
-                                                    "type": "string",
-                                                    "example": "SEND_FAILED"
-                                                },
-                                                "message": {
-                                                    "type": "string",
-                                                    "example": "Insufficient balance."
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
+                    "404": {
+                        "description": "Intent not found"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/wallet/transactions/prepare": {
+            "post": {
+                "tags": [
+                    "Mobile Wallet"
+                ],
+                "summary": "Prepare an unsigned send payload",
+                "description": "Builds the unsigned Solana legacy-tx message bytes (ed25519) or ERC-4337 v0.6 UserOp hash (with Pimlico paymaster sponsorship) for the device to sign via Privy. Persists a `pending` wallet_send_record. Mobile signs and POSTs the signature to /transactions/submit.",
+                "operationId": "walletTransactionPrepare",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "to",
+                                    "token",
+                                    "amount",
+                                    "network",
+                                    "quote_id"
+                                ],
+                                "properties": {
+                                    "to": {
+                                        "type": "string",
+                                        "example": "0x1234...abcd or base58 Solana pubkey"
                                     },
-                                    "type": "object"
-                                }
+                                    "token": {
+                                        "type": "string",
+                                        "example": "USDC",
+                                        "enum": [
+                                            "USDC",
+                                            "USDT"
+                                        ]
+                                    },
+                                    "amount": {
+                                        "description": "Decimal major units. Send \"1\" or \"1.5\"; not \"1000000\".",
+                                        "type": "string",
+                                        "example": "1.50"
+                                    },
+                                    "network": {
+                                        "description": "SOLANA | TRON | polygon | base | arbitrum | ethereum (case-sensitive — must match the exact PaymentNetwork enum value, same as the value returned in quote response)",
+                                        "type": "string",
+                                        "example": "SOLANA"
+                                    },
+                                    "quote_id": {
+                                        "description": "Canonical snake_case. The legacy camelCase `quoteId` is also accepted.",
+                                        "type": "string",
+                                        "example": "q_abc123"
+                                    }
+                                },
+                                "type": "object"
                             }
                         }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Unsigned payload ready"
+                    },
+                    "409": {
+                        "description": "Idempotency conflict"
+                    },
+                    "422": {
+                        "description": "Validation / address / asset / amount / network error"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/wallet/transactions/submit": {
+            "post": {
+                "tags": [
+                    "Mobile Wallet"
+                ],
+                "summary": "Submit a signed payload",
+                "description": "Attaches a Privy-produced signature (ed25519 for Solana, smart-wallet signature blob for EVM) to the matching prepared record and broadcasts via Helius / Pimlico.",
+                "operationId": "walletTransactionSubmit",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "intent_id",
+                                    "signature"
+                                ],
+                                "properties": {
+                                    "intent_id": {
+                                        "description": "Canonical snake_case. The legacy camelCase `intentId` is also accepted.",
+                                        "type": "string",
+                                        "example": "pi_send_abc123"
+                                    },
+                                    "signature": {
+                                        "description": "For Solana: 64-byte ed25519 signature, base64-encoded. For EVM: 0x-prefixed hex signature blob from Privy smart wallet.",
+                                        "type": "string",
+                                        "example": "0x... or base64 ed25519"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Submitted (or already submitted)"
+                    },
+                    "404": {
+                        "description": "Intent not found for this user"
+                    },
+                    "422": {
+                        "description": "Bad signature / state"
                     },
                     "401": {
                         "description": "Unauthorized"
@@ -53883,316 +54458,6 @@
                     },
                     "401": {
                         "description": "Unauthorized"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/api/v1/wallet/recovery-shard-backup": {
-            "get": {
-                "tags": [
-                    "Recovery Shard Backup"
-                ],
-                "summary": "List recovery shard cloud backups for the authenticated user",
-                "operationId": "listRecoveryShardBackups",
-                "parameters": [
-                    {
-                        "name": "device_id",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "backup_provider",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "icloud",
-                                "google_drive",
-                                "manual"
-                            ]
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "List of backups"
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "post": {
-                "tags": [
-                    "Recovery Shard Backup"
-                ],
-                "summary": "Register or update a recovery shard cloud backup",
-                "operationId": "storeRecoveryShardBackup",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "device_id",
-                                    "backup_provider",
-                                    "encrypted_shard_hash",
-                                    "shard_version"
-                                ],
-                                "properties": {
-                                    "device_id": {
-                                        "type": "string",
-                                        "example": "device_abc123"
-                                    },
-                                    "backup_provider": {
-                                        "type": "string",
-                                        "example": "icloud",
-                                        "enum": [
-                                            "icloud",
-                                            "google_drive",
-                                            "manual"
-                                        ]
-                                    },
-                                    "encrypted_shard_hash": {
-                                        "type": "string",
-                                        "example": "sha256hash..."
-                                    },
-                                    "shard_version": {
-                                        "type": "string",
-                                        "example": "v1"
-                                    },
-                                    "metadata": {
-                                        "type": "object",
-                                        "nullable": true
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "Backup registered"
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    },
-                    "422": {
-                        "description": "Validation error"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "Recovery Shard Backup"
-                ],
-                "summary": "Delete a recovery shard cloud backup",
-                "operationId": "deleteRecoveryShardBackup",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "device_id",
-                                    "backup_provider"
-                                ],
-                                "properties": {
-                                    "device_id": {
-                                        "type": "string",
-                                        "example": "device_abc123"
-                                    },
-                                    "backup_provider": {
-                                        "type": "string",
-                                        "example": "icloud",
-                                        "enum": [
-                                            "icloud",
-                                            "google_drive",
-                                            "manual"
-                                        ]
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Backup deleted"
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    },
-                    "404": {
-                        "description": "Backup not found"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/api/v1/wallet/recovery-shard-backup/retrieve": {
-            "get": {
-                "tags": [
-                    "Recovery Shard Backup"
-                ],
-                "summary": "Retrieve the encrypted shard blob for a specific device and provider",
-                "operationId": "retrieveRecoveryShardBackup",
-                "parameters": [
-                    {
-                        "name": "device_id",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "backup_provider",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "icloud",
-                                "google_drive",
-                                "manual"
-                            ]
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Encrypted shard retrieved",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "data": {
-                                            "properties": {
-                                                "encrypted_shard": {
-                                                    "description": "Base64-encoded encrypted shard blob",
-                                                    "type": "string"
-                                                },
-                                                "shard_version": {
-                                                    "type": "string",
-                                                    "example": "v1"
-                                                },
-                                                "encrypted_shard_hash": {
-                                                    "type": "string",
-                                                    "example": "sha256hash..."
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Backup not found"
-                    },
-                    "422": {
-                        "description": "Validation error"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/api/v1/wallet/recovery/reconstruct": {
-            "post": {
-                "tags": [
-                    "Recovery Shard Backup"
-                ],
-                "summary": "Reconstruct key from device and recovery shards",
-                "description": "Uses KeyReconstructionService to combine device shard + recovery shard into an ephemeral key for client-side signing.",
-                "operationId": "reconstructRecoveryKey",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "device_shard",
-                                    "recovery_shard"
-                                ],
-                                "properties": {
-                                    "device_shard": {
-                                        "description": "Base64-encoded device shard",
-                                        "type": "string"
-                                    },
-                                    "recovery_shard": {
-                                        "description": "Base64-encoded recovery shard",
-                                        "type": "string"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Key reconstructed successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "data": {
-                                            "properties": {
-                                                "reconstructed_key": {
-                                                    "description": "Ephemeral key — use immediately and discard",
-                                                    "type": "string"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Recovery failed — invalid shards"
                     }
                 },
                 "security": [
@@ -61660,10 +61925,6 @@
             "description": "User authentication and authorization"
         },
         {
-            "name": "UserOp Signing",
-            "description": "Sign ERC-4337 UserOperations with authentication shard"
-        },
-        {
             "name": "BIAN",
             "description": "BIAN-compliant banking service operations"
         },
@@ -61977,10 +62238,6 @@
             "description": "Vote management and history operations"
         },
         {
-            "name": "Recovery Shard Backup",
-            "description": "Cloud backup metadata for encrypted recovery shards"
-        },
-        {
             "name": "WebSocket Subscriptions",
             "description": "Manage paid WebSocket channel subscriptions"
         },
@@ -62007,6 +62264,10 @@
         {
             "name": "X402 Protocol",
             "description": "HTTP 402 Payment Protocol - native micropayments for APIs"
+        },
+        {
+            "name": "Subscription",
+            "description": "Subscription"
         },
         {
             "name": "AI Agents",
@@ -62047,6 +62308,14 @@
         {
             "name": "Banners",
             "description": "Banners"
+        },
+        {
+            "name": "Bridge Setup",
+            "description": "Bridge Setup"
+        },
+        {
+            "name": "Bridge Webhooks",
+            "description": "Bridge Webhooks"
         },
         {
             "name": "Notifications",

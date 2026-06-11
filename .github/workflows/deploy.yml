@@ -135,14 +135,14 @@ jobs:
           # at 1G after accumulating Eloquent class definitions, container
           # singletons, and observers across hundreds of tests.
           # Mirrors 03-test-suite.yml's Unit Tests step.
-          chmod +x ./bin/pest-batch
+          chmod +x ./bin/pest-batch ./bin/pest-rest
 
           ./bin/pest-batch tests/Unit/Domain || exit 1
           ./bin/pest-batch tests/Unit/Http tests/Unit/Services || exit 1
 
-          if [ -d "tests/Unit/Filament" ] || [ -d "tests/Unit/Http/Middleware" ]; then
-            ./bin/pest-batch tests/Unit/Filament tests/Unit/Http/Middleware || exit 1
-          fi
+          # Everything else under tests/Unit — computed by exclusion so new
+          # directories are always picked up (mirrors 03-test-suite.yml)
+          ./bin/pest-rest tests/Unit tests/Unit/Domain tests/Unit/Http tests/Unit/Services || exit 1
 
   build-artifacts:
     name: Build Release Artifacts

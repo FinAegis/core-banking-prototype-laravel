@@ -14,12 +14,27 @@ npm install -g @finaegis/cli
 composer global require finaegis/cli
 ```
 
+## Authentication
+
+The CLI authenticates with a **Sanctum personal access token**:
+
+1. Sign in to the Zelta dashboard and open **Profile → API Tokens** (`/user/api-tokens`).
+2. Create a token with the abilities you need (`read`, `write`, `delete`).
+3. Log in — the token is verified against the API before being stored in `~/.zelta/credentials.json`:
+
+```bash
+zelta auth:login --key <api-token>
+```
+
+A rejected token fails at login time (exit code 2), not on first use. `zelta auth:status` and `zelta whoami` re-verify the stored token server-side.
+
 ## Quick Start
 
 ```bash
-zelta auth:login --key zk_live_xxx
+zelta auth:login --key <api-token>
 zelta pay:list --status settled
 zelta sms:send --to +37060012345 --message "Your code: 847291"
+zelta wallet:transactions --limit 10
 zelta endpoints:list
 ```
 
@@ -30,11 +45,13 @@ zelta endpoints:list
 | `auth` | login, logout, status, token |
 | `pay` | send, status, list, stats |
 | `sms` | send, status, rates |
-| `wallet` | balance, send, tokens |
+| `wallet` | balance, transactions, intent, tokens |
 | `limits` | list, set, remove |
 | `endpoints` | list |
 | `agents` | register, discover |
 | `sdk` | generate |
+
+> **Note on wallet sends** — Zelta wallets are non-custodial: every transaction is signed on-device (Privy passkey / device key), so the CLI cannot send funds. `wallet:transactions` and `wallet:intent` give read-only visibility into wallet activity and send intents.
 
 ## AI Agent Support
 

@@ -15,7 +15,12 @@ class BasketsRebalanceCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'baskets:rebalance {--dry-run : Show what would be rebalanced without making changes}';
+    // Renamed from baskets:rebalance — that name collided with
+    // RebalanceBasketsCommand (both auto-discovered via bootstrap/app.php),
+    // leaving one of the two silently unreachable depending on registration
+    // order. This variant applies PASSED VOTING PROPOSALS; the dynamic
+    // threshold rebalancer keeps the original name.
+    protected $signature = 'baskets:apply-vote {--dry-run : Show what would be rebalanced without making changes}';
 
     /**
      * The console command description.

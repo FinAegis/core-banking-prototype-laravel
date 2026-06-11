@@ -19,6 +19,9 @@ use Illuminate\Database\Eloquent\Model;
  * @property int    $amount_cents
  * @property string $currency
  * @property string $status
+ * @property string|null $reconciliation_note
+ * @property string|null $reconciled_by
+ * @property \Illuminate\Support\Carbon|null $reconciled_at
  */
 class HyperSwitchDepositIntent extends Model
 {
@@ -34,6 +37,12 @@ class HyperSwitchDepositIntent extends Model
     /** Claimed + payment succeeded, but the credit/completion threw — needs reconciliation. */
     public const STATUS_COMPLETION_FAILED = 'completion_failed';
 
+    /**
+     * An operator manually settled a completion_failed case (see the admin
+     * "Mark reconciled" action). The note/by/at columns carry the audit trail.
+     */
+    public const STATUS_RECONCILED = 'reconciled';
+
     protected $table = 'hyperswitch_deposit_intents';
 
     protected $fillable = [
@@ -47,6 +56,7 @@ class HyperSwitchDepositIntent extends Model
     ];
 
     protected $casts = [
-        'amount_cents' => 'integer',
+        'amount_cents'  => 'integer',
+        'reconciled_at' => 'datetime',
     ];
 }

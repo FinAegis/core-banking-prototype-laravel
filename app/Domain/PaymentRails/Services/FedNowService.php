@@ -18,19 +18,16 @@ use SimpleXMLElement;
 
 final class FedNowService
 {
+    // Plain class-strings: constructor-injecting the value objects as
+    // "templates" made this service unbuildable by the container (Pacs008
+    // requires a string $messageId), which broke every consumer resolved
+    // through it — including GraphQL schema introspection, where Lighthouse
+    // constructs all @field resolvers.
     /** @var class-string<Pacs008> */
-    private string $pacs008Class;
+    private string $pacs008Class = Pacs008::class;
 
     /** @var class-string<Pacs002> */
-    private string $pacs002Class;
-
-    public function __construct(
-        Pacs008 $pacs008Template,
-        Pacs002 $pacs002Template,
-    ) {
-        $this->pacs008Class = $pacs008Template::class;
-        $this->pacs002Class = $pacs002Template::class;
-    }
+    private string $pacs002Class = Pacs002::class;
 
     /**
      * Send an instant payment via FedNow using ISO 20022 Pacs.008.
@@ -49,7 +46,11 @@ final class FedNowService
     ): array {
         $maxAmount = (int) config('payment_rails.fednow.max_amount', 50000000);
 
-        if ((int) round((float) $amount * 100) > $maxAmount) {
+        if (! is_numeric($amount)) {
+            throw new InvalidArgumentException("FedNow amount must be a numeric string, got '{$amount}'.");
+        }
+
+        if (bccomp(bcmul($amount, '100', 2), (string) $maxAmount, 2) === 1) {
             throw new InvalidArgumentException(
                 "FedNow amount {$amount} exceeds maximum allowed {$maxAmount} cents."
             );

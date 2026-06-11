@@ -1,0 +1,24 @@
+{
+    "$schema": "https://finaegis.io/schemas/module.json",
+    "name": "finaegis/ledger",
+    "version": "1.0.0",
+    "description": "Double-entry ledger abstraction with pluggable drivers (Eloquent default)",
+    "type": "core",
+    "dependencies": {
+        "required": {
+            "finaegis/shared": "^1.0"
+        },
+        "optional": {}
+    },
+    "provides": {
+        "interfaces": [],
+        "events": [],
+        "commands": []
+    },
+    "paths": {
+        "routes": "Routes/api.php",
+        "migrations": null,
+        "config": null,
+        "tests": null
+    }
+}

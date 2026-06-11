@@ -454,7 +454,11 @@ it('loads the bundled Apple Root CA G3 cert from disk and pins by computed finge
 
 it('respects APPLE_JWS_VERIFICATION_BYPASS=true (operator escape hatch)', function (): void {
     // No pins configured — but bypass flag is set, so we never reach the
-    // chain validator. This is the documented staging escape hatch.
+    // chain validator. This is the documented staging escape hatch: it is
+    // honoured only OUTSIDE production (the file-wide beforeEach pins env to
+    // production, where the verifier rightly refuses the bypass) and outside
+    // the local/testing early-return.
+    $this->app['env'] = 'staging';
     $chain = buildSyntheticAppleChain();
     config([
         'subscription.iap.apple.root_ca_path'            => null,

@@ -29,6 +29,7 @@ use App\Domain\Wallet\Services\Send\EvmUserOpPreparer;
 use App\Domain\Wallet\Services\Send\EvmUserOpSubmitter;
 use App\Domain\Wallet\Services\Send\SolanaSendPreparer;
 use App\Domain\Wallet\Services\Send\SolanaSendSubmitter;
+use App\Domain\Wallet\Services\SponsorshipCostTracker;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -51,6 +52,7 @@ class MobileWalletController extends Controller
         private readonly SolanaSendSubmitter $solanaSendSubmitter,
         private readonly EvmUserOpPreparer $evmUserOpPreparer,
         private readonly EvmUserOpSubmitter $evmUserOpSubmitter,
+        private readonly SponsorshipCostTracker $sponsorshipCostTracker,
     ) {
     }
 
@@ -885,13 +887,35 @@ class MobileWalletController extends Controller
      */
     private function enforceSendRateLimit(\App\Models\User $user): ?JsonResponse
     {
+        // Value-denominated budget: when WALLET_SPONSORSHIP_DAILY_BUDGET_USD
+        // is configured, stop new prepares once today's accumulated sponsored
+        // spend reaches it. The counter is incremented at confirmation time —
+        // when the real on-chain fee is known — so the budget is checked
+        // pre-send but charged post-confirmation. A burst of in-flight sends
+        // can therefore overshoot the budget slightly; accepted, because the
+        // overshoot is bounded by the count caps below.
+        if ($this->sponsorshipCostTracker->isDailyBudgetExhausted()) {
+            Log::critical('wallet.send daily sponsorship USD budget exhausted', [
+                'spent_usd_micro' => $this->sponsorshipCostTracker->todaysSpendUsdMicro(),
+                'budget_usd'      => $this->sponsorshipCostTracker->dailyBudgetUsd(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error'   => [
+                    'code'    => 'SEND_TEMPORARILY_UNAVAILABLE',
+                    'message' => 'Sends are temporarily paused. Please try again later.',
+                ],
+            ], 429);
+        }
+
         $perUserLimit = (int) config('wallet.sponsorship.per_user_daily_limit', 30);
         $globalLimit = (int) config('wallet.sponsorship.global_daily_limit', 5000);
 
         $day = now()->utc()->format('Y-m-d');
         $expiry = now()->addDay();
         $perUserKey = "wallet_send:count:user:{$user->id}:{$day}";
-        $globalKey = "wallet_send:count:global:{$day}";
+        $globalKey = SponsorshipCostTracker::globalSendCountCacheKey();
 
         // Cache::add + increment — never read-then-write (concurrency-safe).
         Cache::add($perUserKey, 0, $expiry);

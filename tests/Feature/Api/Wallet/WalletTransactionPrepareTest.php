@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api\Wallet;
 
+use App\Domain\Wallet\Services\SponsorshipCostTracker;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
@@ -211,5 +212,49 @@ class WalletTransactionPrepareTest extends TestCase
 
         $this->withToken($this->token)->postJson('/api/v1/wallet/transactions/prepare', $body)
             ->assertStatus(429)->assertJsonPath('error.code', 'SEND_TEMPORARILY_UNAVAILABLE');
+    }
+
+    public function test_prepare_blocks_when_daily_usd_budget_is_exhausted(): void
+    {
+        config(['wallet.sponsorship.daily_budget_usd' => '10']);
+
+        // Simulate $10.000000 of sponsored spend accumulated by confirmations.
+        $key = SponsorshipCostTracker::budgetCacheKey();
+        Cache::add($key, 0, now()->addDay());
+        Cache::increment($key, 10_000_000);
+
+        $body = [
+            'to'       => '0x742d35cc6634c0532925a3b844bc454e4438f44e',
+            'token'    => 'USDC',
+            'amount'   => '1.50',
+            'network'  => 'polygon',
+            'quote_id' => 'q_test_budget',
+        ];
+
+        // Same 429 shape as the global count ceiling.
+        $this->withToken($this->token)->postJson('/api/v1/wallet/transactions/prepare', $body)
+            ->assertStatus(429)->assertJsonPath('error.code', 'SEND_TEMPORARILY_UNAVAILABLE');
+    }
+
+    public function test_prepare_ignores_spend_counter_when_no_budget_is_configured(): void
+    {
+        config(['wallet.sponsorship.daily_budget_usd' => null]);
+
+        // Massive accumulated spend, but no budget configured → no behavior change.
+        $key = SponsorshipCostTracker::budgetCacheKey();
+        Cache::add($key, 0, now()->addDay());
+        Cache::increment($key, 999_999_999);
+
+        $body = [
+            'to'       => '0x742d35cc6634c0532925a3b844bc454e4438f44e',
+            'token'    => 'USDC',
+            'amount'   => '1.50',
+            'network'  => 'polygon',
+            'quote_id' => 'q_test_no_budget',
+        ];
+
+        // Fails later for an unrelated reason (no sender address) — not a 429.
+        $this->withToken($this->token)->postJson('/api/v1/wallet/transactions/prepare', $body)
+            ->assertStatus(422)->assertJsonPath('error.code', 'NO_SENDER_ADDRESS');
     }
 }

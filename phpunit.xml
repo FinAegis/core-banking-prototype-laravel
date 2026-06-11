@@ -24,6 +24,18 @@
         <testsuite name="Integration">
             <directory>tests/Domain</directory>
             <directory>tests/Console</directory>
+            <directory>tests/Integration</directory>
+        </testsuite>
+        <testsuite name="Components">
+            <directory>tests/Actions</directory>
+            <directory>tests/Filament</directory>
+            <directory>tests/Http</directory>
+            <directory>tests/Infrastructure</directory>
+            <directory>tests/Models</directory>
+            <directory>tests/Providers</directory>
+            <directory>tests/Values</directory>
+            <directory>tests/View</directory>
+            <directory>tests/Smoke</directory>
         </testsuite>
         <testsuite name="Security">
             <directory>tests/Security</directory>

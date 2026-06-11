@@ -47,7 +47,7 @@ class ApiScopeEnforcementTest extends DomainTestCase
 
         $this->assertEquals(403, $response->status());
         $this->assertEquals('INSUFFICIENT_SCOPE', $response->json('error'));
-        $this->assertContains('write', $response->json('required_scopes'));
+        $this->assertEquals('write', $response->json('required_scope'));
     }
 
     #[Test]
@@ -78,7 +78,7 @@ class ApiScopeEnforcementTest extends DomainTestCase
 
         $this->assertEquals(403, $response->status());
         $this->assertEquals('INSUFFICIENT_SCOPE', $response->json('error'));
-        $this->assertContains('delete', $response->json('required_scopes'));
+        $this->assertEquals('delete', $response->json('required_scope'));
 
         // Verify account still exists
         $this->assertDatabaseHas('accounts', [
@@ -101,7 +101,7 @@ class ApiScopeEnforcementTest extends DomainTestCase
 
         $this->assertEquals(403, $response->status());
         $this->assertEquals('INSUFFICIENT_SCOPE', $response->json('error'));
-        $this->assertContains('delete', $response->json('required_scopes'));
+        $this->assertEquals('delete', $response->json('required_scope'));
     }
 
     #[Test]
@@ -209,7 +209,7 @@ class ApiScopeEnforcementTest extends DomainTestCase
 
         $this->assertEquals(403, $response->status());
         $this->assertEquals('INSUFFICIENT_SCOPE', $response->json('error'));
-        $this->assertContains('write', $response->json('required_scopes'));
+        $this->assertEquals('write', $response->json('required_scope'));
     }
 
     #[Test]

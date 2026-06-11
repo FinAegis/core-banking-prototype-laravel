@@ -70,7 +70,7 @@ class RegisterCommand extends Command
         }
 
         $api = new ApiClient($auth);
-        $result = $api->post('/v1/agent-protocol/agents/register', $payload);
+        $result = $api->post('/agent-protocol/agents/register', $payload);
 
         if ($result['status'] >= 400) {
             $formatter->error('API_ERROR', $result['body']['message'] ?? "HTTP {$result['status']}");

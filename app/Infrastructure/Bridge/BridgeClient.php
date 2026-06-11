@@ -111,6 +111,48 @@ final class BridgeClient
     }
 
     /**
+     * Delete a Bridge customer record (GDPR Art. 17(2) processor fan-out).
+     *
+     * A 404 is treated as success — the customer is already gone (Bridge's
+     * sandbox purges records periodically), so the call stays idempotent and
+     * a local erasure is never blocked by a missing remote record. Any other
+     * non-2xx follows the client convention and throws RuntimeException.
+     */
+    public function deleteCustomer(string $customerId): void
+    {
+        $path = "/v0/customers/{$customerId}";
+
+        $response = Http::withHeaders($this->apiHeaders())
+            ->acceptJson()
+            ->delete($this->baseUrl . $path);
+
+        if ($response->status() === 404) {
+            Log::info('Bridge customer already absent during GDPR deletion', [
+                'path'   => $path,
+                'status' => 404,
+            ]);
+
+            return;
+        }
+
+        if ($response->failed()) {
+            Log::warning('Bridge API call failed', [
+                'verb'   => 'DELETE',
+                'path'   => $path,
+                'status' => $response->status(),
+                'body'   => $response->body(),
+            ]);
+
+            throw new RuntimeException(sprintf(
+                'Bridge API DELETE %s returned %d: %s',
+                $path,
+                $response->status(),
+                $response->body(),
+            ));
+        }
+    }
+
+    /**
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
      */

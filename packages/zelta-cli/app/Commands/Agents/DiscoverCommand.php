@@ -46,7 +46,7 @@ class DiscoverCommand extends Command
 
         $api = new ApiClient($auth);
         $query = array_filter(['capability' => $input->getOption('capability')]);
-        $result = $api->get('/v1/agent-protocol/agents/discover', $query);
+        $result = $api->get('/agent-protocol/agents/discover', $query);
 
         if ($result['status'] !== 200) {
             $formatter->error('API_ERROR', $result['body']['message'] ?? 'Failed to discover agents');

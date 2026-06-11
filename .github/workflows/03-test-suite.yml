@@ -64,7 +64,9 @@ jobs:
           php-version: ${{ env.PHP_VERSION }}
           extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, imagick, bcmath, intl, zip, soap, gmp
           tools: composer:v2
-          coverage: xdebug
+          # No job in this workflow generates coverage; loading Xdebug only
+          # slows the suites down.
+          coverage: none
           ini-values: |
             memory_limit=1G
             max_execution_time=360
@@ -149,7 +151,7 @@ jobs:
           # Memory increased to 1G and parallel enabled with 2 processes
 
           # Use the batch runner for memory-efficient execution
-          chmod +x ./bin/pest-batch
+          chmod +x ./bin/pest-batch ./bin/pest-rest
 
           # First batch: Domain unit tests (parallel enabled)
           ./bin/pest-batch tests/Unit/Domain || exit 1
@@ -157,10 +159,13 @@ jobs:
           # Second batch: HTTP and Services unit tests (parallel enabled)
           ./bin/pest-batch tests/Unit/Http tests/Unit/Services || exit 1
 
-          # Third batch: Other unit tests (if they exist)
-          if [ -d "tests/Unit/Filament" ] || [ -d "tests/Unit/Http/Middleware" ]; then
-            ./bin/pest-batch tests/Unit/Filament tests/Unit/Http/Middleware || exit 1
-          fi
+          # Third batch: everything else under tests/Unit — computed by
+          # exclusion, so a new directory can never silently fall out of CI
+          ./bin/pest-rest tests/Unit tests/Unit/Domain tests/Unit/Http tests/Unit/Services || exit 1
+
+          # Fourth batch: top-level component test dirs (Jetstream actions,
+          # Filament admin, smoke tests, ...) that belong to no other job
+          ./bin/pest-batch tests/Actions tests/Filament tests/Http tests/Infrastructure tests/Models tests/Providers tests/Values tests/View tests/Smoke || exit 1
           
       # NOTE: Security tests are NOT run here to avoid duplication.
       # Security tests run comprehensively in 04-security-tests.yml with MySQL:
@@ -179,13 +184,17 @@ jobs:
       #     name: codecov-umbrella
 
   feature-tests:
-    name: Feature Tests
+    name: Feature Tests (${{ matrix.shard }})
     runs-on: ubuntu-latest
-    # Feature Tests suite is consistently sitting just under the previous 25min
-    # cap; consecutive timeouts on the Bridge ramp foundations PR demonstrated
-    # the boundary is real. Bumped to 30 to match the Integration / multi-conn
-    # jobs in this same workflow.
+    # Sharded 3-way: the single job ran 24m+ of a 30m cap and only covered
+    # 7 of 47 tests/Feature directories. Each shard now runs a slice; the
+    # "extended" shard is computed by exclusion (bin/pest-rest) so newly
+    # added directories are always picked up.
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [api, core, extended]
     
     services:
       mysql:
@@ -221,7 +230,7 @@ jobs:
           php-version: ${{ env.PHP_VERSION }}
           extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, imagick, bcmath, intl, zip, soap, gmp
           tools: composer:v2
-          coverage: xdebug
+          coverage: none
           
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -301,17 +310,28 @@ jobs:
           # Run feature tests in batches with 2G memory
           # Parallel disabled for feature tests (database state conflicts)
 
-          # Use the batch runner for memory-efficient execution
-          chmod +x ./bin/pest-batch
+          # Use the batch runners for memory-efficient execution
+          chmod +x ./bin/pest-batch ./bin/pest-rest
 
-          # First batch: Critical feature tests
-          ./bin/pest-batch tests/Feature/Http tests/Feature/Api || exit 1
-
-          # Second batch: Domain feature tests
-          ./bin/pest-batch tests/Feature/Domain tests/Feature/Models || exit 1
-
-          # Third batch: Other feature tests
-          ./bin/pest-batch tests/Feature/Cache tests/Feature/Exchange tests/Feature/Basket || exit 1
+          case "${{ matrix.shard }}" in
+            api)
+              # Largest single directory (~84 files) gets its own shard
+              ./bin/pest-batch tests/Feature/Api || exit 1
+              ;;
+            core)
+              ./bin/pest-batch tests/Feature/Http tests/Feature/Domain tests/Feature/Models || exit 1
+              ./bin/pest-batch tests/Feature/Cache tests/Feature/Exchange tests/Feature/Basket || exit 1
+              ;;
+            extended)
+              # Everything else under tests/Feature — computed by exclusion,
+              # so a new directory can never silently fall out of CI. The
+              # exclusion list must match the api/core shards above.
+              ./bin/pest-rest tests/Feature \
+                tests/Feature/Api \
+                tests/Feature/Http tests/Feature/Domain tests/Feature/Models \
+                tests/Feature/Cache tests/Feature/Exchange tests/Feature/Basket || exit 1
+              ;;
+          esac
 
   integration-tests:
     name: Integration Tests
@@ -352,7 +372,7 @@ jobs:
           php-version: ${{ env.PHP_VERSION }}
           extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, imagick, bcmath, intl, zip, soap, gmp
           tools: composer:v2
-          coverage: xdebug
+          coverage: none
 
       - name: Get Composer Cache Directory
         id: composer-cache

@@ -33,6 +33,15 @@ jobs:
         id: version
         run: echo "version=${GITHUB_REF#refs/tags/cli-v}" >> "$GITHUB_OUTPUT"
 
+      - name: Verify tag matches config/zelta.php version (single source of truth)
+        run: |
+          CONFIG_VERSION=$(php -r "echo (require 'packages/zelta-cli/config/zelta.php')['version'];")
+          TAG_VERSION="${GITHUB_REF#refs/tags/cli-v}"
+          if [ "$CONFIG_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::Tag cli-v${TAG_VERSION} does not match config/zelta.php version ${CONFIG_VERSION}. Bump config/zelta.php first."
+            exit 1
+          fi
+
       - name: Install dependencies
         working-directory: packages/zelta-cli
         run: composer install --no-dev --optimize-autoloader
@@ -77,8 +86,8 @@ jobs:
             Requires PHP 8.4+ on PATH.
 
             ### What's included
-            - 25 commands across 8 resource groups
-            - Multi-profile authentication
+            - Commands for auth, payments, SMS, wallet, limits, agents, endpoints, and SDK generation (`zelta list` for the full set)
+            - Multi-profile authentication with server-side token verification
             - Dual output: tables for humans, JSON for pipes
             - x402 + MPP payment protocol support
           files: |

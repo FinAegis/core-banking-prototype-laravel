@@ -21,6 +21,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $user_op_hash
  * @property string|null $idempotency_key
  * @property string|null $quote_id
+ * @property string|null $sponsored_fee_raw   Sponsored network fee in native units (lamports/wei) as a decimal string — bcmath only, never float
+ * @property string|null $sponsored_fee_asset Asset the sponsored fee was paid in (SOL, MATIC, ETH-BASE, ETH-ARB, ETH)
  * @property string|null $error_code
  * @property string|null $error_message
  * @property array<string, mixed>|null $metadata
@@ -49,6 +51,8 @@ class WalletSendRecord extends Model
         'user_op_hash',
         'idempotency_key',
         'quote_id',
+        'sponsored_fee_raw',
+        'sponsored_fee_asset',
         'error_code',
         'error_message',
         'metadata',

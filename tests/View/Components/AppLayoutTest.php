@@ -12,9 +12,9 @@ it('extends Component', function () {
 });
 
 it('has render method', function () {
-    // The render method is always present in components
-    $component = new AppLayout();
-    expect($component)->toHaveMethod('render');
+    // toHaveMethod needs a class-string — passing an instance trips a
+    // str_contains(null) TypeError inside Pest.
+    expect(AppLayout::class)->toHaveMethod('render');
 });
 
 it('render method returns View', function () {

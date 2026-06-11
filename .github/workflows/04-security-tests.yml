@@ -294,3 +294,9 @@ jobs:
 
       - name: Run Vulnerability Tests
         run: ./vendor/bin/pest tests/Security/Vulnerabilities --configuration=phpunit.security.xml --stop-on-failure
+
+      - name: Run Cryptography Security Tests
+        run: ./vendor/bin/pest tests/Security/Cryptography --configuration=phpunit.security.xml --stop-on-failure
+
+      - name: Run Multi-Tenancy Security Tests
+        run: ./vendor/bin/pest tests/Security/MultiTenancy --configuration=phpunit.security.xml --stop-on-failure

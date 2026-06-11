@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# Pest Rest Runner - catch-all batch for CI
+# Usage: ./bin/pest-rest <parent-dir> [-- excluded-dir ...]
+#
+# Runs every immediate subdirectory of <parent-dir> that is NOT in the
+# exclusion list, plus any loose *Test.php files directly under it.
+# Batches that enumerate directories by hand drift as new directories are
+# added; this runner inverts that — anything not explicitly claimed by an
+# earlier batch runs here, so a new test directory can never silently fall
+# out of CI.
+#
+# Delegates execution to ./bin/pest-batch (same env vars apply).
+
+set -euo pipefail
+
+if [ $# -eq 0 ]; then
+    echo "Usage: $0 <parent-dir> [excluded-dir ...]"
+    echo "Example: $0 tests/Feature tests/Feature/Api tests/Feature/Http"
+    exit 1
+fi
+
+PARENT=${1%/}
+shift
+
+EXCLUDED=()
+for e in "$@"; do
+    [ "$e" = "--" ] && continue
+    EXCLUDED+=("${e%/}")
+done
+
+if [ ! -d "$PARENT" ]; then
+    echo "Parent directory '$PARENT' does not exist."
+    exit 1
+fi
+
+REST=()
+for d in "$PARENT"/*/; do
+    d=${d%/}
+    skip=false
+    for e in "${EXCLUDED[@]:-}"; do
+        if [ "$d" = "$e" ]; then
+            skip=true
+            break
+        fi
+    done
+    if [ "$skip" = false ]; then
+        REST+=("$d")
+    fi
+done
+
+# Loose test files directly under the parent (not inside any subdirectory)
+shopt -s nullglob
+LOOSE=("$PARENT"/*Test.php)
+shopt -u nullglob
+
+if [ ${#REST[@]} -eq 0 ] && [ ${#LOOSE[@]} -eq 0 ]; then
+    echo "No uncovered directories or files under $PARENT — nothing to run."
+    exit 0
+fi
+
+echo "pest-rest: running ${#REST[@]} uncovered director(y/ies) under $PARENT"
+printf '  %s\n' "${REST[@]:-}" "${LOOSE[@]:-}"
+
+exec "$(dirname "$0")/pest-batch" "${REST[@]}" "${LOOSE[@]:-}"

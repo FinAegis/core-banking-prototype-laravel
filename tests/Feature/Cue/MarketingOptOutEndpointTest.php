@@ -13,7 +13,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
-uses(Tests\TestCase::class);
 
 beforeEach(function (): void {
     config(['cache.default' => 'array']);

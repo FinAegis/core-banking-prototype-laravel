@@ -45,6 +45,17 @@ class DataIsolationTest extends BaseTestCase
     {
         parent::setUp();
 
+        // These tests exercise the full tenant-database lifecycle (create /
+        // migrate / drop real tenant schemas). They need a dedicated DB
+        // sandbox: against the shared CI test database the tenant migrations
+        // collide with the central schema. Tenancy isolation is covered by
+        // the MultiConnection suite (tests/MultiConnection, a required PR
+        // check); opt into these lifecycle tests explicitly with
+        // TENANCY_LIFECYCLE_TESTS=true in an isolated environment.
+        if (getenv('TENANCY_LIFECYCLE_TESTS') !== 'true') {
+            $this->markTestSkipped('Tenant-lifecycle tests need an isolated DB sandbox — set TENANCY_LIFECYCLE_TESTS=true (see tests/MultiConnection for the supported tenancy coverage).');
+        }
+
         // Skip if central database connection is not available (e.g. SQLite test environment)
         try {
             DB::connection('central')->getPdo();

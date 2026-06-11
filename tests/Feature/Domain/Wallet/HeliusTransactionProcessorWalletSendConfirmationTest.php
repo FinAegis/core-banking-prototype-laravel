@@ -33,6 +33,8 @@ beforeEach(function (): void {
         $table->string('user_op_hash', 128)->nullable();
         $table->string('idempotency_key', 128)->nullable()->unique();
         $table->string('quote_id', 64)->nullable();
+        $table->string('sponsored_fee_raw', 78)->nullable();
+        $table->string('sponsored_fee_asset', 16)->nullable();
         $table->string('error_code', 50)->nullable();
         $table->text('error_message')->nullable();
         $table->json('metadata')->nullable();
@@ -97,6 +99,108 @@ it('flips a submitted Solana wallet_send_records to confirmed when its tx hash a
     $sendRecord->refresh();
     expect($sendRecord->status)->toBe('confirmed')
         ->and($sendRecord->confirmed_at)->not->toBeNull();
+});
+
+it('persists the sponsored fee (lamports) on confirmation when the Solana sponsor is configured', function (): void {
+    config(['wallet.solana.sponsor.secret_key' => 'test-sponsor-base58-secret']);
+
+    $signature = '9xSponsoredFeeSig444444444444444444444444444444444444444444444444';
+
+    $sendRecord = WalletSendRecord::create([
+        'public_id'         => 'pi_send_sponsoredfee',
+        'user_id'           => 42,
+        'network'           => 'solana',
+        'asset'             => 'USDC',
+        'amount'            => '1.50000000',
+        'sender_address'    => 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z',
+        'recipient_address' => 'BobxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxV',
+        'status'            => 'submitted',
+        'tx_hash'           => $signature,
+        'submitted_at'      => now(),
+    ]);
+
+    $blockchainAddress = BlockchainAddress::create([
+        'uuid'       => '44444444-5555-4666-8777-888888888888',
+        'user_uuid'  => 'user-uuid-42',
+        'address'    => 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z',
+        'public_key' => 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z',
+        'chain'      => 'solana',
+        'is_active'  => true,
+    ]);
+
+    $tx = [
+        'signature'      => $signature,
+        'fee'            => 5000, // lamports, paid by the platform fee-payer
+        'tokenTransfers' => [[
+            'fromUserAccount' => 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z',
+            'toUserAccount'   => 'BobxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxV',
+            'mint'            => 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+            'tokenAmount'     => '1.5',
+        ]],
+    ];
+
+    app(HeliusTransactionProcessor::class)->processTransaction(
+        'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z',
+        $blockchainAddress,
+        42,
+        $tx,
+    );
+
+    $sendRecord->refresh();
+    expect($sendRecord->status)->toBe('confirmed')
+        ->and($sendRecord->sponsored_fee_raw)->toBe('5000')
+        ->and($sendRecord->sponsored_fee_asset)->toBe('SOL');
+});
+
+it('does not record a sponsored fee when no Solana sponsor is configured (sender paid its own fee)', function (): void {
+    config(['wallet.solana.sponsor.secret_key' => '']);
+
+    $signature = 'AxUnsponsoredSig55555555555555555555555555555555555555555555555555';
+
+    $sendRecord = WalletSendRecord::create([
+        'public_id'         => 'pi_send_unsponsored',
+        'user_id'           => 42,
+        'network'           => 'solana',
+        'asset'             => 'USDC',
+        'amount'            => '1.50000000',
+        'sender_address'    => 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z',
+        'recipient_address' => 'BobxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxV',
+        'status'            => 'submitted',
+        'tx_hash'           => $signature,
+        'submitted_at'      => now(),
+    ]);
+
+    $blockchainAddress = BlockchainAddress::create([
+        'uuid'       => '55555555-6666-4777-8888-999999999999',
+        'user_uuid'  => 'user-uuid-42',
+        'address'    => 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z',
+        'public_key' => 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z',
+        'chain'      => 'solana',
+        'is_active'  => true,
+    ]);
+
+    $tx = [
+        'signature'      => $signature,
+        'fee'            => 5000,
+        'tokenTransfers' => [[
+            'fromUserAccount' => 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z',
+            'toUserAccount'   => 'BobxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxV',
+            'mint'            => 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+            'tokenAmount'     => '1.5',
+        ]],
+    ];
+
+    app(HeliusTransactionProcessor::class)->processTransaction(
+        'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z',
+        $blockchainAddress,
+        42,
+        $tx,
+    );
+
+    $sendRecord->refresh();
+    expect($sendRecord->status)->toBe('confirmed')
+        ->and($sendRecord->sponsored_fee_raw)->toBeNull()
+        ->and($sendRecord->sponsored_fee_asset)->toBeNull();
 });
 
 it('does not touch wallet_send_records on incoming (receive) Solana tx', function (): void {

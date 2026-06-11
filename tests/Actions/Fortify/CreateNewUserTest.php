@@ -18,5 +18,8 @@ it('can be instantiated', function () {
 it('has correct method signature', function () {
     $reflection = new ReflectionMethod(CreateNewUser::class, 'create');
     expect($reflection->isPublic())->toBeTrue();
-    expect($reflection->getNumberOfParameters())->toBe(1);
+    // create(array $input, bool $isApiRegistration = false) — one required
+    // parameter (the Fortify contract), one optional.
+    expect($reflection->getNumberOfRequiredParameters())->toBe(1);
+    expect($reflection->getNumberOfParameters())->toBe(2);
 });

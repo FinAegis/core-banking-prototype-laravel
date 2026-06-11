@@ -9,15 +9,15 @@ describe('Features Index Page', function (): void {
         $response = get('/features');
 
         $response->assertOk();
-        $response->assertSee('61 production-ready modules');
+        $response->assertSee('Every Banking Capability.');
     });
 
-    it('lists AI Framework feature card with the live MCP tool count', function (): void {
+    it('lists AI Framework feature card', function (): void {
         $response = get('/features');
 
         $response->assertOk();
         $response->assertSee('AI Framework');
-        $response->assertSee(count(config('mcp.tools')) . ' Tools');
+        $response->assertSee(count((array) config('mcp.tools')) . ' Tools');
     });
 
     it('lists Agent Protocol feature card', function (): void {

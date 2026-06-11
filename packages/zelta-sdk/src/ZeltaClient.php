@@ -19,7 +19,7 @@ use Zelta\Exceptions\PaymentRequiredException;
  *
  * Usage:
  *   $client = new ZeltaClient(
- *       config: new PaymentConfig(baseUrl: 'https://api.zelta.app', apiKey: 'zk_live_xxx'),
+ *       config: new PaymentConfig(baseUrl: 'https://api.zelta.app', apiKey: '<api-token>'),
  *       payment: new X402PaymentHandler($signer),
  *   );
  *   $result = $client->get('/v1/premium/data');

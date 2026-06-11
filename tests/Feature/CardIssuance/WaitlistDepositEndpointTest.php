@@ -13,9 +13,9 @@ use Stripe\Service\Checkout\CheckoutServiceFactory;
 use Stripe\Service\Checkout\SessionService;
 use Stripe\Service\RefundService;
 use Stripe\StripeClient;
-use Tests\TestCase;
 
-uses(TestCase::class, RefreshDatabase::class);
+// TestCase is bound folder-wide in tests/Pest.php — re-binding it here makes Pest refuse to load the file.
+uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
     config(['cache.default' => 'array']);
