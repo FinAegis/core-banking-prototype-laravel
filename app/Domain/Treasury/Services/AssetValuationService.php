@@ -101,7 +101,10 @@ class AssetValuationService
 
         $cacheKey = "portfolio_value:{$portfolioId}";
 
-        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($portfolioId) {
+        // (float) cast: Laravel's RedisStore returns numeric cache values as
+        // strings, so every cache HIT within the TTL threw a TypeError against
+        // the float return type (500 on repeat portfolio valuations).
+        return (float) Cache::remember($cacheKey, self::CACHE_TTL, function () use ($portfolioId) {
             try {
                 $portfolio = $this->portfolioService->getPortfolio($portfolioId);
 

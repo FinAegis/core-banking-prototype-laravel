@@ -11,6 +11,9 @@ use Laravel\Sanctum\Sanctum;
 
 beforeEach(function (): void {
     config(['cache.default' => 'array']);
+    // Verification fees default OFF (the pay endpoints 403 with "verification
+    // is currently free") — these tests exercise the paid path.
+    config(['trustcert.verification_fees.enabled' => true]);
 
     Schema::dropIfExists('verification_payments');
     Schema::create('verification_payments', function ($table): void {
