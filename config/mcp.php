@@ -32,10 +32,10 @@ return [
         'payments:write'    => 'Send payments (subject to spending limit)',
         'transactions:read' => 'Read transaction history and spending analysis',
         'exchange:read'     => 'Get exchange rate quotes',
-        'exchange:write'    => 'Execute exchange trades (subject to spending limit)',
+        'exchange:write'    => 'Execute exchange trades (idempotent; not yet counted against the daily spending limit)',
         'ramp:read'         => 'Read on/offramp session status',
         'ramp:write'        => 'Start on/offramp sessions (subject to spending limit)',
-        'sms:send'          => 'Send SMS messages (paid per-message via x402)',
+        'sms:send'          => 'Send SMS messages (paid per-message via x402, subject to spending limit)',
     ],
 
     /*
@@ -62,13 +62,20 @@ return [
         'exchange.quote'     => ['internal' => 'exchange.quote',                 'title' => 'Get an exchange rate quote',       'scope' => 'exchange:read',     'enabled' => env('MCP_TOOL_EXCHANGE_QUOTE', true),      'is_write' => false, 'requires_user' => true],
         // exchange.trade is intentionally NOT is_payment: the spending-limit
         // commitment is the QUOTE-currency cost (amount * market price), and
-        // market price isn't in the tool arguments. Wire saga coverage once
-        // the trade tool surfaces a settled fiat-equivalent in its result.
+        // market price isn't in the tool arguments. Post-execution debiting is
+        // equally blocked today: the trade result is an *order placement*
+        // (status=pending, filled_amount=0, average_fill_price=0), so there is
+        // no realized quote-currency notional to debit at response time. Wire
+        // saga coverage once the trade tool surfaces a settled fiat-equivalent
+        // in its result. Until then, all public copy must say exchange.trade
+        // is NOT counted against the daily spending limit.
         'exchange.trade' => ['internal' => 'exchange.trade',                 'title' => 'Execute an exchange trade',        'scope' => 'exchange:write',    'enabled' => env('MCP_TOOL_EXCHANGE_TRADE', true),      'is_write' => true,  'requires_user' => true],
-        'ramp.start'     => ['internal' => 'ramp.start',                     'title' => 'Start an on/offramp session',      'scope' => 'ramp:write',        'enabled' => env('MCP_TOOL_RAMP_START', true),          'is_write' => true,  'requires_user' => true],
+        'ramp.start'     => ['internal' => 'ramp.start',                     'title' => 'Start an on/offramp session',      'scope' => 'ramp:write',        'enabled' => env('MCP_TOOL_RAMP_START', true),          'is_write' => true,  'requires_user' => true, 'is_payment' => true,  'amount_arg' => 'fiat_amount', 'currency_arg' => 'fiat_currency', 'amount_decimals' => 2],
         'ramp.status'    => ['internal' => 'ramp.status',                    'title' => 'Check on/offramp session status',  'scope' => 'ramp:read',         'enabled' => env('MCP_TOOL_RAMP_STATUS', true),         'is_write' => false, 'requires_user' => true],
         'mpp.discovery'  => ['internal' => 'mpp.discovery',                  'title' => 'Discover multi-rail payment routes', 'scope' => null,              'enabled' => env('MCP_TOOL_MPP_DISCOVERY', true),       'is_write' => false],
-        'sms.send'       => ['internal' => 'sms.send',                       'title' => 'Send an SMS (paid via x402)',      'scope' => 'sms:send',          'enabled' => env('MCP_TOOL_SMS_SEND', true),            'is_write' => true,  'requires_user' => true],
+        // sms.send is fixed-cost: every call reserves `fixed_cost_minor`
+        // against the daily limit (no amount in the tool arguments).
+        'sms.send' => ['internal' => 'sms.send',                       'title' => 'Send an SMS (paid via x402)',      'scope' => 'sms:send',          'enabled' => env('MCP_TOOL_SMS_SEND', true),            'is_write' => true,  'requires_user' => true, 'is_payment' => true,  'fixed_cost_minor' => (int) env('MCP_SMS_PRICE_MINOR', 10), 'fixed_cost_currency' => 'USD'],
     ],
 
     /*

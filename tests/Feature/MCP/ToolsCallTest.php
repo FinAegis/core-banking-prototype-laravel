@@ -420,6 +420,55 @@ it('releases the reservation when the payment tool reports an error', function (
     expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_test')->value('daily_spend_minor'))->toBe(0);
 });
 
+it('reserves the ramp.start fiat amount against the daily limit through the catalog wiring', function () {
+    /** @var ToolRegistry $registry */
+    $registry = app(ToolRegistry::class);
+    $registry->register(toolsCallStub('ramp.start', 'Start a ramp session', [
+        'type' => 'object', 'properties' => ['fiat_amount' => ['type' => 'string']],
+    ]));
+
+    $router = app(JsonRpcRouter::class);
+    $ctx = new McpRequestContext('tok_test', 'cli', 1, ['ramp:write']);
+    $resp = $router->dispatch([
+        'jsonrpc' => '2.0', 'id' => 300, 'method' => 'tools/call',
+        'params'  => ['name' => 'ramp.start', 'arguments' => [
+            'type'            => 'on',
+            'fiat_amount'     => '100.00',
+            'fiat_currency'   => 'USD',
+            'crypto_currency' => 'USDC',
+            'wallet_address'  => '0xabc',
+            'idempotency_key' => 'ramp-1',
+        ]],
+    ], $ctx);
+
+    expect($resp['result']['isError'])->toBeFalse();
+    // '100.00' major × amount_decimals=2 → 10000 minor reserved.
+    expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_test')->value('daily_spend_minor'))->toBe(10000);
+});
+
+it('reserves the flat sms.send cost (fixed_cost_minor) without any amount argument', function () {
+    /** @var ToolRegistry $registry */
+    $registry = app(ToolRegistry::class);
+    $registry->register(toolsCallStub('sms.send', 'Send an SMS', [
+        'type' => 'object', 'properties' => ['to' => ['type' => 'string'], 'message' => ['type' => 'string']],
+    ]));
+
+    $router = app(JsonRpcRouter::class);
+    $ctx = new McpRequestContext('tok_test', 'cli', 1, ['sms:send']);
+    $resp = $router->dispatch([
+        'jsonrpc' => '2.0', 'id' => 301, 'method' => 'tools/call',
+        'params'  => ['name' => 'sms.send', 'arguments' => [
+            'to'              => '+37069912345',
+            'message'         => 'hello from MCP',
+            'idempotency_key' => 'sms-1',
+        ]],
+    ], $ctx);
+
+    expect($resp['result']['isError'])->toBeFalse();
+    // Default MCP_SMS_PRICE_MINOR=10 → $0.10 reserved per message.
+    expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_test')->value('daily_spend_minor'))->toBe(10);
+});
+
 it('returns -32006 USER_CONTEXT_REQUIRED when a user-context tool is called without a user-bound token', function () {
     // client_credentials grants set user_id=null on the Passport token; the
     // McpRequestContext carries that null forward. payment.transfer is a

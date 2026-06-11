@@ -43,6 +43,10 @@ jobs:
         working-directory: packages/finaegis-mcp-stdio
         run: npm ci
 
+      - name: Test
+        working-directory: packages/finaegis-mcp-stdio
+        run: npm test
+
       - name: Build
         working-directory: packages/finaegis-mcp-stdio
         run: npm run build

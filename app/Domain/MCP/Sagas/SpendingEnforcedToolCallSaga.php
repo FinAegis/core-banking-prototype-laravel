@@ -36,8 +36,8 @@ final class SpendingEnforcedToolCallSaga
     }
 
     /**
-     * @param  array<string, mixed> $arguments  The tool call arguments (must contain the configured amount + currency fields).
-     * @param  array{amount_arg?: string, currency_arg?: string}|array<string, mixed> $entry  The catalog entry for this tool.
+     * @param  array<string, mixed> $arguments  The tool call arguments (must contain the configured amount + currency fields unless the entry is fixed-cost).
+     * @param  array{amount_arg?: string, currency_arg?: string, fixed_cost_minor?: int, fixed_cost_currency?: string}|array<string, mixed> $entry  The catalog entry for this tool.
      * @param  callable(): array<string, mixed> $execute  Closure that runs the tool and returns the McpToolAdapter envelope.
      * @return array<string, mixed>
      *
@@ -45,7 +45,7 @@ final class SpendingEnforcedToolCallSaga
      */
     public function run(string $tokenId, array $arguments, array $entry, callable $execute): array
     {
-        [$amountMinor, $currency] = $this->extractAmountAndCurrency($arguments, $entry);
+        [$amountMinor, $currency] = $this->resolveCharge($arguments, $entry);
 
         $reserve = $this->spending->reserve($tokenId, $amountMinor, $currency);
         if (! ($reserve['allowed'] ?? false)) {
@@ -70,6 +70,28 @@ final class SpendingEnforcedToolCallSaga
         }
 
         return $result;
+    }
+
+    /**
+     * Resolve the charge to reserve for this call. Two pricing models:
+     *
+     *  - Fixed-cost tools (catalog `fixed_cost_minor`, e.g. sms.send) charge a
+     *    flat per-call amount in minor units regardless of the call arguments —
+     *    the price isn't in the tool schema, so it lives in the catalog entry.
+     *  - Variable-amount tools read major-unit amount + currency from the call
+     *    arguments via `amount_arg` / `currency_arg` / `amount_decimals`.
+     *
+     * @param  array<string, mixed> $arguments
+     * @param  array<string, mixed> $entry
+     * @return array{0: int, 1: string}
+     */
+    private function resolveCharge(array $arguments, array $entry): array
+    {
+        if (isset($entry['fixed_cost_minor'])) {
+            return [(int) $entry['fixed_cost_minor'], (string) ($entry['fixed_cost_currency'] ?? 'USD')];
+        }
+
+        return $this->extractAmountAndCurrency($arguments, $entry);
     }
 
     /**

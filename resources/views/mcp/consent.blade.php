@@ -48,7 +48,7 @@
 
       <div class="border-t border-slate-200 pt-4">
         <label class="block text-sm font-medium text-slate-900 mb-2">Daily spending limit</label>
-        <p class="text-xs text-slate-500 mb-3">Maximum total per 24 hours across all financial actions. Will be enforced when you authorize this app.</p>
+        <p class="text-xs text-slate-500 mb-3">Maximum total per 24 hours across payments, on/offramp sessions and SMS sends. Exchange trades are not yet counted against this cap. Will be enforced when you authorize this app.</p>
         <select name="mcp_daily_limit_minor" class="w-full rounded-lg border-slate-300 focus:ring-emerald-500 focus:border-emerald-500">
           @foreach($spending_options as $opt)
             <option value="{{ $opt ?? '' }}" {{ $opt === $default_limit_minor ? 'selected' : '' }}>

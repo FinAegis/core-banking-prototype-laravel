@@ -289,7 +289,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="border border-slate-200 rounded-xl p-6">
                 <h3 class="font-bold text-lg mb-3">Spending limits</h3>
-                <p class="text-slate-600 text-sm">Per-token, not per-scope. Default <strong>${{ number_format(((int) config('mcp.spending.default_daily_limit_minor', 50000)) / 100, 2) }} / 24h rolling window</strong>. Slider on the consent screen lets the user pick a different cap. Reservations are atomic: the saga reserves before the tool runs and rolls back on any error.</p>
+                <p class="text-slate-600 text-sm">Per-token, not per-scope. Default <strong>${{ number_format(((int) config('mcp.spending.default_daily_limit_minor', 50000)) / 100, 2) }} / 24h rolling window</strong>. Slider on the consent screen lets the user pick a different cap. Reservations are atomic: the saga reserves before the tool runs and rolls back on any error. Applies to <code class="code-font text-xs">payment.transfer</code>, <code class="code-font text-xs">ramp.start</code> and <code class="code-font text-xs">sms.send</code> (flat per-message charge); <code class="code-font text-xs">exchange.trade</code> is not yet counted — its fiat notional isn't known until the order fills.</p>
             </div>
             <div class="border border-slate-200 rounded-xl p-6">
                 <h3 class="font-bold text-lg mb-3">Idempotency</h3>

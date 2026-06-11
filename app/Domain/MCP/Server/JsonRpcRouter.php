@@ -23,17 +23,31 @@ use stdClass;
  * endpoint — it assumes the McpRequestContext has already been populated from
  * a verified bearer token.
  *
- * Currently implemented methods: `initialize`, `tools/list`, `tools/call`, `ping`.
- * Unknown methods return -32601 METHOD_NOT_FOUND.
+ * Currently implemented methods: `initialize`, `tools/list`, `tools/call`,
+ * `resources/list`, `resources/read`, `ping`. Unknown methods return -32601
+ * METHOD_NOT_FOUND. Envelopes without an `id` member are JSON-RPC 2.0
+ * notifications (e.g. `notifications/initialized`) — they never get a
+ * response envelope; dispatch() returns [] and the transport answers 202.
  *
  * Spending limits: payment tools (catalog `is_payment: true`) are wrapped in
  *   SpendingEnforcedToolCallSaga, which reserves the requested amount before
- *   execution and releases the reservation if the tool reports failure. Tools
- *   without explicit amounts (sms.send, ramp.start) are NOT yet covered — see
- *   the catalog and Phase 3 follow-up for variable-cost rails.
+ *   execution and releases the reservation if the tool reports failure.
+ *   Covered: payment.transfer + ramp.start (amount from arguments) and
+ *   sms.send (flat `fixed_cost_minor` per call). exchange.trade is NOT
+ *   covered — its quote-currency notional isn't known until the order fills
+ *   (see the catalog comment in config/mcp.php).
  */
 final class JsonRpcRouter
 {
+    /**
+     * Older MCP protocol revisions this server can speak. The current revision
+     * comes from config('mcp.protocol_version'); these are accepted as-is when
+     * a client requests them during `initialize` (MCP version negotiation: if
+     * the server supports the requested version it MUST respond with the same
+     * version, otherwise with its own latest supported version).
+     */
+    private const COMPATIBLE_PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26'];
+
     public function __construct(
         private readonly ToolRegistry $toolRegistry,
         private readonly McpToolAdapter $adapter,
@@ -45,12 +59,45 @@ final class JsonRpcRouter
     }
 
     /**
+     * Protocol versions this server accepts: the current revision plus older
+     * compatible ones. Used by `initialize` negotiation and by the transport
+     * layer to validate the `MCP-Protocol-Version` HTTP header.
+     *
+     * @return array<int, string>
+     */
+    public static function supportedProtocolVersions(): array
+    {
+        return array_values(array_unique(array_merge(
+            [(string) config('mcp.protocol_version')],
+            self::COMPATIBLE_PROTOCOL_VERSIONS,
+        )));
+    }
+
+    /**
+     * Dispatch a decoded JSON-RPC envelope.
+     *
+     * Returns the JSON-RPC response envelope, or `[]` when the input was a
+     * JSON-RPC notification (no `id` member) — per JSON-RPC 2.0 §4.1 a
+     * notification MUST NOT receive a response, not even an error. The
+     * transport maps `[]` to HTTP 202 with an empty body.
+     *
      * @param  array<string, mixed> $envelope
      * @return array<string, mixed>
      */
     public function dispatch(array $envelope, McpRequestContext $ctx): array
     {
-        $id = $envelope['id'] ?? null;
+        // No `id` member => JSON-RPC notification. Conformant MCP clients send
+        // `notifications/initialized` right after the initialize handshake (and
+        // may send notifications/cancelled etc.) — all are accepted as no-ops
+        // since this server keeps no per-session state. Id-less envelopes for
+        // request/response methods are also dropped WITHOUT execution: every
+        // method we expose returns a result (or a write error) the caller must
+        // see, and JSON-RPC gives a notification no channel to deliver either.
+        if (! array_key_exists('id', $envelope)) {
+            return [];
+        }
+
+        $id = $envelope['id'];
 
         if (($envelope['jsonrpc'] ?? null) !== '2.0' || ! isset($envelope['method'])) {
             return $this->error($id, -32600, 'INVALID_REQUEST');
@@ -61,7 +108,7 @@ final class JsonRpcRouter
         $params = is_array($envelope['params'] ?? null) ? $envelope['params'] : [];
 
         return match ($method) {
-            'initialize'     => $this->handleInitialize($id),
+            'initialize'     => $this->handleInitialize($id, $params),
             'tools/list'     => $this->handleToolsList($id, $ctx),
             'tools/call'     => $this->handleToolsCall($id, $params, $ctx),
             'resources/list' => $this->handleResourcesList($id, $ctx),
@@ -72,15 +119,27 @@ final class JsonRpcRouter
     }
 
     /**
+     * MCP version negotiation: if the client requests a version we support,
+     * echo it back; otherwise respond with our latest supported version (the
+     * client then decides whether to continue or disconnect).
+     *
+     * @param  array<string, mixed> $params
      * @return array<string, mixed>
      */
-    private function handleInitialize(mixed $id): array
+    private function handleInitialize(mixed $id, array $params): array
     {
+        $requested = $params['protocolVersion'] ?? null;
+        $supported = self::supportedProtocolVersions();
+
+        $negotiated = is_string($requested) && in_array($requested, $supported, true)
+            ? $requested
+            : (string) config('mcp.protocol_version');
+
         return [
             'jsonrpc' => '2.0',
             'id'      => $id,
             'result'  => [
-                'protocolVersion' => (string) config('mcp.protocol_version'),
+                'protocolVersion' => $negotiated,
                 'serverInfo'      => (array) config('mcp.server_info'),
                 'capabilities'    => [
                     'tools'     => ['listChanged' => true],
@@ -138,6 +197,13 @@ final class JsonRpcRouter
                     'openWorldHint'   => true,
                 ],
             ];
+
+            // Surface the tool's declared result shape (MCP `outputSchema`,
+            // rev 2025-06-18+) so typed clients can validate structuredContent.
+            $outputSchema = $internal->getOutputSchema();
+            if ($outputSchema !== []) {
+                $tool['outputSchema'] = $outputSchema;
+            }
 
             $tools[] = $tool;
         }

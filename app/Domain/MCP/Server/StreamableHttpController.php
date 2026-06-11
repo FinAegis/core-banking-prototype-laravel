@@ -13,6 +13,8 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * - `POST /mcp` accepts a single JSON-RPC envelope, dispatches it through
  *   {@see JsonRpcRouter}, and returns the JSON-RPC response envelope.
+ *   JSON-RPC notifications (no `id` member, e.g. `notifications/initialized`)
+ *   get HTTP 202 with an empty body — never a response envelope.
  * - `GET /mcp` opens a long-lived SSE channel (server→client notifications)
  *   and emits periodic heartbeats so middleboxes don't drop the connection.
  *
@@ -61,10 +63,31 @@ final class StreamableHttpController
         return $this->sse->open((int) config('mcp.sse.heartbeat_seconds', 25));
     }
 
-    private function handlePost(Request $request): JsonResponse
+    private function handlePost(Request $request): Response
     {
         /** @var array<string, mixed> $envelope */
         $envelope = (array) $request->json()->all();
+
+        // MCP streamable-HTTP: clients SHOULD send `MCP-Protocol-Version` on
+        // every request after initialize. If present and unsupported, the spec
+        // requires HTTP 400. Absent header => assume the current revision
+        // (backwards compatible with older clients). The initialize request is
+        // exempt — version negotiation happens in its params, not the header.
+        $headerVersion = (string) $request->headers->get('MCP-Protocol-Version', '');
+        $method = is_string($envelope['method'] ?? null) ? $envelope['method'] : '';
+        if ($headerVersion !== '' && $method !== 'initialize') {
+            $supported = JsonRpcRouter::supportedProtocolVersions();
+            if (! in_array($headerVersion, $supported, true)) {
+                return new JsonResponse([
+                    'error'             => 'unsupported_protocol_version',
+                    'error_description' => sprintf(
+                        'MCP-Protocol-Version "%s" is not supported by this server.',
+                        $headerVersion,
+                    ),
+                    'supported_versions' => $supported,
+                ], 400);
+            }
+        }
 
         $token = $request->attributes->get('mcp.token');
 
@@ -101,6 +124,13 @@ final class StreamableHttpController
         );
 
         $response = $this->router->dispatch($envelope, $ctx);
+
+        // [] is the router's "no response" sentinel for JSON-RPC notifications
+        // (envelopes without an `id`). Per the MCP streamable-HTTP transport,
+        // accepted notifications get HTTP 202 with an empty body.
+        if ($response === []) {
+            return new Response('', 202);
+        }
 
         return new JsonResponse($response);
     }
