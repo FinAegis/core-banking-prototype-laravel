@@ -64,7 +64,13 @@ return [
         'managers' => [
             'sqlite' => Stancl\Tenancy\TenantDatabaseManagers\SQLiteDatabaseManager::class,
             'mysql'  => Stancl\Tenancy\TenantDatabaseManagers\MySQLDatabaseManager::class,
-            'pgsql'  => Stancl\Tenancy\TenantDatabaseManagers\PostgreSQLDatabaseManager::class,
+            // config/database.php declares its MySQL-family connections with
+            // the 'mariadb' driver — without this mapping every tenant
+            // database creation throws DatabaseManagerNotRegisteredException
+            // under the production driver. MariaDB is protocol-compatible
+            // with the MySQL manager.
+            'mariadb' => Stancl\Tenancy\TenantDatabaseManagers\MySQLDatabaseManager::class,
+            'pgsql'   => Stancl\Tenancy\TenantDatabaseManagers\PostgreSQLDatabaseManager::class,
 
         /**
          * Use this database manager for MySQL to have a DB user created for each tenant database.
