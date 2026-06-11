@@ -34,6 +34,9 @@ php artisan account:purge-reviewer --email=X --confirm  # anonymizes email + dis
 php artisan bridge:inspect-user user@example.com         # print bridge_customer + va + ramp sessions
 php artisan bridge:sync-dev-fee --email=user@example.com # reconcile dev_fee_bps with current tier
 php artisan bridge:sync-dev-fee --all --dry-run          # batch backfill (preview mode)
+
+# Deploy preflight (CI/CD gate)
+php artisan ops:verify-env --json    # exit 1 = blocked; FAILs only block in production (or --strict)
 ```
 
 ## Architecture

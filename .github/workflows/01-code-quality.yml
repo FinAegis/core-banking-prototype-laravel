@@ -69,5 +69,19 @@ jobs:
       - name: Check PHP Code Style
         run: vendor/bin/php-cs-fixer fix --dry-run --diff
 
+      # Fails when storage/api-docs/api-docs.json no longer matches the OA
+      # annotations in the codebase (CI env uses APP_URL=http://localhost via
+      # .env.testing — match it when regenerating locally).
+      - name: OpenAPI Drift Check
+        run: |
+          php artisan l5-swagger:generate
+          if ! git diff --exit-code -- storage/api-docs/; then
+            echo "::error::storage/api-docs/api-docs.json is out of date with the OpenAPI annotations."
+            echo "Regenerate it locally and commit the result:"
+            echo "  APP_URL=http://localhost php artisan l5-swagger:generate"
+            echo "  git add storage/api-docs/api-docs.json"
+            exit 1
+          fi
+
   # NOTE: Dependency security audit moved to 02-security-scan.yml to avoid duplication
   # The security-scan workflow performs comprehensive composer audit with detailed reporting

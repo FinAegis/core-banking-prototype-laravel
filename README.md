@@ -153,7 +153,7 @@ GCU shows how to build complex financial products using FinAegis primitives.
 </tr>
 </table>
 
-See [ADR-004: GCU Basket Design](docs/ADR/ADR-004-gcu-basket-design.md) for architecture details.
+See [ADR-0010: GCU Basket Design](docs/adr/0010-gcu-basket-design.md) for architecture details.
 
 ---
 
@@ -314,7 +314,7 @@ See [Domain Management Guide](docs/06-DEVELOPMENT/DOMAIN_MANAGEMENT.md) for deta
 - **GraphQL** - Schema-first Lighthouse PHP across 45 domains with subscriptions (v4.0.0+)
 - **Event Streaming** - Redis Streams publisher/consumer with live dashboard (v5.0.0)
 
-See [Architecture Decision Records](docs/ADR/) for detailed design rationale.
+See [Architecture Decision Records](docs/adr/) for detailed design rationale.
 
 ---
 
@@ -323,11 +323,11 @@ See [Architecture Decision Records](docs/ADR/) for detailed design rationale.
 | Category | Links |
 |----------|-------|
 | **Getting Started** | [Quick Start](#quick-start) · [User Guides](docs/05-USER-GUIDES/) |
-| **Architecture** | [Overview](docs/02-ARCHITECTURE/) · [ADRs](docs/ADR/) · [Roadmap](docs/ARCHITECTURAL_ROADMAP.md) |
+| **Architecture** | [Overview](docs/02-ARCHITECTURE/) · [ADRs](docs/adr/) · [Roadmap](docs/ARCHITECTURAL_ROADMAP.md) |
 | **API** | [REST Reference](docs/04-API/REST_API_REFERENCE.md) · [OpenAPI](/api/documentation) · [GraphQL](/graphql-playground) |
 | **Version History** | [Changelog](CHANGELOG.md) · [Version Roadmap](docs/VERSION_ROADMAP.md) |
 | **Development** | [Contributing](CONTRIBUTING.md) · [Dev Guides](docs/06-DEVELOPMENT/) |
-| **Reference** | [GCU Design](docs/ADR/ADR-004-gcu-basket-design.md) · [Event Sourcing](docs/ADR/ADR-001-event-sourcing.md) |
+| **Reference** | [GCU Design](docs/adr/0010-gcu-basket-design.md) · [Event Sourcing](docs/adr/0007-event-sourcing.md) |
 
 ---
 

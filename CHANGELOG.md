@@ -5,6 +5,164 @@ All notable changes to the FinAegis Core Banking Platform will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.15.0] - 2026-06-03
+
+**Bridge.xyz fiat ramp.** Bridge.xyz becomes the primary v1 fiat ↔ stablecoin rail — bank transfers in, USDC on Polygon out — with KYC, virtual accounts, and the ADR-0006 developer-fee markup mechanism. Also ships the landing-page truth-pass and wires HyperSwitch into the real deposit flow.
+
+### Added
+- **Bridge.xyz ramp** — `bridge_customers` + `ramp_sessions` persistence, `KycProviderInterface` adapters under `app/Domain/Compliance/Kyc/`, shared HTTP client + webhook verifier in `app/Infrastructure/Bridge/` (ADR-0005: Bridge over Stripe Crypto Onramp)
+- Single webhook endpoint `POST /api/v1/webhooks/bridge` for both KYC (`customer.kyc_link_*`) and ramp (`virtual_account.activity`, `transfer.*`) events, deduped via `processed_webhook_events`
+- Mobile setup endpoints: `GET /api/v1/user/bridge-setup-status` + `POST /api/v1/user/bridge-kyc-link` with lazy, idempotent Bridge customer creation
+- Auto virtual-account provisioning on KYC approval (retried via a `BlockchainAddress` observer when the Polygon address arrives later), VA retry endpoint, quote expiration, WS events (`bridge.kyc.completed` / `bridge.kyc.rejected` / `bridge.virtual_account.ready`) + push fallback on KYC terminals
+- 0.75% Zelta markup on ramp quotes via per-customer `developer_fee_bps` (Free=75, Pro=0), auto-PATCHed on `SubscriptionTierChanged` (ADR-0006); operator commands `bridge:sync-dev-fee` and `bridge:inspect-user`
+- HyperSwitch wired into the real card-deposit flow (closes #346) — opt-in via `HYPERSWITCH_ENABLED` (off by default; Stripe stays the default rail); webhook credits via `AccountCreditService`, idempotent + deadlock-safe (#1118)
+- Landing page: redesigned `#get-the-app` section + Android open-testing CTAs
+
+### Changed
+- Soft-rename `StripeBridge` → `StripeCryptoOnramp`; deprecated `RAMP_PROVIDER=stripe_bridge` alias resolves with a logged warning
+- Landing truth-pass — copy, SEO meta, schema.org data, and MCP claims aligned with the shipped product; README + GitHub presentation accuracy refresh (#1112, #1113, #1117)
+
+### Fixed
+- Bridge webhooks verified against Bridge's current **asymmetric** scheme — `X-Webhook-Signature: t=<unix_ms>,v0=<base64>`, RSA-SHA256 over `<t>.<body>` with `BRIDGE_WEBHOOK_PUBLIC_KEY`; legacy HMAC kept as auto-detected fallback (#1115)
+- HyperSwitch credit failures surface as `completion_failed` for operator reconciliation instead of being disguised as completed (#1119)
+- Malformed Android install URL (double `?` → `&`) (#1111); duplicate hardcoded footer on `/support` (#1116); `noindex` + proper SEO meta on the OAuth consent screen (#1114)
+- `CustodianHealthMonitor` calls `CustodianRegistry::names()` (method rename drift)
+
+---
+
+## [7.14.1] - 2026-05-19
+
+### Fixed
+- **Privy personal-team provisioning** (#1088) — signing in with a previously-unused email passed the email-OTP step, then 500'd the moment the fresh account hit the dashboard. Privy email-OTP signups (web `PrivyWebAuthController` and mobile `POST /api/v1/auth/privy-login`) created the user with a bare `User::create()`, skipping the Jetstream personal-team creation that password signups get — and every team-aware view dereferences `currentTeam`. The new `ProvisionsPersonalTeam` trait provisions the personal team idempotently on **every** Privy login, healing accounts left team-less by the earlier code path on their next sign-in
+
+---
+
+## [7.14.0] - 2026-05-18
+
+Closes the wallet transaction-history gaps surfaced by a comprehensive architecture review.
+
+### Added
+- **EVM inbound transaction mirror** — `EvmTransactionProcessor` persists inbound USDC/USDT transfers on Polygon/Base/Arbitrum/Ethereum to `blockchain_address_transactions` + `activity_feed_items` (parity with Solana); `php artisan evm:backfill-transactions` seeds pre-mirror history via the Alchemy Transfers API
+- Per-user wallet visibility in the admin panel — three read-only relation managers on `UserResource`: Wallet Addresses, Blockchain Transactions, Wallet Sends (with `error_code` / `error_message`)
+- Hosted receipt page + downloadable PDF — public `GET /receipt/{shareToken}` renders a branded `noindex` page; `ReceiptService` generates a real dompdf `pdfUrl` (share links previously 404'd)
+- Solana fee-payer sponsorship — when `WALLET_SOLANA_SPONSOR_SECRET_KEY` is set, a platform account pays the tx fee and co-signs server-side (two-signer message, mobile contract unchanged); hourly `solana:check-sponsor-balance` low-balance alert
+- KYC verification fees gated behind a flag — free verification by default
+
+### Changed
+- Sponsored-send guardrails — per-user (30/day) + global (5000/day) caps on Pimlico-sponsored EVM sends (HTTP 429 `SEND_DAILY_LIMIT_REACHED` / `SEND_TEMPORARILY_UNAVAILABLE`); Ethereum L1 sends disabled by default (`WALLET_SEND_EVM_NETWORKS=polygon,base,arbitrum`)
+- Wallet send + notifications wire contract moves to snake_case field names (legacy camelCase still accepted)
+
+### Fixed
+- Solana inbound dust filter — native-SOL transfers below `WALLET_SOLANA_DUST_MIN_INBOUND_SOL` (default 0.001 SOL) are recorded for audit but kept out of the activity feed + push (address-poisoning spam); token transfers never filtered
+- Pending and failed wallet sends now surface in transaction history
+- Device-takeover guard scoped to credential-bound devices (#1059) — push-only devices auto-reassign with an audit row in `device_reassignment_log`
+- In-app notification record persisted when the user has no registered device
+
+---
+
+## [7.13.2] - 2026-05-15
+
+Three independent server-side fixes surfaced by mobile Build #8.
+
+### Fixed
+- Wallet prepare network-casing — `POST /api/v1/wallet/transactions/prepare` now validates `network` via `Rule::enum(PaymentNetwork::class)`, matching the quote endpoint, so `SOLANA` (uppercase) is accepted (#1064)
+- Receipt generation for Solana inbound transfers — `ReceiptService` resolves the `ActivityFeedItem` first and falls back to the linked `PaymentIntent`, so non-intent transactions (direct Helius-mirrored deposits) get receipts (#1066)
+- Privacy merkle-root endpoint returns `HTTP 503 ERR_PRIVACY_310` instead of an uncaught 500 when the privacy pool is not configured on the deployment (#1065)
+
+---
+
+## [7.13.1] - 2026-05-15
+
+### Added
+- **USDT** as a first-class send/receive asset — `PaymentAsset::USDT` (decimals=6, "Tether USD"); quote, prepare, and receive validators reference `PaymentAsset::values()` so the enum addition auto-extends every endpoint. Token registries (`EvmTokens`, `SolanaTokens`) already carried the contracts/mint
+
+### Fixed
+- Solana Pay QR spec compliance — the `spl-token` query param now carries the SPL **mint address** (via new `SolanaTokens::mintFor()`) instead of the symbol; strict wallets (Phantom, Solflare) now scan USDC/USDT receive QRs correctly
+- Stale "Only USDC is supported for v1" / "Only SOLANA and TRON networks" validation messages removed
+
+---
+
+## [7.13.0] - 2026-05-15
+
+**Plan B subscriptions / in-app purchases.** Mobile-driven IAP subscriptions (Apple App Store + Google Play) with a hardened revenue path.
+
+### Added
+- `POST /api/v1/subscription/iap/verify` — exchanges an Apple StoreKit 2 JWS or Google Play subscription token for a Zelta subscription record; idempotent via `(provider, original_transaction_id)`; all conflict states surface as HTTP 409 `ERR_SUB_002 { conflict.kind }` (#1053)
+- Apple JWS chain validation pinned to Apple Root CA G3 (ES256 + x5c chain, PHP `openssl_*` built-ins only); `APPLE_JWS_VERIFICATION_BYPASS` is staging-only and hard-rejected in production
+- Google Play RTDN (Cloud Pub/Sub) + Apple App Store Server Notifications V2 — both flow through idempotent ingestion via `processed_webhook_events`
+- Revenue outbox (`revenue_outbox_events`) + append-only `revenue_events` ledger; trial-card-fingerprint anti-abuse; GDPR `subscription_consent_log`
+- IAP receipt pseudonymisation — `IapReceiptPseudonymiser` HMACs raw receipts with `IAP_RECEIPT_PEPPER` before persistence or logging
+- Plan B slices: Cashier Stripe subscription path (#1037), pricing quote endpoint (#1045), cue queue infrastructure (#1044), card waitlist deposit via Stripe Checkout (#1047)
+- Web `/login` Privy email-OTP (gated by `MCP_WEB_PRIVY_LOGIN`) (#1024); `Origin` header on Privy `/passwordless/*` REST calls (#1056)
+- `/invest` investor landing page; `users.timezone`; mobile reviewer token for Privy-OTP-only builds; `user:delete` staging command
+
+### Changed
+- Single `ERR_SUB_002` envelope for every IAP conflict — `ERR_SUB_008` / `ERR_SUB_009` dropped to match the mobile contract (#1054)
+
+### Fixed
+- Device-takeover guard returns HTTP 409 `DEVICE_REGISTERED_TO_DIFFERENT_USER` instead of a generic 500
+- Rewards quest-completion lockdown — public `POST /rewards/quests/{id}/complete` + GraphQL `completeQuest` removed (any caller could one-shot XP); completion now flows through domain-event listeners only
+
+---
+
+## [7.12.0] - 2026-05-05
+
+**Non-custodial wallet send.** Privy embedded wallets replace server-side signing — passkey-controlled smart accounts on EVM, device-bound ed25519 on Solana. The backend never sees private key material.
+
+### Added
+- `POST /api/v1/auth/privy-login` — Privy JWT (JWKS-verified, `iss`/`aud`/`exp` checks) exchanged for a Sanctum token; auto-creates the user on first login (#1017)
+- `POST /api/v1/wallet/addresses` — registers Privy-derived addresses: EVM smart-account address mirrored across polygon/base/arbitrum/ethereum + one Solana ed25519 row
+- Two-step send: `POST /wallet/transactions/prepare` returns an unsigned payload (Solana legacy tx bytes; EVM ERC-4337 v0.6 UserOperation with Pimlico sponsorship), `POST /wallet/transactions/submit` accepts the device-signed blob; `Idempotency-Key` header honored
+- Confirmation tracking — `HeliusTransactionProcessor` (Solana webhook) + `PollEvmWalletSendConfirmations` (EVM, every minute)
+- Hourly Helius ↔ DB address reconciliation with self-heal (#1008)
+- Operator commands `privy:verify-jwt <token>` and `wallet:inspect-user <email>`
+- TrustCert: configurable Stripe Checkout deep-link return URLs; `checkout.session.expired` / `async_payment_failed` / `charge.refunded` handling; idempotency middleware on `/pay`, `/pay/card`, `/pay/iap` (#1009–#1011)
+
+### Removed
+- Custodial surface (hard cutover, project not yet live): `POST /api/v1/auth/sign-userop`, `POST /api/v1/wallet/transactions/send`, all `/api/v1/wallet/recovery-shard-backup/*` Shamir endpoints
+
+### Fixed
+- `routes/console.php` double registration — every `Schedule::` entry fired twice (#1012)
+- Cluster-mode Pusher broadcasting config (#1007)
+- Helius webhook sync — api-key as query param, full config replay + whitelisted fields on PUT (#1003–#1005)
+
+---
+
+## [7.11.0] - 2026-04-30
+
+**Public MCP server.** Anthropic-spec Model Context Protocol server at `https://mcp.zelta.app/mcp`.
+
+### Added
+- Public MCP server (protocol `2025-11-25`) over streamable HTTP / JSON-RPC 2.0 — 12-tool v1 catalog + 4 read-context resources reusing the internal MCP tool framework (#978)
+- OAuth 2.1 with RFC 7591 Dynamic Client Registration, RFC 9728 Protected Resource Metadata, RFC 8252 native-app loopback redirects; 10 scopes with `transactions:read` / `sms:send` splits
+- Per-token daily spending limits ($500/24h default, consent-screen slider) enforced by a synchronous saga with bcmath major→minor conversion; atomic Redis SET-NX idempotency lock closes the TOCTOU double-charge race
+- `@finaegis/mcp` npm wrapper (v0.1.6) — stdio bridge with OAuth flow, file-based token store (no keytar), Zelta-branded callback pages; `mcp-release.yml` publishes on `mcp-v*` tags (#980, #984–#995)
+- Filament admin resources for OAuth clients, tool invocations, and active sessions; audit log on `mcp_tool_invocations`
+- Multi-connection test infrastructure — `tests/MultiConnection/` runs against real MySQL with a separate tenant-connection session (#962)
+- `/legal/delete-account` public page for Google Play submission (#961)
+
+### Changed
+- Brand polish on auth surfaces — login page, logos, and footer read `config('brand.name')` end-to-end; open-source marketing copy gated to demo (#997)
+- Non-admin users hitting `/admin` redirect to `/dashboard` with a flash error instead of a bare 403 (#998); module-aware Filament widget visibility via `WidgetRespectsModuleVisibility` (#999)
+
+### Fixed
+- Passport v13: `client_id` columns widened to UUID (#991, #992); `/oauth/register` exempted from CSRF per RFC 7591 (#986); CSP relaxed for OAuth loopback redirects + auto-injected GA hosts (#993, #994)
+- Multi-connection deadlock — dropped the wrapping `DB::transaction()` in `AccountProvisioningService` (#960)
+- Domain console command auto-discovery — `app/Domain/*/Console/Commands/` register via `bootstrap/app.php`; ramp tools skip self-registration when only the mock provider is configured (#996)
+
+---
+
+## [7.10.11] - 2026-04-25
+
+### Added
+- **Reviewer / demo account provisioning** (#959) — operator-only `account:provision-reviewer` / `account:list-reviewers` / `account:disable-reviewer` / `account:purge-reviewer` commands for app-store review submissions; bypasses scoped via the `account_flags` table; daily expiry sweep at 00:10 UTC
+
+### Fixed
+- splitsh tar path + JS SDK `package-lock.json` in the split-mirror workflow (#948)
+- Package docs point to finaegis.org; Developers footer link added (#956); SDK version bumps + PHP SDK homepage (#957)
+
+---
+
 ## [7.10.10] - 2026-04-20
 
 Post-release review of v7.10.8 surfaced dead code, supply-chain gaps, and wasted workflow steps that `continue-on-error: true` had been hiding. This release fixes them in a single sweep. Multi-agent review across code reuse, quality, efficiency, and packaging lenses.

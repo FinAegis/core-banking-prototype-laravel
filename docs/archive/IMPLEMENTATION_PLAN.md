@@ -8,8 +8,8 @@
 > Event Streaming, and much more.
 >
 > For current architecture documentation, see:
-> - [Architecture Overview](./02-ARCHITECTURE/ARCHITECTURE.md)
-> - [CLAUDE.md](../CLAUDE.md) (project-level guidance with version status and key services)
+> - [Architecture Overview](../02-ARCHITECTURE/ARCHITECTURE.md)
+> - [CLAUDE.md](../../CLAUDE.md) (project-level guidance with version status and key services)
 >
 > The content below is preserved for historical reference.
 

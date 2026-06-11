@@ -1,0 +1,98 @@
+name: Packages CI
+
+# Tests the distributable packages (CLI, payment SDK, MCP stdio relay)
+# standalone — i.e. the way a consumer installs them — so endpoint or
+# dependency drift fails the PR instead of the published artifact.
+#
+# Packages with NO tests are intentionally NOT given fake-green jobs:
+#   - sdks/javascript  (@finaegis/sdk): jest is configured but no *.test.ts files exist
+#   - sdks/python      (finaegis on PyPI): no tests/ directory exists
+# Add a job here the moment either package gains real tests.
+
+on:
+  pull_request:
+    paths:
+      - 'packages/**'
+      - 'sdks/**'
+      - '.github/workflows/packages-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  zelta-cli:
+    name: zelta-cli (PHPUnit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer
+          extensions: json, mbstring
+
+      - name: Use the in-repo payment SDK (path repository)
+        working-directory: packages/zelta-cli
+        # CI must test against the monorepo's SDK code, not the published
+        # Packagist mirror (which can lag behind main). The version pin via
+        # options.versions lets the path package satisfy the ^1.0 constraint.
+        run: |
+          composer config repositories.payment-sdk '{"type": "path", "url": "../zelta-sdk", "options": {"versions": {"finaegis/payment-sdk": "1.0.999"}}}'
+
+      - name: Install dependencies
+        working-directory: packages/zelta-cli
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run tests
+        working-directory: packages/zelta-cli
+        run: vendor/bin/phpunit
+
+      - name: Smoke-test the binary
+        working-directory: packages/zelta-cli
+        run: |
+          php zelta list
+          php zelta --version | grep -F "$(php -r "echo (require 'config/zelta.php')['version'];")"
+
+  zelta-sdk:
+    name: zelta-sdk (Pest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer
+          extensions: json, mbstring
+
+      - name: Install dependencies
+        working-directory: packages/zelta-sdk
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run tests
+        working-directory: packages/zelta-sdk
+        run: vendor/bin/pest
+
+  mcp-stdio:
+    name: finaegis-mcp-stdio (Vitest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: packages/finaegis-mcp-stdio/package-lock.json
+
+      - name: Install dependencies
+        working-directory: packages/finaegis-mcp-stdio
+        run: npm ci
+
+      - name: Run tests
+        working-directory: packages/finaegis-mcp-stdio
+        run: npm test

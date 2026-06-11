@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Api\Documentation;
 
 use OpenApi\Attributes as OA;
 
+// NOTE: bump `version` (and the domain count below) on every release tag,
+// then run `php artisan l5-swagger:generate` and commit the regenerated
+// storage/api-docs/api-docs.json — CI's "OpenAPI Drift Check" fails otherwise.
 #[OA\Info(
-    version: '7.7.0',
+    version: '7.15.0',
     title: 'Zelta API',
-    description: 'Core banking API — stablecoin-powered virtual cards, non-custodial wallet, AI agent card issuance, ISO 20022, Open Banking, US Payment Rails, Interledger, and Microfinance. Built with Laravel 12, featuring 56 DDD domains, event sourcing, CQRS, and privacy-preserving architecture.',
+    description: 'Core banking API — stablecoin-powered virtual cards, non-custodial wallet, AI agent card issuance, ISO 20022, Open Banking, US Payment Rails, Interledger, and Microfinance. Built with Laravel 12, featuring 61 DDD domains, event sourcing, CQRS, and privacy-preserving architecture.',
     contact: new OA\Contact(email: 'support@finaegis.org', name: 'Zelta Support'),
     license: new OA\License(name: 'Apache 2.0', url: 'https://www.apache.org/licenses/LICENSE-2.0.html'),
 )]

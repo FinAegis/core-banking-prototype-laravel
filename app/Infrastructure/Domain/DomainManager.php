@@ -526,13 +526,45 @@ class DomainManager
 
     /**
      * Check if a domain is disabled.
+     *
+     * Comparison is prefix- and case-insensitive so MODULES_DISABLED accepts
+     * either bare directory names (Lending) or full manifest names
+     * (finaegis/lending).
      */
     public function isDisabled(string $domain): bool
     {
-        $normalizedName = $this->normalizeDomainName($domain);
-        $disabled = $this->getDisabledDomains();
+        $needle = self::canonicalizeDomainName($domain);
 
-        return in_array($normalizedName, $disabled, true);
+        foreach ($this->getDisabledDomains() as $entry) {
+            if (self::canonicalizeDomainName($entry) === $needle) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Config-only disabled check, safe to call at boot time.
+     *
+     * Used by routes/console.php to gate demo-domain scheduled jobs without
+     * touching the cache store (which may not be reachable while the
+     * scheduler is bootstrapping). Reads modules.disabled (MODULES_DISABLED)
+     * directly and applies the same canonical matching as isDisabled().
+     */
+    public static function isDisabledByConfig(string $domain): bool
+    {
+        /** @var array<int|string, string> $disabled */
+        $disabled = config('modules.disabled', []);
+        $needle = self::canonicalizeDomainName($domain);
+
+        foreach ($disabled as $entry) {
+            if (self::canonicalizeDomainName($entry) === $needle) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -655,6 +687,23 @@ class DomainManager
         }
 
         return $name;
+    }
+
+    /**
+     * Canonical form used for disabled-list comparisons: trimmed,
+     * vendor-prefixed, lowercase. Makes matching tolerant of how the
+     * value was written in MODULES_DISABLED (Lending vs finaegis/Lending
+     * vs finaegis/lending).
+     */
+    private static function canonicalizeDomainName(string $name): string
+    {
+        $name = trim($name);
+
+        if (! str_contains($name, '/')) {
+            $name = "finaegis/{$name}";
+        }
+
+        return strtolower($name);
     }
 
     /**

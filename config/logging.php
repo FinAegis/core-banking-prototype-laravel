@@ -53,8 +53,11 @@ return [
     'channels' => [
 
         'stack' => [
-            'driver'            => 'stack',
-            'channels'          => explode(',', env('LOG_STACK', 'daily')),
+            'driver' => 'stack',
+            // Setting LOG_SLACK_WEBHOOK_URL auto-includes the slack channel so
+            // critical/emergency logs page the ops Slack with zero extra config.
+            // An explicit LOG_STACK always wins.
+            'channels'          => explode(',', (string) env('LOG_STACK', env('LOG_SLACK_WEBHOOK_URL') ? 'daily,slack' : 'daily')),
             'ignore_exceptions' => false,
         ],
 
@@ -74,11 +77,13 @@ return [
         ],
 
         'slack' => [
-            'driver'               => 'slack',
-            'url'                  => env('LOG_SLACK_WEBHOOK_URL'),
-            'username'             => env('LOG_SLACK_USERNAME', 'Laravel Log'),
-            'emoji'                => env('LOG_SLACK_EMOJI', ':boom:'),
-            'level'                => env('LOG_LEVEL', 'critical'),
+            'driver'   => 'slack',
+            'url'      => env('LOG_SLACK_WEBHOOK_URL'),
+            'username' => env('LOG_SLACK_USERNAME', 'Laravel Log'),
+            'emoji'    => env('LOG_SLACK_EMOJI', ':boom:'),
+            // Independently tunable: never inherits LOG_LEVEL (a global
+            // LOG_LEVEL=warning would otherwise spam Slack with warnings).
+            'level'                => env('LOG_SLACK_LEVEL', 'critical'),
             'replace_placeholders' => true,
         ],
 

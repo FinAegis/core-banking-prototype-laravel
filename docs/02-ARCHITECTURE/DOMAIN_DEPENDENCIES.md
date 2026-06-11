@@ -282,7 +282,7 @@ event(new BasketCompositionChangeRequested($newComposition));
 
 ## Related Documentation
 
-- [ADR-001: Event Sourcing](../ADR/ADR-001-event-sourcing.md)
-- [ADR-002: CQRS Pattern](../ADR/ADR-002-cqrs-pattern.md)
+- [ADR-0007: Event Sourcing](../adr/0007-event-sourcing.md)
+- [ADR-0008: CQRS Pattern](../adr/0008-cqrs-pattern.md)
 - [ARCHITECTURAL_ROADMAP.md](../ARCHITECTURAL_ROADMAP.md)
-- [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md)
+- [IMPLEMENTATION_PLAN.md](../archive/IMPLEMENTATION_PLAN.md) (archived — historical v1.x planning)

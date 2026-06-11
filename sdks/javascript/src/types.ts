@@ -3,6 +3,8 @@ export type FinAegisEnvironment = 'production' | 'sandbox' | 'local';
 export interface FinAegisConfig {
   apiKey: string;
   environment?: FinAegisEnvironment;
+  /** Override the default API base URL (takes precedence over environment) */
+  baseURL?: string;
   timeout?: number;
   maxRetries?: number;
 }

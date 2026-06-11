@@ -9,14 +9,28 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Zelta\DataObjects\PaymentConfig;
+use Zelta\Exceptions\PaymentFailedException;
+use Zelta\Exceptions\PaymentRequiredException;
+use Zelta\Handlers\AutoDetectHandler;
+use Zelta\Handlers\MppPaymentHandler;
+use Zelta\ZeltaClient;
 use ZeltaCli\Concerns\HasJsonOutput;
 use ZeltaCli\Concerns\RequiresAuth;
-use ZeltaCli\Services\ApiClient;
 use ZeltaCli\Services\AuthManager;
 use ZeltaCli\Services\OutputFormatter;
 
 /**
- * zelta pay send <url> [--amount <n>] [--network eip155:8453] [--yes].
+ * zelta pay send <url> [--yes].
+ *
+ * Fetches a paid endpoint. On a 402 response the payment SDK
+ * (finaegis/payment-sdk) negotiates the challenge and retries once with
+ * the payment credential attached — there is no server-side
+ * "POST a payment" endpoint; the protocols are header-based.
+ *
+ * MPP challenges are auto-handled. x402 challenges require an on-device
+ * signer (EIP-712 / Ed25519 key material) the CLI does not hold, so they
+ * are surfaced with their requirements instead of being auto-paid.
  */
 class SendCommand extends Command
 {
@@ -26,16 +40,17 @@ class SendCommand extends Command
     public function __construct()
     {
         parent::__construct('pay:send');
-        $this->setDescription('Pay for an API endpoint via x402');
+        $this->setDescription('Pay for an API endpoint via MPP/x402');
     }
 
     protected function configure(): void
     {
         $this
             ->addArgument('url', InputArgument::REQUIRED, 'Target URL that requires payment')
-            ->addOption('amount', null, InputOption::VALUE_OPTIONAL, 'Payment amount override')
-            ->addOption('network', 'n', InputOption::VALUE_OPTIONAL, 'Network (e.g., eip155:8453)', 'eip155:8453')
-            ->addOption('yes', 'y', InputOption::VALUE_NONE, 'Skip confirmation prompt')
+            ->addOption('amount', null, InputOption::VALUE_OPTIONAL, 'Display-only amount hint (actual amount comes from the 402 challenge)')
+            // No "-n" shortcut: it collides with Symfony's built-in --no-interaction.
+            ->addOption('network', null, InputOption::VALUE_OPTIONAL, 'Display-only network hint (rail is negotiated from the challenge)', 'eip155:8453')
+            ->addOption('yes', 'y', InputOption::VALUE_NONE, 'Skip confirmation prompt and auto-pay')
             ->addOption('json', null, InputOption::VALUE_NONE, 'Output as JSON');
     }
 
@@ -50,50 +65,57 @@ class SendCommand extends Command
 
         /** @var string $url */
         $url = $input->getArgument('url');
-        /** @var string $network */
-        $network = $input->getOption('network') ?? 'eip155:8453';
+        $autoPay = (bool) $input->getOption('yes');
 
-        $api = new ApiClient($auth);
+        $client = new ZeltaClient(
+            config: new PaymentConfig(
+                baseUrl: $auth->getBaseUrl(),
+                apiKey: $auth->getApiKey(),
+                autoPay: $autoPay,
+            ),
+            payment: new AutoDetectHandler(new MppPaymentHandler()),
+        );
 
-        // First attempt — may return 402
-        $result = $api->get($url);
+        try {
+            $result = $client->get($url);
+        } catch (PaymentRequiredException $e) {
+            $amount = $input->getOption('amount') ?? ($e->requirements['amount'] ?? 'unknown');
 
-        if ($result['status'] === 402) {
-            $paymentInfo = $result['body'];
-            $amount = $input->getOption('amount') ?? ($paymentInfo['amount'] ?? 'unknown');
-
-            if (! $input->getOption('yes')) {
-                $output->writeln("Payment required: {$amount} on {$network}");
+            if (! $autoPay) {
+                $output->writeln("Payment required: {$amount}");
                 $output->writeln('Use --yes to confirm payment.');
 
                 return Command::SUCCESS;
             }
 
-            // Retry with payment
-            $payResult = $api->post('/v1/x402/payments', [
-                'url'     => $url,
-                'amount'  => $amount,
-                'network' => $network,
-            ]);
+            // --yes was given but the challenge could not be satisfied —
+            // e.g. an x402-only endpoint, which needs a local signing key.
+            $formatter->error(
+                'PAYMENT_UNSUPPORTED',
+                'This 402 challenge cannot be auto-paid by the CLI (x402 requires an on-device signer). Requirements: '
+                . (json_encode($e->requirements) ?: '{}'),
+            );
 
-            if ($payResult['status'] >= 400) {
-                $formatter->error('PAYMENT_FAILED', $payResult['body']['message'] ?? "HTTP {$payResult['status']}");
+            return 3;
+        } catch (PaymentFailedException $e) {
+            $formatter->error('PAYMENT_FAILED', $e->getMessage());
 
-                return 3;
-            }
-
-            $formatter->output($payResult['body']['data'] ?? $payResult['body'], forceJson: $this->shouldOutputJson($input));
-
-            return Command::SUCCESS;
+            return 3;
         }
 
-        if ($result['status'] >= 400) {
-            $formatter->error('API_ERROR', $result['body']['message'] ?? "HTTP {$result['status']}");
+        if ($result->statusCode >= 400) {
+            $formatter->error('API_ERROR', (string) ($result->body['message'] ?? "HTTP {$result->statusCode}"));
 
             return Command::FAILURE;
         }
 
-        $formatter->output($result['body']['data'] ?? $result['body'], forceJson: $this->shouldOutputJson($input));
+        /** @var array<string, mixed> $body */
+        $body = $result->body['data'] ?? $result->body;
+        $formatter->output($body, forceJson: $this->shouldOutputJson($input));
+
+        if ($result->paid && ! $this->shouldOutputJson($input)) {
+            $output->writeln('<info>Payment settled via MPP — request retried successfully.</info>');
+        }
 
         return Command::SUCCESS;
     }

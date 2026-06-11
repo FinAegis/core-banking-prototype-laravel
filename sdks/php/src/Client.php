@@ -84,8 +84,8 @@ class Client
         }
 
         $urls = [
-            'production' => 'https://api.finaegis.com/v2',
-            'sandbox' => 'https://sandbox-api.finaegis.com/v2',
+            'production' => 'https://api.zelta.app/v2',
+            'sandbox' => 'https://api-sandbox.zelta.app/v2',
             'local' => 'http://localhost:8000/api/v2',
         ];
 

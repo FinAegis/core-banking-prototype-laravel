@@ -157,11 +157,76 @@ it('responds to initialize with capabilities and protocol version', function () 
     expect($response['result']['capabilities'])->toHaveKeys(['tools', 'resources', 'prompts', 'logging']);
 });
 
+it('negotiates a compatible older protocol version when the client requests one', function () {
+    /** @var JsonRpcRouter $router */
+    $router = app(JsonRpcRouter::class);
+
+    $response = $router->dispatch([
+        'jsonrpc' => '2.0',
+        'id'      => 1,
+        'method'  => 'initialize',
+        'params'  => ['protocolVersion' => '2025-06-18', 'clientInfo' => ['name' => 'test', 'version' => '0.0.0']],
+    ], fakeMcpContext());
+
+    // Server supports the requested revision → MUST echo it back.
+    expect($response['result']['protocolVersion'])->toBe('2025-06-18');
+});
+
+it('responds with its own protocol version when the requested one is unsupported', function () {
+    /** @var JsonRpcRouter $router */
+    $router = app(JsonRpcRouter::class);
+
+    $response = $router->dispatch([
+        'jsonrpc' => '2.0',
+        'id'      => 1,
+        'method'  => 'initialize',
+        'params'  => ['protocolVersion' => '1999-01-01'],
+    ], fakeMcpContext());
+
+    expect($response['result']['protocolVersion'])->toBe(config('mcp.protocol_version'));
+});
+
+it('drops notifications/initialized without any response envelope (JSON-RPC notification)', function () {
+    /** @var JsonRpcRouter $router */
+    $router = app(JsonRpcRouter::class);
+
+    // No `id` member → notification. Every conformant MCP client sends
+    // notifications/initialized right after initialize; it must NOT get
+    // -32601 (or any response at all).
+    $response = $router->dispatch([
+        'jsonrpc' => '2.0',
+        'method'  => 'notifications/initialized',
+    ], fakeMcpContext());
+
+    expect($response)->toBe([]);
+});
+
+it('drops any id-less envelope without a response, even for unknown or request methods', function () {
+    /** @var JsonRpcRouter $router */
+    $router = app(JsonRpcRouter::class);
+
+    // JSON-RPC 2.0 §4.1: errors for notifications are dropped — no -32601.
+    expect($router->dispatch(['jsonrpc' => '2.0', 'method' => 'does/not/exist'], fakeMcpContext()))->toBe([]);
+
+    // Id-less request/response method: dropped without execution (no channel
+    // to deliver the result or its error).
+    expect($router->dispatch([
+        'jsonrpc' => '2.0',
+        'method'  => 'tools/call',
+        'params'  => ['name' => 'payment.transfer', 'arguments' => ['amount' => 1]],
+    ], fakeMcpContext()))->toBe([]);
+
+    // Malformed id-less envelope (bad jsonrpc field): also no error response.
+    expect($router->dispatch(['method' => 'notifications/initialized'], fakeMcpContext()))->toBe([]);
+});
+
 it('returns -32600 INVALID_REQUEST for an envelope missing method or jsonrpc', function () {
     /** @var JsonRpcRouter $router */
     $router = app(JsonRpcRouter::class);
 
-    $response = $router->dispatch(['method' => 'initialize'], fakeMcpContext());
+    // Carries an id (so it's a request, not a notification) but lacks the
+    // jsonrpc version field → INVALID_REQUEST.
+    $response = $router->dispatch(['id' => 1, 'method' => 'initialize'], fakeMcpContext());
 
     expect($response['error']['code'])->toBe(-32600);
     expect($response['error']['message'])->toBe('INVALID_REQUEST');
@@ -261,4 +326,22 @@ it('emits MCP tool annotations (title + read/destructive/idempotent hints) on ev
     expect($writeAnnotations['readOnlyHint'])->toBeFalse();
     expect($writeAnnotations['destructiveHint'])->toBeTrue();
     expect($writeAnnotations['idempotentHint'])->toBeTrue();
+});
+
+it('includes each tool\'s outputSchema in tools/list when the internal tool declares one', function () {
+    /** @var JsonRpcRouter $router */
+    $router = app(JsonRpcRouter::class);
+
+    $ctx = fakeMcpContext(['scopes' => ['*']]);
+    $envelope = ['jsonrpc' => '2.0', 'id' => 5, 'method' => 'tools/list', 'params' => new stdClass()];
+    $response = $router->dispatch($envelope, $ctx);
+
+    $byName = [];
+    foreach ($response['result']['tools'] as $tool) {
+        $byName[$tool['name']] = $tool;
+    }
+
+    // The stub tools declare ['type' => 'object'] — must surface on the wire.
+    expect($byName['account.balance']['outputSchema'] ?? null)->toBe(['type' => 'object']);
+    expect($byName['payment.transfer']['outputSchema'] ?? null)->toBe(['type' => 'object']);
 });

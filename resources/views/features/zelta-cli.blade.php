@@ -29,7 +29,7 @@
                 <div class="flex justify-center mb-6">
                     <span class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-sm text-emerald-300 font-medium">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        v0.2.0 &middot; 25 Commands
+                        v0.2.9 &middot; 24 Commands
                     </span>
                 </div>
                 @include('partials.breadcrumb', ['items' => [
@@ -139,18 +139,19 @@
 
 <span class="text-slate-500"># Verify installation</span>
 <span class="text-emerald-400">$</span> zelta --version
-zelta/0.2.0 linux-x64 node-v20.11.0</code></pre>
+zelta/0.2.9 linux-x64 node-v20.11.0</code></pre>
                     </div>
                 </div>
                 <div class="flex gap-6">
                     <div class="flex-shrink-0 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">2</div>
                     <div class="flex-1">
                         <h3 class="font-semibold text-lg text-slate-900 mb-2">Authenticate</h3>
-                        <pre class="bg-slate-900 text-slate-300 rounded-lg p-4 text-sm overflow-x-auto"><code><span class="text-emerald-400">$</span> zelta auth:login
+                        <pre class="bg-slate-900 text-slate-300 rounded-lg p-4 text-sm overflow-x-auto"><code><span class="text-slate-500"># Create a personal access token in the dashboard (Profile &rarr; API Tokens)</span>
+<span class="text-emerald-400">$</span> zelta auth:login --key &lt;api-token&gt;
 
-<span class="text-slate-500">Opening browser for authentication...</span>
-<span class="text-emerald-400">Authenticated as dev@example.com</span>
-Token saved to ~/.config/zelta/credentials.json</code></pre>
+<span class="text-slate-500">Verifying token against the API...</span>
+<span class="text-emerald-400">Authenticated as dev@example.com (profile 'default')</span>
+Token saved to ~/.zelta/credentials.json</code></pre>
                     </div>
                 </div>
                 <div class="flex gap-6">

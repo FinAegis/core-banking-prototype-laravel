@@ -42,11 +42,20 @@ return [
 
                 /*
                  * Absolute paths to directory containing the swagger annotations are stored.
+                 *
+                 * Domain-local HTTP controllers (DDD bounded contexts under
+                 * app/Domain/<Domain>/Http/Controllers) are discovered via glob —
+                 * same pattern as config/event-sourcing.php — so endpoints like
+                 * POST /api/v1/subscription/iap/verify are documented without
+                 * touching this file when a new domain gains controllers.
                  */
-                'annotations' => [
-                    base_path('app/Http/Controllers/Api'),
-                    base_path('app/Http/Resources'),
-                ],
+                'annotations' => array_merge(
+                    [
+                        base_path('app/Http/Controllers/Api'),
+                        base_path('app/Http/Resources'),
+                    ],
+                    glob(base_path('app/Domain/*/Http/Controllers'), GLOB_ONLYDIR) ?: [],
+                ),
             ],
         ],
     ],

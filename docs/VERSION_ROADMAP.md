@@ -1328,7 +1328,7 @@ GET    /api/v1/trustcert/verify/{token} # Verify presentation
 
 ### Documentation
 - [Mobile App Specification](MOBILE_APP_SPECIFICATION.md) - Complete technical spec (v1.2)
-- [Backend Upgrade Plan](BACKEND_UPGRADE_PLAN_v2.4.md) - API integration guide
+- [Backend Upgrade Plan](archive/BACKEND_UPGRADE_PLAN_v2.4.md) - API integration guide (archived — COMPLETED)
 
 ---
 
@@ -3257,6 +3257,29 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 
 ---
 
+## Version 7.15.0 — Bridge.xyz Fiat Ramp (June 2026)
+
+**Theme**: Bridge.xyz becomes the primary v1 fiat ↔ stablecoin rail — bank transfers in, USDC on Polygon — with Bridge-hosted KYC, virtual accounts, and the ADR-0006 developer-fee markup mechanism. Plus a landing-page truth-pass and HyperSwitch wired into the real deposit flow.
+
+### Delivered Features
+- Bridge.xyz ramp foundations — `bridge_customers` + `ramp_sessions` persistence (`deposit_instructions` encrypted, `source` enum), `KycProviderInterface` adapters under `app/Domain/Compliance/Kyc/`, shared HTTP client + webhook verifier in `app/Infrastructure/Bridge/`. ADR-0005 records why Bridge over Stripe Crypto Onramp; the prior `StripeBridge` scaffolding is soft-renamed to `StripeCryptoOnramp` with a deprecated `RAMP_PROVIDER=stripe_bridge` alias.
+- Single webhook endpoint `POST /api/v1/webhooks/bridge` for both KYC (`customer.kyc_link_*`) and ramp (`virtual_account.activity`, `transfer.*`) events — event-level dedupe via `processed_webhook_events (provider='bridge', event_id)`. Verified against Bridge's current asymmetric scheme (`X-Webhook-Signature: t=<unix_ms>,v0=<base64>`, RSA-SHA256 keyed by `BRIDGE_WEBHOOK_PUBLIC_KEY`), legacy HMAC kept as auto-detected fallback (#1115).
+- Mobile setup endpoints — `GET /api/v1/user/bridge-setup-status` + `POST /api/v1/user/bridge-kyc-link` with lazy Bridge customer creation (`Idempotency-Key: bridge_customer:{user_id}`). No `require.kyc` middleware: these endpoints *are* the KYC entry point.
+- KYC → virtual account flow — auto-VA provisioning on `customer.kyc_link_completed` when the user has a Polygon address; `BlockchainAddressBridgeObserver` retries when the address registers later; VA retry endpoint + push deep-link + quote expiration. WS events `bridge.kyc.completed` / `bridge.kyc.rejected` / `bridge.virtual_account.ready` on `private-user.{userId}` with push fallback on the two KYC terminals.
+- Markup mechanism (ADR-0006) — 0.75% Zelta markup on ramp quotes via per-customer `developer_fee_bps` (Free=75, Pro=0), auto-PATCHed by a `SubscriptionTierChanged` listener; operator commands `bridge:sync-dev-fee` (reconciliation, `--all --dry-run` batch mode) and `bridge:inspect-user` (customer + VA + ramp session dump). Ops runbook: `docs/operations/bridge-ramp.md`.
+- HyperSwitch wired into the real card-deposit flow (closes #346, PR #1118) — opt-in via `HYPERSWITCH_ENABLED` (off by default; Stripe remains the default rail). Webhook credits via `AccountCreditService`, idempotent through `processed_webhook_events`, deadlock-safe across the tenant connection; credit failures surface as `completion_failed` for operator reconciliation instead of being disguised as completed (#1119).
+- Landing truth-pass — copy, SEO meta, schema.org data, and MCP claims aligned with the shipped product (#1112, #1113); README + GitHub presentation accuracy refresh (#1117); redesigned `#get-the-app` section with Android open-testing CTAs; fixed malformed Android install URL, duplicate `/support` footer, and OAuth consent screen SEO/noindex (#1111, #1116, #1114).
+
+### Scope Notes
+- v1 is bank-rail **onramp only** — Bridge offramp (`type=off`) throws and lands in v1.1 alongside SWIFT and additional networks (Solana, Base, Arbitrum).
+- `users.kyc_status` (Ondato/TrustCert) and `bridge_customers.kyc_status` are partitioned — never conflated.
+
+### Required Configuration
+- `BRIDGE_API_KEY`, `BRIDGE_WEBHOOK_PUBLIC_KEY` (current platform credential — set before go-live; the dev passthrough fails closed in production), `RAMP_PROVIDER=bridge`.
+- `HYPERSWITCH_ENABLED` stays `false` unless the HyperSwitch rail is being trialled.
+
+---
+
 ## Version 7.13.1 — USDT Enablement + Solana Pay QR Spec Fix (May 2026)
 
 **Theme**: Small follow-up to v7.13.0 — surface a stablecoin that was already wired in the token registries but gated by an enum, and bring Solana receive QRs in line with the Solana Pay spec.
@@ -3404,5 +3427,5 @@ Embeddable JS widget that renders Zelta's 402 payment flow inside the partner's 
 
 ---
 
-*Document Version: 7.14.1*
-*Updated: May 19, 2026 (v7.14.1 Privy login hotfix — personal-team provisioning for email-OTP signups)*
+*Document Version: 7.15.0*
+*Updated: June 3, 2026 (v7.15.0 Bridge.xyz fiat ramp — Bridge KYC, virtual accounts, developer-fee markup, HyperSwitch deposit wiring)*

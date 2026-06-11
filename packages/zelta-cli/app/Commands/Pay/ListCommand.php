@@ -32,7 +32,7 @@ class ListCommand extends Command
     {
         $this
             ->addOption('status', 's', InputOption::VALUE_OPTIONAL, 'Filter by status (pending, settled, failed)')
-            ->addOption('network', 'n', InputOption::VALUE_OPTIONAL, 'Filter by network (e.g., eip155:8453)')
+            ->addOption('network', null, InputOption::VALUE_OPTIONAL, 'Filter by network (e.g., eip155:8453)')
             ->addOption('json', null, InputOption::VALUE_NONE, 'Output as JSON');
     }
 

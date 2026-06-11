@@ -47,17 +47,24 @@ Route::get('/', function () {
     ]);
 })->name('api.root');
 
-// Monitoring endpoints (public - for Prometheus and Kubernetes)
+// Monitoring endpoints. Health probes stay public (Kubernetes liveness/readiness);
+// metrics endpoints are gated (token or IP allowlist) — they expose business metrics.
 Route::prefix('monitoring')->group(function () {
-    Route::get('/metrics', [App\Http\Controllers\Api\MonitoringController::class, 'prometheus'])->name('monitoring.metrics');
-    Route::get('/prometheus', [App\Http\Controllers\Api\MonitoringController::class, 'prometheus'])->name('monitoring.prometheus');
+    Route::get('/metrics', [App\Http\Controllers\Api\MonitoringController::class, 'prometheus'])
+        ->middleware(App\Http\Middleware\MetricsAccessMiddleware::class)
+        ->name('monitoring.metrics');
+    Route::get('/prometheus', [App\Http\Controllers\Api\MonitoringController::class, 'prometheus'])
+        ->middleware(App\Http\Middleware\MetricsAccessMiddleware::class)
+        ->name('monitoring.prometheus');
     Route::get('/health', [App\Http\Controllers\Api\MonitoringController::class, 'health'])->name('monitoring.health');
     Route::get('/ready', [App\Http\Controllers\Api\MonitoringController::class, 'ready'])->name('monitoring.ready');
     Route::get('/alive', [App\Http\Controllers\Api\MonitoringController::class, 'alive'])->name('monitoring.alive');
 });
 
-// Domain metrics endpoints (public - for Prometheus scraping)
-Route::get('/metrics/prometheus', [App\Http\Controllers\Api\MetricsController::class, 'prometheus'])->name('metrics.prometheus');
+// Domain metrics endpoint for Prometheus scraping (gated: token or IP allowlist)
+Route::get('/metrics/prometheus', [App\Http\Controllers\Api\MetricsController::class, 'prometheus'])
+    ->middleware(App\Http\Middleware\MetricsAccessMiddleware::class)
+    ->name('metrics.prometheus');
 Route::get('/health', [App\Http\Controllers\Api\MetricsController::class, 'health'])->name('health.quick');
 
 // WebSocket configuration endpoints (public - for client initialization)
@@ -227,7 +234,10 @@ Route::prefix('v1/subscription')->name('api.v1.subscription.')
 
             // Slice 2 — mobile P0 endpoint: server-side validate Apple/Google
             // store receipts and create / update the iap_subscriptions row.
+            // Throttled per-user: receipt verification fans out to Apple/Google
+            // and writes revenue rows — 10/min is ample for legitimate clients.
             Route::post('/iap/verify', [App\Domain\Subscription\Http\Controllers\IapVerifyController::class, 'verify'])
+                ->middleware('throttle:10,1')
                 ->name('iap.verify');
         });
     });

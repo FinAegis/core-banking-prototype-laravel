@@ -1,344 +1,109 @@
-# FinAegis Platform - Production Readiness Checklist
+# Production Readiness Checklist — Zelta v7.15
 
-## Overview
-This checklist outlines all requirements that must be met before the FinAegis platform can go live in production. Items are categorized by priority: **Critical** (must-have), **Important** (should-have), and **Nice-to-have** (could-have).
+> **Supersedes the September 2024 version** of this file (the Jumio/Santander-era,
+> CTO-sign-off checklist). That document predated the non-custodial mobile-wallet
+> pivot, Plan B subscriptions, Bridge.xyz ramp, the public MCP server, and the
+> `ops:verify-env` deploy gate. This is the current go-live checklist for a Zelta
+> v7.15 mobile-wallet production deployment.
+>
+> **Status legend**: `[x] done` · `[ ] open` (action required before go-live) ·
+> `[blocked]` (depends on external work, tracked). Mark each item honestly — a
+> checked box here is a claim someone can be held to.
 
-## 🔴 Critical Requirements (Must Complete Before Launch)
+## 0. Deploy gate — run this first
 
-### Security & Compliance
+- [x] `php artisan ops:verify-env` exists on `main` and is the canonical preflight (PR #1131). Run it in CI/CD **before** traffic. Exit 1 = blocked; FAIL results block in production (or with `--strict`). It front-loads every lazy production guard (IAP pepper, pricing quote signer, Bridge webhook verifier, demo-mode toggles, conditional secrets) into one gate.
+  ```bash
+  php artisan ops:verify-env --json    # wire into the deploy pipeline as a hard gate
+  ```
+- [ ] CI/CD actually invokes `ops:verify-env` as a blocking step (verify the pipeline, not just the command's existence).
 
-#### Authentication & Authorization
-- [ ] Multi-factor authentication (2FA) fully tested
-- [ ] OAuth2/JWT token management hardened
-- [ ] API key rotation mechanism implemented
-- [ ] Session management and timeout configured
-- [ ] Password policy enforcement (min 12 chars, complexity)
-- [ ] Account lockout after failed attempts
+## 1. Core app config
 
-#### Data Protection
-- [ ] Database encryption at rest (AES-256)
-- [ ] TLS 1.3 for all API endpoints
-- [ ] Sensitive data masking in logs
-- [ ] PII encryption in database
-- [ ] Secure key management (AWS KMS/HashiCorp Vault)
-- [ ] GDPR compliance implementation
+- [ ] `APP_ENV=production`, `APP_DEBUG=false`, `APP_KEY` set (all enforced by `ops:verify-env` core checks).
+- [ ] `config:cache` / `route:cache` run on deploy; workers restarted after env changes.
+- [ ] `REGISTRATION_ENABLED=false` (public registration off in production; users created via CLI).
+- [ ] `LIGHTHOUSE_SECURITY_DISABLE_INTROSPECTION=true` (GraphQL introspection off — set in both prod templates, PR #1135).
 
-#### KYC/AML Integration
-- [ ] KYC provider selected and integrated (Jumio/Onfido/Sumsub)
-- [ ] Identity verification workflow
-- [ ] Document upload and verification
-- [ ] Sanctions screening (OFAC, EU, UN lists)
-- [ ] PEP (Politically Exposed Persons) checks
-- [ ] Ongoing monitoring setup
+## 2. Secrets & peppers (one-way — set once, never rotate where noted)
 
-#### Regulatory Compliance
-- [ ] Transaction monitoring system
-- [ ] Suspicious Activity Report (SAR) generation
-- [ ] Currency Transaction Report (CTR) generation
-- [ ] Audit trail for all transactions
-- [ ] Data retention policies (7 years)
-- [ ] Right to be forgotten implementation
+- [ ] `IAP_RECEIPT_PEPPER` set (`openssl rand -hex 32`). **One-way — NEVER rotate**: rotation permanently breaks post-erasure IAP webhook matching. `IapReceiptPseudonymiser` hard-throws on first use if empty. (`ops:verify-env` FAILs when empty.)
+- [ ] `TRIAL_FINGERPRINT_PEPPER` set (trial-card fingerprint hashing).
+- [ ] `PRICING_QUOTE_PEPPER` set (`QuoteSigner` refuses to sign without it).
+- [ ] `BIOMETRIC_JWT_SECRET` set (≥32 bytes; mobile biometric login signing).
+- [ ] Privy: `PRIVY_APP_ID`, `PRIVY_APP_SECRET`, `PRIVY_JWKS_URL`, `PRIVY_ISSUER` set when `MCP_WEB_PRIVY_LOGIN=true` (web `/login`); the mobile JWT path needs the issuer/app-id for `PrivyJwtVerifier`.
 
-### Infrastructure
+## 3. Demo/bypass toggles must be OFF in production
 
-#### Hosting & Deployment
-- [ ] Production hosting environment (AWS/GCP/Azure)
-- [ ] Load balancer configuration (AWS ELB/ALB)
-- [ ] Auto-scaling groups configured
-- [ ] CDN setup (CloudFlare/AWS CloudFront)
-- [ ] DDoS protection enabled
-- [ ] WAF (Web Application Firewall) rules
+All FAILed by `ops:verify-env` when wrong:
 
-#### Database
-- [ ] Production database cluster (MySQL/PostgreSQL)
-- [ ] Read replicas configured
-- [ ] Automated backups (daily, weekly, monthly)
-- [ ] Point-in-time recovery tested
-- [ ] Database monitoring and alerts
-- [ ] Query optimization completed
+- [ ] `APPLE_JWS_VERIFICATION_BYPASS=false` — staging-only; it is a full auth-bypass for the entire Apple IAP surface (ignored + logged ERROR in prod, but keep it false). Negative smoke test: POST a known-bad JWS to `/api/v1/subscription/iap/verify` in prod and confirm `ERR_SUB_001`, not a created subscription.
+- [ ] `demo.mode=false`, `SANDBOX_MODE=false`, all `DEMO_*` feature toggles false.
+- [ ] `KEY_MANAGEMENT_DEMO_MODE=false`, `REGTECH_DEMO_MODE=false`, `AI_DEMO_MODE=false` (these default to true — must be set false explicitly).
+- [ ] `SHOW_PROMO_PAGES=false` (production shows the app landing page only).
+- [ ] `MODULES_DISABLED` scoped for Zelta production (PR #1135) — `.env.zelta.example` curates 17 demo/showcase domains (Banking, Basket, Cgo, CrossChain, DeFi, FinancialInstitution, Governance, ISO20022, ISO8583, Interledger, Ledger, Lending, Microfinance, OpenBanking, PaymentRails, Stablecoin, Treasury). Exchange stays enabled (serves mobile `/exchange-rates`, `/convert`). Verify ~218 demo routes are removed and zero mobile/MCP/webhook routes are affected.
+- [ ] `ADMIN_MODULES` pinned to the mobile-wallet scope on Zelta deployments.
 
-#### Caching & Queues
-- [ ] Redis cluster for caching
-- [ ] Queue workers configured (Laravel Horizon)
-- [ ] Failed job handling
-- [ ] Queue monitoring
-- [ ] Cache invalidation strategy
-- [ ] Session storage configuration
+## 4. Payment rails
 
-### Third-Party Integrations
+- [ ] **Stripe** is the default deposit rail; keys + webhook configured and verified.
+- [ ] **HyperSwitch** (`HYPERSWITCH_ENABLED`): OFF by default. If enabling, set `HYPERSWITCH_API_KEY` + `HYPERSWITCH_WEBHOOK_SECRET` (both FAILed by `ops:verify-env` when the flag is on and they're empty); configure the dashboard webhook → `/api/webhooks/hyperswitch`; know the `completion_failed` reconciliation path. Runbook: `docs/operations/hyperswitch-deposits.md`.
+- [ ] **IAP subscriptions**: Apple/Google product-id maps configured; Apple Root CA G3 present at `storage/app/apple/AppleRootCA-G3.cer`; webhook endpoints registered (`/api/webhooks/apple/notifications`, `/api/webhooks/google/play`); revenue outbox sweep (`ProjectRevenueOutbox`, every 5 min) running. Runbook: `docs/operations/iap-subscriptions.md`.
 
-#### Payment Processing
-- [ ] Stripe production account and API keys
-- [ ] Webhook endpoints secured and tested
-- [ ] PCI DSS compliance attestation
-- [ ] Chargeback handling process
-- [ ] Refund mechanisms tested
-- [ ] Payment reconciliation process
+## 5. Bridge.xyz ramp (fiat ↔ stablecoin)
 
-#### Banking Partners
-- [ ] Paysera production credentials
-- [ ] Santander API access and certificates
-- [ ] Settlement account configuration
-- [ ] Daily reconciliation process
-- [ ] Bank webhook security
-- [ ] Fallback bank configuration
+Runbook: `docs/operations/bridge-ramp.md`. ADRs: `docs/adr/0005-*`, `docs/adr/0006-*`.
 
-#### Blockchain Infrastructure
-- [ ] Ethereum node access (Infura/Alchemy production)
-- [ ] Bitcoin node configuration
-- [ ] Polygon node setup
-- [ ] Hot wallet security
-- [ ] Cold wallet procedures
-- [ ] Gas price optimization
+- [ ] `BRIDGE_API_KEY` set. Bridge authenticates with the **`Api-Key` header** (not `Authorization: Bearer`) — confirm this matches Bridge's current platform before go-live (`BridgeClient` notes the v0 pattern as of 2026-05).
+- [ ] `BRIDGE_WEBHOOK_PUBLIC_KEY` set (per-endpoint RSA public key). With Bridge as the active provider, `ops:verify-env` FAILs when no webhook credential is present (verifier 401s every webhook → KYC/ramp never land).
+- [ ] **Sandbox confirmation**: fire a real Bridge sandbox webhook and confirm `BridgeWebhookVerifier` returns 200, not 401. The asymmetric `v0` scheme (timestamp **units** and RSA padding) is **unverified against live bytes** — do not go live on assumption.
+- [ ] Webhook endpoint is `active` in the Bridge dashboard (new webhooks start `disabled`).
+- [ ] Dev-fee markup wired: `SubscriptionTierChanged` listener PATCHes `developer_fee_bps` (Free=75/Pro=0); queue worker for the `events` queue is running (the listener is `ShouldQueue`).
 
-### Monitoring & Observability
+## 6. Non-custodial wallet send & sponsorship
 
-#### Application Monitoring
-- [ ] APM tool configured (New Relic/Datadog/AppDynamics)
-- [ ] Error tracking (Sentry/Rollbar)
-- [ ] Custom metrics and dashboards
-- [ ] Alert thresholds configured
-- [ ] Log aggregation (ELK stack/Splunk)
-- [ ] Distributed tracing setup
+Runbook: `docs/operations/wallet-sponsorship.md`.
 
-#### Infrastructure Monitoring
-- [ ] Server monitoring (CPU, memory, disk)
-- [ ] Database performance monitoring
-- [ ] Network monitoring
-- [ ] SSL certificate monitoring
-- [ ] Uptime monitoring (Pingdom/UptimeRobot)
-- [ ] Cost monitoring and alerts
+- [ ] EVM sponsorship: `PIMLICO_API_KEY` + `PIMLICO_BUNDLER_URL` set. `WALLET_SEND_EVM_NETWORKS=polygon,base,arbitrum` (Ethereum L1 stays disabled — uncapped gas).
+- [ ] Solana sponsorship: `WALLET_SOLANA_SPONSOR_SECRET_KEY` set (base58 64-byte ed25519) if 0-SOL wallets must send. `ops:verify-env` FAILs when the key is set but undecodable; SKIPs when unset (legacy sender-pays, which fails for 0-SOL wallets).
+- [ ] **Sponsor balance monitoring**: `solana:check-sponsor-balance` scheduled hourly (it is, in `routes/console.php`); CRITICAL alert routes to Slack; sponsor account funded above `WALLET_SOLANA_SPONSOR_LOW_BALANCE_LAMPORTS` (default 0.1 SOL).
+- [ ] Sponsorship caps reviewed: per-user 30/day, global 5000/day (`WALLET_SEND_*_DAILY_LIMIT`). Note these are **cache counters** — a Redis flush resets the day's counts.
+- [ ] `HELIUS_API_KEY` set (Solana webhook sync, balances, confirmations) — `ops:verify-env` WARNs when empty.
 
-### Operational Procedures
+## 7. Public MCP server
 
-#### Disaster Recovery
-- [ ] Disaster recovery plan documented
-- [ ] RTO (Recovery Time Objective) defined: < 4 hours
-- [ ] RPO (Recovery Point Objective) defined: < 1 hour
-- [ ] Backup restoration tested
-- [ ] Failover procedures documented
-- [ ] Communication plan for incidents
+- [ ] Cloudflare CNAME for `mcp.*` resolves; `bootstrap/app.php` subdomain ordering correct (mcp before protocol subdomains).
+- [ ] Per-tool kill-switches (`MCP_TOOL_*`) reviewed; payment-class tools (`payments:write`, `ramp:write`, `sms:send`) enforce the daily spending limit (`MCP_DEFAULT_DAILY_LIMIT_MINOR`, default $500). Spending limits on `ramp.start` + `sms.send` enforced as of PR #1134.
+- [ ] Dev-portal tool count matches `config('mcp.tools')` (`developers/mcp-tools.blade.php`).
 
-#### Security Operations
-- [ ] Incident response plan
-- [ ] Security contact list
-- [ ] Vulnerability scanning schedule
-- [ ] Penetration testing completed
-- [ ] Security audit trail
-- [ ] Access control matrix
+## 8. Observability & alerting
 
-## 🟡 Important Requirements (Should Complete)
+- [ ] `LOG_SLACK_WEBHOOK_URL` set — the default log stack auto-includes Slack when present, routing every `Log::critical`/`emergency` to Slack (PR #1133). `LOG_SLACK_LEVEL` defaults to `critical` (does not inherit `LOG_LEVEL`).
+- [ ] `METRICS_TOKEN` (or `METRICS_ALLOWED_IPS`) set — `MetricsAccessMiddleware` gates `/api/monitoring/{metrics,prometheus}` + `/api/metrics/prometheus`; with neither configured it **fails closed (403) in production** (PR #1133). `/health`, `/ready`, `/alive` stay public for k8s probes.
+- [ ] Error tracking (Sentry/Rollbar) + APM wired; alert thresholds set.
+- [ ] Horizon running for queues (`events`, default, notifications); failed-job handling verified.
 
-### Performance Optimization
+## 9. Data & backups
 
-#### Application Performance
-- [ ] API response time < 200ms (p95)
-- [ ] Database query optimization
-- [ ] N+1 query elimination
-- [ ] Eager loading implemented
-- [ ] API response caching
-- [ ] Image optimization and CDN
+- [blocked] **No scheduled database backup exists in this repo.** `routes/console.php` has no `backup:*` job and there is no backup package wired. **OPEN ITEM** — backups must be provisioned at the infrastructure layer (managed DB automated snapshots / external dump cron) before go-live, and a restore must be test-restored. Do not check this off on the assumption that the cloud provider "probably" snapshots.
+- [ ] Database encryption at rest + TLS in transit (infra layer).
+- [ ] GDPR erasure path verified, including `IapReceiptPseudonymiser` (requires the pepper from §2 — it hard-throws otherwise).
 
-#### Scalability
-- [ ] Horizontal scaling tested
-- [ ] Database sharding strategy
-- [ ] Microservices architecture evaluation
-- [ ] Event-driven architecture components
-- [ ] Message queue scalability
-- [ ] Cache cluster scaling
+## 10. Mobile-specific
 
-### Enhanced Security
+- [blocked] **Device attestation is OFF and intentionally so.** `MOBILE_ATTESTATION_ENABLED=false` in both prod templates. `config/mobile.php` documents: "DO NOT FLIP TO TRUE WITHOUT FIRST WIRING THE MOBILE-SUPPLIED CHALLENGE" — `BiometricJWTService::verifyDeviceAttestation()` passes an empty challenge to `AppleAttestationVerifier`, so iOS always fails until controllers plumb `device_challenge` through. **Blocked on mobile challenge plumbing** — coordinate with the mobile team; do not enable in isolation. (`ops:verify-env` FAILs if enabled without the Apple/Google attestation keys.)
+- [ ] Reviewer/demo accounts provisioned for app-store review per `docs/operations/reviewer-accounts.md` (operator-only; expiry sweep at 00:10 UTC).
+- [ ] Push notifications (FCM) configured for Helius/Alchemy webhook delivery.
 
-#### Advanced Protection
-- [ ] Rate limiting per user/IP
-- [ ] Behavioral analysis for fraud
-- [ ] Device fingerprinting
-- [ ] Geolocation verification
-- [ ] VPN/Proxy detection
-- [ ] Bot protection (reCAPTCHA/hCaptcha)
+## 11. Pre-launch verification
 
-#### Compliance Enhancements
-- [ ] Real-time transaction screening
-- [ ] Enhanced due diligence workflows
-- [ ] Automated compliance reporting
-- [ ] Risk scoring algorithms
-- [ ] Machine learning fraud detection
-- [ ] Compliance dashboard
-
-### User Experience
-
-#### Customer Support
-- [ ] Support ticket system
-- [ ] Knowledge base
-- [ ] FAQ section
-- [ ] Live chat integration
-- [ ] Email support templates
-- [ ] Support metrics tracking
-
-#### Communication
-- [ ] Transactional email service (SendGrid/Mailgun)
-- [ ] SMS notifications (Twilio/Vonage)
-- [ ] Push notifications
-- [ ] Email templates (welcome, verification, etc.)
-- [ ] Multi-language support
-- [ ] Notification preferences
-
-## 🟢 Nice-to-Have Features (Could Complete)
-
-### Advanced Features
-
-#### Analytics & Reporting
-- [ ] Business intelligence dashboard
-- [ ] Custom report builder
-- [ ] Data warehouse setup
-- [ ] ETL pipelines
-- [ ] Predictive analytics
-- [ ] Customer behavior tracking
-
-#### Developer Experience
-- [ ] API SDK generation (multiple languages)
-- [ ] GraphQL endpoint
-- [ ] WebSocket support for real-time updates
-- [ ] Webhook management UI
-- [ ] API versioning strategy
-- [ ] Developer portal
-
-#### Enhanced Demo
-- [ ] Interactive demo walkthrough
-- [ ] Sample data generator
-- [ ] Demo reset functionality
-- [ ] Sandbox account provisioning
-- [ ] Demo analytics dashboard
-- [ ] A/B testing framework
-
-### Marketing & Growth
-
-#### SEO & Marketing
-- [ ] SEO optimization
-- [ ] Google Analytics 4
-- [ ] Marketing automation
-- [ ] Referral program
-- [ ] Affiliate tracking
-- [ ] Landing page optimization
-
-#### User Engagement
-- [ ] Gamification elements
-- [ ] Loyalty program
-- [ ] User onboarding flow
-- [ ] Product tours
-- [ ] In-app messaging
-- [ ] User feedback system
-
-## Pre-Launch Testing Checklist
-
-### Functional Testing
-- [ ] All API endpoints tested
-- [ ] User workflows validated
-- [ ] Edge cases handled
-- [ ] Error scenarios tested
-- [ ] Integration tests passing
-- [ ] Regression test suite
-
-### Performance Testing
-- [ ] Load testing completed (target: 10,000 concurrent users)
-- [ ] Stress testing performed
-- [ ] Database performance validated
-- [ ] API rate limits tested
-- [ ] CDN performance verified
-- [ ] Mobile performance optimized
-
-### Security Testing
-- [ ] Penetration testing report
-- [ ] OWASP Top 10 compliance
-- [ ] SQL injection testing
-- [ ] XSS prevention validated
-- [ ] CSRF protection tested
-- [ ] API security audit
-
-### Compliance Testing
-- [ ] KYC workflow tested
-- [ ] AML rules validated
-- [ ] Transaction limits enforced
-- [ ] Reporting accuracy verified
-- [ ] Audit trail completeness
-- [ ] Data retention validated
-
-## Launch Readiness Sign-off
-
-### Technical Sign-off
-- [ ] CTO approval
-- [ ] Lead developer review
-- [ ] Security team approval
-- [ ] DevOps team ready
-- [ ] Database team approval
-- [ ] QA team sign-off
-
-### Business Sign-off
-- [ ] CEO approval
-- [ ] Compliance officer approval
-- [ ] Legal team review
-- [ ] Risk management approval
-- [ ] Customer support ready
-- [ ] Marketing team ready
-
-### Documentation
-- [ ] API documentation complete
-- [ ] User guides published
-- [ ] Admin documentation ready
-- [ ] Runbooks created
-- [ ] Disaster recovery plan approved
-- [ ] Compliance documentation filed
-
-## Post-Launch Monitoring (First 30 Days)
-
-### Week 1
-- [ ] 24/7 monitoring active
-- [ ] Daily health checks
-- [ ] Performance metrics review
-- [ ] Error rate monitoring
-- [ ] User feedback collection
-- [ ] Quick fixes deployed
-
-### Week 2-4
-- [ ] Weekly performance reviews
-- [ ] User behavior analysis
-- [ ] Optimization opportunities identified
-- [ ] Security audit
-- [ ] Compliance review
-- [ ] Scaling adjustments
-
-### Month 1 Review
-- [ ] Full system audit
-- [ ] Performance benchmarking
-- [ ] User satisfaction survey
-- [ ] Financial reconciliation
-- [ ] Compliance audit
-- [ ] Roadmap adjustments
-
-## Contact Information
-
-### Emergency Contacts
-- **Security Incidents**: security@finaegis.com
-- **System Outages**: ops@finaegis.com
-- **Compliance Issues**: compliance@finaegis.com
-- **On-Call Engineer**: +1-XXX-XXX-XXXX
-
-### Escalation Path
-1. Level 1: On-call engineer
-2. Level 2: Team lead
-3. Level 3: CTO
-4. Level 4: CEO
-
-## Notes
-
-- This checklist should be reviewed weekly during pre-launch phase
-- Each item should have an assigned owner and deadline
-- Critical items must be completed before soft launch
-- Important items should be completed before public launch
-- Nice-to-have items can be part of post-launch roadmap
+- [ ] `./vendor/bin/pest --parallel` green (note: CI skips a portion of the suite; run the MultiConnection job against real MySQL).
+- [ ] `XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G` clean (Level 8).
+- [ ] `php-cs-fixer` + PHPCS (v4.0.1) clean.
+- [ ] Smoke tests against the deployed environment (deposit, IAP verify, wallet send, Bridge webhook) pass.
 
 ---
 
-**Last Updated**: September 2024
-**Next Review**: Before soft launch
-**Document Owner**: CTO/Engineering Team
+**Last Updated**: June 11, 2026 (v7.15 rewrite — supersedes the Sept 2024 version)
+**Owner**: Platform / Ops
+**Companion docs**: `docs/operations/*` runbooks, `CLAUDE.md`, `docs/10-OPERATIONS/OPERATIONAL_RUNBOOK.md`
