@@ -7,7 +7,7 @@ This directory contains documentation for developers integrating with the FinAeg
 - **[API-INTEGRATION-GUIDE.md](API-INTEGRATION-GUIDE.md)** - Complete guide for API integration
 - **[API-EXAMPLES.md](API-EXAMPLES.md)** - Practical API usage examples
 - **[SDK-GUIDE.md](SDK-GUIDE.md)** - SDK usage guide for multiple programming languages
-- **[finaegis-api-v2.postman_collection.json](finaegis-api-v2.postman_collection.json)** - Postman collection for API testing
+- **[Postman collection](../../public/postman/Zelta-API.postman_collection.json)** - generated from the OpenAPI spec (see Testing below)
 
 ## Purpose
 
@@ -97,11 +97,20 @@ Community-contributed SDKs are welcome! Please follow our SDK guidelines.
 ## Testing
 
 ### Postman Collection
-Import the included Postman collection for quick API testing:
+Import the Postman collection for quick API testing:
 1. Open Postman
-2. Import `finaegis-api-v2.postman_collection.json`
+2. Import `public/postman/Zelta-API.postman_collection.json`
 3. Set environment variables for `base_url` and `token`
 4. Start testing!
+
+The collection is **generated** from the OpenAPI spec — do not edit it by hand.
+To regenerate after API changes:
+
+```bash
+APP_URL=http://localhost php artisan l5-swagger:generate
+npx openapi-to-postmanv2 -s storage/api-docs/api-docs.json \
+  -o public/postman/Zelta-API.postman_collection.json -p
+```
 
 ### Test Environment
 - Base URL: `https://test-api.finaegis.org`
