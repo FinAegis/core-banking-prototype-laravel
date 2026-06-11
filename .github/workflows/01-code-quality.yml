@@ -60,6 +60,12 @@ jobs:
           composer install --prefer-dist --no-progress --optimize-autoloader --no-scripts
           php artisan package:discover --ansi
 
+      - name: Check CI Test Coverage Map
+        # Fails when a top-level tests/ directory is not claimed by any CI job
+        # (the guard against the drift that let test directories silently fall
+        # out of PR CI). See bin/check-test-coverage for the claim map.
+        run: bash bin/check-test-coverage
+
       - name: Run PHP Code Sniffer
         run: vendor/bin/phpcs
         

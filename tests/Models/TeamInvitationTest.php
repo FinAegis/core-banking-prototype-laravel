@@ -2,8 +2,9 @@
 
 use App\Models\TeamInvitation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
-uses(RefreshDatabase::class);
+uses(TestCase::class, RefreshDatabase::class);
 
 it('extends JetstreamTeamInvitation', function () {
     $reflection = new ReflectionClass(TeamInvitation::class);
@@ -14,6 +15,7 @@ it('has correct fillable attributes', function () {
     $invitation = new TeamInvitation();
 
     expect($invitation->getFillable())->toBe([
+        'team_id',
         'email',
         'role',
     ]);

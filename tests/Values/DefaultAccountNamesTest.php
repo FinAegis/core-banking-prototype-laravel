@@ -1,6 +1,10 @@
 <?php
 
 use App\Domain\Account\Values\DefaultAccountNames;
+use Tests\TestCase;
+
+// label() resolves the translator from the container (__()).
+uses(TestCase::class);
 
 it('is an enum', function () {
     $reflection = new ReflectionClass(DefaultAccountNames::class);

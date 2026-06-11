@@ -361,7 +361,9 @@ it('Apple verifier still honours the bypass flag in staging (non-production)', f
     $this->app['env'] = 'staging';
     config(['subscription.iap.apple_jws_verification_bypass' => true]);
 
-    $jws = makeAppleJws();
+    // The JWS payload's originalTransactionId must match the request body —
+    // the verifier rejects drift even when the chain check is bypassed.
+    $jws = makeAppleJws(['originalTransactionId' => 'apple-orig-tx-staging-1']);
 
     $response = $this->postJson('/api/v1/subscription/iap/verify', [
         'platform'              => 'apple_iap',

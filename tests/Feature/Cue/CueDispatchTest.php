@@ -29,7 +29,6 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
 
 uses(RefreshDatabase::class);
-uses(Tests\TestCase::class);
 
 beforeEach(function (): void {
     config(['cache.default' => 'array']);

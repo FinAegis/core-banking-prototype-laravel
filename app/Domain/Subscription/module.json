@@ -1,0 +1,24 @@
+{
+    "$schema": "https://finaegis.io/schemas/module.json",
+    "name": "finaegis/subscription",
+    "version": "1.0.0",
+    "description": "Subscriptions and IAP \u2014 Apple/Google receipt verification, revenue events, trials",
+    "type": "feature",
+    "dependencies": {
+        "required": {
+            "finaegis/shared": "^1.0"
+        },
+        "optional": {}
+    },
+    "provides": {
+        "interfaces": [],
+        "events": [],
+        "commands": []
+    },
+    "paths": {
+        "routes": null,
+        "migrations": null,
+        "config": null,
+        "tests": null
+    }
+}

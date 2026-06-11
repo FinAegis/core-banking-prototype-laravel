@@ -1,0 +1,24 @@
+{
+    "$schema": "https://finaegis.io/schemas/module.json",
+    "name": "finaegis/iso20022",
+    "version": "1.0.0",
+    "description": "ISO 20022 financial messaging \u2014 pain/pacs/camt message construction and validation",
+    "type": "feature",
+    "dependencies": {
+        "required": {
+            "finaegis/shared": "^1.0"
+        },
+        "optional": {}
+    },
+    "provides": {
+        "interfaces": [],
+        "events": [],
+        "commands": []
+    },
+    "paths": {
+        "routes": "Routes/api.php",
+        "migrations": null,
+        "config": null,
+        "tests": null
+    }
+}

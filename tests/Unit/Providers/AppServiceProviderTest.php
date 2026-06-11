@@ -1,60 +1,38 @@
 <?php
 
-use App\Providers\AppServiceProvider;
+declare(strict_types=1);
+
+use App\Domain\AccountProvisioning\Services\AccountFlagsService;
+use App\Domain\Governance\Strategies\AssetWeightedVoteStrategy;
+use App\Domain\Governance\Strategies\OneUserOneVoteStrategy;
+use App\Domain\Ledger\Contracts\LedgerDriverInterface;
+use App\Domain\Ledger\Services\Drivers\EloquentDriver;
 use App\Providers\WaterlineServiceProvider;
-use Illuminate\Foundation\Application;
-use Tests\UnitTestCase;
+use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
+use Tests\TestCase;
 
-uses(UnitTestCase::class);
+uses(TestCase::class);
 
-beforeEach(function () {
-    $this->app = Mockery::mock(Application::class);
-    $this->provider = new AppServiceProvider($this->app);
-
-    // Add flush method expectation for tearDown
-    $this->app->shouldReceive('flush')->andReturnNull();
+it('binds the default Guzzle client for domain services', function () {
+    // Regression guard: without this binding PrivyJwtVerifier fails to
+    // resolve and /api/v1/auth/privy-login 500s (see CLAUDE.md Wallet Send).
+    expect(app(ClientInterface::class))->toBeInstanceOf(Client::class);
 });
 
-it('can instantiate app service provider', function () {
-    expect($this->provider)->toBeInstanceOf(AppServiceProvider::class);
+it('binds governance voting strategies', function () {
+    expect(app('asset_weighted_vote'))->toBeInstanceOf(AssetWeightedVoteStrategy::class)
+        ->and(app('one_user_one_vote'))->toBeInstanceOf(OneUserOneVoteStrategy::class);
 });
 
-it('registers WaterlineServiceProvider in non-testing environment', function () {
-    // Mock non-testing environment
-    $this->app->shouldReceive('environment')->once()->andReturn('production');
-
-    // Expect the WaterlineServiceProvider to be registered
-    $this->app->shouldReceive('register')->once()->with(WaterlineServiceProvider::class);
-
-    // Expect the BlockchainServiceProvider to be registered
-    $this->app->shouldReceive('register')->once()->with(App\Providers\BlockchainServiceProvider::class);
-
-    // Expect strategy bindings
-    $this->app->shouldReceive('bind')->times(3);
-
-    $this->provider->register();
+it('binds the ledger driver to the eloquent implementation', function () {
+    expect(app(LedgerDriverInterface::class))->toBeInstanceOf(EloquentDriver::class);
 });
 
-it('does not register WaterlineServiceProvider in testing environment', function () {
-    // Mock testing environment
-    $this->app->shouldReceive('environment')->once()->andReturn('testing');
-
-    // Should not call register for WaterlineServiceProvider, but should register BlockchainServiceProvider
-    $this->app->shouldReceive('register')->once()->with(App\Providers\BlockchainServiceProvider::class);
-    $this->app->shouldNotReceive('register')->with(WaterlineServiceProvider::class);
-
-    // Expect strategy bindings in testing environment too
-    $this->app->shouldReceive('bind')->times(3);
-
-    $this->provider->register();
+it('scopes AccountFlagsService so the per-request cache is shared', function () {
+    expect(app(AccountFlagsService::class))->toBe(app(AccountFlagsService::class));
 });
 
-it('has boot method that can be called', function () {
-    // Mock environment check
-    $this->app->shouldReceive('environment')->with('demo')->andReturn(false);
-
-    // Test that boot method exists and can be called without errors
-    expect(function () {
-        $this->provider->boot();
-    })->not->toThrow(Exception::class);
+it('does not register WaterlineServiceProvider in the testing environment', function () {
+    expect(app()->providerIsLoaded(WaterlineServiceProvider::class))->toBeFalse();
 });
