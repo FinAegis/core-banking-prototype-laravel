@@ -98,6 +98,100 @@ it('returns 406 directly from the controller when GET lacks Accept: text/event-s
     expect((string) $response->getContent())->toContain('event-stream');
 });
 
+/**
+ * Build a POST /mcp request carrying a JSON-RPC envelope, optionally with
+ * extra headers, suitable for driving StreamableHttpController directly
+ * (bypassing the OAuth middleware — same pattern as the GET tests above).
+ *
+ * @param array<string, mixed>  $envelope
+ * @param array<string, string> $headers
+ */
+function mcpPostRequest(array $envelope, array $headers = []): \Illuminate\Http\Request
+{
+    $request = \Illuminate\Http\Request::create(
+        '/mcp',
+        'POST',
+        server: ['CONTENT_TYPE' => 'application/json'],
+        content: (string) json_encode($envelope),
+    );
+
+    foreach ($headers as $name => $value) {
+        $request->headers->set($name, $value);
+    }
+
+    return $request;
+}
+
+it('returns 202 with an empty body for a JSON-RPC notification (no id) on POST /mcp', function () {
+    $controller = app(\App\Domain\MCP\Server\StreamableHttpController::class);
+
+    // notifications/initialized is what every conformant client sends right
+    // after the initialize handshake. No `id` => notification => no response
+    // envelope, just 202 Accepted.
+    $response = $controller->handle(mcpPostRequest([
+        'jsonrpc' => '2.0',
+        'method'  => 'notifications/initialized',
+    ]));
+
+    expect($response->getStatusCode())->toBe(202);
+    expect((string) $response->getContent())->toBe('');
+});
+
+it('returns 400 naming supported versions for an unsupported MCP-Protocol-Version header', function () {
+    $controller = app(\App\Domain\MCP\Server\StreamableHttpController::class);
+
+    $response = $controller->handle(mcpPostRequest(
+        ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'],
+        ['MCP-Protocol-Version' => '1999-01-01'],
+    ));
+
+    expect($response->getStatusCode())->toBe(400);
+    $body = json_decode((string) $response->getContent(), true);
+    expect($body['error'])->toBe('unsupported_protocol_version');
+    expect($body['supported_versions'])->toContain((string) config('mcp.protocol_version'));
+    expect($body['supported_versions'])->toContain('2025-06-18');
+});
+
+it('accepts a supported MCP-Protocol-Version header on POST /mcp', function () {
+    $controller = app(\App\Domain\MCP\Server\StreamableHttpController::class);
+
+    $response = $controller->handle(mcpPostRequest(
+        ['jsonrpc' => '2.0', 'id' => 9, 'method' => 'ping'],
+        ['MCP-Protocol-Version' => '2025-06-18'],
+    ));
+
+    expect($response->getStatusCode())->toBe(200);
+    $body = json_decode((string) $response->getContent(), true);
+    expect($body['id'])->toBe(9);
+    expect($body)->toHaveKey('result');
+});
+
+it('treats a missing MCP-Protocol-Version header as the current version (backwards compatible)', function () {
+    $controller = app(\App\Domain\MCP\Server\StreamableHttpController::class);
+
+    $response = $controller->handle(mcpPostRequest(['jsonrpc' => '2.0', 'id' => 10, 'method' => 'ping']));
+
+    expect($response->getStatusCode())->toBe(200);
+});
+
+it('ignores the MCP-Protocol-Version header on initialize (negotiation happens in params)', function () {
+    $controller = app(\App\Domain\MCP\Server\StreamableHttpController::class);
+
+    $response = $controller->handle(mcpPostRequest(
+        [
+            'jsonrpc' => '2.0',
+            'id'      => 11,
+            'method'  => 'initialize',
+            'params'  => ['protocolVersion' => '2025-06-18'],
+        ],
+        ['MCP-Protocol-Version' => 'garbage-value'],
+    ));
+
+    expect($response->getStatusCode())->toBe(200);
+    $body = json_decode((string) $response->getContent(), true);
+    expect($body['result']['protocolVersion'])->toBe('2025-06-18');
+});
+
 it('opens SSE stream with right headers on GET Accept: text/event-stream when enabled', function () {
     config(['mcp.sse.enabled' => true]);
     // Don't actually consume the stream body — just verify the headers.

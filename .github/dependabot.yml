@@ -11,6 +11,13 @@ updates:
       - "composer"
     reviewers:
       - "FinAegis/maintainers"
+    # Batch patch + minor bumps into one PR; majors stay individual.
+    groups:
+      minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
     ignore:
       - dependency-name: "symfony/http-client"
         versions: [">=8.0.0"]
@@ -28,6 +35,12 @@ updates:
     labels:
       - "dependencies"
       - "npm"
+    groups:
+      minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
     ignore:
       - dependency-name: "tailwindcss"
         versions: [">=4.0.0"]
@@ -43,3 +56,9 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
+    groups:
+      minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"

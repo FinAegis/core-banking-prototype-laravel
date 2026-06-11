@@ -105,6 +105,19 @@ describe('Domain Enable/Disable', function () {
         expect($manager->isDisabled('finaegis/wallet'))->toBeTrue();
     });
 
+    it('accepts bare directory names in config (MODULES_DISABLED format)', function () {
+        config(['modules.disabled' => ['Lending', ' Treasury ']]);
+
+        /** @var DomainManager $manager */
+        $manager = app(DomainManager::class);
+
+        // ModuleRouteLoader passes the directory basename; both spellings must match.
+        expect($manager->isDisabled('Lending'))->toBeTrue();
+        expect($manager->isDisabled('finaegis/lending'))->toBeTrue();
+        expect($manager->isDisabled('Treasury'))->toBeTrue();
+        expect($manager->isDisabled('Wallet'))->toBeFalse();
+    });
+
     it('clears disabled cache on clearCache', function () {
         /** @var DomainManager $manager */
         $manager = app(DomainManager::class);

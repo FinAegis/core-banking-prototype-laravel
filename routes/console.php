@@ -1,5 +1,6 @@
 <?php
 
+use App\Infrastructure\Domain\DomainManager;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -8,26 +9,49 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote')->hourly();
 
-// Schedule monthly GCU voting poll creation
-// Runs on the 20th of each month at midnight
-Schedule::command('voting:setup')
-    ->monthlyOn(20, '00:00')
-    ->description('Create next month\'s GCU voting poll')
-    ->appendOutputTo(storage_path('logs/gcu-voting-setup.log'));
+/*
+|--------------------------------------------------------------------------
+| Demo / showcase domain jobs
+|--------------------------------------------------------------------------
+|
+| The blocks below belong to demo/showcase domains (GCU governance voting,
+| baskets, CGO investments, exchange liquidity pools). They are gated on the
+| same MODULES_DISABLED flag that skips the domains' API routes (see
+| config/modules.php), mirroring the demo:cleanup environment gate further
+| down. Deployments that leave MODULES_DISABLED empty (the FinAegis demo)
+| keep the current behaviour; mobile-wallet production (Zelta) disables the
+| domains and the jobs stop being scheduled.
+|
+*/
 
-// Schedule monthly basket rebalancing
-// Runs on the 1st of each month at 00:05 (5 minutes after midnight)
-Schedule::command('baskets:rebalance')
-    ->monthlyOn(1, '00:05')
-    ->description('Rebalance dynamic baskets including GCU')
-    ->appendOutputTo(storage_path('logs/basket-rebalancing.log'));
+// Demo domain (Governance): GCU voting poll creation. Skipped when the
+// Governance module is disabled via MODULES_DISABLED.
+if (! DomainManager::isDisabledByConfig('Governance')) {
+    // Schedule monthly GCU voting poll creation
+    // Runs on the 20th of each month at midnight
+    Schedule::command('voting:setup')
+        ->monthlyOn(20, '00:00')
+        ->description('Create next month\'s GCU voting poll')
+        ->appendOutputTo(storage_path('logs/gcu-voting-setup.log'));
+}
 
-// Schedule hourly basket value calculations for performance tracking
-Schedule::call(function () {
-    $service = app(App\Domain\Basket\Services\BasketValueCalculationService::class);
-    $service->calculateAllBasketValues();
-})->hourly()
-    ->description('Calculate and store basket values for performance tracking');
+// Demo domain (Basket): GCU basket rebalancing + valuation. Skipped when the
+// Basket module is disabled via MODULES_DISABLED.
+if (! DomainManager::isDisabledByConfig('Basket')) {
+    // Schedule monthly basket rebalancing
+    // Runs on the 1st of each month at 00:05 (5 minutes after midnight)
+    Schedule::command('baskets:rebalance')
+        ->monthlyOn(1, '00:05')
+        ->description('Rebalance dynamic baskets including GCU')
+        ->appendOutputTo(storage_path('logs/basket-rebalancing.log'));
+
+    // Schedule hourly basket value calculations for performance tracking
+    Schedule::call(function () {
+        $service = app(App\Domain\Basket\Services\BasketValueCalculationService::class);
+        $service->calculateAllBasketValues();
+    })->hourly()
+        ->description('Calculate and store basket values for performance tracking');
+}
 
 // Regulatory reporting
 Schedule::command('compliance:generate-reports --type=ctr')
@@ -88,18 +112,22 @@ Schedule::command('reconciliation:daily')
         Log::critical('Daily reconciliation failed to run');
     });
 
-// Basket Performance Calculation
-Schedule::command('basket:calculate-performance')
-    ->hourly()
-    ->description('Calculate hourly performance metrics for all baskets')
-    ->appendOutputTo(storage_path('logs/basket-performance.log'))
-    ->withoutOverlapping();
+// Demo domain (Basket): performance metrics for showcase baskets. Skipped
+// when the Basket module is disabled via MODULES_DISABLED.
+if (! DomainManager::isDisabledByConfig('Basket')) {
+    // Basket Performance Calculation
+    Schedule::command('basket:calculate-performance')
+        ->hourly()
+        ->description('Calculate hourly performance metrics for all baskets')
+        ->appendOutputTo(storage_path('logs/basket-performance.log'))
+        ->withoutOverlapping();
 
-// Daily basket performance summary
-Schedule::command('basket:calculate-performance --period=day')
-    ->dailyAt('00:30')
-    ->description('Calculate daily performance metrics for all baskets')
-    ->appendOutputTo(storage_path('logs/basket-performance-daily.log'));
+    // Daily basket performance summary
+    Schedule::command('basket:calculate-performance --period=day')
+        ->dailyAt('00:30')
+        ->description('Calculate daily performance metrics for all baskets')
+        ->appendOutputTo(storage_path('logs/basket-performance-daily.log'));
+}
 
 // System Health Monitoring
 // Run less frequently to avoid memory issues in CI
@@ -109,24 +137,27 @@ Schedule::command('system:health-check')
     ->appendOutputTo(storage_path('logs/system-health.log'))
     ->withoutOverlapping()
     ->onFailure(function () {
-        // Use error level instead of critical to reduce memory usage
-        error_log('System health check failed to run');
+        Log::critical('System health check failed to run');
     })
     ->environments(['production', 'staging']);
 
-// CGO Payment Verification
-Schedule::command('cgo:verify-payments')
-    ->everyThirtyMinutes()
-    ->description('Verify pending CGO investment payments')
-    ->appendOutputTo(storage_path('logs/cgo-payment-verification.log'))
-    ->withoutOverlapping();
+// Demo domain (Cgo): Continuous Growth Offering investment payment checks.
+// Skipped when the Cgo module is disabled via MODULES_DISABLED.
+if (! DomainManager::isDisabledByConfig('Cgo')) {
+    // CGO Payment Verification
+    Schedule::command('cgo:verify-payments')
+        ->everyThirtyMinutes()
+        ->description('Verify pending CGO investment payments')
+        ->appendOutputTo(storage_path('logs/cgo-payment-verification.log'))
+        ->withoutOverlapping();
 
-// CGO Expired Payment Handling
-Schedule::command('cgo:verify-payments --expired')
-    ->everyTwoHours()
-    ->description('Handle expired CGO investment payments')
-    ->appendOutputTo(storage_path('logs/cgo-expired-payments.log'))
-    ->withoutOverlapping();
+    // CGO Expired Payment Handling
+    Schedule::command('cgo:verify-payments --expired')
+        ->everyTwoHours()
+        ->description('Handle expired CGO investment payments')
+        ->appendOutputTo(storage_path('logs/cgo-expired-payments.log'))
+        ->withoutOverlapping();
+}
 
 // Sitemap Generation
 Schedule::command('sitemap:generate')
@@ -134,24 +165,33 @@ Schedule::command('sitemap:generate')
     ->description('Generate sitemap.xml and robots.txt for SEO')
     ->appendOutputTo(storage_path('logs/sitemap-generation.log'));
 
-// Liquidity Pool Management
-Schedule::command('liquidity:distribute-rewards')
-    ->hourly()
-    ->description('Calculate and distribute rewards to liquidity providers')
-    ->appendOutputTo(storage_path('logs/liquidity-rewards.log'))
-    ->withoutOverlapping();
+// Demo trading engine (Exchange domain): liquidity pool rewards, rebalancing
+// and automated market making. The Exchange module itself stays enabled in
+// mobile-wallet production (its route file also serves /exchange-rates,
+// /settings, /sub-products and /status used by the mobile app), so these
+// trading-only jobs are additionally gated on the trading platform toggle
+// (TRADING_ENABLED, config/trading.php — default true, so demo/showcase
+// deployments are unaffected).
+if (! DomainManager::isDisabledByConfig('Exchange') && config('trading.enabled')) {
+    // Liquidity Pool Management
+    Schedule::command('liquidity:distribute-rewards')
+        ->hourly()
+        ->description('Calculate and distribute rewards to liquidity providers')
+        ->appendOutputTo(storage_path('logs/liquidity-rewards.log'))
+        ->withoutOverlapping();
 
-Schedule::command('liquidity:rebalance')
-    ->everyThirtyMinutes()
-    ->description('Check and rebalance liquidity pools')
-    ->appendOutputTo(storage_path('logs/liquidity-rebalancing.log'))
-    ->withoutOverlapping();
+    Schedule::command('liquidity:rebalance')
+        ->everyThirtyMinutes()
+        ->description('Check and rebalance liquidity pools')
+        ->appendOutputTo(storage_path('logs/liquidity-rebalancing.log'))
+        ->withoutOverlapping();
 
-Schedule::command('liquidity:update-market-making --cancel-existing')
-    ->everyFiveMinutes()
-    ->description('Update automated market making orders')
-    ->appendOutputTo(storage_path('logs/liquidity-market-making.log'))
-    ->withoutOverlapping();
+    Schedule::command('liquidity:update-market-making --cancel-existing')
+        ->everyFiveMinutes()
+        ->description('Update automated market making orders')
+        ->appendOutputTo(storage_path('logs/liquidity-market-making.log'))
+        ->withoutOverlapping();
+}
 
 // Demo Data Cleanup (only runs in demo environment)
 if (app()->environment('demo')) {
@@ -201,7 +241,7 @@ Schedule::command('fraud:scan-anomalies --hours=' . config('fraud.batch.lookback
     ->appendOutputTo(storage_path('logs/fraud-anomaly-scan.log'))
     ->withoutOverlapping()
     ->onFailure(function () {
-        Log::warning('Fraud anomaly batch scan failed to run');
+        Log::error('Fraud anomaly batch scan failed to run');
     });
 
 // TrustCert Certificate Management

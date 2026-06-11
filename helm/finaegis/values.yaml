@@ -281,6 +281,13 @@ serviceMonitor:
   interval: 30s
   path: /api/monitoring/prometheus
   scrapeTimeout: 10s
+  # The metrics endpoints are gated by METRICS_TOKEN (MetricsAccessMiddleware);
+  # in production Prometheus must scrape with that token (or be allowlisted via
+  # METRICS_ALLOWED_IPS). Reference a Secret holding the token, e.g.:
+  # bearerTokenSecret:
+  #   name: finaegis-metrics-token
+  #   key: token
+  bearerTokenSecret: {}
   labels: {}
 
 # ============================================================================

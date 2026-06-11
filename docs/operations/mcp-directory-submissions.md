@@ -91,7 +91,7 @@ All of these must be true before submitting (rejection rate is high; the form do
 | Server name | Zelta |
 | Server URL | `https://mcp.zelta.app/mcp` |
 | Tagline | Send payments, manage accounts, and trade across multiple rails — all from your AI assistant. |
-| Description (long) | Zelta is a multi-rail payments and wallet platform. The MCP server exposes 12 tools — accounts, payments, transactions, exchange, on/offramp, and SMS — gated by OAuth 2.1 scopes with per-token daily spending limits, idempotent writes, and a full audit trail. |
+| Description (long) | Zelta is a multi-rail payments and wallet platform. The MCP server exposes 12 tools — accounts, payments, transactions, exchange, on/offramp, and SMS — gated by OAuth 2.1 scopes with per-token daily spending limits on payments, ramp sessions, and SMS sends, idempotent writes, and a full audit trail. |
 | Auth type | OAuth 2.1 (with DCR, RFC 7591) |
 | Transport | streamable-http |
 | Capabilities | tools, resources |
@@ -113,11 +113,11 @@ All of these must be true before submitting (rejection rate is high; the form do
 | `transactions.query` | Query transaction history | readOnlyHint | transactions:read |
 | `spending.analysis` | Spending analysis by category | readOnlyHint | transactions:read |
 | `exchange.quote` | Get an exchange rate quote | readOnlyHint | exchange:read |
-| `exchange.trade` | Execute an exchange trade | destructiveHint (idempotent, spending-limited) | exchange:write |
+| `exchange.trade` | Execute an exchange trade | destructiveHint (idempotent; not yet spending-limited — fiat notional unknown until the order fills) | exchange:write |
 | `ramp.start` | Start an on/offramp session | destructiveHint (idempotent, spending-limited) | ramp:write |
 | `ramp.status` | Check on/offramp session status | readOnlyHint | ramp:read |
 | `mpp.discovery` | Multi-rail payment route discovery | readOnlyHint | (none — public) |
-| `sms.send` | Send an SMS (paid per-message via x402) | destructiveHint (idempotent, spending-limited) | sms:send |
+| `sms.send` | Send an SMS (paid per-message via x402) | destructiveHint (idempotent, spending-limited — flat per-message charge) | sms:send |
 
 ## 3. Smithery
 
