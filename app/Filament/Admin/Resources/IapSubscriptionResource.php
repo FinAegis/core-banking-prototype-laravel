@@ -48,15 +48,17 @@ class IapSubscriptionResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('user_id')
+                Tables\Columns\TextColumn::make('user.email')
                     ->label('User')
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('store')
                     ->badge()
+                    ->formatStateUsing(fn (string $state): string => $state === IapSubscription::STORE_APPLE ? 'Apple' : 'Google')
                     ->color(fn (string $state): string => $state === IapSubscription::STORE_APPLE ? 'gray' : 'success'),
                 Tables\Columns\TextColumn::make('tier')
                     ->badge()
+                    ->formatStateUsing(fn (string $state): string => ucfirst($state))
                     ->color('info'),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()

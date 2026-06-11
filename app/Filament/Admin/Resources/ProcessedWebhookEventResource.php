@@ -51,6 +51,7 @@ class ProcessedWebhookEventResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('provider')
                     ->badge()
+                    ->formatStateUsing(fn (string $state): string => self::providerLabel($state))
                     ->color('gray')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('event_id')
@@ -105,6 +106,19 @@ class ProcessedWebhookEventResource extends Resource
         return false;
     }
 
+    private static function providerLabel(string $provider): string
+    {
+        return match ($provider) {
+            'stripe'               => 'Stripe',
+            'apple_iap'            => 'Apple IAP',
+            'google_play'          => 'Google Play',
+            'stripe_crypto_onramp' => 'Stripe Crypto Onramp',
+            'hyperswitch'          => 'HyperSwitch',
+            'bridge'               => 'Bridge',
+            default                => ucwords(str_replace('_', ' ', $provider)),
+        };
+    }
+
     /**
      * @return array<string, string>
      */
@@ -117,6 +131,6 @@ class ProcessedWebhookEventResource extends Resource
             ->pluck('provider')
             ->all();
 
-        return array_combine($providers, $providers) ?: [];
+        return array_combine($providers, array_map(fn (string $p): string => self::providerLabel($p), $providers)) ?: [];
     }
 }

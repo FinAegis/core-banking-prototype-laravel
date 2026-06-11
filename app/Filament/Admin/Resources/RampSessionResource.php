@@ -81,12 +81,20 @@ class RampSessionResource extends Resource
                     ->color(fn (string $state): string => $state === RampSession::SOURCE_BRIDGE_INITIATED ? 'info' : 'gray'),
                 Tables\Columns\TextColumn::make('fiat_amount')
                     ->label('Fiat')
-                    ->formatStateUsing(fn (RampSession $record): string => number_format((float) $record->fiat_amount, 2) . ' ' . $record->fiat_currency)
+                    ->formatStateUsing(function (RampSession $record): string {
+                        $amount = (string) $record->fiat_amount;
+
+                        return (is_numeric($amount) ? bcadd($amount, '0', 2) : '—') . ' ' . $record->fiat_currency;
+                    })
                     ->placeholder('—')
                     ->alignEnd(),
                 Tables\Columns\TextColumn::make('crypto_amount')
                     ->label('Crypto')
-                    ->formatStateUsing(fn (RampSession $record): string => rtrim(rtrim(number_format((float) $record->crypto_amount, 8, '.', ''), '0'), '.') . ' ' . $record->crypto_currency)
+                    ->formatStateUsing(function (RampSession $record): string {
+                        $amount = (string) $record->crypto_amount;
+
+                        return (is_numeric($amount) ? rtrim(rtrim(bcadd($amount, '0', 8), '0'), '.') : '—') . ' ' . $record->crypto_currency;
+                    })
                     ->placeholder('—')
                     ->alignEnd(),
                 Tables\Columns\TextColumn::make('deposit_instructions')
