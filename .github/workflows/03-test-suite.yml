@@ -321,6 +321,9 @@ jobs:
             core)
               ./bin/pest-batch tests/Feature/Http tests/Feature/Domain tests/Feature/Models || exit 1
               ./bin/pest-batch tests/Feature/Cache tests/Feature/Exchange tests/Feature/Basket || exit 1
+              # Console + Subscription moved here from the extended shard,
+              # which was brushing its 30-minute cap (timed out at 30m16s).
+              ./bin/pest-batch tests/Feature/Console tests/Feature/Subscription || exit 1
               ;;
             extended)
               # Everything else under tests/Feature — computed by exclusion,
@@ -329,7 +332,8 @@ jobs:
               ./bin/pest-rest tests/Feature \
                 tests/Feature/Api \
                 tests/Feature/Http tests/Feature/Domain tests/Feature/Models \
-                tests/Feature/Cache tests/Feature/Exchange tests/Feature/Basket || exit 1
+                tests/Feature/Cache tests/Feature/Exchange tests/Feature/Basket \
+                tests/Feature/Console tests/Feature/Subscription || exit 1
               ;;
           esac
 
