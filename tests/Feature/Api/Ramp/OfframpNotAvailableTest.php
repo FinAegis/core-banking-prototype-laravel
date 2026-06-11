@@ -2,17 +2,18 @@
 
 declare(strict_types=1);
 
-use App\Domain\Ramp\Exceptions\OfframpNotAvailableException;
-use App\Domain\Ramp\Providers\BridgeProvider;
-use App\Models\User;
-use Laravel\Sanctum\Sanctum;
-
 /**
  * Offramp honesty: v1 ships bank-rail ONRAMP only (Bridge offramp lands in
  * v1.1). The API surface must say so cleanly — HTTP 422 with the explicit
  * OFFRAMP_NOT_AVAILABLE error code and a message naming v1.1 — never a 500
  * and never the generic SESSION_ERROR that mobile renders as a failure toast.
  */
+
+use App\Domain\Ramp\Exceptions\OfframpNotAvailableException;
+use App\Domain\Ramp\Providers\BridgeProvider;
+use App\Models\User;
+use Laravel\Sanctum\Sanctum;
+
 describe('Offramp not available (Bridge v1)', function (): void {
     it('returns 422 OFFRAMP_NOT_AVAILABLE when type=off is requested on the Bridge provider', function (): void {
         config(['ramp.default_provider' => 'bridge']);
