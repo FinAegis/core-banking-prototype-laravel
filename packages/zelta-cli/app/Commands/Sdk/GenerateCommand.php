@@ -72,7 +72,7 @@ class GenerateCommand extends Command
         }
 
         $api = new ApiClient($auth);
-        $result = $api->post('/v1/admin/sdk/generate', [
+        $result = $api->post('/partner/v1/sdk/generate', [
             'language' => $language,
             'output'   => $outputDir,
         ]);

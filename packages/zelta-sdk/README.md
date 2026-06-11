@@ -23,7 +23,7 @@ $signer = new YourSigner();
 $client = new ZeltaClient(
     config: new PaymentConfig(
         baseUrl: 'https://api.zelta.app',
-        apiKey: 'zk_live_xxx',
+        apiKey: '<api-token>',
         autoPay: true,
     ),
     payment: new X402PaymentHandler($signer),
