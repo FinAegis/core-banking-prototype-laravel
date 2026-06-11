@@ -274,6 +274,9 @@ jobs:
           
           # Execute deployment commands
           ssh ${DEPLOY_USER}@${DEPLOY_SERVER} << 'ENDSSH'
+            # Fail fast — a failed step must abort the script, not fall
+            # through (previously a failed migration continued to artisan up).
+            set -e
             cd ${DEPLOY_PATH}
             
             # Enable maintenance mode
@@ -299,6 +302,12 @@ jobs:
             
             # Run deployment tasks
             cd current
+            
+            # Production preflight: verify env/config guards (peppers, bypass
+            # flags, webhook credentials, Apple CA pin) BEFORE migrations and
+            # traffic. FAILs only block in the production environment; exits 1
+            # while still safely in maintenance mode.
+            php artisan ops:verify-env
             php artisan migrate --force
             php artisan db:seed --class=ProductionSeeder --force || true
             php artisan config:cache
@@ -408,6 +417,9 @@ jobs:
           
           # Execute deployment commands
           ssh ${DEPLOY_USER}@${DEPLOY_SERVER} << 'ENDSSH'
+            # Fail fast — a failed step must abort the script, not fall
+            # through (previously a failed migration continued to artisan up).
+            set -e
             cd ${DEPLOY_PATH}
             
             # Enable maintenance mode
@@ -436,6 +448,12 @@ jobs:
             
             # Run deployment tasks
             cd current
+            
+            # Production preflight: verify env/config guards (peppers, bypass
+            # flags, webhook credentials, Apple CA pin) BEFORE migrations and
+            # traffic. FAILs only block in the production environment; exits 1
+            # while still safely in maintenance mode.
+            php artisan ops:verify-env
             
             # Run migrations with safety check
             php artisan migrate:status
@@ -506,6 +524,9 @@ jobs:
           echo "::error::Production deployment failed! Initiating rollback..."
 
           ssh ${DEPLOY_USER}@${DEPLOY_SERVER} << 'ENDSSH'
+            # Fail fast — a failed step must abort the script, not fall
+            # through (previously a failed migration continued to artisan up).
+            set -e
             cd ${DEPLOY_PATH}
 
             # Enable maintenance mode
