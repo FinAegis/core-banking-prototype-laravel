@@ -1,13 +1,13 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * Offramp honesty: v1 ships bank-rail ONRAMP only (Bridge offramp lands in
  * v1.1). The API surface must say so cleanly — HTTP 422 with the explicit
  * OFFRAMP_NOT_AVAILABLE error code and a message naming v1.1 — never a 500
  * and never the generic SESSION_ERROR that mobile renders as a failure toast.
  */
+
+declare(strict_types=1);
 
 use App\Domain\Ramp\Exceptions\OfframpNotAvailableException;
 use App\Domain\Ramp\Providers\BridgeProvider;
