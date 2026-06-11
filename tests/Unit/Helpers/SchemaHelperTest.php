@@ -90,8 +90,16 @@ class SchemaHelperTest extends TestCase
         $this->assertEquals($brand, $schema['name']);
         $this->assertEquals('Android', $schema['operatingSystem']);
         $this->assertEquals('FinanceApplication', $schema['applicationCategory']);
-        $this->assertArrayHasKey('installUrl', $schema);
-        $this->assertStringContainsString('play.google.com', $schema['installUrl']);
+
+        // installUrl points at the Zelta wallet's Play Store listing — it is
+        // emitted only under the Zelta brand (demo brands omit it so a
+        // FinAegis-named schema never links the Zelta store entry).
+        if ($brand === 'Zelta') {
+            $this->assertArrayHasKey('installUrl', $schema);
+            $this->assertStringContainsString('play.google.com', $schema['installUrl']);
+        } else {
+            $this->assertArrayNotHasKey('installUrl', $schema);
+        }
         $this->assertArrayHasKey('offers', $schema);
         $this->assertIsArray($schema['offers']);
         $this->assertCount(1, $schema['offers']);
