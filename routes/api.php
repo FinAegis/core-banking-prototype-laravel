@@ -227,7 +227,10 @@ Route::prefix('v1/subscription')->name('api.v1.subscription.')
 
             // Slice 2 — mobile P0 endpoint: server-side validate Apple/Google
             // store receipts and create / update the iap_subscriptions row.
+            // Throttled per-user: receipt verification fans out to Apple/Google
+            // and writes revenue rows — 10/min is ample for legitimate clients.
             Route::post('/iap/verify', [App\Domain\Subscription\Http\Controllers\IapVerifyController::class, 'verify'])
+                ->middleware('throttle:10,1')
                 ->name('iap.verify');
         });
     });

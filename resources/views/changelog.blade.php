@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Changelog | ' . config('brand.name', 'Zelta'),
-        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.14.1.',
+        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.15.0.',
         'keywords' => 'changelog, release notes, updates, ' . config('brand.name', 'Zelta') . ', version history, core banking',
     ])
 
@@ -43,6 +43,22 @@
 
             @php
                 $releases = [
+                    [
+                        'version' => 'v7.15.0',
+                        'date' => 'June 3, 2026',
+                        'label' => 'Bridge.xyz Fiat Ramp — Bank Transfers, KYC &amp; Virtual Accounts',
+                        'label_color' => 'emerald',
+                        'badge_color' => 'bg-emerald-100 text-emerald-700 border-emerald-200',
+                        'dot_color' => 'bg-emerald-500',
+                        'items' => [
+                            'Bridge.xyz fiat ramp — Bridge.xyz becomes the primary v1 fiat &harr; stablecoin rail: bank transfers in, USDC on Polygon. New <code>bridge_customers</code> persistence, KYC provider adapters under the Compliance domain, and a shared Bridge HTTP client + webhook verifier. A single <code>POST /api/v1/webhooks/bridge</code> endpoint handles both KYC (<code>customer.kyc_link_*</code>) and ramp (<code>virtual_account.activity</code>, <code>transfer.*</code>) events with event-level dedupe via <code>processed_webhook_events</code>. v1 is bank-rail onramp only; offramp, SWIFT, and additional networks land in v1.1. ADR-0005 records why Bridge over Stripe Crypto Onramp.',
+                            'Bridge-hosted KYC and virtual accounts — mobile calls <code>GET /api/v1/user/bridge-setup-status</code> + <code>POST /api/v1/user/bridge-kyc-link</code> (lazy, idempotent Bridge customer creation). On KYC approval a virtual account is auto-provisioned against the user\'s Polygon address — with an observer retry if the address registers later — and a retry endpoint, push deep-link, and quote expiration round out the flow. WebSocket events <code>bridge.kyc.completed</code> / <code>bridge.kyc.rejected</code> / <code>bridge.virtual_account.ready</code> fire on the user\'s private channel with a push-notification fallback on the KYC terminals.',
+                            'Developer-fee markup mechanism (ADR-0006) — a 0.75% Zelta markup flows through Bridge\'s per-customer <code>developer_fee_bps</code> (Free tier = 75 bps, Pro = 0). Tier changes auto-PATCH the Bridge customer via a <code>SubscriptionTierChanged</code> listener; operator commands <code>bridge:sync-dev-fee</code> (batch reconciliation with <code>--dry-run</code>) and <code>bridge:inspect-user</code> cover manual ops.',
+                            'Bridge webhook signature verification — webhooks are verified against Bridge\'s current asymmetric scheme (<code>X-Webhook-Signature: t=&lt;unix_ms&gt;,v0=&lt;base64&gt;</code>, RSA-SHA256 over <code>&lt;t&gt;.&lt;body&gt;</code> with the per-endpoint public key). The legacy HMAC scheme remains as an auto-detected fallback; in production the verifier fails closed when no credential is configured.',
+                            'HyperSwitch wired into the real deposit flow — card deposits can route through <code>HyperSwitchPaymentService</code>, opt-in via <code>HYPERSWITCH_ENABLED</code> (off by default; Stripe remains the default rail). The webhook credits accounts idempotently from the stored intent, and credit failures surface as <code>completion_failed</code> for operator reconciliation instead of being disguised as completed. Closes the long-standing #346.',
+                            'Landing truth-pass — page copy, SEO meta, schema.org data, and MCP claims realigned with the shipped product; README and GitHub presentation refreshed for accuracy; redesigned <code>#get-the-app</code> section with Android open-testing CTAs; fixed a malformed Android install URL, a duplicate footer on <code>/support</code>, and missing <code>noindex</code> + SEO meta on the OAuth consent screen.',
+                        ],
+                    ],
                     [
                         'version' => 'v7.14.1',
                         'date' => 'May 19, 2026',
