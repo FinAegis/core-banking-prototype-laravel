@@ -109,8 +109,7 @@ Schedule::command('system:health-check')
     ->appendOutputTo(storage_path('logs/system-health.log'))
     ->withoutOverlapping()
     ->onFailure(function () {
-        // Use error level instead of critical to reduce memory usage
-        error_log('System health check failed to run');
+        Log::critical('System health check failed to run');
     })
     ->environments(['production', 'staging']);
 
@@ -201,7 +200,7 @@ Schedule::command('fraud:scan-anomalies --hours=' . config('fraud.batch.lookback
     ->appendOutputTo(storage_path('logs/fraud-anomaly-scan.log'))
     ->withoutOverlapping()
     ->onFailure(function () {
-        Log::warning('Fraud anomaly batch scan failed to run');
+        Log::error('Fraud anomaly batch scan failed to run');
     });
 
 // TrustCert Certificate Management

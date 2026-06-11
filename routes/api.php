@@ -47,17 +47,24 @@ Route::get('/', function () {
     ]);
 })->name('api.root');
 
-// Monitoring endpoints (public - for Prometheus and Kubernetes)
+// Monitoring endpoints. Health probes stay public (Kubernetes liveness/readiness);
+// metrics endpoints are gated (token or IP allowlist) — they expose business metrics.
 Route::prefix('monitoring')->group(function () {
-    Route::get('/metrics', [App\Http\Controllers\Api\MonitoringController::class, 'prometheus'])->name('monitoring.metrics');
-    Route::get('/prometheus', [App\Http\Controllers\Api\MonitoringController::class, 'prometheus'])->name('monitoring.prometheus');
+    Route::get('/metrics', [App\Http\Controllers\Api\MonitoringController::class, 'prometheus'])
+        ->middleware(App\Http\Middleware\MetricsAccessMiddleware::class)
+        ->name('monitoring.metrics');
+    Route::get('/prometheus', [App\Http\Controllers\Api\MonitoringController::class, 'prometheus'])
+        ->middleware(App\Http\Middleware\MetricsAccessMiddleware::class)
+        ->name('monitoring.prometheus');
     Route::get('/health', [App\Http\Controllers\Api\MonitoringController::class, 'health'])->name('monitoring.health');
     Route::get('/ready', [App\Http\Controllers\Api\MonitoringController::class, 'ready'])->name('monitoring.ready');
     Route::get('/alive', [App\Http\Controllers\Api\MonitoringController::class, 'alive'])->name('monitoring.alive');
 });
 
-// Domain metrics endpoints (public - for Prometheus scraping)
-Route::get('/metrics/prometheus', [App\Http\Controllers\Api\MetricsController::class, 'prometheus'])->name('metrics.prometheus');
+// Domain metrics endpoint for Prometheus scraping (gated: token or IP allowlist)
+Route::get('/metrics/prometheus', [App\Http\Controllers\Api\MetricsController::class, 'prometheus'])
+    ->middleware(App\Http\Middleware\MetricsAccessMiddleware::class)
+    ->name('metrics.prometheus');
 Route::get('/health', [App\Http\Controllers\Api\MetricsController::class, 'health'])->name('health.quick');
 
 // WebSocket configuration endpoints (public - for client initialization)

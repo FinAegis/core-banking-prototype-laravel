@@ -24,6 +24,14 @@ return [
         ],
     ],
 
+    // Access control for the metrics endpoints (/api/monitoring/{metrics,prometheus},
+    // /api/metrics/prometheus). See App\Http\Middleware\MetricsAccessMiddleware.
+    'metrics_token'       => env('METRICS_TOKEN'),
+    'metrics_allowed_ips' => array_values(array_filter(
+        array_map('trim', explode(',', (string) env('METRICS_ALLOWED_IPS', ''))),
+        static fn (string $ip): bool => $ip !== ''
+    )),
+
     'health' => [
         'checks' => [
             'database' => true,
@@ -53,28 +61,8 @@ return [
         ],
     ],
 
-    'alerts' => [
-        'enabled'  => env('MONITORING_ALERTS_ENABLED', true),
-        'channels' => [
-            'log'   => true,
-            'slack' => env('MONITORING_SLACK_ENABLED', false),
-            'email' => env('MONITORING_EMAIL_ENABLED', false),
-        ],
-        'thresholds' => [
-            'response_time' => [
-                'warning'  => 1.0, // seconds
-                'critical' => 3.0, // seconds
-            ],
-            'error_rate' => [
-                'warning'  => 0.05, // 5%
-                'critical' => 0.10, // 10%
-            ],
-            'memory_usage' => [
-                'warning'  => 0.75, // 75%
-                'critical' => 0.90, // 90%
-            ],
-        ],
-    ],
+    // Alerting goes through the logging stack: the 'slack' channel in config/logging.php
+    // routes Log::critical()/emergency() to Slack when LOG_SLACK_WEBHOOK_URL is set.
 
     'logging' => [
         'structured'         => env('STRUCTURED_LOGGING', true),

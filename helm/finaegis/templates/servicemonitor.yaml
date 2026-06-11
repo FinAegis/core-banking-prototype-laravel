@@ -17,6 +17,10 @@ spec:
       path: {{ .Values.serviceMonitor.path }}
       interval: {{ .Values.serviceMonitor.interval }}
       scrapeTimeout: {{ .Values.serviceMonitor.scrapeTimeout }}
+      {{- with .Values.serviceMonitor.bearerTokenSecret }}
+      bearerTokenSecret:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
   namespaceSelector:
     matchNames:
       - {{ .Release.Namespace }}
