@@ -52,7 +52,7 @@ class DataIsolationTest extends BaseTestCase
         // the MultiConnection suite (tests/MultiConnection, a required PR
         // check); opt into these lifecycle tests explicitly with
         // TENANCY_LIFECYCLE_TESTS=true in an isolated environment.
-        if (env('TENANCY_LIFECYCLE_TESTS') !== 'true') {
+        if (getenv('TENANCY_LIFECYCLE_TESTS') !== 'true') {
             $this->markTestSkipped('Tenant-lifecycle tests need an isolated DB sandbox — set TENANCY_LIFECYCLE_TESTS=true (see tests/MultiConnection for the supported tenancy coverage).');
         }
 
