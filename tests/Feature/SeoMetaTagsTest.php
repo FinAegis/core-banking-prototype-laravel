@@ -12,39 +12,41 @@ class SeoMetaTagsTest extends TestCase
  */ #[Test]
     public function test_public_pages_have_seo_meta_tags(): void
     {
+        $brand = config('brand.name');
+
         $pages = [
             '/' => [
-                'title'          => 'FinAegis - Open Source Core Banking Platform',
+                'title'          => $brand . ' - Open Source Core Banking Infrastructure',
                 'hasDescription' => true,
                 'hasKeywords'    => true,
                 'hasOgTags'      => true,
             ],
             '/about' => [
-                'title'          => 'About FinAegis - Open Source Core Banking',
+                'title'          => 'About ' . $brand . ' — Open Source Core Banking Infrastructure',
                 'hasDescription' => true,
                 'hasKeywords'    => true,
                 'hasOgTags'      => true,
             ],
             '/platform' => [
-                'title'          => 'FinAegis Platform - Open Banking for Developers',
+                'title'          => $brand . ' Platform - Open Banking for Developers',
                 'hasDescription' => true,
                 'hasKeywords'    => true,
                 'hasOgTags'      => true,
             ],
             '/gcu' => [
-                'title'          => 'Global Currency Unit (GCU) - FinAegis',
+                'title'          => 'Global Currency Unit (GCU) | ' . $brand,
                 'hasDescription' => true,
                 'hasKeywords'    => true,
                 'hasOgTags'      => true,
             ],
             '/pricing' => [
-                'title'          => 'Pricing - Flexible Plans for Every Scale | FinAegis',
+                'title'          => 'Pricing - Flexible Plans for Every Scale | ' . $brand,
                 'hasDescription' => true,
                 'hasKeywords'    => true,
                 'hasOgTags'      => true,
             ],
             '/security' => [
-                'title'          => 'Security - Bank-Grade Protection | FinAegis',
+                'title'          => 'Security - Bank-Grade Protection | ' . $brand,
                 'hasDescription' => true,
                 'hasKeywords'    => true,
                 'hasOgTags'      => true,
@@ -158,11 +160,12 @@ class SeoMetaTagsTest extends TestCase
  */ #[Test]
     public function test_meta_descriptions_have_appropriate_length(): void
     {
+        // Current page descriptions as emitted by the blades (truth-pass copy).
         $pages = [
-            '/'         => 'FinAegis - Open Source Core Banking Platform Powering the Future of Banking. Experience the Global Currency Unit (GCU) with democratic governance and real bank integration.',
-            '/about'    => 'Learn about FinAegis - revolutionizing banking with democratic governance and the Global Currency Unit. Our mission, team, and journey.',
-            '/platform' => 'FinAegis Platform - Open-source banking infrastructure for developers. Build, deploy, and scale financial services with our MIT-licensed platform.',
-            '/pricing'  => 'FinAegis Pricing - Start with our free open-source community edition. Scale with enterprise support, custom features, and dedicated infrastructure when ready.',
+            '/'         => 'Open-source core banking platform with 61 modules: payments, lending, compliance, DeFi, and a public MCP server for AI agents. ISO 20022, PSD2, ACH, SEPA. Apache-2.0 licensed, built with Laravel.',
+            '/about'    => 'Learn about Zelta, the open-source core banking platform — 61 modules covering payments, lending, compliance, DeFi, and a public MCP server for AI agents. Apache-2.0, built with Laravel.',
+            '/platform' => 'Zelta Platform: open-source core banking with 61 DDD domains, ISO 20022, PSD2, multi-rail payments, cross-chain DeFi, and a public MCP server. Apache-2.0 licensed, built for developers.',
+            '/pricing'  => config('brand.name') . ' Pricing - Start with our free open-source community edition. Scale with enterprise support, custom features, and dedicated infrastructure when ready.',
         ];
 
         foreach ($pages as $url => $expectedDescription) {

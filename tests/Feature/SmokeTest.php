@@ -14,7 +14,7 @@ describe('Smoke Tests — Critical Pages', function (): void {
         $response = $this->get('/features');
 
         $response->assertOk();
-        $response->assertSee('Domain Modules');
+        $response->assertSee('61 production-ready modules');
     });
 
     it('loads the zelta cli feature page', function (): void {

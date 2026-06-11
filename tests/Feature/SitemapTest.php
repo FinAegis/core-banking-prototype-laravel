@@ -27,7 +27,9 @@ class SitemapTest extends TestCase
 
         $response->assertStatus(200);
 
-        // Check for essential URLs
+        // Check for essential URLs. /login and /register are deliberately
+        // excluded by SitemapController — robots.txt Disallows them and auth
+        // pages don't belong in sitemaps.
         $essentialUrls = [
             config('app.url'),
             config('app.url') . '/about',
@@ -37,8 +39,8 @@ class SitemapTest extends TestCase
             config('app.url') . '/features',
             config('app.url') . '/security',
             config('app.url') . '/support',
-            config('app.url') . '/login',
-            config('app.url') . '/register',
+            config('app.url') . '/developers',
+            config('app.url') . '/blog',
         ];
 
         foreach ($essentialUrls as $url) {
