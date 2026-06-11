@@ -7,17 +7,23 @@ use Illuminate\Support\Facades\Schema;
 
 it('stores client_id as a UUID-compatible column on oauth_auth_codes', function () {
     $type = Schema::getColumnType('oauth_auth_codes', 'client_id');
-    expect($type)->toBe('varchar');
+    // SQLite reports 'varchar', MySQL 'char' (Passport uses char(36)/uuid).
+    // The intent is string-typed and UUID-capable — not an integer column.
+    expect($type)->toBeIn(['varchar', 'char', 'uuid']);
 });
 
 it('stores client_id as a UUID-compatible column on oauth_access_tokens', function () {
     $type = Schema::getColumnType('oauth_access_tokens', 'client_id');
-    expect($type)->toBe('varchar');
+    // SQLite reports 'varchar', MySQL 'char' (Passport uses char(36)/uuid).
+    // The intent is string-typed and UUID-capable — not an integer column.
+    expect($type)->toBeIn(['varchar', 'char', 'uuid']);
 });
 
 it('stores client_id as a UUID-compatible column on oauth_personal_access_clients', function () {
     $type = Schema::getColumnType('oauth_personal_access_clients', 'client_id');
-    expect($type)->toBe('varchar');
+    // SQLite reports 'varchar', MySQL 'char' (Passport uses char(36)/uuid).
+    // The intent is string-typed and UUID-capable — not an integer column.
+    expect($type)->toBeIn(['varchar', 'char', 'uuid']);
 });
 
 it('round-trips a UUID client_id through oauth_auth_codes without truncation', function () {
