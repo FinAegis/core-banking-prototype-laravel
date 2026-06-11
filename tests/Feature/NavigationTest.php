@@ -108,7 +108,7 @@ class NavigationTest extends TestCase
     }
 
     #[Test]
-    public function admin_panel_redirects_non_admin_users_to_dashboard()
+    public function admin_panel_redirects_non_admin_users_to_dashboard(): void
     {
         // Non-admins hitting /admin are redirected to /dashboard with a flash
         // error by App\Filament\Http\Middleware\RedirectNonAdmins (replaces
