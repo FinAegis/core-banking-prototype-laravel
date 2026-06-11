@@ -77,7 +77,7 @@ class AP2ComplianceTest extends TestCase
     #[Test]
     public function ap2_discovery_endpoint_returns_valid_configuration(): void
     {
-        $response = $this->getJson('/.well-known/ap2-configuration');
+        $response = $this->getJson('/api/.well-known/ap2-configuration');
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -516,7 +516,7 @@ class AP2ComplianceTest extends TestCase
     #[Test]
     public function ap2_currency_codes_follow_iso4217(): void
     {
-        $response = $this->getJson('/.well-known/ap2-configuration');
+        $response = $this->getJson('/api/.well-known/ap2-configuration');
 
         $response->assertStatus(200);
 
