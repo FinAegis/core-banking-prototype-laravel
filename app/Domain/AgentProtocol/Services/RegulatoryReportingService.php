@@ -328,9 +328,16 @@ class RegulatoryReportingService
         // Generate unique report ID
         $reportId = 'REG-' . now()->format('Y') . '-' . str_pad((string) random_int(1, 99999), 5, '0', STR_PAD_LEFT);
 
-        // Extract period from data if available
-        $periodStart = $data['reporting_period']['start'] ?? $data['period']['start'] ?? now()->subMonth()->toDateString();
-        $periodEnd = $data['reporting_period']['end'] ?? $data['period']['end'] ?? now()->toDateString();
+        // Extract period from data if available. Normalize through Carbon —
+        // upstream supplies ISO-8601 strings with timezone offsets, which
+        // strict-mode MySQL rejects for DATETIME columns (SQLite tolerated
+        // them, hiding this until the suite ran on MySQL).
+        $periodStart = \Illuminate\Support\Carbon::parse(
+            $data['reporting_period']['start'] ?? $data['period']['start'] ?? now()->subMonth()
+        )->toDateTimeString();
+        $periodEnd = \Illuminate\Support\Carbon::parse(
+            $data['reporting_period']['end'] ?? $data['period']['end'] ?? now()
+        )->toDateTimeString();
 
         return RegulatoryReport::create([
             'report_id'              => $reportId,
