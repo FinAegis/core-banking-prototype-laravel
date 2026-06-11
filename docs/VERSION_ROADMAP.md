@@ -1328,7 +1328,7 @@ GET    /api/v1/trustcert/verify/{token} # Verify presentation
 
 ### Documentation
 - [Mobile App Specification](MOBILE_APP_SPECIFICATION.md) - Complete technical spec (v1.2)
-- [Backend Upgrade Plan](BACKEND_UPGRADE_PLAN_v2.4.md) - API integration guide
+- [Backend Upgrade Plan](archive/BACKEND_UPGRADE_PLAN_v2.4.md) - API integration guide (archived — COMPLETED)
 
 ---
 

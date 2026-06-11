@@ -40,8 +40,8 @@ A **basket currency** is a synthetic currency unit whose value is derived from a
 Before starting, ensure you have:
 
 - FinAegis development environment running
-- Understanding of [Event Sourcing](../ADR/ADR-001-event-sourcing.md)
-- Familiarity with [Saga Pattern](../ADR/ADR-003-saga-pattern.md)
+- Understanding of [Event Sourcing](../adr/0007-event-sourcing.md)
+- Familiarity with [Saga Pattern](../adr/0009-saga-pattern.md)
 - Access to exchange rate data (or mock service)
 
 ---
@@ -770,7 +770,7 @@ Use the [GCU implementation](../../app/Domain/Basket/) as your reference for pro
 
 ## Related Resources
 
-- [ADR-004: GCU Basket Design](../ADR/ADR-004-gcu-basket-design.md)
+- [ADR-0010: GCU Basket Design](../adr/0010-gcu-basket-design.md)
 - [GCU Domain README](../../app/Domain/Basket/README.md)
-- [Event Sourcing ADR](../ADR/ADR-001-event-sourcing.md)
-- [Saga Pattern ADR](../ADR/ADR-003-saga-pattern.md)
+- [Event Sourcing ADR](../adr/0007-event-sourcing.md)
+- [Saga Pattern ADR](../adr/0009-saga-pattern.md)

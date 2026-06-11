@@ -341,4 +341,4 @@ This checklist provides a comprehensive security review framework for FinAegis d
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - [Laravel Security Best Practices](https://laravel.com/docs/security)
 - [SECURITY.md](../../SECURITY.md) - Vulnerability reporting
-- [ADR-001: Event Sourcing](../ADR/ADR-001-event-sourcing.md) - Audit trail architecture
+- [ADR-0007: Event Sourcing](../adr/0007-event-sourcing.md) - Audit trail architecture

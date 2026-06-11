@@ -280,5 +280,5 @@ Create a shared interface when:
 ## Related Documentation
 
 - [DOMAIN_DEPENDENCIES.md](../../../../docs/02-ARCHITECTURE/DOMAIN_DEPENDENCIES.md)
-- [ADR-002: CQRS Pattern](../../../../docs/ADR/ADR-002-cqrs-pattern.md)
+- [ADR-0008: CQRS Pattern](../../../../docs/adr/0008-cqrs-pattern.md)
 - [ARCHITECTURAL_ROADMAP.md](../../../../docs/ARCHITECTURAL_ROADMAP.md)

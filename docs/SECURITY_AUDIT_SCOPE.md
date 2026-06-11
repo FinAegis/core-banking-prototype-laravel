@@ -1,9 +1,10 @@
-# Security Audit Scope — FinAegis/Zelta v7.10.0
+# Security Audit Scope — FinAegis/Zelta v7.15.0
 
 **Prepared**: 2026-03-29
+**Updated**: 2026-06-11 (v7.15.0 — added post-v7.10 surfaces: public MCP server, non-custodial wallet send, IAP verify, Bridge.xyz ramp)
 **Platform**: PHP 8.4 / Laravel 12 / MySQL 8 / Redis
 **PHPStan Level**: 8 (strict)
-**Domain Modules**: 56 bounded contexts (DDD)
+**Domain Modules**: 61 bounded contexts (DDD)
 **Route Count**: ~1,400 registered routes
 **GraphQL Schemas**: 45 schema files
 
@@ -64,6 +65,12 @@ Core banking platform with 56 domain modules, payment processing (x402/MPP/AP2),
 - **Interledger Protocol** (`app/Domain/Interledger/`): ILP packet routing and streaming payments. Risk: packet amount manipulation, connector trust misconfiguration.
 - **Double-Entry Ledger** (`app/Domain/Ledger/`): GL posting with double-entry invariant, TigerBeetle and Eloquent drivers, reconciliation. Risk: unbalanced entry bypass, reconciliation discrepancy suppression, driver fallback exploitation.
 - **Microfinance Suite** (`app/Domain/Microfinance/`): Group lending, loan provisioning (IFRS), share accounts, teller vault, field officer collections. Risk: group liability bypass, provisioning classification manipulation, vault imbalance.
+
+### Post-v7.10 Surfaces — Added in v7.15.0 Audit Scope
+- **Public MCP Server** (`app/Domain/MCP/`, v7.11.0+): Internet-facing JSON-RPC endpoint at `mcp.zelta.app/mcp` with minimal middleware (no CSRF, no Sanctum, no web session). OAuth AS is Laravel Passport extended with **Dynamic Client Registration** at `/oauth/register` (anonymous client creation by design); `McpOAuthGuard` resolves bearer tokens and calls `Auth::shouldUse('api')`. Tool catalog in `config/mcp.php` with per-tool kill-switches (`MCP_TOOL_*`) and a per-user daily spending limit (`MCP_DEFAULT_DAILY_LIMIT_MINOR`, default $500) on payment-class tools (`payments:write`, `ramp:write`, `sms:send`). Risk surface: DCR abuse/registration flooding, redirect-URI validation bypass (validator is strict on literal `127.0.0.1`), scope escalation (snake_case scope strings, case-sensitive `Scope::can()`), spending-limit bypass via tools not flagged `is_payment` (`exchange.trade` is deliberately uncounted today), prompt-injection-driven tool misuse by the calling agent, subdomain route-ordering confusion in `bootstrap/app.php`.
+- **Non-Custodial Wallet Send** (`app/Domain/Wallet/Services/Send/`, `app/Domain/Auth/Services/PrivyJwtVerifier.php`, v7.12.0+): Privy JWT → Sanctum token bridge at `POST /api/v1/auth/privy-login` (ES256 via JWKS fetched from Privy and cached; `iss`/`aud`/expiry enforced; `firstOrCreate(privy_user_id)` account linking). Send flow is prepare/submit: backend builds the unsigned Solana message or ERC-4337 UserOp hash (Pimlico-sponsored), device signs, backend co-signs (Solana fee payer) and broadcasts. Risk surface: JWT forgery/issuer confusion against the JWKS cache, account takeover via `privy_user_id` collision or address-registration spoofing (`POST /api/v1/wallet/addresses` trusts the authenticated session), sponsorship abuse (platform pays gas — capped per-user 30/day, global 5000/day, cache-counter based so a cache flush resets counts), submit-time signature substitution, idempotency-key replay on prepare/submit.
+- **IAP Verify Surface** (`app/Domain/Subscription/Iap/`, v7.13.0+): `POST /api/v1/subscription/iap/verify` accepts client-supplied store receipts. Apple receipts are JWS-validated with the x5c chain pinned to Apple Root CA G3 (`storage/app/apple/AppleRootCA-G3.cer`); Google purchase tokens are verified server-side against the Play Developer API; store webhooks (Apple V2 JWS, Google RTDN with OIDC bearer) dedupe via `processed_webhook_events`. Risk surface: receipt forgery / JWS chain bypass, the `APPLE_JWS_VERIFICATION_BYPASS` staging flag (ignored + logged in production, FAILed by `ops:verify-env` — verify the production gate cannot be sidestepped), account-binding bypass (`appAccountToken`/`obfuscatedAccountId` is best-effort and accepted when absent), replay of valid receipts across accounts (conflict matrix ERR_SUB_002), `IAP_RECEIPT_PEPPER` handling (one-way pseudonymisation pepper — compromise or rotation breaks post-erasure webhook matching).
+- **Bridge.xyz Ramp** (`app/Domain/Compliance/Kyc/` + `app/Infrastructure/Bridge/`, v7.15.0+): Single webhook endpoint `POST /api/v1/webhooks/bridge` for KYC and ramp events, verified against Bridge's asymmetric scheme (`X-Webhook-Signature: t=<unix_ms>,v0=<base64>`, RSA-SHA256 over `<t>.<body>` with the per-endpoint public key) with a legacy HMAC fallback; dev passthrough only when BOTH credentials are empty AND non-production. Virtual-account provisioning auto-triggers on `customer.kyc_link_completed` against the user's Polygon address in `blockchain_addresses`; per-customer `developer_fee_bps` (Free=75/Pro=0) is PATCHed on `SubscriptionTierChanged`. Risk surface: webhook signature scheme drift / replay (timestamp units unverified against live bytes), forged `virtual_account.activity` deposits if verification regresses, VA provisioning race against address registration, dev-fee tampering (anything that can emit `SubscriptionTierChanged` or mutate tier state zeroes the 0.75% markup), encrypted `deposit_instructions` handling, KYC-state confusion between `users.kyc_status` (Ondato) and `bridge_customers.kyc_status`.
 
 ### Cryptography
 - **Post-quantum encryption**: ML-KEM-768 (key encapsulation), ML-DSA-65 (digital signatures)
@@ -277,6 +284,23 @@ Models without $fillable or $guarded: 31 files
 25. **ILP packet relay trust**: Verify Interledger connector only routes to trusted next-hop connectors.
 26. **TigerBeetle fallback**: Verify graceful fallback to Eloquent driver on TigerBeetle unreachability doesn't lose entries.
 
-*Document Version: 7.9.0*
+### P0 — Critical (Post-v7.10 Surfaces)
+27. **Apple JWS bypass gate**: Verify `APPLE_JWS_VERIFICATION_BYPASS=true` truly cannot enable the bypass in production (env override paths, config cache, `app()->environment()` spoofing). With the bypass live, any authenticated user forges a Pro subscription.
+28. **Bridge webhook forgery**: Attempt to land a forged `virtual_account.activity`/`transfer.*` payload — test the asymmetric `v0` verification (timestamp tolerance, RSA padding), the legacy HMAC fallback auto-detection, and the empty-credentials passthrough (must fail closed in production).
+29. **MCP spending-limit bypass**: Drive payment-class MCP tools past `MCP_DEFAULT_DAILY_LIMIT_MINOR` (concurrent calls, uncounted tools like `exchange.trade`, limit-counter cache eviction). Verify limits bind per-user, not per-client.
+
+### P1 — High (Post-v7.10 Surfaces)
+30. **Privy JWT bridge**: Test `POST /api/v1/auth/privy-login` with forged/alg-confused JWTs, stale/poisoned JWKS cache entries, and cross-app tokens (`aud` mismatch). Verify `firstOrCreate(privy_user_id)` cannot be steered into another user's account.
+31. **Sponsorship abuse**: Script sends to exhaust the Pimlico paymaster / Solana sponsor SOL — verify the per-user (30/day) and global (5000/day) caps hold under concurrency, and that a cache flush mid-day doesn't open an unbounded window.
+32. **MCP DCR + scope escalation**: Register rogue clients at `/oauth/register` (redirect-URI tricks, registration flooding), then attempt scope escalation across the snake_case scope set and tool-catalog kill-switch bypass.
+33. **IAP receipt replay / binding bypass**: Replay a valid receipt against a second Zelta account (absent `appAccountToken` is accepted) and probe the ERR_SUB_002 conflict matrix for paths that grant entitlements.
+34. **Bridge dev-fee tampering**: Attempt to zero `developer_fee_bps` without a legitimate Pro subscription (forged `SubscriptionTierChanged`, direct PATCH paths, `bridge:sync-dev-fee` misuse).
+
+### P2 — Medium (Post-v7.10 Surfaces)
+35. **Wallet prepare/submit integrity**: Substitute signatures/intents across users at `POST /api/v1/wallet/transactions/submit`; replay `Idempotency-Key` headers; verify a `pending` record cannot be submitted twice or by a different user.
+36. **MCP tool catalog confusion**: Verify disabled tools (`MCP_TOOL_*=false`) are absent from `tools/list` AND rejected at call time; test `requires_user` tools without a resolved user.
+
+*Document Version: 7.15.0*
 *Created: January 11, 2026*
 *Updated: April 4, 2026 (v7.9.0 Solana Balances, Helius Webhooks & SEO Overhaul)*
+*Updated: June 11, 2026 (v7.15.0 — post-v7.10 surfaces: MCP server, non-custodial wallet send, IAP verify, Bridge ramp)*

@@ -281,7 +281,7 @@ Test files:
 
 ## Related Documentation
 
-- [ADR-004: GCU Basket Design](../../../docs/ADR/ADR-004-gcu-basket-design.md)
+- [ADR-0010: GCU Basket Design](../../../docs/adr/0010-gcu-basket-design.md)
 - [Building Custom Basket Currencies](../../../docs/tutorials/BUILDING_BASKET_CURRENCIES.md)
 - [Governance Integration](../Governance/README.md)
 

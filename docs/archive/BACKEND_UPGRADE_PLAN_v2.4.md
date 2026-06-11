@@ -5,7 +5,7 @@
 > v2.4.0 (Privacy & Identity) has been released and fully implemented. The four domains
 > planned in this document -- Privacy, Commerce, TrustCert, and KeyManagement -- are all
 > part of the production codebase. For current architecture documentation covering these
-> domains, see [CLAUDE.md](../CLAUDE.md) and [Architecture Overview](./02-ARCHITECTURE/ARCHITECTURE.md).
+> domains, see [CLAUDE.md](../../CLAUDE.md) and [Architecture Overview](../02-ARCHITECTURE/ARCHITECTURE.md).
 >
 > The content below is preserved for historical reference as the original planning document.
 
