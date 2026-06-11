@@ -34,6 +34,9 @@ parameters:
     checkModelProperties: true
     checkUnionTypes: true
     ignoreErrors:
+        # Filament testing helpers are runtime mixins on Livewire's Testable
+        # (Testable::mixin(new TestsActions) etc.) — invisible to static analysis.
+        - '#Call to an undefined method (Illuminate\\Testing\\TestResponse|Livewire\\Features\\SupportTesting\\Testable)::(assertCanSeeTableRecords|assertCanNotSeeTableRecords|assertTableActionHidden|assertHasNoTableActionErrors|assertHasTableActionErrors|callTableAction|filterTable|removeTableFilters|searchTable)\(\)#'
         # Mockery methods
         - '#Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage::with\(\)#'
         - '#Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage::(once|twice|times|never|andReturn|andReturnTrue|andReturnFalse|andThrow|byDefault)\(\)#'

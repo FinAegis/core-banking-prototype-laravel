@@ -49,4 +49,8 @@
     @endif
     
     @livewire(\App\Filament\Admin\Resources\AccountResource\Widgets\AccountStatsOverview::class)
+
+    @if(\App\Filament\Admin\Widgets\SubscriptionRevenueStatsWidget::canView())
+        @livewire(\App\Filament\Admin\Widgets\SubscriptionRevenueStatsWidget::class)
+    @endif
 </x-filament-panels::page>
