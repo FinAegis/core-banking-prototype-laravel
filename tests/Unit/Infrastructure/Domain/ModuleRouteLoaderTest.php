@@ -133,6 +133,74 @@ describe('Zelta production surface template (.env.zelta.example)', function () {
     });
 });
 
+describe('routes/api-v2.php demo-domain gating (#1135 residual)', function () {
+    /**
+     * Re-include the shared v2 route file under a unique prefix AFTER
+     * toggling modules.disabled — the copy registered at boot used the
+     * test-default (empty) config, so assertions must run against a
+     * fresh include. api-v2.php has no named routes, so re-including
+     * it is collision-free.
+     */
+    function loadApiV2RoutesUnderPrefix(string $prefix): void
+    {
+        Route::middleware('api')->prefix($prefix)->group(base_path('routes/api-v2.php'));
+    }
+
+    /** Whether $method $path resolves to a registered route. */
+    function apiV2RouteResolves(string $method, string $path): bool
+    {
+        try {
+            Route::getRoutes()->match(Illuminate\Http\Request::create($path, $method));
+
+            return true;
+        } catch (Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
+            return false;
+        }
+    }
+
+    it('drops basket, banking and governance v2 routes when those modules are disabled', function () {
+        config(['modules.disabled' => ['Basket', 'Banking', 'Governance']]);
+
+        loadApiV2RoutesUnderPrefix('_fixtures/v2-gated');
+
+        // Demo-domain surfaces are gone...
+        expect(apiV2RouteResolves('GET', '/_fixtures/v2-gated/baskets'))->toBeFalse();
+        expect(apiV2RouteResolves('POST', '/_fixtures/v2-gated/baskets'))->toBeFalse();
+        expect(apiV2RouteResolves('GET', '/_fixtures/v2-gated/accounts/sample-uuid/baskets'))->toBeFalse();
+        expect(apiV2RouteResolves('GET', '/_fixtures/v2-gated/banks/available'))->toBeFalse();
+        expect(apiV2RouteResolves('GET', '/_fixtures/v2-gated/gcu/governance/active-polls'))->toBeFalse();
+        expect(apiV2RouteResolves('GET', '/_fixtures/v2-gated/gcu/voting/proposals'))->toBeFalse();
+
+        // ...while core v2 surfaces stay registered.
+        expect(apiV2RouteResolves('GET', '/_fixtures/v2-gated/status'))->toBeTrue();
+        expect(apiV2RouteResolves('GET', '/_fixtures/v2-gated/gcu'))->toBeTrue();
+        expect(apiV2RouteResolves('GET', '/_fixtures/v2-gated/accounts'))->toBeTrue();
+        expect(apiV2RouteResolves('GET', '/_fixtures/v2-gated/assets'))->toBeTrue();
+    });
+
+    it('registers the demo-domain v2 routes when nothing is disabled', function () {
+        config(['modules.disabled' => []]);
+
+        loadApiV2RoutesUnderPrefix('_fixtures/v2-open');
+
+        expect(apiV2RouteResolves('GET', '/_fixtures/v2-open/baskets'))->toBeTrue();
+        expect(apiV2RouteResolves('GET', '/_fixtures/v2-open/accounts/sample-uuid/baskets'))->toBeTrue();
+        expect(apiV2RouteResolves('GET', '/_fixtures/v2-open/banks/available'))->toBeTrue();
+        expect(apiV2RouteResolves('GET', '/_fixtures/v2-open/gcu/governance/active-polls'))->toBeTrue();
+        expect(apiV2RouteResolves('GET', '/_fixtures/v2-open/gcu/voting/proposals'))->toBeTrue();
+        expect(apiV2RouteResolves('GET', '/_fixtures/v2-open/status'))->toBeTrue();
+    });
+
+    it('returns 404 over HTTP for a gated v2 route while a core one resolves', function () {
+        config(['modules.disabled' => ['Basket']]);
+
+        loadApiV2RoutesUnderPrefix('_fixtures/v2-http');
+
+        $this->getJson('/_fixtures/v2-http/baskets')->assertNotFound();
+        $this->getJson('/_fixtures/v2-http/status')->assertOk();
+    });
+});
+
 describe('DomainManager::isDisabledByConfig (boot-time cron gate)', function () {
     it('reads modules.disabled from config only', function () {
         config(['modules.disabled' => ['Governance', 'finaegis/basket', 'CGO']]);

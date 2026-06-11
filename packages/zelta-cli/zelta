@@ -20,6 +20,9 @@ declare(strict_types=1);
  *   zelta wallet balance
  *   zelta wallet transactions --limit 20
  *   zelta wallet intent <intentId>
+ *   zelta ramp status
+ *   zelta ramp kyc-link
+ *   zelta subscription status
  *   zelta limits list
  *   zelta agents discover --capability payment
  *   zelta sdk generate typescript --output ./sdk
@@ -53,10 +56,13 @@ use ZeltaCli\Commands\Pay\ListCommand as PayListCommand;
 use ZeltaCli\Commands\Pay\SendCommand as PaySendCommand;
 use ZeltaCli\Commands\Pay\StatsCommand;
 use ZeltaCli\Commands\Pay\StatusCommand as PayStatusCommand;
+use ZeltaCli\Commands\Ramp\KycLinkCommand as RampKycLinkCommand;
+use ZeltaCli\Commands\Ramp\StatusCommand as RampStatusCommand;
 use ZeltaCli\Commands\Sdk\GenerateCommand;
 use ZeltaCli\Commands\Sms\RatesCommand;
 use ZeltaCli\Commands\Sms\SendCommand;
 use ZeltaCli\Commands\Sms\StatusCommand as SmsStatusCommand;
+use ZeltaCli\Commands\Subscription\StatusCommand as SubscriptionStatusCommand;
 use ZeltaCli\Commands\Wallet\BalanceCommand;
 use ZeltaCli\Commands\Wallet\IntentCommand as WalletIntentCommand;
 use ZeltaCli\Commands\Wallet\TokensCommand;
@@ -91,6 +97,13 @@ $app->add(new BalanceCommand());
 $app->add(new WalletTransactionsCommand());
 $app->add(new WalletIntentCommand());
 $app->add(new TokensCommand());
+
+// Ramp (bank-rail deposits via Bridge.xyz — setup is per-user, one-time)
+$app->add(new RampStatusCommand());
+$app->add(new RampKycLinkCommand());
+
+// Subscription (read-only: plan changes happen in the app / web checkout)
+$app->add(new SubscriptionStatusCommand());
 
 // Limits
 $app->add(new LimitsListCommand());

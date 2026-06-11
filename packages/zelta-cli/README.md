@@ -46,12 +46,16 @@ zelta endpoints:list
 | `pay` | send, status, list, stats |
 | `sms` | send, status, rates |
 | `wallet` | balance, transactions, intent, tokens |
+| `ramp` | status, kyc-link |
+| `subscription` | status |
 | `limits` | list, set, remove |
 | `endpoints` | list |
 | `agents` | register, discover |
 | `sdk` | generate |
 
 > **Note on wallet sends** — Zelta wallets are non-custodial: every transaction is signed on-device (Privy passkey / device key), so the CLI cannot send funds. `wallet:transactions` and `wallet:intent` give read-only visibility into wallet activity and send intents.
+
+> **Note on ramp & subscription** — `ramp:status` / `ramp:kyc-link` cover bank-rail deposit setup (KYC + virtual account); `subscription:status` shows your tier and period end. All three are read/setup surfaces — money movement and plan changes happen in the app.
 
 ## AI Agent Support
 

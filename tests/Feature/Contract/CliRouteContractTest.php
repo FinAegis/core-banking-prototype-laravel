@@ -50,6 +50,13 @@ function cliRouteContract(): array
         ['GET', '/v1/wallet/transactions', 'Wallet/TransactionsCommand'],
         ['GET', '/v1/wallet/transactions/by-intent/sample-intent-id', 'Wallet/IntentCommand'],
 
+        // Ramp / Bridge.xyz setup (KYC + virtual account)
+        ['GET', '/v1/user/bridge-setup-status', 'Ramp/StatusCommand'],
+        ['POST', '/v1/user/bridge-kyc-link', 'Ramp/KycLinkCommand'],
+
+        // Subscription (read-only tier/status surface)
+        ['GET', '/v1/subscription/me', 'Subscription/StatusCommand'],
+
         // Spending limits
         ['GET', '/v1/x402/spending-limits', 'Limits/ListCommand'],
         ['POST', '/v1/x402/spending-limits', 'Limits/SetCommand'],

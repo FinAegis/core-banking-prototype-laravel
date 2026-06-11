@@ -60,29 +60,42 @@ class SchemaHelper
 
     /**
      * Generate SoftwareApplication schema.
+     *
+     * Brand-aware: the Play Store installUrl + Android-wallet description
+     * describe the Zelta app specifically. Under any other brand (e.g. the
+     * FinAegis demo) the installUrl is omitted and a generic platform
+     * description is used, so demo pages never point at the Zelta listing.
      */
     public static function softwareApplication(): string
     {
         $brand = config('brand.name', 'Zelta');
+        $isZelta = $brand === 'Zelta';
+
         $schema = [
             '@context'            => 'https://schema.org',
             '@type'               => 'MobileApplication',
             'name'                => $brand,
             'operatingSystem'     => 'Android',
             'applicationCategory' => 'FinanceApplication',
-            'installUrl'          => 'https://play.google.com/store/apps/details?id=com.zelta.wallet',
-            'offers'              => [
-                [
-                    '@type'         => 'Offer',
-                    'price'         => '0',
-                    'priceCurrency' => 'USD',
-                ],
+        ];
+
+        if ($isZelta) {
+            $schema['installUrl'] = 'https://play.google.com/store/apps/details?id=com.zelta.wallet';
+        }
+
+        $schema['offers'] = [
+            [
+                '@type'         => 'Offer',
+                'price'         => '0',
+                'priceCurrency' => 'USD',
             ],
-            'description' => 'Non-custodial stablecoin wallet with passkey sign-in, virtual Visa & Mastercard cards, bank-rail deposits, and an agent-callable MCP API. Six networks (Solana, Tron, Polygon, Base, Arbitrum, Ethereum). In open testing on Android.',
-            'developer'   => [
-                '@type' => 'Organization',
-                'name'  => $brand,
-            ],
+        ];
+        $schema['description'] = $isZelta
+            ? 'Non-custodial stablecoin wallet with passkey sign-in, virtual Visa & Mastercard cards, bank-rail deposits, and an agent-callable MCP API. Six networks (Solana, Tron, Polygon, Base, Arbitrum, Ethereum). In open testing on Android.'
+            : $brand . ' — digital banking and stablecoin platform with multi-asset accounts, payment rails, and developer APIs.';
+        $schema['developer'] = [
+            '@type' => 'Organization',
+            'name'  => $brand,
         ];
 
         return self::generateScript($schema);

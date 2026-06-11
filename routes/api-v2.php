@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V2\FinancialInstitutionController;
 use App\Http\Controllers\Api\V2\GCUController;
 use App\Http\Controllers\Api\V2\PublicApiController;
 use App\Http\Controllers\Api\V2\WebhookController;
+use App\Infrastructure\Domain\DomainManager;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,6 +16,11 @@ use Illuminate\Support\Facades\Route;
 |
 | Here is where you can register API routes for version 2 of the public API.
 | These routes are designed for external developers and third-party integrations.
+|
+| Demo-domain groups (baskets, banks, gcu governance/voting) gate on the
+| same MODULES_DISABLED flags as ModuleRouteLoader / routes/console.php —
+| this shared file bypassed the per-domain route loader (#1135 residual).
+| Core v2 surfaces (status, auth, accounts, assets, ...) stay ungated.
 |
 */
 
@@ -44,7 +50,9 @@ Route::prefix('gcu')->group(function () {
     Route::get('/', [GCUController::class, 'index']);
     Route::get('/composition', [GCUController::class, 'composition']);
     Route::get('/value-history', [GCUController::class, 'valueHistory']);
-    Route::get('/governance/active-polls', [GCUController::class, 'activePolls']);
+    if (! DomainManager::isDisabledByConfig('Governance')) {
+        Route::get('/governance/active-polls', [GCUController::class, 'activePolls']);
+    }
     Route::get('/supported-banks', [GCUController::class, 'supportedBanks']);
 
     // Trading endpoints (authenticated)
@@ -57,16 +65,18 @@ Route::prefix('gcu')->group(function () {
         Route::get('/trading-limits', [App\Http\Controllers\Api\V2\GCUTradingController::class, 'tradingLimits']);
     });
 
-    // Voting endpoints
-    Route::prefix('voting')->group(function () {
-        Route::get('/proposals', [App\Http\Controllers\Api\V2\VotingController::class, 'proposals']);
-        Route::get('/proposals/{id}', [App\Http\Controllers\Api\V2\VotingController::class, 'proposalDetails']);
+    // Voting endpoints (Governance domain)
+    if (! DomainManager::isDisabledByConfig('Governance')) {
+        Route::prefix('voting')->group(function () {
+            Route::get('/proposals', [App\Http\Controllers\Api\V2\VotingController::class, 'proposals']);
+            Route::get('/proposals/{id}', [App\Http\Controllers\Api\V2\VotingController::class, 'proposalDetails']);
 
-        Route::middleware('auth:sanctum')->group(function () {
-            Route::post('/proposals/{id}/vote', [App\Http\Controllers\Api\V2\VotingController::class, 'vote']);
-            Route::get('/my-votes', [App\Http\Controllers\Api\V2\VotingController::class, 'myVotes']);
+            Route::middleware('auth:sanctum')->group(function () {
+                Route::post('/proposals/{id}/vote', [App\Http\Controllers\Api\V2\VotingController::class, 'vote']);
+                Route::get('/my-votes', [App\Http\Controllers\Api\V2\VotingController::class, 'myVotes']);
+            });
         });
-    });
+    }
 });
 
 // Webhook event types (public information)
@@ -81,14 +91,16 @@ Route::prefix('financial-institutions')->group(function () {
     Route::get('/api-documentation', [FinancialInstitutionController::class, 'getApiDocumentation']);
 });
 
-// Public basket endpoints (read-only)
-Route::prefix('baskets')->group(function () {
-    Route::get('/', [App\Http\Controllers\Api\BasketController::class, 'index']);
-    Route::get('/{code}', [App\Http\Controllers\Api\BasketController::class, 'show']);
-    Route::get('/{code}/value', [App\Http\Controllers\Api\BasketController::class, 'getValue']);
-    Route::get('/{code}/history', [App\Http\Controllers\Api\BasketController::class, 'getHistory']);
-    Route::get('/{code}/performance', [App\Http\Controllers\Api\BasketController::class, 'getPerformance']);
-});
+// Public basket endpoints (read-only, Basket domain)
+if (! DomainManager::isDisabledByConfig('Basket')) {
+    Route::prefix('baskets')->group(function () {
+        Route::get('/', [App\Http\Controllers\Api\BasketController::class, 'index']);
+        Route::get('/{code}', [App\Http\Controllers\Api\BasketController::class, 'show']);
+        Route::get('/{code}/value', [App\Http\Controllers\Api\BasketController::class, 'getValue']);
+        Route::get('/{code}/history', [App\Http\Controllers\Api\BasketController::class, 'getHistory']);
+        Route::get('/{code}/performance', [App\Http\Controllers\Api\BasketController::class, 'getPerformance']);
+    });
+}
 
 // Authenticated endpoints (supports both Sanctum and API Key authentication)
 Route::middleware(['auth.api_or_sanctum:read'])->group(function () {
@@ -133,12 +145,14 @@ Route::middleware(['auth.api_or_sanctum:read'])->group(function () {
         Route::get('/{uuid}/transactions', [App\Http\Controllers\Api\TransactionController::class, 'history']);
         Route::get('/{uuid}/transfers', [App\Http\Controllers\Api\TransferController::class, 'history']);
 
-        // Basket operations
-        Route::prefix('{uuid}/baskets')->group(function () {
-            Route::get('/', [App\Http\Controllers\Api\BasketAccountController::class, 'getBasketHoldings']);
-            Route::post('/decompose', [App\Http\Controllers\Api\BasketAccountController::class, 'decompose'])->middleware('auth.api_or_sanctum:write');
-            Route::post('/compose', [App\Http\Controllers\Api\BasketAccountController::class, 'compose'])->middleware('auth.api_or_sanctum:write');
-        });
+        // Basket operations (Basket domain)
+        if (! DomainManager::isDisabledByConfig('Basket')) {
+            Route::prefix('{uuid}/baskets')->group(function () {
+                Route::get('/', [App\Http\Controllers\Api\BasketAccountController::class, 'getBasketHoldings']);
+                Route::post('/decompose', [App\Http\Controllers\Api\BasketAccountController::class, 'decompose'])->middleware('auth.api_or_sanctum:write');
+                Route::post('/compose', [App\Http\Controllers\Api\BasketAccountController::class, 'compose'])->middleware('auth.api_or_sanctum:write');
+            });
+        }
     });
 
     // Asset management
@@ -164,11 +178,13 @@ Route::middleware(['auth.api_or_sanctum:read'])->group(function () {
         Route::get('/{uuid}', [App\Http\Controllers\Api\TransferController::class, 'show']);
     });
 
-    // Basket assets (protected operations)
-    Route::prefix('baskets')->group(function () {
-        Route::post('/', [App\Http\Controllers\Api\BasketController::class, 'store'])->middleware('auth.api_or_sanctum:write');
-        Route::post('/{code}/rebalance', [App\Http\Controllers\Api\BasketController::class, 'rebalance'])->middleware('auth.api_or_sanctum:write');
-    });
+    // Basket assets (protected operations, Basket domain)
+    if (! DomainManager::isDisabledByConfig('Basket')) {
+        Route::prefix('baskets')->group(function () {
+            Route::post('/', [App\Http\Controllers\Api\BasketController::class, 'store'])->middleware('auth.api_or_sanctum:write');
+            Route::post('/{code}/rebalance', [App\Http\Controllers\Api\BasketController::class, 'rebalance'])->middleware('auth.api_or_sanctum:write');
+        });
+    }
 
     // Transactions
     Route::prefix('transactions')->group(function () {
@@ -190,23 +206,25 @@ Route::middleware(['auth.api_or_sanctum:read'])->group(function () {
         Route::post('/check-transaction', [ComplianceController::class, 'checkTransactionEligibility']);
     });
 
-    // Bank Integration endpoints
-    Route::prefix('banks')->group(function () {
-        Route::get('/available', [BankIntegrationController::class, 'getAvailableBanks']);
-        Route::get('/health/{bankCode}', [BankIntegrationController::class, 'getBankHealth']);
-        Route::get('/recommendations', [BankIntegrationController::class, 'getRecommendedBanks']);
+    // Bank Integration endpoints (Banking domain — demo connectors)
+    if (! DomainManager::isDisabledByConfig('Banking')) {
+        Route::prefix('banks')->group(function () {
+            Route::get('/available', [BankIntegrationController::class, 'getAvailableBanks']);
+            Route::get('/health/{bankCode}', [BankIntegrationController::class, 'getBankHealth']);
+            Route::get('/recommendations', [BankIntegrationController::class, 'getRecommendedBanks']);
 
-        // User bank connections
-        Route::get('/connections', [BankIntegrationController::class, 'getUserConnections']);
-        Route::post('/connect', [BankIntegrationController::class, 'connectBank']);
-        Route::delete('/disconnect/{bankCode}', [BankIntegrationController::class, 'disconnectBank']);
+            // User bank connections
+            Route::get('/connections', [BankIntegrationController::class, 'getUserConnections']);
+            Route::post('/connect', [BankIntegrationController::class, 'connectBank']);
+            Route::delete('/disconnect/{bankCode}', [BankIntegrationController::class, 'disconnectBank']);
 
-        // Bank accounts
-        Route::get('/accounts', [BankIntegrationController::class, 'getBankAccounts']);
-        Route::post('/accounts/sync/{bankCode}', [BankIntegrationController::class, 'syncAccounts']);
+            // Bank accounts
+            Route::get('/accounts', [BankIntegrationController::class, 'getBankAccounts']);
+            Route::post('/accounts/sync/{bankCode}', [BankIntegrationController::class, 'syncAccounts']);
 
-        // Balances and transfers
-        Route::get('/balance/aggregate', [BankIntegrationController::class, 'getAggregatedBalance']);
-        Route::post('/transfer', [BankIntegrationController::class, 'initiateTransfer'])->middleware('transaction.rate_limit:transfer');
-    });
+            // Balances and transfers
+            Route::get('/balance/aggregate', [BankIntegrationController::class, 'getAggregatedBalance']);
+            Route::post('/transfer', [BankIntegrationController::class, 'initiateTransfer'])->middleware('transaction.rate_limit:transfer');
+        });
+    }
 });

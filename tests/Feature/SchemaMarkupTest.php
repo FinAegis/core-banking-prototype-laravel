@@ -43,6 +43,12 @@ class SchemaMarkupTest extends TestCase
         $response->assertSee('"@type": "MobileApplication"', false);
         $response->assertSee('"name": "' . config('brand.name') . '"', false);
         $response->assertSee('"@type": "BreadcrumbList"', false);
+
+        // Brand-aware truth fix: the Zelta Play Store installUrl must only
+        // appear when the brand actually IS Zelta (tests run as FinAegis).
+        if (config('brand.name') !== 'Zelta') {
+            $response->assertDontSee('play.google.com/store/apps/details?id=com.zelta.wallet', false);
+        }
     }
 
     #[Test]
