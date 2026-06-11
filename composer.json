@@ -70,7 +70,7 @@
         "spatie/laravel-backup": "^10.3",
         "spatie/laravel-data": "^4.0",
         "spatie/laravel-event-sourcing": "^7.7",
-        "spatie/laravel-permission": "^7.0",
+        "spatie/laravel-permission": "^8.0",
         "stancl/tenancy": "^3.9",
         "symfony/clock": "^8.0",
         "symfony/http-client": "^7.3"
