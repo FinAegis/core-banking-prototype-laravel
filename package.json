@@ -15,19 +15,19 @@
     },
     "dependencies": {
         "@ledgerhq/hw-app-eth": "^6.35.0",
-        "@ledgerhq/hw-transport-webusb": "^6.34.2",
+        "@ledgerhq/hw-transport-webusb": "^6.34.4",
         "@trezor/connect-web": "^9.7.2",
         "chart.js": "^4.5.1"
     },
     "devDependencies": {
         "@tailwindcss/forms": "^0.5.11",
-        "@tailwindcss/typography": "^0.5.19",
+        "@tailwindcss/typography": "^0.5.20",
         "autoprefixer": "^10.4.27",
         "axios": "^1.15.0",
         "laravel-vite-plugin": "^3.0.1",
-        "postcss": "^8.5.10",
+        "postcss": "^8.5.15",
         "tailwindcss": "^3.4.19",
-        "vite": "^8.0.12"
+        "vite": "^8.0.16"
     },
     "overrides": {
         "axios": "^1.15.0"
