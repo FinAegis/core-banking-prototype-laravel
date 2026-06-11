@@ -141,25 +141,33 @@ class FundFlowControllerTest extends ControllerTestCase
         $this->actingAs($this->user);
 
         // Create some transactions
-        TransactionProjection::create([
+        tap(TransactionProjection::create([
             'account_uuid' => $this->account->uuid,
             'type'         => 'deposit',
             'amount'       => 10000, // $100
             'asset_code'   => 'USD',
             'status'       => 'completed',
             'hash'         => md5(uniqid()),
-            'created_at'   => now()->subDays(2),
-        ]);
+        ]), function ($tx) {
+            // created_at is not fillable on TransactionProjection — create()
+            // silently drops it, so backdate explicitly.
+            $tx->created_at = now()->subDays(2);
+            $tx->saveQuietly();
+        });
 
-        TransactionProjection::create([
+        tap(TransactionProjection::create([
             'account_uuid' => $this->account->uuid,
             'type'         => 'withdrawal',
             'amount'       => 5000, // $50
             'asset_code'   => 'USD',
             'status'       => 'completed',
             'hash'         => md5(uniqid()),
-            'created_at'   => now()->subDay(),
-        ]);
+        ]), function ($tx) {
+            // created_at is not fillable on TransactionProjection — create()
+            // silently drops it, so backdate explicitly.
+            $tx->created_at = now()->subDay();
+            $tx->saveQuietly();
+        });
 
         $response = $this->get('/fund-flow');
 
@@ -178,25 +186,33 @@ class FundFlowControllerTest extends ControllerTestCase
         $this->actingAs($this->user);
 
         // Create transactions at different times
-        TransactionProjection::create([
+        tap(TransactionProjection::create([
             'account_uuid' => $this->account->uuid,
             'type'         => 'deposit',
             'amount'       => 10000,
             'asset_code'   => 'USD',
             'status'       => 'completed',
             'hash'         => md5(uniqid()),
-            'created_at'   => now()->subDays(10), // Outside 7-day range
-        ]);
+        ]), function ($tx) {
+            // created_at is not fillable on TransactionProjection — create()
+            // silently drops it, so backdate explicitly.
+            $tx->created_at = now()->subDays(10); // Outside 7-day range
+            $tx->saveQuietly();
+        });
 
-        TransactionProjection::create([
+        tap(TransactionProjection::create([
             'account_uuid' => $this->account->uuid,
             'type'         => 'deposit',
             'amount'       => 5000,
             'asset_code'   => 'USD',
             'status'       => 'completed',
             'hash'         => md5(uniqid()),
-            'created_at'   => now()->subDays(3), // Within 7-day range
-        ]);
+        ]), function ($tx) {
+            // created_at is not fillable on TransactionProjection — create()
+            // silently drops it, so backdate explicitly.
+            $tx->created_at = now()->subDays(3); // Within 7-day range
+            $tx->saveQuietly();
+        });
 
         $response = $this->get('/fund-flow?period=7days');
 
@@ -237,27 +253,35 @@ class FundFlowControllerTest extends ControllerTestCase
         $yesterday = now()->subDay()->startOfDay()->addHours(12); // Yesterday at noon
         $today = now()->startOfDay()->addHours(12); // Today at noon
 
-        TransactionProjection::create([
+        tap(TransactionProjection::create([
             'account_uuid' => $this->account->uuid,
             'type'         => 'deposit',
             'amount'       => 5000,
             'asset_code'   => 'USD',
             'status'       => 'completed',
             'hash'         => md5(uniqid()),
-            'created_at'   => $yesterday,
-            'updated_at'   => $yesterday,
-        ]);
+        ]), function ($tx) use ($yesterday) {
+            // created_at is not fillable on TransactionProjection — create()
+            // silently drops it, so backdate explicitly.
+            $tx->created_at = $yesterday;
+            $tx->updated_at = $yesterday;
+            $tx->saveQuietly();
+        });
 
-        TransactionProjection::create([
+        tap(TransactionProjection::create([
             'account_uuid' => $this->account->uuid,
             'type'         => 'deposit',
             'amount'       => 3000,
             'asset_code'   => 'USD',
             'status'       => 'completed',
             'hash'         => md5(uniqid()),
-            'created_at'   => $today,
-            'updated_at'   => $today,
-        ]);
+        ]), function ($tx) use ($today) {
+            // created_at is not fillable on TransactionProjection — create()
+            // silently drops it, so backdate explicitly.
+            $tx->created_at = $today;
+            $tx->updated_at = $today;
+            $tx->saveQuietly();
+        });
 
         $response = $this->get('/fund-flow?period=7days'); // Use 7 days to ensure both days are included
 
