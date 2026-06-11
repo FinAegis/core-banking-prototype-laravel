@@ -35,7 +35,9 @@ it('creates SMS-specific reward quests', function () {
     $smsCentury = RewardQuest::where('slug', 'sms-century')->firstOrFail();
     expect($smsCentury->points_reward)->toBe(500);
     expect($smsCentury->category)->toBe('milestone');
-    expect($smsCentury->criteria)->toBe(['event' => 'sms.sent', 'count' => 100]);
+    // toEqual, not toBe: MySQL's JSON column type normalizes object key
+    // order, so the decoded array's key order differs from insertion order.
+    expect($smsCentury->criteria)->toEqual(['event' => 'sms.sent', 'count' => 100]);
 
     /** @var RewardQuest $dailySms */
     $dailySms = RewardQuest::where('slug', 'daily-sms')->firstOrFail();
