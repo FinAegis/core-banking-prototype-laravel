@@ -49,9 +49,11 @@ class FaviconTest extends TestCase
         $this->assertArrayHasKey('theme_color', $manifest);
         $this->assertArrayHasKey('icons', $manifest);
 
-        $this->assertEquals('FinAegis Core Banking', $manifest['name']);
-        $this->assertEquals('FinAegis', $manifest['short_name']);
-        $this->assertEquals('#6366F1', $manifest['theme_color']);
+        // Production brand is Zelta (FinAegis is the demo identity) — the
+        // manifest was truth-passed in the v7.15 landing refresh.
+        $this->assertEquals('Zelta — Agentic Payments', $manifest['name']);
+        $this->assertEquals('Zelta', $manifest['short_name']);
+        $this->assertEquals('#0a0a0a', $manifest['theme_color']);
 
         $this->assertIsArray($manifest['icons']);
         $this->assertNotEmpty($manifest['icons']);

@@ -27,3 +27,6 @@
 
 <!-- Safari Pinned Tab -->
 <link rel="mask-icon" href="{{ $prefix }}/favicon.svg" color="{{ $themeColor }}">
+
+<!-- PWA Manifest -->
+<link rel="manifest" href="/manifest.json">
