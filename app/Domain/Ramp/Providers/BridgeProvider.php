@@ -198,7 +198,6 @@ class BridgeProvider implements RampProviderInterface
         if (! is_numeric($fiatAmount) || ! preg_match('/^\d+(\.\d+)?$/', $fiatAmount)) {
             throw new RuntimeException("Bridge quote requires a non-negative numeric fiat amount; got '{$fiatAmount}'.");
         }
-        /** @var numeric-string $fiatAmount */
         $amount = bcadd($fiatAmount, '0', 4);
 
         $bridgeFee = bcadd(bcdiv(bcmul($amount, (string) self::BRIDGE_FEE_BPS, 4), '10000', 4), '0', 2);

@@ -1,6 +1,11 @@
 includes:
     - ./vendor/larastan/larastan/extension.neon
     - phpstan-baseline.neon
+    # PHPStan 2.2 bump (2026-06): the upgraded analyzer added the
+    # array<model property of X, mixed> check on Eloquent create()/update()
+    # attribute arrays — 42 pre-existing call sites baselined; burn down with
+    # the rest of the baseline debt.
+    - phpstan-baseline-phpstan22.neon
     - phpstan-baseline-ai-tests.neon
     - phpstan-baseline-ai-unit-tests.neon
     - phpstan-baseline-ai-models.neon

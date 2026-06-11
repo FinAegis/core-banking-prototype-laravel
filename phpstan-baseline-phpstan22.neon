@@ -1,0 +1,253 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\AI\\Models\\AiLlmUsage\>\:\:create\(\) expects array\<model property of App\\Domain\\AI\\Models\\AiLlmUsage, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/AI/Models/AiLlmUsage.php
+
+		-
+			message: '#^Parameter \#2 \$values of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\AccountProvisioning\\Models\\AccountFlag\>\:\:updateOrCreate\(\) expects array\<model property of App\\Domain\\AccountProvisioning\\Models\\AccountFlag, mixed\>, array\<string, bool\|Carbon\\CarbonImmutable\|int\|string\|null\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/AccountProvisioning/Services/AccountProvisioningService.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Model\:\:update\(\) expects array\<model property of static\(App\\Domain\\Compliance\\Models\\AmlScreening\), mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Compliance/Models/AmlScreening.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Model\:\:update\(\) expects array\<model property of static\(App\\Domain\\Compliance\\Models\\KycVerification\), mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Compliance/Models/KycVerification.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Compliance\\Models\\TransactionMonitoringRule\>\:\:create\(\) expects array\<model property of App\\Domain\\Compliance\\Models\\TransactionMonitoringRule, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Compliance/Models/TransactionMonitoringRule.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Compliance\\Models\\DataBreach\>\:\:create\(\) expects array\<model property of App\\Domain\\Compliance\\Models\\DataBreach, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Compliance/Services/Certification/BreachNotificationService.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Compliance\\Models\\ProcessingActivity\>\:\:create\(\) expects array\<model property of App\\Domain\\Compliance\\Models\\ProcessingActivity, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Compliance/Services/Certification/DataProcessingRegisterService.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Compliance\\Models\\DataProtectionAssessment\>\:\:create\(\) expects array\<model property of App\\Domain\\Compliance\\Models\\DataProtectionAssessment, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Compliance/Services/Certification/DpiaService.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Model\:\:update\(\) expects array\<model property of App\\Domain\\Compliance\\Models\\SuspiciousActivityReport, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Compliance/Services/SuspiciousActivityReportService.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner\>\:\:create\(\) expects array\<model property of App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/FinancialInstitution/Services/OnboardingService.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Model\:\:update\(\) expects array\<model property of App\\Domain\\User\\Models\\UserProfile, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/User/Projectors/UserProfileProjector.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Model\:\:update\(\) expects array\<model property of App\\Domain\\User\\Models\\UserProfile, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/User/Services/DemoUserProfileService.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\CardIssuance\\Models\\Cardholder\>\:\:create\(\) expects array\<model property of App\\Domain\\CardIssuance\\Models\\Cardholder, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Api/CardIssuance/CardholderController.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Contact\\Models\\ContactSubmission\>\:\:create\(\) expects array\<model property of App\\Domain\\Contact\\Models\\ContactSubmission, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Domain/Contact/Mail/ContactFormSubmissionTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Contact\\Models\\ContactSubmission\>\:\:create\(\) expects array\<model property of App\\Domain\\Contact\\Models\\ContactSubmission, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Domain/Contact/Models/ContactSubmissionTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Newsletter\\Models\\Subscriber\>\:\:create\(\) expects array\<model property of App\\Domain\\Newsletter\\Models\\Subscriber, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Domain/Newsletter/Models/SubscriberTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Newsletter\\Models\\Subscriber\>\:\:create\(\) expects array\<model property of App\\Domain\\Newsletter\\Models\\Subscriber, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Domain/Newsletter/Services/SubscriberEmailServiceTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner\>\:\:create\(\) expects array\<model property of App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Feature/Api/Partner/PartnerBillingControllerTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\FinancialInstitution\\Models\\PartnerInvoice\>\:\:create\(\) expects array\<model property of App\\Domain\\FinancialInstitution\\Models\\PartnerInvoice, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Feature/Api/Partner/PartnerBillingControllerTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner\>\:\:create\(\) expects array\<model property of App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Feature/Api/Partner/PartnerDashboardControllerTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner\>\:\:create\(\) expects array\<model property of App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Feature/Api/Partner/PartnerMarketplaceControllerTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\FinancialInstitution\\Models\\PartnerIntegration\>\:\:create\(\) expects array\<model property of App\\Domain\\FinancialInstitution\\Models\\PartnerIntegration, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Feature/Api/Partner/PartnerMarketplaceControllerTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner\>\:\:create\(\) expects array\<model property of App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Feature/Api/Partner/PartnerSdkControllerTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner\>\:\:create\(\) expects array\<model property of App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Feature/Api/Partner/PartnerWidgetControllerTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Mobile\\Models\\MobilePushNotification\>\:\:create\(\) expects array\<model property of App\\Domain\\Mobile\\Models\\MobilePushNotification, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Feature/Api/V1/NotificationControllerTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Wallet\\Models\\WalletSendRecord\>\:\:create\(\) expects array\<model property of App\\Domain\\Wallet\\Models\\WalletSendRecord, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Feature/Api/Wallet/WalletTransactionByIntentTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\X402\\Models\\X402MonetizedEndpoint\>\:\:create\(\) expects array\<model property of App\\Domain\\X402\\Models\\X402MonetizedEndpoint, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Feature/Api/X402/X402IntegrationTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\X402\\Models\\X402Payment\>\:\:create\(\) expects array\<model property of App\\Domain\\X402\\Models\\X402Payment, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Feature/Api/X402/X402IntegrationTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\X402\\Models\\X402SpendingLimit\>\:\:create\(\) expects array\<model property of App\\Domain\\X402\\Models\\X402SpendingLimit, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Feature/Api/X402/X402IntegrationTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\InvestorInquiry\>\:\:create\(\) expects array\<model property of App\\Models\\InvestorInquiry, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Feature/Console/InvestorPurgeOldInquiriesCommandTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Subscription\\Models\\TrialCardFingerprint\>\:\:create\(\) expects array\<model property of App\\Domain\\Subscription\\Models\\TrialCardFingerprint, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Feature/Console/TrialPurgeFingerprintsCommandTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Wallet\\Models\\WalletSendRecord\>\:\:create\(\) expects array\<model property of App\\Domain\\Wallet\\Models\\WalletSendRecord, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Feature/Domain/Wallet/WalletSendRecordObserverTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\BlockchainAddress\>\:\:create\(\) expects array\<model property of App\\Domain\\Account\\Models\\BlockchainAddress, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Feature/Models/UserWalletRelationsTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\MobilePayment\\Models\\PaymentReceipt\>\:\:create\(\) expects array\<model property of App\\Domain\\MobilePayment\\Models\\PaymentReceipt, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Feature/Web/ReceiptPageTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner\>\:\:create\(\) expects array\<model property of App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/BaaS/BaaSWorkflowTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner\>\:\:create\(\) expects array\<model property of App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Domain/FinancialInstitution/Middleware/PartnerAuthMiddlewareTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner\>\:\:create\(\) expects array\<model property of App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Domain/FinancialInstitution/Services/PartnerBillingServiceTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner\>\:\:create\(\) expects array\<model property of App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Domain/FinancialInstitution/Services/PartnerMarketplaceServiceTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner\>\:\:create\(\) expects array\<model property of App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Domain/FinancialInstitution/Services/PartnerUsageMeteringServiceTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Fraud\\Models\\BehavioralProfile\>\:\:create\(\) expects array\<model property of App\\Domain\\Fraud\\Models\\BehavioralProfile, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Domain/Fraud/Services/BehavioralAnalysisEnhancementsTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Wallet\\Models\\WalletSendRecord\>\:\:create\(\) expects array\<model property of App\\Domain\\Wallet\\Models\\WalletSendRecord, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Domain/Wallet/Jobs/PollSolanaWalletSendConfirmationsTest.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Tenant\>\:\:create\(\) expects array\<model property of App\\Models\\Tenant, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Services/MultiTenancy/TenantDataIsolationTest.php

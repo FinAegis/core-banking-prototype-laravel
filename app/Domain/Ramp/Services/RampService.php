@@ -138,7 +138,6 @@ class RampService
             return '0.00';
         }
 
-        /** @var numeric-string $str */
         return bcadd($str, '0', 2);
     }
 
