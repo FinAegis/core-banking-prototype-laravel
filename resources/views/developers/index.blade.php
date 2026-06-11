@@ -786,7 +786,7 @@
                                 </svg>
                             </div>
                             <h3 class="text-xl font-semibold mb-2">MCP &amp; AI Agent Tools</h3>
-                            <p class="text-slate-500 mb-4">12 tools, 4 resources, OAuth 2.1 — connect any spec-compliant client.</p>
+                            <p class="text-slate-500 mb-4">{{ count(config('mcp.tools')) }} tools, 4 resources, OAuth 2.1 — connect any spec-compliant client.</p>
                             <span class="text-emerald-600 font-medium group-hover:text-emerald-700">Explore MCP →</span>
                         </div>
                     </a>

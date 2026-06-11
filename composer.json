@@ -67,6 +67,7 @@
         "resend/resend-php": "^1.0",
         "scrivo/highlight.php": "^9.18",
         "simplito/elliptic-php": "^1.0",
+        "spatie/laravel-backup": "^10.3",
         "spatie/laravel-data": "^4.0",
         "spatie/laravel-event-sourcing": "^7.7",
         "spatie/laravel-permission": "^7.0",

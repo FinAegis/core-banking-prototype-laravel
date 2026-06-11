@@ -85,7 +85,7 @@ Runbook: `docs/operations/wallet-sponsorship.md`.
 
 ## 9. Data & backups
 
-- [blocked] **No scheduled database backup exists in this repo.** `routes/console.php` has no `backup:*` job and there is no backup package wired. **OPEN ITEM** — backups must be provisioned at the infrastructure layer (managed DB automated snapshots / external dump cron) before go-live, and a restore must be test-restored. Do not check this off on the assumption that the cloud provider "probably" snapshots.
+- [ ] **Scheduled DB backups are wired** (spatie/laravel-backup): `backup:run --only-db` runs daily at 01:30 UTC and `backup:clean` at 02:30 UTC, both production-only with `Log::critical` on failure (`routes/console.php`). DB-only by design — the event store is the ledger. Remaining ops steps before checking this off: set `BACKUP_DISK=s3` + the S3 bucket credentials in the prod `.env` (default is `local`, which keeps dumps on the same box — `ops:verify-env` WARNs about it), then **run one restore drill** against a real dump (see the Backup Verification section of `OPERATIONAL_RUNBOOK.md`; `backup:list` / `backup:monitor` cover ongoing verification). Managed-DB snapshots remain a sensible second layer, but are no longer the only layer.
 - [ ] Database encryption at rest + TLS in transit (infra layer).
 - [ ] GDPR erasure path verified, including `IapReceiptPseudonymiser` (requires the pepper from §2 — it hard-throws otherwise).
 

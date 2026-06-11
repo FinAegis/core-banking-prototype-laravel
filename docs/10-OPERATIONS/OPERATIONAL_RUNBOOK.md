@@ -680,19 +680,30 @@ php artisan reconciliation:daily --force
 
 ### Backup Verification
 
-> **No automated backup or backup-verify command exists in this codebase** — there is
-> no `backup:verify` artisan command and no scheduled backup job in `routes/console.php`.
-> Database backups are an **open infrastructure item** (see the Production Readiness
-> Checklist §9): provision them at the managed-DB / external-dump layer and test-restore
-> manually. The steps below are the manual restoration-test procedure.
+> Scheduled DB backups run via **spatie/laravel-backup**: `backup:run --only-db`
+> daily at 01:30 UTC and `backup:clean` at 02:30 UTC (`routes/console.php`,
+> production-only, `Log::critical` on failure → Slack via the LOG stack).
+> There is no `backup:verify` command — the real commands are:
+>
+> - `php artisan backup:list` — show every backup on the destination disk(s) with size + age
+> - `php artisan backup:monitor` — health-check backups against `config/backup.php`
+>   `monitor_backups` (max age 1 day, max storage); non-zero output = unhealthy
+>
+> Destination disk is `BACKUP_DISK` (default `local`; production must use `s3` —
+> see the Production Readiness Checklist §9). Restoration is still a manual drill:
 
 ```bash
-# Monthly backup restoration test (manual procedure — no artisan command)
+# Daily/weekly verification (real artisan commands)
+php artisan backup:list
+php artisan backup:monitor
+
+# Monthly backup restoration test (manual procedure)
 # 1. Spin up test environment
 docker-compose -f docker-compose.test.yml up -d
 
-# 2. Restore backup
-gunzip < monthly_backup.sql.gz | mysql -h localhost -P 3307 -u root -p
+# 2. Fetch the latest backup zip from the BACKUP_DISK destination
+#    (spatie zips contain db-dumps/mysql-<database>.sql), then restore:
+unzip -p latest_backup.zip db-dumps/*.sql | mysql -h localhost -P 3307 -u root -p
 
 # 3. Run verification queries against the restored copy (manual SQL — adjust to your data):
 #    confirm row counts and the latest transaction timestamp look sane, then spot-check

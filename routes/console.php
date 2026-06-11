@@ -382,3 +382,35 @@ Schedule::command('cards:purge-expired-deposits')
     ->description('Purge expired card waitlist deposit Checkout sessions (24h TTL)')
     ->appendOutputTo(storage_path('logs/cards-deposits-purge.log'))
     ->withoutOverlapping();
+
+// Nightly database backup (spatie/laravel-backup, DB-only — for an
+// event-sourced platform the event store IS the ledger). Destination disk is
+// BACKUP_DISK (default `local`; production must point it at s3 — see
+// docs/10-OPERATIONS/PRODUCTION_READINESS_CHECKLIST.md §9). Production-only:
+// dev/demo boxes don't need nightly dumps and lack the bucket credentials.
+// Failures hit Log::critical, which reaches Slack via the LOG stack when
+// LOG_SLACK_WEBHOOK_URL is set (PR #1133).
+Schedule::command('backup:run --only-db')
+    ->dailyAt('01:30')
+    ->timezone('UTC')
+    ->environments(['production'])
+    ->description('Nightly DB-only backup to the BACKUP_DISK destination (spatie/laravel-backup)')
+    ->appendOutputTo(storage_path('logs/backup-run.log'))
+    ->withoutOverlapping()
+    ->onFailure(function () {
+        Log::critical('backup:run failed — nightly database backup did not complete. The stated RPO is unbacked until this is fixed.');
+    });
+
+// Prune old backups per the retention strategy in config/backup.php
+// (7 days everything, then daily/weekly/monthly thinning). Offset from
+// backup:run so cleanup never races a dump in progress.
+Schedule::command('backup:clean')
+    ->dailyAt('02:30')
+    ->timezone('UTC')
+    ->environments(['production'])
+    ->description('Prune old backups per the config/backup.php retention strategy')
+    ->appendOutputTo(storage_path('logs/backup-clean.log'))
+    ->withoutOverlapping()
+    ->onFailure(function () {
+        Log::critical('backup:clean failed — old backups are not being pruned; the backup disk will eventually fill.');
+    });

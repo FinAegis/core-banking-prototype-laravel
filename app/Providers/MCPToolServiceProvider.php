@@ -31,6 +31,8 @@ use App\Domain\AI\MCP\Tools\VisaCli\VisaCliPaymentTool;
 use App\Domain\AI\MCP\Tools\X402\X402PaymentTool;
 use App\Domain\MCP\Tools\Ramp\RampStartTool;
 use App\Domain\MCP\Tools\Ramp\RampStatusTool;
+use App\Domain\MCP\Tools\Wallet\WalletActivityTool;
+use App\Domain\MCP\Tools\Wallet\WalletAddressesTool;
 use Exception;
 use Illuminate\Support\ServiceProvider;
 use Log;
@@ -98,6 +100,10 @@ class MCPToolServiceProvider extends ServiceProvider
         // Ramp Tools (on/off-ramp via Stripe Bridge)
         RampStartTool::class,
         RampStatusTool::class,
+
+        // Wallet read tools (registered addresses + activity feed)
+        WalletAddressesTool::class,
+        WalletActivityTool::class,
     ];
 
     /**

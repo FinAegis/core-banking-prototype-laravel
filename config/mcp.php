@@ -26,7 +26,7 @@ return [
     'resource_uri'         => env('MCP_RESOURCE_URI', 'https://mcp.zelta.app'),
 
     'scopes' => [
-        'accounts:read'     => 'Read account profile and balances',
+        'accounts:read'     => 'Read account profile, balances, wallet addresses and activity',
         'accounts:write'    => 'Create new accounts',
         'payments:read'     => 'Read payment status',
         'payments:write'    => 'Send payments (subject to spending limit)',
@@ -76,6 +76,12 @@ return [
         // sms.send is fixed-cost: every call reserves `fixed_cost_minor`
         // against the daily limit (no amount in the tool arguments).
         'sms.send' => ['internal' => 'sms.send',                       'title' => 'Send an SMS (paid via x402)',      'scope' => 'sms:send',          'enabled' => env('MCP_TOOL_SMS_SEND', true),            'is_write' => true,  'requires_user' => true, 'is_payment' => true,  'fixed_cost_minor' => (int) env('MCP_SMS_PRICE_MINOR', 10), 'fixed_cost_currency' => 'USD'],
+        // Wallet read tools: registered blockchain addresses + the mobile
+        // activity feed. Both reuse the existing accounts:read scope — the
+        // scope list has no wallet:read, and these are same-trust-tier reads
+        // of the caller's own account surface (like account.balance).
+        'wallet.addresses' => ['internal' => 'wallet.addresses',             'title' => 'List wallet addresses',            'scope' => 'accounts:read',     'enabled' => env('MCP_TOOL_WALLET_ADDRESSES', true),    'is_write' => false, 'requires_user' => true],
+        'wallet.activity'  => ['internal' => 'wallet.activity',              'title' => 'Recent wallet activity',           'scope' => 'accounts:read',     'enabled' => env('MCP_TOOL_WALLET_ACTIVITY', true),     'is_write' => false, 'requires_user' => true],
     ],
 
     /*

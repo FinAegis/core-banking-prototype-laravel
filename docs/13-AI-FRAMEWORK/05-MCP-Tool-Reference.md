@@ -1,6 +1,6 @@
 # MCP Tool Reference
 
-The 12 tools and 4 resources exposed at `https://mcp.zelta.app/mcp`.
+The 14 tools and 4 resources exposed at `https://mcp.zelta.app/mcp`.
 
 > **Canonical schemas live on the wire.** Call `tools/list` (any authenticated client) for the up-to-date `inputSchema` / `outputSchema` of every enabled tool. The summaries below are durable contract notes; field-level detail is read off the running server.
 
@@ -260,6 +260,30 @@ Send an SMS via the Zelta SMS rail. Each message settles via x402 micropayment; 
 **Inputs:** `to` (E.164 phone), `message` (≤1600 chars), `dlr_url` (optional delivery-receipt webhook), `idempotency_key`.
 
 **Outputs:** `message_id`, `status`, `settlement_amount_minor`, `settlement_currency`, `submitted_at`.
+
+---
+
+## `wallet.addresses` — read
+
+**Scope:** `accounts:read`
+
+List the caller's registered blockchain wallet addresses (EVM smart-account mirrors across polygon/base/arbitrum/ethereum plus the Solana ed25519 address).
+
+**Inputs:** `chain` (optional filter, e.g. `polygon`, `solana`).
+
+**Outputs:** `addresses[]` (`chain`, `address`, `is_active`, `label`, `created_at`), `count`.
+
+---
+
+## `wallet.activity` — read
+
+**Scope:** `accounts:read`
+
+The caller's most recent wallet activity — the same denormalized feed the mobile app renders (transfers in/out, merchant payments, shield/unshield).
+
+**Inputs:** `limit` (1–50, default 10; out-of-range values are clamped).
+
+**Outputs:** `items[]` (`id`, `type`, `amount`, `asset`, `timestamp`, `status`, `protected`), `count`, `has_more`.
 
 ---
 

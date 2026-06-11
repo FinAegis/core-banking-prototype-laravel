@@ -6,6 +6,7 @@ namespace App\Domain\Ramp\Providers;
 
 use App\Domain\Compliance\Kyc\Models\BridgeCustomer;
 use App\Domain\Ramp\Contracts\RampProviderInterface;
+use App\Domain\Ramp\Exceptions\OfframpNotAvailableException;
 use App\Infrastructure\Bridge\BridgeClient;
 use App\Infrastructure\Bridge\BridgeWebhookVerifier;
 use RuntimeException;
@@ -67,7 +68,10 @@ class BridgeProvider implements RampProviderInterface
     {
         $type = (string) ($params['type'] ?? '');
         if ($type === 'off') {
-            throw new RuntimeException('Bridge offramp is deferred to v1.1.');
+            // Maps to HTTP 422 + error code OFFRAMP_NOT_AVAILABLE in
+            // RampController (never a 500). Message keeps 'deferred to v1.1'
+            // for operators grepping logs.
+            throw new OfframpNotAvailableException(self::PROVIDER_NAME);
         }
         if ($type !== 'on') {
             throw new RuntimeException("Bridge provider does not support type '{$type}'.");

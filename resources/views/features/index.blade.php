@@ -379,7 +379,7 @@
                     </div>
                     <div class="flex items-center gap-2 mb-3">
                         <h3 class="text-xl font-semibold">AI Framework</h3>
-                        <span class="inline-flex items-center px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">12 Tools</span>
+                        <span class="inline-flex items-center px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">{{ count(config('mcp.tools')) }} Tools</span>
                     </div>
                     <p class="text-slate-500 mb-4">
                         6 specialized agents, 12 OAuth-scoped MCP tools, ML anomaly detection, Temporal workflow orchestration, and multi-agent consensus engine.

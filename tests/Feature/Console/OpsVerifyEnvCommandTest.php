@@ -141,6 +141,43 @@ it('blocks the deploy in production when Bridge is routed but has no credentials
         ->assertExitCode(1);
 });
 
+it('only warns (never blocks) when the backup destination is the local disk', function (): void {
+    opsVerifyEnvAllGoodConfig();
+    config(['backup.backup.destination.disks' => ['local']]);
+    app()->detectEnvironment(fn () => 'production');
+
+    // Note: a single output line only satisfies ONE expectsOutputToContain
+    // (Mockery consumes the first matching expectation), so assert the most
+    // specific substring of the WARN line.
+    $this->artisan('ops:verify-env')
+        ->expectsOutputToContain('Backup destination is the local disk only')
+        ->assertExitCode(0);
+});
+
+it('only warns (never blocks) when the backup destination disk is not defined in filesystems', function (): void {
+    opsVerifyEnvAllGoodConfig();
+    config(['backup.backup.destination.disks' => ['nonexistent-disk']]);
+    app()->detectEnvironment(fn () => 'production');
+
+    $this->artisan('ops:verify-env')
+        ->expectsOutputToContain('nonexistent-disk')
+        ->assertExitCode(0);
+});
+
+it('passes the backup check when the destination is a defined non-local disk', function (): void {
+    opsVerifyEnvAllGoodConfig();
+    config(['backup.backup.destination.disks' => ['s3']]);
+    app()->detectEnvironment(fn () => 'production');
+
+    $exitCode = Artisan::call('ops:verify-env', ['--json' => true]);
+    $decoded = json_decode(Artisan::output(), true);
+
+    $check = collect($decoded['checks'])->firstWhere('name', 'backup.destination');
+    expect($exitCode)->toBe(0)
+        ->and($check)->not->toBeNull()
+        ->and($check['result'])->toBe('PASS');
+});
+
 it('only warns (never blocks) on a missing Helius API key', function (): void {
     opsVerifyEnvAllGoodConfig();
     config(['services.helius.api_key' => '']);

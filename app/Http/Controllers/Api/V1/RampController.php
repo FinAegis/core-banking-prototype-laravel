@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Domain\Ramp\Contracts\RampProviderInterface;
+use App\Domain\Ramp\Exceptions\OfframpNotAvailableException;
 use App\Domain\Ramp\Exceptions\QuoteExpiredException;
 use App\Domain\Ramp\Services\RampService;
 use App\Http\Controllers\Controller;
@@ -141,6 +142,12 @@ class RampController extends Controller
             // instead of a generic toast. Quote's `validUntil` is 60s.
             return response()->json([
                 'error' => ['code' => 'ERR_RAMP_QUOTE_EXPIRED', 'message' => $e->getMessage()],
+            ], 422);
+        } catch (OfframpNotAvailableException $e) {
+            // Explicit code (not the generic SESSION_ERROR) so mobile can
+            // render a "Sell crypto is coming in v1.1" state. 422, never 500.
+            return response()->json([
+                'error' => ['code' => 'OFFRAMP_NOT_AVAILABLE', 'message' => $e->getMessage()],
             ], 422);
         } catch (RuntimeException $e) {
             return response()->json([

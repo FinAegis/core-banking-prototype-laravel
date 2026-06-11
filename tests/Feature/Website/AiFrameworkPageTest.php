@@ -12,11 +12,11 @@ describe('AI Framework Feature Page', function (): void {
         $response->assertSee('AI Framework');
     });
 
-    it('displays MCP tool count', function (): void {
+    it('displays the MCP tool count matching the live catalog', function (): void {
         $response = get('/features/ai-framework');
 
         $response->assertOk();
-        $response->assertSee('24 MCP Tools');
+        $response->assertSee(count(config('mcp.tools')) . ' MCP Tools');
     });
 
     it('displays all six agents', function (): void {

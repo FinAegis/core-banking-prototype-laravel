@@ -167,9 +167,9 @@
     <!-- MCP Tool Registry -->
     <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">12 MCP Tools</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">{{ count(config('mcp.tools')) }} MCP Tools</h2>
             <p class="text-lg text-slate-500 text-center max-w-3xl mx-auto mb-12">
-                The Model Context Protocol (MCP) tool registry lets external AI agents securely perform banking operations. Each tool is sandboxed, rate-limited, and audit-logged.
+                The public MCP server exposes {{ count(config('mcp.tools')) }} OAuth-scoped tools — including the wallet read tools <code>wallet.addresses</code> and <code>wallet.activity</code> — so external AI agents can securely perform banking operations. Each tool is sandboxed, rate-limited, and audit-logged. In-platform agents tap the wider internal registry grouped below.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -274,6 +274,30 @@
                         <li>SMS Send</li>
                         <li>Visa CLI Cards</li>
                         <li>Visa CLI Payment</li>
+                    </ul>
+                </div>
+
+                <!-- Ramp -->
+                <div class="card-feature !p-5">
+                    <h4 class="font-bold text-slate-900 mb-3 flex items-center">
+                        <span class="w-8 h-8 bg-orange-100 rounded flex items-center justify-center mr-2 text-xs font-bold text-orange-700">2</span>
+                        Ramp
+                    </h4>
+                    <ul class="text-sm text-slate-500 space-y-1.5">
+                        <li>Start Session</li>
+                        <li>Session Status</li>
+                    </ul>
+                </div>
+
+                <!-- Wallet -->
+                <div class="card-feature !p-5">
+                    <h4 class="font-bold text-slate-900 mb-3 flex items-center">
+                        <span class="w-8 h-8 bg-teal-100 rounded flex items-center justify-center mr-2 text-xs font-bold text-teal-700">2</span>
+                        Wallet
+                    </h4>
+                    <ul class="text-sm text-slate-500 space-y-1.5">
+                        <li>Addresses</li>
+                        <li>Activity Feed</li>
                     </ul>
                 </div>
             </div>

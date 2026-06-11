@@ -2,7 +2,7 @@ runtime: "remote"
 url: "https://mcp.zelta.app/mcp"
 description: |
   Zelta is a multi-rail payments and wallet platform. This MCP server exposes
-  12 tools (accounts, payments, transactions, exchange, on/offramp, SMS) gated
+  14 tools (accounts, wallet, payments, transactions, exchange, on/offramp, SMS) gated
   by OAuth 2.1, with per-token spending limits on payments, ramp sessions and
   SMS sends, and idempotency on every write.
 homepage: "https://finaegis.org/features/mcp"

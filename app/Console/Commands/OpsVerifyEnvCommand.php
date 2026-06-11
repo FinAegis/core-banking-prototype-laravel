@@ -113,7 +113,7 @@ class OpsVerifyEnvCommand extends Command
         $this->requireNonEmpty(
             self::CATEGORY_SECRETS,
             'subscription.iap.receipt_pepper',
-            'IAP_RECEIPT_PEPPER is empty — IapReceiptPseudonymiser hard-throws on the first /subscriptions/iap/verify request. Generate with `openssl rand -hex 32` (one-way: never rotate).',
+            'IAP_RECEIPT_PEPPER is empty — IapReceiptPseudonymiser hard-throws on the first /api/v1/subscription/iap/verify request. Generate with `openssl rand -hex 32` (one-way: never rotate).',
         );
 
         $this->requireNonEmpty(
@@ -289,6 +289,8 @@ class OpsVerifyEnvCommand extends Command
             $this->add(self::CATEGORY_CONDITIONAL, 'mobile.attestation', self::SKIP, 'MOBILE_ATTESTATION_ENABLED=false.');
         }
 
+        $this->checkBackupDestination();
+
         if ((bool) config('privy.web_login_enabled', false)) {
             $missing = [];
             $required = [
@@ -314,6 +316,52 @@ class OpsVerifyEnvCommand extends Command
         } else {
             $this->add(self::CATEGORY_CONDITIONAL, 'privy.web_login', self::SKIP, 'MCP_WEB_PRIVY_LOGIN=false — legacy Jetstream login in use.');
         }
+    }
+
+    /**
+     * Backup destination sanity (WARN-level — never blocks). Cheap config
+     * checks only: the nightly `backup:run --only-db` job (routes/console.php)
+     * writes to the disks in backup.backup.destination.disks; verify the
+     * disks exist in config/filesystems.php and warn when dumps would stay
+     * on the local box. No live S3 call — that's the restore drill's job.
+     */
+    private function checkBackupDestination(): void
+    {
+        $disks = config('backup.backup.destination.disks');
+
+        if (! is_array($disks) || $disks === []) {
+            $this->add(self::CATEGORY_CONDITIONAL, 'backup.destination', self::WARN, 'No backup destination disk configured (backup.backup.destination.disks is empty) — the nightly backup:run job has nowhere to write. Set BACKUP_DISK.');
+
+            return;
+        }
+
+        $undefined = [];
+
+        foreach ($disks as $disk) {
+            if (! is_string($disk) || $disk === '' || ! is_array(config('filesystems.disks.' . $disk))) {
+                $undefined[] = is_string($disk) ? $disk : gettype($disk);
+            }
+        }
+
+        if ($undefined !== []) {
+            $this->add(self::CATEGORY_CONDITIONAL, 'backup.destination', self::WARN, sprintf(
+                'Backup destination disk(s) %s not defined in config/filesystems.php — the nightly backup:run job will fail at 01:30 UTC.',
+                implode(', ', $undefined),
+            ));
+
+            return;
+        }
+
+        if ($disks === ['local']) {
+            $this->add(self::CATEGORY_CONDITIONAL, 'backup.destination', self::WARN, 'Backup destination is the local disk only — database dumps never leave the box. Set BACKUP_DISK=s3 (+ bucket credentials) in production and run one restore drill.');
+
+            return;
+        }
+
+        $this->add(self::CATEGORY_CONDITIONAL, 'backup.destination', self::PASS, sprintf(
+            'Nightly DB backup writes to disk(s): %s.',
+            implode(', ', array_map('strval', $disks)),
+        ));
     }
 
     // ── Category: files ──────────────────────────────────────────────────
