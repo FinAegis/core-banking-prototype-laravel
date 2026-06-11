@@ -74,6 +74,55 @@ class PrivyEmailOtpClient
     }
 
     /**
+     * Delete a Privy user (GDPR Art. 17(2) processor fan-out for an erased
+     * account's identity link). Uses the same server-to-server Basic-auth
+     * conventions as the OTP endpoints. A 404 is treated as success — the
+     * user is already gone on Privy's side, keeping the call idempotent.
+     *
+     * @throws PrivyEmailOtpException when Privy rejects the deletion or the request cannot be sent
+     */
+    public function deleteUser(string $privyUserId): void
+    {
+        $base = rtrim((string) config('privy.api_base_url', 'https://auth.privy.io'), '/');
+        $appId = (string) config('privy.app_id');
+        $appSecret = (string) config('privy.app_secret');
+
+        if ($appId === '' || $appSecret === '') {
+            throw PrivyEmailOtpException::misconfigured();
+        }
+
+        $path = '/api/v1/users/' . rawurlencode($privyUserId);
+
+        $request = new GuzzleRequest(
+            'DELETE',
+            $base . $path,
+            [
+                'Accept'        => 'application/json',
+                'privy-app-id'  => $appId,
+                'Authorization' => 'Basic ' . base64_encode($appId . ':' . $appSecret),
+                'Origin'        => $this->resolveOrigin(),
+            ],
+        );
+
+        try {
+            $response = $this->http->send($request, ['http_errors' => false]);
+        } catch (GuzzleException $e) {
+            throw PrivyEmailOtpException::transport($path, $e);
+        }
+
+        $status = $response->getStatusCode();
+
+        if ($status === 404) {
+            return; // already deleted on Privy's side — idempotent success
+        }
+
+        if ($status >= 400) {
+            $message = $this->extractErrorMessage((string) $response->getBody()) ?? "Privy returned HTTP {$status}";
+            throw PrivyEmailOtpException::apiError($path, $status, $message);
+        }
+    }
+
+    /**
      * @param  array<string, mixed> $body
      * @return array<string, mixed>
      *
