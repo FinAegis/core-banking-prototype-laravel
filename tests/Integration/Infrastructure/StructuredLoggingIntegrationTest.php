@@ -54,7 +54,7 @@ describe('Structured Logging Integration', function () {
         // The channel moved from a raw monolog driver to daily rotation with
         // the JSON formatter attached.
         expect($channels['structured']['driver'])->toBe('daily');
-        expect($channels['structured']['formatter'])->toBe(App\Infrastructure\Logging\StructuredJsonFormatter::class);
+        expect($channels['structured']['formatter'])->toBe(StructuredJsonFormatter::class);
     });
 
     it('monitoring config includes structured logging settings', function () {
