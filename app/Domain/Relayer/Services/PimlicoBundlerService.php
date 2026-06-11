@@ -78,6 +78,9 @@ class PimlicoBundlerService implements BundlerInterface
                     $success = ($receiptArray['success'] ?? false) === true
                         || ($receiptArray['success'] ?? '') === 'true';
 
+                    /** @var array<string, mixed> $innerReceipt */
+                    $innerReceipt = is_array($receiptArray['receipt'] ?? null) ? $receiptArray['receipt'] : [];
+
                     return [
                         'status'  => $success ? 'confirmed' : 'failed',
                         'tx_hash' => $receiptArray['receipt']['transactionHash'] ?? null,
@@ -88,6 +91,20 @@ class PimlicoBundlerService implements BundlerInterface
                                 : 0,
                             'blockNumber' => isset($receiptArray['receipt']['blockNumber'])
                                 ? (int) hexdec((string) $receiptArray['receipt']['blockNumber'])
+                                : null,
+                            // Raw hex quantities for sponsorship cost accounting.
+                            // Kept as hex strings — 256-bit values overflow
+                            // hexdec()/PHP ints; downstream converts via bcmath.
+                            // `actualGasCost` is the ERC-4337 receipt field: the
+                            // exact wei the paymaster was charged for this op.
+                            'actualGasCost' => is_string($receiptArray['actualGasCost'] ?? null)
+                                ? $receiptArray['actualGasCost']
+                                : null,
+                            'txGasUsed' => is_string($innerReceipt['gasUsed'] ?? null)
+                                ? $innerReceipt['gasUsed']
+                                : null,
+                            'effectiveGasPrice' => is_string($innerReceipt['effectiveGasPrice'] ?? null)
+                                ? $innerReceipt['effectiveGasPrice']
                                 : null,
                         ],
                     ];

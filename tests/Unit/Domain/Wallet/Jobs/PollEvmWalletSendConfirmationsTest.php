@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Relayer\Contracts\BundlerInterface;
 use App\Domain\Wallet\Jobs\PollEvmWalletSendConfirmations;
 use App\Domain\Wallet\Models\WalletSendRecord;
+use App\Domain\Wallet\Services\SponsorshipCostTracker;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
@@ -26,6 +27,8 @@ beforeEach(function (): void {
         $table->string('user_op_hash', 128)->nullable();
         $table->string('idempotency_key', 128)->nullable()->unique();
         $table->string('quote_id', 64)->nullable();
+        $table->string('sponsored_fee_raw', 78)->nullable();
+        $table->string('sponsored_fee_asset', 16)->nullable();
         $table->string('error_code', 50)->nullable();
         $table->text('error_message')->nullable();
         $table->json('metadata')->nullable();
@@ -66,7 +69,7 @@ it('flips submitted EVM record to confirmed when bundler reports a receipt', fun
             'receipt' => ['success' => true, 'gasUsed' => 0, 'blockNumber' => 1],
         ]);
 
-    (new PollEvmWalletSendConfirmations())->handle($bundler);
+    (new PollEvmWalletSendConfirmations())->handle($bundler, app(SponsorshipCostTracker::class));
 
     $record->refresh();
     expect($record->status)->toBe('confirmed')
@@ -88,7 +91,7 @@ it('flips submitted EVM record to failed when bundler reports a reverted receipt
             'receipt' => null,
         ]);
 
-    (new PollEvmWalletSendConfirmations())->handle($bundler);
+    (new PollEvmWalletSendConfirmations())->handle($bundler, app(SponsorshipCostTracker::class));
 
     $record->refresh();
     expect($record->status)->toBe('failed')
@@ -105,7 +108,7 @@ it('leaves submitted record alone when bundler returns pending', function (): vo
         ->once()
         ->andReturn(['status' => 'pending', 'tx_hash' => null, 'receipt' => null]);
 
-    (new PollEvmWalletSendConfirmations())->handle($bundler);
+    (new PollEvmWalletSendConfirmations())->handle($bundler, app(SponsorshipCostTracker::class));
 
     $record->refresh();
     expect($record->status)->toBe('submitted')
@@ -123,7 +126,7 @@ it('does not touch Solana records (those are handled by Helius webhook)', functi
     $bundler = Mockery::mock(BundlerInterface::class);
     $bundler->shouldNotReceive('getUserOperationStatus');
 
-    (new PollEvmWalletSendConfirmations())->handle($bundler);
+    (new PollEvmWalletSendConfirmations())->handle($bundler, app(SponsorshipCostTracker::class));
 
     $record->refresh();
     expect($record->status)->toBe('submitted'); // unchanged
@@ -138,7 +141,7 @@ it('skips records older than 2 hours (avoids unbounded backlog)', function (): v
     $bundler = Mockery::mock(BundlerInterface::class);
     $bundler->shouldNotReceive('getUserOperationStatus');
 
-    (new PollEvmWalletSendConfirmations())->handle($bundler);
+    (new PollEvmWalletSendConfirmations())->handle($bundler, app(SponsorshipCostTracker::class));
 
     $record->refresh();
     expect($record->status)->toBe('submitted');
@@ -153,8 +156,87 @@ it('logs and continues when bundler throws', function (): void {
         ->once()
         ->andThrow(new RuntimeException('Bundler RPC down'));
 
-    (new PollEvmWalletSendConfirmations())->handle($bundler);
+    (new PollEvmWalletSendConfirmations())->handle($bundler, app(SponsorshipCostTracker::class));
 
     $record->refresh();
     expect($record->status)->toBe('submitted'); // unchanged — caught & logged
+});
+
+it('persists the sponsored fee from the bundler actualGasCost (hex wei → decimal string)', function (): void {
+    $record = makeSubmittedRecord('polygon', '0xUserOpWithCost');
+
+    /** @var BundlerInterface&Mockery\MockInterface $bundler */
+    $bundler = Mockery::mock(BundlerInterface::class);
+    $bundler->shouldReceive('getUserOperationStatus')
+        ->once()
+        ->andReturn([
+            'status'  => 'confirmed',
+            'tx_hash' => '0xcostTxHash',
+            'receipt' => [
+                'success'     => true,
+                'gasUsed'     => 150000,
+                'blockNumber' => 1,
+                // 0x2e90edd000 = 200_000_000_000 wei
+                'actualGasCost'     => '0x2e90edd000',
+                'txGasUsed'         => '0x5208',
+                'effectiveGasPrice' => '0x3b9aca00',
+            ],
+        ]);
+
+    (new PollEvmWalletSendConfirmations())->handle($bundler, app(SponsorshipCostTracker::class));
+
+    $record->refresh();
+    expect($record->status)->toBe('confirmed')
+        ->and($record->sponsored_fee_raw)->toBe('200000000000')
+        ->and($record->sponsored_fee_asset)->toBe('MATIC');
+});
+
+it('falls back to gasUsed * effectiveGasPrice when actualGasCost is absent', function (): void {
+    $record = makeSubmittedRecord('base', '0xUserOpFallbackCost');
+
+    /** @var BundlerInterface&Mockery\MockInterface $bundler */
+    $bundler = Mockery::mock(BundlerInterface::class);
+    $bundler->shouldReceive('getUserOperationStatus')
+        ->once()
+        ->andReturn([
+            'status'  => 'confirmed',
+            'tx_hash' => '0xfallbackTxHash',
+            'receipt' => [
+                'success'     => true,
+                'gasUsed'     => 21000,
+                'blockNumber' => 1,
+                // 0x5208 = 21000 gas * 0x3b9aca00 = 1 gwei → 21_000_000_000_000 wei
+                'actualGasCost'     => null,
+                'txGasUsed'         => '0x5208',
+                'effectiveGasPrice' => '0x3b9aca00',
+            ],
+        ]);
+
+    (new PollEvmWalletSendConfirmations())->handle($bundler, app(SponsorshipCostTracker::class));
+
+    $record->refresh();
+    expect($record->status)->toBe('confirmed')
+        ->and($record->sponsored_fee_raw)->toBe('21000000000000')
+        ->and($record->sponsored_fee_asset)->toBe('ETH-BASE');
+});
+
+it('confirms without a sponsored fee when the receipt has no usable cost fields', function (): void {
+    $record = makeSubmittedRecord('arbitrum', '0xUserOpNoCostFields');
+
+    /** @var BundlerInterface&Mockery\MockInterface $bundler */
+    $bundler = Mockery::mock(BundlerInterface::class);
+    $bundler->shouldReceive('getUserOperationStatus')
+        ->once()
+        ->andReturn([
+            'status'  => 'confirmed',
+            'tx_hash' => '0xnoCostTxHash',
+            'receipt' => ['success' => true, 'gasUsed' => 0, 'blockNumber' => 1],
+        ]);
+
+    (new PollEvmWalletSendConfirmations())->handle($bundler, app(SponsorshipCostTracker::class));
+
+    $record->refresh();
+    expect($record->status)->toBe('confirmed')
+        ->and($record->sponsored_fee_raw)->toBeNull()
+        ->and($record->sponsored_fee_asset)->toBeNull();
 });

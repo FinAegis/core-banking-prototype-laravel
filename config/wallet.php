@@ -103,5 +103,13 @@ return [
     'sponsorship' => [
         'per_user_daily_limit' => (int) env('WALLET_SEND_PER_USER_DAILY_LIMIT', 30),
         'global_daily_limit'   => (int) env('WALLET_SEND_GLOBAL_DAILY_LIMIT', 5000),
+
+        // Optional value-denominated cap on top of the count caps: total
+        // estimated USD the platform will spend on sponsored gas per UTC day.
+        // Null/empty disables the check. The spend counter accumulates at
+        // confirmation time (when the real fee is known), so enforcement
+        // trails in-flight sends slightly — a burst can overshoot the budget,
+        // bounded by the count caps above. See SponsorshipCostTracker.
+        'daily_budget_usd' => env('WALLET_SPONSORSHIP_DAILY_BUDGET_USD'),
     ],
 ];

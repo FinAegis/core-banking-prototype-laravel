@@ -23,6 +23,11 @@ use Illuminate\Support\Facades\Log;
  */
 class HeliusTransactionProcessor
 {
+    public function __construct(
+        private readonly SponsorshipCostTracker $costTracker,
+    ) {
+    }
+
     /**
      * Allowed metadata keys stored alongside blockchain transactions.
      *
@@ -91,7 +96,20 @@ class HeliusTransactionProcessor
                 ->where('network', 'solana')
                 ->first();
 
+        // Sponsor-paid fee (lamports) for a tracked outbound send. Only
+        // recorded when the platform fee-payer is configured — without it the
+        // sender paid its own fee and there is no platform cost to track.
+        // The Helius enhanced payload carries the tx fee in lamports.
+        $sponsoredFeeLamports = null;
+        if ($walletSend !== null && $this->costTracker->isSolanaSponsorConfigured() && is_numeric($feeRaw)) {
+            $lamports = bcadd($feeRaw, '0', 0);
+            if (bccomp($lamports, '0', 0) > 0) {
+                $sponsoredFeeLamports = $lamports;
+            }
+        }
+
         $wasCreated = false;
+        $sponsoredFeeRecorded = false;
 
         DB::transaction(function () use (
             $signature,
@@ -109,7 +127,9 @@ class HeliusTransactionProcessor
             $txFailed,
             $walletSend,
             $isDust,
+            $sponsoredFeeLamports,
             &$wasCreated,
+            &$sponsoredFeeRecorded,
         ): void {
             try {
                 $btx = BlockchainTransaction::firstOrCreate(
@@ -183,15 +203,33 @@ class HeliusTransactionProcessor
                         'failed_at'     => now(),
                     ]);
                 } else {
-                    $walletSend->update([
+                    $update = [
                         'status'       => 'confirmed',
                         'confirmed_at' => now(),
-                    ]);
+                    ];
+
+                    // Sponsorship cost tracking: persist the actual fee the
+                    // platform fee-payer spent on this send (lamports).
+                    if ($sponsoredFeeLamports !== null) {
+                        $update['sponsored_fee_raw'] = $sponsoredFeeLamports;
+                        $update['sponsored_fee_asset'] = SponsorshipCostTracker::feeAssetForNetwork('solana');
+                        $sponsoredFeeRecorded = true;
+                    }
+
+                    $walletSend->update($update);
                 }
             }
 
             $wasCreated = $btx->wasRecentlyCreated;
         });
+
+        // Bump today's USD spend counter for the daily sponsorship budget.
+        // Outside the DB transaction (cache is not transactional) and only
+        // when this call actually flipped the record — webhook retries on an
+        // already-confirmed send must not double-count.
+        if ($sponsoredFeeRecorded && $sponsoredFeeLamports !== null) {
+            $this->costTracker->recordSpendUsd('solana', $sponsoredFeeLamports);
+        }
 
         return $wasCreated;
     }
