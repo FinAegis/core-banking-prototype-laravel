@@ -134,14 +134,18 @@ jobs:
           
       - name: Generate Test Report
         if: always()
+        env:
+          BEHAT_BASE_URL: http://127.0.0.1:8000
+          QUEUE_CONNECTION: sync
         run: |
-          # Run again with JUnit output for reporting
+          # Re-run with JUnit output for reporting — same tag-driven acceptance
+          # suite as bin/behat-ci (the `ci` profile excludes @wip/@web/@skip/@api).
           vendor/bin/behat \
+            --profile=ci \
+            --suite=acceptance \
             --no-interaction \
             --format=junit \
-            --out=behat-results.xml \
-            --tags="~@wip" \
-            features/ || true
+            --out=behat-results.xml || true
           
           # Ensure the file exists for the upload step
           if [ ! -f behat-results.xml ]; then

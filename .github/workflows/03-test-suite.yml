@@ -439,7 +439,11 @@ jobs:
           DB_DATABASE: testing
           DB_USERNAME: root
           DB_PASSWORD: root
-        run: php -d memory_limit=2G ./vendor/bin/pest --testsuite=Integration --configuration=phpunit.ci-optimized.xml --exclude-group=slow
+        # No --exclude-group=slow: the only @group('slow') tests are the two
+        # Account aggregate tests, which complete in <9s each — well under the
+        # 180s per-test limit — so they gate PRs here instead of only running
+        # in the nightly slow-tests suite.
+        run: php -d memory_limit=2G ./vendor/bin/pest --testsuite=Integration --configuration=phpunit.ci-optimized.xml
 
   multi-connection-tests:
     name: Multi-Connection Tests
@@ -647,29 +651,23 @@ jobs:
           QUEUE_CONNECTION: sync
           CI: true
         run: |
-          # Run only implemented feature files to avoid parsing 19 unimplemented ones
-          # CI=true enables reduced wait times (500ms vs 2-3s) in Behat contexts
+          # Tag-driven: run the full acceptance suite via the `ci` profile,
+          # which excludes @wip (unimplemented specs), @web (promo-page specs),
+          # @skip and @api (separate suite). Implementing a deferred spec is now
+          # just removing its @wip tag — there is no hardcoded filename list to
+          # drift out of date (the previous two-file list silently omitted the
+          # rest of the suite).
+          # CI=true enables reduced wait times (500ms vs 2-3s) in Behat contexts.
           mkdir -p tests-results
-
-          # Run account_management.feature with JUnit output
           vendor/bin/behat \
+            --profile=ci \
+            --suite=acceptance \
             --no-interaction \
             --format=progress \
             --format=junit \
             --out=std \
             --out=tests-results \
-            --stop-on-failure \
-            features/account_management.feature
-
-          # Run basket_management.feature with JUnit output
-          vendor/bin/behat \
-            --no-interaction \
-            --format=progress \
-            --format=junit \
-            --out=std \
-            --out=tests-results \
-            --stop-on-failure \
-            features/basket_management.feature
+            --stop-on-failure
 
       - name: Upload Behat Results
         if: always()

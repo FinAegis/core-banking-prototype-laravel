@@ -7,7 +7,7 @@ default:
                 - FeatureContext
                 - LaravelFeatureContext
             filters:
-                tags: "~@web&&~@wip"
+                tags: "~@web&&~@wip&&~@api"
         api:
             paths:
                 features: features/api
@@ -55,4 +55,4 @@ ci:
                 - FeatureContext
                 - LaravelFeatureContext
             filters:
-                tags: "~@web&&~@skip&&~@wip"
+                tags: "~@web&&~@skip&&~@wip&&~@api"

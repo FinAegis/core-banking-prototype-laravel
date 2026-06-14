@@ -1,3 +1,4 @@
+@wip
 Feature: Stablecoin Operations
   In order to use digital stablecoins
   As a crypto-enabled user

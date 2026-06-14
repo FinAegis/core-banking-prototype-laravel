@@ -1,3 +1,4 @@
+@wip
 Feature: User Registration
   In order to use the FinAegis platform
   As a new user

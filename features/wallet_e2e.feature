@@ -1,3 +1,4 @@
+@wip
 Feature: Wallet End-to-End User Journeys
   In order to manage my digital assets effectively
   As a wallet user

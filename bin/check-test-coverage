@@ -25,7 +25,7 @@ declare -A CLAIMED=(
     [Console]="03-test-suite.yml integration-tests (testsuite Integration)"
     [Integration]="03-test-suite.yml integration-tests (testsuite Integration)"
     [MultiConnection]="03-test-suite.yml multi-connection-tests"
-    [Security]="04-security-tests.yml (Penetration/Authentication/API/Vulnerabilities/Cryptography/MultiTenancy)"
+    [Security]="04-security-tests.yml (explicit subdir steps + pest-rest catch-all for loose/new tests)"
     [Performance]="05-performance.yml"
     [Actions]="03-test-suite.yml unit-tests components batch"
     [Filament]="03-test-suite.yml unit-tests components batch"
@@ -60,6 +60,27 @@ if [ ${#LOOSE[@]} -gt 0 ]; then
     echo "::error::Loose test files directly under tests/ are not run by any CI batch: ${LOOSE[*]}"
     FAIL=1
 fi
+
+# --- Catch-all enforcement for directories run by explicit subpath ----------
+# Some test directories are executed by listing their subdirectories one-by-one
+# in a workflow (rather than handing the whole directory to pest). Those jobs
+# silently drop loose *Test.php files and newly-added subdirectories — exactly
+# how tests/Security/ComprehensiveSecurityTest.php went un-run for a long time.
+# For each such directory, require an exclusion-computed catch-all
+# (./bin/pest-rest <dir>) in its workflow so that class of drift cannot recur.
+declare -A SUBPATH_RUN=(
+    [tests/Security]=".github/workflows/04-security-tests.yml"
+)
+for parent in "${!SUBPATH_RUN[@]}"; do
+    wf="${SUBPATH_RUN[$parent]}"
+    if [ ! -f "$wf" ]; then
+        echo "::error::$wf (catch-all guard for $parent/) is missing."
+        FAIL=1
+    elif ! grep -q "pest-rest $parent" "$wf"; then
+        echo "::error::$wf runs $parent/ by explicit subpath but has no './bin/pest-rest $parent' catch-all — loose or newly-added tests under $parent/ would silently not run."
+        FAIL=1
+    fi
+done
 
 if [ $FAIL -eq 0 ]; then
     echo "All $(find tests -mindepth 1 -maxdepth 1 -type d | wc -l) top-level tests/ directories are claimed by a CI job."

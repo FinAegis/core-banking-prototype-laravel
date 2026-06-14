@@ -301,8 +301,44 @@ jobs:
           sleep 5
 
       - name: Run Load Tests
+        # Advisory by design: k6 runs against a single-threaded `php artisan
+        # serve`, so thresholds are inherently noisy and must not hard-gate the
+        # pipeline (continue-on-error). Previously the result was silently
+        # swallowed; the status is now captured and surfaced in the job summary.
+        id: k6
         continue-on-error: true
         run: |
-          if [ -f "tests/k6/load-test.js" ]; then
-            k6 run tests/k6/load-test.js --out json=load-test-results.json
+          if [ ! -f "tests/k6/load-test.js" ]; then
+            echo "K6_STATUS=missing (tests/k6/load-test.js not found)" >> "$GITHUB_ENV"
+            echo "::warning::tests/k6/load-test.js not found — load tests skipped."
+            exit 0
           fi
+          set +e
+          k6 run tests/k6/load-test.js --out json=load-test-results.json
+          RC=$?
+          set -e
+          if [ "$RC" -eq 0 ]; then
+            echo "K6_STATUS=passed" >> "$GITHUB_ENV"
+          else
+            echo "K6_STATUS=threshold breached or error (k6 exit $RC)" >> "$GITHUB_ENV"
+            echo "::warning::k6 load test thresholds breached (exit $RC) — advisory, not blocking."
+          fi
+
+      - name: Publish Load Test Result
+        if: always()
+        run: |
+          {
+            echo "## k6 Load Test Result"
+            echo ""
+            echo "Status: **${K6_STATUS:-unknown}** — advisory, does not block the pipeline."
+            echo ""
+            echo "Full JSON metrics are uploaded as the \`load-test-results\` artifact."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Load Test Artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: load-test-results
+          path: load-test-results.json
+          if-no-files-found: ignore

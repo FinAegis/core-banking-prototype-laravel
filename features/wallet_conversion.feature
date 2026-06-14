@@ -1,3 +1,4 @@
+@wip
 Feature: Wallet Currency Conversion
   In order to convert between currencies
   As a user with multi-currency needs

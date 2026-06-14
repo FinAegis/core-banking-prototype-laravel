@@ -300,3 +300,23 @@ jobs:
 
       - name: Run Multi-Tenancy Security Tests
         run: ./vendor/bin/pest tests/Security/MultiTenancy --configuration=phpunit.security.xml --stop-on-failure
+
+      - name: Run Remaining Security Tests (catch-all)
+        # Exclusion-computed catch-all: runs every tests/Security subdirectory
+        # NOT covered by an explicit step above (across all jobs in this file),
+        # plus loose *Test.php files directly under tests/Security — e.g.
+        # ComprehensiveSecurityTest.php, which previously ran in no job at all.
+        # Mirrors the pest-rest pattern in 03-test-suite.yml so a new security
+        # test can never silently fall out of CI. CONFIG_FILE pins the security
+        # phpunit config used by the explicit steps above.
+        env:
+          CONFIG_FILE: phpunit.security.xml
+        run: |
+          chmod +x ./bin/pest-batch ./bin/pest-rest
+          ./bin/pest-rest tests/Security \
+            tests/Security/Penetration \
+            tests/Security/Authentication \
+            tests/Security/API \
+            tests/Security/Vulnerabilities \
+            tests/Security/Cryptography \
+            tests/Security/MultiTenancy

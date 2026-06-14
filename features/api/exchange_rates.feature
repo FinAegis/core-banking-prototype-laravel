@@ -1,3 +1,4 @@
+@api
 Feature: Exchange Rate API
   In order to convert between currencies
   As an API consumer

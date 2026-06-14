@@ -1,42 +1,28 @@
 #!/bin/bash
 
-# Behat CI runner - runs only implemented features without interaction
-# This prevents the undefined steps prompt in CI/CD environments
+# Behat CI runner - runs the tag-driven acceptance suite without interaction
+# (prevents the undefined-steps prompt in CI/CD environments).
+#
+# The `ci` profile's acceptance suite excludes @wip (unimplemented specs),
+# @web (promo-page specs), @skip and @api (separate suite). Implementing a
+# deferred spec is just removing its @wip tag — there is no hardcoded feature
+# filename list here to drift out of date.
 
 export BEHAT_BASE_URL="${BEHAT_BASE_URL:-http://localhost}"
 export QUEUE_CONNECTION=sync
 
-# Default to all feature files if no arguments provided
+# Default to the acceptance suite if no arguments provided
 if [ $# -eq 0 ]; then
-    # List of implemented feature files
-    FEATURES=(
-        "features/account_management.feature"
-        "features/basket_management.feature"
-    )
-    
-    # Run each feature file separately to avoid the multiple paths issue
-    EXIT_CODE=0
-    for feature in "${FEATURES[@]}"; do
-        echo "Running: $feature"
-        vendor/bin/behat \
-            --no-interaction \
-            --format=progress \
-            --no-colors \
-            --stop-on-failure \
-            "$feature"
-        
-        # Capture exit code
-        if [ $? -ne 0 ]; then
-            EXIT_CODE=1
-            # Stop on failure
-            break
-        fi
-    done
-    
-    exit $EXIT_CODE
+    exec vendor/bin/behat \
+        --profile=ci \
+        --suite=acceptance \
+        --no-interaction \
+        --format=progress \
+        --no-colors \
+        --stop-on-failure
 else
     # Run with provided arguments
-    vendor/bin/behat \
+    exec vendor/bin/behat \
         --no-interaction \
         --format=progress \
         --no-colors \
