@@ -140,31 +140,36 @@ jobs:
         run: |
           # Re-run with JUnit output for reporting — same tag-driven acceptance
           # suite as bin/behat-ci (the `ci` profile excludes @wip/@web/@skip/@api).
+          # Behat's junit formatter writes one XML file per suite INTO the --out
+          # directory, so --out must be a directory (not a file, which silently
+          # created a directory named behat-results.xml and broke the downstream
+          # steps).
+          mkdir -p behat-results
           vendor/bin/behat \
             --profile=ci \
             --suite=acceptance \
             --no-interaction \
             --format=junit \
-            --out=behat-results.xml || true
-          
-          # Ensure the file exists for the upload step
-          if [ ! -f behat-results.xml ]; then
-            echo '<?xml version="1.0" encoding="UTF-8"?><testsuites><testsuite name="Behat" errors="1"><testcase name="No results" classname="Behat"><error>No test results generated</error></testcase></testsuite></testsuites>' > behat-results.xml
+            --out=behat-results || true
+
+          # Ensure at least one result file exists for the summary/upload steps.
+          if [ -z "$(ls -A behat-results 2>/dev/null)" ]; then
+            echo '<?xml version="1.0" encoding="UTF-8"?><testsuites><testsuite name="Behat" errors="1"><testcase name="No results" classname="Behat"><error>No test results generated</error></testcase></testsuite></testsuites>' > behat-results/behat.xml
           fi
-            
+
       - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: behat-test-results
-          path: behat-results.xml
+          path: behat-results/
           retention-days: 30
-          
+
       - name: Test Summary
         if: always()
         uses: test-summary/action@v2
         with:
-          paths: behat-results.xml
+          paths: behat-results/*.xml
           
       - name: Debug Information
         if: failure()
