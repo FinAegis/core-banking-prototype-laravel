@@ -127,7 +127,7 @@ jobs:
         # unseen (the previous `|| true` suffixes meant this workflow could
         # never fail at all). File/refresh a tracking issue instead.
         if: failure() && github.event_name == 'schedule'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const title = 'Nightly slow-test suite failed';
