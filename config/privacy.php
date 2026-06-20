@@ -351,8 +351,12 @@ return [
                 'bsc'      => (string) env('RAILGUN_RPC_UPSTREAM_BSC', ''),
             ],
             // TTL (seconds) for the signed proxy URL; the app refetches engine-config
-            // when a proxied RPC call returns 403 (expired/invalid signature).
-            'rpc_proxy_ttl' => (int) env('RAILGUN_RPC_PROXY_TTL', 3600),
+            // when a proxied RPC call returns 403 (expired/invalid signature). The
+            // URL is a replayable capability token within its TTL, so keep it short
+            // — engine-config hard-caps it to [60, 900].
+            'rpc_proxy_ttl' => (int) env('RAILGUN_RPC_PROXY_TTL', 300),
+            // Per-user (signed `u`) request budget for the RPC proxy, per minute.
+            'rpc_proxy_per_minute' => (int) env('RAILGUN_RPC_PROXY_PER_MINUTE', 120),
         ],
     ],
 ];

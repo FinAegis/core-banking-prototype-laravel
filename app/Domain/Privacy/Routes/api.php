@@ -31,7 +31,7 @@ Route::prefix('v1/privacy')->name('api.privacy.')->group(function () {
     // cannot send a bearer header). Injects the server-side provider key + whitelists
     // read methods. See RailgunRpcProxyController.
     Route::post('/rpc/{network}', RailgunRpcProxyController::class)
-        ->middleware(['signed', 'throttle:300,1'])
+        ->middleware(['signed', 'throttle:railgun-rpc'])
         ->name('rpc');
 
     // Authenticated endpoints

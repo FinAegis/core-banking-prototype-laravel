@@ -13,6 +13,9 @@ use App\Domain\Privacy\Services\RailgunBridgeClient;
 use App\Domain\Privacy\Services\RailgunMerkleTreeService;
 use App\Domain\Privacy\Services\RailgunPrivacyService;
 use App\Domain\Privacy\Services\RailgunZkProverService;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -68,6 +71,17 @@ class PrivacyServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        //
+        // Per-user limiter for the RAILGUN RPC proxy. The route is signed (not
+        // Sanctum), so key on the signed `u` (minting user id, tamper-proof) +
+        // IP so one captured URL can't be fanned out across IPs to drain the
+        // metered upstream key. Falls back to IP when `u` is absent.
+        RateLimiter::for('railgun-rpc', function (Request $request) {
+            $u = (string) $request->query('u', '');
+            $key = ($u !== '' ? 'u:' . $u : 'ip:' . $request->ip()) . '|' . $request->ip();
+
+            return [
+                Limit::perMinute((int) config('privacy.railgun.engine.rpc_proxy_per_minute', 120))->by($key),
+            ];
+        });
     }
 }

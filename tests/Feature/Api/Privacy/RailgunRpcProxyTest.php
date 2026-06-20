@@ -68,3 +68,11 @@ it('returns 404 when the network has no upstream configured', function () {
 
     Http::assertNothingSent();
 });
+
+it('rejects an empty JSON-RPC batch instead of forwarding it', function () {
+    Http::fake();
+
+    $this->postJson(signedRpcUrl('polygon'), [])->assertStatus(400);
+
+    Http::assertNothingSent();
+});

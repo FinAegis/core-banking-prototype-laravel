@@ -95,6 +95,23 @@ it('returns a signed RPC proxy URL (not the upstream key) when an upstream is co
         ->and($provider)->not->toContain('SECRETKEY');
 });
 
+it('caps the signed proxy URL TTL even when misconfigured higher', function () {
+    config([
+        'privacy.railgun.engine.rpc_upstream'  => ['polygon' => 'https://upstream.example/KEY'],
+        'privacy.railgun.engine.rpc_proxy_ttl' => 99999, // operator misconfig
+    ]);
+
+    $data = $this->getJson('/api/v1/privacy/engine-config')->json('data');
+    $provider = collect($data['networks'])->firstWhere('key', 'polygon')['fallback_provider_config']['providers'][0]['provider'];
+
+    parse_str((string) parse_url($provider, PHP_URL_QUERY), $q);
+    $expires = (int) ($q['expires'] ?? 0);
+    $secondsValid = $expires - (int) now()->timestamp;
+
+    expect($secondsValid)->toBeLessThanOrEqual(901);  // hard cap 900s, not 99999
+    expect($secondsValid)->toBeGreaterThan(800);
+});
+
 it('requires authentication', function () {
     app('auth')->forgetGuards();
 

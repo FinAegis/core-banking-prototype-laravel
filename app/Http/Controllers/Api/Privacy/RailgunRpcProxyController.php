@@ -61,9 +61,20 @@ class RailgunRpcProxyController extends Controller
 
         /** @var mixed $payload */
         $payload = $request->json()->all();
+        $methods = $this->extractMethods($payload);
+
+        // Reject empty / unparseable bodies (e.g. an empty batch []) — they have
+        // no method to whitelist and must not be forwarded to the upstream.
+        if ($methods === []) {
+            return response()->json([
+                'jsonrpc' => '2.0',
+                'error'   => ['code' => -32600, 'message' => 'Invalid JSON-RPC request.'],
+                'id'      => null,
+            ], 400);
+        }
 
         // Reject any non-whitelisted method (handles single + batch requests).
-        foreach ($this->extractMethods($payload) as $method) {
+        foreach ($methods as $method) {
             if (! in_array($method, self::ALLOWED_METHODS, true)) {
                 Log::warning('RAILGUN RPC proxy: blocked non-whitelisted method', ['network' => $network, 'method' => $method]);
 
@@ -75,13 +86,20 @@ class RailgunRpcProxyController extends Controller
             }
         }
 
+        // Audit broadcasts (rare in normal engine operation) against the signed user.
+        if (in_array('eth_sendRawTransaction', $methods, true)) {
+            Log::info('RAILGUN RPC proxy: forwarding eth_sendRawTransaction', ['network' => $network, 'u' => (string) $request->query('u', '')]);
+        }
+
         try {
             $response = Http::timeout(15)
                 ->acceptJson()
                 ->asJson()
                 ->post($upstream, $payload);
         } catch (Throwable $e) {
-            Log::error('RAILGUN RPC proxy: upstream request failed', ['network' => $network, 'error' => $e->getMessage()]);
+            // NEVER log $e->getMessage() — Guzzle embeds the full upstream URL
+            // (which contains the provider API key) in connection-error messages.
+            Log::error('RAILGUN RPC proxy: upstream request failed', ['network' => $network, 'exception' => $e::class]);
 
             return response()->json([
                 'jsonrpc' => '2.0',

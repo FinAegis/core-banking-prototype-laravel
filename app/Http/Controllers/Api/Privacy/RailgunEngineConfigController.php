@@ -133,7 +133,10 @@ class RailgunEngineConfigController extends Controller
         $upstreams = (array) config('privacy.railgun.engine.rpc_upstream', []);
 
         if (trim((string) ($upstreams[$network] ?? '')) !== '') {
-            $ttl = max(60, (int) config('privacy.railgun.engine.rpc_proxy_ttl', 3600));
+            // The signed URL is a capability token (replayable within its TTL), so
+            // keep it short and hard-cap it — the SDK refetches engine-config on a
+            // 403, so a tight TTL is cheap. Bounded to [60s, 900s].
+            $ttl = min(900, max(60, (int) config('privacy.railgun.engine.rpc_proxy_ttl', 300)));
 
             return URL::temporarySignedRoute(
                 'api.privacy.rpc',
