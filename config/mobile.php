@@ -307,7 +307,12 @@ return [
     |
     */
 
-    'apple_team_id' => env('MOBILE_APPLE_TEAM_ID', ''),
+    // Apple Team ID is a public, non-secret value (it is served in the public
+    // AASA file), so the canonical prefix is baked in as the default. The `?:`
+    // ensures an unset OR empty env override both fall back to the real team id,
+    // preventing the empty-prefix (".com.zelta.wallet") bug that breaks iOS
+    // passkeys + universal links. Set MOBILE_APPLE_TEAM_ID to override per build.
+    'apple_team_id' => env('MOBILE_APPLE_TEAM_ID') ?: 'V6JGV96RCA',
 
     'android_sha256_fingerprint' => env('MOBILE_ANDROID_SHA256_FINGERPRINT', ''),
 ];

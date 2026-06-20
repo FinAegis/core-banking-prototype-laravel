@@ -288,15 +288,17 @@ Route::get('/legal/delete-account', function () {
 
 // Apple App Site Association — enables passkey AutoFill + Universal Links on iOS 16+
 Route::get('/.well-known/apple-app-site-association', function () {
+    $appId = config('mobile.apple_team_id') . '.com.zelta.wallet';
+
     return response()->json([
         'webcredentials' => [
-            'apps' => [config('mobile.apple_team_id', 'REPLACE_TEAM_ID') . '.com.zelta.wallet'],
+            'apps' => [$appId],
         ],
         'applinks' => [
             'apps'    => [],
             'details' => [
                 [
-                    'appID' => config('mobile.apple_team_id', 'REPLACE_TEAM_ID') . '.com.zelta.wallet',
+                    'appID' => $appId,
                     'paths' => ['/pay/*', '/verify/*'],
                 ],
             ],
