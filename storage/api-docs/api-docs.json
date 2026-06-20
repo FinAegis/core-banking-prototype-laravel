@@ -15,11 +15,11 @@
     },
     "servers": [
         {
-            "url": "http://localhost/api/v2",
+            "url": "http://finaegis.local/api/v2",
             "description": "API Server"
         },
         {
-            "url": "http://localhost/api/v2",
+            "url": "http://finaegis.local/api/v2",
             "description": "API Server"
         }
     ],
@@ -35384,14 +35384,15 @@
                     {
                         "name": "network",
                         "in": "query",
-                        "description": "Blockchain network (polygon, base, arbitrum)",
+                        "description": "RAILGUN-supported network. GET /networks is the runtime source of truth; RAILGUN does NOT support Base.",
                         "required": true,
                         "schema": {
                             "type": "string",
                             "enum": [
+                                "ethereum",
                                 "polygon",
-                                "base",
-                                "arbitrum"
+                                "arbitrum",
+                                "bsc"
                             ]
                         }
                     }
@@ -35480,9 +35481,10 @@
                                     "network": {
                                         "type": "string",
                                         "enum": [
+                                            "ethereum",
                                             "polygon",
-                                            "base",
-                                            "arbitrum"
+                                            "arbitrum",
+                                            "bsc"
                                         ]
                                     }
                                 },
@@ -35705,9 +35707,10 @@
                                     "network": {
                                         "type": "string",
                                         "enum": [
+                                            "ethereum",
                                             "polygon",
-                                            "base",
-                                            "arbitrum"
+                                            "arbitrum",
+                                            "bsc"
                                         ]
                                     }
                                 },
