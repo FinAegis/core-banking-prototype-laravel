@@ -36707,6 +36707,61 @@
                 ]
             }
         },
+        "/api/v1/privacy/wallet/register": {
+            "post": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Register a non-custodial RAILGUN 0zk address",
+                "description": "The device creates the RAILGUN wallet locally and registers only its public 0zk address. No seed material is sent or stored.",
+                "operationId": "registerRailgunWallet",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "railgun_address",
+                                    "network"
+                                ],
+                                "properties": {
+                                    "railgun_address": {
+                                        "type": "string",
+                                        "example": "0zk1q..."
+                                    },
+                                    "network": {
+                                        "type": "string",
+                                        "enum": [
+                                            "ethereum",
+                                            "polygon",
+                                            "arbitrum",
+                                            "bsc"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Registered"
+                    },
+                    "409": {
+                        "description": "Address already registered to another user"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/monitoring/projector-health": {
             "get": {
                 "tags": [
