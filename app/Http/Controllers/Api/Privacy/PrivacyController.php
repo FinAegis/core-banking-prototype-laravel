@@ -64,7 +64,7 @@ class PrivacyController extends Controller
         summary: 'Get the current Merkle root for a privacy pool',
         security: [['sanctum' => []]],
         parameters: [
-        new OA\Parameter(name: 'network', in: 'query', required: true, description: 'Blockchain network (polygon, base, arbitrum)', schema: new OA\Schema(type: 'string', enum: ['polygon', 'base', 'arbitrum'])),
+        new OA\Parameter(name: 'network', in: 'query', required: true, description: 'RAILGUN-supported network. GET /networks is the runtime source of truth; RAILGUN does NOT support Base.', schema: new OA\Schema(type: 'string', enum: ['ethereum', 'polygon', 'arbitrum', 'bsc'])),
         ]
     )]
     #[OA\Response(
@@ -142,7 +142,7 @@ class PrivacyController extends Controller
         security: [['sanctum' => []]],
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['commitment', 'network'], properties: [
         new OA\Property(property: 'commitment', type: 'string', description: '32-byte hex commitment with 0x prefix'),
-        new OA\Property(property: 'network', type: 'string', enum: ['polygon', 'base', 'arbitrum']),
+        new OA\Property(property: 'network', type: 'string', enum: ['ethereum', 'polygon', 'arbitrum', 'bsc']),
         ]))
     )]
     #[OA\Response(
@@ -328,7 +328,7 @@ class PrivacyController extends Controller
         summary: 'Trigger a Merkle tree sync from the blockchain',
         security: [['sanctum' => []]],
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['network'], properties: [
-        new OA\Property(property: 'network', type: 'string', enum: ['polygon', 'base', 'arbitrum']),
+        new OA\Property(property: 'network', type: 'string', enum: ['ethereum', 'polygon', 'arbitrum', 'bsc']),
         ]))
     )]
     #[OA\Response(

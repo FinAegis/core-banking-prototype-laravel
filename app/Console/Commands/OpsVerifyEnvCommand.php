@@ -316,6 +316,61 @@ class OpsVerifyEnvCommand extends Command
         } else {
             $this->add(self::CATEGORY_CONDITIONAL, 'privy.web_login', self::SKIP, 'MCP_WEB_PRIVY_LOGIN=false — legacy Jetstream login in use.');
         }
+
+        $this->checkPrivacyProviders();
+    }
+
+    /**
+     * RAILGUN privacy provider consistency.
+     *
+     * Two independent toggles drive the privacy stack: ZK_PROVIDER (gates
+     * shield/unshield/transfer/balances via isRailgunMode) and MERKLE_PROVIDER
+     * (gates the Merkle service binding). Both default to 'demo'. A deploy that
+     * sets one to 'railgun' but not the other — or enables railgun mode without
+     * RAILGUN_BRIDGE_SECRET — silently serves a mix of real and demo data with
+     * no runtime error (the worst kind of misconfig: it looks like it works).
+     * Front-load that into the deploy gate.
+     */
+    private function checkPrivacyProviders(): void
+    {
+        $zk = $this->configString('privacy.zk.provider');
+        $merkle = $this->configString('privacy.merkle.provider');
+
+        $zkRailgun = $zk === 'railgun';
+        $merkleRailgun = $merkle === 'railgun';
+
+        if (! $zkRailgun && ! $merkleRailgun) {
+            $this->add(self::CATEGORY_CONDITIONAL, 'privacy.railgun.providers', self::SKIP, sprintf(
+                'Privacy stack in demo mode (ZK_PROVIDER=%s, MERKLE_PROVIDER=%s) — no real RAILGUN privacy.',
+                $zk !== '' ? $zk : 'demo',
+                $merkle !== '' ? $merkle : 'demo',
+            ));
+
+            return;
+        }
+
+        if ($zkRailgun !== $merkleRailgun) {
+            $this->add(self::CATEGORY_CONDITIONAL, 'privacy.railgun.providers', self::FAIL, sprintf(
+                'Inconsistent privacy providers: ZK_PROVIDER=%s but MERKLE_PROVIDER=%s. RAILGUN mode is gated on ZK_PROVIDER while Merkle ops use MERKLE_PROVIDER — a half-railgun deploy mixes real and demo data silently. Set both to railgun (or both off).',
+                $zk !== '' ? $zk : 'demo',
+                $merkle !== '' ? $merkle : 'demo',
+            ));
+
+            return;
+        }
+
+        if ($this->configString('privacy.railgun.bridge_secret') === '') {
+            $this->add(
+                self::CATEGORY_CONDITIONAL,
+                'privacy.railgun.providers',
+                self::FAIL,
+                'RAILGUN mode is on (ZK_PROVIDER=railgun, MERKLE_PROVIDER=railgun) but RAILGUN_BRIDGE_SECRET is empty — the bridge bearer auth is unprotected and a bridge outage falls back to demo responses with no error.',
+            );
+
+            return;
+        }
+
+        $this->add(self::CATEGORY_CONDITIONAL, 'privacy.railgun.providers', self::PASS, 'ZK_PROVIDER=railgun + MERKLE_PROVIDER=railgun with a bridge secret set.');
     }
 
     /**

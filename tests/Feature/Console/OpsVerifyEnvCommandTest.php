@@ -235,3 +235,60 @@ it('reports status fail in JSON when a blocking failure exists in production', f
     expect($debugCheck)->not->toBeNull()
         ->and($debugCheck['result'])->toBe('FAIL');
 });
+
+it('skips the privacy provider check when the stack is in demo mode', function (): void {
+    opsVerifyEnvAllGoodConfig();
+    config(['privacy.zk.provider' => 'demo', 'privacy.merkle.provider' => 'demo']);
+    app()->detectEnvironment(fn () => 'production');
+
+    $exitCode = Artisan::call('ops:verify-env', ['--json' => true]);
+    $check = collect(json_decode(Artisan::output(), true)['checks'])->firstWhere('name', 'privacy.railgun.providers');
+
+    expect($exitCode)->toBe(0)
+        ->and($check)->not->toBeNull()
+        ->and($check['result'])->toBe('SKIP');
+});
+
+it('blocks the deploy when ZK_PROVIDER and MERKLE_PROVIDER disagree on railgun', function (): void {
+    opsVerifyEnvAllGoodConfig();
+    config([
+        'privacy.zk.provider'           => 'railgun',
+        'privacy.merkle.provider'       => 'demo',
+        'privacy.railgun.bridge_secret' => 'a-secret',
+    ]);
+    app()->detectEnvironment(fn () => 'production');
+
+    $this->artisan('ops:verify-env')
+        ->expectsOutputToContain('privacy.railgun.providers')
+        ->assertExitCode(1);
+});
+
+it('blocks the deploy when railgun mode is on but RAILGUN_BRIDGE_SECRET is empty', function (): void {
+    opsVerifyEnvAllGoodConfig();
+    config([
+        'privacy.zk.provider'           => 'railgun',
+        'privacy.merkle.provider'       => 'railgun',
+        'privacy.railgun.bridge_secret' => '',
+    ]);
+    app()->detectEnvironment(fn () => 'production');
+
+    $this->artisan('ops:verify-env')
+        ->expectsOutputToContain('RAILGUN_BRIDGE_SECRET')
+        ->assertExitCode(1);
+});
+
+it('passes the privacy provider check when both are railgun with a bridge secret', function (): void {
+    opsVerifyEnvAllGoodConfig();
+    config([
+        'privacy.zk.provider'           => 'railgun',
+        'privacy.merkle.provider'       => 'railgun',
+        'privacy.railgun.bridge_secret' => 'a-real-secret',
+    ]);
+    app()->detectEnvironment(fn () => 'production');
+
+    $exitCode = Artisan::call('ops:verify-env', ['--json' => true]);
+    $check = collect(json_decode(Artisan::output(), true)['checks'])->firstWhere('name', 'privacy.railgun.providers');
+
+    expect($exitCode)->toBe(0)
+        ->and($check['result'])->toBe('PASS');
+});
