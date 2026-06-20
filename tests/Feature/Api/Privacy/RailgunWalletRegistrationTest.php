@@ -33,9 +33,8 @@ it('registers a non-custodial wallet and stores NO seed material', function () {
         ->assertJsonPath('data.railgun_address', validRailgunAddress())
         ->assertJsonPath('data.network', 'polygon');
 
-    $wallet = RailgunWallet::where('railgun_address', validRailgunAddress())->first();
-    expect($wallet)->not->toBeNull()
-        ->and($wallet->user_id)->toBe($this->user->id)
+    $wallet = RailgunWallet::where('railgun_address', validRailgunAddress())->firstOrFail();
+    expect($wallet->user_id)->toBe($this->user->id)
         ->and($wallet->getAttributes()['encrypted_mnemonic'] ?? null)->toBeNull(); // raw column — no server-held seed
 });
 
