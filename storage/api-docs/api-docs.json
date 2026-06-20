@@ -15,11 +15,11 @@
     },
     "servers": [
         {
-            "url": "http://finaegis.local/api/v2",
+            "url": "http://localhost/api/v2",
             "description": "API Server"
         },
         {
-            "url": "http://finaegis.local/api/v2",
+            "url": "http://localhost/api/v2",
             "description": "API Server"
         }
     ],
