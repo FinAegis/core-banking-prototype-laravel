@@ -24,11 +24,15 @@ The device downloads Groth16 circuit artifacts (~50MB+ total, on demand) for pro
 
 ## 3. Per-chain RPC → `RAILGUN_RPC_{ETHEREUM,POLYGON,ARBITRUM,BSC}`
 
-The device reads chain state + syncs the merkle tree through these. They are returned to the client in `engine-config.networks[].fallback_provider_config`, so:
+The device reads chain state + syncs the merkle tree through these.
 
-> 🔒 **RPC URLs MUST be key-safe.** Never put a provider API key in `RAILGUN_RPC_*` — the value is served to every authenticated client. Use a keyless endpoint or a server-side RPC proxy that injects the key. (A dedicated `/privacy/rpc/{network}` proxy is a planned follow-up PR; until then, point these at keyless/proxy URLs.)
+**PREFERRED — built-in RPC proxy (`RAILGUN_RPC_UPSTREAM_*`):** set the real provider URL (key included) as the upstream. When set, `engine-config` returns a short-lived **signed proxy URL** (`POST /api/v1/privacy/rpc/{network}`) and the proxy injects the key server-side + whitelists read methods — the **key never reaches the device**. This is the recommended path: no separate proxy infra, no keyless-endpoint hunt.
+- `RAILGUN_RPC_PROXY_TTL` (default 3600s) is the signed-URL lifetime; the app refetches `engine-config` on a `403` (expired/invalid signature).
 
-- Set one per supported chain; a chain with an **empty** RPC URL is **omitted** from `engine-config` (the app won't offer it).
+**Fallback — client RPC (`RAILGUN_RPC_*`):** used only when no upstream is set for that chain. Returned to the client verbatim, so:
+> 🔒 **MUST be key-safe.** Never put a provider API key here — `engine-config` defensively drops a URL that looks like it embeds a credential (`rpcUrlIsUnsafe`), but use a keyless/proxy URL to be safe.
+
+- A chain with neither an upstream nor a (safe) client URL is **omitted** from `engine-config` (the app won't offer it).
 - RAILGUN supports `ethereum/polygon/arbitrum/bsc` only — **not** Base.
 
 ## 4. Broadcaster → `RAILGUN_BROADCASTER_ENABLED`

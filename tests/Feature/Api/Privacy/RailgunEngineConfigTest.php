@@ -83,6 +83,18 @@ it('omits a network whose RPC URL appears to embed a credential (key-safety guar
     expect(collect($data['networks'])->pluck('key')->all())->toBe(['polygon']);
 });
 
+it('returns a signed RPC proxy URL (not the upstream key) when an upstream is configured', function () {
+    config(['privacy.railgun.engine.rpc_upstream' => ['polygon' => 'https://upstream.example/SECRETKEY']]);
+
+    $data = $this->getJson('/api/v1/privacy/engine-config')->json('data');
+    $provider = collect($data['networks'])->firstWhere('key', 'polygon')['fallback_provider_config']['providers'][0]['provider'];
+
+    expect($provider)->toContain('/api/v1/privacy/rpc/polygon')
+        ->and($provider)->toContain('signature=')
+        ->and($provider)->not->toContain('upstream.example')   // server-side key never leaks
+        ->and($provider)->not->toContain('SECRETKEY');
+});
+
 it('requires authentication', function () {
     app('auth')->forgetGuards();
 

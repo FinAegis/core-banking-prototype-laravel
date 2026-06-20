@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Api\Privacy\DelegatedProofController;
 use App\Http\Controllers\Api\Privacy\PrivacyController;
 use App\Http\Controllers\Api\Privacy\RailgunEngineConfigController;
+use App\Http\Controllers\Api\Privacy\RailgunRpcProxyController;
 use App\Http\Controllers\Api\Privacy\RailgunWalletRegistrationController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,6 +25,14 @@ Route::prefix('v1/privacy')->name('api.privacy.')->group(function () {
 
     // Public endpoint for privacy pool statistics (v3.3.4)
     Route::get('/pool-stats', [PrivacyController::class, 'getPoolStats'])->name('pool-stats');
+
+    // Non-custodial RPC proxy — authed by a SHORT-LIVED SIGNED URL minted by
+    // engine-config (not Sanctum: the SDK's provider takes a plain URL string and
+    // cannot send a bearer header). Injects the server-side provider key + whitelists
+    // read methods. See RailgunRpcProxyController.
+    Route::post('/rpc/{network}', RailgunRpcProxyController::class)
+        ->middleware(['signed', 'throttle:300,1'])
+        ->name('rpc');
 
     // Authenticated endpoints
     Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {

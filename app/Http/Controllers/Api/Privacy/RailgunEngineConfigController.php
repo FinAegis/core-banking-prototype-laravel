@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Privacy;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 use OpenApi\Attributes as OA;
 
 /**
@@ -57,29 +60,30 @@ class RailgunEngineConfigController extends Controller
     )]
     public function __invoke(Request $request): JsonResponse
     {
+        $user = $request->user();
+
+        if (! $user instanceof User) {
+            return response()->json(['success' => false, 'error' => ['code' => 'UNAUTHENTICATED', 'message' => 'Authentication required.']], 401);
+        }
+
         /** @var array<int, string> $enabled */
         $enabled = (array) config('privacy.railgun.networks', []);
-        /** @var array<string, string> $rpcUrls */
-        $rpcUrls = (array) config('privacy.railgun.engine.rpc_urls', []);
 
         $networks = [];
 
         foreach ($enabled as $key) {
             $meta = self::NETWORK_META[$key] ?? null;
-            $rpcUrl = trim((string) ($rpcUrls[$key] ?? ''));
 
-            // Omit networks we can't actually serve a provider for — the device
-            // would otherwise build a loadProvider config with an empty URL.
-            if ($meta === null || $rpcUrl === '') {
+            if ($meta === null) {
                 continue;
             }
 
-            // Defense-in-depth: this URL is returned to every authenticated
-            // client, so a provider API key embedded in it would leak. Drop the
-            // network (graceful, same as an empty URL) rather than serve a key.
-            if ($this->rpcUrlIsUnsafe($rpcUrl)) {
-                Log::warning('RAILGUN engine-config: dropping RPC URL that appears to embed a credential', ['network' => $key]);
+            // Prefer our signed RPC proxy (key stays server-side); otherwise fall
+            // back to a configured key-safe client RPC URL. Networks we can serve
+            // neither for are omitted (the device would build an empty provider).
+            $providerUrl = $this->resolveProviderUrl($key, $user->id);
 
+            if ($providerUrl === null) {
                 continue;
             }
 
@@ -91,7 +95,7 @@ class RailgunEngineConfigController extends Controller
                 'fallback_provider_config' => [
                     'chainId'   => $meta['chain_id'],
                     'providers' => [[
-                        'provider'        => $rpcUrl,
+                        'provider'        => $providerUrl,
                         'priority'        => 1,
                         'weight'          => 2,
                         'maxLogsPerBatch' => 1,
@@ -113,6 +117,46 @@ class RailgunEngineConfigController extends Controller
                 'networks'             => $networks,
             ],
         ]);
+    }
+
+    /**
+     * Resolve the device-facing RPC provider URL for a network:
+     *  1. If an upstream is configured, mint a short-lived SIGNED proxy URL — the
+     *     provider key stays server-side and never reaches the device.
+     *  2. Otherwise fall back to a configured client RPC URL, dropping it if it
+     *     looks like it embeds a credential.
+     * Returns null when neither is available (the network is then omitted).
+     */
+    private function resolveProviderUrl(string $network, int $userId): ?string
+    {
+        /** @var array<string, string> $upstreams */
+        $upstreams = (array) config('privacy.railgun.engine.rpc_upstream', []);
+
+        if (trim((string) ($upstreams[$network] ?? '')) !== '') {
+            $ttl = max(60, (int) config('privacy.railgun.engine.rpc_proxy_ttl', 3600));
+
+            return URL::temporarySignedRoute(
+                'api.privacy.rpc',
+                Carbon::now()->addSeconds($ttl),
+                ['network' => $network, 'u' => $userId],
+            );
+        }
+
+        /** @var array<string, string> $rpcUrls */
+        $rpcUrls = (array) config('privacy.railgun.engine.rpc_urls', []);
+        $rpcUrl = trim((string) ($rpcUrls[$network] ?? ''));
+
+        if ($rpcUrl === '') {
+            return null;
+        }
+
+        if ($this->rpcUrlIsUnsafe($rpcUrl)) {
+            Log::warning('RAILGUN engine-config: dropping RPC URL that appears to embed a credential', ['network' => $network]);
+
+            return null;
+        }
+
+        return $rpcUrl;
     }
 
     /**

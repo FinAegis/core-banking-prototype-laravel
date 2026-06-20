@@ -62,6 +62,8 @@ Pass `network_name` (the exact SDK `NetworkName`) + `fallback_provider_config` s
 > ⚠️ **`artifact_base_url` is NOT consumed by the SDK.** The v9 engine hardcodes its own IPFS artifact gateway. To use our mirror, your **ArtifactStore `get()`/`exists()` implementation** must fetch from `artifact_base_url` on a cache miss (and `store()` it) — that's the only hook. If you don't, artifacts come from the SDK's pinned gateway and our mirror is unused.
 >
 > **Device-constructed (not in this payload):** the LevelDB instance, the `ArtifactStore`, and `shouldDebug` are positional `startRailgunEngine` args you build on-device — the endpoint intentionally doesn't return them.
+>
+> **RPC proxy:** the `provider` URL in `fallback_provider_config` may be a **short-lived signed proxy URL** (`/api/v1/privacy/rpc/{network}?...&signature=...`) when we proxy RPC server-side (keeps the provider key off-device). Use it verbatim as the provider string. If a proxied RPC call returns **HTTP 403**, the signature expired — **refetch `engine-config`** to get fresh URLs and rebuild the provider. Only read methods + `eth_sendRawTransaction` are allowed through the proxy.
 
 ## 3. Spike FIRST (de-risk the biggest unknown)
 
