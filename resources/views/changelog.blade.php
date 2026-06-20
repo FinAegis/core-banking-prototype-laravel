@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Changelog | ' . config('brand.name', 'Zelta'),
-        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.15.0.',
+        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.16.0.',
         'keywords' => 'changelog, release notes, updates, ' . config('brand.name', 'Zelta') . ', version history, core banking',
     ])
 
@@ -43,6 +43,20 @@
 
             @php
                 $releases = [
+                    [
+                        'version' => 'v7.16.0',
+                        'date' => 'June 21, 2026',
+                        'label' => 'Non-Custodial RAILGUN Privacy — Backend Migration',
+                        'label_color' => 'violet',
+                        'badge_color' => 'bg-violet-100 text-violet-700 border-violet-200',
+                        'dot_color' => 'bg-violet-500',
+                        'items' => [
+                            'Non-custodial RAILGUN privacy (backend) — the RAILGUN privacy stack is moving to the platform\'s non-custodial model: the device holds all keys and proves on-device, and the backend stops holding wallet seeds. Proving cannot be delegated without surrendering custody, so the on-device engine does it; the backend becomes a set of support services. The user-facing private-transaction flow ships once the mobile on-device engine lands — this release is the backend groundwork.',
+                            'New privacy endpoints — <code>POST /api/v1/privacy/wallet/register</code> registers the device\'s <strong>public</strong> <code>0zk</code> address (the server stores no seed); <code>GET /api/v1/privacy/engine-config</code> returns SDK-exact bootstrap for the on-device engine (provider config, POI node URLs, networks); and <code>POST /api/v1/privacy/rpc/{network}</code> is a signed-URL JSON-RPC proxy that keeps the provider API key server-side with a method whitelist and per-user rate limiting.',
+                            'iOS deep-link &amp; passkey fix — the <code>/.well-known/apple-app-site-association</code> file was served with an empty Apple Team ID prefix (<code>.com.zelta.wallet</code>), which broke iOS passkey sign-in and the <code>/pay</code> + <code>/verify</code> universal links. The Team ID prefix is now baked in so an unset env can\'t reproduce it.',
+                            'Deploy-gate &amp; ops hardening — <code>ops:verify-env</code> now fails when the privacy providers are inconsistently configured, an ops runbook documents the self-hosted POI node + artifact mirror + key-safe RPC, and an adversarial security review of the RPC proxy closed a provider-key-in-logs leak and tightened its signed-URL token model.',
+                        ],
+                    ],
                     [
                         'version' => 'v7.15.0',
                         'date' => 'June 3, 2026',

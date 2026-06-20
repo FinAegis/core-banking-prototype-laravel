@@ -5,6 +5,28 @@ All notable changes to the FinAegis Core Banking Platform will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.16.0] - 2026-06-21
+
+**Non-custodial RAILGUN privacy — backend migration.** Moves the RAILGUN privacy stack toward the platform's non-custodial model (the device holds all keys, like Wallet Send): the backend stops holding wallet seeds and becomes a set of support services for an on-device engine. The user-facing private-transaction flow ships once the mobile on-device engine lands — this release is the backend groundwork. Also fixes the iOS Apple App Site Association file that broke passkeys and universal links.
+
+### Added
+- **Non-custodial RAILGUN design** (`docs/superpowers/specs/2026-06-20-railgun-noncustodial-design.md`) — proving cannot be delegated without surrendering custody, so the device proves on-device (embedded engine + native prover) and the backend is reduced to support services
+- `POST /api/v1/privacy/wallet/register` — the device registers its **public** `0zk` address; the server stores no seed (`railgun_wallets.encrypted_mnemonic` is now nullable). Idempotent per (user, address); 409 on a cross-user address; 422 on a malformed address / unsupported network
+- `GET /api/v1/privacy/engine-config` — on-device engine bootstrap with SDK-exact shapes (`FallbackProviderJsonConfig`, `NetworkName` incl. bsc → `BNB_Chain`, POI node URLs, `TXIDVersion`) for `startRailgunEngine` + `loadProvider`
+- `POST /api/v1/privacy/rpc/{network}` — signed-URL JSON-RPC proxy that keeps the provider API key server-side: method whitelist (reads + `eth_sendRawTransaction`, batch-aware), per-user rate limiter, short-lived signed URLs minted by engine-config
+- `ops:verify-env` `privacy.railgun.providers` guard — fails the deploy gate when `ZK_PROVIDER`/`MERKLE_PROVIDER` disagree on railgun, or railgun mode lacks `RAILGUN_BRIDGE_SECRET`
+- Ops runbook `docs/operations/railgun-infra.md` (self-hosted POI node + artifact mirror + key-safe RPC) and the rewritten mobile integration guide `docs/RAILGUN_MOBILE_INTEGRATION.md`
+
+### Fixed
+- **iOS Apple App Site Association** (`/.well-known/apple-app-site-association`) served an empty Apple Team ID prefix (`.com.zelta.wallet`), breaking iOS passkey sign-in and the `/pay` + `/verify` universal links. `config/mobile.php` now defaults to the canonical team id (`V6JGV96RCA`) so an unset/empty env can't reproduce it
+- RAILGUN OpenAPI network enum advertised `base` (unsupported by RAILGUN) — corrected to `ethereum/polygon/arbitrum/bsc`
+
+### Security
+- RPC proxy hardened via an adversarial security review: the upstream provider API key no longer leaks into logs (Guzzle exception messages); signed-URL TTL is capped (default 300s, max 900s); the rate limiter is keyed on the signed user id (not shared per-IP); and an empty-batch (`[]`) whitelist bypass was closed
+
+### Changed
+- RAILGUN privacy is **mid-migration**: the legacy server-side custodial bridge + `app.key`-derived seed remain in place until the on-device path ships (mobile in progress). The custodial shield-422 path was deliberately left unfixed rather than cementing custody
+
 ## [7.15.0] - 2026-06-03
 
 **Bridge.xyz fiat ramp.** Bridge.xyz becomes the primary v1 fiat ↔ stablecoin rail — bank transfers in, USDC on Polygon out — with KYC, virtual accounts, and the ADR-0006 developer-fee markup mechanism. Also ships the landing-page truth-pass and wires HyperSwitch into the real deposit flow.

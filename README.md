@@ -39,7 +39,7 @@ FinAegis provides the foundation for building digital banking applications. The 
 | Plugin Marketplace | Manager, loader, sandbox, security scanner (v4.0.0) |
 | Event streaming | Redis Streams publisher/consumer, live dashboard (v5.0.0) |
 | API monetization | x402 protocol: HTTP-native micropayments with USDC on Base (v5.2.0) |
-| Privacy protocol | RAILGUN SDK integration: shield/unshield/transfer with Merkle proofs (v5.6.0) |
+| Privacy protocol | RAILGUN shield/unshield/transfer with Merkle proofs (v5.6.0); non-custodial backend migration — public-address registration, on-device engine config, signed-URL RPC proxy (v7.16.0) |
 | Mobile gamification | Rewards system: quests, XP/levels, points shop, streaks (v5.7.0) |
 | Fiat on/off ramp | Stripe Bridge with async webhook processing and provider-agnostic session management (v5.12.0) |
 | Design system v2 | Complete frontend overhaul with consistent typography, dark heroes (v5.12.0) |

@@ -215,6 +215,22 @@ Primary v1 fiat ↔ stablecoin rail (bank transfers in/out, USDC on Polygon). Do
 | VA never gets created after KYC approval | User had no Polygon `blockchain_addresses` row at KYC-completion time. `BlockchainAddressBridgeObserver` auto-retries when the address is registered; if the row already exists, run `php artisan bridge:inspect-user --email=X` to confirm state and re-trigger by deleting + re-creating the address (or call `BridgePostKycHandler::tryProvisionVirtualAccount` from tinker) |
 | Cross-domain ordering | KycServiceProvider attaches a second observer on `BlockchainAddress` (separate from Wallet/BlockchainAddressObserver which handles Helius/Solana sync). The two observers fire independently; don't merge their concerns |
 
+## RAILGUN Non-Custodial Privacy (v7.16.0+)
+
+RAILGUN privacy is **mid-migration** from custodial (v5.6.0 server-side bridge, seed = `hash_hmac(userId, app.key)`) to **non-custodial** (device holds all keys, like Wallet Send). Proving can't be delegated without surrendering custody, so the device proves on-device (embedded `@railgun-community/wallet` v10 + native Groth16 prover, Railway-style); the backend is reduced to support services. Design: `docs/superpowers/specs/2026-06-20-railgun-noncustodial-design.md`. Mobile guide: `docs/RAILGUN_MOBILE_INTEGRATION.md`. Infra runbook: `docs/operations/railgun-infra.md`.
+
+- **Backend support endpoints** (all under `/api/v1/privacy/*`, `auth:sanctum`): `POST /wallet/register` (device registers its PUBLIC `0zk` address — server stores NO seed; `railgun_wallets.encrypted_mnemonic` is nullable), `GET /engine-config` (SDK-exact bootstrap: `FallbackProviderJsonConfig`, `NetworkName`, POI node URLs, `TXIDVersion` — directly consumable by `startRailgunEngine`/`loadProvider`).
+- **RPC proxy**: `POST /api/v1/privacy/rpc/{network}` is authed by a **signed URL** (not Sanctum — the SDK's `loadProvider` takes a plain URL string, no header injection). `engine-config` mints it when `RAILGUN_RPC_UPSTREAM_*` is set; the key stays server-side. Method-whitelisted (reads + `eth_sendRawTransaction`), per-user `railgun-rpc` limiter keyed on the signed `u`.
+- **Status**: backend Phase 0 + Phase 1 shipped; the on-device engine (mobile) is gated on a de-risking spike (incl. a Privy signature-determinism check that decides the seed model). Phase 3 will strip the custodial bridge + `DelegatedProofService` + `encrypted_mnemonic` — safe since there are no funded wallets yet.
+
+| Pitfall | Fix |
+|---|---|
+| `artifact_base_url` from engine-config doesn't work | The v9/v10 SDK **hardcodes its IPFS artifact gateway** — `startRailgunEngine` does NOT consume `artifact_base_url`. The mirror is only used if the app's OWN `ArtifactStore.get()` fetches from it on a cache miss |
+| `base` network rejected in railgun mode | RAILGUN supports `ethereum/polygon/arbitrum/bsc` only (bsc → `NetworkName` `"BNB_Chain"`). `GET /networks` is the runtime source of truth; the OpenAPI enum was corrected in v7.16.0 |
+| Provider API key in `RAILGUN_RPC_*` | That value is served to clients. Use `RAILGUN_RPC_UPSTREAM_*` (proxied, key server-side) instead; `engine-config` defensively drops a client RPC URL that looks like it embeds a credential |
+| RPC proxy returns 403 mid-session | The signed URL expired (TTL capped [60,900]s). The app must **refetch `engine-config`** and rebuild the provider |
+| Editing custodial shield to "make it work" | Don't — the custodial shield-422 is deliberately unfixed; shield moves on-device in Phase 2. Adding a server-derived `shieldPrivateKey` would re-cement custody |
+
 ## Notes
 
 - Feature pages: only visible when `SHOW_PROMO_PAGES=true` (demo mode); production shows app landing page only

@@ -3257,6 +3257,29 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 
 ---
 
+## Version 7.16.0 — Non-Custodial RAILGUN Privacy (Backend) (June 2026)
+
+**Theme**: Migrate the RAILGUN privacy stack to the platform's non-custodial model (the device holds all keys, like Wallet Send). Proving cannot be delegated without surrendering custody, so the device proves on-device and the backend becomes support services. This release is the **backend groundwork** — the user-facing private-transaction flow ships once the mobile on-device engine lands. Also fixes the iOS AASA file that broke passkeys + universal links.
+
+### Delivered Features
+- Non-custodial design (`docs/superpowers/specs/2026-06-20-railgun-noncustodial-design.md`) — embedded on-device engine + native Groth16 prover (Railway-style); the legacy server-side custodial bridge + `app.key`-derived seed are retained only until the on-device path ships (Phase 3 teardown).
+- `POST /api/v1/privacy/wallet/register` (#1154) — the device registers its **public** `0zk` address; the server holds no seed (`railgun_wallets.encrypted_mnemonic` made nullable). Idempotent per (user, address); 409 cross-user; 422 malformed/unsupported.
+- `GET /api/v1/privacy/engine-config` (#1155) — on-device engine bootstrap with SDK-exact shapes (`FallbackProviderJsonConfig`, `NetworkName` incl. bsc → `BNB_Chain`, POI node URLs, `TXIDVersion`) for `startRailgunEngine` + `loadProvider`.
+- `POST /api/v1/privacy/rpc/{network}` (#1156) — signed-URL JSON-RPC proxy keeping the provider key server-side: method whitelist (reads + `eth_sendRawTransaction`, batch-aware), per-user limiter, short-lived signed URLs minted by engine-config.
+- Phase 0 custody-neutral fixes (#1153) — `ops:verify-env` `privacy.railgun.providers` consistency guard; OpenAPI network enum corrected (`base` → `ethereum/polygon/arbitrum/bsc`); env discoverability docs.
+- iOS Apple App Site Association fix (#1152) — the served file had an empty Apple Team ID prefix (`.com.zelta.wallet`), breaking iOS passkeys + the `/pay`/`/verify` universal links; the canonical team id is now the config default.
+- Docs — ops runbook `docs/operations/railgun-infra.md` (self-hosted POI node + artifact mirror + key-safe RPC) and rewritten `docs/RAILGUN_MOBILE_INTEGRATION.md`.
+
+### Scope Notes
+- **Backend only.** The on-device engine (mobile) is a separate workstream gated on a de-risking spike (embedded Node + native prover + Privy signature-determinism check, which decides the seed model). No user-facing private-transaction claim is made in this release.
+- The two adversarial verification passes caught real issues before merge: `artifact_base_url` is inert against the v9 SDK (it hardcodes its IPFS gateway), and the RPC proxy leaked the upstream provider key into logs — both fixed.
+
+### Required Configuration
+- For railgun mode: `ZK_PROVIDER=railgun` + `MERKLE_PROVIDER=railgun` + a non-empty `RAILGUN_BRIDGE_SECRET` (now gated by `ops:verify-env`).
+- For the on-device engine support services: `RAILGUN_POI_NODE_URLS`, `RAILGUN_ARTIFACT_BASE_URL`, and either `RAILGUN_RPC_UPSTREAM_*` (preferred — proxied, key server-side) or key-safe `RAILGUN_RPC_*`. See `docs/operations/railgun-infra.md`.
+
+---
+
 ## Version 7.15.0 — Bridge.xyz Fiat Ramp (June 2026)
 
 **Theme**: Bridge.xyz becomes the primary v1 fiat ↔ stablecoin rail — bank transfers in, USDC on Polygon — with Bridge-hosted KYC, virtual accounts, and the ADR-0006 developer-fee markup mechanism. Plus a landing-page truth-pass and HyperSwitch wired into the real deposit flow.
@@ -3427,5 +3450,5 @@ Embeddable JS widget that renders Zelta's 402 payment flow inside the partner's 
 
 ---
 
-*Document Version: 7.15.0*
-*Updated: June 3, 2026 (v7.15.0 Bridge.xyz fiat ramp — Bridge KYC, virtual accounts, developer-fee markup, HyperSwitch deposit wiring)*
+*Document Version: 7.16.0*
+*Updated: June 21, 2026 (v7.16.0 non-custodial RAILGUN privacy backend — wallet-register, on-device engine-config, signed-URL RPC proxy, Phase 0 custody-neutral fixes, iOS AASA fix)*
