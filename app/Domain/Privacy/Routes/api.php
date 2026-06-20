@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Api\Privacy\DelegatedProofController;
 use App\Http\Controllers\Api\Privacy\PrivacyController;
+use App\Http\Controllers\Api\Privacy\RailgunEngineConfigController;
 use App\Http\Controllers\Api\Privacy\RailgunWalletRegistrationController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,6 +30,10 @@ Route::prefix('v1/privacy')->name('api.privacy.')->group(function () {
         // Non-custodial wallet registration — device registers its public 0zk
         // address; no seed material is ever sent or stored (Phase 1).
         Route::post('/wallet/register', RailgunWalletRegistrationController::class)->name('wallet.register');
+
+        // On-device engine bootstrap — config for startRailgunEngine + loadProvider
+        // pointed at our self-hosted infra (POI node, artifact mirror, RPC).
+        Route::get('/engine-config', RailgunEngineConfigController::class)->name('engine-config');
 
         Route::get('/merkle-root', [PrivacyController::class, 'getMerkleRoot'])->name('merkle-root');
         Route::post('/merkle-path', [PrivacyController::class, 'getMerklePath'])->middleware('throttle:10,1')->name('merkle-path');

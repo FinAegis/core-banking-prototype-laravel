@@ -36707,6 +36707,26 @@
                 ]
             }
         },
+        "/api/v1/privacy/engine-config": {
+            "get": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "On-device RAILGUN engine bootstrap config",
+                "description": "Returns the parameters the on-device RAILGUN engine needs to point at our self-hosted infra (POI node, artifact mirror, RPC). No secrets; RPC URLs are key-safe.",
+                "operationId": "getRailgunEngineConfig",
+                "responses": {
+                    "200": {
+                        "description": "Engine bootstrap config"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/v1/privacy/wallet/register": {
             "post": {
                 "tags": [

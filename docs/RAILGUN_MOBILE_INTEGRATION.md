@@ -41,6 +41,28 @@ Authorization: Bearer <sanctum>
 ```
 Idempotent per (user, address). The backend stores **no seed** — `encrypted_mnemonic` is null for registered wallets. `409 ADDRESS_ALREADY_REGISTERED` if the address belongs to another account; `422` on a malformed `0zk` address or unsupported network.
 
+### New: `GET /api/v1/privacy/engine-config` (live now, Phase 1)
+Fetch this once at startup to configure the on-device engine against our self-hosted infra. The shapes are **directly consumable** by the SDK:
+```http
+GET /api/v1/privacy/engine-config  (Authorization: Bearer <sanctum>)
+→ data: {
+    "wallet_source": "zelta",                 // startRailgunEngine arg (≤16 chars)
+    "txid_version": "V2_PoseidonMerkle",
+    "use_native_artifacts": true,             // mobile → native Groth16 prover
+    "artifact_base_url": "https://...",        // YOUR ArtifactStore.get() fetches mirrored artifacts from here (see note)
+    "poi_node_urls": ["https://..."],          // startRailgunEngine(..., poiNodeURLs)
+    "networks": [
+      { "key":"polygon", "network_name":"Polygon", "chain_id":137,
+        "fallback_provider_config": { "chainId":137, "providers":[{ "provider":"https://...", "priority":1, "weight":2, "maxLogsPerBatch":1, "stallTimeout":2500 }] } }
+    ]
+  }
+```
+Pass `network_name` (the exact SDK `NetworkName`) + `fallback_provider_config` straight to `loadProvider(config, networkName)`, and `poi_node_urls` to `startRailgunEngine`. A network with no configured RPC (or one that looks like it embeds a credential) is omitted. `bsc` → `network_name: "BNB_Chain"`.
+
+> ⚠️ **`artifact_base_url` is NOT consumed by the SDK.** The v9 engine hardcodes its own IPFS artifact gateway. To use our mirror, your **ArtifactStore `get()`/`exists()` implementation** must fetch from `artifact_base_url` on a cache miss (and `store()` it) — that's the only hook. If you don't, artifacts come from the SDK's pinned gateway and our mirror is unused.
+>
+> **Device-constructed (not in this payload):** the LevelDB instance, the `ArtifactStore`, and `shouldDebug` are positional `startRailgunEngine` args you build on-device — the endpoint intentionally doesn't return them.
+
 ## 3. Spike FIRST (de-risk the biggest unknown)
 
 Before building the on-device path, prove it works on a real device:
