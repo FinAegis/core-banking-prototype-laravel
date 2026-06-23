@@ -6,6 +6,7 @@ namespace App\Domain\Custodian\Models;
 
 use App\Domain\Account\Models\Account;
 use App\Domain\Shared\Traits\UsesTenantConnection;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -30,6 +31,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property array|null $metadata
  * @property int|null $last_known_balance
  * @property \Illuminate\Support\Carbon|null $last_synced_at
+ * @property string|null $sync_status
+ * @property string|null $sync_error
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  *
@@ -100,6 +103,8 @@ class CustodianAccount extends Model
         'metadata',
         'last_known_balance',
         'last_synced_at',
+        'sync_status',
+        'sync_error',
     ];
 
     /**
@@ -154,6 +159,22 @@ class CustodianAccount extends Model
     public function scopeForCustodian($query, string $custodianName)
     {
         return $query->where('custodian_name', $custodianName);
+    }
+
+    /**
+     * Scope a query to accounts that need synchronization: never synced, or
+     * last synced more than five minutes ago. Mirrors the staleness window in
+     * BalanceSynchronizationService::getActiveCustodianAccounts().
+     *
+     * @param  Builder<CustodianAccount>  $query
+     * @return Builder<CustodianAccount>
+     */
+    public function scopeNeedsSynchronization(Builder $query): Builder
+    {
+        return $query->where(function ($query) {
+            $query->whereNull('last_synced_at')
+                ->orWhere('last_synced_at', '<', now()->subMinutes(5));
+        });
     }
 
     /**

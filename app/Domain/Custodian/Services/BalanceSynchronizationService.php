@@ -77,7 +77,7 @@ class BalanceSynchronizationService
             }
 
             // Get custodian connector
-            $connector = $this->custodianRegistry->getConnector($custodianAccount->custodian_id);
+            $connector = $this->custodianRegistry->getConnector($custodianAccount->custodian_name);
 
             if (! $connector->isAvailable()) {
                 $this->recordSyncResult($custodianAccount, 'failed', 'Custodian not available');
@@ -86,7 +86,7 @@ class BalanceSynchronizationService
             }
 
             // Get account info from custodian
-            $accountInfo = $connector->getAccountInfo($custodianAccount->external_account_id);
+            $accountInfo = $connector->getAccountInfo($custodianAccount->custodian_account_id);
 
             // Update balances
             $this->updateAccountBalances($custodianAccount, $accountInfo);
@@ -139,7 +139,7 @@ class BalanceSynchronizationService
             ->get();
 
         foreach ($custodianAccounts as $custodianAccount) {
-            $results[$custodianAccount->custodian_id] = $this->synchronizeAccountBalance($custodianAccount);
+            $results[$custodianAccount->custodian_name] = $this->synchronizeAccountBalance($custodianAccount);
         }
 
         return $results;
@@ -181,7 +181,9 @@ class BalanceSynchronizationService
     {
         DB::transaction(
             function () use ($custodianAccount, $accountInfo) {
-                $account = Account::findOrFail($custodianAccount->account_uuid);
+                // account_uuid is the accounts.uuid column, not the (bigint) PK,
+                // so look it up by uuid rather than Account::findOrFail().
+                $account = Account::where('uuid', $custodianAccount->account_uuid)->firstOrFail();
 
                 foreach ($accountInfo->balances as $assetCode => $amountInCents) {
                     $currentBalance = $account->getBalance($assetCode);
@@ -202,7 +204,7 @@ class BalanceSynchronizationService
                         event(
                             new AccountBalanceUpdated(
                                 accountUuid: $account->uuid,
-                                custodianId: $custodianAccount->custodian_id,
+                                custodianId: $custodianAccount->custodian_name,
                                 assetCode: $assetCode,
                                 previousBalance: $currentBalance,
                                 newBalance: $amountInCents,
@@ -214,7 +216,7 @@ class BalanceSynchronizationService
                             'Account balance updated',
                             [
                                 'account_uuid'     => $account->uuid,
-                                'custodian_id'     => $custodianAccount->custodian_id,
+                                'custodian_id'     => $custodianAccount->custodian_name,
                                 'asset_code'       => $assetCode,
                                 'previous_balance' => $currentBalance,
                                 'new_balance'      => $amountInCents,
@@ -250,8 +252,8 @@ class BalanceSynchronizationService
         $this->syncResults['details'][] = [
             'custodian_account_id' => $custodianAccount->id,
             'account_uuid'         => $custodianAccount->account_uuid,
-            'custodian_id'         => $custodianAccount->custodian_id,
-            'external_account_id'  => $custodianAccount->external_account_id,
+            'custodian_id'         => $custodianAccount->custodian_name,
+            'external_account_id'  => $custodianAccount->custodian_account_id,
             'status'               => $status,
             'message'              => $message,
             'timestamp'            => now()->toISOString(),

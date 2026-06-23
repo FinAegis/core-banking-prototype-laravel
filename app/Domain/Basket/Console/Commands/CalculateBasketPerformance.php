@@ -44,9 +44,19 @@ class CalculateBasketPerformance extends Command
         $baskets = $query->get();
 
         if ($baskets->isEmpty()) {
-            $this->error('No active baskets found to process.');
+            // An explicit --basket that resolves to nothing is a real error
+            // (typo or misconfiguration) and must surface a non-zero exit code.
+            if ($basketCode) {
+                $this->error("Basket with code '{$basketCode}' not found.");
 
-            return 1;
+                return 1;
+            }
+
+            // A scheduled bulk run with no active baskets is a no-op, not a
+            // failure — returning non-zero made the scheduler log it as failed.
+            $this->info('No active baskets to process.');
+
+            return 0;
         }
 
         $this->info("Processing performance for {$baskets->count()} basket(s)...");
