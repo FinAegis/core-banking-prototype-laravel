@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 
 class PartnerApiKeyRotateCommand extends Command
 {
-    protected $signature = 'partner:api-key rotate {partner}';
+    protected $signature = 'partner:api-key:rotate {partner}';
 
     protected $description = 'Rotate the API key for a partner (invalidates old key)';
 

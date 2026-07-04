@@ -2901,7 +2901,7 @@ Based on competitive analysis of 19 worldwide open-source core banking platforms
 - **Sandbox Reset** — Clean state reset with re-seeding
 - **Webhook Testing** — Test payload generation for 5 event types, webhook replay with HMAC signatures
 - **Webhook Delivery Routes** — Event listing, test payload, delivery log endpoints
-- **API Key Management** — CLI commands: `partner:api-key {create,rotate,revoke,list}`
+- **API Key Management** — CLI commands: `partner:api-key:{create,rotate,revoke,list}`
 - **Sandbox CLI** — `partner:sandbox:{create,reset}` with profile selection
 
 ### Mobile Compatibility Fixes

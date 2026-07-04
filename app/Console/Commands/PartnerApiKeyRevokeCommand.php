@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 
 class PartnerApiKeyRevokeCommand extends Command
 {
-    protected $signature = 'partner:api-key revoke {key_id}';
+    protected $signature = 'partner:api-key:revoke {key_id}';
 
     protected $description = 'Revoke a specific API key';
 

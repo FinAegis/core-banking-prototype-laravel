@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 
 class PartnerApiKeyCreateCommand extends Command
 {
-    protected $signature = 'partner:api-key create {partner} {--scopes=read,write : Comma-separated API scopes}';
+    protected $signature = 'partner:api-key:create {partner} {--scopes=read,write : Comma-separated API scopes}';
 
     protected $description = 'Create an API key for a partner';
 

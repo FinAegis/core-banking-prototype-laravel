@@ -14,7 +14,7 @@ class SetupVotingPolls extends Command
      *
      * @var string
      */
-    protected $signature = 'voting:setup 
+    protected $signature = 'voting:setup-batch
                             {--month= : Setup voting for a specific month (YYYY-MM)}
                             {--year= : Setup all monthly polls for a year}';
 
