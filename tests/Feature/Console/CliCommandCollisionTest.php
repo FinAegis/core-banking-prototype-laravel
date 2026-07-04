@@ -13,12 +13,14 @@ use Illuminate\Support\Facades\Artisan;
 it('registers each partner:api-key subcommand as a distinct command', function () {
     $commands = array_keys(Artisan::all());
 
-    foreach ([
+    $expected = [
         'partner:api-key:create',
         'partner:api-key:list',
         'partner:api-key:rotate',
         'partner:api-key:revoke',
-    ] as $name) {
+    ];
+
+    foreach ($expected as $name) {
         $this->assertContains($name, $commands, "Command {$name} is not registered");
     }
 

@@ -13,20 +13,20 @@ it('command class exists and extends Illuminate Command', function (): void {
     expect($command)->toBeInstanceOf(Illuminate\Console\Command::class);
 });
 
-it('has correct command name partner:api-key', function (): void {
+it('has correct command name partner:api-key:create', function (): void {
     $command = new PartnerApiKeyCreateCommand();
 
-    expect($command->getName())->toBe('partner:api-key');
+    expect($command->getName())->toBe('partner:api-key:create');
 });
 
-it('signature definition contains partner:api-key create {partner}', function (): void {
+it('signature definition contains partner:api-key:create {partner}', function (): void {
     $command = new PartnerApiKeyCreateCommand();
     $ref = new ReflectionClass($command);
     $prop = $ref->getProperty('signature');
     $prop->setAccessible(true);
     $signature = (string) $prop->getValue($command);
 
-    expect($signature)->toContain('partner:api-key create {partner}');
+    expect($signature)->toContain('partner:api-key:create {partner}');
 });
 
 it('has a non-empty description', function (): void {
