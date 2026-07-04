@@ -39,9 +39,10 @@ function opsVerifyEnvAllGoodConfig(): void
             'fixed_exchange_rates' => false,
             'auto_approve'         => false,
         ],
-        'keymanagement.demo_mode' => false,
-        'regtech.demo_mode'       => false,
-        'ai.demo_mode'            => false,
+        'keymanagement.demo_mode'                 => false,
+        'regtech.demo_mode'                       => false,
+        'ai.demo_mode'                            => false,
+        'compliance-certification.soc2.demo_mode' => false,
 
         // conditional
         'hyperswitch.enabled'              => false,
@@ -91,6 +92,16 @@ it('blocks the deploy in production when the Apple JWS verification bypass is on
 
     $this->artisan('ops:verify-env')
         ->expectsOutputToContain('apple_jws_verification_bypass')
+        ->assertExitCode(1);
+});
+
+it('blocks the deploy in production when SOC2_DEMO_MODE is on (fabricated evidence)', function (): void {
+    opsVerifyEnvAllGoodConfig();
+    config(['compliance-certification.soc2.demo_mode' => true]);
+    app()->detectEnvironment(fn () => 'production');
+
+    $this->artisan('ops:verify-env')
+        ->expectsOutputToContain('compliance-certification.soc2.demo_mode')
         ->assertExitCode(1);
 });
 

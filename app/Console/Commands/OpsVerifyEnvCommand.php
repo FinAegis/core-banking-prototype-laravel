@@ -154,6 +154,7 @@ class OpsVerifyEnvCommand extends Command
         $this->requireFalse(self::CATEGORY_BYPASSES, 'keymanagement.demo_mode', 'KEY_MANAGEMENT_DEMO_MODE resolves to true (config default is true) — a simulated HSM signs in place of the real cloud HSM. Set KEY_MANAGEMENT_DEMO_MODE=false explicitly.');
         $this->requireFalse(self::CATEGORY_BYPASSES, 'regtech.demo_mode', 'REGTECH_DEMO_MODE resolves to true (config default is true) — regulatory filings/screening run in demo mode. Set REGTECH_DEMO_MODE=false explicitly.');
         $this->requireFalse(self::CATEGORY_BYPASSES, 'ai.demo_mode', 'AI_DEMO_MODE resolves to true (config default is true) — AI services return canned demo output. Set AI_DEMO_MODE=false explicitly.');
+        $this->requireFalse(self::CATEGORY_BYPASSES, 'compliance-certification.soc2.demo_mode', 'SOC2_DEMO_MODE=true — the SOC 2 evidence endpoint returns fabricated audit data stamped as production (collectEvidence() also throws in prod). Set SOC2_DEMO_MODE=false.');
     }
 
     private function checkBridgeWebhookCredentials(): void
