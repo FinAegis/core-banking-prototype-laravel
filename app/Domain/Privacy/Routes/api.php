@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Privacy\PrivacyController;
 use App\Http\Controllers\Api\Privacy\RailgunEngineConfigController;
 use App\Http\Controllers\Api\Privacy\RailgunRpcProxyController;
 use App\Http\Controllers\Api\Privacy\RailgunWalletRegistrationController;
+use App\Http\Middleware\RejectCustodialPrivacyInProduction;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1/privacy')->name('api.privacy.')->group(function () {
@@ -53,7 +54,7 @@ Route::prefix('v1/privacy')->name('api.privacy.')->group(function () {
 
         // Delegated Proof Generation (v2.6.0)
         Route::post('/delegated-proof', [DelegatedProofController::class, 'requestProof'])
-            ->middleware('transaction.rate_limit:delegated_proof')
+            ->middleware([RejectCustodialPrivacyInProduction::class, 'transaction.rate_limit:delegated_proof'])
             ->name('delegated-proof.request');
         Route::get('/delegated-proof/{jobId}', [DelegatedProofController::class, 'getProofStatus'])
             ->name('delegated-proof.status');
@@ -72,21 +73,23 @@ Route::prefix('v1/privacy')->name('api.privacy.')->group(function () {
 
         // Shield/Unshield/Transfer operations
         Route::post('/shield', [PrivacyController::class, 'shield'])
-            ->middleware('transaction.rate_limit:delegated_proof')
+            ->middleware([RejectCustodialPrivacyInProduction::class, 'transaction.rate_limit:delegated_proof'])
             ->name('shield');
         Route::post('/unshield', [PrivacyController::class, 'unshield'])
-            ->middleware('transaction.rate_limit:delegated_proof')
+            ->middleware([RejectCustodialPrivacyInProduction::class, 'transaction.rate_limit:delegated_proof'])
             ->name('unshield');
         Route::post('/transfer', [PrivacyController::class, 'privateTransfer'])
-            ->middleware('transaction.rate_limit:delegated_proof')
+            ->middleware([RejectCustodialPrivacyInProduction::class, 'transaction.rate_limit:delegated_proof'])
             ->name('transfer');
 
         // Viewing key
-        Route::get('/viewing-key', [PrivacyController::class, 'getViewingKey'])->name('viewing-key');
+        Route::get('/viewing-key', [PrivacyController::class, 'getViewingKey'])
+            ->middleware(RejectCustodialPrivacyInProduction::class)
+            ->name('viewing-key');
 
         // Proof of Innocence
         Route::post('/proof-of-innocence', [PrivacyController::class, 'generateProofOfInnocence'])
-            ->middleware('transaction.rate_limit:delegated_proof')
+            ->middleware([RejectCustodialPrivacyInProduction::class, 'transaction.rate_limit:delegated_proof'])
             ->name('proof-of-innocence.generate');
         Route::get('/proof-of-innocence/{proofId}/verify', [PrivacyController::class, 'verifyProofOfInnocence'])
             ->name('proof-of-innocence.verify');
