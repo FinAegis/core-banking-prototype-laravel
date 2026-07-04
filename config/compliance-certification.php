@@ -26,8 +26,10 @@ return [
     */
 
     'soc2' => [
-        // When enabled, SOC 2 checks run in demonstration mode (no real audit trail)
-        'demo_mode' => env('SOC2_DEMO_MODE', true),
+        // When enabled, SOC 2 checks run in demonstration mode (fabricated audit
+        // data). Defaults to FALSE — must never be on in production; the evidence
+        // collector throws in prod and ops:verify-env blocks the deploy.
+        'demo_mode' => env('SOC2_DEMO_MODE', false),
 
         // Number of days to retain audit evidence artifacts
         'evidence_retention_days' => (int) env('SOC2_EVIDENCE_RETENTION_DAYS', 365),
