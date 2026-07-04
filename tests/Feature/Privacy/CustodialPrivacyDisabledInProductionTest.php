@@ -5,13 +5,11 @@ declare(strict_types=1);
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
 
-/**
- * Wave 0B — the custodial RAILGUN money-movement/key endpoints (server-side
- * seed derivation from app.key) are hard-disabled (501) in production,
- * regardless of ZK_PROVIDER; privacy is non-custodial / on-device. Outside
- * production they stay reachable so tests/local can exercise the inert demo
- * path. Mirrors the both-sides pattern used for account-flag bypass tests.
- */
+// Wave 0B — the custodial RAILGUN money-movement/key endpoints (server-side
+// seed derivation from app.key) are hard-disabled (501) in production,
+// regardless of ZK_PROVIDER; privacy is non-custodial / on-device. Outside
+// production they stay reachable so tests/local can exercise the inert demo
+// path. Mirrors the both-sides pattern used for account-flag bypass tests.
 it('returns 501 for custodial privacy endpoints in production', function (string $method, string $uri) {
     $this->app->detectEnvironment(fn () => 'production');
     Sanctum::actingAs(User::factory()->create(), ['read', 'write', 'delete']);
