@@ -339,6 +339,17 @@ class OpsVerifyEnvCommand extends Command
         $zkRailgun = $zk === 'railgun';
         $merkleRailgun = $merkle === 'railgun';
 
+        // Custody-neutral in production (Wave 0B): ZK_PROVIDER=railgun enables the
+        // CUSTODIAL money path (isRailgunMode → server-side seed derived from
+        // app.key). Forbidden in production regardless of the rest of the stack —
+        // privacy is non-custodial / on-device, and the custodial shield/unshield/
+        // transfer/viewing-key endpoints hard-return 501 in prod.
+        if ($zkRailgun && ($this->laravel->environment('production') || (bool) $this->option('strict'))) {
+            $this->add(self::CATEGORY_CONDITIONAL, 'privacy.railgun.custody', self::FAIL, 'ZK_PROVIDER=railgun enables the custodial RAILGUN path (server-side seed derived from app.key) — forbidden in production. Set ZK_PROVIDER=demo. Privacy is non-custodial/on-device; the custodial shield/unshield/transfer/viewing-key endpoints hard-return 501 in prod regardless.');
+
+            return;
+        }
+
         if (! $zkRailgun && ! $merkleRailgun) {
             $this->add(self::CATEGORY_CONDITIONAL, 'privacy.railgun.providers', self::SKIP, sprintf(
                 'Privacy stack in demo mode (ZK_PROVIDER=%s, MERKLE_PROVIDER=%s) — no real RAILGUN privacy.',

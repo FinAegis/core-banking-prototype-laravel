@@ -94,6 +94,16 @@ it('blocks the deploy in production when the Apple JWS verification bypass is on
         ->assertExitCode(1);
 });
 
+it('blocks the deploy in production when ZK_PROVIDER=railgun (custodial privacy path)', function (): void {
+    opsVerifyEnvAllGoodConfig();
+    config(['privacy.zk.provider' => 'railgun']);
+    app()->detectEnvironment(fn () => 'production');
+
+    $this->artisan('ops:verify-env')
+        ->expectsOutputToContain('privacy.railgun.custody')
+        ->assertExitCode(1);
+});
+
 it('blocks the deploy in production when HyperSwitch is enabled without a webhook secret', function (): void {
     opsVerifyEnvAllGoodConfig();
     config([
@@ -249,35 +259,45 @@ it('skips the privacy provider check when the stack is in demo mode', function (
         ->and($check['result'])->toBe('SKIP');
 });
 
-it('blocks the deploy when ZK_PROVIDER and MERKLE_PROVIDER disagree on railgun', function (): void {
+// Wave 0B: in production the custodial RAILGUN path is forbidden outright
+// (privacy is non-custodial/on-device), so ZK_PROVIDER=railgun blocks with a
+// `privacy.railgun.custody` FAIL that preempts the consistency/secret checks.
+// Those checks remain as non-blocking diagnostics OUTSIDE production.
+
+it('flags inconsistent railgun providers as a non-blocking FAIL outside production', function (): void {
     opsVerifyEnvAllGoodConfig();
     config([
         'privacy.zk.provider'           => 'railgun',
         'privacy.merkle.provider'       => 'demo',
         'privacy.railgun.bridge_secret' => 'a-secret',
     ]);
-    app()->detectEnvironment(fn () => 'production');
+    // Not production/strict → custody rule does not fire; consistency check reports FAIL (non-blocking).
 
-    $this->artisan('ops:verify-env')
-        ->expectsOutputToContain('privacy.railgun.providers')
-        ->assertExitCode(1);
+    $exitCode = Artisan::call('ops:verify-env', ['--json' => true]);
+    $check = collect(json_decode(Artisan::output(), true)['checks'])->firstWhere('name', 'privacy.railgun.providers');
+
+    expect($exitCode)->toBe(0)
+        ->and($check)->not->toBeNull()
+        ->and($check['result'])->toBe('FAIL');
 });
 
-it('blocks the deploy when railgun mode is on but RAILGUN_BRIDGE_SECRET is empty', function (): void {
+it('flags railgun mode without a bridge secret as a non-blocking FAIL outside production', function (): void {
     opsVerifyEnvAllGoodConfig();
     config([
         'privacy.zk.provider'           => 'railgun',
         'privacy.merkle.provider'       => 'railgun',
         'privacy.railgun.bridge_secret' => '',
     ]);
-    app()->detectEnvironment(fn () => 'production');
 
-    $this->artisan('ops:verify-env')
-        ->expectsOutputToContain('RAILGUN_BRIDGE_SECRET')
-        ->assertExitCode(1);
+    $exitCode = Artisan::call('ops:verify-env', ['--json' => true]);
+    $check = collect(json_decode(Artisan::output(), true)['checks'])->firstWhere('name', 'privacy.railgun.providers');
+
+    expect($exitCode)->toBe(0)
+        ->and($check)->not->toBeNull()
+        ->and($check['result'])->toBe('FAIL');
 });
 
-it('passes the privacy provider check when both are railgun with a bridge secret', function (): void {
+it('blocks railgun in production even with a bridge secret (custodial path forbidden)', function (): void {
     opsVerifyEnvAllGoodConfig();
     config([
         'privacy.zk.provider'           => 'railgun',
@@ -287,8 +307,9 @@ it('passes the privacy provider check when both are railgun with a bridge secret
     app()->detectEnvironment(fn () => 'production');
 
     $exitCode = Artisan::call('ops:verify-env', ['--json' => true]);
-    $check = collect(json_decode(Artisan::output(), true)['checks'])->firstWhere('name', 'privacy.railgun.providers');
+    $check = collect(json_decode(Artisan::output(), true)['checks'])->firstWhere('name', 'privacy.railgun.custody');
 
-    expect($exitCode)->toBe(0)
-        ->and($check['result'])->toBe('PASS');
+    expect($exitCode)->toBe(1)
+        ->and($check)->not->toBeNull()
+        ->and($check['result'])->toBe('FAIL');
 });
