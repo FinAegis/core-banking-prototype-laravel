@@ -81,7 +81,8 @@ Runbook: `docs/operations/wallet-sponsorship.md`.
 - [ ] `LOG_SLACK_WEBHOOK_URL` set — the default log stack auto-includes Slack when present, routing every `Log::critical`/`emergency` to Slack (PR #1133). `LOG_SLACK_LEVEL` defaults to `critical` (does not inherit `LOG_LEVEL`).
 - [ ] `METRICS_TOKEN` (or `METRICS_ALLOWED_IPS`) set — `MetricsAccessMiddleware` gates `/api/monitoring/{metrics,prometheus}` + `/api/metrics/prometheus`; with neither configured it **fails closed (403) in production** (PR #1133). `/health`, `/ready`, `/alive` stay public for k8s probes.
 - [ ] Error tracking (Sentry/Rollbar) + APM wired; alert thresholds set.
-- [ ] Horizon running for queues (`events`, default, notifications); failed-job handling verified.
+- [x] Queue workers cover **every** managed queue (`config/queue.php` `managed_queues`), enforced on every PR by `tests/Feature/Ops/QueueCoverageTest.php` (PR 0A). Production runs **Supervisor** off `etc/supervisor.conf` (not Horizon). **After deploying the config you MUST run on the server:** `supervisorctl reread && supervisorctl update && supervisorctl restart all`, then confirm with `supervisorctl status` that `finaegis-transfers-worker`, `finaegis-mobile-worker`, and `finaegis-aux-worker` are RUNNING — a `git pull` alone does not restart workers. Failed-job handling: `database-uuids`, 1-week retention.
+- [ ] Run `php artisan ops:verify-env` as a manual deploy step after `git pull`, **before** `migrate` — deploy is a manual `git pull` + manual artisan steps, so the `deploy.yml` gate is not in the live path and env guards (peppers, demo-modes, RAILGUN/SOC-2 provider checks) only fire when the command is run.
 
 ## 9. Data & backups
 

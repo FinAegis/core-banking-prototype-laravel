@@ -376,3 +376,11 @@ EOF
 **Placeholder scan:** No TBD/TODO; all code shown in full; exact commands + expected output present. ✅
 
 **Type consistency:** `dispatchedQueues(): array<string,string>`, `supervisorConsumedQueues(): array<int,string>`, `config('queue.managed_queues'): array<int,string>` — used consistently across both tests. ✅
+
+## Execution notes (deviations from the drafted plan)
+
+Two corrections found while verifying against real code before committing:
+
+1. **`transfers` is a real uncovered money queue.** The plan draft said `transfers` had "no producer" — wrong. `MoneyTransferred`, `AssetTransferred`, and `TransferThresholdReached` all set `$queue = EventQueues::TRANSFERS->value` (`app/Values/EventQueues.php`). The initial regex missed it because the queue is an **enum reference, not a quoted literal**. So `transfers` was added to `managed_queues` and given its own dedicated Supervisor worker (money-projection isolation). The true uncovered set was **7** queues, not 6.
+2. **The guard is enum-aware.** `dispatchedQueues()` seeds from `EventQueues::cases()` (the event-sourcing source of truth) in addition to scanning quoted `onQueue('x')`/`$queue = 'x'` literals — otherwise any future ES event on a new enum case would escape the guard.
+3. PHPStan: `expect(...)->toBeArray()->not->toBeEmpty()` trips the Pest generics extension; split into `->toBeArray()` + `->toContain('default')`.
