@@ -198,13 +198,15 @@ return [
     'environments' => [
         'production' => [
             'supervisor-1' => [
+                'connection'      => 'redis',
+                'queue'           => ['default', 'webhooks', 'fraud-batch', 'exchange', 'proofs'],
                 'maxProcesses'    => 10,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
             'event-sourcing-supervisor-1' => [
                 'connection' => 'redis',
-                'queue'      => [env('EVENT_PROJECTOR_QUEUE_NAME')],
+                'queue'      => ['events', 'ledger', 'transactions', 'transfers', 'liquidity_pools'],
                 'balance'    => 'simple',
                 'processes'  => 1,
                 'tries'      => 3,
@@ -235,11 +237,13 @@ return [
 
         'local' => [
             'supervisor-1' => [
+                'connection'   => 'redis',
+                'queue'        => ['default', 'webhooks', 'fraud-batch', 'exchange', 'proofs'],
                 'maxProcesses' => 3,
             ],
             'event-sourcing-supervisor-1' => [
                 'connection' => 'redis',
-                'queue'      => [env('EVENT_PROJECTOR_QUEUE_NAME')],
+                'queue'      => ['events', 'ledger', 'transactions', 'transfers', 'liquidity_pools'],
                 'balance'    => 'simple',
                 'processes'  => 1,
                 'tries'      => 3,
