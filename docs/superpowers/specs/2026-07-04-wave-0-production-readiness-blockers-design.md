@@ -18,6 +18,12 @@ The product owner has decided: **reposition FinAegis as an open-source reference
 
 This spec covers **Wave 0 only**: the four go-live blockers that must ship before a defensible Zelta soft launch. Each is an independent, isolated PR.
 
+## 1a. Deployment context (confirmed with owner, 2026-07-04)
+
+- **Deploy is a manual `git pull` on a single server** + manual `php artisan migrate` / `config:cache` / `route:cache` / `queue:restart`. The repo's `deploy.yml` GitHub Action (which runs `ops:verify-env` before `migrate`) is **not** the live deploy path.
+- **Implication:** `ops:verify-env` does **not** currently gate production deploys, so the env guards this spec adds in 0B/0C (and those from the June remediation) only fire if the owner runs them. **Ops action (fold into the deploy runbook):** add `php artisan ops:verify-env` as a mandatory manual step after `git pull`, before `migrate` — or wire a deploy hook. Cheap, high-value; makes every 0B/0C guard actually enforce.
+- **Workers run under Supervisor** (`etc/supervisor.conf`) — see 0A; this is why 0A is a *live* production defect, not a latent one.
+
 ## 2. Scope
 
 **In scope (Wave 0):** four PRs — queue-worker coverage; RAILGUN custody-neutral production default; SOC-2 demo-mode production hard-fail; README/site honesty relabel + reference-platform positioning.
@@ -32,28 +38,35 @@ This spec covers **Wave 0 only**: the four go-live blockers that must ship befor
 
 ## 3. Wave-0 items
 
-### 0A — Queue-worker coverage (P0, data integrity)
+### 0A — Queue-worker coverage (P0, **live in production now**)
 
-**Problem.** Async projections and jobs are dispatched to queues that **no worker consumes**, on both deployment topologies — a silent money-projection / job-loss failure.
+**Problem.** `ShouldQueue` listeners/jobs are dispatched to queues the deployed Supervisor does **not** consume, so the work queues forever. Confirmed with the owner (2026-07-04): production runs **Supervisor** off `etc/supervisor.conf`, which consumes only `events, ledger, transactions, default, liquidity_pools`.
 
-**Evidence (current state).**
-- Queue names actually in use (authoritative union): `default`, `events`, `ledger`, `transactions`, `transfers`, `liquidity_pools`, `mobile`, `broadcasts`, `webhooks`, `fraud-batch`, `exchange`, `proofs`. (`grep onQueue()` + `$queue` literals + event queue overrides; event-sourcing money events set their own queues — e.g. `MoneyAdded`→`transactions`, `AccountCreated`→`ledger`, `MoneyTransferred`→`transfers`, `BasePoolEvent`→`liquidity_pools`.)
-- **Horizon / K8s path** (`config/horizon.php:199-234`, `helm/finaegis/templates/deployment-horizon.yaml`): production supervisors cover only `default`, `broadcasts`, `mobile`, and `event-sourcing-supervisor-1` which binds `[env('EVENT_PROJECTOR_QUEUE_NAME')]` — **unset in every env template → `[null]`**. So `events/ledger/transactions/transfers/liquidity_pools` (all ES money projections) have **no consumer** on K8s. One supervisor bound to one env var structurally cannot cover the 5 distinct ES queues anyway.
-- **VM / supervisor path** (`etc/supervisor.conf`): programs cover `events`, `ledger`, `transactions`, `default`, `liquidity_pools` — but **omit** `transfers`, `webhooks`, `fraud-batch`, `mobile`, `broadcasts`, `exchange`, `proofs`.
-- **Consumed by NEITHER topology:** `transfers`, `webhooks`, `fraud-batch`, `exchange`, `proofs`. (`transfers` carries money events; `fraud-batch` carries the scheduled fraud scan → fraud detection is silently dead; `webhooks` carries all outbound webhook deliveries.)
+**Live blast radius (verified 2026-07-04).** Everything dispatched to an uncovered queue is currently unprocessed in production:
+- `mobile` → **transaction push notifications** (`SendTransactionPushNotificationListener`), **security-alert pushes** (`SendSecurityAlertListener`), mobile audit log (`LogMobileAuditEventListener`) — all `implements ShouldQueue`, all wired in `app/Providers/EventServiceProvider.php:43,72`. **For a mobile wallet this is the single most user-visible defect in the audit: push is not being delivered.**
+- `broadcasts` → `BroadcastEventListener` (ShouldQueue) — real-time WebSocket updates not broadcast.
+- `webhooks` → `WebhookService.php:77` dispatches `ProcessWebhookDelivery` — outbound webhooks not delivered.
+- `fraud-batch` → `ProcessAnomalyBatchJob` (ShouldQueue) — scheduled fraud scans dead.
+- `exchange` → `CheckArbitrageOpportunitiesJob` (exchange feature; lower impact).
+- `proofs` → `GenerateDelegatedProofJob` (custodial RAILGUN; disabled by 0B anyway).
+- `transfers` → no active producer found — inventory only, no action.
 
-**Desired state.** Every queue that any code dispatches to has at least one consumer in whichever topology is deployed, and a CI test fails if that ever regresses.
+(`config/horizon.php` is even more incomplete — its ES supervisor binds `[env('EVENT_PROJECTOR_QUEUE_NAME')]` = `[null]` — but Horizon is **not** the deployed runner, so that's a parity/future fix, not the live bug.)
+
+**Caveat to confirm on the box.** The repo's `etc/supervisor.conf` is a template with a hardcoded `/home/yozaz/www/finaegis/core-banking-prototype-laravel/artisan` path; the running config lives in the server's `/etc/supervisor/conf.d/`. Run `supervisorctl status` on the server to confirm the actual worker set — the live config may already differ from the repo file.
+
+**Desired state.** Every queue any code dispatches to has a Supervisor worker; a CI guard fails if a new `onQueue()`/`$queue` literal ever lacks a consumer; `config/horizon.php` is also made correct for parity.
 
 **Approach.**
-1. Establish the canonical queue inventory as a single constant (e.g. `config/queue.php` `'managed_queues' => [...]` or a `QueueNames` enum) — the source of truth both topologies and the CI guard read.
-2. **`config/horizon.php`** (production + local): replace the single `event-sourcing-supervisor-1` `[env('EVENT_PROJECTOR_QUEUE_NAME')]` binding with an explicit queue list covering the 5 ES queues, and add supervisors/queues for `transfers`, `webhooks`, `fraud-batch`, `exchange`, `proofs`. Keep `EVENT_PROJECTOR_QUEUE_NAME` working as an override if set, but default to the explicit list so a null env var can never silently drop projections.
-3. **`etc/supervisor.conf`**: add the missing programs (`transfers`, `webhooks`, `fraud-batch`, `mobile`, `broadcasts`, `exchange`, `proofs`) so the VM path is also complete. Remove the hardcoded absolute path assumption or parameterise it.
-4. **Env templates**: set `EVENT_PROJECTOR_QUEUE_NAME` appropriately (or document it as an optional override now that the config no longer depends on it).
-5. **CI guard** (`tests/Feature/Ops/QueueCoverageTest.php`): enumerate every `onQueue('x')` / `$queue = 'x'` / event queue-override literal in `app/`, and assert each appears in the canonical inventory AND is covered by ≥1 Horizon supervisor queue array. (Optional companion: assert `etc/supervisor.conf` coverage too, gated on whether the VM path is still used.)
+1. Canonical queue inventory as a single source of truth (a `QueueNames` enum or `config/queue.php` `managed_queues`), read by both configs and the CI guard.
+2. **`etc/supervisor.conf` (primary — the live runner):** add programs for `mobile`, `broadcasts`, `webhooks`, `fraud-batch`, `exchange` (and `proofs` until 0B lands); parameterise the hardcoded app path so the file is portable across checkouts.
+3. **Server apply step (must be in the PR deploy notes):** copy the updated config into `/etc/supervisor/conf.d/` and run `supervisorctl reread && supervisorctl update && supervisorctl restart all`. A repo edit alone does **not** change running workers.
+4. **`config/horizon.php` (parity):** replace `[env('EVENT_PROJECTOR_QUEUE_NAME')]` with an explicit list of the 5 ES queues + add the missing queues, so a future switch to Horizon is already correct.
+5. **CI guard** (`tests/Feature/Ops/QueueCoverageTest.php`): enumerate every `onQueue('x')` / `$queue = 'x'` / event queue override in `app/` and assert each is in the inventory AND covered by a Supervisor program — fails the build on any uncovered queue.
 
-**Tests.** The `QueueCoverageTest` guard (fails on any uncovered queue); a Horizon config-parse smoke test.
+**Immediate mitigation (out-of-band, recommended today):** add `queue:work --queue=mobile` (+ `broadcasts`, `webhooks`, `fraud-batch`, `exchange`) programs on the server now and `supervisorctl reread && supervisorctl update` — this restores push notifications immediately, ahead of the full PR.
 
-**Open question for the plan:** confirm which topology is actually deployed (Helm vs VM). The durable fix makes both correct + adds the CI guard regardless, so this does not block the PR — it only decides which topology the CI guard treats as authoritative.
+**Tests.** `QueueCoverageTest` (fails on any uncovered queue); a smoke test that both configs parse and cover the inventory.
 
 ---
 
@@ -129,7 +142,7 @@ Four independent PRs (touch disjoint files → safe to parallelise; `post-phase-
 
 | PR | Title | Files (primary) | Risk |
 |----|-------|-----------------|------|
-| 0A | `fix(ops): consume every dispatched queue + CI coverage guard` | `config/horizon.php`, `etc/supervisor.conf`, `config/queue.php`, `helm/…/deployment-horizon.yaml`, `tests/Feature/Ops/QueueCoverageTest.php`, env templates | Low-Med (infra config) |
+| 0A | `fix(ops): consume every dispatched queue + CI coverage guard` | **`etc/supervisor.conf` (primary/live)**, `config/horizon.php` (parity), `config/queue.php`, `tests/Feature/Ops/QueueCoverageTest.php` + **server-side `supervisorctl reread/update` step** | Med — restores live-broken push/webhooks/fraud; needs server apply |
 | 0B | `fix(privacy): custody-neutral production default + 501 guard on custodial endpoints` | `.env.*.example`, custodial route group + middleware, `ops:verify-env`, tests | Low |
 | 0C | `fix(compliance): SOC-2 demo-mode off by default + production hard-fail` | `config/compliance-certification.php`, `ComplianceCertificationController`, `.env.*.example`, `ops:verify-env`, tests | Low |
 | 0D | `docs(honesty): reference-platform positioning + truthful compliance/standards copy` | `README.md`, `resources/views/{security,compliance,welcome}.blade.php` | Low (copy) |
