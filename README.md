@@ -25,15 +25,15 @@ FinAegis provides the foundation for building digital banking applications. The 
 | Building financial systems from scratch | 61 domain modules |
 | Audit trail requirements | Event sourcing with domain-specific event tables |
 | Complex multi-step transactions | Saga pattern with automatic compensation |
-| Regulatory compliance | Built-in KYC/AML, SOC 2, PCI DSS, GDPR (v3.5.0) |
+| Regulatory tooling | KYC/AML integration + GDPR export/erasure (real); SOC 2 / PCI-DSS *readiness tooling* — not third-party certified |
 | Multi-tenant SaaS deployment | Team-based tenant isolation (v2.0.0) |
 | Hardware wallet security | Ledger/Trezor support with multi-sig (v2.1.0) |
 | Mobile wallet backend | Biometric auth, passkeys, push notifications (v2.2.0+) |
 | Privacy-preserving transactions | ZK-KYC, Merkle trees, ERC-4337 gas abstraction (v2.4.0-v2.6.0) |
-| Multi-jurisdiction RegTech | MiFID II, MiCA, FATF Travel Rule, 4-jurisdiction adapters (v2.8.0) |
+| Multi-jurisdiction RegTech | MiFID II / MiCA / FATF Travel Rule *report-format validators & adapters* — no live regulator connectivity; not a licensed CASP/ARM (v2.8.0) |
 | Cross-chain & DeFi | Bridge protocols, DEX aggregation, yield optimization (v3.0.0) |
 | Modular plugin architecture | 61 domains with manifests, enable/disable, dependency resolution (v3.2.0) |
-| Compliance certification | SOC 2 Type II, PCI DSS readiness, multi-region deployment (v3.5.0) |
+| Compliance scaffolding | SOC 2 evidence helpers + a clean PCI-DSS SAQ-A footprint (tokenized cards, no PAN stored); **no certification is held** (v3.5.0) |
 | GraphQL API | Schema-first Lighthouse PHP, 45 domains, subscriptions (v4.0.0+) |
 | Event Store v2 | Domain routing (61 domains), upcasting, migration tooling (v4.0.0) |
 | Plugin Marketplace | Manager, loader, sandbox, security scanner (v4.0.0) |
@@ -424,7 +424,7 @@ This is a **demonstration platform** showcasing modern banking architecture. Use
 - Contributing to open-source fintech
 - Studying GCU as a basket currency reference
 
-**Production Readiness**: The codebase includes production-grade infrastructure (CQRS, event sourcing, multi-tenancy, GraphQL API, event streaming, 50%+ test coverage, PHPStan Level 8, 4,900+ tests). However, **a security audit and compliance review are required** before any production deployment. See [Security Policy](SECURITY.md) for vulnerability reporting.
+**Production Readiness**: The codebase includes production-grade infrastructure (CQRS, event sourcing, multi-tenancy, GraphQL API, event streaming, 50%+ test coverage, PHPStan Level 8, 4,900+ tests). However, **a security audit and compliance review are required** before any production deployment. **No third-party SOC 2 or PCI-DSS certification is held** — the compliance modules are audit-readiness tooling, and the payment-standards domains (ISO 20022, ISO 8583, SWIFT, Open Banking, SEPA, US rails, Interledger) are **reference implementations** at the message/logic layer, not live scheme connectivity or settlement. See [Security Policy](SECURITY.md) for vulnerability reporting.
 
 ---
 
