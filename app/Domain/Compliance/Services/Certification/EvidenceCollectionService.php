@@ -10,6 +10,7 @@ use App\Domain\Compliance\Models\ComplianceEvidence;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 /**
  * SOC 2 Evidence Collection Service.
@@ -30,7 +31,11 @@ class EvidenceCollectionService
      */
     public function collectEvidence(string $period, string $type = 'all'): array
     {
-        if (config('compliance-certification.soc2.demo_mode', true)) {
+        if (config('compliance-certification.soc2.demo_mode', false)) {
+            if (app()->environment('production')) {
+                throw new RuntimeException('SOC 2 demo evidence is disabled in production: SOC2_DEMO_MODE=true would return fabricated audit data stamped as production. Set SOC2_DEMO_MODE=false and use real evidence collection.');
+            }
+
             return $this->getDemoEvidence($period);
         }
 
