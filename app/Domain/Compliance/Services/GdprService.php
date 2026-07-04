@@ -19,6 +19,7 @@ use App\Domain\MobilePayment\Models\ActivityFeedItem;
 use App\Domain\MobilePayment\Models\PaymentIntent;
 use App\Domain\MobilePayment\Models\PaymentReceipt;
 use App\Domain\Payment\Models\HyperSwitchDepositIntent;
+use App\Domain\Privacy\Models\RailgunWallet;
 use App\Domain\Subscription\Models\Cue;
 use App\Domain\Subscription\Models\IapReceipt;
 use App\Domain\Subscription\Models\IapSubscription;
@@ -90,6 +91,7 @@ class GdprService
         // Wallet (v7.12+)
         'blockchain_addresses',
         'wallet_send_records',
+        'railgun_wallets',
         // Mobile payments
         'payment_intents',
         'payment_receipts',
@@ -180,7 +182,6 @@ class GdprService
         'privacy_commitments'          => self::EXCL_LEGACY,
         'privacy_transactions'         => self::EXCL_LEGACY,
         'promotions'                   => self::EXCL_LEGACY,
-        'railgun_wallets'              => self::EXCL_LEGACY,
         'recovery_backups'             => self::EXCL_LEGACY,
         'recovery_shard_cloud_backups' => self::EXCL_LEGACY,
         'referral_codes'               => 'Random referral code + counters; no personal data beyond the FK to the anonymized users row.',
@@ -668,6 +669,8 @@ class GdprService
      */
     protected function getWalletData(User $user): array
     {
+        $addressUuids = BlockchainAddress::where('user_uuid', $user->uuid)->pluck('uuid');
+
         return [
             'blockchain_addresses' => BlockchainAddress::where('user_uuid', $user->uuid)->get()->map(
                 fn (BlockchainAddress $address): array => [
@@ -694,6 +697,34 @@ class GdprService
                     'submitted_at'      => $send->submitted_at,
                     'confirmed_at'      => $send->confirmed_at,
                     'failed_at'         => $send->failed_at,
+                ]
+            )->all(),
+            // Address-linked tx history (links by address_uuid, not a user FK,
+            // so it is outside the schema coverage guard — covered here
+            // explicitly). Financial fields only; free-text metadata is omitted
+            // from the export and erased on deletion.
+            'blockchain_transactions' => DB::table('blockchain_address_transactions')
+                ->whereIn('address_uuid', $addressUuids)
+                ->orderBy('created_at')
+                ->get()
+                ->map(fn (object $tx): array => [
+                    'chain'        => $tx->chain,
+                    'type'         => $tx->type,
+                    'amount'       => $tx->amount,
+                    'fee'          => $tx->fee,
+                    'tx_hash'      => $tx->tx_hash,
+                    'from_address' => $tx->from_address,
+                    'to_address'   => $tx->to_address,
+                    'status'       => $tx->status,
+                    'created_at'   => $tx->created_at,
+                ])->all(),
+            // Non-custodial privacy wallet: the PUBLIC 0zk address (a persistent
+            // pseudonymous identifier). Seed material is never stored server-side.
+            'railgun_wallets' => RailgunWallet::where('user_id', $user->id)->get()->map(
+                fn (RailgunWallet $wallet): array => [
+                    'railgun_address' => $wallet->railgun_address,
+                    'network'         => $wallet->network,
+                    'created_at'      => $wallet->created_at,
                 ]
             )->all(),
         ];
@@ -978,6 +1009,20 @@ class GdprService
             'metadata'      => null,
             'error_message' => null,
         ]);
+
+        // blockchain_address_transactions: on-chain financial records
+        // (Art. 17(3)(b)) — amounts/hashes/addresses retained; free-text
+        // metadata (webhook notes/labels) erased. Scoped via the user's
+        // addresses (the table links by address_uuid, not a user FK).
+        $addressUuids = BlockchainAddress::where('user_uuid', $user->uuid)->pluck('uuid');
+        DB::table('blockchain_address_transactions')
+            ->whereIn('address_uuid', $addressUuids)
+            ->update(['metadata' => null]);
+
+        // railgun_wallets: the 0zk address is a persistent pseudonymous identity
+        // tied to the user; no funded custodial wallets exist. Delete on erasure
+        // to sever the identifier (any legacy encrypted_mnemonic goes with it).
+        RailgunWallet::where('user_id', $user->id)->delete();
     }
 
     /**
