@@ -109,4 +109,34 @@ return [
         'table'    => 'failed_jobs',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Managed Queues (worker-coverage source of truth)
+    |--------------------------------------------------------------------------
+    |
+    | Every queue application code dispatches to. tests/Feature/Ops/
+    | QueueCoverageTest.php asserts (a) no code dispatches to a queue missing
+    | from this list, and (b) etc/supervisor.conf has a worker for each entry.
+    | The event-sourcing queues (events/ledger/transactions/transfers/
+    | liquidity_pools) come from App\Values\EventQueues; the rest are ad-hoc
+    | ->onQueue('x') / $queue = 'x' targets. When you add a new one, add it
+    | here AND add a worker in etc/supervisor.conf (+ config/horizon.php).
+    |
+    */
+
+    'managed_queues' => [
+        'default',
+        'events',
+        'ledger',
+        'transactions',
+        'transfers',
+        'liquidity_pools',
+        'mobile',
+        'broadcasts',
+        'webhooks',
+        'fraud-batch',
+        'exchange',
+        'proofs',
+    ],
+
 ];
