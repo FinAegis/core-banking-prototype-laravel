@@ -20,6 +20,11 @@ class AssetValuationServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // Isolate the cache to an in-memory array store. The shared Redis store
+        // round-trips cached numerics through strings, so a fresh portfolio value
+        // and its cached read drifted by ~1e-10 (e.g. 1006900.0 vs
+        // 1006900.0000000001) → flaky exact-equality assertions in parallel CI.
+        config(['cache.default' => 'array']);
         $this->portfolioService = app(PortfolioManagementService::class);
         $this->service = new AssetValuationService($this->portfolioService);
         Cache::flush();

@@ -21,6 +21,12 @@ class UserOperationSigningServiceTest extends TestCase
     {
         parent::setUp();
 
+        // Isolate the rate limiter to an in-memory array store so parallel CI
+        // workers can't collide on a shared Redis counter, and the 10 hits stay
+        // fast enough that the decay window can't expire mid-loop (the 11th-call
+        // block was intermittently not triggered).
+        config(['cache.default' => 'array']);
+
         // Create a fresh user per test to avoid parallel CI rate limiter collisions
         $this->user = User::factory()->create();
 
