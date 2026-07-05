@@ -2,7 +2,7 @@
 
 ## Base URL
 ```
-https://api.finaegis.org/api/ai
+https://api.zelta.app/api/ai
 ```
 
 ## Authentication
@@ -420,7 +420,7 @@ POST /api/ai/mcp/tools/register
 ### Connect to WebSocket
 
 ```javascript
-const socket = new WebSocket('wss://api.finaegis.org/ai/ws');
+const socket = new WebSocket('wss://api.zelta.app/ai/ws');
 
 socket.onopen = () => {
   // Authenticate
@@ -493,7 +493,7 @@ import { FinAegisAI } from '@finaegis/ai-sdk';
 
 const ai = new FinAegisAI({
   apiKey: 'your-api-key',
-  baseUrl: 'https://api.finaegis.org'
+  baseUrl: 'https://api.zelta.app'
 });
 
 // Send message
@@ -515,7 +515,7 @@ from finaegis import AIClient
 
 client = AIClient(
     api_key='your-api-key',
-    base_url='https://api.finaegis.org'
+    base_url='https://api.zelta.app'
 )
 
 # Send message
@@ -538,7 +538,7 @@ use FinAegis\AI\Client;
 
 $client = new Client([
     'api_key' => 'your-api-key',
-    'base_url' => 'https://api.finaegis.org'
+    'base_url' => 'https://api.zelta.app'
 ]);
 
 // Send message

@@ -425,7 +425,7 @@ npm install victory-native react-native-svg
 import axios, { AxiosInstance } from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.finaegis.org';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.zelta.app';
 
 class ApiClient {
   private client: AxiosInstance;

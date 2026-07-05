@@ -26,7 +26,7 @@ All API requests require authentication using Laravel Sanctum tokens:
 
 ```bash
 # Get auth token
-curl -X POST https://api.finaegis.org/api/login \
+curl -X POST https://api.zelta.app/api/login \
   -H "Content-Type: application/json" \
   -d '{"email": "user@example.com", "password": "password"}'
 ```
@@ -34,7 +34,7 @@ curl -X POST https://api.finaegis.org/api/login \
 ### 2. Making API Calls
 ```bash
 # Get account balance
-curl -X GET https://api.finaegis.org/api/accounts/{uuid}/balance \
+curl -X GET https://api.zelta.app/api/accounts/{uuid}/balance \
   -H "Authorization: Bearer {token}"
 ```
 
@@ -113,14 +113,14 @@ npx openapi-to-postmanv2 -s storage/api-docs/api-docs.json \
 ```
 
 ### Test Environment
-- Base URL: `https://test-api.finaegis.org`
+- Base URL: `https://test-api.zelta.app`
 - Test credentials available upon request
 - Rate limits: 100 requests per minute
 
 ## Support
 
 ### Developer Resources
-- API Documentation: https://api.finaegis.org/documentation
+- API Documentation: https://api.zelta.app/documentation
 - Status Page: https://status.finaegis.org
 - Developer Forum: https://developers.finaegis.org
 

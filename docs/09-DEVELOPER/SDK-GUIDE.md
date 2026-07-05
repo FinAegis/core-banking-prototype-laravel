@@ -15,8 +15,8 @@ Welcome to the FinAegis API SDK documentation. This guide will help you integrat
 ## Getting Started
 
 ### Base URLs
-- **Production**: `https://api.finaegis.org/v2`
-- **Sandbox**: `https://sandbox.api.finaegis.org/v2`
+- **Production**: `https://api.zelta.app/v2`
+- **Sandbox**: `https://sandbox.api.zelta.app/v2`
 
 ### API Version
 Current version: `2.0.0`

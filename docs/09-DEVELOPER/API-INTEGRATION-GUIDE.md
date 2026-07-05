@@ -14,15 +14,15 @@ This guide provides comprehensive documentation for integrating with the FinAegi
 - API Key: your_api_key_here
 - API Secret: your_api_secret_here
 - Environment URLs:
-  - Sandbox: https://sandbox-api.finaegis.org
-  - Production: https://api.finaegis.org
+  - Sandbox: https://sandbox-api.zelta.app
+  - Production: https://api.zelta.app
 ```
 
 ### 2. Make Your First Request
 
 ```bash
 # Get account information
-curl -X GET https://sandbox-api.finaegis.org/v2/accounts \
+curl -X GET https://sandbox-api.zelta.app/v2/accounts \
   -H "Authorization: Bearer your_api_key_here" \
   -H "Content-Type: application/json"
 ```
@@ -31,7 +31,7 @@ curl -X GET https://sandbox-api.finaegis.org/v2/accounts \
 
 ```bash
 # Register a webhook endpoint
-curl -X POST https://sandbox-api.finaegis.org/v2/webhooks \
+curl -X POST https://sandbox-api.zelta.app/v2/webhooks \
   -H "Authorization: Bearer your_api_key_here" \
   -H "Content-Type: application/json" \
   -d '{
@@ -291,7 +291,7 @@ GET /v2/exchange-rates/{from}/{to}
 
 1. **Register Endpoint**
 ```bash
-curl -X POST https://api.finaegis.org/v2/webhooks \
+curl -X POST https://api.zelta.app/v2/webhooks \
   -H "Authorization: Bearer your_api_key" \
   -H "Content-Type: application/json" \
   -d '{
@@ -485,7 +485,7 @@ client.webhooks.listen(3000, (event) => {
 
 ### Sandbox Environment
 
-- Base URL: `https://sandbox-api.finaegis.org`
+- Base URL: `https://sandbox-api.zelta.app`
 - Test API keys available in dashboard
 - Simulated bank responses
 - Accelerated time for testing recurring features

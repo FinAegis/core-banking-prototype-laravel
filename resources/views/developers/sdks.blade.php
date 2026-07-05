@@ -225,7 +225,7 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-start gap-3">
                     <svg class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    <p class="text-sm text-amber-800"><strong>SDKs are included in the FinAegis monorepo.</strong> They are not published to npm, Packagist, or PyPI. Install from the repository source after cloning the project.</p>
+                    <p class="text-sm text-amber-800"><strong>The FinAegis SDKs are published to public registries.</strong> Install from npm, Packagist, or PyPI with the commands below — or build from the monorepo source.</p>
                 </div>
             </div>
         </div>
