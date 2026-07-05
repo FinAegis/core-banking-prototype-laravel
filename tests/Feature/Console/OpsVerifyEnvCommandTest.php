@@ -50,6 +50,7 @@ function opsVerifyEnvAllGoodConfig(): void
         'services.helius.api_key'          => 'test-helius-key',
         'mobile.attestation.enabled'       => false,
         'privy.web_login_enabled'          => false,
+        'backup.backup.destination.disks'  => ['s3'],
 
         // files — the repo ships storage/app/apple/AppleRootCA-G3.cer, whose
         // sha256 matches the default pinned fingerprint in config/subscription.php.
@@ -162,17 +163,28 @@ it('blocks the deploy in production when Bridge is routed but has no credentials
         ->assertExitCode(1);
 });
 
-it('only warns (never blocks) when the backup destination is the local disk', function (): void {
+it('blocks the deploy in production when backups stay on the local disk only', function (): void {
     opsVerifyEnvAllGoodConfig();
     config(['backup.backup.destination.disks' => ['local']]);
     app()->detectEnvironment(fn () => 'production');
 
-    // Note: a single output line only satisfies ONE expectsOutputToContain
-    // (Mockery consumes the first matching expectation), so assert the most
-    // specific substring of the WARN line.
     $this->artisan('ops:verify-env')
         ->expectsOutputToContain('Backup destination is the local disk only')
-        ->assertExitCode(0);
+        ->assertExitCode(1);
+});
+
+it('only warns (never blocks) about a local-only backup disk outside production', function (): void {
+    opsVerifyEnvAllGoodConfig();
+    config(['backup.backup.destination.disks' => ['local']]);
+    // testing env (non-production) → WARN, non-blocking.
+
+    $exitCode = Artisan::call('ops:verify-env', ['--json' => true]);
+    $decoded = json_decode(Artisan::output(), true);
+    $check = collect($decoded['checks'])->firstWhere('name', 'backup.destination');
+
+    expect($exitCode)->toBe(0)
+        ->and($check)->not->toBeNull()
+        ->and($check['result'])->toBe('WARN');
 });
 
 it('only warns (never blocks) when the backup destination disk is not defined in filesystems', function (): void {

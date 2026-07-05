@@ -386,11 +386,11 @@ class OpsVerifyEnvCommand extends Command
     }
 
     /**
-     * Backup destination sanity (WARN-level — never blocks). Cheap config
-     * checks only: the nightly `backup:run --only-db` job (routes/console.php)
-     * writes to the disks in backup.backup.destination.disks; verify the
-     * disks exist in config/filesystems.php and warn when dumps would stay
-     * on the local box. No live S3 call — that's the restore drill's job.
+     * Backup destination sanity. Cheap config checks only: the nightly
+     * `backup:run --only-db` job (routes/console.php) writes to the disks in
+     * backup.backup.destination.disks. A local-ONLY destination in production
+     * FAILs the gate (dumps die with the box — no offsite copy); other issues
+     * (empty/undefined disk) WARN. No live S3 call — that's the restore drill.
      */
     private function checkBackupDestination(): void
     {
@@ -420,7 +420,12 @@ class OpsVerifyEnvCommand extends Command
         }
 
         if ($disks === ['local']) {
-            $this->add(self::CATEGORY_CONDITIONAL, 'backup.destination', self::WARN, 'Backup destination is the local disk only — database dumps never leave the box. Set BACKUP_DISK=s3 (+ bucket credentials) in production and run one restore drill.');
+            // Local-only dumps die with the box (no offsite copy): block a
+            // production deploy; warn (non-blocking) outside production.
+            $result = ($this->laravel->environment('production') || (bool) $this->option('strict'))
+                ? self::FAIL
+                : self::WARN;
+            $this->add(self::CATEGORY_CONDITIONAL, 'backup.destination', $result, 'Backup destination is the local disk only — database dumps never leave the box. Set BACKUP_DISK=s3 (+ bucket credentials) in production and run one restore drill.');
 
             return;
         }

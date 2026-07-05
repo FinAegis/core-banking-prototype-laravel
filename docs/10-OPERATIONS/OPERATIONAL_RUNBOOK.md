@@ -620,7 +620,7 @@ php artisan event-sourcing:replay --from=<event-id>
 | Scenario | RTO | RPO | Priority |
 |----------|-----|-----|----------|
 | Complete Outage | 4 hours | 1 hour | P1 |
-| Database Failure | 2 hours | 15 minutes | P1 |
+| Database Failure | 2 hours | **24h** (nightly `backup:run` dump; PITR/binlog shipping required for a lower RPO) | P1 |
 | Application Failure | 30 minutes | N/A | P2 |
 | Region Failure | 8 hours | 1 hour | P1 |
 
