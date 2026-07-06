@@ -8,6 +8,7 @@ use App\Domain\CardIssuance\Webhooks\CardWaitlistWebhookController;
 use App\Http\Controllers\Api\CardIssuance\CardController;
 use App\Http\Controllers\Api\CardIssuance\CardholderController;
 use App\Http\Controllers\Api\CardIssuance\CardTransactionWebhookController;
+use App\Http\Controllers\Api\CardIssuance\FinCardAccountController;
 use App\Http\Controllers\Api\CardIssuance\FinCardOnboardingController;
 use App\Http\Controllers\Api\CardIssuance\JitFundingWebhookController;
 use Illuminate\Support\Facades\Route;
@@ -46,6 +47,13 @@ Route::prefix('v1/cards')->name('api.cards.fincard.')
         Route::post('/cardholder', [FinCardOnboardingController::class, 'createCardholder'])
             ->middleware(['idempotency.required', 'api.rate_limit:mutation'])
             ->name('cardholder.create');
+
+        // Funding (Phase 3) — account balance, deposit coins, crypto address.
+        Route::get('/account', [FinCardAccountController::class, 'account'])->name('account');
+        Route::get('/account/coins', [FinCardAccountController::class, 'coins'])->name('account.coins');
+        Route::post('/account/deposit-address', [FinCardAccountController::class, 'depositAddress'])
+            ->middleware(['idempotency.required', 'api.rate_limit:mutation'])
+            ->name('account.deposit-address');
     });
 
 Route::prefix('v1/cards')->name('api.cards.')->group(function () {

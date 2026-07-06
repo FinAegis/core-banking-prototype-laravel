@@ -234,6 +234,63 @@ final class FinCardClient
         return $this->rpc('/card/holder/list', ['pageNum' => $pageNum, 'pageSize' => $pageSize], $context);
     }
 
+    // ── Account / Wallet funding (Phase 3) ───────────────────────────────
+
+    /**
+     * Create a FinCard account (USD ledger) for the tenant.
+     *
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    public function createAccount(string $accountName, string $currency, array $context = []): array
+    {
+        return $this->rpc('/account/create', ['accountName' => $accountName, 'currency' => $currency], $context);
+    }
+
+    /**
+     * Query a single account (balance + status).
+     *
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    public function queryAccount(string $accountId, array $context = []): array
+    {
+        return $this->rpc('/account/single/query', ['accountId' => $accountId], $context);
+    }
+
+    /**
+     * Account ledger transactions.
+     *
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    public function getAccountTransactions(string $accountId, int $pageNum = 1, int $pageSize = 20, array $context = []): array
+    {
+        return $this->rpc('/account/transaction', ['accountId' => $accountId, 'pageNum' => $pageNum, 'pageSize' => $pageSize], $context);
+    }
+
+    /**
+     * Create a crypto deposit address for a coin, tied to an account.
+     *
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    public function createDepositAddress(string $coinKey, string $accountId, array $context = []): array
+    {
+        return $this->rpc('/wallet/v2/create', ['coinKey' => $coinKey, 'accountId' => $accountId], $context);
+    }
+
+    /**
+     * List existing wallet deposit addresses.
+     *
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    public function listDepositAddresses(int $pageNum = 1, int $pageSize = 20, array $context = []): array
+    {
+        return $this->rpc('/wallet/v2/addressList', ['pageNum' => $pageNum, 'pageSize' => $pageSize], $context);
+    }
+
     // ── Core RPC ─────────────────────────────────────────────────────────
 
     /**

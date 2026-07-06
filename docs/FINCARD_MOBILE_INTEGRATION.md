@@ -148,11 +148,13 @@ Card endpoints use the `ERR_CARDS_*` family (registered in `config/error_codes.p
 | `ERR_CARDS_010` | 422 | User's country is restricted for issuance |
 | `ERR_CARDS_011` | 422 | KYC document upload failed / unsupported type |
 | `ERR_CARDS_012` | 502 | Card issuer rejected the cardholder request → retry later |
+| `ERR_CARDS_013` | 502 | Funding temporarily unavailable (deposit-address/coins failure) → retry |
+| `ERR_CARDS_014` | 422 | Deposit coin not supported |
 | `ERR_VALIDATION_001/003` | 422 | Missing/invalid `Idempotency-Key` or body |
 | `ERR_IDEMPOTENCY_409` | 409 | Same key, different body |
 | (rate limit) | 429 | Too many card operations → back off |
 
-Funding/card-lifecycle codes (`ERR_CARDS_013+`) are added as phases 3–4 land. The envelope shape (`{success:false, error:{code,message}}`) is stable; the app branches on `code` and may override the message copy.
+Card-lifecycle codes (`ERR_CARDS_015+`) are added as phase 4 lands. The envelope shape (`{success:false, error:{code,message}}`) is stable; the app branches on `code` and may override the message copy.
 
 ---
 

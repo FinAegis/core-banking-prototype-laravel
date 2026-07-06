@@ -11,6 +11,7 @@
 declare(strict_types=1);
 
 use App\Domain\CardIssuance\Models\Cardholder;
+use App\Domain\CardIssuance\Models\FinCardAccount;
 use App\Domain\Subscription\Models\ProcessedWebhookEvent;
 use App\Infrastructure\FinCard\FinCardWebhookVerifier;
 use App\Models\User;
@@ -122,4 +123,25 @@ it('applies a cardholder pass_audit event to the local KYC state', function () {
     $fresh = Cardholder::query()->where('issuer_cardholder_id', 'h-web')->firstOrFail();
     expect($fresh->kyc_status)->toBe('verified')
         ->and($fresh->verified_at)->not->toBeNull();
+});
+
+it('credits the funding account on a wallet DEPOSIT event', function () {
+    $user = User::factory()->create();
+    $account = new FinCardAccount();
+    $account->user_id = (string) $user->id;
+    $account->fincard_account_id = 'acc-web';
+    $account->currency = 'USD';
+    $account->balance_cents = 1000;
+    $account->status = 'active';
+    $account->save();
+
+    $body = (string) json_encode(['eventType' => 'DEPOSIT', 'data' => ['accountId' => 'acc-web', 'amount' => '8.86', 'orderNo' => 'ord-dep']]);
+    $sig = fincardEndpointSign($body, $this->finCardPriv);
+
+    $this->call('POST', '/api/v1/webhooks/fincard', [], [], [], fincardWebhookServer('X-FC-SIGNATURE', $sig), $body)
+        ->assertOk()
+        ->assertExactJson(['success' => true]);
+
+    $fresh = FinCardAccount::query()->where('fincard_account_id', 'acc-web')->firstOrFail();
+    expect($fresh->balance_cents)->toBe(1886);
 });

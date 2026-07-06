@@ -157,6 +157,8 @@ class GdprService
         'delegated_proof_jobs'         => self::EXCL_LEGACY,
         'device_fingerprints'          => self::EXCL_SECURITY,
         'exports'                      => self::EXCL_EPHEMERAL,
+        'fincard_accounts'             => self::EXCL_FINANCIAL,
+        'fincard_deposit_addresses'    => 'FinCard-issued crypto deposit addresses tied to the funding account; financial-account artifacts retained with the account under Art. 17(3)(b). FinCard (the regulated card issuer) is the controller of record; no direct identifiers beyond the user FK and the provider-issued address.',
         'gcu_votes'                    => self::EXCL_LEGACY,
         'hardware_wallet_associations' => self::EXCL_LEGACY,
         'idempotency_keys'             => self::EXCL_EPHEMERAL,
