@@ -48,19 +48,20 @@ class FinCardCardholderServiceTest extends TestCase
         ];
     }
 
-    /**
-     * @param  array<string, mixed>  $overrides
-     */
-    private function cardholder(User $user, array $overrides = []): Cardholder
+    private function cardholder(User $user): Cardholder
     {
-        return Cardholder::create(array_merge([
-            'user_id'              => $user->id,
-            'first_name'           => 'Jane',
-            'last_name'            => 'Smith',
-            'kyc_status'           => 'in_review',
-            'kyc_stage'            => 'admin',
-            'issuer_cardholder_id' => 'h-9',
-        ], $overrides));
+        // Assign explicitly (not Model::create(array<string,mixed>)) — Larastan
+        // rejects a non-shaped array to create().
+        $cardholder = new Cardholder();
+        $cardholder->user_id = (string) $user->id;
+        $cardholder->first_name = 'Jane';
+        $cardholder->last_name = 'Smith';
+        $cardholder->kyc_status = 'in_review';
+        $cardholder->kyc_stage = 'admin';
+        $cardholder->issuer_cardholder_id = 'h-9';
+        $cardholder->save();
+
+        return $cardholder;
     }
 
     public function test_create_cardholder_calls_fincard_and_persists_local_row(): void
