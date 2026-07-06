@@ -87,4 +87,9 @@ return [
     // ─── FinCard funding (Phase 3) ─────────────────────────────────────────
     'ERR_CARDS_013' => ['http' => 502, 'description' => 'Funding is temporarily unavailable. Please try again later.'],
     'ERR_CARDS_014' => ['http' => 422, 'description' => 'That deposit coin is not supported.'],
+
+    // ─── FinCard card lifecycle (Phase 4) ──────────────────────────────────
+    'ERR_CARDS_015' => ['http' => 404, 'description' => 'Card not found.'],
+    'ERR_CARDS_016' => ['http' => 502, 'description' => 'The card operation could not be completed right now. Please try again later.'],
+    'ERR_CARDS_017' => ['http' => 422, 'description' => 'Insufficient balance for this operation.'],
 ];

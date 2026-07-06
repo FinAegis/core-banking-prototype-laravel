@@ -6,6 +6,7 @@ namespace App\Domain\CardIssuance\Http\Controllers;
 
 use App\Domain\CardIssuance\Services\FinCardAccountService;
 use App\Domain\CardIssuance\Services\FinCardCardholderService;
+use App\Domain\CardIssuance\Services\FinCardCardService;
 use App\Domain\Subscription\Models\ProcessedWebhookEvent;
 use App\Http\Controllers\Controller;
 use App\Infrastructure\FinCard\FinCardWebhookVerifier;
@@ -41,13 +42,17 @@ class FinCardWebhookController extends Controller
     /** FinCard cardholder-event types (KYC approval workflow). */
     private const CARDHOLDER_EVENTS = ['wait_audit', 'under_review', 'pass_audit', 'reject'];
 
-    /** Wallet v2 (crypto) funding event types. */
+    /** Wallet v2 (crypto) funding event types (uppercase — distinct from card-op). */
     private const WALLET_EVENTS = ['DEPOSIT', 'WITHDRAW'];
+
+    /** Card-operation event types (lowercase deposit/withdraw affect the card, not the account). */
+    private const CARD_OP_EVENTS = ['create', 'deposit', 'withdraw', 'Freeze', 'UnFreeze', 'cancel', 'blocked', 'overdraft_statement'];
 
     public function __construct(
         private readonly FinCardWebhookVerifier $verifier,
         private readonly FinCardCardholderService $cardholderService,
         private readonly FinCardAccountService $accountService,
+        private readonly FinCardCardService $cardService,
     ) {
     }
 
@@ -139,6 +144,12 @@ class FinCardWebhookController extends Controller
 
         if (in_array($eventType, self::WALLET_EVENTS, true)) {
             $this->accountService->applyFundingWebhook($eventType, $payload);
+
+            return;
+        }
+
+        if (in_array($eventType, self::CARD_OP_EVENTS, true)) {
+            $this->cardService->applyCardWebhook($eventType, $payload);
 
             return;
         }

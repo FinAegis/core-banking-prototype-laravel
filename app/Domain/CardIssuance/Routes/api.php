@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\CardIssuance\CardController;
 use App\Http\Controllers\Api\CardIssuance\CardholderController;
 use App\Http\Controllers\Api\CardIssuance\CardTransactionWebhookController;
 use App\Http\Controllers\Api\CardIssuance\FinCardAccountController;
+use App\Http\Controllers\Api\CardIssuance\FinCardCardController;
 use App\Http\Controllers\Api\CardIssuance\FinCardOnboardingController;
 use App\Http\Controllers\Api\CardIssuance\JitFundingWebhookController;
 use Illuminate\Support\Facades\Route;
@@ -54,6 +55,24 @@ Route::prefix('v1/cards')->name('api.cards.fincard.')
         Route::post('/account/deposit-address', [FinCardAccountController::class, 'depositAddress'])
             ->middleware(['idempotency.required', 'api.rate_limit:mutation'])
             ->name('account.deposit-address');
+
+        // Card lifecycle (Phase 4) — namespaced under /fincard/* to avoid the
+        // generic card routes. Sensitive PAN/CVV is fetched on demand, never stored.
+        Route::prefix('/fincard')->name('cards.')->group(function (): void {
+            Route::get('/', [FinCardCardController::class, 'index'])->name('index');
+            Route::post('/open', [FinCardCardController::class, 'open'])
+                ->middleware(['idempotency.required', 'api.rate_limit:mutation'])->name('open');
+            Route::get('/{cardId}', [FinCardCardController::class, 'show'])->name('show');
+            Route::get('/{cardId}/sensitive', [FinCardCardController::class, 'sensitive'])->name('sensitive');
+            Route::get('/{cardId}/transactions', [FinCardCardController::class, 'transactions'])->name('transactions');
+            Route::middleware(['idempotency.required', 'api.rate_limit:mutation'])->group(function (): void {
+                Route::post('/{cardId}/freeze', [FinCardCardController::class, 'freeze'])->name('freeze');
+                Route::post('/{cardId}/unfreeze', [FinCardCardController::class, 'unfreeze'])->name('unfreeze');
+                Route::post('/{cardId}/cancel', [FinCardCardController::class, 'cancel'])->name('cancel');
+                Route::post('/{cardId}/topup', [FinCardCardController::class, 'topUp'])->name('topup');
+                Route::post('/{cardId}/withdraw', [FinCardCardController::class, 'withdraw'])->name('withdraw');
+            });
+        });
     });
 
 Route::prefix('v1/cards')->name('api.cards.')->group(function () {

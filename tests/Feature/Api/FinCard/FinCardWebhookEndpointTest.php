@@ -10,6 +10,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\CardIssuance\Models\Card;
 use App\Domain\CardIssuance\Models\Cardholder;
 use App\Domain\CardIssuance\Models\FinCardAccount;
 use App\Domain\Subscription\Models\ProcessedWebhookEvent;
@@ -144,4 +145,35 @@ it('credits the funding account on a wallet DEPOSIT event', function () {
 
     $fresh = FinCardAccount::query()->where('fincard_account_id', 'acc-web')->firstOrFail();
     expect($fresh->balance_cents)->toBe(1886);
+});
+
+it('activates a card on a card-op create event', function () {
+    $user = User::factory()->create();
+    $ch = new Cardholder();
+    $ch->user_id = (string) $user->id;
+    $ch->first_name = 'Jane';
+    $ch->last_name = 'Smith';
+    $ch->kyc_status = 'verified';
+    $ch->issuer_cardholder_id = 'h-c';
+    $ch->save();
+
+    $card = new Card();
+    $card->user_id = (string) $user->id;
+    $card->cardholder_id = $ch->id;
+    $card->issuer_card_token = 'card-web';
+    $card->issuer = 'fincard';
+    $card->last4 = '0000';
+    $card->network = 'visa';
+    $card->status = 'pending';
+    $card->currency = 'USD';
+    $card->save();
+
+    $body = (string) json_encode(['eventType' => 'create', 'data' => ['cardId' => 'card-web', 'status' => 'Normal', 'orderNo' => 'ord-cardcreate']]);
+    $sig = fincardEndpointSign($body, $this->finCardPriv);
+
+    $this->call('POST', '/api/v1/webhooks/fincard', [], [], [], fincardWebhookServer('X-FC-SIGNATURE', $sig), $body)
+        ->assertOk()
+        ->assertExactJson(['success' => true]);
+
+    expect(Card::query()->where('issuer_card_token', 'card-web')->firstOrFail()->status)->toBe('active');
 });
