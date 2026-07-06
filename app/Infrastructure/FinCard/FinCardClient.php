@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\FinCard;
 
+use Closure;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
@@ -189,38 +191,95 @@ final class FinCardClient
         return $this->rpc('/wallet/v2/coins', [], $context);
     }
 
+    // ── Cardholder / KYC (Phase 2) ───────────────────────────────────────
+
+    /**
+     * Upload a KYC document (multipart). Returns the envelope whose `data`
+     * carries the `fileId` referenced by createCardholder.
+     *
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    public function uploadKycDocument(string $contents, string $filename, string $mimeType, array $context = []): array
+    {
+        return $this->dispatch(
+            '/common/file/upload',
+            fn (PendingRequest $request): PendingRequest => $request->attach('file', $contents, $filename, ['Content-Type' => $mimeType]),
+            $context,
+        );
+    }
+
+    /**
+     * Create a FinCard cardholder (Cardholder-V2). `$payload` must already be in
+     * FinCard's field shape (see FinCardCardholderPayload). Returns the envelope
+     * whose `data` carries the `holderId`.
+     *
+     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    public function createCardholder(array $payload, array $context = []): array
+    {
+        return $this->rpc('/card/holder/v2/create', $payload, $context);
+    }
+
+    /**
+     * List cardholders (used to reconcile KYC state for a known holder).
+     *
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    public function listCardholders(int $pageNum = 1, int $pageSize = 20, array $context = []): array
+    {
+        return $this->rpc('/card/holder/list', ['pageNum' => $pageNum, 'pageSize' => $pageSize], $context);
+    }
+
     // ── Core RPC ─────────────────────────────────────────────────────────
 
     /**
-     * POST an RPC call and return the decoded envelope.
-     *
-     * Re-authenticates once on a 401 (expired/invalidated token) before giving
-     * up, so a stale cached JWT self-heals without failing the caller.
+     * POST a JSON-RPC call and return the decoded envelope.
      *
      * @param  array<string, mixed>  $params
      * @param  array<string, mixed>  $context  platform / device_id / forwarded_for overrides
      * @return array<string, mixed>
      */
-    public function rpc(string $path, array $params = [], array $context = [], bool $isRetry = false): array
+    public function rpc(string $path, array $params = [], array $context = []): array
     {
-        $response = Http::asJson()
-            ->timeout(self::REQUEST_TIMEOUT_SECONDS)
+        return $this->dispatch(
+            $path,
+            fn (PendingRequest $request): PendingRequest => $request->asJson()->withBody($this->encodeBody($params), 'application/json'),
+            $context,
+        );
+    }
+
+    // ── Internals ────────────────────────────────────────────────────────
+
+    /**
+     * Send an authenticated POST and return the decoded envelope. `$applyBody`
+     * shapes the request (JSON body vs multipart). Re-authenticates once on a
+     * 401 (expired/invalidated token) so a stale cached JWT self-heals.
+     *
+     * @param  Closure(PendingRequest): PendingRequest  $applyBody
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    private function dispatch(string $path, Closure $applyBody, array $context, bool $isRetry = false): array
+    {
+        $request = Http::timeout(self::REQUEST_TIMEOUT_SECONDS)
             ->retry(2, 500, $this->shouldRetry(...), throw: false)
             ->withToken($this->getAccessToken())
-            ->withHeaders($this->contextHeaders($context))
-            ->withBody($this->encodeBody($params), 'application/json')
-            ->post($this->baseUrl . $path);
+            ->withHeaders($this->contextHeaders($context));
+
+        $response = $applyBody($request)->post($this->baseUrl . $path);
 
         if ($response->status() === 401 && ! $isRetry) {
             Cache::forget(self::CACHE_TOKEN_KEY);
 
-            return $this->rpc($path, $params, $context, isRetry: true);
+            return $this->dispatch($path, $applyBody, $context, isRetry: true);
         }
 
         return $this->decode($response, $path);
     }
-
-    // ── Internals ────────────────────────────────────────────────────────
 
     /**
      * Retry transient failures only — connection errors and 5xx. A 4xx (incl.

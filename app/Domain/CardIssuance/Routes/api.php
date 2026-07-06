@@ -8,6 +8,7 @@ use App\Domain\CardIssuance\Webhooks\CardWaitlistWebhookController;
 use App\Http\Controllers\Api\CardIssuance\CardController;
 use App\Http\Controllers\Api\CardIssuance\CardholderController;
 use App\Http\Controllers\Api\CardIssuance\CardTransactionWebhookController;
+use App\Http\Controllers\Api\CardIssuance\FinCardOnboardingController;
 use App\Http\Controllers\Api\CardIssuance\JitFundingWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -27,6 +28,24 @@ Route::prefix('v1/cards/waitlist')->name('api.cards.waitlist.')
 
         Route::get('/entry', [WaitlistDepositController::class, 'entry'])
             ->name('entry');
+    });
+
+// FinCard cardholder onboarding + KYC (Phase 2). Registered BEFORE the generic
+// v1/cards group so these specific paths are not swallowed by the greedy
+// /v1/cards/{cardId} route. No require.kyc here — these endpoints START the
+// FinCard KYC flow (mirrors the Bridge KYC-setup routes); card creation gates
+// on a verified cardholder later.
+Route::prefix('v1/cards')->name('api.cards.fincard.')
+    ->middleware(['auth:sanctum'])
+    ->group(function (): void {
+        Route::get('/onboarding', [FinCardOnboardingController::class, 'onboarding'])->name('onboarding');
+        Route::get('/cardholder', [FinCardOnboardingController::class, 'status'])->name('cardholder.status');
+        Route::post('/kyc/documents', [FinCardOnboardingController::class, 'uploadDocument'])
+            ->middleware('api.rate_limit:mutation')
+            ->name('kyc.documents');
+        Route::post('/cardholder', [FinCardOnboardingController::class, 'createCardholder'])
+            ->middleware(['idempotency.required', 'api.rate_limit:mutation'])
+            ->name('cardholder.create');
     });
 
 Route::prefix('v1/cards')->name('api.cards.')->group(function () {

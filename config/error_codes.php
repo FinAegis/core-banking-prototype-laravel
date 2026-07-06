@@ -73,4 +73,14 @@ return [
     'ERR_CARDS_004' => ['http' => 409, 'description' => 'Deposit state conflict — already shipped or cancellation already in progress.'],
     'ERR_CARDS_005' => ['http' => 422, 'description' => 'Invalid return URL — not in the configured allow-list.'],
     'ERR_CARDS_006' => ['http' => 409, 'description' => 'Quote kind is not card_waitlist_deposit.'],
+
+    // ─── FinCard cardholder / KYC (Phase 2) ────────────────────────────────
+    // User-facing descriptions stay brand-neutral (no partner name) — the app
+    // branches on the code and can override the copy.
+    'ERR_CARDS_007' => ['http' => 403, 'description' => 'Identity verification is required before you can create a card.'],
+    'ERR_CARDS_008' => ['http' => 409, 'description' => 'Your identity verification is still under review.'],
+    'ERR_CARDS_009' => ['http' => 409, 'description' => 'A card profile already exists for your account.'],
+    'ERR_CARDS_010' => ['http' => 422, 'description' => 'Your country is not supported for card issuance.'],
+    'ERR_CARDS_011' => ['http' => 422, 'description' => 'Document upload failed or the document type is not accepted.'],
+    'ERR_CARDS_012' => ['http' => 502, 'description' => 'We could not verify your details right now. Please try again later.'],
 ];

@@ -10,8 +10,10 @@
 
 declare(strict_types=1);
 
+use App\Domain\CardIssuance\Models\Cardholder;
 use App\Domain\Subscription\Models\ProcessedWebhookEvent;
 use App\Infrastructure\FinCard\FinCardWebhookVerifier;
+use App\Models\User;
 
 /**
  * @return array{0: string, 1: string} [privatePem, publicPem]
@@ -101,4 +103,23 @@ it('rejects a validly signed but identifier-less payload with 400', function () 
 
     $this->call('POST', '/api/v1/webhooks/fincard', [], [], [], fincardWebhookServer('X-FC-SIGNATURE', $sig), $body)
         ->assertStatus(400);
+});
+
+it('applies a cardholder pass_audit event to the local KYC state', function () {
+    $user = User::factory()->create();
+    Cardholder::create([
+        'user_id'    => $user->id, 'first_name' => 'Jane', 'last_name' => 'Smith',
+        'kyc_status' => 'in_review', 'kyc_stage' => 'admin', 'issuer_cardholder_id' => 'h-web',
+    ]);
+
+    $body = (string) json_encode(['eventType' => 'pass_audit', 'data' => ['holderId' => 'h-web', 'orderNo' => 'ord-kyc']]);
+    $sig = fincardEndpointSign($body, $this->finCardPriv);
+
+    $this->call('POST', '/api/v1/webhooks/fincard', [], [], [], fincardWebhookServer('X-FC-SIGNATURE', $sig), $body)
+        ->assertOk()
+        ->assertExactJson(['success' => true]);
+
+    $fresh = Cardholder::query()->where('issuer_cardholder_id', 'h-web')->firstOrFail();
+    expect($fresh->kyc_status)->toBe('verified')
+        ->and($fresh->verified_at)->not->toBeNull();
 });

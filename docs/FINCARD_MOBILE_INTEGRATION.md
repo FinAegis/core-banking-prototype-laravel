@@ -38,7 +38,7 @@ Identical to the rest of the Zelta mobile API:
 - **Bodies are snake_case** (e.g. `card_id`, `coin_key`, `amount_cents`).
 - **Idempotency:** POST/PATCH/DELETE require an `Idempotency-Key` HTTP header (UUID or 16–255 `[A-Za-z0-9_-]`). Reusing a key replays the first response; same key + different body → `409`.
 - **Lists** return `data: [...]` plus `pagination: { next_cursor, has_more, total }`. Query with `?cursor=…&limit=…` (limit ≤ 100, default 20).
-- **KYC gate:** issuance/spend endpoints require completed Zelta KYC (`require.kyc`) *and* a `pass_audit` FinCard cardholder; a missing FinCard cardholder returns `ERR_CARDS_403_KYC` (see §7).
+- **KYC gate:** issuance/spend endpoints require completed Zelta KYC (`require.kyc`) *and* a `pass_audit` FinCard cardholder; a missing verified cardholder returns `ERR_CARDS_007` (see §7).
 
 ---
 
@@ -59,7 +59,7 @@ FinCard requires its own KYC — richer than the app's existing profile. Prefill
 3. `POST /v1/cardholders` with the full field set + the three `file_id`s → creates the cardholder; response `kyc_status: "in_review"`, `kyc_stage: "admin"`.
 4. Poll `GET /v1/cardholders/{id}` **or** listen for the WebSocket events in §6. Approval is two-stage (`admin` → `channel`). Only `kyc_status: "verified"` (`pass_audit`) unlocks card creation. `rejected` carries `kyc_rejection_reason`.
 
-> Restricted countries are rejected up front with `ERR_CARDS_422_COUNTRY`. The full FinCard field list and photo requirements are *(pending FinCard)* final confirmation; `GET /v1/cards/onboarding` is the source of truth at runtime — render from it, don't hard-code the field set.
+> Restricted countries are rejected up front with `ERR_CARDS_010`. The full FinCard field list and photo requirements are *(pending FinCard)* final confirmation; `GET /v1/cards/onboarding` is the source of truth at runtime — render from it, don't hard-code the field set.
 
 ### 4.2 Funding ⚪ (phase 3 crypto, phase 5 fiat)
 
@@ -138,20 +138,21 @@ Push notifications (FCM/APNs) fire on the **terminal KYC states** (`verified`, `
 
 ## 7. Error codes
 
-Card endpoints use the `ERR_CARDS_*` family (registered in `config/error_codes.php`). Handle at minimum:
+Card endpoints use the `ERR_CARDS_*` family (registered in `config/error_codes.php`). Codes match `^ERR_[A-Z]+_\d{3}$` (numbered, not semantic) — branch on the exact code. Cardholder/KYC codes (Phase 2) shipped are:
 
 | Code | HTTP | Meaning / UX |
 |---|---|---|
-| `ERR_CARDS_403_KYC` | 403 | No verified FinCard cardholder yet → route to onboarding |
-| `ERR_CARDS_409_KYC_PENDING` | 409 | KYC still under review → show pending state |
-| `ERR_CARDS_422_COUNTRY` | 422 | User's country is restricted by FinCard |
-| `ERR_CARDS_422_INSUFFICIENT_FUNDS` | 422 | Account/card balance too low → prompt to fund |
-| `ERR_CARDS_404` | 404 | Card / resource not found |
+| `ERR_CARDS_007` | 403 | No verified cardholder yet → route to onboarding |
+| `ERR_CARDS_008` | 409 | Identity verification still under review → show pending state |
+| `ERR_CARDS_009` | 409 | A cardholder already exists for the user |
+| `ERR_CARDS_010` | 422 | User's country is restricted for issuance |
+| `ERR_CARDS_011` | 422 | KYC document upload failed / unsupported type |
+| `ERR_CARDS_012` | 502 | Card issuer rejected the cardholder request → retry later |
 | `ERR_VALIDATION_001/003` | 422 | Missing/invalid `Idempotency-Key` or body |
 | `ERR_IDEMPOTENCY_409` | 409 | Same key, different body |
 | (rate limit) | 429 | Too many card operations → back off |
 
-Exact final code list is confirmed as endpoints land per phase; the shape (`{success:false, error:{code,message}}`) is stable.
+Funding/card-lifecycle codes (`ERR_CARDS_013+`) are added as phases 3–4 land. The envelope shape (`{success:false, error:{code,message}}`) is stable; the app branches on `code` and may override the message copy.
 
 ---
 

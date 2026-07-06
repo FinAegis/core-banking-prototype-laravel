@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\CardIssuance\Http\Controllers;
 
+use App\Domain\CardIssuance\Services\FinCardCardholderService;
 use App\Domain\Subscription\Models\ProcessedWebhookEvent;
 use App\Http\Controllers\Controller;
 use App\Infrastructure\FinCard\FinCardWebhookVerifier;
@@ -36,8 +37,12 @@ use Throwable;
  */
 class FinCardWebhookController extends Controller
 {
+    /** FinCard cardholder-event types (KYC approval workflow). */
+    private const CARDHOLDER_EVENTS = ['wait_audit', 'under_review', 'pass_audit', 'reject'];
+
     public function __construct(
         private readonly FinCardWebhookVerifier $verifier,
+        private readonly FinCardCardholderService $cardholderService,
     ) {
     }
 
@@ -113,15 +118,21 @@ class FinCardWebhookController extends Controller
     }
 
     /**
-     * Extension point for per-phase handlers (KYC, funding, card state,
-     * transaction sync). Phase 1 records the event for observability and
-     * acknowledges it.
+     * Route a verified event to its per-category handler. Cardholder KYC events
+     * (Phase 2) update local KYC state; funding/card/transaction categories are
+     * wired in later phases.
      *
      * @param  array<string, mixed>  $payload
      */
     private function dispatchEvent(string $eventType, array $payload): void
     {
-        Log::info('FinCard webhook received', [
+        if (in_array($eventType, self::CARDHOLDER_EVENTS, true)) {
+            $this->cardholderService->applyKycWebhook($eventType, $payload);
+
+            return;
+        }
+
+        Log::info('FinCard webhook received (no handler yet)', [
             'event_type' => $eventType,
             // Never log `data` — it may carry PAN / PII.
         ]);
