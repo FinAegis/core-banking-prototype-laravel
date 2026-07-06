@@ -291,6 +291,145 @@ final class FinCardClient
         return $this->rpc('/wallet/v2/addressList', ['pageNum' => $pageNum, 'pageSize' => $pageSize], $context);
     }
 
+    // ── Card lifecycle (Phase 4) ─────────────────────────────────────────
+
+    /**
+     * Open a virtual card against an account + cardholder. `$amountMinor` is the
+     * initial load in the card's major-unit string (FinCard expects e.g. "200").
+     *
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    public function openCard(int $cardTypeId, string $amount, string $accountId, string $holderId, string $merchantOrderNo, array $context = []): array
+    {
+        return $this->rpc('/card/v2/openCard', [
+            'cardTypeId'      => $cardTypeId,
+            'amount'          => $amount,
+            'accountId'       => $accountId,
+            'holderId'        => $holderId,
+            'merchantOrderNo' => $merchantOrderNo,
+        ], $context);
+    }
+
+    /**
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    public function getCardInfo(string $cardId, array $context = []): array
+    {
+        return $this->rpc('/card/info', ['cardId' => $cardId], $context);
+    }
+
+    /**
+     * PAN/CVV/expiry — relay ephemerally to the client, never persist.
+     *
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    public function getCardSensitive(string $cardId, array $context = []): array
+    {
+        return $this->rpc('/card/info/sensitive', ['cardId' => $cardId], $context);
+    }
+
+    /**
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    public function getCardBalance(string $cardId, array $context = []): array
+    {
+        return $this->rpc('/card/balance', ['cardId' => $cardId], $context);
+    }
+
+    /**
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    public function listCards(int $pageNum = 1, int $pageSize = 20, ?string $status = null, array $context = []): array
+    {
+        $params = ['pageNum' => $pageNum, 'pageSize' => $pageSize];
+        if ($status !== null) {
+            $params['status'] = $status;
+        }
+
+        return $this->rpc('/card/list', $params, $context);
+    }
+
+    /**
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    public function freezeCard(string $cardId, string $merchantOrderNo, array $context = []): array
+    {
+        return $this->rpc('/card/v2/freeze', ['cardId' => $cardId, 'merchantOrderNo' => $merchantOrderNo], $context);
+    }
+
+    /**
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    public function unfreezeCard(string $cardId, string $merchantOrderNo, array $context = []): array
+    {
+        return $this->rpc('/card/v2/unfreeze', ['cardId' => $cardId, 'merchantOrderNo' => $merchantOrderNo], $context);
+    }
+
+    /**
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    public function cancelCard(string $cardId, string $merchantOrderNo, array $context = []): array
+    {
+        return $this->rpc('/card/cancel', ['cardId' => $cardId, 'merchantOrderNo' => $merchantOrderNo], $context);
+    }
+
+    /**
+     * Move funds account → card.
+     *
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    public function depositToCard(string $cardId, string $amount, string $merchantOrderNo, array $context = []): array
+    {
+        return $this->rpc('/card/deposit', ['cardId' => $cardId, 'amount' => $amount, 'merchantOrderNo' => $merchantOrderNo], $context);
+    }
+
+    /**
+     * Move funds card → account.
+     *
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    public function withdrawFromCard(string $cardId, string $amount, string $merchantOrderNo, array $context = []): array
+    {
+        return $this->rpc('/card/withdraw', ['cardId' => $cardId, 'amount' => $amount, 'merchantOrderNo' => $merchantOrderNo], $context);
+    }
+
+    /**
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    public function getCardPurchaseTransactions(string $cardId, int $pageNum = 1, int $pageSize = 20, array $context = []): array
+    {
+        return $this->rpc('/card/purchase/transaction', ['cardId' => $cardId, 'pageNum' => $pageNum, 'pageSize' => $pageSize], $context);
+    }
+
+    /**
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    public function getCardAuthTransactions(string $cardId, int $pageNum = 1, int $pageSize = 20, array $context = []): array
+    {
+        return $this->rpc('/card/authorize/transaction', ['cardId' => $cardId, 'pageNum' => $pageNum, 'pageSize' => $pageSize], $context);
+    }
+
+    /**
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    public function getCard3dsTransactions(string $cardId, int $pageNum = 1, int $pageSize = 20, array $context = []): array
+    {
+        return $this->rpc('/card/3ds/transaction', ['cardId' => $cardId, 'pageNum' => $pageNum, 'pageSize' => $pageSize], $context);
+    }
+
     // ── Core RPC ─────────────────────────────────────────────────────────
 
     /**

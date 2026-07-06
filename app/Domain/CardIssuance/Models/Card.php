@@ -21,6 +21,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $network
  * @property string $status
  * @property string $currency
+ * @property int|null $balance_cents
+ * @property string|null $fincard_account_id
+ * @property string|null $merchant_order_no
  * @property string|null $label
  * @property string|null $funding_source
  * @property int|null $spend_limit_cents
@@ -48,6 +51,9 @@ class Card extends Model
         'network',
         'status',
         'currency',
+        'balance_cents',
+        'fincard_account_id',
+        'merchant_order_no',
         'label',
         'funding_source',
         'spend_limit_cents',
@@ -65,6 +71,7 @@ class Card extends Model
     {
         return [
             'metadata'          => 'encrypted:array',
+            'balance_cents'     => 'integer',
             'spend_limit_cents' => 'integer',
             'expires_at'        => 'datetime',
             'frozen_at'         => 'datetime',
