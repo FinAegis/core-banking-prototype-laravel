@@ -83,4 +83,8 @@ return [
     'ERR_CARDS_010' => ['http' => 422, 'description' => 'Your country is not supported for card issuance.'],
     'ERR_CARDS_011' => ['http' => 422, 'description' => 'Document upload failed or the document type is not accepted.'],
     'ERR_CARDS_012' => ['http' => 502, 'description' => 'We could not verify your details right now. Please try again later.'],
+
+    // ─── FinCard funding (Phase 3) ─────────────────────────────────────────
+    'ERR_CARDS_013' => ['http' => 502, 'description' => 'Funding is temporarily unavailable. Please try again later.'],
+    'ERR_CARDS_014' => ['http' => 422, 'description' => 'That deposit coin is not supported.'],
 ];
