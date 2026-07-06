@@ -245,6 +245,34 @@ class OpsVerifyEnvCommand extends Command
             $this->add(self::CATEGORY_CONDITIONAL, 'hyperswitch.credentials', self::SKIP, 'HYPERSWITCH_ENABLED=false — Stripe remains the deposit rail.');
         }
 
+        if (config('cardissuance.default_issuer') === 'fincard') {
+            $missing = [];
+            foreach ([
+                'FINCARD_TENANT_ID'          => 'cardissuance.issuers.fincard.tenant_id',
+                'FINCARD_USERNAME'           => 'cardissuance.issuers.fincard.username',
+                'FINCARD_PASSWORD'           => 'cardissuance.issuers.fincard.password',
+                'FINCARD_WEBHOOK_PUBLIC_KEY' => 'cardissuance.issuers.fincard.webhook_public_key',
+            ] as $env => $key) {
+                if ($this->configString($key) === '') {
+                    $missing[] = $env;
+                }
+            }
+
+            if ($missing !== []) {
+                $this->add(self::CATEGORY_CONDITIONAL, 'fincard.credentials', self::FAIL, sprintf(
+                    'CARD_ISSUER=fincard but %s empty — the card issuer cannot authenticate to FinCard%s.',
+                    implode(', ', $missing),
+                    in_array('FINCARD_WEBHOOK_PUBLIC_KEY', $missing, true)
+                        ? ' and inbound webhooks would be rejected as unverifiable'
+                        : '',
+                ));
+            } else {
+                $this->add(self::CATEGORY_CONDITIONAL, 'fincard.credentials', self::PASS);
+            }
+        } else {
+            $this->add(self::CATEGORY_CONDITIONAL, 'fincard.credentials', self::SKIP, 'CARD_ISSUER is not fincard.');
+        }
+
         if ($solanaSponsor->isEnabled()) {
             try {
                 $address = $solanaSponsor->publicKeyBase58();

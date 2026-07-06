@@ -19,7 +19,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | The card issuer provider to use. Supported: "demo", "marqeta", "lithic",
-    | "stripe_issuing"
+    | "stripe_issuing", "fincard"
     |
     */
 
@@ -58,6 +58,25 @@ return [
             'driver'         => 'stripe_issuing',
             'api_key'        => env('STRIPE_SECRET'),
             'webhook_secret' => env('STRIPE_ISSUING_WEBHOOK_SECRET'),
+        ],
+
+        // FinCard (FinHub BFF, finhub.cloud) — prefunded stored-value virtual
+        // cards. Auth is a session-JWT login (no request signing on our side;
+        // FinHub's BFF signs to its upstream). Inbound webhooks are RSA-signed
+        // and verified with `webhook_public_key`.
+        // @see docs/superpowers/specs/2026-07-06-fincard-card-issuing-design.md
+        'fincard' => [
+            'driver'               => 'fincard',
+            'base_url'             => env('FINCARD_BASE_URL', 'https://sandbox.finhub.cloud/api/v2.1/fincard/virtual'),
+            'tenant_id'            => env('FINCARD_TENANT_ID'),
+            'org_id'               => env('FINCARD_ORG_ID'),
+            'user_id'              => env('FINCARD_USER_ID'),
+            'username'             => env('FINCARD_USERNAME'),
+            'password'             => env('FINCARD_PASSWORD'),
+            'forwarded_from'       => env('FINCARD_FORWARDED_FROM', 'zelta'),
+            'webhook_public_key'   => env('FINCARD_WEBHOOK_PUBLIC_KEY', ''),
+            'default_card_type_id' => env('FINCARD_DEFAULT_CARD_TYPE_ID'),
+            'default_coin_key'     => env('FINCARD_DEFAULT_COIN_KEY', 'USDT_TRC20'),
         ],
     ],
 

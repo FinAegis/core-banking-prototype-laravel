@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\CardIssuance\Http\Controllers\FinCardWebhookController;
 use App\Domain\CardIssuance\Http\Controllers\WaitlistDepositController;
 use App\Domain\CardIssuance\Webhooks\CardWaitlistWebhookController;
 use App\Http\Controllers\Api\CardIssuance\CardController;
@@ -61,6 +62,15 @@ Route::prefix('v1/cardholders')->name('api.cardholders.')->middleware(['auth:san
     Route::post('/', [CardholderController::class, 'store'])->name('store');
     Route::get('/{id}', [CardholderController::class, 'show'])->name('show');
 });
+
+// FinCard (FinHub) platform webhook — single endpoint for card lifecycle,
+// authorization, 3DS, cardholder-KYC, work-order and crypto-wallet events.
+// Authenticated by RSA signature inside the controller (not Sanctum); FinCard
+// retries on non-success, so processing is idempotent via
+// processed_webhook_events (provider='fincard').
+Route::post('v1/webhooks/fincard', [FinCardWebhookController::class, 'handle'])
+    ->middleware('api.rate_limit:webhook')
+    ->name('api.v1.webhooks.fincard');
 
 // Card issuer webhook endpoints (CRITICAL: <2000ms latency budget)
 Route::prefix('webhooks/card-issuer')->name('api.webhooks.card.')

@@ -7,6 +7,8 @@ namespace App\Providers;
 use App\Domain\CardIssuance\Adapters\DemoCardIssuerAdapter;
 use App\Domain\CardIssuance\Adapters\MarqetaCardIssuerAdapter;
 use App\Domain\CardIssuance\Contracts\CardIssuerInterface;
+use App\Infrastructure\FinCard\FinCardClient;
+use App\Infrastructure\FinCard\FinCardWebhookVerifier;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 
@@ -33,6 +35,14 @@ class CardIssuanceServiceProvider extends ServiceProvider
                 default => new DemoCardIssuerAdapter(),
             };
         });
+
+        // FinCard infrastructure — the outbound client and the inbound webhook
+        // verifier. Bound as singletons so the cached session JWT is shared
+        // across a request lifecycle. The `fincard` CardIssuerInterface match
+        // arm is added when the adapter lands (later phases); Phase 1 only needs
+        // the client (reference data) and the verifier (webhook endpoint).
+        $this->app->singleton(FinCardClient::class, static fn () => FinCardClient::fromConfig());
+        $this->app->singleton(FinCardWebhookVerifier::class, static fn () => FinCardWebhookVerifier::fromConfig());
     }
 
     /**
@@ -49,6 +59,17 @@ class CardIssuanceServiceProvider extends ServiceProvider
             && empty(config('cardissuance.issuers.marqeta.hmac_secret'))
         ) {
             Log::debug('Marqeta HMAC secret not configured — sandbox mode, webhook signature validation relaxed');
+        }
+
+        // FinCard webhooks are RSA-signed; without the platform public key the
+        // verifier fails closed in production (rejecting every event). Warn loudly
+        // so a misconfigured deploy is caught. ops:verify-env FAILs on this too.
+        if (
+            $this->app->environment('production')
+            && config('cardissuance.default_issuer') === 'fincard'
+            && empty(config('cardissuance.issuers.fincard.webhook_public_key'))
+        ) {
+            Log::warning('FinCard webhook public key not configured — all inbound FinCard webhooks will be rejected in production');
         }
     }
 }
