@@ -73,4 +73,12 @@ return [
     'ERR_CARDS_004' => ['http' => 409, 'description' => 'Deposit state conflict — already shipped or cancellation already in progress.'],
     'ERR_CARDS_005' => ['http' => 422, 'description' => 'Invalid return URL — not in the configured allow-list.'],
     'ERR_CARDS_006' => ['http' => 409, 'description' => 'Quote kind is not card_waitlist_deposit.'],
+
+    // ─── FinCard cardholder / KYC (Phase 2) ────────────────────────────────
+    'ERR_CARDS_007' => ['http' => 403, 'description' => 'No verified FinCard cardholder — identity verification required before this action.'],
+    'ERR_CARDS_008' => ['http' => 409, 'description' => 'FinCard cardholder KYC is still under review.'],
+    'ERR_CARDS_009' => ['http' => 409, 'description' => 'A FinCard cardholder already exists for this user.'],
+    'ERR_CARDS_010' => ['http' => 422, 'description' => 'Cardholder country is not supported for card issuance.'],
+    'ERR_CARDS_011' => ['http' => 422, 'description' => 'KYC document upload failed or the document type is invalid.'],
+    'ERR_CARDS_012' => ['http' => 502, 'description' => 'The card issuer rejected the cardholder request.'],
 ];
