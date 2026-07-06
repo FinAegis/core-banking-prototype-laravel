@@ -68,22 +68,31 @@ final class FinCardCardholderService
         $data = is_array($response['data'] ?? null) ? $response['data'] : [];
         $holderId = (string) ($data['holderId'] ?? $data['cardholderId'] ?? '');
 
-        return Cardholder::create([
-            'user_id'                => $user->id,
-            'first_name'             => (string) ($validated['first_name'] ?? ''),
-            'last_name'              => (string) ($validated['last_name'] ?? ''),
-            'email'                  => $validated['email'] ?? null,
-            'phone'                  => $validated['phone'] ?? null,
-            'kyc_status'             => 'in_review',
-            'kyc_stage'              => 'admin',
-            'issuer_cardholder_id'   => $holderId,
-            'shipping_address_line1' => $validated['address'] ?? null,
-            'shipping_city'          => $validated['city'] ?? null,
-            'shipping_state'         => $validated['state'] ?? null,
-            'shipping_postal_code'   => $validated['zip_code'] ?? null,
-            'shipping_country'       => $validated['country'] ?? null,
-            'verification_data'      => FinCardCardholderMapper::persistedAttributes($validated),
-        ]);
+        // Assign attributes explicitly (rather than mass-assign an array) so the
+        // writes are type-checked against the model's @property contract.
+        $cardholder = new Cardholder();
+        $cardholder->user_id = (string) $user->id;
+        $cardholder->first_name = (string) ($validated['first_name'] ?? '');
+        $cardholder->last_name = (string) ($validated['last_name'] ?? '');
+        $cardholder->email = $this->stringOrNull($validated['email'] ?? null);
+        $cardholder->phone = $this->stringOrNull($validated['phone'] ?? null);
+        $cardholder->kyc_status = 'in_review';
+        $cardholder->kyc_stage = 'admin';
+        $cardholder->issuer_cardholder_id = $holderId;
+        $cardholder->shipping_address_line1 = $this->stringOrNull($validated['address'] ?? null);
+        $cardholder->shipping_city = $this->stringOrNull($validated['city'] ?? null);
+        $cardholder->shipping_state = $this->stringOrNull($validated['state'] ?? null);
+        $cardholder->shipping_postal_code = $this->stringOrNull($validated['zip_code'] ?? null);
+        $cardholder->shipping_country = $this->stringOrNull($validated['country'] ?? null);
+        $cardholder->verification_data = FinCardCardholderMapper::persistedAttributes($validated);
+        $cardholder->save();
+
+        return $cardholder;
+    }
+
+    private function stringOrNull(mixed $value): ?string
+    {
+        return $value === null || $value === '' ? null : (string) $value;
     }
 
     /**
