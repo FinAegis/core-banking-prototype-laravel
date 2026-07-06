@@ -1,0 +1,104 @@
+<?php
+
+/**
+ * Endpoint tests for POST /api/v1/webhooks/fincard.
+ *
+ * Verifies the Phase-1 webhook contract: RSA-signature auth, JSON validation,
+ * idempotent dedupe on processed_webhook_events, and the `{"success": true}`
+ * acknowledgement FinCard expects to stop retrying.
+ */
+
+declare(strict_types=1);
+
+use App\Domain\Subscription\Models\ProcessedWebhookEvent;
+use App\Infrastructure\FinCard\FinCardWebhookVerifier;
+
+/**
+ * @return array{0: string, 1: string} [privatePem, publicPem]
+ */
+function fincardEndpointKeypair(): array
+{
+    $res = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+    if ($res === false) {
+        throw new RuntimeException('openssl_pkey_new failed');
+    }
+    openssl_pkey_export($res, $priv);
+    $details = openssl_pkey_get_details($res);
+
+    return [(string) $priv, (string) ($details['key'] ?? '')];
+}
+
+function fincardEndpointSign(string $body, string $priv): string
+{
+    openssl_sign($body, $sig, $priv, OPENSSL_ALGO_SHA256);
+
+    return base64_encode($sig);
+}
+
+/**
+ * Build the PHP `$server` array carrying a signature header for the call().
+ *
+ * @return array<string, string>
+ */
+function fincardWebhookServer(string $header, string $value): array
+{
+    return [
+        'CONTENT_TYPE'                                       => 'application/json',
+        'HTTP_' . str_replace('-', '_', strtoupper($header)) => $value,
+    ];
+}
+
+beforeEach(function () {
+    [$priv, $pub] = fincardEndpointKeypair();
+    $this->finCardPriv = $priv;
+    // Inject a verifier with a known key so the signed fixture verifies.
+    $this->app->instance(FinCardWebhookVerifier::class, new FinCardWebhookVerifier($pub));
+});
+
+it('accepts a validly signed event, records it, and acknowledges success', function () {
+    $body = (string) json_encode(['eventType' => 'create', 'data' => ['orderNo' => 'ord-123', 'cardId' => 'c1']]);
+    $sig = fincardEndpointSign($body, $this->finCardPriv);
+
+    $this->call('POST', '/api/v1/webhooks/fincard', [], [], [], fincardWebhookServer('X-FC-SIGNATURE', $sig), $body)
+        ->assertOk()
+        ->assertExactJson(['success' => true]);
+
+    expect(ProcessedWebhookEvent::where('provider', 'fincard')->where('event_id', 'ord-123')->count())->toBe(1);
+});
+
+it('accepts the signature under the legacy X-WSB-SIGNATURE header too', function () {
+    $body = (string) json_encode(['eventType' => 'deposit', 'data' => ['orderNo' => 'ord-wsb']]);
+    $sig = fincardEndpointSign($body, $this->finCardPriv);
+
+    $this->call('POST', '/api/v1/webhooks/fincard', [], [], [], fincardWebhookServer('X-WSB-SIGNATURE', $sig), $body)
+        ->assertOk()
+        ->assertExactJson(['success' => true]);
+});
+
+it('is idempotent across duplicate deliveries', function () {
+    $body = (string) json_encode(['eventType' => 'create', 'data' => ['orderNo' => 'ord-dup']]);
+    $sig = fincardEndpointSign($body, $this->finCardPriv);
+    $server = fincardWebhookServer('X-FC-SIGNATURE', $sig);
+
+    $this->call('POST', '/api/v1/webhooks/fincard', [], [], [], $server, $body)->assertOk()->assertExactJson(['success' => true]);
+    $this->call('POST', '/api/v1/webhooks/fincard', [], [], [], $server, $body)->assertOk()->assertExactJson(['success' => true]);
+
+    expect(ProcessedWebhookEvent::where('provider', 'fincard')->where('event_id', 'ord-dup')->count())->toBe(1);
+});
+
+it('rejects an invalid signature with 401', function () {
+    $body = (string) json_encode(['eventType' => 'create', 'data' => ['orderNo' => 'ord-x']]);
+
+    $this->call('POST', '/api/v1/webhooks/fincard', [], [], [], fincardWebhookServer('X-FC-SIGNATURE', base64_encode('garbage')), $body)
+        ->assertStatus(401);
+
+    expect(ProcessedWebhookEvent::where('event_id', 'ord-x')->exists())->toBeFalse();
+});
+
+it('rejects a validly signed but identifier-less payload with 400', function () {
+    $body = (string) json_encode(['data' => []]);
+    $sig = fincardEndpointSign($body, $this->finCardPriv);
+
+    $this->call('POST', '/api/v1/webhooks/fincard', [], [], [], fincardWebhookServer('X-FC-SIGNATURE', $sig), $body)
+        ->assertStatus(400);
+});

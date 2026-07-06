@@ -1,0 +1,2066 @@
+{
+  "info": {
+    "_postman_id": "d0ca3622-0721-47ef-b2d4-78603c71aac5",
+    "name": "FinCard BFF - Virtual_Card_API_Test_Tenant",
+    "description": "Complete API collection for the FinCard Virtual Card BFF.\n\nBase path: /api/v2.1/fincard/virtual\n\n**Quick Start:**\n1. Import the companion environment file `FinCard-BFF.postman_environment.json`\n2. Run **🔐 Auth / Login** — bearerToken is auto-saved\n3. Run **💰 Account / Create Shared Account** — accountId is auto-saved\n4. Run **👤 Card Holder / Create Cardholder V2** — holderId is auto-saved\n5. Run **💳 Card / Create Card V2** — cardId is auto-saved\n\nAll subsequent requests use those saved variables automatically.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "54502770",
+    "_collection_link": "https://go.postman.co/collection/54502770-d0ca3622-0721-47ef-b2d4-78603c71aac5?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "🔐 Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r = pm.response.json();",
+                  "const token = (r && r.accessToken) || (r && r.data && r.data.accessToken);",
+                  "if (token) {",
+                  "  pm.collectionVariables.set('bearerToken', token);",
+                  "  pm.test('Login successful — token saved', () => pm.response.to.have.status(200));",
+                  "  console.log('✅ bearerToken saved:', token.substring(0, 40) + '...');",
+                  "} else {",
+                  "  pm.test('Login failed — no token in response', () => false);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{tenantId}}"
+              },
+              {
+                "key": "X-Forwarded-For",
+                "value": "127.0.0.1"
+              },
+              {
+                "key": "platform",
+                "value": "web"
+              },
+              {
+                "key": "deviceId",
+                "value": "postman-device-001"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"cards_test@fincard-test.finhub.cloud\",\n  \"password\": \"Cards@Test2025!\"\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/admin/organization/e5b82d4f-9a3c-5f6b-c0e2-8d7f4a3b2c19/users/a7d04f6b-1c5e-7b8d-e2a4-0f9b6c5d4e3b/sessions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "admin",
+                "organization",
+                "e5b82d4f-9a3c-5f6b-c0e2-8d7f4a3b2c19",
+                "users",
+                "a7d04f6b-1c5e-7b8d-e2a4-0f9b6c5d4e3b",
+                "sessions"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication endpoints"
+    },
+    {
+      "name": "🌐 Common",
+      "item": [
+        {
+          "name": "Country / Region List",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/common/region",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "common",
+                "region"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "City List",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"regionCode\": \"US\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/common/city",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "common",
+                "city"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "City List V2 (hierarchical)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"regionCode\": \"US\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/common/v2/city",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "common",
+                "v2",
+                "city"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mobile Area Code List",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/common/mobileAreaCode",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "common",
+                "mobileAreaCode"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "File Upload",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "category",
+                  "value": "card",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "value": null
+                },
+                {
+                  "key": "fileName",
+                  "value": "id-front.jpg",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/common/file/upload",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "common",
+                "file",
+                "upload"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Work Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json();",
+                  "if (r && r.success && r.orderNo) {",
+                  "  pm.collectionVariables.set('workOrderNo', r.orderNo);",
+                  "  console.log('✅ workOrderNo saved:', r.orderNo);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"merchantOrderNo\": \"WORK{{$timestamp}}001\",\n  \"title\": \"Card Activation Request\",\n  \"target\": \"5533700000000000\",\n  \"tradeType\": \"CARD_ACTIVE\",\n  \"content\": \"Please activate the card\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/work/submit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "work",
+                "submit"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Work Order List",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pageNum\": 1,\n  \"pageSize\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/work/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "work",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Reference data: regions, cities, mobile codes, file upload, work orders"
+    },
+    {
+      "name": "💰 Account",
+      "item": [
+        {
+          "name": "Assets (Account Info)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/account/info",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "account",
+                "info"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Account List",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pageNum\": 1,\n  \"pageSize\": 10,\n  \"accountType\": \"MARGIN\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/account/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "account",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Single Account Query",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountId\": \"{{accountId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/account/single/query",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "account",
+                "single",
+                "query"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ledger Transactions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountId\": \"{{accountId}}\",\n  \"pageNum\": 1,\n  \"pageSize\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/account/transaction",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "account",
+                "transaction"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Shared Account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json();",
+                  "const id = r && r.data && r.data.accountId;",
+                  "if (id) {",
+                  "  const existing = pm.collectionVariables.get('accountId');",
+                  "  if (!existing) {",
+                  "    pm.collectionVariables.set('accountId', id);",
+                  "    console.log('✅ accountId saved:', id);",
+                  "  } else {",
+                  "    pm.collectionVariables.set('accountId2', id);",
+                  "    console.log('✅ accountId2 saved:', id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountName\": \"My Shared Account\",\n  \"currency\": \"USD\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/account/create",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "account",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Fund Transfer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"TRANSFER\",\n  \"merchantOrderNo\": \"XFER{{$timestamp}}001\",\n  \"fromAccountId\": \"{{accountId}}\",\n  \"toAccountId\": \"{{accountId2}}\",\n  \"amount\": 10,\n  \"currency\": \"USD\",\n  \"description\": \"Internal transfer\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/account/transfer",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "account",
+                "transfer"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Wallet Deposit (Deprecated)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountId\": \"{{accountId}}\",\n  \"amount\": 100,\n  \"currency\": \"USD\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/account/walletDeposit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "account",
+                "walletDeposit"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Wallet Deposit Transactions (Deprecated)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountId\": \"{{accountId}}\",\n  \"pageNum\": 1,\n  \"pageSize\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/account/walletDepositTransaction",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "account",
+                "walletDepositTransaction"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Account management: info, list, create, transfer, wallet deposit"
+    },
+    {
+      "name": "💎 Wallet V2",
+      "item": [
+        {
+          "name": "Coin List",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/wallet/v2/coins",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "wallet",
+                "v2",
+                "coins"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Wallet Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coinKey\": \"USDT_TRC20\",\n  \"accountId\": \"{{accountId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/wallet/v2/create",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "wallet",
+                "v2",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Wallet Address List",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pageNum\": 1,\n  \"pageSize\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/wallet/v2/addressList",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "wallet",
+                "v2",
+                "addressList"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Wallet Transaction History",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pageNum\": 1,\n  \"pageSize\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/wallet/v2/transaction",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "wallet",
+                "v2",
+                "transaction"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Crypto wallet: coins, deposit addresses, transaction history"
+    },
+    {
+      "name": "👤 Card Holder",
+      "item": [
+        {
+          "name": "Cardholder Occupations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/holder/occupations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "holder",
+                "occupations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Cardholder (Deprecated)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json();",
+                  "const id = r && r.data && r.data.cardholderId;",
+                  "if (id) { pm.collectionVariables.set('holderId', id); console.log('✅ holderId saved:', id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"birthday\": \"1990-01-15\",\n  \"nationality\": \"US\",\n  \"phone\": \"5551234567\",\n  \"phoneCountryCode\": \"+1\",\n  \"email\": \"john.doe@example.com\",\n  \"country\": \"US\",\n  \"state\": \"NY\",\n  \"city\": \"New York\",\n  \"address\": \"123 Main St\",\n  \"zipCode\": \"10001\",\n  \"idType\": \"PASSPORT\",\n  \"idNumber\": \"A1234567\",\n  \"idFrontFileId\": \"{{fileId}}\",\n  \"idBackFileId\": \"{{fileId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/holder/create",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "holder",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Cardholder (Deprecated)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardholderId\": \"{{holderId}}\",\n  \"address\": \"456 Updated Street\",\n  \"city\": \"Los Angeles\",\n  \"state\": \"CA\",\n  \"zipCode\": \"90001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/holder/update",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "holder",
+                "update"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Cardholder V2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json();",
+                  "const id = r && r.data && r.data.cardholderId;",
+                  "if (id) { pm.collectionVariables.set('holderId', id); console.log('✅ holderId saved:', id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"birthday\": \"1992-03-20\",\n  \"nationality\": \"US\",\n  \"phone\": \"5559876543\",\n  \"phoneCountryCode\": \"+1\",\n  \"email\": \"jane.smith@example.com\",\n  \"country\": \"US\",\n  \"state\": \"CA\",\n  \"city\": \"Los Angeles\",\n  \"address\": \"456 Oak Avenue\",\n  \"zipCode\": \"90001\",\n  \"idType\": \"NATIONAL_ID\",\n  \"idNumber\": \"B9876543\",\n  \"idFrontFileId\": \"{{fileId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/holder/v2/create",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "holder",
+                "v2",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Cardholder V2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardholderId\": \"{{holderId}}\",\n  \"address\": \"789 New Boulevard\",\n  \"city\": \"Chicago\",\n  \"state\": \"IL\",\n  \"zipCode\": \"60601\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/holder/v2/update",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "holder",
+                "v2",
+                "update"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cardholder List",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pageNum\": 1,\n  \"pageSize\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/holder/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "holder",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Cardholder management: create, update, list"
+    },
+    {
+      "name": "💳 Card",
+      "item": [
+        {
+          "name": "Support Bins (Card Types)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/v2/cardTypes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "v2",
+                "cardTypes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Card (Deprecated)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json();",
+                  "const id = r && r.data && (r.data.cardNo || r.data.cardId);",
+                  "if (id) { pm.collectionVariables.set('cardId', id); console.log('✅ cardId saved:', id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"merchantOrderNo\": \"CARD{{$timestamp}}001\",\n  \"cardTypeId\": 111001,\n  \"amount\": 200,\n  \"accountId\": \"{{accountId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/openCard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "openCard"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Card V2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json();",
+                  "const id = r && r.data && (r.data.cardNo || r.data.cardId);",
+                  "if (id) { pm.collectionVariables.set('cardId', id); console.log('✅ cardId saved:', id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"merchantOrderNo\": \"CARD{{$timestamp}}002\",\n  \"cardTypeId\": 111001,\n  \"amount\": 200,\n  \"accountId\": \"{{accountId}}\",\n  \"holderId\": \"{{holderId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/v2/openCard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "v2",
+                "openCard"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Card Info",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardId\": \"{{cardId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/info",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "info"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Card Info Sensitive",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardId\": \"{{cardId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/info/sensitive",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "info",
+                "sensitive"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Card Balance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardId\": \"{{cardId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/balance",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "balance"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Card List",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pageNum\": 1,\n  \"pageSize\": 20,\n  \"status\": \"Normal\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Card Note",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardId\": \"{{cardId}}\",\n  \"merchantOrderNo\": \"UPD{{$timestamp}}001\",\n  \"remark\": \"My primary travel card\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/v2/updateNote",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "v2",
+                "updateNote"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Card Settings",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardId\": \"{{cardId}}\",\n  \"merchantOrderNo\": \"UPD{{$timestamp}}002\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/v2/update",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "v2",
+                "update"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Freeze Card",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardId\": \"{{cardId}}\",\n  \"merchantOrderNo\": \"FRZ{{$timestamp}}001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/v2/freeze",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "v2",
+                "freeze"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "UnFreeze Card",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardId\": \"{{cardId}}\",\n  \"merchantOrderNo\": \"UFZ{{$timestamp}}001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/v2/unfreeze",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "v2",
+                "unfreeze"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deposit to Card",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardId\": \"{{cardId}}\",\n  \"merchantOrderNo\": \"DEP{{$timestamp}}001\",\n  \"amount\": 50\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/deposit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "deposit"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Withdraw from Card",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardId\": \"{{cardId}}\",\n  \"merchantOrderNo\": \"WDR{{$timestamp}}001\",\n  \"amount\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/withdraw",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "withdraw"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Card",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardId\": \"{{cardId}}\",\n  \"merchantOrderNo\": \"CXL{{$timestamp}}001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "cancel"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Activate Card (physical)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"merchantOrderNo\": \"ACT{{$timestamp}}001\",\n  \"cardId\": \"phys-card-001\",\n  \"pin\": \"123456\",\n  \"activationCode\": \"ACT000001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/activate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "activate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update PIN (physical)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardId\": \"phys-card-001\",\n  \"merchantOrderNo\": \"PIN{{$timestamp}}001\",\n  \"oldPin\": \"123456\",\n  \"newPin\": \"654321\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/updatePin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "updatePin"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Card Purchase Transactions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardId\": \"{{cardId}}\",\n  \"pageNum\": 1,\n  \"pageSize\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/purchase/transaction",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "purchase",
+                "transaction"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Card Operation Transactions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardId\": \"{{cardId}}\",\n  \"pageNum\": 1,\n  \"pageSize\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/transaction",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "transaction"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Card Operation Transactions V2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardId\": \"{{cardId}}\",\n  \"pageNum\": 1,\n  \"pageSize\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/v2/transaction",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "v2",
+                "transaction"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Card Authorization Transactions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardId\": \"{{cardId}}\",\n  \"pageNum\": 1,\n  \"pageSize\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/authorize/transaction",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "authorize",
+                "transaction"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Card Auth Fee Transactions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardId\": \"{{cardId}}\",\n  \"pageNum\": 1,\n  \"pageSize\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/auth/fee/transaction",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "auth",
+                "fee",
+                "transaction"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Card 3DS Transactions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardId\": \"{{cardId}}\",\n  \"pageNum\": 1,\n  \"pageSize\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/card/3ds/transaction",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "card",
+                "3ds",
+                "transaction"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Card lifecycle: create, info, balance, operations, transactions"
+    },
+    {
+      "name": "🔔 Webhook",
+      "item": [
+        {
+          "name": "Webhook Callback",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-WSB-SIGNATURE",
+                "value": "valid_signature_12345",
+                "description": "Playground mode: use 'valid_signature_12345'. Production: HMAC-RSA from FinCard platform."
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": \"evt-{{$randomUUID}}\",\n  \"eventType\": \"card_create\",\n  \"tenantId\": \"{{tenantId}}\",\n  \"createTime\": {{$timestamp}},\n  \"data\": {\n    \"cardId\": \"{{cardId}}\",\n    \"status\": \"Normal\",\n    \"amount\": 200,\n    \"currency\": \"USD\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v2.1/fincard/virtual/webhook/callback",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v2.1",
+                "fincard",
+                "virtual",
+                "webhook",
+                "callback"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Receive FinCard platform event notifications"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{bearerToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "requests": {},
+        "exec": [
+          "pm.request.headers.upsert({ key: 'X-Tenant-ID',     value: pm.collectionVariables.get('tenantId') || 'fc4d0001-0000-0000-0000-000000000001' });",
+          "pm.request.headers.upsert({ key: 'X-Forwarded-For', value: '127.0.0.1' });",
+          "pm.request.headers.upsert({ key: 'X-Forwarded-From',value: 'postman' });",
+          "pm.request.headers.upsert({ key: 'platform',        value: 'web' });",
+          "pm.request.headers.upsert({ key: 'deviceId',        value: 'postman-device-001' });"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://sandbox.finhub.cloud"
+    },
+    {
+      "key": "tenantId",
+      "value": "fc4d0001-0000-0000-0000-000000000001"
+    },
+    {
+      "key": "bearerToken",
+      "value": ""
+    },
+    {
+      "key": "cardId",
+      "value": ""
+    },
+    {
+      "key": "accountId",
+      "value": ""
+    },
+    {
+      "key": "accountId2",
+      "value": ""
+    },
+    {
+      "key": "holderId",
+      "value": ""
+    },
+    {
+      "key": "fileId",
+      "value": "mock-file-id-001"
+    },
+    {
+      "key": "workOrderNo",
+      "value": ""
+    }
+  ]
+}
