@@ -246,13 +246,14 @@ class OpsVerifyEnvCommand extends Command
         }
 
         if (config('cardissuance.default_issuer') === 'fincard') {
-            $missing = [];
-            foreach ([
+            $required = [
                 'FINCARD_TENANT_ID'          => 'cardissuance.issuers.fincard.tenant_id',
                 'FINCARD_USERNAME'           => 'cardissuance.issuers.fincard.username',
                 'FINCARD_PASSWORD'           => 'cardissuance.issuers.fincard.password',
                 'FINCARD_WEBHOOK_PUBLIC_KEY' => 'cardissuance.issuers.fincard.webhook_public_key',
-            ] as $env => $key) {
+            ];
+            $missing = [];
+            foreach ($required as $env => $key) {
                 if ($this->configString($key) === '') {
                     $missing[] = $env;
                 }
