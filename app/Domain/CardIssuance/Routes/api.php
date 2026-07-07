@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\CardIssuance\CardholderController;
 use App\Http\Controllers\Api\CardIssuance\CardTransactionWebhookController;
 use App\Http\Controllers\Api\CardIssuance\FinCardAccountController;
 use App\Http\Controllers\Api\CardIssuance\FinCardCardController;
+use App\Http\Controllers\Api\CardIssuance\FinCardDevController;
 use App\Http\Controllers\Api\CardIssuance\FinCardOnboardingController;
 use App\Http\Controllers\Api\CardIssuance\JitFundingWebhookController;
 use Illuminate\Support\Facades\Route;
@@ -56,6 +57,17 @@ Route::prefix('v1/cards')->name('api.cards.fincard.')
         Route::post('/account/deposit-address', [FinCardAccountController::class, 'depositAddress'])
             ->middleware(['idempotency.required', 'api.rate_limit:mutation'])
             ->name('account.deposit-address');
+
+        // DEV/QA ONLY — simulate an inbound deposit to exercise the funding UI
+        // without a chain deposit or FinCard creds. Registered in non-production
+        // ONLY; additionally gated behind FINCARD_DEV_SIMULATE_ENABLED in the
+        // controller. Credits the LOCAL balance mirror + fires the same
+        // fincard.account.funded broadcast a real webhook would.
+        if (! app()->environment('production')) {
+            Route::post('/dev/simulate-deposit', [FinCardDevController::class, 'simulateDeposit'])
+                ->middleware(['idempotency.required', 'api.rate_limit:mutation'])
+                ->name('dev.simulate-deposit');
+        }
 
         // Card lifecycle (Phase 4) — namespaced under /fincard/* to avoid the
         // generic card routes. Sensitive PAN/CVV is fetched on demand, never stored.
