@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Domain\CardIssuance\Adapters\DemoCardIssuerAdapter;
+use App\Domain\CardIssuance\Adapters\FinCardCardIssuerAdapter;
 use App\Domain\CardIssuance\Adapters\MarqetaCardIssuerAdapter;
 use App\Domain\CardIssuance\Contracts\CardIssuerInterface;
 use App\Infrastructure\FinCard\FinCardClient;
@@ -32,7 +33,8 @@ class CardIssuanceServiceProvider extends ServiceProvider
                 'marqeta' => new MarqetaCardIssuerAdapter(
                     config: (array) config('cardissuance.issuers.marqeta', []),
                 ),
-                default => new DemoCardIssuerAdapter(),
+                'fincard' => $app->make(FinCardCardIssuerAdapter::class),
+                default   => new DemoCardIssuerAdapter(),
             };
         });
 
