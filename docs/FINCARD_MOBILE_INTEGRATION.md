@@ -102,6 +102,8 @@ FinCard requires its own KYC — richer than the app's existing profile. Prefill
 
 **Fiat (phase 5):** routes through the existing Bridge ramp; exact UX TBD pending the fiat-funding rail (*open item*). Treat as a later addition.
 
+> **Dev/QA only — simulate a deposit.** On a non-production backend with `FINCARD_DEV_SIMULATE_ENABLED=true`, `POST /v1/cards/dev/simulate-deposit` `{ amount_cents, coin_key? }` (+ `Idempotency-Key`) credits the caller's account and fires the same `fincard.account.funded` WebSocket event (§6) a real deposit would — so you can exercise the funding UI end-to-end without sending crypto. It returns the account object (§5.1) and credits the local balance mirror only (no real FinCard call). The route **does not exist in production**. Use it on a backend with **no** FinCard creds; on one wired to real FinCard, balance reconciliation will later overwrite the simulated credit.
+
 ### 4.3 Open & use a card ⚪ (phase 4)
 
 1. `GET /v1/cards/reference/card-types` → `{ card_types: [...], default_card_type_id }`. **Optional:** v1 is a single product, so you can skip this call and omit `card_type_id` on open — the backend applies the tenant default. Call it only to let the user choose among multiple products. The `card_types` item shape passes through FinCard *(pending FinCard schema confirmation)*.

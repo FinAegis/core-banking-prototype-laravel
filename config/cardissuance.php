@@ -77,6 +77,12 @@ return [
             'webhook_public_key'   => env('FINCARD_WEBHOOK_PUBLIC_KEY', ''),
             'default_card_type_id' => env('FINCARD_DEFAULT_CARD_TYPE_ID'),
             'default_coin_key'     => env('FINCARD_DEFAULT_COIN_KEY', 'USDT_TRC20'),
+
+            // DEV/QA ONLY — enables POST /v1/cards/dev/simulate-deposit, a
+            // money-crediting test affordance for the funding UI. The route is
+            // registered in non-production ONLY; this flag is a second gate.
+            // Never set in production.
+            'dev_simulate_enabled' => (bool) env('FINCARD_DEV_SIMULATE_ENABLED', false),
         ],
     ],
 

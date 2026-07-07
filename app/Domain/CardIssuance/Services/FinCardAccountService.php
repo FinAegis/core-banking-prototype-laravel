@@ -175,6 +175,40 @@ final class FinCardAccountService
     }
 
     /**
+     * DEV ONLY — simulate an inbound crypto deposit crediting the caller's
+     * account. Drives the exact balance-credit + FinCardAccountFunded broadcast
+     * a real FinCard wallet DEPOSIT webhook would, so the mobile funding UI can be
+     * exercised with no chain deposit and no FinCard connectivity. Credits the
+     * LOCAL mirror only; on a backend wired to real FinCard, syncBalance() / the
+     * reconcile cron will overwrite it. The HTTP surface is registered in
+     * non-production only and additionally gated behind FINCARD_DEV_SIMULATE_ENABLED.
+     */
+    public function simulateDeposit(User $user, int $amountCents, ?string $coinKey = null): FinCardAccount
+    {
+        $account = $this->existingAccount($user);
+        if (! $account instanceof FinCardAccount) {
+            $account = new FinCardAccount();
+            $account->user_id = (string) $user->id;
+            $account->fincard_account_id = 'sim-' . $user->id;
+            $account->currency = 'USD';
+            $account->balance_cents = 0;
+            $account->status = 'active';
+            $account->save();
+        }
+
+        // Reuse the real webhook credit path — amount is a major-unit string there.
+        $this->applyFundingWebhook('DEPOSIT', [
+            'data' => [
+                'accountId' => $account->fincard_account_id,
+                'amount'    => bcdiv((string) $amountCents, '100', 2),
+                'coinKey'   => $coinKey,
+            ],
+        ]);
+
+        return $account->refresh();
+    }
+
+    /**
      * Convert a decimal amount string to integer minor units via bcmath.
      */
     private function toCents(string $amount): int
