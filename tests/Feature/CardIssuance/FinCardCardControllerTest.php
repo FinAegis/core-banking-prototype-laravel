@@ -77,6 +77,7 @@ beforeEach(function () {
         'sandbox.finhub.cloud/api/v2.1/fincard/virtual/card/v2/freeze'      => Http::response(['success' => true, 'data' => []]),
         'sandbox.finhub.cloud/api/v2.1/fincard/virtual/card/deposit'        => Http::response(['success' => true, 'data' => []]),
         'sandbox.finhub.cloud/api/v2.1/fincard/virtual/card/withdraw'       => Http::response(['success' => true, 'data' => []]),
+        'sandbox.finhub.cloud/api/v2.1/fincard/virtual/card/v2/cardTypes'   => Http::response(['success' => true, 'data' => [['cardTypeId' => 111001, 'network' => 'visa', 'currency' => 'USD']]]),
     ]);
 
     $this->user = User::factory()->create();
@@ -154,4 +155,33 @@ it('404s an unknown card', function () {
     makeVerifiedCardholder($this->user);
 
     $this->getJson('/api/v1/cards/fincard/nope')->assertStatus(404)->assertJsonPath('error.code', 'ERR_CARDS_015');
+});
+
+it('opens a card without card_type_id using the configured default', function () {
+    config(['cardissuance.issuers.fincard.default_card_type_id' => 111001]);
+    makeVerifiedCardholder($this->user);
+
+    $this->withHeader('Idempotency-Key', idemKey())
+        ->postJson('/api/v1/cards/fincard/open', ['amount_cents' => 20000])
+        ->assertCreated()
+        ->assertJsonPath('data.card_id', 'card-new');
+});
+
+it('rejects open with no card_type_id and no default configured (ERR_CARDS_018)', function () {
+    config(['cardissuance.issuers.fincard.default_card_type_id' => null]);
+    makeVerifiedCardholder($this->user);
+
+    $this->withHeader('Idempotency-Key', idemKey())
+        ->postJson('/api/v1/cards/fincard/open', ['amount_cents' => 20000])
+        ->assertStatus(422)
+        ->assertJsonPath('error.code', 'ERR_CARDS_018');
+});
+
+it('lists tenant card types with the configured default', function () {
+    config(['cardissuance.issuers.fincard.default_card_type_id' => 111001]);
+
+    $this->getJson('/api/v1/cards/reference/card-types')
+        ->assertOk()
+        ->assertJsonPath('data.card_types.0.cardTypeId', 111001)
+        ->assertJsonPath('data.default_card_type_id', 111001);
 });

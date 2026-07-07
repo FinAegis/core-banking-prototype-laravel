@@ -37,8 +37,39 @@ Identical to the rest of the Zelta mobile API:
 - **Error:** `{ "success": false, "error": { "code": "ERR_CARDS_00x", "message": "…" } }`. HTTP status carries the class (401/403/404/409/422/429). Branch on `error.code`, not the message.
 - **Bodies are snake_case** (e.g. `card_id`, `coin_key`, `amount_cents`).
 - **Idempotency:** POST/PATCH/DELETE require an `Idempotency-Key` HTTP header (UUID or 16–255 `[A-Za-z0-9_-]`). Reusing a key replays the first response; same key + different body → `409`.
-- **Lists** return `data: [...]` plus `pagination: { next_cursor, has_more, total }`. Query with `?cursor=…&limit=…` (limit ≤ 100, default 20).
+- **Lists** return `data: [...]`. The cursor envelope (`pagination: { next_cursor, has_more, total }`, `?cursor=…&limit=…`) applies where noted; the FinCard **card list and transactions return a bare `data: [...]`**, and transactions paginate via `?page=&limit=` (limit ≤ 100, default 20).
 - **KYC gate:** issuance/spend endpoints require completed Zelta KYC (`require.kyc`) *and* a `pass_audit` FinCard cardholder; a missing verified cardholder returns `ERR_CARDS_007` (see §7).
+
+---
+
+## 2.1 Canonical endpoints — read this first
+
+**This document is the single source of truth for the mobile FinCard surface.** The registered Laravel routes below are authoritative. `/api/documentation` (OpenAPI) does **not** yet describe these endpoints — the FinCard mobile controllers carry no `@OA` annotations — so do not diff against OpenAPI for FinCard. And do **not** use the generic `/v1/cardholders` group or the generic `/v1/cards` (index / store / provision / `{id}` / PATCH / DELETE) group: those are the legacy Marqeta-era surface, not part of the FinCard flow.
+
+All paths are under `/api`. "Idem" = an `Idempotency-Key` header is required.
+
+| Flow | Method + path | Idem | Notes |
+|---|---|:--:|---|
+| Onboarding schema + prefill | `GET /v1/cards/onboarding` | — | render the KYC form from this |
+| Card products | `GET /v1/cards/reference/card-types` | — | optional (see §4.3) |
+| Create cardholder | `POST /v1/cards/cardholder` | ✓ | one per user |
+| Cardholder status | `GET /v1/cards/cardholder` | — | **no `{id}`** — one per user |
+| Upload KYC document | `POST /v1/cards/kyc/documents` | — | multipart |
+| Account | `GET /v1/cards/account` | — | account `balance_cents` is here |
+| Deposit coins | `GET /v1/cards/account/coins` | — | dynamic set |
+| Deposit address | `POST /v1/cards/account/deposit-address` | ✓ | `{ coin_key }` |
+| List cards | `GET /v1/cards/fincard` | — | bare `data: [...]` |
+| Open card | `POST /v1/cards/fincard/open` | ✓ | `card_type_id` optional |
+| Card detail | `GET /v1/cards/fincard/{cardId}` | — | card `balance_cents` is here |
+| Sensitive PAN/CVV | `GET /v1/cards/fincard/{cardId}/sensitive` | — | ephemeral, never persist |
+| Transactions | `GET /v1/cards/fincard/{cardId}/transactions` | — | `?page=&limit=` |
+| Freeze | `POST /v1/cards/fincard/{cardId}/freeze` | ✓ | |
+| Unfreeze | `POST /v1/cards/fincard/{cardId}/unfreeze` | ✓ | **POST, not DELETE** |
+| Cancel | `POST /v1/cards/fincard/{cardId}/cancel` | ✓ | **POST, not DELETE** |
+| Top up | `POST /v1/cards/fincard/{cardId}/topup` | ✓ | `{ amount_cents }` |
+| Withdraw | `POST /v1/cards/fincard/{cardId}/withdraw` | ✓ | `{ amount_cents }` |
+
+There is **no separate card-balance endpoint** — read `balance_cents` off the card object (§5.2); the account balance is on `GET /v1/cards/account` (§5.1).
 
 ---
 
@@ -56,8 +87,8 @@ FinCard requires its own KYC — richer than the app's existing profile. Prefill
 
 1. `GET /v1/cards/onboarding` → returns a prefilled draft (name, DOB, nationality, address from the Zelta profile) **plus the field schema** the user must complete: `occupations` list, allowed `id_types` (`PASSPORT`, `DLN`, `GOVERNMENT_ISSUED_ID_CARD`), and the required financial fields (`annual_salary`, `expected_monthly_volume`, `account_purpose`, `gender`).
 2. Capture **three photos** and upload each: `POST /v1/cards/kyc/documents` (multipart, `type` = `id_front` | `id_back` | `selfie`) → returns `{ file_id }`. A selfie is mandatory.
-3. `POST /v1/cardholders` with the full field set + the three `file_id`s → creates the cardholder; response `kyc_status: "in_review"`, `kyc_stage: "admin"`.
-4. Poll `GET /v1/cardholders/{id}` **or** listen for the WebSocket events in §6. Approval is two-stage (`admin` → `channel`). Only `kyc_status: "verified"` (`pass_audit`) unlocks card creation. `rejected` carries `kyc_rejection_reason`.
+3. `POST /v1/cards/cardholder` (+ `Idempotency-Key`) with the full field set + the three `file_id`s → creates the cardholder (one per user); response `kyc_status: "in_review"`, `kyc_stage: "admin"`.
+4. Poll `GET /v1/cards/cardholder` (no `{id}` — one cardholder per user; before creation it returns `kyc_status: "not_started"`) **or** listen for the WebSocket events in §6. Approval is two-stage (`admin` → `channel`). Only `kyc_status: "verified"` (`pass_audit`) unlocks card creation. `rejected` carries `kyc_rejection_reason`.
 
 > Restricted countries are rejected up front with `ERR_CARDS_010`. The full FinCard field list and photo requirements are *(pending FinCard)* final confirmation; `GET /v1/cards/onboarding` is the source of truth at runtime — render from it, don't hard-code the field set.
 
@@ -73,11 +104,11 @@ FinCard requires its own KYC — richer than the app's existing profile. Prefill
 
 ### 4.3 Open & use a card ⚪ (phase 4)
 
-1. `GET /v1/cards/reference/card-types` → available products (`card_type_id`, network, currency).
-2. `POST /v1/cards` `{ card_type_id, amount_cents, cardholder_id }` (+ `Idempotency-Key`) → opens a card, moving `amount_cents` from the account onto the card. Response is the card object (§5.2), `status: "active"`.
-3. `GET /v1/cards/{card_id}/sensitive` → **ephemeral** PAN/CVV/expiry for display or manual entry. Never cache or persist these; fetch on demand behind a biometric re-auth and clear from memory after display.
-4. Manage: `POST /v1/cards/{card_id}/topup`, `/withdraw`, `/freeze`, `DELETE /{card_id}/freeze` (unfreeze), `DELETE /{card_id}` (cancel, biometric-gated).
-5. `GET /v1/cards/{card_id}/transactions?type=purchase` for history (types: `purchase`, `auth`, `fee`, `3ds`, `refund`).
+1. `GET /v1/cards/reference/card-types` → `{ card_types: [...], default_card_type_id }`. **Optional:** v1 is a single product, so you can skip this call and omit `card_type_id` on open — the backend applies the tenant default. Call it only to let the user choose among multiple products. The `card_types` item shape passes through FinCard *(pending FinCard schema confirmation)*.
+2. `POST /v1/cards/fincard/open` `{ amount_cents, card_type_id?, label? }` (+ `Idempotency-Key`) → opens a card, moving `amount_cents` from the account onto the card. `card_type_id` is **optional** (falls back to the tenant default server-side); do **not** send `cardholder_id` — the backend resolves the caller's single cardholder. Response is the card object (§5.2), `status: "active"`. If no `card_type_id` is sent and no default is configured → `ERR_CARDS_018`.
+3. `GET /v1/cards/fincard/{card_id}/sensitive` → **ephemeral** PAN/CVV/expiry for display or manual entry. Never cache or persist these; fetch on demand behind a biometric re-auth and clear from memory after display.
+4. Manage (all **POST** + `Idempotency-Key`): `/v1/cards/fincard/{card_id}/topup`, `/withdraw`, `/freeze`, `/unfreeze`, `/cancel` (cancel is biometric-gated). Unfreeze and cancel are **POST, not DELETE**.
+5. `GET /v1/cards/fincard/{card_id}/transactions?page=1&limit=20` for history → bare `data: [ … ]` (page-based, not cursor). FinCard transaction item fields are *(pending FinCard schema confirmation)*.
 
 ---
 
@@ -150,11 +181,15 @@ Card endpoints use the `ERR_CARDS_*` family (registered in `config/error_codes.p
 | `ERR_CARDS_012` | 502 | Card issuer rejected the cardholder request → retry later |
 | `ERR_CARDS_013` | 502 | Funding temporarily unavailable (deposit-address/coins failure) → retry |
 | `ERR_CARDS_014` | 422 | Deposit coin not supported |
+| `ERR_CARDS_015` | 404 | Card not found (not the caller's, or unknown id) |
+| `ERR_CARDS_016` | 502 | Card operation (open / refresh / sensitive / mutate / card-types) failed at the issuer → retry |
+| `ERR_CARDS_017` | 422 | Insufficient card balance for the withdraw |
+| `ERR_CARDS_018` | 422 | No `card_type_id` sent and no tenant default configured |
 | `ERR_VALIDATION_001/003` | 422 | Missing/invalid `Idempotency-Key` or body |
 | `ERR_IDEMPOTENCY_409` | 409 | Same key, different body |
 | (rate limit) | 429 | Too many card operations → back off |
 
-Card-lifecycle codes (`ERR_CARDS_015+`) are added as phase 4 lands. The envelope shape (`{success:false, error:{code,message}}`) is stable; the app branches on `code` and may override the message copy.
+The envelope shape (`{success:false, error:{code,message}}`) is stable; the app branches on `code` and may override the message copy.
 
 ---
 
@@ -176,9 +211,9 @@ KYC: `in_review (admin)` → `in_review (channel)` → `verified` | `rejected`. 
 
 | Screen | Blocked on backend phase |
 |---|---|
-| Card onboarding / KYC | Phase 2 (`/onboarding`, `/kyc/documents`, `/cardholders`) |
-| Fund with crypto | Phase 3 (`/account`, `/account/coins`, `/account/deposit-address`) |
-| Card list / open / manage / sensitive | Phase 4 (`/cards*`, `/sensitive`, `/topup`, `/withdraw`) |
+| Card onboarding / KYC | Phase 2 (`/cards/onboarding`, `/cards/kyc/documents`, `/cards/cardholder`) |
+| Fund with crypto | Phase 3 (`/cards/account`, `/cards/account/coins`, `/cards/account/deposit-address`) |
+| Card list / open / manage / sensitive | Phase 4 (`/cards/fincard*`, `/cards/reference/card-types`) |
 | Fund with fiat | Phase 5 (Bridge path) |
 
-Each phase ships with its OpenAPI (`/api/documentation`) regenerated, so request/response schemas are always live there. When a phase merges, diff this doc against the generated spec for the authoritative field list.
+> **OpenAPI note:** the FinCard mobile controllers are **not** yet annotated, so `/api/documentation` does not describe these endpoints. **This document is authoritative** for the FinCard surface until they are annotated (tracked as a follow-up). Other Zelta domains remain live in OpenAPI as usual.

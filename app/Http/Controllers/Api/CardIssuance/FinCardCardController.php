@@ -54,11 +54,21 @@ class FinCardCardController extends Controller
         /** @var array<string, mixed> $validated */
         $validated = $request->validated();
 
+        // card_type_id is optional: fall back to the tenant default so a
+        // single-product v1 client never has to send one. No id + no default
+        // configured is a clean 422 rather than a downstream issuer 502.
+        $cardTypeId = isset($validated['card_type_id'])
+            ? (int) $validated['card_type_id']
+            : (int) config('cardissuance.issuers.fincard.default_card_type_id');
+        if ($cardTypeId < 1) {
+            return ErrorResponse::make('ERR_CARDS_018');
+        }
+
         try {
             $card = $this->cards->openCard(
                 $user,
                 $cardholder,
-                (int) $validated['card_type_id'],
+                $cardTypeId,
                 (int) $validated['amount_cents'],
                 $this->orderNo($request),
                 $this->context($request),

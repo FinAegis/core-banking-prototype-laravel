@@ -87,6 +87,39 @@ class FinCardOnboardingController extends Controller
     }
 
     /**
+     * Available card products for the tenant (id, network, currency, product
+     * name). Optional for the app: a single-product v1 tenant can skip this and
+     * omit `card_type_id` on open — the backend applies the configured default.
+     * `default_card_type_id` echoes that fallback so the UI can pre-select it.
+     * Item shape passes through FinCard *(pending FinCard schema confirmation)*.
+     */
+    public function cardTypes(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (! $user instanceof User) {
+            return ErrorResponse::make('ERR_CARDS_007');
+        }
+
+        try {
+            $response = $this->client->getCardTypes($this->context($request));
+        } catch (FinCardApiException $e) {
+            Log::warning('FinCard card-types fetch failed', ['msg' => $e->getMessage()]);
+
+            return ErrorResponse::make('ERR_CARDS_016');
+        }
+
+        $default = config('cardissuance.issuers.fincard.default_card_type_id');
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'card_types'           => is_array($response['data'] ?? null) ? $response['data'] : [],
+                'default_card_type_id' => $default !== null ? (int) $default : null,
+            ],
+        ]);
+    }
+
+    /**
      * Upload one KYC photo → returns the fileId to reference on create.
      */
     public function uploadDocument(UploadKycDocumentRequest $request): JsonResponse
