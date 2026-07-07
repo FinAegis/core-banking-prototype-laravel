@@ -41,6 +41,7 @@ Route::prefix('v1/cards')->name('api.cards.fincard.')
     ->middleware(['auth:sanctum'])
     ->group(function (): void {
         Route::get('/onboarding', [FinCardOnboardingController::class, 'onboarding'])->name('onboarding');
+        Route::get('/reference/card-types', [FinCardOnboardingController::class, 'cardTypes'])->name('reference.card-types');
         Route::get('/cardholder', [FinCardOnboardingController::class, 'status'])->name('cardholder.status');
         Route::post('/kyc/documents', [FinCardOnboardingController::class, 'uploadDocument'])
             ->middleware('api.rate_limit:mutation')
