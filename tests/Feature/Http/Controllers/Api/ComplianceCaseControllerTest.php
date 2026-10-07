@@ -19,6 +19,8 @@ class ComplianceCaseControllerTest extends TestCase
         parent::setUp();
 
         $this->user = User::factory()->create();
+        // The compliance alert and case endpoints are limited to compliance staff.
+        $this->user->assignRole('compliance_officer');
         Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
     }
 

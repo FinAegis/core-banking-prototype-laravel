@@ -47,6 +47,7 @@ describe('GraphQL Compliance API', function () {
 
     it('paginates compliance alerts', function () {
         $user = User::factory()->create();
+        $user->assignRole('compliance_officer'); // compliance records are staff-only
         ComplianceAlert::factory()->create([
             'type'     => 'suspicious_activity',
             'severity' => 'high',
@@ -80,6 +81,7 @@ describe('GraphQL Compliance API', function () {
 
     it('paginates compliance cases', function () {
         $user = User::factory()->create();
+        $user->assignRole('compliance_officer'); // compliance records are staff-only
         ComplianceCase::create([
             'case_number' => 'CASE-TEST-001',
             'title'       => 'Test Case',

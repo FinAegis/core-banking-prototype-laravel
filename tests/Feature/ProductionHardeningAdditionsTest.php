@@ -91,6 +91,12 @@ const PHA_ENV_KEYS = [
     'REGISTRATION_API_INVITE_ONLY',
 ];
 
+// Rate-limiter counters, cached Privy signing keys and SMS dedup keys live in
+// the cache store, which persists between tests when it is Redis (CI config).
+beforeEach(function (): void {
+    Cache::flush();
+});
+
 /**
  * Evaluate a config file with the given environment variables (null =
  * unset) and restore the process environment afterwards.
@@ -1144,18 +1150,57 @@ describe('API registration switch: password sign-up', function (): void {
             ->assertJsonPath('error.code', 'ERR_REG_002')
             ->assertJsonPath('error.reason', 'INVITATION_REQUIRED');
 
-        phaInvite('expired@example.com', now()->subMinute());
-        $this->postJson('/api/auth/register', phaRegisterBody('expired@example.com'))
+        $expired = phaInvite('expired@example.com', now()->subMinute());
+        $this->postJson('/api/auth/register', phaRegisterBody('expired@example.com') + ['invitation_token' => $expired->token])
             ->assertForbidden()
             ->assertJsonPath('error.code', 'ERR_REG_002');
 
         $invitation = phaInvite('Invited@Example.com');
-        $this->postJson('/api/v2/auth/register', phaRegisterBody('invited@example.com'))->assertCreated();
+        $this->postJson('/api/v2/auth/register', phaRegisterBody('invited@example.com') + ['invitation_token' => $invitation->token])
+            ->assertCreated();
 
         expect($invitation->fresh()?->accepted_at)->not->toBeNull();
 
         // A used invitation does not admit a second account.
-        $this->postJson('/api/auth/register', phaRegisterBody('invited2@example.com'))->assertForbidden();
+        $this->postJson('/api/auth/register', phaRegisterBody('invited2@example.com') + ['invitation_token' => $invitation->token])
+            ->assertForbidden();
+    });
+
+    it('needs the invitation token as well as the invited email in invite-only mode', function (string $path): void {
+        config(['registration.api_enabled' => true, 'registration.api_invite_only' => true]);
+        $invitation = phaInvite('invitee@example.com');
+        $otherInvitation = phaInvite('someone-else@example.com');
+
+        $attempts = [
+            'email only'                  => [],
+            'empty token'                 => ['invitation_token' => ''],
+            'wrong token'                 => ['invitation_token' => Str::random(64)],
+            'token of another invitation' => ['invitation_token' => $otherInvitation->token],
+            'token in another case'       => ['invitation_token' => strtoupper($invitation->token)],
+        ];
+        foreach ($attempts as $extra) {
+            $this->postJson($path, phaRegisterBody('invitee@example.com') + $extra)
+                ->assertForbidden()
+                ->assertJsonPath('error.code', 'ERR_REG_002')
+                ->assertJsonPath('error.reason', 'INVITATION_REQUIRED');
+        }
+
+        expect(User::where('email', 'invitee@example.com')->exists())->toBeFalse();
+        expect($invitation->fresh()?->accepted_at)->toBeNull();
+        expect($otherInvitation->fresh()?->accepted_at)->toBeNull();
+
+        $this->postJson($path, phaRegisterBody('invitee@example.com') + ['invitation_token' => $invitation->token])
+            ->assertCreated();
+
+        expect($invitation->fresh()?->accepted_at)->not->toBeNull();
+        expect($otherInvitation->fresh()?->accepted_at)->toBeNull();
+    })->with(['/api/auth/register', '/api/v2/auth/register']);
+
+    it('ignores the invitation token while registration is open', function (): void {
+        config(['registration.api_enabled' => true, 'registration.api_invite_only' => false]);
+
+        $this->postJson('/api/auth/register', phaRegisterBody('open-token@example.com') + ['invitation_token' => 'anything'])
+            ->assertCreated();
     });
 });
 

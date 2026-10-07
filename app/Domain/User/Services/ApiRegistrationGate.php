@@ -7,6 +7,7 @@ namespace App\Domain\User\Services;
 use App\Domain\User\Exceptions\RegistrationNotAllowedException;
 use App\Domain\User\Models\UserInvitation;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -41,8 +42,9 @@ class ApiRegistrationGate
     }
 
     /**
-     * Admit a new account for the given email. Returns the invitation that
-     * admitted it in invite-only mode, or null when registration is open.
+     * Admit a new account for an email address verified by the identity
+     * provider (Privy, social login). Returns the invitation that admitted it
+     * in invite-only mode, or null when registration is open.
      *
      * @throws RegistrationNotAllowedException
      */
@@ -54,13 +56,41 @@ class ApiRegistrationGate
             return null;
         }
 
-        $invitation = $this->findPendingInvitation($email);
+        $invitation = $this->pendingInvitations($email)->first();
 
         if ($invitation === null) {
             throw RegistrationNotAllowedException::invitationRequired();
         }
 
         return $invitation;
+    }
+
+    /**
+     * Admit a password sign-up. Its email address is only what the caller
+     * typed, so in invite-only mode the invitation token (from the
+     * invitation link) must match a pending invitation for that email too.
+     *
+     * @throws RegistrationNotAllowedException
+     */
+    public function admitWithToken(string $email, ?string $invitationToken): ?UserInvitation
+    {
+        $this->ensureOpen();
+
+        if (! $this->isInviteOnly()) {
+            return null;
+        }
+
+        $token = (string) $invitationToken;
+
+        if ($token !== '') {
+            foreach ($this->pendingInvitations($email) as $invitation) {
+                if (hash_equals((string) $invitation->token, $token)) {
+                    return $invitation;
+                }
+            }
+        }
+
+        throw RegistrationNotAllowedException::invitationRequired();
     }
 
     /**
@@ -80,22 +110,24 @@ class ApiRegistrationGate
         ]);
     }
 
-    private function findPendingInvitation(string $email): ?UserInvitation
+    /**
+     * Pending, unexpired invitations for the email address, newest first.
+     *
+     * @return Collection<int, UserInvitation>
+     */
+    private function pendingInvitations(string $email): Collection
     {
         $normalized = strtolower(trim($email));
 
         if ($normalized === '') {
-            return null;
+            return new Collection();
         }
 
-        /** @var UserInvitation|null $invitation */
-        $invitation = UserInvitation::query()
+        return UserInvitation::query()
             ->whereRaw('LOWER(email) = ?', [$normalized])
             ->whereNull('accepted_at')
             ->where('expires_at', '>', now())
             ->orderByDesc('created_at')
-            ->first();
-
-        return $invitation;
+            ->get();
     }
 }

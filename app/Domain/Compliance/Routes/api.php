@@ -9,7 +9,9 @@ use App\Http\Controllers\Api\ComplianceCertificationController;
 use App\Http\Controllers\Api\GdprController;
 use App\Http\Controllers\Api\GdprEnhancedController;
 use App\Http\Controllers\Api\KycController;
+use App\Support\StaffRoles;
 use Illuminate\Support\Facades\Route;
+use Spatie\Permission\Middleware\RoleMiddleware;
 
 // Mobile sanctions check endpoint (v5.8.0)
 Route::prefix('v1/compliance')->name('api.compliance.mobile.')
@@ -22,8 +24,8 @@ Route::prefix('v1/compliance')->name('api.compliance.mobile.')
 
 // Compliance and KYC endpoints
 Route::middleware('auth:sanctum')->prefix('compliance')->group(function () {
-    // Compliance alerts
-    Route::prefix('alerts')->group(function () {
+    // Compliance alerts and cases: compliance staff only
+    Route::prefix('alerts')->middleware(RoleMiddleware::using(StaffRoles::COMPLIANCE))->group(function () {
         Route::get('/', [ComplianceAlertController::class, 'index']);
         Route::post('/', [ComplianceAlertController::class, 'store']);
         Route::get('/statistics', [ComplianceAlertController::class, 'statistics']);
@@ -39,7 +41,7 @@ Route::middleware('auth:sanctum')->prefix('compliance')->group(function () {
     });
 
     // Compliance cases
-    Route::prefix('cases')->group(function () {
+    Route::prefix('cases')->middleware(RoleMiddleware::using(StaffRoles::COMPLIANCE))->group(function () {
         Route::get('/', [ComplianceCaseController::class, 'index']);
         Route::post('/', [ComplianceCaseController::class, 'store']);
         Route::get('/{case}', [ComplianceCaseController::class, 'show']);

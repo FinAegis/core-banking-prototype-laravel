@@ -27,10 +27,13 @@ declare(strict_types=1);
 |
 | api_invite_only: only applies while api_enabled is on. A new account then
 | needs a pending, unexpired invitation (user_invitations, created by an
-| admin) for the same email address — for Privy, the Privy-verified email.
-| Without one the request answers 403 ERR_REG_002. The invitation is marked
-| accepted when the account is created; its role is not applied (API
-| sign-ups get the regular customer role).
+| admin) for the same email address — for Privy and social login, the
+| provider-verified email. Password sign-up does not verify the email, so it
+| must also send the invitation's token (the `token` of the invitation link)
+| as `invitation_token`. Without a match the request answers 403
+| ERR_REG_002. The invitation is marked accepted when the account is
+| created; its role is not applied (API sign-ups get the regular customer
+| role).
 |
 */
 

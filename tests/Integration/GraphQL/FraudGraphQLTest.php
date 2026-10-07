@@ -11,6 +11,7 @@ uses(Illuminate\Foundation\Testing\RefreshDatabase::class);
 describe('GraphQL Fraud API', function () {
     it('queries fraud case by id', function () {
         $user = User::factory()->create();
+        $user->assignRole('risk_manager'); // fraud cases are staff-only
         $fraudCase = FraudCase::factory()->create();
 
         $response = $this->actingAs($user, 'sanctum')
@@ -37,6 +38,7 @@ describe('GraphQL Fraud API', function () {
 
     it('paginates fraud cases', function () {
         $user = User::factory()->create();
+        $user->assignRole('risk_manager'); // fraud cases are staff-only
         FraudCase::factory()->count(3)->create();
 
         $response = $this->actingAs($user, 'sanctum')

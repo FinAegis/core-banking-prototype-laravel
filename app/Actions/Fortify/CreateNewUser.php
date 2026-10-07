@@ -25,6 +25,7 @@ class CreateNewUser implements CreatesNewUsers
      * @throws \Illuminate\Validation\ValidationException
      * @throws \App\Domain\User\Exceptions\RegistrationNotAllowedException when API registration is
      *                                                                         closed or invite-only without a valid invitation
+     *                                                                         (email and invitation_token)
      */
     public function create(array $input, bool $isApiRegistration = false): User
     {
@@ -34,8 +35,12 @@ class CreateNewUser implements CreatesNewUsers
         }
 
         // API sign-ups follow REGISTRATION_API_ENABLED / REGISTRATION_API_INVITE_ONLY.
+        // The email is not verified here, so invite-only also needs the token.
         $gate = $isApiRegistration ? app(ApiRegistrationGate::class) : null;
-        $invitation = $gate?->admit((string) ($input['email'] ?? ''));
+        $invitation = $gate?->admitWithToken(
+            (string) ($input['email'] ?? ''),
+            isset($input['invitation_token']) ? (string) $input['invitation_token'] : null,
+        );
 
         Validator::make(
             $input,

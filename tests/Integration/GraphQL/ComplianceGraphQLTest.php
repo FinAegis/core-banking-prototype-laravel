@@ -20,6 +20,7 @@ describe('GraphQL Compliance API', function () {
 
     it('queries compliance alert by id with authentication', function () {
         $user = User::factory()->create();
+        $user->assignRole('compliance_officer'); // compliance records are staff-only
         $alert = ComplianceAlert::create([
             'type'        => 'transaction',
             'severity'    => 'high',
@@ -58,6 +59,7 @@ describe('GraphQL Compliance API', function () {
 
     it('paginates compliance alerts', function () {
         $user = User::factory()->create();
+        $user->assignRole('compliance_officer'); // compliance records are staff-only
         for ($i = 0; $i < 3; $i++) {
             ComplianceAlert::create([
                 'type'        => 'pattern',

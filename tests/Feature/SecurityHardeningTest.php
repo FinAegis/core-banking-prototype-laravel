@@ -4,18 +4,23 @@ declare(strict_types=1);
 
 use App\Domain\Account\Models\Account;
 use App\Domain\Banking\Models\BankAccountModel;
+use App\Domain\Compliance\Models\ComplianceAlert;
+use App\Domain\Compliance\Models\ComplianceCase;
 use App\Domain\Custodian\Connectors\DemoBankConnector;
+use App\Domain\Custodian\Contracts\ICustodianConnector;
 use App\Domain\Custodian\Models\CustodianAccount;
 use App\Domain\Custodian\Services\CustodianAccountService;
 use App\Domain\Custodian\Services\CustodianRegistry;
 use App\Domain\Exchange\Projections\Order;
 use App\Domain\Exchange\Projections\Trade;
+use App\Domain\Fraud\Models\FraudCase;
 use App\Domain\Lending\Models\LoanApplication;
 use App\Domain\Payment\Contracts\PaymentServiceInterface;
 use App\Domain\Payment\Contracts\PayseraDepositServiceInterface;
 use App\Domain\Payment\Models\PaymentTransaction;
 use App\Domain\Payment\Services\DemoPayseraDepositService;
 use App\Domain\Payment\Services\PayseraDepositService;
+use App\Domain\SMS\Models\SmsMessage;
 use App\Domain\Wallet\Models\MultiSigWallet;
 use App\Domain\Wallet\Models\MultiSigWalletSigner;
 use App\Domain\Wallet\Services\WalletService;
@@ -28,8 +33,9 @@ use Mockery\MockInterface;
 
 /*
 | Authorization rules on GraphQL account/custodian/wallet operations, the
-| owner scoping of GraphQL reads, Paysera response verification, custodian
-| account links, the demo bank connector and the trading default.
+| owner scoping of GraphQL reads, staff-only compliance/fraud/SMS records,
+| Paysera response verification, custodian account links, the demo bank
+| connector and the trading default.
 */
 
 beforeEach(function (): void {
@@ -318,6 +324,116 @@ describe('GraphQL initiateCustodianTransfer', function (): void {
         ]]);
 
         expect(hardeningGraphqlError($json))->not->toBe('You are not authorized to use this account.');
+    });
+});
+
+/**
+ * @param  array<string, mixed>  $input
+ * @return array<string, mixed>
+ */
+function hardeningLinkCustodian(PHPUnit\Framework\TestCase $test, User $user, array $input): array
+{
+    return hardeningGraphql($test, $user, '
+        mutation ($i: LinkCustodianAccountInput!) { linkCustodianAccount(input: $i) { id account_uuid custodian_name custodian_account_id status } }
+    ', ['i' => $input]);
+}
+
+describe('GraphQL custodian account links', function (): void {
+    it('refuses to link another user\'s internal account', function (): void {
+        $victim = User::factory()->create();
+        $victimAccount = Account::factory()->create(['user_uuid' => $victim->uuid]);
+        $attacker = User::factory()->create();
+
+        $json = hardeningLinkCustodian($this, $attacker, [
+            'account_uuid'         => $victimAccount->uuid,
+            'custodian_name'       => 'mock',
+            'custodian_account_id' => 'mock-account-2',
+        ]);
+
+        expect(hardeningGraphqlError($json))->toBe('You are not authorized to use this account.');
+        expect(CustodianAccount::query()->where('account_uuid', $victimAccount->uuid)->exists())->toBeFalse();
+    });
+
+    it('leaves links to a real custodian to operators, even for the account owner', function (): void {
+        /** @var ICustodianConnector&MockInterface $connector */
+        $connector = Mockery::mock(ICustodianConnector::class);
+        $connector->shouldNotReceive('validateAccount');
+        app(CustodianRegistry::class)->register('realbank', $connector);
+
+        $owner = User::factory()->create();
+        $own = Account::factory()->create(['user_uuid' => $owner->uuid]);
+
+        $json = hardeningLinkCustodian($this, $owner, [
+            'account_uuid'         => $own->uuid,
+            'custodian_name'       => 'realbank',
+            'custodian_account_id' => 'someone-elses-bank-account',
+        ]);
+
+        expect(hardeningGraphqlError($json))->toBe('Custodian accounts are linked by an operator.');
+        expect(CustodianAccount::query()->where('account_uuid', $own->uuid)->exists())->toBeFalse();
+    });
+
+    it('lets the owner link a demo custodian only while the demo ledger is on', function (): void {
+        $owner = User::factory()->create();
+        $own = Account::factory()->create(['user_uuid' => $owner->uuid]);
+        $input = ['account_uuid' => $own->uuid, 'custodian_name' => 'mock', 'custodian_account_id' => 'mock-account-1'];
+
+        config(['ledger.direct_funding_enabled' => false]);
+        $json = hardeningLinkCustodian($this, $owner, $input);
+        expect(hardeningGraphqlError($json))->toBe('Custodian accounts are linked by an operator.');
+        expect(CustodianAccount::query()->where('account_uuid', $own->uuid)->exists())->toBeFalse();
+
+        config(['ledger.direct_funding_enabled' => true]);
+        $json = hardeningLinkCustodian($this, $owner, $input);
+        expect($json)->not->toHaveKey('errors');
+        expect($json['data']['linkCustodianAccount']['account_uuid'] ?? null)->toBe($own->uuid);
+    });
+
+    it('lets an operator link any internal account', function (): void {
+        config(['ledger.direct_funding_enabled' => false]);
+        $customer = User::factory()->create();
+        $customerAccount = Account::factory()->create(['user_uuid' => $customer->uuid]);
+        $operator = User::factory()->create();
+        $operator->assignRole('admin');
+
+        $json = hardeningLinkCustodian($this, $operator, [
+            'account_uuid'         => $customerAccount->uuid,
+            'custodian_name'       => 'mock',
+            'custodian_account_id' => 'mock-account-1',
+        ]);
+
+        expect($json)->not->toHaveKey('errors');
+        expect(CustodianAccount::query()->where('account_uuid', $customerAccount->uuid)->where('custodian_account_id', 'mock-account-1')->exists())->toBeTrue();
+    });
+
+    it('lets only the owner or an operator unlink or sync a link', function (): void {
+        $owner = User::factory()->create();
+        $ownerAccount = Account::factory()->create(['user_uuid' => $owner->uuid]);
+        $link = CustodianAccount::create(['account_uuid' => $ownerAccount->uuid, 'custodian_name' => 'mock', 'custodian_account_id' => 'mock-account-1', 'status' => 'active', 'is_primary' => true]);
+        $attacker = User::factory()->create();
+        $operator = User::factory()->create();
+        $operator->assignRole('admin');
+
+        hardeningMock(CustodianAccountService::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('syncAccountStatus')->twice();
+            $mock->shouldReceive('unlinkAccount')->once();
+        });
+
+        $json = hardeningGraphql($this, $attacker, 'mutation ($id: ID!) { unlinkCustodianAccount(id: $id) }', ['id' => (string) $link->id]);
+        expect(hardeningGraphqlError($json))->toBe('You are not authorized to manage this custodian account.');
+
+        $json = hardeningGraphql($this, $attacker, 'mutation ($id: ID!) { syncCustodianAccount(id: $id) { id } }', ['id' => (string) $link->id]);
+        expect(hardeningGraphqlError($json))->toBe('You are not authorized to manage this custodian account.');
+
+        $json = hardeningGraphql($this, $owner, 'mutation ($id: ID!) { syncCustodianAccount(id: $id) { id } }', ['id' => (string) $link->id]);
+        expect($json)->not->toHaveKey('errors');
+
+        $json = hardeningGraphql($this, $operator, 'mutation ($id: ID!) { syncCustodianAccount(id: $id) { id } }', ['id' => (string) $link->id]);
+        expect($json)->not->toHaveKey('errors');
+
+        $json = hardeningGraphql($this, $owner, 'mutation ($id: ID!) { unlinkCustodianAccount(id: $id) }', ['id' => (string) $link->id]);
+        expect($json)->not->toHaveKey('errors');
+        expect($json['data']['unlinkCustodianAccount'] ?? null)->toBeTrue();
     });
 });
 
@@ -636,6 +752,117 @@ describe('GraphQL reads are limited to the caller', function (): void {
         ['trust-cert.graphql', 'certificate', 'userId'],
         ['trust-cert.graphql', 'certificates', 'userId'],
         ['ai.graphql', 'aiLlmUsages', 'userUuid'],
+    ]);
+});
+
+describe('compliance, fraud and SMS records are staff-only', function (): void {
+    it('returns compliance alerts and cases only to compliance staff', function (): void {
+        $subject = User::factory()->create();
+        $alert = ComplianceAlert::factory()->create(['title' => 'SUBJECT-ALERT', 'entity_type' => 'user', 'entity_id' => (string) $subject->id]);
+        $case = ComplianceCase::factory()->create(['title' => 'SUBJECT-CASE']);
+        $customer = User::factory()->create();
+        $officer = User::factory()->create();
+        $officer->assignRole('compliance_officer');
+
+        $queries = [
+            ['query ($id: ID!) { complianceAlert(id: $id) { title } }', ['id' => (string) $alert->id], 'complianceAlert'],
+            ['query ($id: ID!) { complianceCase(id: $id) { title } }', ['id' => (string) $case->id], 'complianceCase'],
+        ];
+        foreach ($queries as [$query, $variables, $field]) {
+            $json = hardeningGraphql($this, $customer, $query, $variables);
+            expect($json['data'][$field])->toBeNull();
+
+            $json = hardeningGraphql($this, $officer, $query, $variables);
+            expect($json['data'][$field]['title'] ?? null)->not->toBeNull();
+        }
+
+        foreach (['complianceAlerts', 'complianceCases'] as $field) {
+            $json = hardeningGraphql($this, $customer, "{ {$field}(first: 20) { data { title } } }");
+            expect($json['data'][$field]['data'])->toBe([]);
+
+            $json = hardeningGraphql($this, $officer, "{ {$field}(first: 20) { data { title } } }");
+            expect(array_column($json['data'][$field]['data'], 'title'))->toContain($field === 'complianceAlerts' ? 'SUBJECT-ALERT' : 'SUBJECT-CASE');
+        }
+    });
+
+    it('returns and escalates fraud cases only for compliance staff', function (): void {
+        $subject = User::factory()->create();
+        $subjectAccount = Account::factory()->create(['user_uuid' => $subject->uuid]);
+        $fraudCase = FraudCase::factory()->create(['subject_account_uuid' => $subjectAccount->uuid, 'description' => 'SUBJECT-FRAUD-CASE']);
+        $customer = User::factory()->create();
+        $analyst = User::factory()->create();
+        $analyst->assignRole('risk_manager');
+
+        $json = hardeningGraphql($this, $customer, 'query ($id: ID!) { fraudCase(id: $id) { description } }', ['id' => (string) $fraudCase->id]);
+        expect($json['data']['fraudCase'])->toBeNull();
+        $json = hardeningGraphql($this, $customer, '{ fraudCases(first: 20) { data { description } } }');
+        expect($json['data']['fraudCases']['data'])->toBe([]);
+
+        $json = hardeningGraphql($this, $analyst, 'query ($id: ID!) { fraudCase(id: $id) { description } }', ['id' => (string) $fraudCase->id]);
+        expect($json['data']['fraudCase']['description'] ?? null)->toBe('SUBJECT-FRAUD-CASE');
+        $json = hardeningGraphql($this, $analyst, '{ fraudCases(first: 20) { data { description } } }');
+        expect(array_column($json['data']['fraudCases']['data'], 'description'))->toBe(['SUBJECT-FRAUD-CASE']);
+
+        $escalate = 'mutation ($i: EscalateFraudCaseInput!) { escalateFraudCase(input: $i) { id } }';
+        $variables = ['i' => ['id' => (string) $fraudCase->id, 'severity' => 'high']];
+        $json = hardeningGraphql($this, $customer, $escalate, $variables);
+        expect(hardeningGraphqlError($json))->toBe('You are not authorized to manage fraud cases.');
+
+        $json = hardeningGraphql($this, $analyst, $escalate, $variables);
+        expect(hardeningGraphqlError($json))->not->toBe('You are not authorized to manage fraud cases.');
+    });
+
+    it('returns SMS send records only to operators', function (): void {
+        SmsMessage::query()->create([
+            'provider'     => 'vertexsms',
+            'provider_id'  => 'vx-msg-1',
+            'to'           => '+37060000001',
+            'from'         => 'Zelta',
+            'message'      => 'code 123456',
+            'parts'        => 1,
+            'status'       => SmsMessage::STATUS_SENT,
+            'price_usdc'   => '0.050000',
+            'country_code' => 'LT',
+        ]);
+        $customer = User::factory()->create();
+        $operator = User::factory()->create();
+        $operator->assignRole('admin');
+
+        $query = 'query ($m: String!) { smsStatus(messageId: $m) { to status } }';
+
+        $json = hardeningGraphql($this, $customer, $query, ['m' => 'vx-msg-1']);
+        expect($json['data']['smsStatus'])->toBeNull();
+
+        $json = hardeningGraphql($this, $operator, $query, ['m' => 'vx-msg-1']);
+        expect($json['data']['smsStatus']['to'] ?? null)->toBe('+37060000001');
+    });
+
+    it('refuses the REST compliance alert and case endpoints to non-staff', function (string $path): void {
+        $customer = User::factory()->create();
+        Sanctum::actingAs($customer, ['read', 'write', 'delete']);
+        $this->getJson($path)->assertForbidden();
+
+        $officer = User::factory()->create();
+        $officer->assignRole('compliance_officer');
+        Sanctum::actingAs($officer, ['read', 'write', 'delete']);
+        $this->getJson($path)->assertOk();
+    })->with(['/api/compliance/alerts', '/api/compliance/cases']);
+
+    it('limits every GraphQL query on internal records to staff', function (string $file, string $field, string $method): void {
+        $schema = (string) file_get_contents(base_path("graphql/{$file}"));
+
+        expect(preg_match('/extend type Query \{(.*?)\n\}/s', $schema, $query))->toBe(1);
+        expect(preg_match('/\n    ' . preg_quote($field, '/') . '\s*[(:](.*?)(?=\n    [a-zA-Z_"]|$)/s', $query[1] ?? '', $definition))->toBe(1);
+
+        expect($definition[1] ?? '')->toContain('@builder(method: "App\\\\GraphQL\\\\Builders\\\\StaffOnly@' . $method . '")');
+    })->with([
+        ['compliance.graphql', 'complianceAlert', 'compliance'],
+        ['compliance.graphql', 'complianceAlerts', 'compliance'],
+        ['compliance.graphql', 'complianceCase', 'compliance'],
+        ['compliance.graphql', 'complianceCases', 'compliance'],
+        ['fraud.graphql', 'fraudCase', 'compliance'],
+        ['fraud.graphql', 'fraudCases', 'compliance'],
+        ['sms.graphql', 'smsStatus', 'operators'],
     ]);
 });
 

@@ -78,6 +78,7 @@ extend type Query {
 
     complianceAlert(id: ID! @eq): ComplianceAlert
         @find
+        @builder(method: "App\\GraphQL\\Builders\\StaffOnly@compliance")
         @guard(with: ["sanctum"])
 
     complianceAlerts(
@@ -88,10 +89,12 @@ extend type Query {
         type: String @where(operator: "=")
     ): [ComplianceAlert!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\Compliance\\Models\\ComplianceAlert")
+        @builder(method: "App\\GraphQL\\Builders\\StaffOnly@compliance")
         @guard(with: ["sanctum"])
 
     complianceCase(id: ID! @eq): ComplianceCase
         @find
+        @builder(method: "App\\GraphQL\\Builders\\StaffOnly@compliance")
         @guard(with: ["sanctum"])
 
     complianceCases(
@@ -102,6 +105,7 @@ extend type Query {
         type: String @where(operator: "=")
     ): [ComplianceCase!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\Compliance\\Models\\ComplianceCase")
+        @builder(method: "App\\GraphQL\\Builders\\StaffOnly@compliance")
         @guard(with: ["sanctum"])
 }
 

@@ -6899,6 +6899,11 @@
                                         "description": "Whether the user is a business customer",
                                         "type": "boolean",
                                         "example": false
+                                    },
+                                    "invitation_token": {
+                                        "description": "Required while sign-up is invite-only (REGISTRATION_API_INVITE_ONLY=true): the token from the invitation link sent to this email address",
+                                        "type": "string",
+                                        "nullable": true
                                     }
                                 },
                                 "type": "object"
@@ -7003,7 +7008,7 @@
                         }
                     },
                     "403": {
-                        "description": "Registration closed (ERR_REG_001, REGISTRATION_API_ENABLED=false) or invite-only without a valid invitation for this email (ERR_REG_002)",
+                        "description": "Registration closed (ERR_REG_001, REGISTRATION_API_ENABLED=false) or invite-only without a pending invitation for this email and its invitation_token (ERR_REG_002)",
                         "content": {
                             "application/json": {
                                 "schema": {

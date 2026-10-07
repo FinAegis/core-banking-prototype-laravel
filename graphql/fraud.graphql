@@ -20,6 +20,7 @@ type FraudCase @model(class: "App\\Domain\\Fraud\\Models\\FraudCase") {
 extend type Query {
     fraudCase(id: ID! @eq): FraudCase
         @find
+        @builder(method: "App\\GraphQL\\Builders\\StaffOnly@compliance")
         @guard(with: ["sanctum"])
 
     fraudCases(
@@ -29,6 +30,7 @@ extend type Query {
         severity: String @where(operator: "=")
     ): [FraudCase!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\Fraud\\Models\\FraudCase")
+        @builder(method: "App\\GraphQL\\Builders\\StaffOnly@compliance")
         @guard(with: ["sanctum"])
 }
 

@@ -49,9 +49,10 @@ type SendSmsResult {
 }
 
 extend type Query {
-    "Get SMS message status by provider message ID."
+    "Get an SMS send record by provider message ID (operators only; senders use GET /api/v1/sms/status/{messageId})."
     smsStatus(messageId: String! @eq(key: "provider_id")): SmsMessage
         @find(model: "App\\Domain\\SMS\\Models\\SmsMessage")
+        @builder(method: "App\\GraphQL\\Builders\\StaffOnly@operators")
         @guard(with: ["sanctum"])
 
     "Get SMS rates for a country code."

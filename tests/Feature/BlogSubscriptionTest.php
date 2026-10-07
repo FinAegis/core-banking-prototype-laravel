@@ -2,12 +2,22 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class BlogSubscriptionTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // The per-email and per-IP subscription limits are counted in the
+        // cache store, which persists between tests when it is Redis.
+        Cache::flush();
+    }
+
     #[Test]
     public function user_can_view_blog_page()
     {

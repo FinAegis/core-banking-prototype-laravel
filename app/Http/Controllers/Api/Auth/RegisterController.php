@@ -46,6 +46,7 @@ class RegisterController extends Controller
         new OA\Property(property: 'password', type: 'string', format: 'password', example: 'password123', description: 'User\'s password (min 8 characters)'),
         new OA\Property(property: 'password_confirmation', type: 'string', format: 'password', example: 'password123', description: 'Password confirmation'),
         new OA\Property(property: 'is_business_customer', type: 'boolean', example: false, description: 'Whether the user is a business customer'),
+        new OA\Property(property: 'invitation_token', type: 'string', nullable: true, description: 'Required while sign-up is invite-only (REGISTRATION_API_INVITE_ONLY=true): the token from the invitation link sent to this email address'),
         ]))
     )]
     #[OA\Response(
@@ -80,7 +81,7 @@ class RegisterController extends Controller
     )]
     #[OA\Response(
         response: 403,
-        description: 'Registration closed (ERR_REG_001, REGISTRATION_API_ENABLED=false) or invite-only without a valid invitation for this email (ERR_REG_002)',
+        description: 'Registration closed (ERR_REG_001, REGISTRATION_API_ENABLED=false) or invite-only without a pending invitation for this email and its invitation_token (ERR_REG_002)',
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'success', type: 'boolean', example: false),
         new OA\Property(property: 'error', type: 'object', properties: [
@@ -108,6 +109,7 @@ class RegisterController extends Controller
                 'is_business_customer' => ['sometimes', 'boolean'],
                 'device_attestation'   => ['nullable', 'string', 'max:4096'],
                 'device_type'          => ['nullable', 'string', 'in:ios,android'],
+                'invitation_token'     => ['nullable', 'string', 'max:255'],
             ]
         );
 
@@ -133,6 +135,7 @@ class RegisterController extends Controller
                     'password'              => $validated['password'],
                     'password_confirmation' => $request->password_confirmation,
                     'is_business_customer'  => $validated['is_business_customer'] ?? false,
+                    'invitation_token'      => $validated['invitation_token'] ?? null,
                     'terms'                 => true, // For API, we assume terms are accepted
                 ],
                 isApiRegistration: true,

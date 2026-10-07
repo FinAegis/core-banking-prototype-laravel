@@ -6,9 +6,12 @@ namespace App\GraphQL\Mutations\Fraud;
 
 use App\Domain\Fraud\Models\FraudCase;
 use App\Domain\Fraud\Services\FraudCaseService;
+use App\Models\User;
+use App\Support\StaffRoles;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
+use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 
 class EscalateFraudCaseMutation
 {
@@ -26,6 +29,12 @@ class EscalateFraudCaseMutation
 
         if (! $user) {
             throw new AuthenticationException('Unauthenticated.');
+        }
+
+        // Fraud cases are handled by compliance staff only (same roles as the
+        // fraudCase / fraudCases queries).
+        if (! $user instanceof User || ! $user->hasRole(StaffRoles::COMPLIANCE)) {
+            throw new AuthorizationException('You are not authorized to manage fraud cases.');
         }
 
         /** @var FraudCase|null $fraudCase */
