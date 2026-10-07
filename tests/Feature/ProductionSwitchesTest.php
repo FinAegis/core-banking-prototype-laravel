@@ -6,12 +6,16 @@ use App\Domain\Account\Models\Account;
 use App\Domain\AI\MCP\Tools\Account\CreateAccountTool;
 use App\Domain\Pricing\Models\PriceQuote;
 use App\Models\User;
+use GraphQL\Language\AST\ObjectTypeDefinitionNode;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Bootstrap\LoadConfiguration;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
+use Laravel\Pennant\Feature;
 use Laravel\Sanctum\Sanctum;
+use Nuwave\Lighthouse\Schema\AST\ASTBuilder;
+use Nuwave\Lighthouse\Schema\AST\ASTHelper;
 
 /*
 | Feature flags for demo-only ledger features. Every flag defaults to the
@@ -166,6 +170,23 @@ describe('ledger.direct_funding_enabled', function (): void {
         expect(Route::has('wallet.withdraw.create'))->toBeTrue();
     });
 
+    it('returns 404 for the currency conversion API and the web convert page', function (): void {
+        $user = User::factory()->withPersonalTeam()->create();
+        $account = Account::factory()->create(['user_uuid' => $user->uuid]);
+        Sanctum::actingAs($user, ['read', 'write', 'delete']);
+
+        $this->postJson('/api/exchange/convert', [
+            'account_uuid'  => $account->uuid,
+            'from_currency' => 'USD',
+            'to_currency'   => 'EUR',
+            'amount'        => 10,
+        ])->assertNotFound();
+
+        $this->actingAs($user)->get('/wallet/convert')->assertNotFound();
+
+        expect(Route::has('wallet.convert'))->toBeTrue();
+    });
+
     it('refuses an MCP account.create initial deposit', function (): void {
         $user = User::factory()->create();
         Sanctum::actingAs($user, ['read', 'write', 'delete']);
@@ -191,6 +212,25 @@ describe('ledger.direct_funding_enabled default', function (): void {
 
         // Validation error (not 404) proves the route is live.
         $this->postJson("/api/accounts/{$account->uuid}/withdraw", [])->assertStatus(422);
+    });
+
+    it('keeps currency conversion reachable but limited to the caller\'s own accounts', function (): void {
+        Feature::define('sub_product.exchange', fn (): bool => true);
+        [, $account] = switchesUserWithAccount();
+        $other = User::factory()->create();
+        Sanctum::actingAs($other, ['read', 'write', 'delete']);
+
+        $payload = [
+            'account_uuid'  => $account->uuid,
+            'from_currency' => 'USD',
+            'to_currency'   => 'EUR',
+            'amount'        => 10,
+        ];
+
+        $this->postJson('/api/exchange/convert', [])->assertStatus(422);
+        $this->postJson('/api/exchange/convert', $payload)
+            ->assertForbidden()
+            ->assertJsonPath('error', 'FORBIDDEN');
     });
 });
 
@@ -233,6 +273,111 @@ describe('MODULES_DISABLED web/API gates', function (): void {
         ]);
 
         expect($response->json('errors.0.message'))->toBe('This operation is not available.');
+    });
+
+    it('rejects GraphQL mutations of a disabled domain', function (string $module, string $query, array $variables): void {
+        $user = User::factory()->create();
+
+        $send = fn () => $this->actingAs($user, 'sanctum')->postJson('/graphql', [
+            'query'     => $query,
+            'variables' => $variables,
+        ]);
+
+        config(['modules.disabled' => [$module]]);
+        $response = $send();
+        $response->assertOk();
+        expect($response->json('errors.0.message'))->toBe('This operation is not available.');
+
+        // Default (module enabled): the resolver runs and succeeds or fails
+        // on its own terms.
+        config(['modules.disabled' => []]);
+        expect($send()->json('errors.0.message'))->not->toBe('This operation is not available.');
+    })->with([
+        'Ledger ledgerPostEntry' => [
+            'Ledger',
+            'mutation ($lines: [JournalLineInput!]!) { ledgerPostEntry(description: "x", lines: $lines) { __typename } }',
+            ['lines' => [
+                ['account_code' => '1000', 'debit' => '500', 'credit' => '0'],
+                ['account_code' => '4000', 'debit' => '0', 'credit' => '500'],
+            ]],
+        ],
+        'Ledger ledgerReverseEntry' => [
+            'Ledger',
+            'mutation { ledgerReverseEntry(id: "1", reason: "x") { __typename } }',
+            [],
+        ],
+        'Microfinance mfiPurchaseShares' => [
+            'Microfinance',
+            'mutation { mfiPurchaseShares(input: { account_id: "1", shares: 10 }) { __typename } }',
+            [],
+        ],
+        'PaymentRails paymentRailsSend' => [
+            'PaymentRails',
+            'mutation { paymentRailsSend(amount: "10.00", currency: "USD", country: "US", beneficiary: { name: "x", account_number: "1", routing_number: "1" }) { __typename } }',
+            [],
+        ],
+        'Basket rebalanceBasket' => [
+            'Basket',
+            'mutation { rebalanceBasket(input: { id: "1" }) { __typename } }',
+            [],
+        ],
+        'Banking disconnectBank' => [
+            'Banking',
+            'mutation { disconnectBank(connection_id: "1") }',
+            [],
+        ],
+        'Governance activatePoll' => [
+            'Governance',
+            'mutation { activatePoll(id: "1") { __typename } }',
+            [],
+        ],
+    ]);
+
+    it('declares @module on every mutation of a domain that can be disabled', function (): void {
+        // Resolver namespace (App\GraphQL\Mutations\<Ns>) => domain name.
+        $gated = [
+            'Banking'              => 'Banking',
+            'Basket'               => 'Basket',
+            'Cgo'                  => 'Cgo',
+            'CrossChain'           => 'CrossChain',
+            'DeFi'                 => 'DeFi',
+            'FinancialInstitution' => 'FinancialInstitution',
+            'Governance'           => 'Governance',
+            'ISO'                  => 'ISO20022',
+            'Interledger'          => 'Interledger',
+            'Ledger'               => 'Ledger',
+            'Lending'              => 'Lending',
+            'Microfinance'         => 'Microfinance',
+            'OpenBanking'          => 'OpenBanking',
+            'PaymentRails'         => 'PaymentRails',
+            'Stablecoin'           => 'Stablecoin',
+            'Treasury'             => 'Treasury',
+        ];
+
+        $mutation = app(ASTBuilder::class)->documentAST()->types['Mutation'];
+        assert($mutation instanceof ObjectTypeDefinitionNode);
+
+        $prefix = 'App\\GraphQL\\Mutations\\';
+        $checked = 0;
+        foreach ($mutation->fields as $field) {
+            $fieldDirective = ASTHelper::directiveDefinition($field, 'field');
+            $resolver = $fieldDirective === null ? null : ASTHelper::directiveArgValue($fieldDirective, 'resolver');
+            if (! is_string($resolver) || ! str_starts_with($resolver, $prefix)) {
+                continue;
+            }
+            $namespace = explode('\\', substr($resolver, strlen($prefix)))[0];
+            if (! isset($gated[$namespace])) {
+                continue;
+            }
+
+            $module = ASTHelper::directiveDefinition($field, 'module');
+            expect($module)->not->toBeNull("{$field->name->value} has no @module directive");
+            assert($module !== null);
+            expect(ASTHelper::directiveArgValue($module, 'name'))->toBe($gated[$namespace]);
+            $checked++;
+        }
+
+        expect($checked)->toBeGreaterThan(30);
     });
 
     it('returns 404 for GCU voting pages when Governance is disabled', function (): void {

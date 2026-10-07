@@ -57,7 +57,7 @@ extend type Query {
         @field(resolver: "App\\GraphQL\\Queries\\Ledger\\TrialBalanceQuery")
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "Ledger") {
     ledgerCreateAccount(input: CreateLedgerAccountInput! @spread): LedgerAccount!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Ledger\\CreateAccountMutation")

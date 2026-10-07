@@ -26,7 +26,7 @@ extend type Query {
         @field(resolver: "App\\GraphQL\\Queries\\OpenBanking\\MyConsentsQuery")
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "OpenBanking") {
     openBankingCreateConsent(input: CreateConsentInput! @spread): OpenBankingConsent!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\OpenBanking\\CreateConsentMutation")

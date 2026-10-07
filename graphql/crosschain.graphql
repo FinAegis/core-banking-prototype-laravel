@@ -43,7 +43,7 @@ extend type Query {
         @guard(with: ["sanctum"])
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "CrossChain") {
     initiateBridgeTransfer(input: InitiateBridgeTransferInput! @spread): BridgeTransaction!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\CrossChain\\InitiateBridgeTransferMutation")

@@ -44,7 +44,7 @@ extend type Query {
         @guard(with: ["sanctum"])
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "Lending") {
     applyForLoan(input: ApplyForLoanInput! @spread): LoanApplication!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Lending\\ApplyForLoanMutation")

@@ -38,7 +38,7 @@ extend type Query {
         @guard(with: ["sanctum"])
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "FinancialInstitution") {
     onboardPartner(input: OnboardPartnerInput! @spread): Partner!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\FinancialInstitution\\OnboardPartnerMutation")

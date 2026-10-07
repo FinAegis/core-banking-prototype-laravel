@@ -317,6 +317,18 @@ class ExchangeRateController extends Controller
             ]
         );
 
+        $account = \App\Domain\Account\Models\Account::where('uuid', $validated['account_uuid'])->firstOrFail();
+
+        if ($account->user_uuid !== $request->user()?->uuid) {
+            return response()->json(
+                [
+                    'message' => 'Access denied to this account',
+                    'error'   => 'FORBIDDEN',
+                ],
+                403
+            );
+        }
+
         // Get exchange rate
         $exchangeRate = ExchangeRate::where('from_asset_code', $validated['from_currency'])
             ->where('to_asset_code', $validated['to_currency'])
@@ -332,12 +344,15 @@ class ExchangeRateController extends Controller
             );
         }
 
-        $account = \App\Domain\Account\Models\Account::where('uuid', $validated['account_uuid'])->firstOrFail();
         $fromAsset = \App\Domain\Asset\Models\Asset::where('code', $validated['from_currency'])->firstOrFail();
         $toAsset = \App\Domain\Asset\Models\Asset::where('code', $validated['to_currency'])->firstOrFail();
 
         $fromAmountInMinorUnits = (int) round($validated['amount'] * (10 ** $fromAsset->precision));
-        $toAmountInMinorUnits = (int) round($fromAmountInMinorUnits * $exchangeRate->rate);
+        // The rate is quoted per whole unit: rescale from the source asset's
+        // minor units to the target asset's minor units.
+        $toAmountInMinorUnits = (int) round(
+            $fromAmountInMinorUnits * (float) $exchangeRate->rate * (10 ** ($toAsset->precision - $fromAsset->precision))
+        );
 
         // Check sufficient balance
         $balance = $account->getBalance($validated['from_currency']);

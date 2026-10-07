@@ -35,7 +35,7 @@ extend type Query {
         @guard(with: ["sanctum"])
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "Cgo") {
     createInvestment(input: CreateInvestmentInput! @spread): CgoInvestment!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Cgo\\CreateInvestmentMutation")

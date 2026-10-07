@@ -45,7 +45,7 @@ extend type Query {
         @guard(with: ["sanctum"])
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "Stablecoin") {
     mintStablecoin(input: MintStablecoinInput! @spread): StablecoinReserve!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Stablecoin\\MintStablecoinMutation")

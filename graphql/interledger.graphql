@@ -76,7 +76,7 @@ extend type Query {
         @field(resolver: "App\\GraphQL\\Queries\\Interledger\\IlpPaymentQuery")
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "Interledger") {
     "Request a cross-currency quote from the ILP connector."
     ilpCreateQuote(input: IlpQuoteInput! @spread): IlpQuote!
         @guard(with: ["sanctum"])

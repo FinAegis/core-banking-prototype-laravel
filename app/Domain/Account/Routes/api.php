@@ -61,9 +61,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/balances', [AccountBalanceController::class, 'index']);
     });
 
-    // Currency conversion endpoint
+    // Currency conversion endpoint (internal ledger debit + credit — ledger.direct_funding_enabled)
     Route::post('/exchange/convert', [App\Http\Controllers\Api\ExchangeRateController::class, 'convertCurrency'])
-        ->middleware(['transaction.rate_limit:convert', 'sub_product:exchange']);
+        ->middleware([
+            'feature:ledger.direct_funding_enabled',
+            'transaction.rate_limit:convert',
+            'sub_product:exchange',
+        ]);
 
     // Custodian integration endpoints
     Route::prefix('custodians')->group(function () {

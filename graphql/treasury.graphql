@@ -37,7 +37,7 @@ extend type Query {
         @guard(with: ["sanctum"])
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "Treasury") {
     createPortfolio(input: CreatePortfolioInput! @spread): AssetAllocation!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Treasury\\CreatePortfolioMutation")

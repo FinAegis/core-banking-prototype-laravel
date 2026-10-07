@@ -103,7 +103,7 @@ input InitiateBankTransferInput {
     reference: String
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "Banking") {
     connectBank(input: ConnectBankInput! @spread): BankConnectionModel!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Banking\\ConnectBankMutation")

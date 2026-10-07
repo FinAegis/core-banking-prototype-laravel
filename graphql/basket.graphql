@@ -35,7 +35,7 @@ extend type Query {
         @guard(with: ["sanctum"])
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "Basket") {
     createBasket(input: CreateBasketInput! @spread): BasketPortfolio!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Basket\\CreateBasketMutation")

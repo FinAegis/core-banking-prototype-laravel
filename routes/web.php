@@ -774,7 +774,9 @@ Route::middleware([
         Route::get('/deposit', [App\Http\Controllers\WalletController::class, 'showDeposit'])->name('deposit');
         Route::get('/withdraw', [App\Http\Controllers\WalletController::class, 'showWithdraw'])->name('withdraw');
         Route::get('/transfer', [App\Http\Controllers\WalletController::class, 'showTransfer'])->name('transfer');
-        Route::get('/convert', [App\Http\Controllers\WalletController::class, 'showConvert'])->name('convert');
+        // Form for POST /api/exchange/convert (ledger.direct_funding_enabled)
+        Route::get('/convert', [App\Http\Controllers\WalletController::class, 'showConvert'])->name('convert')
+            ->middleware('feature:ledger.direct_funding_enabled');
 
         // New Interface Routes
         // Stablecoin Operations

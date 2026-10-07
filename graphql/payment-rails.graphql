@@ -41,7 +41,7 @@ extend type Query {
         @field(resolver: "App\\GraphQL\\Queries\\PaymentRails\\TransactionQuery")
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "PaymentRails") {
     paymentRailsSend(
         amount: String!
         currency: String!

@@ -9,7 +9,7 @@ extend type Query {
         @field(resolver: "App\\GraphQL\\Queries\\ISO20022\\SupportedTypesQuery")
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "ISO20022") {
     iso20022Validate(xml: String!): Iso20022ValidationResult!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\ISO20022\\ValidateMessageMutation")

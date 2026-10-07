@@ -112,7 +112,7 @@ extend type Query {
         @field(resolver: "App\\GraphQL\\Queries\\Microfinance\\ProvisionSummaryQuery")
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "Microfinance") {
     mfiCreateGroup(input: MfiCreateGroupInput! @spread): MfiGroup!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Microfinance\\CreateGroupMutation")
