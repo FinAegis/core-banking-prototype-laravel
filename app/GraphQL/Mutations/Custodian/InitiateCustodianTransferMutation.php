@@ -8,6 +8,7 @@ use App\Domain\Account\DataObjects\Money;
 use App\Domain\Custodian\Models\CustodianAccount;
 use App\Domain\Custodian\Models\CustodianTransfer;
 use App\Domain\Custodian\Services\CustodianAccountService;
+use GraphQL\Error\Error;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
 
@@ -23,6 +24,10 @@ final class InitiateCustodianTransferMutation
      */
     public function __invoke(mixed $rootValue, array $args): CustodianTransfer
     {
+        if (! config('ledger.direct_funding_enabled')) {
+            throw new Error('This operation is not available.');
+        }
+
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\GraphQL\Mutations\Asset;
 
 use App\Domain\Asset\Services\AssetTransferService;
+use GraphQL\Error\Error;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
 
@@ -20,6 +21,10 @@ final class InitiateAssetTransferMutation
      */
     public function __invoke(mixed $rootValue, array $args): string
     {
+        if (! config('ledger.direct_funding_enabled')) {
+            throw new Error('This operation is not available.');
+        }
+
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
 

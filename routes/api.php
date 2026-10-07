@@ -174,7 +174,8 @@ Route::prefix('webhooks/custodian')->middleware(['api.rate_limit:webhook'])->gro
         ->middleware('webhook.signature:paysera');
     Route::post('/santander', [App\Http\Controllers\Api\CustodianWebhookController::class, 'santander'])
         ->middleware('webhook.signature:santander');
-    Route::post('/mock', [App\Http\Controllers\Api\CustodianWebhookController::class, 'mock']);
+    Route::post('/mock', [App\Http\Controllers\Api\CustodianWebhookController::class, 'mock'])
+        ->middleware('feature:ledger.direct_funding_enabled');
 });
 
 // Payment processor webhook endpoints

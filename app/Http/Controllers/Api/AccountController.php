@@ -20,6 +20,7 @@ use App\Rules\NoSqlInjection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
 use Workflow\WorkflowStub;
 
@@ -109,6 +110,15 @@ class AccountController extends Controller
                 'initial_balance' => 'sometimes|integer|min:0',
             ]
         );
+
+        // Opening balances credit the ledger directly; they follow the
+        // ledger.direct_funding_enabled flag. Account creation itself is
+        // always available.
+        if (! config('ledger.direct_funding_enabled') && (int) ($validated['initial_balance'] ?? 0) > 0) {
+            throw ValidationException::withMessages([
+                'initial_balance' => 'An initial balance is not available. Fund the account through a supported deposit method.',
+            ]);
+        }
 
         // Sanitize the account name to prevent XSS
         $sanitizedName = strip_tags($validated['name']);

@@ -6,6 +6,7 @@ namespace App\GraphQL\Mutations\Lending;
 
 use App\Domain\Lending\Models\LoanApplication;
 use App\Domain\Lending\Services\LoanApplicationService;
+use GraphQL\Error\Error;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
@@ -22,6 +23,10 @@ class ApproveLoanMutation
      */
     public function __invoke(mixed $rootValue, array $args): LoanApplication
     {
+        if (! config('ledger.direct_funding_enabled')) {
+            throw new Error('This operation is not available.');
+        }
+
         $user = Auth::user();
 
         if (! $user) {

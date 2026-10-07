@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\MCP\Discovery\ProtectedResourceMetadataController;
+use App\Domain\MCP\Server\EnsureMcpEnabled;
 use App\Domain\MCP\Server\StreamableHttpController;
 use Illuminate\Support\Facades\Route;
 
@@ -28,7 +29,8 @@ Route::domain((string) config('mcp.host'))
 //   GET  /mcp — long-lived SSE stream for server→client notifications (heartbeat only for now)
 // Both methods require a verified bearer token via `mcp.oauth` and are aggregate-rate-limited
 // per token (per-minute + per-hour windows from config('mcp.rate_limits.aggregate')).
+// EnsureMcpEnabled runs first so MCP_ENABLED=false answers 503 for every caller.
 Route::domain((string) config('mcp.host'))
     ->match(['GET', 'POST'], '/mcp', [StreamableHttpController::class, 'handle'])
-    ->middleware(['mcp.oauth', 'throttle:mcp.aggregate'])
+    ->middleware([EnsureMcpEnabled::class, 'mcp.oauth', 'throttle:mcp.aggregate'])
     ->name('mcp.endpoint');

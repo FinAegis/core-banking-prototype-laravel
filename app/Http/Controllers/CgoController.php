@@ -13,6 +13,7 @@ use App\Domain\Cgo\Services\CoinbaseCommerceService;
 use App\Domain\Cgo\Services\StripePaymentService;
 use App\Domain\Newsletter\Models\Subscriber;
 use App\Domain\Newsletter\Services\SubscriberEmailService;
+use App\Infrastructure\Domain\DomainManager;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -192,6 +193,8 @@ class CgoController extends Controller
     )]
     public function processInvestment(Request $request, CgoKycService $kycService)
     {
+        abort_if(DomainManager::isDisabledByConfig('Cgo'), 404);
+
         $validated = $request->validate(
             [
                 'name'            => 'required|string|max:255',

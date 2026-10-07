@@ -6,6 +6,7 @@ namespace App\GraphQL\Mutations\Wallet;
 
 use App\Domain\Wallet\Models\MultiSigWallet;
 use App\Domain\Wallet\Services\WalletService;
+use GraphQL\Error\Error;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
@@ -22,6 +23,10 @@ class TransferFundsMutation
      */
     public function __invoke(mixed $rootValue, array $args): MultiSigWallet
     {
+        if (! config('ledger.direct_funding_enabled')) {
+            throw new Error('This operation is not available.');
+        }
+
         $user = Auth::user();
 
         if (! $user) {

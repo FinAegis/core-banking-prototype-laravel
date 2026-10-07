@@ -26,6 +26,14 @@ return [
     'deposit_currency'     => env('CARD_DEPOSIT_CURRENCY', 'EUR'),
 
     /*
+     * Accept new waitlist deposits. When false, POST /v1/cards/waitlist/deposit
+     * answers ERR_CARDS_019 (503) before any quote or Checkout step; cancel,
+     * entry and the Stripe webhook keep working so existing deposits can
+     * still be refunded and reconciled.
+     */
+    'waitlist_deposit_enabled' => (bool) env('CARDS_WAITLIST_DEPOSIT_ENABLED', true),
+
+    /*
      * Time window the user has to complete the Stripe Checkout session.
      * After this, cards:purge-expired-deposits marks the row as expired.
      * Stripe's own session expiry is 24 hours by default; we mirror that

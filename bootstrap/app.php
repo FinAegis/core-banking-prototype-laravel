@@ -159,6 +159,10 @@ return Application::configure(basePath: is_string($_appBasePath) ? $_appBasePath
             'protocol.subdomain' => App\Http\Middleware\ProtocolSubdomainMiddleware::class,
             // MCP OAuth bearer guard (v7.11.0)
             'mcp.oauth' => App\Domain\MCP\Auth\McpOAuthGuard::class,
+            // Config-backed route flag (`feature:<config.key>[,redirect]`)
+            'feature' => App\Http\Middleware\EnsureFeatureEnabled::class,
+            // MODULES_DISABLED gate for routes outside the module route loader
+            'module.enabled' => App\Http\Middleware\EnsureModuleEnabled::class,
         ]);
 
         // Prepend CORS middleware to handle it before other middleware

@@ -133,6 +133,12 @@ class CreateAccountTool implements MCPToolInterface
         try {
             Log::debug('CreateAccountTool execute called', ['parameters' => $parameters, 'conversationId' => $conversationId]);
 
+            // Opening balances credit the ledger directly; they follow the
+            // ledger.direct_funding_enabled flag (account creation stays available).
+            if (! config('ledger.direct_funding_enabled') && (float) ($parameters['initial_deposit'] ?? 0) > 0) {
+                return ToolExecutionResult::failure('An initial deposit is not available. Create the account without one.');
+            }
+
             // Get the user
             $user = $this->getUser($parameters['user_uuid'] ?? null);
 

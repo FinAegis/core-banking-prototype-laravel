@@ -14,4 +14,15 @@ return [
     |
     */
     'notification_email' => env('INVESTOR_NOTIFICATION_EMAIL', 'investors@finaegis.com'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Investor page switch
+    |--------------------------------------------------------------------------
+    |
+    | When false, GET /invest* answers a 301 to the site root and the form
+    | POST answers 404 (route names stay registered).
+    |
+    */
+    'page_enabled' => (bool) env('INVESTOR_PAGE_ENABLED', true),
 ];

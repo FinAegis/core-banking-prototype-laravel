@@ -93,4 +93,7 @@ return [
     'ERR_CARDS_016' => ['http' => 502, 'description' => 'The card operation could not be completed right now. Please try again later.'],
     'ERR_CARDS_017' => ['http' => 422, 'description' => 'Insufficient balance for this operation.'],
     'ERR_CARDS_018' => ['http' => 422, 'description' => 'No card product was specified and no default is configured.'],
+
+    // ─── Card waitlist deposit switch ──────────────────────────────────────
+    'ERR_CARDS_019' => ['http' => 503, 'description' => 'Card deposits are paused.'],
 ];

@@ -31,12 +31,15 @@ Route::get('/connect', function () {
 // Brand exception: the page itself reads "FinAegis" because investors
 // invest in the entity, not the Zelta product. Header/footer/nav stay
 // Zelta — only the body copy here is FinAegis-branded.
-Route::get('/invest', [InvestorController::class, 'show'])->name('invest.show');
-Route::post('/invest', [InvestorController::class, 'submit'])
-    ->middleware('throttle:5,1440')   // 5 submissions per 24h per IP
-    ->name('invest.submit');
-Route::get('/invest/thanks', [InvestorController::class, 'thanks'])->name('invest.thanks');
-Route::get('/invest/data-room', [InvestorController::class, 'dataRoom'])->name('invest.data-room');
+// INVESTOR_PAGE_ENABLED=false: GETs 301 to /, the form POST answers 404.
+Route::middleware('feature:investor.page_enabled,redirect')->group(function () {
+    Route::get('/invest', [InvestorController::class, 'show'])->name('invest.show');
+    Route::post('/invest', [InvestorController::class, 'submit'])
+        ->middleware('throttle:5,1440')   // 5 submissions per 24h per IP
+        ->name('invest.submit');
+    Route::get('/invest/thanks', [InvestorController::class, 'thanks'])->name('invest.thanks');
+    Route::get('/invest/data-room', [InvestorController::class, 'dataRoom'])->name('invest.data-room');
+});
 
 // Privy email-OTP web login (gated by MCP_WEB_PRIVY_LOGIN). The matching
 // GET /login view is registered by Fortify::loginView() in the service
@@ -262,6 +265,13 @@ if (config('brand.show_promo_pages')) {
     Route::post('/financial-institutions/submit', $redirectHome)->name('financial-institutions.submit');
     Route::get('/marketplace', $redirectHome)->name('marketplace.index');
     Route::get('/marketplace/{vendor}/{name}', $redirectHome)->where(['vendor' => '[a-zA-Z0-9_-]+', 'name' => '[a-zA-Z0-9_-]+'])->name('marketplace.show');
+
+    // Jetstream registers /terms-of-service and /privacy-policy (markdown
+    // pages). App routes load after package routes, so these same-URI routes
+    // replace them and point to the product legal pages (names kept for the
+    // registration form links).
+    Route::get('/terms-of-service', fn () => redirect()->route('legal.terms', [], 301))->name('terms.show');
+    Route::get('/privacy-policy', fn () => redirect()->route('legal.privacy', [], 301))->name('policy.show');
 }
 
 // User invitation acceptance (public — rate-limited to prevent token brute-force)
@@ -327,23 +337,27 @@ Route::get('/.well-known/assetlinks.json', function () {
 
 Route::get('/status', [StatusController::class, 'index'])->name('status');
 
-Route::get('/cgo', function () {
-    return view('cgo');
-})->name('cgo');
+// CGO pages follow MODULES_DISABLED (Cgo): 404 when disabled, names kept
+// because shared layouts call route('cgo').
+Route::middleware('module.enabled:Cgo')->group(function () {
+    Route::get('/cgo', function () {
+        return view('cgo');
+    })->name('cgo');
 
-Route::get('/cgo/terms', function () {
-    return view('legal.cgo-terms');
-})->name('cgo.terms');
+    Route::get('/cgo/terms', function () {
+        return view('legal.cgo-terms');
+    })->name('cgo.terms');
 
-Route::post('/cgo/notify', [App\Http\Controllers\CgoController::class, 'notify'])->name('cgo.notify');
-Route::get('/cgo/notify-success', [App\Http\Controllers\CgoController::class, 'notifySuccess'])->name('cgo.notify-success');
+    Route::post('/cgo/notify', [App\Http\Controllers\CgoController::class, 'notify'])->name('cgo.notify');
+    Route::get('/cgo/notify-success', [App\Http\Controllers\CgoController::class, 'notifySuccess'])->name('cgo.notify-success');
+});
 
 // Subscriber routes
 Route::get('/subscriber/unsubscribe/{email}', [App\Http\Controllers\SubscriberController::class, 'unsubscribe'])->name('subscriber.unsubscribe');
 Route::post('/subscriber/{source}', [App\Http\Controllers\SubscriberController::class, 'subscribe'])->name('subscriber.subscribe');
 
 // Authenticated CGO routes
-Route::middleware(['auth', 'verified'])->prefix('cgo')->name('cgo.')->group(function () {
+Route::middleware(['module.enabled:Cgo', 'auth', 'verified'])->prefix('cgo')->name('cgo.')->group(function () {
     Route::get('/investments', [App\Http\Controllers\CgoController::class, 'myInvestments'])->name('investments');
     Route::get('/invest', [App\Http\Controllers\CgoController::class, 'invest'])->name('invest');
     Route::post('/invest', [App\Http\Controllers\CgoController::class, 'processInvestment'])->name('invest.process');
@@ -377,8 +391,8 @@ Route::middleware(['auth', 'verified'])->prefix('cgo')->name('cgo.')->group(func
     });
 });
 
-// GCU Voting routes (public and authenticated)
-Route::prefix('gcu/voting')->name('gcu.voting.')->group(function () {
+// GCU Voting routes (public and authenticated, Governance domain)
+Route::prefix('gcu/voting')->name('gcu.voting.')->middleware('module.enabled:Governance')->group(function () {
     Route::get('/', [App\Http\Controllers\GcuVotingController::class, 'index'])->name('index');
     Route::get('/{proposal}', [App\Http\Controllers\GcuVotingController::class, 'show'])->name('show');
 
@@ -389,13 +403,13 @@ Route::prefix('gcu/voting')->name('gcu.voting.')->group(function () {
     });
 });
 
-// GCU Trading routes (authenticated)
-Route::middleware(['auth', 'verified'])->group(function () {
+// GCU Trading routes (authenticated, Basket domain)
+Route::middleware(['module.enabled:Basket', 'auth', 'verified'])->group(function () {
     Route::get('/gcu/trading', [App\Http\Controllers\GcuTradingController::class, 'index'])->name('gcu.trading');
 });
 
-// Exchange routes (public and authenticated)
-Route::prefix('exchange')->name('exchange.')->group(function () {
+// Exchange routes (public and authenticated, demo trading engine — TRADING_ENABLED)
+Route::prefix('exchange')->name('exchange.')->middleware('feature:trading.enabled')->group(function () {
     // Public routes
     Route::get('/', [App\Http\Controllers\ExchangeController::class, 'index'])->name('index');
 
@@ -420,8 +434,8 @@ Route::prefix('exchange')->name('exchange.')->group(function () {
     });
 });
 
-// Liquidity pool routes
-Route::prefix('liquidity')->name('liquidity.')->group(function () {
+// Liquidity pool routes (demo trading engine — TRADING_ENABLED)
+Route::prefix('liquidity')->name('liquidity.')->middleware('feature:trading.enabled')->group(function () {
     // Public routes
     Route::get('/', [App\Http\Controllers\LiquidityPoolController::class, 'index'])->name('index');
     Route::get('/{poolId}', [App\Http\Controllers\LiquidityPoolController::class, 'show'])->name('show');
@@ -435,8 +449,8 @@ Route::prefix('liquidity')->name('liquidity.')->group(function () {
     });
 });
 
-// Lending platform routes
-Route::middleware(['auth', 'verified'])->prefix('lending')->name('lending.')->group(function () {
+// Lending platform routes (Lending domain)
+Route::middleware(['module.enabled:Lending', 'auth', 'verified'])->prefix('lending')->name('lending.')->group(function () {
     Route::get('/', [App\Http\Controllers\LendingController::class, 'index'])->name('index');
     Route::get('/apply', [App\Http\Controllers\LendingController::class, 'apply'])->name('apply');
     Route::post('/apply', [App\Http\Controllers\LendingController::class, 'submitApplication'])->name('apply.submit');
@@ -452,8 +466,12 @@ Route::middleware(['auth', 'verified'])->prefix('wallet/blockchain')->name('wall
     Route::get('/create', [App\Http\Controllers\BlockchainWalletController::class, 'createAddress'])->name('create');
     Route::post('/generate', [App\Http\Controllers\BlockchainWalletController::class, 'generateAddress'])->name('generate');
     Route::get('/address/{addressId}', [App\Http\Controllers\BlockchainWalletController::class, 'showAddress'])->name('show');
-    Route::get('/address/{addressId}/send', [App\Http\Controllers\BlockchainWalletController::class, 'sendForm'])->name('send');
-    Route::post('/address/{addressId}/send', [App\Http\Controllers\BlockchainWalletController::class, 'send'])->name('send.process');
+    Route::get('/address/{addressId}/send', [App\Http\Controllers\BlockchainWalletController::class, 'sendForm'])
+        ->middleware('feature:ledger.direct_funding_enabled')
+        ->name('send');
+    Route::post('/address/{addressId}/send', [App\Http\Controllers\BlockchainWalletController::class, 'send'])
+        ->middleware('feature:ledger.direct_funding_enabled')
+        ->name('send.process');
     Route::get('/transaction/{transactionId}', [App\Http\Controllers\BlockchainWalletController::class, 'showTransaction'])->name('transaction');
     Route::post('/backup', [App\Http\Controllers\BlockchainWalletController::class, 'exportBackup'])->name('backup');
 });
@@ -777,8 +795,9 @@ Route::middleware([
             Route::post('/{custodianCode}/synchronize', [App\Http\Controllers\CustodianIntegrationController::class, 'synchronize'])->name('synchronize');
         });
 
-        // Deposit routes
-        Route::prefix('deposit')->name('deposit.')->group(function () {
+        // Deposit routes (demo fiat rails — ledger.direct_funding_enabled).
+        // GET /wallet/deposit above stays available.
+        Route::prefix('deposit')->name('deposit.')->middleware('feature:ledger.direct_funding_enabled')->group(function () {
             // Card deposits (Stripe integration)
             Route::get('/card', [App\Http\Controllers\DepositController::class, 'create'])->name('create');
             Route::post('/card', [App\Http\Controllers\DepositController::class, 'store'])->name('store');
@@ -832,8 +851,9 @@ Route::middleware([
             })->name('crypto');
         });
 
-        // Bank withdrawal routes
-        Route::prefix('withdraw')->name('withdraw.')->group(function () {
+        // Bank withdrawal routes (demo fiat rails — ledger.direct_funding_enabled).
+        // GET /wallet/withdraw above stays available.
+        Route::prefix('withdraw')->name('withdraw.')->middleware('feature:ledger.direct_funding_enabled')->group(function () {
             Route::get('/bank', [App\Http\Controllers\WithdrawalController::class, 'create'])->name('create');
             Route::post('/bank', [App\Http\Controllers\WithdrawalController::class, 'store'])->name('store');
             Route::post('/bank-account', [App\Http\Controllers\WithdrawalController::class, 'addBankAccount'])->name('bank-account.add');

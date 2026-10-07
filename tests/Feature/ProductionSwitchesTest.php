@@ -1,0 +1,389 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Domain\Account\Models\Account;
+use App\Domain\AI\MCP\Tools\Account\CreateAccountTool;
+use App\Domain\Pricing\Models\PriceQuote;
+use App\Models\User;
+use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Foundation\Bootstrap\LoadConfiguration;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
+use Laravel\Sanctum\Sanctum;
+
+/*
+| Feature flags for demo-only ledger features. Every flag defaults to the
+| current (enabled) behaviour; these tests flip each one off and assert the
+| gated surface closes while route names stay resolvable.
+|
+| Module gates read config('modules.disabled') through
+| DomainManager::isDisabledByConfig(), which never consults the
+| 'domain_manager_disabled' cache key — the cache is cleared anyway so the
+| ModuleRouteLoader state cannot leak between tests.
+*/
+
+beforeEach(function (): void {
+    Cache::forget('domain_manager_disabled');
+    config(['modules.disabled' => []]);
+});
+
+/**
+ * @return array{0: User, 1: Account, 2: string}
+ */
+function switchesUserWithAccount(): array
+{
+    $user = User::factory()->create();
+    $account = Account::factory()->create(['user_uuid' => $user->uuid]);
+    $token = $user->createToken('switches', ['read', 'write', 'delete'])->plainTextToken;
+
+    return [$user, $account, $token];
+}
+
+describe('ledger.direct_funding_enabled', function (): void {
+    beforeEach(function (): void {
+        config(['ledger.direct_funding_enabled' => false]);
+    });
+
+    it('returns 404 for v2 account deposit and withdraw', function (): void {
+        [, $account, $token] = switchesUserWithAccount();
+
+        $this->withToken($token)
+            ->postJson("/api/v2/accounts/{$account->uuid}/deposit", ['amount' => 1000, 'asset_code' => 'USD'])
+            ->assertNotFound();
+
+        $this->withToken($token)
+            ->postJson("/api/v2/accounts/{$account->uuid}/withdraw", ['amount' => 1000, 'asset_code' => 'USD'])
+            ->assertNotFound();
+    });
+
+    it('returns 404 for v1 account deposit, withdraw and transaction reversal', function (): void {
+        [$user, $account] = switchesUserWithAccount();
+        Sanctum::actingAs($user, ['read', 'write', 'delete']);
+
+        $this->postJson("/api/accounts/{$account->uuid}/withdraw", ['amount' => 1000, 'asset_code' => 'USD'])
+            ->assertNotFound();
+        $this->postJson("/api/accounts/{$account->uuid}/deposit", ['amount' => 1000, 'asset_code' => 'USD'])
+            ->assertNotFound();
+        $this->postJson("/api/accounts/{$account->uuid}/transactions/reverse", [])
+            ->assertNotFound();
+    });
+
+    it('rejects a non-zero initial balance on account creation but still creates accounts', function (): void {
+        [, , $token] = switchesUserWithAccount();
+
+        $this->withToken($token)
+            ->postJson('/api/v2/accounts', ['name' => 'Funded', 'initial_balance' => 5000])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['initial_balance']);
+
+        $this->withToken($token)
+            ->postJson('/api/accounts', ['name' => 'Funded v1', 'initial_balance' => 5000])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['initial_balance']);
+
+        $this->withToken($token)
+            ->postJson('/api/v2/accounts', ['name' => 'Plain account'])
+            ->assertCreated()
+            ->assertJsonPath('data.name', 'Plain account');
+
+        $this->withToken($token)
+            ->postJson('/api/v2/accounts', ['name' => 'Zero opening', 'initial_balance' => 0])
+            ->assertCreated();
+    });
+
+    it('returns 404 for the BIAN API', function (): void {
+        [$user, $account] = switchesUserWithAccount();
+        Sanctum::actingAs($user, ['read', 'write', 'delete']);
+
+        $this->postJson('/api/bian/current-account/initiate', [
+            'customerReference' => $user->uuid,
+            'accountName'       => 'BIAN account',
+            'accountType'       => 'current',
+        ])->assertNotFound();
+
+        $this->postJson("/api/bian/current-account/{$account->uuid}/deposit/execute", ['depositAmount' => 100])
+            ->assertNotFound();
+        $this->getJson("/api/bian/current-account/{$account->uuid}/retrieve")
+            ->assertNotFound();
+        $this->postJson('/api/bian/payment-initiation/initiate', [])
+            ->assertNotFound();
+    });
+
+    it('returns 404 for the custodian transfer and mock custodian webhook', function (): void {
+        [$user] = switchesUserWithAccount();
+        Sanctum::actingAs($user, ['read', 'write', 'delete']);
+
+        $this->postJson('/api/custodians/mock/transfer', [])->assertNotFound();
+        $this->postJson('/api/webhooks/custodian/mock', [])->assertNotFound();
+    });
+
+    it('rejects the GraphQL initiatePayment mutation', function (): void {
+        [$user, $account] = switchesUserWithAccount();
+
+        $response = $this->actingAs($user, 'sanctum')->postJson('/graphql', [
+            'query' => '
+                mutation ($input: InitiatePaymentInput!) {
+                    initiatePayment(input: $input) { id }
+                }
+            ',
+            'variables' => [
+                'input' => [
+                    'account_uuid' => $account->uuid,
+                    'amount'       => 100,
+                    'currency'     => 'USD',
+                    'type'         => 'transfer',
+                ],
+            ],
+        ]);
+
+        $response->assertOk();
+        expect($response->json('errors.0.message'))->toBe('This operation is not available.');
+        expect($response->json('data.initiatePayment'))->toBeNull();
+    });
+
+    it('returns 404 for web wallet deposit and withdraw sub-pages but keeps the index pages', function (): void {
+        $user = User::factory()->withPersonalTeam()->create();
+        $this->actingAs($user);
+
+        $this->get('/wallet/deposit/card')->assertNotFound();
+        $this->get('/wallet/deposit/bank')->assertNotFound();
+        $this->post('/wallet/deposit/paysera/initiate', [])->assertNotFound();
+        $this->get('/wallet/deposit/paysera/callback')->assertNotFound();
+        $this->get('/wallet/withdraw/bank')->assertNotFound();
+        $this->post('/wallet/withdraw/bank', [])->assertNotFound();
+
+        $this->get('/wallet/deposit')->assertOk();
+
+        foreach (['wallet.blockchain.send', 'wallet.blockchain.send.process'] as $name) {
+            expect(Route::getRoutes()->getByName($name)?->gatherMiddleware())
+                ->toContain('feature:ledger.direct_funding_enabled');
+        }
+
+        // Route names stay registered so the index views keep rendering.
+        expect(Route::has('wallet.deposit.create'))->toBeTrue();
+        expect(Route::has('wallet.withdraw.create'))->toBeTrue();
+    });
+
+    it('refuses an MCP account.create initial deposit', function (): void {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user, ['read', 'write', 'delete']);
+
+        $result = app(CreateAccountTool::class)->execute([
+            'name'            => 'MCP account',
+            'type'            => 'checking',
+            'currency'        => 'USD',
+            'initial_deposit' => 50,
+        ]);
+
+        expect($result->isFailure())->toBeTrue();
+        expect(Account::query()->where('name', 'MCP account')->exists())->toBeFalse();
+    });
+});
+
+describe('ledger.direct_funding_enabled default', function (): void {
+    it('keeps the direct funding routes registered and reachable', function (): void {
+        [$user, $account] = switchesUserWithAccount();
+        Sanctum::actingAs($user, ['read', 'write', 'delete']);
+
+        expect(config('ledger.direct_funding_enabled'))->toBeTrue();
+
+        // Validation error (not 404) proves the route is live.
+        $this->postJson("/api/accounts/{$account->uuid}/withdraw", [])->assertStatus(422);
+    });
+});
+
+describe('MODULES_DISABLED web/API gates', function (): void {
+    it('returns 404 for GCU trading when Basket is disabled', function (): void {
+        config(['modules.disabled' => ['Basket']]);
+        [$user] = switchesUserWithAccount();
+        Sanctum::actingAs($user, ['read', 'write', 'delete']);
+
+        $this->postJson('/api/v2/gcu/buy', ['amount' => 100, 'currency' => 'EUR'])->assertNotFound();
+        $this->postJson('/api/v2/gcu/sell', ['amount' => 100, 'currency' => 'EUR'])->assertNotFound();
+        $this->getJson('/api/v2/gcu/quote?operation=buy&amount=100&currency=EUR')->assertNotFound();
+
+        $this->actingAs($user)->get('/gcu/trading')->assertNotFound();
+        expect(Route::has('gcu.trading'))->toBeTrue();
+    });
+
+    it('returns 404 for CGO pages when Cgo is disabled while route("cgo") still resolves', function (): void {
+        config(['modules.disabled' => ['Cgo']]);
+
+        $this->get('/cgo')->assertNotFound();
+        $this->get('/cgo/terms')->assertNotFound();
+        $this->post('/cgo/notify', ['email' => 'someone@example.com'])->assertNotFound();
+
+        $user = User::factory()->create();
+        $this->actingAs($user)->get('/cgo/invest')->assertNotFound();
+        $this->actingAs($user)->post('/cgo/invest', [])->assertNotFound();
+
+        expect(route('cgo'))->toEndWith('/cgo');
+        expect(Route::has('cgo.invest'))->toBeTrue();
+    });
+
+    it('rejects the GraphQL createInvestment mutation when Cgo is disabled', function (): void {
+        config(['modules.disabled' => ['Cgo']]);
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user, 'sanctum')->postJson('/graphql', [
+            'query'     => 'mutation ($input: CreateInvestmentInput!) { createInvestment(input: $input) { id } }',
+            'variables' => ['input' => ['amount' => 1000]],
+        ]);
+
+        expect($response->json('errors.0.message'))->toBe('This operation is not available.');
+    });
+
+    it('returns 404 for GCU voting pages when Governance is disabled', function (): void {
+        config(['modules.disabled' => ['Governance']]);
+
+        $this->get('/gcu/voting')->assertNotFound();
+        expect(Route::has('gcu.voting.index'))->toBeTrue();
+    });
+
+    it('returns 404 for lending pages when Lending is disabled', function (): void {
+        config(['modules.disabled' => ['Lending']]);
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->get('/lending')->assertNotFound();
+        expect(Route::has('lending.index'))->toBeTrue();
+    });
+});
+
+describe('trading.enabled', function (): void {
+    beforeEach(function (): void {
+        config(['trading.enabled' => false]);
+    });
+
+    it('returns 404 for exchange, external-exchange and liquidity API routes', function (): void {
+        [$user] = switchesUserWithAccount();
+        Sanctum::actingAs($user, ['read', 'write', 'delete']);
+
+        $this->postJson('/api/exchange/orders', [
+            'type'           => 'buy',
+            'order_type'     => 'market',
+            'base_currency'  => 'BTC',
+            'quote_currency' => 'EUR',
+            'amount'         => '0.01',
+        ])->assertNotFound();
+        $this->getJson('/api/exchange/markets')->assertNotFound();
+        $this->getJson('/api/external-exchange/connectors')->assertNotFound();
+        $this->postJson('/api/liquidity/swap', [])->assertNotFound();
+
+        // Non-trading routes in the same file stay registered.
+        expect(Route::has('status.api'))->toBeTrue();
+    });
+
+    it('returns 404 for the web exchange and liquidity pages', function (): void {
+        $this->get('/exchange')->assertNotFound();
+        $this->get('/liquidity')->assertNotFound();
+
+        expect(Route::has('exchange.index'))->toBeTrue();
+        expect(Route::has('liquidity.index'))->toBeTrue();
+    });
+
+    it('rejects the GraphQL placeOrder mutation', function (): void {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user, 'sanctum')->postJson('/graphql', [
+            'query'     => 'mutation ($input: PlaceOrderInput!) { placeOrder(input: $input) { id } }',
+            'variables' => ['input' => [
+                'base_currency'  => 'BTC',
+                'quote_currency' => 'EUR',
+                'type'           => 'buy',
+                'order_type'     => 'market',
+                'amount'         => 0.01,
+            ]],
+        ]);
+
+        expect($response->json('errors.0.message'))->toBe('This operation is not available.');
+    });
+});
+
+describe('cards.waitlist_deposit_enabled', function (): void {
+    it('answers 503 ERR_CARDS_019 for new deposits while cancel stays reachable', function (): void {
+        config(['cards.waitlist_deposit_enabled' => false]);
+
+        $user = User::factory()->create();
+        Sanctum::actingAs($user, ['read', 'write', 'delete']);
+
+        $this->postJson('/api/v1/cards/waitlist/deposit', [
+            'quoteId' => (string) Str::uuid(),
+        ], ['Idempotency-Key' => Str::random(24)])
+            ->assertStatus(503)
+            ->assertJsonPath('error.code', 'ERR_CARDS_019')
+            ->assertJsonPath('error.message', 'Card deposits are paused.');
+
+        expect(PriceQuote::query()->count())->toBe(0);
+
+        // Cancel still runs the service (no active deposit -> ERR_CARDS_003).
+        $this->postJson('/api/v1/cards/waitlist/deposit/cancel', [], ['Idempotency-Key' => Str::random(24)])
+            ->assertNotFound()
+            ->assertJsonPath('error.code', 'ERR_CARDS_003');
+
+        $this->getJson('/api/v1/cards/waitlist/entry')->assertOk();
+    });
+});
+
+describe('mcp.enabled', function (): void {
+    it('answers 503 on the MCP endpoint when disabled, before the OAuth guard', function (): void {
+        $url = 'http://' . config('mcp.host') . '/api/mcp';
+
+        config(['mcp.enabled' => false]);
+
+        $this->postJson($url, ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'])
+            ->assertStatus(503)
+            ->assertJsonPath('error', 'mcp_disabled');
+
+        config(['mcp.enabled' => true]);
+
+        $this->postJson($url, ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'])
+            ->assertUnauthorized();
+    });
+});
+
+describe('investor.page_enabled', function (): void {
+    it('redirects /invest pages to the root and refuses the form post when disabled', function (): void {
+        config(['investor.page_enabled' => false]);
+
+        $this->get('/invest')->assertStatus(301)->assertRedirect('/');
+        $this->get('/invest/thanks')->assertStatus(301)->assertRedirect('/');
+        $this->get('/invest/data-room')->assertStatus(301)->assertRedirect('/');
+        $this->post('/invest', [])->assertNotFound();
+
+        expect(route('invest.show'))->toEndWith('/invest');
+    });
+
+    it('serves /invest by default', function (): void {
+        $this->get('/invest')->assertOk();
+    });
+});
+
+describe('Jetstream legal pages with promo pages off', function (): void {
+    it('redirects /terms-of-service and /privacy-policy to the product legal pages', function (): void {
+        $app = require base_path('bootstrap/app.php');
+
+        $app->afterBootstrapping(
+            LoadConfiguration::class,
+            static function ($app): void {
+                $app['config']->set('brand.show_promo_pages', false);
+            }
+        );
+
+        $app->make(Kernel::class)->bootstrap();
+
+        $this->app = $app;
+
+        $this->get('/terms-of-service')
+            ->assertStatus(301)
+            ->assertRedirect(route('legal.terms'));
+
+        $this->get('/privacy-policy')
+            ->assertStatus(301)
+            ->assertRedirect(route('legal.privacy'));
+
+        expect(Route::has('terms.show'))->toBeTrue();
+        expect(Route::has('policy.show'))->toBeTrue();
+    });
+});

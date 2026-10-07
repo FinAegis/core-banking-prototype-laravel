@@ -14,7 +14,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->prefix('bian')->group(function () {
+// Demo BIAN surface: moves internal ledger balances directly, so it follows
+// the ledger.direct_funding_enabled flag (404 when disabled).
+Route::middleware(['feature:ledger.direct_funding_enabled', 'auth:sanctum'])->prefix('bian')->group(function () {
 
     /*
     |--------------------------------------------------------------------------

@@ -18,6 +18,7 @@ use DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
 use Workflow\WorkflowStub;
 
@@ -101,6 +102,12 @@ class CurrentAccountController extends Controller
                 'currency'          => 'sometimes|string|size:3',
             ]
         );
+
+        if (! config('ledger.direct_funding_enabled') && (int) ($validated['initialDeposit'] ?? 0) > 0) {
+            throw ValidationException::withMessages([
+                'initialDeposit' => 'An initial deposit is not available. Fund the account through a supported deposit method.',
+            ]);
+        }
 
         // Generate Control Record Reference ID
         $crReferenceId = Str::uuid()->toString();

@@ -6,6 +6,8 @@ namespace App\GraphQL\Mutations\Cgo;
 
 use App\Domain\Cgo\Models\CgoInvestment;
 use App\Domain\Cgo\Services\CgoKycService;
+use App\Infrastructure\Domain\DomainManager;
+use GraphQL\Error\Error;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -22,6 +24,10 @@ class CreateInvestmentMutation
      */
     public function __invoke(mixed $rootValue, array $args): CgoInvestment
     {
+        if (DomainManager::isDisabledByConfig('Cgo')) {
+            throw new Error('This operation is not available.');
+        }
+
         $user = Auth::user();
 
         if (! $user) {

@@ -26,9 +26,10 @@ return [
 
     'connectors' => [
 
+        // Demo connector; production deployments set CUSTODIAN_MOCK_ENABLED=false.
         'mock' => [
             'class'       => App\Domain\Custodian\Connectors\MockBankConnector::class,
-            'enabled'     => true,
+            'enabled'     => (bool) env('CUSTODIAN_MOCK_ENABLED', true),
             'name'        => 'Mock Bank',
             'description' => 'Mock custodian for testing and development',
         ],

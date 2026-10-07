@@ -100,6 +100,12 @@ final class WaitlistDepositService
      */
     public function startDeposit(User $user, array $input, ?string $remoteIp): JsonResponse
     {
+        // Step 0 — new deposits switch (cards.waitlist_deposit_enabled). Runs
+        // before any quote or Checkout work; cancel/entry/webhook are unaffected.
+        if (! config('cards.waitlist_deposit_enabled')) {
+            return ErrorResponse::make('ERR_CARDS_019');
+        }
+
         // Step 1 — return-URL allow-list (cheap; fail fast).
         $successUrl = $this->resolveReturnUrl($input['successUrl'] ?? null);
         $cancelUrl = $this->resolveReturnUrl($input['cancelUrl'] ?? null);

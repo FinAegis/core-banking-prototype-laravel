@@ -27,8 +27,12 @@ Route::middleware('api.rate_limit:public')->group(function () {
     // Public status endpoint
     Route::get('/status', [App\Http\Controllers\StatusController::class, 'api'])->name('status.api');
 
+    // Demo trading engine (order book, external exchange, liquidity pools).
+    // Gated by trading.enabled (TRADING_ENABLED); the rate, settings,
+    // sub-product and status routes above stay available.
+
     // Exchange endpoints
-    Route::prefix('exchange')->name('api.exchange.')->group(function () {
+    Route::prefix('exchange')->name('api.exchange.')->middleware('feature:trading.enabled')->group(function () {
         Route::get('/orderbook/{baseCurrency}/{quoteCurrency}', [App\Http\Controllers\Api\ExchangeController::class, 'getOrderBook'])->name('orderbook');
         Route::get('/markets', [App\Http\Controllers\Api\ExchangeController::class, 'getMarkets'])->name('markets');
 
@@ -43,7 +47,7 @@ Route::middleware('api.rate_limit:public')->group(function () {
     });
 
     // External Exchange endpoints
-    Route::prefix('external-exchange')->name('api.external-exchange.')->group(function () {
+    Route::prefix('external-exchange')->name('api.external-exchange.')->middleware('feature:trading.enabled')->group(function () {
         Route::get('/connectors', [App\Http\Controllers\Api\ExternalExchangeController::class, 'connectors'])->name('connectors');
         Route::get('/ticker/{base}/{quote}', [App\Http\Controllers\Api\ExternalExchangeController::class, 'ticker'])->name('ticker');
         Route::get('/orderbook/{base}/{quote}', [App\Http\Controllers\Api\ExternalExchangeController::class, 'orderBook'])->name('orderbook');
@@ -54,7 +58,7 @@ Route::middleware('api.rate_limit:public')->group(function () {
     });
 
     // Liquidity Pool endpoints
-    Route::prefix('liquidity')->name('api.liquidity.')->group(function () {
+    Route::prefix('liquidity')->name('api.liquidity.')->middleware('feature:trading.enabled')->group(function () {
         Route::get('/pools', [App\Http\Controllers\Api\LiquidityPoolController::class, 'index'])->name('pools.index');
         Route::get('/pools/{poolId}', [App\Http\Controllers\Api\LiquidityPoolController::class, 'show'])->name('pools.show');
 

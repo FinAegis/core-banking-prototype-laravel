@@ -6,6 +6,7 @@ namespace App\GraphQL\Mutations\Exchange;
 
 use App\Domain\Exchange\Projections\Order;
 use App\Domain\Exchange\Services\ExchangeService;
+use GraphQL\Error\Error;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
 
@@ -21,6 +22,10 @@ class PlaceOrderMutation
      */
     public function __invoke(mixed $rootValue, array $args): Order
     {
+        if (! config('trading.enabled')) {
+            throw new Error('This operation is not available.');
+        }
+
         $user = Auth::user();
 
         if (! $user) {

@@ -39,11 +39,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/accounts/{uuid}/transactions', [TransactionController::class, 'history'])->middleware('scope:read');
     });
 
-    // Transaction endpoints
+    // Transaction endpoints (direct ledger funding — ledger.direct_funding_enabled)
     Route::post('/accounts/{uuid}/deposit', [TransactionController::class, 'deposit'])
-        ->middleware(['transaction.rate_limit:deposit', 'idempotency', 'scope:write']);
+        ->middleware(['feature:ledger.direct_funding_enabled', 'transaction.rate_limit:deposit', 'idempotency', 'scope:write']);
     Route::post('/accounts/{uuid}/withdraw', [TransactionController::class, 'withdraw'])
-        ->middleware(['transaction.rate_limit:withdraw', 'idempotency', 'scope:write']);
+        ->middleware(['feature:ledger.direct_funding_enabled', 'transaction.rate_limit:withdraw', 'idempotency', 'scope:write']);
 
     // Transfer endpoints
     Route::post('/transfers', [TransferController::class, 'store'])
@@ -70,13 +70,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [CustodianController::class, 'index']);
         Route::get('/{custodian}/account-info', [CustodianController::class, 'accountInfo']);
         Route::get('/{custodian}/balance', [CustodianController::class, 'balance']);
-        Route::post('/{custodian}/transfer', [CustodianController::class, 'transfer']);
+        Route::post('/{custodian}/transfer', [CustodianController::class, 'transfer'])
+            ->middleware('feature:ledger.direct_funding_enabled');
         Route::get('/{custodian}/transactions', [CustodianController::class, 'transactionHistory']);
         Route::get('/{custodian}/transactions/{transactionId}', [CustodianController::class, 'transactionStatus']);
     });
 
     // Transaction Reversal endpoints
-    Route::post('/accounts/{uuid}/transactions/reverse', [TransactionReversalController::class, 'reverseTransaction']);
+    Route::post('/accounts/{uuid}/transactions/reverse', [TransactionReversalController::class, 'reverseTransaction'])
+        ->middleware('feature:ledger.direct_funding_enabled');
     Route::get('/accounts/{uuid}/transactions/reversals', [TransactionReversalController::class, 'getReversalHistory']);
     Route::get('/transactions/reversals/{reversalId}/status', [TransactionReversalController::class, 'getReversalStatus']);
 });

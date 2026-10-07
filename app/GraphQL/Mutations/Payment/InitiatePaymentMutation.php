@@ -8,6 +8,7 @@ use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\DataObjects\Money;
 use App\Domain\Payment\Models\PaymentTransaction;
 use App\Domain\Payment\Workflows\TransferWorkflow;
+use GraphQL\Error\Error;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -20,6 +21,10 @@ class InitiatePaymentMutation
      */
     public function __invoke(mixed $rootValue, array $args): PaymentTransaction
     {
+        if (! config('ledger.direct_funding_enabled')) {
+            throw new Error('This operation is not available.');
+        }
+
         $user = Auth::user();
 
         if (! $user) {

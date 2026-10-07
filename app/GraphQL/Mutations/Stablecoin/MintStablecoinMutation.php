@@ -7,6 +7,7 @@ namespace App\GraphQL\Mutations\Stablecoin;
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Stablecoin\Models\StablecoinReserve;
 use App\Domain\Stablecoin\Workflows\MintStablecoinWorkflow;
+use GraphQL\Error\Error;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -19,6 +20,10 @@ class MintStablecoinMutation
      */
     public function __invoke(mixed $rootValue, array $args): StablecoinReserve
     {
+        if (! config('ledger.direct_funding_enabled')) {
+            throw new Error('This operation is not available.');
+        }
+
         $user = Auth::user();
 
         if (! $user) {

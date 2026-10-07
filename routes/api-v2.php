@@ -20,7 +20,10 @@ use Illuminate\Support\Facades\Route;
 | Demo-domain groups (baskets, banks, gcu governance/voting) gate on the
 | same MODULES_DISABLED flags as ModuleRouteLoader / routes/console.php —
 | this shared file bypassed the per-domain route loader (#1135 residual).
-| Core v2 surfaces (status, auth, accounts, assets, ...) stay ungated.
+| GCU trading uses the `module.enabled:Basket` middleware and account
+| deposit/withdraw the `feature:ledger.direct_funding_enabled` flag (both
+| evaluated per request). Core v2 surfaces (status, auth, accounts,
+| assets, ...) stay ungated.
 |
 */
 
@@ -55,8 +58,8 @@ Route::prefix('gcu')->group(function () {
     }
     Route::get('/supported-banks', [GCUController::class, 'supportedBanks']);
 
-    // Trading endpoints (authenticated)
-    Route::middleware(['auth:sanctum'])->group(function () {
+    // Trading endpoints (authenticated, Basket domain — GCU is a basket asset)
+    Route::middleware(['module.enabled:Basket', 'auth:sanctum'])->group(function () {
         Route::post('/buy', [App\Http\Controllers\Api\V2\GCUTradingController::class, 'buy'])
             ->middleware(['transaction.rate_limit:convert']);
         Route::post('/sell', [App\Http\Controllers\Api\V2\GCUTradingController::class, 'sell'])
@@ -140,8 +143,8 @@ Route::middleware(['auth.api_or_sanctum:read'])->group(function () {
 
         // Multi-asset operations
         Route::get('/{uuid}/balances', [App\Http\Controllers\Api\AccountBalanceController::class, 'show']);
-        Route::post('/{uuid}/deposit', [App\Http\Controllers\Api\TransactionController::class, 'deposit'])->middleware('auth.api_or_sanctum:write');
-        Route::post('/{uuid}/withdraw', [App\Http\Controllers\Api\TransactionController::class, 'withdraw'])->middleware('auth.api_or_sanctum:write');
+        Route::post('/{uuid}/deposit', [App\Http\Controllers\Api\TransactionController::class, 'deposit'])->middleware(['feature:ledger.direct_funding_enabled', 'auth.api_or_sanctum:write']);
+        Route::post('/{uuid}/withdraw', [App\Http\Controllers\Api\TransactionController::class, 'withdraw'])->middleware(['feature:ledger.direct_funding_enabled', 'auth.api_or_sanctum:write']);
         Route::get('/{uuid}/transactions', [App\Http\Controllers\Api\TransactionController::class, 'history']);
         Route::get('/{uuid}/transfers', [App\Http\Controllers\Api\TransferController::class, 'history']);
 
