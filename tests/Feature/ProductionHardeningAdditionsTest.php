@@ -1357,16 +1357,17 @@ describe('API registration switch: social and web Privy sign-up', function (): v
     });
 
     it('blocks web Privy sign-up while closed', function (): void {
-        config(['registration.api_enabled' => false]);
+        config(['registration.api_enabled' => false, 'privy.web_login_enabled' => true]);
 
         /** @var PrivyEmailOtpClient&MockInterface $otp */
         $otp = Mockery::mock(PrivyEmailOtpClient::class);
         app()->instance(PrivyEmailOtpClient::class, $otp);
-        $otp->shouldReceive('loginWithCode')->andReturn(['id' => 'did:privy:webnew000001', 'email' => 'webnew@example.com']);
+        // A new address is refused before Privy is called.
+        $otp->shouldNotReceive('loginWithCode');
 
         $this->post('/login/privy/verify', ['email' => 'webnew@example.com', 'code' => '123456'])
-            ->assertRedirect(route('login'))
-            ->assertSessionHas('error_code', 'ERR_REG_001');
+            ->assertRedirect(route('login', ['email' => 'webnew@example.com', 'step' => 'verify']))
+            ->assertSessionHasErrors('code');
 
         expect(User::where('email', 'webnew@example.com')->exists())->toBeFalse();
         $this->assertGuest();

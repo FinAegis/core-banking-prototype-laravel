@@ -99,7 +99,10 @@ describe('GraphQL Regulatory API', function () {
     });
 
     it('submits a regulatory report via mutation', function () {
+        // Regulatory reports are prepared by compliance staff.
+        Spatie\Permission\Models\Role::firstOrCreate(['name' => 'compliance_officer', 'guard_name' => 'web']);
         $user = User::factory()->create();
+        $user->assignRole('compliance_officer');
 
         $response = $this->actingAs($user, 'sanctum')
             ->postJson('/graphql', [

@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Domain\Newsletter\Exceptions\SubscriptionThrottledException;
 use App\Domain\Newsletter\Models\Subscriber;
+use App\Domain\Newsletter\Services\MailchimpSyncService;
 use App\Domain\Newsletter\Services\SubscriberEmailService;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
 
@@ -105,7 +105,7 @@ class BlogController extends Controller
         response: 500,
         description: 'Server error'
     )]
-    public function subscribe(Request $request, SubscriberEmailService $emailService)
+    public function subscribe(Request $request, SubscriberEmailService $emailService, MailchimpSyncService $mailchimp)
     {
         $validated = $request->validate(
             [
@@ -114,19 +114,18 @@ class BlogController extends Controller
         );
 
         try {
-            // Use internal subscriber system
+            // Double opt-in: the address stays pending until the emailed
+            // link is opened. Mailchimp is updated only at that point
+            // (SubscriberController::confirm()).
             $emailService->subscribe(
                 $validated['email'],
                 Subscriber::SOURCE_BLOG,
-                ['newsletter', 'blog_updates'],
+                ['newsletter', MailchimpSyncService::BLOG_TAG],
                 $request->ip(),
                 $request->userAgent()
             );
 
-            // Also sync with Mailchimp if configured
-            $mailchimpConfigured = $this->syncWithMailchimp($validated['email']);
-
-            $message = $mailchimpConfigured
+            $message = $mailchimp->isConfigured()
                 ? 'Thank you for subscribing! Check your email for confirmation.'
                 : 'Thank you for subscribing! (Note: Mailchimp integration not configured)';
 
@@ -146,32 +145,10 @@ class BlogController extends Controller
                 ['Retry-After' => (string) max(1, $e->retryAfterSeconds)]
             );
         } catch (Exception $e) {
-            // Check if it's a member exists error
-            if ($e->getMessage() === 'member_exists') {
-                return response()->json(
-                    [
-                        'success' => true,
-                        'message' => 'You are already subscribed to our newsletter.',
-                    ]
-                );
-            }
-
-            // Check if it's a Mailchimp API error
-            if ($e->getMessage() === 'mailchimp_api_error') {
-                return response()->json(
-                    [
-                        'success' => false,
-                        'message' => 'Failed to subscribe. Please try again later.',
-                    ],
-                    422
-                );
-            }
-
             Log::error(
                 'Subscription error',
                 [
                     'error' => $e->getMessage(),
-                    'email' => $validated['email'],
                 ]
             );
 
@@ -183,75 +160,5 @@ class BlogController extends Controller
                 500
             );
         }
-    }
-
-    /**
-     * Sync with Mailchimp if configured.
-     */
-    private function syncWithMailchimp($email)
-    {
-        $apiKey = config('services.mailchimp.api_key');
-        $listId = config('services.mailchimp.list_id');
-
-        if (! $apiKey || ! $listId) {
-            return false; // Mailchimp not configured, skip
-        }
-
-        $dataCenter = $this->getDataCenterFromApiKey($apiKey);
-
-        try {
-            $response = Http::withBasicAuth('apikey', $apiKey)
-                ->post(
-                    "https://{$dataCenter}.api.mailchimp.com/3.0/lists/{$listId}/members",
-                    [
-                        'email_address' => $email,
-                        'status'        => 'subscribed',
-                        'tags'          => ['blog_subscriber', 'finaegis_demo'],
-                    ]
-                );
-
-            // Check if the response indicates member already exists
-            if ($response->status() === 400 && $response->json('title') === 'Member Exists') {
-                throw new Exception('member_exists');
-            }
-
-            $response->throw(); // Throw for other errors
-        } catch (Exception $e) {
-            if ($e->getMessage() === 'member_exists') {
-                throw $e; // Re-throw to be handled by subscribe method
-            }
-
-            // Check if it's an API authentication error
-            if ($e instanceof \Illuminate\Http\Client\RequestException) {
-                $response = $e->response;
-                if ($response && in_array($response->status(), [401, 403])) {
-                    throw new Exception('mailchimp_api_error');
-                }
-            }
-
-            Log::warning(
-                'Mailchimp sync failed (non-critical)',
-                [
-                    'error' => $e->getMessage(),
-                    'email' => $email,
-                ]
-            );
-        }
-
-        return true; // Mailchimp is configured
-    }
-
-    /**
-     * Extract data center from Mailchimp API key.
-     */
-    private function getDataCenterFromApiKey($apiKey)
-    {
-        if (! $apiKey) {
-            return 'us1';
-        }
-
-        $parts = explode('-', $apiKey);
-
-        return isset($parts[1]) ? $parts[1] : 'us1';
     }
 }

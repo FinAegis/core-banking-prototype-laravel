@@ -71,6 +71,11 @@ class StablecoinOperationsController extends Controller
         description: 'Validation error',
         content: new OA\JsonContent(ref: '#/components/schemas/ValidationError')
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'The account belongs to another user',
+        content: new OA\JsonContent(ref: '#/components/schemas/Error')
+    )]
     public function mint(Request $request): JsonResponse
     {
         $validated = $request->validate(
@@ -83,7 +88,11 @@ class StablecoinOperationsController extends Controller
             ]
         );
 
-        $account = Account::where('uuid', $validated['account_uuid'])->firstOrFail();
+        $account = Account::findOwnedBy($validated['account_uuid'], $request->user());
+
+        if ($account === null) {
+            return $this->accountAccessDenied();
+        }
 
         try {
             $position = $this->issuanceService->mint(
@@ -150,6 +159,11 @@ class StablecoinOperationsController extends Controller
         description: 'Validation error',
         content: new OA\JsonContent(ref: '#/components/schemas/ValidationError')
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'The account belongs to another user',
+        content: new OA\JsonContent(ref: '#/components/schemas/Error')
+    )]
     public function burn(Request $request): JsonResponse
     {
         $validated = $request->validate(
@@ -161,7 +175,11 @@ class StablecoinOperationsController extends Controller
             ]
         );
 
-        $account = Account::where('uuid', $validated['account_uuid'])->firstOrFail();
+        $account = Account::findOwnedBy($validated['account_uuid'], $request->user());
+
+        if ($account === null) {
+            return $this->accountAccessDenied();
+        }
 
         try {
             $position = $this->issuanceService->burn(
@@ -225,6 +243,11 @@ class StablecoinOperationsController extends Controller
         description: 'Validation error',
         content: new OA\JsonContent(ref: '#/components/schemas/ValidationError')
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'The account belongs to another user',
+        content: new OA\JsonContent(ref: '#/components/schemas/Error')
+    )]
     public function addCollateral(Request $request): JsonResponse
     {
         $validated = $request->validate(
@@ -236,7 +259,11 @@ class StablecoinOperationsController extends Controller
             ]
         );
 
-        $account = Account::where('uuid', $validated['account_uuid'])->firstOrFail();
+        $account = Account::findOwnedBy($validated['account_uuid'], $request->user());
+
+        if ($account === null) {
+            return $this->accountAccessDenied();
+        }
 
         try {
             $position = $this->issuanceService->addCollateral(
@@ -727,6 +754,21 @@ class StablecoinOperationsController extends Controller
             [
                 'data' => $enhancedPositions->values(),
             ]
+        );
+    }
+
+    /**
+     * Same response as the other REST endpoints that act on an account
+     * the caller does not own.
+     */
+    private function accountAccessDenied(): JsonResponse
+    {
+        return response()->json(
+            [
+                'message' => 'Access denied to this account',
+                'error'   => 'FORBIDDEN',
+            ],
+            403
         );
     }
 }

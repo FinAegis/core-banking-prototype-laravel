@@ -42,6 +42,25 @@ class ApiRegistrationGate
     }
 
     /**
+     * Whether {@see admit()} would accept a new account for this email
+     * address, without throwing or consuming anything. Lets a sign-in flow
+     * that may end in account creation stop before it calls the identity
+     * provider.
+     */
+    public function wouldAdmit(string $email): bool
+    {
+        if (! $this->isOpen()) {
+            return false;
+        }
+
+        if (! $this->isInviteOnly()) {
+            return true;
+        }
+
+        return $this->pendingInvitations($email)->isNotEmpty();
+    }
+
+    /**
      * Admit a new account for an email address verified by the identity
      * provider (Privy, social login). Returns the invitation that admitted it
      * in invite-only mode, or null when registration is open.

@@ -60,14 +60,18 @@ final class PrivyWebAuthController extends Controller
         }
         $this->rateLimiter->hit($throttleKey, 60);
 
-        try {
-            $this->privy->sendCode($email);
-        } catch (PrivyEmailOtpException $e) {
-            report($e);
+        // An address that could not sign in or sign up gets the same answer
+        // as a sent code, without a call to Privy.
+        if ($this->maySignIn($email)) {
+            try {
+                $this->privy->sendCode($email);
+            } catch (PrivyEmailOtpException $e) {
+                report($e);
 
-            return back()
-                ->withInput($request->only('email'))
-                ->withErrors(['email' => __('We could not send the code right now. Please try again.')]);
+                return back()
+                    ->withInput($request->only('email'))
+                    ->withErrors(['email' => __('We could not send the code right now. Please try again.')]);
+            }
         }
 
         return redirect()
@@ -95,14 +99,18 @@ final class PrivyWebAuthController extends Controller
         }
         $this->rateLimiter->hit($throttleKey, 600);
 
+        // No code was sent to such an address (see sendCode()), so the
+        // answer is the usual invalid-code error, without a call to Privy.
+        if (! $this->maySignIn($email)) {
+            return $this->invalidCode($email);
+        }
+
         try {
             $resolved = $this->privy->loginWithCode($email, $code);
         } catch (PrivyEmailOtpException $e) {
             report($e);
 
-            return redirect()
-                ->route('login', ['email' => $email, 'step' => 'verify'])
-                ->withErrors(['code' => __('That code did not work. Try again or request a new one.')]);
+            return $this->invalidCode($email);
         }
 
         try {
@@ -148,6 +156,33 @@ final class PrivyWebAuthController extends Controller
         $request->session()->regenerate();
 
         return redirect()->intended(route('dashboard'));
+    }
+
+    /**
+     * Whether the OTP flow may run for this address: a local account
+     * already uses it, or the API registration switch would admit a new
+     * account for it (config/registration.php). Otherwise neither step
+     * calls Privy, so no Privy-side user or code is created for it.
+     */
+    private function maySignIn(string $email): bool
+    {
+        return $this->hasLocalAccount($email) || $this->registrationGate->wouldAdmit($email);
+    }
+
+    private function hasLocalAccount(string $email): bool
+    {
+        if (User::query()->where('email', $email)->exists()) {
+            return true;
+        }
+
+        return User::query()->whereRaw('LOWER(email) = ?', [$email])->exists();
+    }
+
+    private function invalidCode(string $email): RedirectResponse
+    {
+        return redirect()
+            ->route('login', ['email' => $email, 'step' => 'verify'])
+            ->withErrors(['code' => __('That code did not work. Try again or request a new one.')]);
     }
 
     /**

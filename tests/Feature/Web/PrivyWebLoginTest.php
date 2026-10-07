@@ -28,6 +28,10 @@ function mock_privy_otp_client(callable $configure): void
 }
 
 beforeEach(function (): void {
+    // The route throttles count per IP in the cache store, which persists
+    // between tests when it is Redis.
+    Illuminate\Support\Facades\Cache::flush();
+
     config([
         'privy.app_id'            => 'test-app-id',
         'privy.app_secret'        => 'test-app-secret',

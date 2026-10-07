@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\GraphQL\Mutations\CardIssuance;
 
 use App\Domain\CardIssuance\Services\CardProvisioningService;
+use App\Support\StaffRoles;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
+use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 use RuntimeException;
 
 class UnfreezeCardMutation
@@ -28,7 +30,15 @@ class UnfreezeCardMutation
             throw new AuthenticationException('Unauthenticated.');
         }
 
-        $cardToken = $args['id'];
+        $cardToken = (string) $args['id'];
+
+        // The card's owner or an operator.
+        $mayManage = StaffRoles::userHasAny($user, StaffRoles::OPERATORS)
+            || $this->cardProvisioningService->isOwnedBy($cardToken, (string) $user->id);
+
+        if (! $mayManage) {
+            throw new AuthorizationException('You are not authorized to manage this card.');
+        }
 
         $this->cardProvisioningService->unfreezeCard($cardToken);
 

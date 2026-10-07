@@ -6,8 +6,11 @@ namespace App\GraphQL\Mutations\Banking;
 
 use App\Domain\Banking\Services\BankTransferService;
 use App\Models\User;
+use App\Support\StaffRoles;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 
 final class CancelTransferMutation
 {
@@ -33,7 +36,7 @@ final class CancelTransferMutation
 
         $transferId = (string) $args['transfer_id'];
 
-        // Verify the transfer belongs to this user by checking status first
+        // Unknown transfers answer not_found.
         $status = $this->bankTransferService->getStatus($transferId);
 
         if ($status['status'] === 'not_found') {
@@ -42,6 +45,16 @@ final class CancelTransferMutation
                 'status'      => 'not_found',
                 'message'     => 'Transfer not found.',
             ];
+        }
+
+        // The user who initiated the transfer, or an operator.
+        $owned = DB::table('bank_transfers')
+            ->where('id', $transferId)
+            ->where('user_uuid', $user->uuid)
+            ->exists();
+
+        if (! $owned && ! StaffRoles::userHasAny($user, StaffRoles::OPERATORS)) {
+            throw new AuthorizationException('You are not authorized to cancel this transfer.');
         }
 
         $cancelled = $this->bankTransferService->cancel($transferId, 'Cancelled by user via GraphQL');

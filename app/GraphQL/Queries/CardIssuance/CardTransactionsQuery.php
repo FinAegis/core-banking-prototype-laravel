@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\GraphQL\Queries\CardIssuance;
 
 use App\Domain\CardIssuance\Services\CardProvisioningService;
+use App\Support\StaffRoles;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
 
@@ -27,10 +28,21 @@ class CardTransactionsQuery
             throw new AuthenticationException('Unauthenticated.');
         }
 
+        $cardToken = (string) $args['card_id'];
+
+        // Only the card's owner (or an operator) sees its transactions; any
+        // other card reads as having none.
+        $mayView = StaffRoles::userHasAny($user, StaffRoles::OPERATORS)
+            || $this->cardProvisioningService->isOwnedBy($cardToken, (string) $user->id);
+
+        if (! $mayView) {
+            return [];
+        }
+
         $limit = isset($args['first']) ? (int) $args['first'] : 20;
 
         $result = $this->cardProvisioningService->getTransactions(
-            cardToken: $args['card_id'],
+            cardToken: $cardToken,
             limit: $limit,
         );
 

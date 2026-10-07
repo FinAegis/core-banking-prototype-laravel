@@ -8,6 +8,7 @@ use App\Domain\CardIssuance\Contracts\CardIssuerInterface;
 use App\Domain\CardIssuance\Enums\CardNetwork;
 use App\Domain\CardIssuance\Enums\WalletType;
 use App\Domain\CardIssuance\Events\CardProvisioned;
+use App\Domain\CardIssuance\Models\Card;
 use App\Domain\CardIssuance\ValueObjects\ProvisioningData;
 use App\Domain\CardIssuance\ValueObjects\VirtualCard;
 use Illuminate\Support\Facades\Event;
@@ -113,6 +114,35 @@ class CardProvisioningService
     public function getCard(string $cardToken): ?VirtualCard
     {
         return $this->cardIssuer->getCard($cardToken);
+    }
+
+    /**
+     * Whether the card belongs to the user: a local card record links the
+     * issuer token to the user, or the issuer lists the card among the
+     * user's cards.
+     */
+    public function isOwnedBy(string $cardToken, string $userId): bool
+    {
+        if ($cardToken === '' || $userId === '') {
+            return false;
+        }
+
+        $linked = Card::query()
+            ->where('issuer_card_token', $cardToken)
+            ->where('user_id', $userId)
+            ->exists();
+
+        if ($linked) {
+            return true;
+        }
+
+        foreach ($this->cardIssuer->listUserCards($userId) as $card) {
+            if (hash_equals($card->cardToken, $cardToken)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

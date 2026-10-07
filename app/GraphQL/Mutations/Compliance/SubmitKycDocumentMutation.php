@@ -7,8 +7,10 @@ namespace App\GraphQL\Mutations\Compliance;
 use App\Domain\Compliance\Models\KycVerification;
 use App\Domain\Compliance\Services\KycService;
 use App\Models\User;
+use App\Support\StaffRoles;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
+use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 
 class SubmitKycDocumentMutation
 {
@@ -26,6 +28,12 @@ class SubmitKycDocumentMutation
 
         if (! $user) {
             throw new AuthenticationException('Unauthenticated.');
+        }
+
+        // Users submit their own documents; compliance staff may submit for
+        // another user.
+        if ((string) $args['user_id'] !== (string) $user->id && ! StaffRoles::userHasAny($user, StaffRoles::COMPLIANCE)) {
+            throw new AuthorizationException('You are not authorized to submit KYC documents for this user.');
         }
 
         /** @var User $targetUser */

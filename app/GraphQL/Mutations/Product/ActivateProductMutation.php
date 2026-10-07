@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\GraphQL\Mutations\Product;
 
 use App\Domain\Product\Models\Product;
+use App\Support\StaffRoles;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
+use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 
 class ActivateProductMutation
 {
@@ -20,6 +22,11 @@ class ActivateProductMutation
 
         if (! $user) {
             throw new AuthenticationException('Unauthenticated.');
+        }
+
+        // Activating publishes a catalog product: operators only.
+        if (! StaffRoles::userHasAny($user, StaffRoles::OPERATORS)) {
+            throw new AuthorizationException('You are not authorized to activate products.');
         }
 
         /** @var Product|null $product */

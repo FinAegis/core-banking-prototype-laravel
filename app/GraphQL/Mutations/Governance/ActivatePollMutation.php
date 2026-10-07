@@ -6,8 +6,10 @@ namespace App\GraphQL\Mutations\Governance;
 
 use App\Domain\Governance\Models\Poll;
 use App\Domain\Governance\Services\GovernanceService;
+use App\Support\StaffRoles;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
+use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 
 final class ActivatePollMutation
 {
@@ -30,6 +32,11 @@ final class ActivatePollMutation
 
         /** @var Poll $poll */
         $poll = Poll::findOrFail($args['id']);
+
+        // The poll's creator or an operator.
+        if ((string) $poll->created_by !== (string) $user->uuid && ! StaffRoles::userHasAny($user, StaffRoles::OPERATORS)) {
+            throw new AuthorizationException('You are not authorized to manage this poll.');
+        }
 
         $this->governanceService->activatePoll($poll);
 

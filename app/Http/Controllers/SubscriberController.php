@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\Newsletter\Exceptions\SubscriptionThrottledException;
 use App\Domain\Newsletter\Models\Subscriber;
+use App\Domain\Newsletter\Services\MailchimpSyncService;
 use App\Domain\Newsletter\Services\SubscriberEmailService;
 use Exception;
 use Illuminate\Contracts\View\View;
@@ -17,7 +18,8 @@ use OpenApi\Attributes as OA;
 class SubscriberController extends Controller
 {
     public function __construct(
-        private SubscriberEmailService $emailService
+        private SubscriberEmailService $emailService,
+        private MailchimpSyncService $mailchimp,
     ) {
     }
 
@@ -166,6 +168,9 @@ class SubscriberController extends Controller
         if (! $this->emailService->confirm($record, (string) $request->query('token', ''))) {
             return $invalid;
         }
+
+        // Blog subscribers reach the Mailchimp audience only once confirmed.
+        $this->mailchimp->syncConfirmedSubscriber($record);
 
         return view(
             'subscriber.confirmed',

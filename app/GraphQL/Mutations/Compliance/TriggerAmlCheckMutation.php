@@ -7,9 +7,11 @@ namespace App\GraphQL\Mutations\Compliance;
 use App\Domain\Compliance\Models\ComplianceAlert;
 use App\Domain\Compliance\Services\AmlScreeningService;
 use App\Models\User;
+use App\Support\StaffRoles;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 use Throwable;
 
 class TriggerAmlCheckMutation
@@ -28,6 +30,12 @@ class TriggerAmlCheckMutation
 
         if (! $user) {
             throw new AuthenticationException('Unauthenticated.');
+        }
+
+        // Screening runs and the alerts it opens are compliance work
+        // (the same roles that may read compliance alerts).
+        if (! StaffRoles::userHasAny($user, StaffRoles::COMPLIANCE)) {
+            throw new AuthorizationException('You are not authorized to run AML checks.');
         }
 
         // Resolve the entity for screening.

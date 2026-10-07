@@ -6,8 +6,10 @@ namespace App\GraphQL\Mutations\Commerce;
 
 use App\Domain\Commerce\Enums\TokenType;
 use App\Domain\Commerce\Services\SoulboundTokenService;
+use App\Support\StaffRoles;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
+use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 
 final class IssueSoulboundTokenMutation
 {
@@ -27,6 +29,11 @@ final class IssueSoulboundTokenMutation
 
         if (! $user) {
             throw new AuthenticationException('Unauthenticated.');
+        }
+
+        // Soulbound tokens are issued and revoked by the platform.
+        if (! StaffRoles::userHasAny($user, StaffRoles::OPERATORS)) {
+            throw new AuthorizationException('You are not authorized to manage soulbound tokens.');
         }
 
         $metadata = isset($args['metadata']) ? (json_decode($args['metadata'], true) ?: []) : [];
