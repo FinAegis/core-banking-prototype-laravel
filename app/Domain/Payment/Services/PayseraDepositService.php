@@ -6,6 +6,7 @@ namespace App\Domain\Payment\Services;
 
 use App\Domain\Payment\Contracts\PaymentServiceInterface;
 use App\Domain\Payment\Contracts\PayseraDepositServiceInterface;
+use App\Domain\Payment\Services\Concerns\GuardsPayseraCallback;
 use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -17,11 +18,17 @@ use Illuminate\Support\Facades\Log;
  */
 class PayseraDepositService implements PayseraDepositServiceInterface
 {
+    use GuardsPayseraCallback;
+
     private const API_URL = 'https://www.paysera.com/pay/';
 
+    private readonly DepositReplayGuard $replayGuard;
+
     public function __construct(
-        private readonly PaymentServiceInterface $paymentService
+        private readonly PaymentServiceInterface $paymentService,
+        ?DepositReplayGuard $replayGuard = null,
     ) {
+        $this->replayGuard = $replayGuard ?? new DepositReplayGuard();
     }
 
     /**
@@ -107,6 +114,7 @@ class PayseraDepositService implements PayseraDepositServiceInterface
      * @param array{
      *     order_id: string,
      *     status: string,
+     *     user_id: int,
      *     amount?: int,
      *     currency?: string,
      *     payment_type?: string,
@@ -142,14 +150,30 @@ class PayseraDepositService implements PayseraDepositServiceInterface
         }
 
         if ($status === 'completed' || $status === 'confirmed') {
+            $rejection = $this->payseraCallbackRejection($orderId, $orderData, $callbackData);
+            if ($rejection !== null) {
+                return [
+                    'success' => false,
+                    'message' => $rejection,
+                ];
+            }
+
+            if (! $this->replayGuard->claim(DepositReplayGuard::SOURCE_PAYSERA, $orderId)) {
+                return [
+                    'success' => false,
+                    'message' => 'Deposit already processed',
+                ];
+            }
+
             try {
                 $reference = 'DEP-' . strtoupper(uniqid());
 
-                // Process the deposit through payment service
+                // Process the deposit through payment service (amount and
+                // currency always come from the stored order)
                 $this->paymentService->processStripeDeposit([
                     'account_uuid'        => $orderData['account_uuid'],
-                    'amount'              => $callbackData['amount'] ?? $orderData['amount'],
-                    'currency'            => $callbackData['currency'] ?? $orderData['currency'],
+                    'amount'              => $orderData['amount'],
+                    'currency'            => $orderData['currency'],
                     'reference'           => $reference,
                     'external_reference'  => $callbackData['transaction_id'] ?? $orderId,
                     'payment_method'      => 'paysera',
@@ -172,6 +196,8 @@ class PayseraDepositService implements PayseraDepositServiceInterface
                     'reference' => $reference,
                 ];
             } catch (Exception $e) {
+                $this->replayGuard->release(DepositReplayGuard::SOURCE_PAYSERA, $orderId);
+
                 Log::error('Paysera deposit processing failed', [
                     'order_id' => $orderId,
                     'error'    => $e->getMessage(),

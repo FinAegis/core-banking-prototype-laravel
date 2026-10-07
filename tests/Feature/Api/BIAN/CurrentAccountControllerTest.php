@@ -16,7 +16,7 @@ it('can initiate a current account', function () {
         'customerReference' => $user->uuid,
         'accountName'       => 'My Current Account',
         'accountType'       => 'current',
-        'initialDeposit'    => 1000,
+        'initialDeposit'    => 0,
         'currency'          => 'USD',
     ]);
 
@@ -39,13 +39,25 @@ it('can initiate a current account', function () {
             ],
         ])
         ->assertJsonPath('currentAccountFulfillmentArrangement.accountStatus', 'active')
-        ->assertJsonPath('currentAccountFulfillmentArrangement.accountBalance.amount', 1000);
+        ->assertJsonPath('currentAccountFulfillmentArrangement.accountBalance.amount', 0);
+});
+
+it('rejects an initial deposit on account initiation', function () {
+    $user = User::factory()->create();
+    Sanctum::actingAs($user, ['read', 'write', 'delete']);
+
+    $this->postJson('/api/bian/current-account/initiate', [
+        'customerReference' => $user->uuid,
+        'accountName'       => 'Funded',
+        'accountType'       => 'current',
+        'initialDeposit'    => 1000,
+    ])->assertStatus(422)->assertJsonValidationErrors(['initialDeposit']);
 });
 
 it('can retrieve current account details', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user, ['read', 'write', 'delete']);
-    $account = Account::factory()->create();
+    $account = Account::factory()->forUser($user)->create();
 
     // Create account balance
     App\Domain\Account\Models\AccountBalance::factory()->create([
@@ -75,7 +87,7 @@ it('can retrieve current account details', function () {
 it('can update current account', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user, ['read', 'write', 'delete']);
-    $account = Account::factory()->create(['name' => 'Old Name']);
+    $account = Account::factory()->forUser($user)->create(['name' => 'Old Name']);
 
     $response = $this->putJson("/api/bian/current-account/{$account->uuid}/update", [
         'accountName' => 'New Account Name',
@@ -89,7 +101,7 @@ it('can update current account', function () {
 it('can control current account (freeze)', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user, ['read', 'write', 'delete']);
-    $account = Account::factory()->create();
+    $account = Account::factory()->forUser($user)->create();
 
     $response = $this->putJson("/api/bian/current-account/{$account->uuid}/control", [
         'controlAction' => 'freeze',
@@ -116,7 +128,7 @@ it('can control current account (freeze)', function () {
 it('rejects payment with insufficient funds', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user, ['read', 'write', 'delete']);
-    $account = Account::factory()->withBalance(100)->create();
+    $account = Account::factory()->forUser($user)->withBalance(100)->create();
 
     $response = $this->postJson("/api/bian/current-account/{$account->uuid}/payment/execute", [
         'paymentAmount' => 500,
@@ -131,7 +143,7 @@ it('rejects payment with insufficient funds', function () {
 it('can execute deposit to current account', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user, ['read', 'write', 'delete']);
-    $account = Account::factory()->withBalance(500)->create();
+    $account = Account::factory()->forUser($user)->withBalance(500)->create();
 
     $response = $this->postJson("/api/bian/current-account/{$account->uuid}/deposit/execute", [
         'depositAmount'      => 1000,
@@ -158,7 +170,7 @@ it('can execute deposit to current account', function () {
 it('can retrieve account balance', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user, ['read', 'write', 'delete']);
-    $account = Account::factory()->withBalance(3500)->create();
+    $account = Account::factory()->forUser($user)->withBalance(3500)->create();
 
     $response = $this->getJson("/api/bian/current-account/{$account->uuid}/account-balance/retrieve");
 
@@ -180,7 +192,7 @@ it('can retrieve account balance', function () {
 it('can retrieve transaction report', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user, ['read', 'write', 'delete']);
-    $account = Account::factory()->create();
+    $account = Account::factory()->forUser($user)->create();
 
     $response = $this->getJson("/api/bian/current-account/{$account->uuid}/transaction-report/retrieve");
 
@@ -221,4 +233,32 @@ it('requires authentication for all endpoints', function () {
     $this->postJson("/api/bian/current-account/{$uuid}/deposit/execute")->assertStatus(401);
     $this->getJson("/api/bian/current-account/{$uuid}/account-balance/retrieve")->assertStatus(401);
     $this->getJson("/api/bian/current-account/{$uuid}/transaction-report/retrieve")->assertStatus(401);
+});
+
+it('refuses every account-scoped operation on an account the caller does not own', function () {
+    $user = User::factory()->create();
+    Sanctum::actingAs($user, ['read', 'write', 'delete']);
+    $foreign = Account::factory()->withBalance(5000)->create();
+
+    $this->getJson("/api/bian/current-account/{$foreign->uuid}/retrieve")->assertStatus(403);
+    $this->putJson("/api/bian/current-account/{$foreign->uuid}/update", ['accountName' => 'Renamed'])->assertStatus(403);
+    $this->putJson("/api/bian/current-account/{$foreign->uuid}/control", [
+        'controlAction' => 'freeze',
+        'controlReason' => 'x',
+    ])->assertStatus(403);
+    $this->postJson("/api/bian/current-account/{$foreign->uuid}/payment/execute", [
+        'paymentAmount' => 100,
+        'paymentType'   => 'withdrawal',
+    ])->assertStatus(403);
+    $this->postJson("/api/bian/current-account/{$foreign->uuid}/deposit/execute", [
+        'depositAmount' => 100,
+        'depositType'   => 'cash',
+    ])->assertStatus(403);
+    $this->getJson("/api/bian/current-account/{$foreign->uuid}/account-balance/retrieve")->assertStatus(403);
+    $this->getJson("/api/bian/current-account/{$foreign->uuid}/transaction-report/retrieve")->assertStatus(403);
+
+    expect($foreign->fresh()?->name)->not->toBe('Renamed');
+
+    // Unknown account: 404 (same as the REST account endpoints).
+    $this->getJson('/api/bian/current-account/' . Str::uuid()->toString() . '/retrieve')->assertNotFound();
 });

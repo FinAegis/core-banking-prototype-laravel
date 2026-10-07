@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 use App\Domain\Account\Models\Account;
 use App\Domain\AI\MCP\Tools\Account\CreateAccountTool;
+use App\Domain\Custodian\Connectors\MockBankConnector;
+use App\Domain\Custodian\Services\CustodianRegistry;
 use App\Domain\Pricing\Models\PriceQuote;
 use App\Models\User;
+use App\Providers\CustodianServiceProvider;
 use GraphQL\Language\AST\ObjectTypeDefinitionNode;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Bootstrap\LoadConfiguration;
@@ -530,5 +533,279 @@ describe('Jetstream legal pages with promo pages off', function (): void {
 
         expect(Route::has('terms.show'))->toBeTrue();
         expect(Route::has('policy.show'))->toBeTrue();
+    });
+});
+
+/*
+| Secure by default: every flag above is OFF when APP_ENV=production (or
+| unset) and the env var is absent, ON for every other environment, and an
+| explicit env value always wins. Config is resolved at boot, so the default
+| expressions are evaluated directly from the config files under a
+| controlled environment, and the gates are then exercised with exactly
+| those production values.
+*/
+
+/**
+ * Evaluate a config file with the given environment variables (null =
+ * unset) and restore the process environment afterwards.
+ *
+ * @param  array<string, string|null>  $env
+ * @return array<string, mixed>
+ */
+function switchesConfigUnderEnv(string $file, array $env): array
+{
+    $saved = [];
+    foreach ($env as $key => $value) {
+        $saved[$key] = [
+            'has_server' => array_key_exists($key, $_SERVER),
+            'server'     => $_SERVER[$key] ?? null,
+            'has_env'    => array_key_exists($key, $_ENV),
+            'env'        => $_ENV[$key] ?? null,
+            'getenv'     => getenv($key),
+        ];
+
+        if ($value === null) {
+            unset($_SERVER[$key], $_ENV[$key]);
+            putenv($key);
+        } else {
+            $_SERVER[$key] = $value;
+            $_ENV[$key] = $value;
+            putenv("{$key}={$value}");
+        }
+    }
+
+    try {
+        /** @var array<string, mixed> $config */
+        $config = require base_path("config/{$file}.php");
+
+        return $config;
+    } finally {
+        foreach ($saved as $key => $previous) {
+            if ($previous['has_server']) {
+                $_SERVER[$key] = $previous['server'];
+            } else {
+                unset($_SERVER[$key]);
+            }
+            if ($previous['has_env']) {
+                $_ENV[$key] = $previous['env'];
+            } else {
+                unset($_ENV[$key]);
+            }
+            if ($previous['getenv'] === false) {
+                putenv($key);
+            } else {
+                putenv("{$key}={$previous['getenv']}");
+            }
+        }
+    }
+}
+
+/**
+ * The demo-only flags, all unset, under the given APP_ENV.
+ *
+ * @param  array<string, string|null>  $overrides
+ * @return array<string, string|null>
+ */
+function switchesFlagEnv(?string $appEnv, array $overrides = []): array
+{
+    return array_merge([
+        'APP_ENV'                        => $appEnv,
+        'LEDGER_DIRECT_FUNDING_ENABLED'  => null,
+        'CARDS_WAITLIST_DEPOSIT_ENABLED' => null,
+        'INVESTOR_PAGE_ENABLED'          => null,
+        'CUSTODIAN_MOCK_ENABLED'         => null,
+        'MCP_ENABLED'                    => null,
+        'MCP_TOOL_ACCOUNT_CREATE'        => null,
+        'MCP_TOOL_PAYMENT_TRANSFER'      => null,
+        'MCP_TOOL_EXCHANGE_TRADE'        => null,
+        'MCP_TOOL_ACCOUNT_BALANCE'       => null,
+        'MCP_TOOL_EXCHANGE_QUOTE'        => null,
+        'MCP_TOOL_RAMP_START'            => null,
+        'MCP_TOOL_SMS_SEND'              => null,
+    ], $overrides);
+}
+
+/**
+ * Config values the flags resolve to under the given environment.
+ *
+ * @param  array<string, string|null>  $env
+ * @return array<string, mixed>
+ */
+function switchesResolvedFlags(array $env): array
+{
+    $mcp = switchesConfigUnderEnv('mcp', $env);
+    /** @var array<string, array<string, mixed>> $tools */
+    $tools = $mcp['tools'];
+    $custodians = switchesConfigUnderEnv('custodians', $env);
+    /** @var array<string, array<string, mixed>> $connectors */
+    $connectors = $custodians['connectors'];
+
+    return [
+        'ledger.direct_funding_enabled'  => switchesConfigUnderEnv('ledger', $env)['direct_funding_enabled'],
+        'cards.waitlist_deposit_enabled' => switchesConfigUnderEnv('cards', $env)['waitlist_deposit_enabled'],
+        'investor.page_enabled'          => switchesConfigUnderEnv('investor', $env)['page_enabled'],
+        'custodians.connectors.mock'     => $connectors['mock']['enabled'],
+        'mcp.enabled'                    => $mcp['enabled'],
+        'mcp.tools.account.create'       => (bool) $tools['account.create']['enabled'],
+        'mcp.tools.payment.transfer'     => (bool) $tools['payment.transfer']['enabled'],
+        'mcp.tools.exchange.trade'       => (bool) $tools['exchange.trade']['enabled'],
+        'mcp.tools.account.balance'      => (bool) $tools['account.balance']['enabled'],
+        'mcp.tools.exchange.quote'       => (bool) $tools['exchange.quote']['enabled'],
+        'mcp.tools.ramp.start'           => (bool) $tools['ramp.start']['enabled'],
+        'mcp.tools.sms.send'             => (bool) $tools['sms.send']['enabled'],
+    ];
+}
+
+describe('secure defaults', function (): void {
+    it('turns every demo-only flag off under APP_ENV=production when unset', function (?string $appEnv): void {
+        $flags = switchesResolvedFlags(switchesFlagEnv($appEnv));
+
+        expect($flags['ledger.direct_funding_enabled'])->toBeFalse()
+            ->and($flags['cards.waitlist_deposit_enabled'])->toBeFalse()
+            ->and($flags['investor.page_enabled'])->toBeFalse()
+            ->and($flags['custodians.connectors.mock'])->toBeFalse()
+            ->and($flags['mcp.tools.account.create'])->toBeFalse()
+            ->and($flags['mcp.tools.payment.transfer'])->toBeFalse()
+            ->and($flags['mcp.tools.exchange.trade'])->toBeFalse();
+
+        // MCP itself, its read-only tools, ramp.start and sms.send keep their defaults.
+        expect($flags['mcp.enabled'])->toBeTrue()
+            ->and($flags['mcp.tools.account.balance'])->toBeTrue()
+            ->and($flags['mcp.tools.exchange.quote'])->toBeTrue()
+            ->and($flags['mcp.tools.ramp.start'])->toBeTrue()
+            ->and($flags['mcp.tools.sms.send'])->toBeTrue();
+    })->with([
+        'production'                                      => ['production'],
+        'APP_ENV unset (Laravel treats it as production)' => [null],
+    ]);
+
+    it('keeps every demo-only flag on for other environments', function (string $appEnv, bool $mockDefault): void {
+        $flags = switchesResolvedFlags(switchesFlagEnv($appEnv));
+
+        expect($flags['ledger.direct_funding_enabled'])->toBeTrue()
+            ->and($flags['cards.waitlist_deposit_enabled'])->toBeTrue()
+            ->and($flags['investor.page_enabled'])->toBeTrue()
+            ->and($flags['mcp.tools.account.create'])->toBeTrue()
+            ->and($flags['mcp.tools.payment.transfer'])->toBeTrue()
+            ->and($flags['mcp.tools.exchange.trade'])->toBeTrue()
+            ->and($flags['custodians.connectors.mock'])->toBe($mockDefault);
+    })->with([
+        'demo'    => ['demo', false],
+        'local'   => ['local', true],
+        'testing' => ['testing', true],
+        'staging' => ['staging', false],
+    ]);
+
+    it('lets an explicit env value win over the environment default', function (): void {
+        $production = switchesResolvedFlags(switchesFlagEnv('production', [
+            'LEDGER_DIRECT_FUNDING_ENABLED'  => 'true',
+            'CARDS_WAITLIST_DEPOSIT_ENABLED' => 'true',
+            'INVESTOR_PAGE_ENABLED'          => 'true',
+            'MCP_TOOL_PAYMENT_TRANSFER'      => 'true',
+        ]));
+
+        expect($production['ledger.direct_funding_enabled'])->toBeTrue()
+            ->and($production['cards.waitlist_deposit_enabled'])->toBeTrue()
+            ->and($production['investor.page_enabled'])->toBeTrue()
+            ->and($production['mcp.tools.payment.transfer'])->toBeTrue()
+            ->and($production['mcp.tools.account.create'])->toBeFalse();
+
+        $demo = switchesResolvedFlags(switchesFlagEnv('demo', [
+            'LEDGER_DIRECT_FUNDING_ENABLED' => 'false',
+            'MCP_TOOL_EXCHANGE_TRADE'       => 'false',
+        ]));
+
+        expect($demo['ledger.direct_funding_enabled'])->toBeFalse()
+            ->and($demo['mcp.tools.exchange.trade'])->toBeFalse()
+            ->and($demo['cards.waitlist_deposit_enabled'])->toBeTrue();
+    });
+
+    it('enables the mock custodian only in local/testing or with an explicit demo opt-in', function (): void {
+        $mock = fn (string $appEnv, ?string $flag): mixed => switchesResolvedFlags(
+            switchesFlagEnv($appEnv, ['CUSTODIAN_MOCK_ENABLED' => $flag])
+        )['custodians.connectors.mock'];
+
+        expect($mock('production', 'true'))->toBeFalse()
+            ->and($mock('staging', 'true'))->toBeFalse()
+            ->and($mock('demo', null))->toBeFalse()
+            ->and($mock('demo', 'true'))->toBeTrue()
+            ->and($mock('local', null))->toBeTrue()
+            ->and($mock('local', 'false'))->toBeFalse();
+    });
+
+    it('closes the gated surface with the production default values', function (): void {
+        $flags = switchesResolvedFlags(switchesFlagEnv('production'));
+
+        config([
+            'ledger.direct_funding_enabled'      => $flags['ledger.direct_funding_enabled'],
+            'cards.waitlist_deposit_enabled'     => $flags['cards.waitlist_deposit_enabled'],
+            'investor.page_enabled'              => $flags['investor.page_enabled'],
+            'custodians.connectors.mock.enabled' => $flags['custodians.connectors.mock'],
+            'mcp.tools.account.create.enabled'   => $flags['mcp.tools.account.create'],
+            'mcp.tools.payment.transfer.enabled' => $flags['mcp.tools.payment.transfer'],
+            'mcp.tools.exchange.trade.enabled'   => $flags['mcp.tools.exchange.trade'],
+        ]);
+
+        [$user, $account, $token] = switchesUserWithAccount();
+
+        $this->withToken($token)
+            ->postJson("/api/v2/accounts/{$account->uuid}/deposit", ['amount' => 1000, 'asset_code' => 'USD'])
+            ->assertNotFound();
+        $this->withToken($token)
+            ->postJson("/api/accounts/{$account->uuid}/withdraw", ['amount' => 1000, 'asset_code' => 'USD'])
+            ->assertNotFound();
+        $this->withToken($token)
+            ->postJson("/api/bian/current-account/{$account->uuid}/deposit/execute", ['depositAmount' => 100])
+            ->assertNotFound();
+        $this->withToken($token)
+            ->postJson('/api/custodians/mock/transfer', [])
+            ->assertNotFound();
+        $this->postJson('/api/webhooks/custodian/mock', [])->assertNotFound();
+
+        $this->get('/invest')->assertStatus(301)->assertRedirect('/');
+
+        Sanctum::actingAs($user, ['read', 'write', 'delete']);
+        $this->postJson('/api/v1/cards/waitlist/deposit', [
+            'quoteId' => (string) Str::uuid(),
+        ], ['Idempotency-Key' => Str::random(24)])
+            ->assertStatus(503)
+            ->assertJsonPath('error.code', 'ERR_CARDS_019');
+
+        // MCP stays on; only the ledger-moving tools are off.
+        expect(config('mcp.enabled'))->toBeTrue();
+        foreach (['account.create', 'payment.transfer', 'exchange.trade'] as $tool) {
+            expect(config("mcp.tools.{$tool}.enabled"))->toBeFalse();
+        }
+    });
+
+    it('never permits the mock custodian in production, whatever the config says', function (): void {
+        config(['custodians.connectors.mock.enabled' => true]);
+        expect(MockBankConnector::isPermitted())->toBeTrue();
+
+        $originalEnv = $this->app['env'];
+
+        try {
+            $this->app['env'] = 'production';
+            expect(MockBankConnector::isPermitted())->toBeFalse();
+
+            // The provider skips the mock connector on boot.
+            $this->app->instance(CustodianRegistry::class, new CustodianRegistry());
+            (new CustodianServiceProvider($this->app))->boot();
+            expect(app(CustodianRegistry::class)->has('mock'))->toBeFalse();
+
+            $this->app['env'] = 'demo';
+            expect(MockBankConnector::isPermitted())->toBeTrue();
+            config(['custodians.connectors.mock.enabled' => false]);
+            expect(MockBankConnector::isPermitted())->toBeFalse();
+        } finally {
+            $this->app['env'] = $originalEnv;
+        }
+    });
+
+    it('answers 404 on the mock custodian webhook whenever the mock is not available', function (): void {
+        config(['custodians.connectors.mock.enabled' => false]);
+
+        $this->postJson('/api/webhooks/custodian/mock', ['type' => 'balance.updated', 'id' => 'mock_1'])
+            ->assertNotFound();
     });
 });

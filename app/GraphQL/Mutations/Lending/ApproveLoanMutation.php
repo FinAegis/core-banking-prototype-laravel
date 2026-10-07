@@ -6,13 +6,22 @@ namespace App\GraphQL\Mutations\Lending;
 
 use App\Domain\Lending\Models\LoanApplication;
 use App\Domain\Lending\Services\LoanApplicationService;
+use App\Models\User;
 use GraphQL\Error\Error;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
+use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 
 class ApproveLoanMutation
 {
+    /**
+     * Roles allowed to approve loan applications (back-office action).
+     *
+     * @var list<string>
+     */
+    public const APPROVER_ROLES = ['admin', 'super_admin'];
+
     public function __construct(
         private readonly LoanApplicationService $loanApplicationService,
     ) {
@@ -31,6 +40,10 @@ class ApproveLoanMutation
 
         if (! $user) {
             throw new AuthenticationException('Unauthenticated.');
+        }
+
+        if (! $user instanceof User || ! $user->hasRole(self::APPROVER_ROLES)) {
+            throw new AuthorizationException('You are not authorized to approve loan applications.');
         }
 
         /** @var LoanApplication|null $application */

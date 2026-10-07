@@ -158,7 +158,7 @@ class CreateAccountToolTest extends TestCase
     }
 
     #[Test]
-    public function it_handles_initial_balance_correctly(): void
+    public function it_rejects_an_initial_deposit(): void
     {
         // Arrange
         $request = MCPRequest::create('tools/call', [
@@ -175,18 +175,32 @@ class CreateAccountToolTest extends TestCase
         // Act
         $response = $this->server->handle($request);
 
-        // Assert
+        // Assert: accounts open empty; no account and no balance are created.
+        $this->assertFalse($response->isSuccess());
+        $this->assertFalse(Account::where('name', 'Account with Balance')->exists());
+        $this->assertArrayNotHasKey('initial_deposit', $this->tool->getInputSchema()['properties']);
+    }
+
+    #[Test]
+    public function it_accepts_a_zero_initial_deposit(): void
+    {
+        $request = MCPRequest::create('tools/call', [
+            'name'      => 'account.create',
+            'arguments' => [
+                'name'            => 'Empty Account',
+                'type'            => 'checking',
+                'currency'        => 'USD',
+                'initial_deposit' => 0,
+            ],
+        ]);
+        $request->setUserId((string) $this->user->id);
+
+        $response = $this->server->handle($request);
+
         $this->assertTrue($response->isSuccess());
-
         $result = $response->getData()['toolResult'];
-        $this->assertEquals(1000.50, $result['balance']);
-
-        // Verify in database
-        $account = Account::where('uuid', $result['account_uuid'])->first();
-        $this->assertNotNull($account);
-        $account->refresh(); // Refresh from database
-        // Balance is stored in cents in the database
-        $this->assertEquals(100050, $account->balance);
+        $this->assertEquals(0, $result['balance']);
+        $this->assertSame(0, Account::where('uuid', $result['account_uuid'])->firstOrFail()->balance);
     }
 
     #[Test]

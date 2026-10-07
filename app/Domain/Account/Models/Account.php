@@ -5,7 +5,9 @@ namespace App\Domain\Account\Models;
 use App\Domain\Asset\Models\Asset;
 use App\Domain\Custodian\Models\CustodianAccount;
 use App\Domain\Shared\Traits\UsesTenantConnection;
+use App\Models\User;
 use App\Traits\BelongsToTeam;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -96,10 +98,46 @@ class Account extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(
-            related: \App\Models\User::class,
+            related: User::class,
             foreignKey: 'user_uuid',
             ownerKey: 'uuid'
         );
+    }
+
+    /**
+     * Whether the given (authenticated) user owns this account.
+     *
+     * Same rule as the REST account endpoints: accounts.user_uuid must equal
+     * the user's uuid. A missing user or an account without an owner never
+     * matches.
+     */
+    public function isOwnedBy(?Authenticatable $user): bool
+    {
+        if (! $user instanceof User) {
+            return false;
+        }
+
+        $ownerUuid = (string) ($this->user_uuid ?? '');
+
+        return $ownerUuid !== '' && hash_equals($ownerUuid, (string) $user->uuid);
+    }
+
+    /**
+     * Find an account by uuid only when the given user owns it.
+     *
+     * Returns null both for unknown accounts and for accounts owned by
+     * someone else, so callers can answer without revealing which one.
+     */
+    public static function findOwnedBy(string $uuid, ?Authenticatable $user): ?self
+    {
+        if (! $user instanceof User || $uuid === '') {
+            return null;
+        }
+
+        /** @var self|null $account */
+        $account = static::query()->where('uuid', $uuid)->first();
+
+        return $account !== null && $account->isOwnedBy($user) ? $account : null;
     }
 
     /**

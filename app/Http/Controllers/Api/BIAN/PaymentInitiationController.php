@@ -13,6 +13,7 @@ use DB;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
 use Workflow\WorkflowStub;
@@ -113,6 +114,11 @@ class PaymentInitiationController extends Controller
         // Validate payer has sufficient funds
         $payerAccount = Account::where('uuid', $validated['payerReference'])->first();
         $payeeAccount = Account::where('uuid', $validated['payeeReference'])->first();
+
+        // Only the owner of the payer account may initiate a payment from it.
+        if ($payerAccount === null || ! $payerAccount->isOwnedBy(Auth::user())) {
+            return $this->forbidden();
+        }
 
         // For backward compatibility, use USD balance
         $payerBalance = $payerAccount->getBalance('USD');
@@ -322,6 +328,11 @@ class PaymentInitiationController extends Controller
 
         $properties = json_decode($event->event_properties, true);
 
+        // Only parties to the payment may read it; anything else is "not found".
+        if (! $this->userOwnsAnyAccount($this->partyAccountUuids($event))) {
+            abort(404, 'Payment transaction not found');
+        }
+
         return response()->json(
             [
                 'paymentInitiationTransaction' => [
@@ -461,6 +472,19 @@ class PaymentInitiationController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // Events of an account the caller does not own are reported exactly
+        // like an unknown reference.
+        if ($events->isNotEmpty()) {
+            $parties = [$crReferenceId];
+            foreach ($events as $event) {
+                $parties = array_merge($parties, $this->partyAccountUuids($event));
+            }
+
+            if (! $this->userOwnsAnyAccount($parties)) {
+                $events = collect();
+            }
+        }
+
         $status = $events->isEmpty() ? 'not_found' : 'completed';
 
         return response()->json(
@@ -539,6 +563,10 @@ class PaymentInitiationController extends Controller
     {
         $account = Account::where('uuid', $accountReference)->firstOrFail();
 
+        if (! $account->isOwnedBy(Auth::user())) {
+            return $this->forbidden();
+        }
+
         $validated = $request->validate(
             [
                 'fromDate'         => 'sometimes|date',
@@ -608,6 +636,55 @@ class PaymentInitiationController extends Controller
                     'retrievalDateTime' => now()->toIso8601String(),
                 ],
             ]
+        );
+    }
+
+    /**
+     * Account uuids that are a party to a stored money event: the aggregate
+     * itself plus the from/to accounts of a transfer.
+     *
+     * @return list<string>
+     */
+    private function partyAccountUuids(object $event): array
+    {
+        $properties = json_decode((string) ($event->event_properties ?? ''), true);
+        $properties = is_array($properties) ? $properties : [];
+
+        $uuids = [
+            (string) ($event->aggregate_uuid ?? ''),
+            (string) ($properties['from_uuid'] ?? ''),
+            (string) ($properties['to_uuid'] ?? ''),
+            (string) ($properties['from']['uuid'] ?? ''),
+            (string) ($properties['to']['uuid'] ?? ''),
+        ];
+
+        return array_values(array_unique(array_filter($uuids, static fn (string $uuid): bool => $uuid !== '')));
+    }
+
+    /**
+     * @param  list<string>  $accountUuids
+     */
+    private function userOwnsAnyAccount(array $accountUuids): bool
+    {
+        $user = Auth::user();
+
+        foreach ($accountUuids as $uuid) {
+            if ($uuid !== '' && Account::findOwnedBy($uuid, $user) !== null) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function forbidden(): JsonResponse
+    {
+        return response()->json(
+            [
+                'message' => 'Access denied to this account',
+                'error'   => 'FORBIDDEN',
+            ],
+            403
         );
     }
 }

@@ -11,7 +11,7 @@ it('rejects payment with insufficient funds', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user, ['read', 'write', 'delete']);
 
-    $payerAccount = Account::factory()->withBalance(100)->create();
+    $payerAccount = Account::factory()->forUser($user)->withBalance(100)->create();
     $payeeAccount = Account::factory()->create();
 
     $response = $this->postJson('/api/bian/payment-initiation/initiate', [
@@ -30,7 +30,7 @@ it('can schedule a future payment', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user, ['read', 'write', 'delete']);
 
-    $payerAccount = Account::factory()->withBalance(1000)->create();
+    $payerAccount = Account::factory()->forUser($user)->withBalance(1000)->create();
     $payeeAccount = Account::factory()->create();
 
     $response = $this->postJson('/api/bian/payment-initiation/initiate', [
@@ -104,7 +104,7 @@ it('can request payment status', function () {
 it('can retrieve payment history', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user, ['read', 'write', 'delete']);
-    $account = Account::factory()->create();
+    $account = Account::factory()->forUser($user)->create();
 
     $response = $this->getJson("/api/bian/payment-initiation/{$account->uuid}/payment-history/retrieve");
 
@@ -137,7 +137,7 @@ it('validates required fields for payment initiation', function () {
 it('prevents payment to same account', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user, ['read', 'write', 'delete']);
-    $account = Account::factory()->withBalance(1000)->create();
+    $account = Account::factory()->forUser($user)->withBalance(1000)->create();
 
     $response = $this->postJson('/api/bian/payment-initiation/initiate', [
         'payerReference' => $account->uuid,
@@ -159,4 +159,28 @@ it('requires authentication for all endpoints', function () {
     $this->postJson("/api/bian/payment-initiation/{$uuid}/execute")->assertStatus(401);
     $this->postJson("/api/bian/payment-initiation/{$uuid}/payment-status/request")->assertStatus(401);
     $this->getJson("/api/bian/payment-initiation/{$uuid}/payment-history/retrieve")->assertStatus(401);
+});
+
+it('refuses a payment from an account the caller does not own', function () {
+    $user = User::factory()->create();
+    Sanctum::actingAs($user, ['read', 'write', 'delete']);
+
+    $payerAccount = Account::factory()->withBalance(1000)->create();
+    $payeeAccount = Account::factory()->forUser($user)->create();
+
+    $this->postJson('/api/bian/payment-initiation/initiate', [
+        'payerReference' => $payerAccount->uuid,
+        'payeeReference' => $payeeAccount->uuid,
+        'paymentAmount'  => 300,
+        'paymentType'    => 'internal',
+    ])->assertStatus(403)->assertJsonPath('error', 'FORBIDDEN');
+});
+
+it('refuses the payment history of an account the caller does not own', function () {
+    $user = User::factory()->create();
+    Sanctum::actingAs($user, ['read', 'write', 'delete']);
+    $account = Account::factory()->create();
+
+    $this->getJson("/api/bian/payment-initiation/{$account->uuid}/payment-history/retrieve")
+        ->assertStatus(403);
 });

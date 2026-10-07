@@ -35,9 +35,13 @@ interface PayseraDepositServiceInterface
     /**
      * Handle Paysera callback after payment.
      *
+     * Implementations credit the stored order amount only to the user who
+     * started the order (user_id = the authenticated user), at most once.
+     *
      * @param array{
      *     order_id: string,
      *     status: string,
+     *     user_id: int,
      *     amount?: int,
      *     currency?: string,
      *     payment_type?: string,

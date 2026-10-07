@@ -6,12 +6,14 @@ namespace App\GraphQL\Mutations\Payment;
 
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\DataObjects\Money;
+use App\Domain\Account\Models\Account;
 use App\Domain\Payment\Models\PaymentTransaction;
 use App\Domain\Payment\Workflows\TransferWorkflow;
 use GraphQL\Error\Error;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 use Workflow\WorkflowStub;
 
 class InitiatePaymentMutation
@@ -29,6 +31,11 @@ class InitiatePaymentMutation
 
         if (! $user) {
             throw new AuthenticationException('Unauthenticated.');
+        }
+
+        // The caller must own the source account (same rule as REST transfers).
+        if (Account::findOwnedBy((string) $args['account_uuid'], $user) === null) {
+            throw new AuthorizationException('You are not authorized to use this account.');
         }
 
         $fromAccountUuid = AccountUuid::fromString($args['account_uuid']);

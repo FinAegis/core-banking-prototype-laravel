@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Domain\Payment\Services;
 
 use App\Domain\Payment\Contracts\PaymentServiceInterface;
+use App\Domain\Payment\Exceptions\DepositAlreadyProcessedException;
 use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Laravel\Cashier\PaymentMethod as CashierPaymentMethod;
 use RuntimeException;
 use Stripe\PaymentIntent;
+use Throwable;
 
 /**
  * Demo Payment Gateway Service that simulates Stripe operations without external API calls.
@@ -76,8 +78,11 @@ class DemoPaymentGatewayService extends PaymentGatewayService
 
     /**
      * Process a demo deposit without calling Stripe.
+     *
+     * Same rules as the real gateway: the intent must belong to $user and
+     * target an account $user owns, and each intent id is credited once.
      */
-    public function processDeposit(string $paymentIntentId): array
+    public function processDeposit(string $paymentIntentId, User $user): array
     {
         Log::info('Processing demo deposit', [
             'payment_intent_id' => $paymentIntentId,
@@ -87,42 +92,55 @@ class DemoPaymentGatewayService extends PaymentGatewayService
 
         // Simulate the deposit processing
         try {
-            // Retrieve intent data from our store or use defaults
+            // Retrieve intent data from our store (same request) or fall back
+            // to a default demo amount on the caller's own first account.
             $intentData = self::$demoIntents[$paymentIntentId] ?? null;
 
             if (! $intentData) {
-                // If no stored intent, use first user/account (backward compatibility)
-                $user = User::first();
-                if (! $user) {
-                    throw new Exception('No users found for demo deposit');
-                }
-
                 $account = $user->accounts()->first();
                 if (! $account) {
                     throw new Exception('No accounts found for demo deposit');
                 }
 
                 $intentData = [
+                    'user_id'      => $user->getKey(),
                     'account_uuid' => $account->uuid,
                     'amount'       => 10000, // Default to $100
                     'currency'     => 'USD',
                 ];
             }
 
+            $this->assertDepositBelongsTo(
+                $user,
+                (string) ($intentData['user_id'] ?? ''),
+                (string) ($intentData['account_uuid'] ?? ''),
+                $paymentIntentId,
+            );
+
+            if (! $this->replayGuard->claim(DepositReplayGuard::SOURCE_STRIPE, $paymentIntentId)) {
+                throw new DepositAlreadyProcessedException(DepositReplayGuard::SOURCE_STRIPE, $paymentIntentId);
+            }
+
             // Process through the payment service
-            $this->paymentService->processStripeDeposit([
-                'account_uuid'        => $intentData['account_uuid'],
-                'amount'              => $intentData['amount'],
-                'currency'            => $intentData['currency'],
-                'reference'           => $reference,
-                'external_reference'  => $paymentIntentId,
-                'payment_method'      => 'demo_card',
-                'payment_method_type' => 'card',
-                'metadata'            => [
-                    'demo_mode'         => true,
-                    'payment_intent_id' => $paymentIntentId,
-                ],
-            ]);
+            try {
+                $this->paymentService->processStripeDeposit([
+                    'account_uuid'        => $intentData['account_uuid'],
+                    'amount'              => $intentData['amount'],
+                    'currency'            => $intentData['currency'],
+                    'reference'           => $reference,
+                    'external_reference'  => $paymentIntentId,
+                    'payment_method'      => 'demo_card',
+                    'payment_method_type' => 'card',
+                    'metadata'            => [
+                        'demo_mode'         => true,
+                        'payment_intent_id' => $paymentIntentId,
+                    ],
+                ]);
+            } catch (Throwable $e) {
+                $this->replayGuard->release(DepositReplayGuard::SOURCE_STRIPE, $paymentIntentId);
+
+                throw $e;
+            }
 
             return [
                 'reference' => $reference,

@@ -65,12 +65,6 @@ class CreateAccountTool implements MCPToolInterface
                     'enum'        => ['checking', 'savings', 'investment', 'trading', 'escrow', 'loan'],
                     'default'     => 'checking',
                 ],
-                'initial_deposit' => [
-                    'type'        => 'number',
-                    'description' => 'Initial deposit amount (in cents)',
-                    'minimum'     => 0,
-                    'default'     => 0,
-                ],
                 'metadata' => [
                     'type'        => 'object',
                     'description' => 'Additional metadata for the account',
@@ -112,18 +106,15 @@ class CreateAccountTool implements MCPToolInterface
         return [
             'type'       => 'object',
             'properties' => [
-                'account_uuid'      => ['type' => 'string'],
-                'account_number'    => ['type' => 'string'],
-                'name'              => ['type' => 'string'],
-                'type'              => ['type' => 'string'],
-                'currency'          => ['type' => 'string'],
-                'balance'           => ['type' => 'number'],
-                'status'            => ['type' => 'string'],
-                'created_at'        => ['type' => 'string'],
-                'initial_deposit'   => ['type' => 'number'],
-                'deposit_status'    => ['type' => 'string'],
-                'deposit_reference' => ['type' => 'string'],
-                'message'           => ['type' => 'string'],
+                'account_uuid'   => ['type' => 'string'],
+                'account_number' => ['type' => 'string'],
+                'name'           => ['type' => 'string'],
+                'type'           => ['type' => 'string'],
+                'currency'       => ['type' => 'string'],
+                'balance'        => ['type' => 'number'],
+                'status'         => ['type' => 'string'],
+                'created_at'     => ['type' => 'string'],
+                'message'        => ['type' => 'string'],
             ],
         ];
     }
@@ -133,10 +124,12 @@ class CreateAccountTool implements MCPToolInterface
         try {
             Log::debug('CreateAccountTool execute called', ['parameters' => $parameters, 'conversationId' => $conversationId]);
 
-            // Opening balances credit the ledger directly; they follow the
-            // ledger.direct_funding_enabled flag (account creation stays available).
-            if (! config('ledger.direct_funding_enabled') && (float) ($parameters['initial_deposit'] ?? 0) > 0) {
-                return ToolExecutionResult::failure('An initial deposit is not available. Create the account without one.');
+            // Accounts open empty: an opening balance is not accepted (fund the
+            // account through a supported deposit method). 0/absent is ignored
+            // for backward compatibility with older clients.
+            $initialDeposit = $parameters['initial_deposit'] ?? 0;
+            if (! is_numeric($initialDeposit) || (float) $initialDeposit > 0) {
+                return ToolExecutionResult::failure('An initial deposit is not accepted. Create the account without one.');
             }
 
             // Get the user
@@ -209,48 +202,6 @@ class CreateAccountTool implements MCPToolInterface
                 'created_at'     => $account->created_at->toIso8601String(),
                 'message'        => 'Account created successfully',
             ];
-
-            // Handle initial deposit if provided
-            if (isset($parameters['initial_deposit']) && $parameters['initial_deposit'] > 0) {
-                try {
-                    // Convert amount to cents for storage
-                    $amountInCents = (int) round($parameters['initial_deposit'] * 100);
-
-                    // For now, directly update the balance in the database
-                    // In production, this would go through the deposit workflow
-                    // Create or update the AccountBalance entry for USD
-                    $accountBalance = \App\Domain\Account\Models\AccountBalance::updateOrCreate(
-                        [
-                            'account_uuid' => $account->uuid,
-                            'asset_code'   => $parameters['currency'] ?? 'USD',
-                        ],
-                        [
-                            'balance' => $amountInCents,
-                        ]
-                    );
-
-                    $response['initial_deposit'] = $parameters['initial_deposit'];
-                    $response['balance'] = $parameters['initial_deposit'];
-                    $response['deposit_status'] = 'completed';
-                    $response['deposit_reference'] = 'DEP-' . uniqid();
-                    $response['message'] = sprintf(
-                        'Account created with initial deposit of %s %s',
-                        number_format($parameters['initial_deposit'], 2),
-                        $parameters['currency'] ?? 'USD'
-                    );
-                } catch (Exception $e) {
-                    // Account created but deposit failed
-                    $response['initial_deposit'] = $parameters['initial_deposit'];
-                    $response['deposit_status'] = 'failed';
-                    $response['message'] = 'Account created but initial deposit failed: ' . $e->getMessage();
-
-                    Log::warning('Initial deposit failed for new account', [
-                        'account_uuid' => $account->uuid,
-                        'amount'       => $parameters['initial_deposit'],
-                        'error'        => $e->getMessage(),
-                    ]);
-                }
-            }
 
             return ToolExecutionResult::success($response);
         } catch (Exception $e) {

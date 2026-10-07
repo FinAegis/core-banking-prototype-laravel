@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Payment\Contracts\PaymentServiceInterface;
+use App\Domain\Payment\Exceptions\DepositAlreadyProcessedException;
+use App\Domain\Payment\Exceptions\DepositNotAllowedException;
 use App\Domain\Payment\Services\HyperSwitch\HyperSwitchPaymentService;
 use App\Domain\Payment\Services\PaymentGatewayService;
 use App\Models\User;
@@ -173,11 +175,20 @@ class DepositController extends Controller
                 ->with('info', 'Your deposit is processing and will be credited once confirmed.');
         }
 
+        /** @var User $user */
+        $user = Auth::user();
+
         try {
-            $result = $this->paymentGateway->processDeposit($request->payment_intent_id);
+            $result = $this->paymentGateway->processDeposit((string) $request->payment_intent_id, $user);
 
             return redirect()->route('wallet.index')
                 ->with('success', 'Deposit successful! Your account has been credited.');
+        } catch (DepositAlreadyProcessedException $e) {
+            return redirect()->route('wallet.index')
+                ->with('info', 'This deposit has already been credited to your account.');
+        } catch (DepositNotAllowedException $e) {
+            return redirect()->route('wallet.deposit')
+                ->with('error', 'This payment could not be matched to your account.');
         } catch (Exception $e) {
             return redirect()->route('wallet.deposit')
                 ->with('error', 'Failed to process deposit. Please contact support.');
@@ -231,7 +242,7 @@ class DepositController extends Controller
             );
 
             // Immediately process it (bypassing Stripe redirect)
-            $result = $this->paymentGateway->processDeposit($intent->id);
+            $result = $this->paymentGateway->processDeposit($intent->id, $user);
 
             return redirect()->route('wallet.index')
                 ->with('success', 'Demo deposit successful! Your account has been credited with ' .

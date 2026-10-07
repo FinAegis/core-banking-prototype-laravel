@@ -7,11 +7,13 @@ namespace App\GraphQL\Mutations\Stablecoin;
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Stablecoin\Models\StablecoinReserve;
 use App\Domain\Stablecoin\Workflows\BurnStablecoinWorkflow;
+use App\Models\User;
 use GraphQL\Error\Error;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
+use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 use Workflow\WorkflowStub;
 
 class RedeemStablecoinMutation
@@ -29,6 +31,10 @@ class RedeemStablecoinMutation
 
         if (! $user) {
             throw new AuthenticationException('Unauthenticated.');
+        }
+
+        if (! $user instanceof User || ! $user->hasRole(MintStablecoinMutation::OPERATOR_ROLES)) {
+            throw new AuthorizationException('You are not authorized to perform stablecoin operations.');
         }
 
         $reserve = StablecoinReserve::where('reserve_id', $args['reserve_id'])->first();

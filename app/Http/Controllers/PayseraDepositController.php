@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\Account\Models\Account;
 use App\Domain\Payment\Contracts\PayseraDepositServiceInterface;
+use App\Domain\Payment\Services\DemoPayseraDepositService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -49,6 +51,8 @@ class PayseraDepositController extends Controller
     )]
     public function initiate(Request $request): JsonResponse|RedirectResponse
     {
+        $this->ensureAvailable();
+
         $validator = Validator::make($request->all(), [
             'account_uuid' => 'required|string|uuid',
             'amount'       => 'required|integer|min:100|max:100000000', // 1.00 to 1,000,000.00
@@ -74,6 +78,15 @@ class PayseraDepositController extends Controller
                     'success' => false,
                     'message' => 'Authentication required',
                 ], 401);
+            }
+
+            // Deposits can only be started for an account the caller owns.
+            if (Account::findOwnedBy((string) $request->input('account_uuid'), $user) === null) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Access denied to this account',
+                    'error'   => 'FORBIDDEN',
+                ], 403);
             }
 
             $result = $this->payseraDepositService->initiateDeposit([
@@ -134,6 +147,8 @@ class PayseraDepositController extends Controller
     )]
     public function callback(Request $request): JsonResponse|RedirectResponse
     {
+        $this->ensureAvailable();
+
         Log::info('Paysera callback received', $request->all());
 
         // Check for cancellation
@@ -172,10 +187,21 @@ class PayseraDepositController extends Controller
             ], 400);
         }
 
+        $user = Auth::user();
+
+        if (! $user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Authentication required',
+            ], 401);
+        }
+
         try {
             $callbackData = [
                 'order_id' => (string) $request->input('order_id'),
                 'status'   => (string) $request->input('status', 'completed'),
+                // The order is credited only to the user who started it.
+                'user_id' => (int) $user->getAuthIdentifier(),
             ];
 
             if ($request->filled('amount')) {
@@ -191,7 +217,7 @@ class PayseraDepositController extends Controller
                 $callbackData['payment_type'] = (string) $request->input('payment_type');
             }
 
-            /** @var array{order_id: string, status: string, amount?: int, currency?: string, payment_type?: string, transaction_id?: string} $callbackData */
+            /** @var array{order_id: string, status: string, user_id: int, amount?: int, currency?: string, payment_type?: string, transaction_id?: string} $callbackData */
             $result = $this->payseraDepositService->handleCallback($callbackData);
 
             if ($request->expectsJson()) {
@@ -291,5 +317,19 @@ class PayseraDepositController extends Controller
             'success' => true,
             'message' => 'Order cancelled successfully',
         ]);
+    }
+
+    /**
+     * The Paysera deposit flow (initiate + return callback) is served only
+     * while the Paysera connector is enabled (PAYSERA_ENABLED), or with the
+     * demo service (APP_ENV=demo); otherwise it answers 404.
+     */
+    private function ensureAvailable(): void
+    {
+        if ($this->payseraDepositService instanceof DemoPayseraDepositService) {
+            return;
+        }
+
+        abort_unless((bool) config('custodians.connectors.paysera.enabled', false), 404);
     }
 }

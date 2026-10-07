@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Domain\Account\DataObjects\AccountUuid;
-use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Services\AccountService;
 use App\Domain\Account\Services\Cache\AccountCacheService;
 use App\Domain\Account\Workflows\CreateAccountWorkflow;
-use App\Domain\Account\Workflows\DepositAccountWorkflow;
 use App\Domain\Account\Workflows\DestroyAccountWorkflow;
 use App\Domain\Account\Workflows\FreezeAccountWorkflow;
 use App\Domain\Account\Workflows\UnfreezeAccountWorkflow;
@@ -81,12 +79,12 @@ class AccountController extends Controller
             operationId: 'createAccount',
             tags: ['Accounts'],
             summary: 'Create a new account',
-            description: 'Creates a new bank account for a user with an optional initial balance',
+            description: 'Creates a new, empty account for the authenticated user. Fund it through a supported deposit method.',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['user_uuid', 'name'], properties: [
             new OA\Property(property: 'user_uuid', type: 'string', format: 'uuid', example: '660e8400-e29b-41d4-a716-446655440000'),
             new OA\Property(property: 'name', type: 'string', example: 'Savings Account', maxLength: 255),
-            new OA\Property(property: 'initial_balance', type: 'integer', example: 10000, minimum: 0, description: 'Initial balance in cents'),
+            new OA\Property(property: 'initial_balance', type: 'integer', example: 0, minimum: 0, maximum: 0, description: 'Deprecated: only 0 is accepted. Accounts open empty.'),
             ]))
         )]
     #[OA\Response(
@@ -111,12 +109,12 @@ class AccountController extends Controller
             ]
         );
 
-        // Opening balances credit the ledger directly; they follow the
-        // ledger.direct_funding_enabled flag. Account creation itself is
-        // always available.
-        if (! config('ledger.direct_funding_enabled') && (int) ($validated['initial_balance'] ?? 0) > 0) {
+        // Opening balances are not accepted on this public endpoint: an
+        // account opens empty and is funded through a supported deposit
+        // method. 0/absent stays valid for backward compatibility.
+        if ((int) ($validated['initial_balance'] ?? 0) > 0) {
             throw ValidationException::withMessages([
-                'initial_balance' => 'An initial balance is not available. Fund the account through a supported deposit method.',
+                'initial_balance' => 'An initial balance is not accepted. Open the account and fund it through a supported deposit method.',
             ]);
         }
 
@@ -143,15 +141,6 @@ class AccountController extends Controller
         $workflow = WorkflowStub::make(CreateAccountWorkflow::class);
         $workflow->start($accountData);
 
-        // If initial balance is provided, make a deposit
-        if (isset($validated['initial_balance']) && $validated['initial_balance'] > 0) {
-            $depositWorkflow = WorkflowStub::make(DepositAccountWorkflow::class);
-            $depositWorkflow->start(
-                new AccountUuid($accountUuid),
-                new Money($validated['initial_balance'])
-            );
-        }
-
         // Wait a moment for the projector to create the account record
         $account = Account::where('uuid', $accountUuid)->first();
 
@@ -162,7 +151,7 @@ class AccountController extends Controller
                     'uuid'      => $accountUuid,
                     'user_uuid' => $request->user()->uuid,
                     'name'      => $sanitizedName,
-                    'balance'   => $validated['initial_balance'] ?? 0,
+                    'balance'   => 0,
                 ]
             );
         }

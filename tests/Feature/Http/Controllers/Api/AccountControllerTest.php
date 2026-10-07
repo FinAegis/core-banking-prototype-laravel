@@ -105,13 +105,32 @@ class AccountControllerTest extends ControllerTestCase
     }
 
     #[Test]
-    public function test_store_creates_account_with_initial_balance(): void
+    public function test_store_rejects_a_non_zero_initial_balance(): void
     {
         Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/accounts', [
             'name'            => 'New Account',
             'initial_balance' => 25000, // 250.00
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['initial_balance']);
+
+        $this->assertDatabaseMissing('accounts', [
+            'user_uuid' => $this->user->uuid,
+            'name'      => 'New Account',
+        ]);
+    }
+
+    #[Test]
+    public function test_store_accepts_a_zero_initial_balance(): void
+    {
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+
+        $response = $this->postJson('/api/accounts', [
+            'name'            => 'New Account',
+            'initial_balance' => 0,
         ]);
 
         $response->assertStatus(201)
@@ -130,13 +149,12 @@ class AccountControllerTest extends ControllerTestCase
                 'data' => [
                     'user_uuid' => $this->user->uuid,
                     'name'      => 'New Account',
+                    'balance'   => 0,
                     'frozen'    => false,
                 ],
                 'message' => 'Account created successfully',
             ]);
 
-        // The initial balance is processed asynchronously via workflow
-        // So we just check the account was created
         $this->assertDatabaseHas('accounts', [
             'user_uuid' => $this->user->uuid,
             'name'      => 'New Account',

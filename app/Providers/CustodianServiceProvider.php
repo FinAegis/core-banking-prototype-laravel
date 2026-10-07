@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Domain\Custodian\Connectors\MockBankConnector;
 use App\Domain\Custodian\Services\CustodianRegistry;
 use Exception;
 use Illuminate\Support\Facades\Log;
@@ -50,7 +51,13 @@ class CustodianServiceProvider extends ServiceProvider
         $default = config('custodians.default');
 
         foreach ($config as $name => $settings) {
-            if (! $settings['enabled'] ?? false) {
+            if (! ($settings['enabled'] ?? false)) {
+                continue;
+            }
+
+            // The mock connector is environment-restricted on top of its
+            // config flag (never registered in production).
+            if ($name === 'mock' && ! MockBankConnector::isPermitted()) {
                 continue;
             }
 

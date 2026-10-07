@@ -15,8 +15,10 @@ use App\Domain\Account\Workflows\UnfreezeAccountWorkflow;
 use App\Domain\Account\Workflows\WithdrawAccountWorkflow;
 use App\Http\Controllers\Controller;
 use DB;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
@@ -58,7 +60,7 @@ class CurrentAccountController extends Controller
         new OA\Property(property: 'customerReference', type: 'string', format: 'uuid', description: 'Customer UUID reference'),
         new OA\Property(property: 'accountName', type: 'string', maxLength: 255, description: 'Account name'),
         new OA\Property(property: 'accountType', type: 'string', enum: ['current', 'checking'], description: 'Account type'),
-        new OA\Property(property: 'initialDeposit', type: 'integer', minimum: 0, description: 'Initial deposit amount in cents'),
+        new OA\Property(property: 'initialDeposit', type: 'integer', minimum: 0, maximum: 0, description: 'Deprecated: only 0 is accepted. Accounts open empty; fund them through a supported deposit method.'),
         new OA\Property(property: 'currency', type: 'string', pattern: '^[A-Z]{3}$', default: 'USD', description: 'Currency code'),
         ]))
     )]
@@ -103,9 +105,17 @@ class CurrentAccountController extends Controller
             ]
         );
 
-        if (! config('ledger.direct_funding_enabled') && (int) ($validated['initialDeposit'] ?? 0) > 0) {
+        // Accounts are always opened for the authenticated customer.
+        if (! hash_equals((string) $request->user()?->uuid, (string) $validated['customerReference'])) {
+            return $this->forbidden();
+        }
+
+        // Opening balances are not accepted on this public endpoint: an
+        // account opens empty and is funded through a supported deposit
+        // method. 0/absent stays valid for backward compatibility.
+        if ((int) ($validated['initialDeposit'] ?? 0) > 0) {
             throw ValidationException::withMessages([
-                'initialDeposit' => 'An initial deposit is not available. Fund the account through a supported deposit method.',
+                'initialDeposit' => 'An initial deposit is not accepted. Open the account and fund it through a supported deposit method.',
             ]);
         }
 
@@ -122,22 +132,13 @@ class CurrentAccountController extends Controller
         $workflow = WorkflowStub::make(CreateAccountWorkflow::class);
         $workflow->start($accountData);
 
-        // If initial deposit is provided, process it
-        if (isset($validated['initialDeposit']) && $validated['initialDeposit'] > 0) {
-            $depositWorkflow = WorkflowStub::make(DepositAccountWorkflow::class);
-            $depositWorkflow->start(
-                new AccountUuid($crReferenceId),
-                new Money($validated['initialDeposit'])
-            );
-        }
-
         // Create the account record for immediate response
         $account = Account::create(
             [
                 'uuid'      => $crReferenceId,
                 'user_uuid' => $validated['customerReference'],
                 'name'      => $validated['accountName'],
-                'balance'   => $validated['initialDeposit'] ?? 0,
+                'balance'   => 0,
             ]
         );
 
@@ -150,7 +151,7 @@ class CurrentAccountController extends Controller
                     'accountType'       => $validated['accountType'] ?? 'current',
                     'accountStatus'     => 'active',
                     'accountBalance'    => [
-                        'amount'   => $validated['initialDeposit'] ?? 0,
+                        'amount'   => 0,
                         'currency' => $validated['currency'] ?? 'USD',
                     ],
                     'dateType' => [
@@ -212,7 +213,7 @@ class CurrentAccountController extends Controller
     )]
     public function retrieve(string $crReferenceId): JsonResponse
     {
-        $account = Account::where('uuid', $crReferenceId)->firstOrFail();
+        $account = $this->findOwnedAccount($crReferenceId);
 
         return response()->json(
             [
@@ -285,7 +286,7 @@ class CurrentAccountController extends Controller
     )]
     public function update(Request $request, string $crReferenceId): JsonResponse
     {
-        $account = Account::where('uuid', $crReferenceId)->firstOrFail();
+        $account = $this->findOwnedAccount($crReferenceId);
 
         $validated = $request->validate(
             [
@@ -361,7 +362,7 @@ class CurrentAccountController extends Controller
     )]
     public function control(Request $request, string $crReferenceId): JsonResponse
     {
-        $account = Account::where('uuid', $crReferenceId)->firstOrFail();
+        $account = $this->findOwnedAccount($crReferenceId);
 
         $validated = $request->validate(
             [
@@ -460,7 +461,7 @@ class CurrentAccountController extends Controller
     )]
     public function executePayment(Request $request, string $crReferenceId): JsonResponse
     {
-        $account = Account::where('uuid', $crReferenceId)->firstOrFail();
+        $account = $this->findOwnedAccount($crReferenceId);
 
         $validated = $request->validate(
             [
@@ -564,7 +565,7 @@ class CurrentAccountController extends Controller
     )]
     public function executeDeposit(Request $request, string $crReferenceId): JsonResponse
     {
-        $account = Account::where('uuid', $crReferenceId)->firstOrFail();
+        $account = $this->findOwnedAccount($crReferenceId);
 
         $validated = $request->validate(
             [
@@ -641,7 +642,7 @@ class CurrentAccountController extends Controller
     )]
     public function retrieveAccountBalance(string $crReferenceId): JsonResponse
     {
-        $account = Account::where('uuid', $crReferenceId)->firstOrFail();
+        $account = $this->findOwnedAccount($crReferenceId);
 
         return response()->json(
             [
@@ -716,7 +717,7 @@ class CurrentAccountController extends Controller
     )]
     public function retrieveTransactionReport(Request $request, string $crReferenceId): JsonResponse
     {
-        $account = Account::where('uuid', $crReferenceId)->firstOrFail();
+        $account = $this->findOwnedAccount($crReferenceId);
 
         $validated = $request->validate(
             [
@@ -784,6 +785,33 @@ class CurrentAccountController extends Controller
                     'reportDateTime'   => now()->toIso8601String(),
                 ],
             ]
+        );
+    }
+
+    /**
+     * Load an account the authenticated user owns: 404 when it does not
+     * exist, 403 when it belongs to someone else (same responses as the
+     * REST account endpoints).
+     */
+    private function findOwnedAccount(string $crReferenceId): Account
+    {
+        $account = Account::where('uuid', $crReferenceId)->firstOrFail();
+
+        if (! $account->isOwnedBy(Auth::user())) {
+            throw new HttpResponseException($this->forbidden());
+        }
+
+        return $account;
+    }
+
+    private function forbidden(): JsonResponse
+    {
+        return response()->json(
+            [
+                'message' => 'Access denied to this account',
+                'error'   => 'FORBIDDEN',
+            ],
+            403
         );
     }
 }

@@ -29,7 +29,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
             'customerReference' => $this->user->uuid,
             'accountName'       => 'My Checking Account',
             'accountType'       => 'current',
-            'initialDeposit'    => 10000, // 100.00 in cents
+            'initialDeposit'    => 0,
             'currency'          => 'USD',
         ]);
 
@@ -58,7 +58,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
                     'accountType'       => 'current',
                     'accountStatus'     => 'active',
                     'accountBalance'    => [
-                        'amount'   => 10000,
+                        'amount'   => 0,
                         'currency' => 'USD',
                     ],
                     'dateType' => [
@@ -70,8 +70,41 @@ class CurrentAccountControllerTest extends ControllerTestCase
         $this->assertDatabaseHas('accounts', [
             'user_uuid' => $this->user->uuid,
             'name'      => 'My Checking Account',
-            'balance'   => 10000,
+            'balance'   => 0,
         ]);
+    }
+
+    #[Test]
+    public function test_initiate_rejects_an_initial_deposit(): void
+    {
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+
+        $response = $this->postJson('/api/bian/current-account/initiate', [
+            'customerReference' => $this->user->uuid,
+            'accountName'       => 'Funded Account',
+            'accountType'       => 'current',
+            'initialDeposit'    => 10000,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['initialDeposit']);
+
+        $this->assertDatabaseMissing('accounts', ['name' => 'Funded Account']);
+    }
+
+    #[Test]
+    public function test_initiate_refuses_another_customer_reference(): void
+    {
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+        $other = User::factory()->create();
+
+        $this->postJson('/api/bian/current-account/initiate', [
+            'customerReference' => $other->uuid,
+            'accountName'       => 'Someone else',
+            'accountType'       => 'current',
+        ])->assertStatus(403)->assertJsonPath('error', 'FORBIDDEN');
+
+        $this->assertDatabaseMissing('accounts', ['name' => 'Someone else']);
     }
 
     #[Test]
@@ -194,7 +227,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_retrieve_requires_authentication(): void
     {
-        $account = Account::factory()->create();
+        $account = Account::factory()->create(['user_uuid' => $this->user->uuid]);
 
         $response = $this->getJson("/api/bian/current-account/{$account->uuid}/retrieve");
 
@@ -239,7 +272,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     {
         Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
-        $account = Account::factory()->create();
+        $account = Account::factory()->create(['user_uuid' => $this->user->uuid]);
 
         $response = $this->putJson("/api/bian/current-account/{$account->uuid}/update", [
             'accountName'   => str_repeat('a', 256), // Too long
@@ -303,7 +336,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     {
         Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
-        $account = Account::factory()->create();
+        $account = Account::factory()->create(['user_uuid' => $this->user->uuid]);
 
         $response = $this->putJson("/api/bian/current-account/{$account->uuid}/control", [
             'controlAction' => 'invalid-action',
@@ -400,7 +433,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     {
         Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
-        $account = Account::factory()->create();
+        $account = Account::factory()->create(['user_uuid' => $this->user->uuid]);
 
         $response = $this->postJson("/api/bian/current-account/{$account->uuid}/payment/execute", [
             'paymentAmount'      => 0,
@@ -457,7 +490,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     {
         Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
-        $account = Account::factory()->create();
+        $account = Account::factory()->create(['user_uuid' => $this->user->uuid]);
 
         $response = $this->postJson("/api/bian/current-account/{$account->uuid}/deposit/execute", [
             'depositAmount' => -100,
@@ -566,7 +599,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     {
         Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
-        $account = Account::factory()->create();
+        $account = Account::factory()->create(['user_uuid' => $this->user->uuid]);
 
         $response = $this->getJson("/api/bian/current-account/{$account->uuid}/transaction-report/retrieve?" . http_build_query([
             'fromDate'        => '2024-01-31',
@@ -581,7 +614,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_all_endpoints_require_authentication(): void
     {
-        $account = Account::factory()->create();
+        $account = Account::factory()->create(['user_uuid' => $this->user->uuid]);
 
         $endpoints = [
             ['POST', '/api/bian/current-account/initiate'],

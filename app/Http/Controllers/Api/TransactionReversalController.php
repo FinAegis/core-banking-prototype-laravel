@@ -7,15 +7,16 @@ use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\TransactionProjection;
 use App\Domain\Account\Workflows\TransactionReversalWorkflow;
+use App\Domain\Subscription\Models\ProcessedWebhookEvent;
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use OpenApi\Attributes as OA;
+use Throwable;
 use Workflow\WorkflowStub;
 
 #[OA\Tag(
@@ -73,6 +74,12 @@ class TransactionReversalController extends Controller
     )]
     public function reverseTransaction(Request $request, string $uuid): JsonResponse
     {
+        // Reversals move ledger balances directly: they follow the
+        // ledger.direct_funding_enabled flag (also enforced on the route).
+        if (! config('ledger.direct_funding_enabled')) {
+            abort(404);
+        }
+
         $validated = $request->validate(
             [
                 'amount'                  => 'required|numeric|min:0.01',
@@ -86,9 +93,29 @@ class TransactionReversalController extends Controller
 
         $account = Account::where('uuid', $uuid)->firstOrFail();
 
-        // Ensure account belongs to authenticated user (or admin)
-        if ($account->user_uuid !== Auth::user()->uuid && ! Auth::user()->hasRole('admin')) {
+        // Only the account owner may reverse a transaction on it.
+        if (! $account->isOwnedBy(Auth::user())) {
             return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        // A given original transaction can be reversed once.
+        $originalTransactionId = $validated['original_transaction_id'] ?? null;
+        $reversalClaim = null;
+        if (is_string($originalTransactionId) && $originalTransactionId !== '') {
+            $reversalClaim = ProcessedWebhookEvent::query()->createOrFirst(
+                ['provider' => 'transaction_reversal', 'event_id' => $account->uuid . ':' . hash('sha256', $originalTransactionId)],
+                ['event_type' => 'reversal', 'processed_at' => now()],
+            );
+
+            if (! $reversalClaim->wasRecentlyCreated) {
+                return response()->json(
+                    [
+                        'message' => 'This transaction has already been reversed',
+                        'error'   => 'ALREADY_REVERSED',
+                    ],
+                    409
+                );
+            }
         }
 
         try {
@@ -128,7 +155,10 @@ class TransactionReversalController extends Controller
                 ],
                 200
             );
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
+            // Nothing was reversed: allow a retry for the same transaction.
+            $reversalClaim?->delete();
+
             logger()->error(
                 'Transaction reversal API failed',
                 [

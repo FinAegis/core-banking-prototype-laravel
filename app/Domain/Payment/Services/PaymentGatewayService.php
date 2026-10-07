@@ -4,19 +4,25 @@ namespace App\Domain\Payment\Services;
 
 use App\Domain\Account\Models\Account;
 use App\Domain\Payment\Contracts\PaymentServiceInterface;
+use App\Domain\Payment\Exceptions\DepositAlreadyProcessedException;
+use App\Domain\Payment\Exceptions\DepositNotAllowedException;
 use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Laravel\Cashier\PaymentMethod as CashierPaymentMethod;
 use Stripe\PaymentIntent;
+use Throwable;
 
 class PaymentGatewayService
 {
     protected PaymentServiceInterface $paymentService;
 
-    public function __construct(PaymentServiceInterface $paymentService)
+    protected DepositReplayGuard $replayGuard;
+
+    public function __construct(PaymentServiceInterface $paymentService, ?DepositReplayGuard $replayGuard = null)
     {
         $this->paymentService = $paymentService;
+        $this->replayGuard = $replayGuard ?? new DepositReplayGuard();
     }
 
     /**
@@ -60,13 +66,18 @@ class PaymentGatewayService
     }
 
     /**
-     * Process a successful deposit.
+     * Credit a succeeded Stripe PaymentIntent to the caller's account.
+     *
+     * The PaymentIntent must have been created for $user (metadata user_id)
+     * and target an account $user owns (metadata account_uuid). Each
+     * PaymentIntent is credited at most once.
+     *
+     * @throws DepositNotAllowedException when the PaymentIntent does not belong to $user
+     * @throws DepositAlreadyProcessedException when the PaymentIntent was already credited
      */
-    public function processDeposit(string $paymentIntentId): array
+    public function processDeposit(string $paymentIntentId, User $user): array
     {
-        // Retrieve payment intent from Stripe
-        $stripe = new \Stripe\StripeClient(config('cashier.secret'));
-        $paymentIntent = $stripe->paymentIntents->retrieve($paymentIntentId);
+        $paymentIntent = $this->retrievePaymentIntent($paymentIntentId);
 
         if ($paymentIntent->status !== 'succeeded') {
             throw new Exception('Payment intent not succeeded');
@@ -80,30 +91,76 @@ class PaymentGatewayService
             throw new Exception('Invalid payment metadata');
         }
 
+        // Only PaymentIntents created by createDepositIntent() are deposits.
+        if (($paymentIntent->metadata['type'] ?? null) !== 'deposit') {
+            throw new DepositNotAllowedException('This payment is not a deposit.');
+        }
+
+        $this->assertDepositBelongsTo($user, (string) $userId, (string) $accountUuid, $paymentIntent->id);
+
+        if (! $this->replayGuard->claim(DepositReplayGuard::SOURCE_STRIPE, $paymentIntent->id)) {
+            throw new DepositAlreadyProcessedException(DepositReplayGuard::SOURCE_STRIPE, $paymentIntent->id);
+        }
+
         // Use PaymentService to process deposit through event sourcing
         $reference = 'DEP-' . strtoupper(uniqid());
-        $this->paymentService->processStripeDeposit(
-            [
-                'account_uuid'        => $accountUuid,
-                'amount'              => $paymentIntent->amount,
-                'currency'            => strtoupper($paymentIntent->currency),
-                'reference'           => $reference,
-                'external_reference'  => $paymentIntent->id,
-                'payment_method'      => $paymentIntent->payment_method,
-                'payment_method_type' => $paymentIntent->payment_method_types[0] ?? 'card',
-                'metadata'            => [
-                    'stripe_payment_intent_id' => $paymentIntent->id,
-                    'processor'                => 'stripe',
-                ],
-            ]
-        );
+
+        try {
+            $this->paymentService->processStripeDeposit(
+                [
+                    'account_uuid'        => $accountUuid,
+                    'amount'              => $paymentIntent->amount,
+                    'currency'            => strtoupper($paymentIntent->currency),
+                    'reference'           => $reference,
+                    'external_reference'  => $paymentIntent->id,
+                    'payment_method'      => $paymentIntent->payment_method,
+                    'payment_method_type' => $paymentIntent->payment_method_types[0] ?? 'card',
+                    'metadata'            => [
+                        'stripe_payment_intent_id' => $paymentIntent->id,
+                        'processor'                => 'stripe',
+                    ],
+                ]
+            );
+        } catch (Throwable $e) {
+            // Nothing was credited: give the PaymentIntent back so it can be retried.
+            $this->replayGuard->release(DepositReplayGuard::SOURCE_STRIPE, $paymentIntent->id);
+
+            throw $e;
+        }
 
         return [
             'account_uuid' => $accountUuid,
             'amount'       => $paymentIntent->amount,
             'currency'     => strtoupper($paymentIntent->currency),
-            'reference'    => 'DEP-' . strtoupper(uniqid()),
+            'reference'    => $reference,
         ];
+    }
+
+    /**
+     * Retrieve a PaymentIntent from Stripe.
+     */
+    protected function retrievePaymentIntent(string $paymentIntentId): PaymentIntent
+    {
+        $stripe = new \Stripe\StripeClient(config('cashier.secret'));
+
+        return $stripe->paymentIntents->retrieve($paymentIntentId);
+    }
+
+    /**
+     * The deposit must have been started by $user for an account $user owns.
+     *
+     * @throws DepositNotAllowedException
+     */
+    protected function assertDepositBelongsTo(User $user, string $intentUserId, string $accountUuid, string $externalReference): void
+    {
+        if ($intentUserId !== (string) $user->getKey() || Account::findOwnedBy($accountUuid, $user) === null) {
+            Log::warning('Deposit confirmation refused: payment does not belong to the authenticated user', [
+                'user_id'            => $user->getKey(),
+                'external_reference' => $externalReference,
+            ]);
+
+            throw new DepositNotAllowedException('This payment does not belong to your account.');
+        }
     }
 
     /**

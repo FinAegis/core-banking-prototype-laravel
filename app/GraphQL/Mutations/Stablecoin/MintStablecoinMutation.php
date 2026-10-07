@@ -7,14 +7,24 @@ namespace App\GraphQL\Mutations\Stablecoin;
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Stablecoin\Models\StablecoinReserve;
 use App\Domain\Stablecoin\Workflows\MintStablecoinWorkflow;
+use App\Models\User;
 use GraphQL\Error\Error;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 use Workflow\WorkflowStub;
 
 class MintStablecoinMutation
 {
+    /**
+     * Roles allowed to issue stablecoins (same set as the web stablecoin
+     * operations console).
+     *
+     * @var list<string>
+     */
+    public const OPERATOR_ROLES = ['super_admin', 'bank_admin', 'stablecoin_operator'];
+
     /**
      * @param  array<string, mixed>  $args
      */
@@ -28,6 +38,10 @@ class MintStablecoinMutation
 
         if (! $user) {
             throw new AuthenticationException('Unauthenticated.');
+        }
+
+        if (! $user instanceof User || ! $user->hasRole(self::OPERATOR_ROLES)) {
+            throw new AuthorizationException('You are not authorized to perform stablecoin operations.');
         }
 
         $accountUuid = AccountUuid::fromString($args['account_uuid'] ?? $user->uuid);

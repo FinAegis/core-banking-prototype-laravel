@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\Custodian\Connectors\MockBankConnector;
 use App\Domain\Custodian\Models\CustodianWebhook;
 use App\Http\Controllers\Controller;
 use Exception;
@@ -133,6 +134,9 @@ class CustodianWebhookController extends Controller
     )]
     public function mock(Request $request): JsonResponse
     {
+        // Only where the mock connector itself is permitted (never production).
+        abort_unless(MockBankConnector::isPermitted(), 404);
+
         return $this->handleWebhook($request, 'mock');
     }
 

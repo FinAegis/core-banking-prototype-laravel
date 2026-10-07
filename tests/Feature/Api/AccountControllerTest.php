@@ -30,7 +30,7 @@ class AccountControllerTest extends ControllerTestCase
         $response = $this->postJson('/api/accounts', [
             'user_uuid'       => $this->user->uuid,
             'name'            => 'Test Savings Account',
-            'initial_balance' => 10000,
+            'initial_balance' => 0,
         ]);
 
         $response->assertStatus(201)
@@ -58,6 +58,24 @@ class AccountControllerTest extends ControllerTestCase
             'user_uuid' => $this->user->uuid,
             'name'      => 'Test Savings Account',
         ]);
+    }
+
+    #[Test]
+    public function test_cannot_create_account_with_an_opening_balance(): void
+    {
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+
+        $this->postJson('/api/accounts', [
+            'name'            => 'Funded Account',
+            'initial_balance' => 10000,
+        ])->assertStatus(422)->assertJsonValidationErrors(['initial_balance']);
+
+        $this->postJson('/api/v2/accounts', [
+            'name'            => 'Funded Account',
+            'initial_balance' => 10000,
+        ])->assertStatus(422)->assertJsonValidationErrors(['initial_balance']);
+
+        $this->assertDatabaseMissing('accounts', ['name' => 'Funded Account']);
     }
 
     #[Test]

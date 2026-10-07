@@ -23,9 +23,11 @@ return [
     | deposit/withdraw, account opening balances, the BIAN API, the mock
     | custodian transfer, transaction reversal, the web wallet fiat
     | deposit/withdraw pages and the ledger-moving GraphQL mutations.
-    | Default true keeps the FinAegis demo unchanged; production wallet
-    | deployments set LEDGER_DIRECT_FUNDING_ENABLED=false.
+    | Secure by default: off when APP_ENV=production (or unset), on for every
+    | other environment (demo, local, testing, staging). An explicit
+    | LEDGER_DIRECT_FUNDING_ENABLED value always wins, so a production-mode
+    | demo can opt back in with LEDGER_DIRECT_FUNDING_ENABLED=true.
     |
     */
-    'direct_funding_enabled' => (bool) env('LEDGER_DIRECT_FUNDING_ENABLED', true),
+    'direct_funding_enabled' => (bool) env('LEDGER_DIRECT_FUNDING_ENABLED', env('APP_ENV', 'production') !== 'production'),
 ];

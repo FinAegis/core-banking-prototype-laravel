@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\GraphQL\Mutations\Asset;
 
+use App\Domain\Account\Models\Account;
 use App\Domain\Asset\Services\AssetTransferService;
 use GraphQL\Error\Error;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
+use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 
 final class InitiateAssetTransferMutation
 {
@@ -30,6 +32,11 @@ final class InitiateAssetTransferMutation
 
         if (! $user) {
             throw new AuthenticationException('Unauthenticated.');
+        }
+
+        // The caller must own the source account (same rule as REST transfers).
+        if (Account::findOwnedBy((string) $args['from_account_uuid'], $user) === null) {
+            throw new AuthorizationException('You are not authorized to use this account.');
         }
 
         return $this->assetTransferService->transfer(

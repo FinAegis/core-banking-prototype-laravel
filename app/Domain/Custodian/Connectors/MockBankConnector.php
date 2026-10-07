@@ -14,6 +14,24 @@ use Illuminate\Support\Str;
 
 class MockBankConnector extends BaseCustodianConnector
 {
+    /**
+     * Whether the mock connector may be used in the current environment.
+     *
+     * It moves internal balances without a real bank behind it, so it is
+     * available only in the local and testing environments (unless
+     * CUSTODIAN_MOCK_ENABLED=false) and in the demo environment when
+     * CUSTODIAN_MOCK_ENABLED=true is set explicitly. It is never available
+     * in production or any other environment, whatever the config says.
+     */
+    public static function isPermitted(): bool
+    {
+        if (! app()->environment(['local', 'testing', 'demo'])) {
+            return false;
+        }
+
+        return (bool) config('custodians.connectors.mock.enabled', false);
+    }
+
     private array $mockBalances = [];
 
     private array $mockTransactions = [];

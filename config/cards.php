@@ -30,8 +30,11 @@ return [
      * answers ERR_CARDS_019 (503) before any quote or Checkout step; cancel,
      * entry and the Stripe webhook keep working so existing deposits can
      * still be refunded and reconciled.
+     *
+     * Secure by default: off when APP_ENV=production (or unset), on
+     * elsewhere; an explicit CARDS_WAITLIST_DEPOSIT_ENABLED value wins.
      */
-    'waitlist_deposit_enabled' => (bool) env('CARDS_WAITLIST_DEPOSIT_ENABLED', true),
+    'waitlist_deposit_enabled' => (bool) env('CARDS_WAITLIST_DEPOSIT_ENABLED', env('APP_ENV', 'production') !== 'production'),
 
     /*
      * Time window the user has to complete the Stripe Checkout session.

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Custodian\Services;
 
+use App\Domain\Custodian\Connectors\MockBankConnector;
 use Illuminate\Support\Facades\Log;
 
 class WebhookVerificationService
@@ -20,7 +21,7 @@ class WebhookVerificationService
         return match ($custodianName) {
             'paysera'   => $this->verifyPayseraSignature($payload, $signature, $headers),
             'santander' => $this->verifySantanderSignature($payload, $signature, $headers),
-            'mock'      => true, // Mock always passes
+            'mock'      => MockBankConnector::isPermitted(), // only where the mock connector is permitted
             default     => false,
         };
     }

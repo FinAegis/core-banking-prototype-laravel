@@ -26,10 +26,18 @@ return [
 
     'connectors' => [
 
-        // Demo connector; production deployments set CUSTODIAN_MOCK_ENABLED=false.
+        // Demo connector that moves internal balances without a real bank.
+        // local/testing: on unless CUSTODIAN_MOCK_ENABLED=false. demo: off
+        // unless CUSTODIAN_MOCK_ENABLED=true is set explicitly. Any other
+        // environment (production, staging, unset): always off. The same rule
+        // is enforced at runtime by MockBankConnector::isPermitted().
         'mock' => [
-            'class'       => App\Domain\Custodian\Connectors\MockBankConnector::class,
-            'enabled'     => (bool) env('CUSTODIAN_MOCK_ENABLED', true),
+            'class'   => App\Domain\Custodian\Connectors\MockBankConnector::class,
+            'enabled' => match (env('APP_ENV', 'production')) {
+                'local', 'testing' => (bool) env('CUSTODIAN_MOCK_ENABLED', true),
+                'demo'             => (bool) env('CUSTODIAN_MOCK_ENABLED', false),
+                default            => false,
+            },
             'name'        => 'Mock Bank',
             'description' => 'Mock custodian for testing and development',
         ],

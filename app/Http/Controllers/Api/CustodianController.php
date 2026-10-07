@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\DataObjects\Money;
+use App\Domain\Account\Models\Account;
 use App\Domain\Custodian\Services\CustodianRegistry;
 use App\Domain\Custodian\Workflows\CustodianTransferWorkflow;
 use App\Http\Controllers\Controller;
@@ -250,6 +251,18 @@ class CustodianController extends Controller
                 'reference'             => 'nullable|string|max:255',
             ]
         );
+
+        // Only the owner of the internal account may move funds in or out of it
+        // (same response as the REST account endpoints).
+        if (Account::findOwnedBy($validated['internal_account_uuid'], $request->user()) === null) {
+            return response()->json(
+                [
+                    'message' => 'Access denied to this account',
+                    'error'   => 'FORBIDDEN',
+                ],
+                403
+            );
+        }
 
         try {
             // Verify custodian exists and is available

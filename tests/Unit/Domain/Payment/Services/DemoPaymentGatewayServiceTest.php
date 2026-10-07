@@ -6,6 +6,8 @@ namespace Tests\Unit\Domain\Payment\Services;
 
 use App\Domain\Account\Models\Account;
 use App\Domain\Payment\Contracts\PaymentServiceInterface;
+use App\Domain\Payment\Exceptions\DepositAlreadyProcessedException;
+use App\Domain\Payment\Exceptions\DepositNotAllowedException;
 use App\Domain\Payment\Services\DemoPaymentGatewayService;
 use App\Models\User;
 use Mockery;
@@ -93,13 +95,54 @@ class DemoPaymentGatewayServiceTest extends TestCase
             }))
             ->andReturn('demo_pi_processed');
 
-        $result = $this->service->processDeposit($paymentIntentId);
+        $result = $this->service->processDeposit($paymentIntentId, $this->user);
 
         // Assert the result
         $this->assertArrayHasKey('reference', $result);
         $this->assertArrayHasKey('status', $result);
         $this->assertStringStartsWith('DEP-', $result['reference']);
         $this->assertEquals('succeeded', $result['status']);
+    }
+
+    public function test_process_deposit_credits_each_intent_once(): void
+    {
+        $intent = $this->service->createDepositIntent($this->user, 10000, 'USD');
+
+        $this->paymentService
+            ->shouldReceive('processStripeDeposit')
+            ->once()
+            ->andReturn('demo_pi_processed');
+
+        $this->service->processDeposit($intent->id, $this->user);
+
+        $this->expectException(DepositAlreadyProcessedException::class);
+        $this->service->processDeposit($intent->id, $this->user);
+    }
+
+    public function test_process_deposit_refuses_an_intent_created_for_another_user(): void
+    {
+        $intent = $this->service->createDepositIntent($this->user, 10000, 'USD');
+        $other = User::factory()->create();
+        Account::factory()->create(['user_uuid' => $other->uuid]);
+
+        $this->paymentService->shouldNotReceive('processStripeDeposit');
+
+        $this->expectException(DepositNotAllowedException::class);
+        $this->service->processDeposit($intent->id, $other);
+    }
+
+    public function test_process_deposit_of_an_unknown_intent_only_credits_the_callers_own_account(): void
+    {
+        $other = User::factory()->create();
+        $otherAccount = Account::factory()->create(['user_uuid' => $other->uuid]);
+
+        $this->paymentService
+            ->shouldReceive('processStripeDeposit')
+            ->once()
+            ->with(Mockery::on(fn ($data) => $data['account_uuid'] === $otherAccount->uuid))
+            ->andReturn('demo_pi_processed');
+
+        $this->service->processDeposit('demo_pi_unknown_' . uniqid(), $other);
     }
 
     public function test_get_saved_payment_methods_returns_demo_methods(): void
