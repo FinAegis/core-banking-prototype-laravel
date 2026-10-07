@@ -23,6 +23,10 @@ use App\Domain\Relayer\Services\PimlicoPaymasterService;
 use App\Domain\Relayer\Services\ProductionSmartAccountFactory;
 use App\Domain\Relayer\Services\UserOperationSigningService;
 use App\Domain\Relayer\Services\WalletBalanceService;
+use App\Http\Middleware\TransactionRateLimitMiddleware;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -115,6 +119,26 @@ class RelayerServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Per-user limit for the GraphQL sponsorTransaction mutation
+        // (@throttle(name: "relayer-sponsor") in graphql/relayer.graphql):
+        // the hourly and daily counts that REST POST /api/v1/relayer/sponsor
+        // gets from transaction.rate_limit:relayer, with the same switches.
+        RateLimiter::for('relayer-sponsor', function (Request $request): Limit|array {
+            if (
+                ! (bool) config('rate_limiting.enabled', true)
+                || ($this->app->environment('testing') && ! (bool) config('rate_limiting.force_in_tests', false))
+            ) {
+                return Limit::none();
+            }
+
+            /** @var array{limit: int, daily_limit: int} $limits */
+            $limits = TransactionRateLimitMiddleware::getTransactionLimits()['relayer'];
+            $key = 'relayer-sponsor:' . ($request->user()?->getAuthIdentifier() ?? $request->ip());
+
+            return [
+                Limit::perHour($limits['limit'])->by($key . ':hour'),
+                Limit::perDay($limits['daily_limit'])->by($key . ':day'),
+            ];
+        });
     }
 }

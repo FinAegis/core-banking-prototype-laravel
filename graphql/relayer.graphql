@@ -78,5 +78,6 @@ extend type Mutation {
 
     sponsorTransaction(input: SponsorTransactionInput! @spread): String!
         @guard(with: ["sanctum"])
+        @throttle(name: "relayer-sponsor")
         @field(resolver: "App\\GraphQL\\Mutations\\Relayer\\SponsorTransactionMutation")
 }

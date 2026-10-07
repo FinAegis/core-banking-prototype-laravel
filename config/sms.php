@@ -22,14 +22,21 @@ return [
     'enabled' => (bool) env('SMS_ENABLED', env('APP_ENV', 'production') !== 'production'),
 
     /*
-    | Per-user limits for POST /api/v1/sms/send (named rate limiter
-    | `sms-send`, keyed by the authenticated user). The route also keeps its
-    | global 60/minute throttle.
+    | Per-user limits for unpaid POST /api/v1/sms/send requests (named rate
+    | limiter `sms-send`, keyed by the authenticated user). The route also
+    | keeps its 60/minute throttle.
     */
     'rate_limit' => [
         'per_user_per_minute' => (int) env('SMS_SEND_PER_USER_PER_MINUTE', 5),
         'per_user_per_day'    => (int) env('SMS_SEND_PER_USER_PER_DAY', 50),
     ],
+
+    /*
+    | Global cap on unpaid sends per UTC day (all users together; sends paid
+    | through the MPP gate do not count). Over the cap POST /api/v1/sms/send
+    | answers 429 ERR_SMS_001 until 00:00 UTC. 0 allows no unpaid sends.
+    */
+    'global_daily_limit' => (int) env('SMS_SEND_GLOBAL_PER_DAY', 500),
 
     'default_provider' => env('SMS_PROVIDER', 'mock'),
 

@@ -27,10 +27,13 @@ use Throwable;
  * and decides whether to approve based on the user's stablecoin balance.
  *
  * Demo mode applies only when the configured issuer
- * (`cardissuance.default_issuer`, env CARD_ISSUER) is `demo`. For any real
- * issuer the decision uses the cardholder's ledger balance for the funding
- * token, minus the funds already held by earlier approvals, and fails closed:
- * a missing account, asset, balance or hold store declines the authorization.
+ * (`cardissuance.default_issuer`, env CARD_ISSUER) is `demo`. Under
+ * APP_ENV=production the demo issuer declines every authorization and never
+ * issues a hold; demo approvals remain in local, testing and demo. For any
+ * real issuer the decision uses the cardholder's ledger balance for the
+ * funding token, minus the funds already held by earlier approvals, and
+ * fails closed: a missing account, asset, balance or hold store declines the
+ * authorization.
  *
  * CRITICAL: Latency budget is < 2000ms for the entire authorization flow.
  */
@@ -61,6 +64,16 @@ class JitFundingService
     public function authorize(AuthorizationRequest $request): array
     {
         $startTime = microtime(true);
+
+        // The demo issuer has no funding source: in production it declines
+        // everything, before any card lookup, limit check or hold.
+        if ($this->isDemoMode() && app()->environment('production')) {
+            Log::warning('JIT Funding: demo card issuer in production, declining', [
+                'authorization_id' => $request->authorizationId,
+            ]);
+
+            return $this->decline($request, AuthorizationDecision::DECLINED_INSUFFICIENT_FUNDS);
+        }
 
         // 0. Per-card rate limiting — prevent a compromised card flooding the authorization pipeline
         $rateLimitKey = 'jit_auth:' . $request->cardToken;

@@ -11,6 +11,7 @@ use App\Domain\Relayer\Models\SmartAccount;
 use App\Domain\Wallet\Constants\EvmTokens;
 use App\Domain\Wallet\Services\Send\Erc20Transfer;
 use App\Domain\Wallet\Services\Send\UserOpCallDataBuilder;
+use App\Domain\Wallet\Services\SponsorshipBudget;
 use App\Models\User;
 use Throwable;
 
@@ -31,11 +32,17 @@ use Throwable;
  *    with amount > 0;
  *  - an init code, if any, equals the deployment data of the caller's own
  *    undeployed smart account.
+ *
+ * Both entry points call {@see admit()}, which also consumes one unit of the
+ * daily sponsorship budget shared with the wallet send
+ * ({@see SponsorshipBudget}: per-user and global counts, optional USD
+ * budget). An exhausted budget is refused with HTTP 429 / a GraphQL error.
  */
 class SponsorshipRequestValidator
 {
     public function __construct(
         private readonly SmartAccountService $smartAccountService,
+        private readonly SponsorshipBudget $budget,
     ) {
     }
 
@@ -55,8 +62,37 @@ class SponsorshipRequestValidator
     }
 
     /**
+     * Validate a sponsorship request and, when it passes, consume one unit of
+     * the shared daily sponsorship budget. Returns the network the request
+     * is bound to.
+     *
+     * @throws SponsorshipRequestRejectedException
+     */
+    public function admit(
+        User $user,
+        string $sender,
+        string $callData,
+        string $networkKey,
+        ?string $initCode = null,
+    ): SupportedNetwork {
+        $network = $this->validate($user, $sender, $callData, $networkKey, $initCode);
+
+        $denied = $this->budget->consume($user->id, 'relayer.sponsor');
+
+        if ($denied === SponsorshipBudget::DENIED_USER_LIMIT) {
+            throw SponsorshipRequestRejectedException::dailyLimitReached();
+        }
+
+        if ($denied !== null) {
+            throw SponsorshipRequestRejectedException::temporarilyUnavailable();
+        }
+
+        return $network;
+    }
+
+    /**
      * Validate a sponsorship request against the policy and return the
-     * network it is bound to.
+     * network it is bound to. Does not touch the sponsorship budget.
      *
      * @throws SponsorshipRequestRejectedException
      */

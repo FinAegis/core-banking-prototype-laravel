@@ -29,6 +29,7 @@ use App\Domain\Wallet\Services\Send\EvmUserOpPreparer;
 use App\Domain\Wallet\Services\Send\EvmUserOpSubmitter;
 use App\Domain\Wallet\Services\Send\SolanaSendPreparer;
 use App\Domain\Wallet\Services\Send\SolanaSendSubmitter;
+use App\Domain\Wallet\Services\SponsorshipBudget;
 use App\Domain\Wallet\Services\SponsorshipCostTracker;
 use App\Http\Controllers\Controller;
 use App\Support\SecretRedactor;
@@ -880,7 +881,9 @@ class MobileWalletController extends Controller
     /**
      * Anti-abuse guardrail for gas-sponsored sends. Caps per-user and global
      * send volume per UTC day so a scripted account — or a viral spike —
-     * cannot run up an unbounded paymaster bill. Counters are incremented at
+     * cannot run up an unbounded paymaster bill. The counters (and the
+     * optional USD budget) are the shared {@see SponsorshipBudget}, which
+     * generic relayer sponsorship draws on as well. One unit is consumed at
      * prepare time (the entry point); abandoned prepares count too, which is
      * deliberately conservative.
      *
@@ -888,65 +891,13 @@ class MobileWalletController extends Controller
      */
     private function enforceSendRateLimit(\App\Models\User $user): ?JsonResponse
     {
-        // Value-denominated budget: when WALLET_SPONSORSHIP_DAILY_BUDGET_USD
-        // is configured, stop new prepares once today's accumulated sponsored
-        // spend reaches it. The counter is incremented at confirmation time —
-        // when the real on-chain fee is known — so the budget is checked
-        // pre-send but charged post-confirmation. A burst of in-flight sends
-        // can therefore overshoot the budget slightly; accepted, because the
-        // overshoot is bounded by the count caps below.
-        if ($this->sponsorshipCostTracker->isDailyBudgetExhausted()) {
-            Log::critical('wallet.send daily sponsorship USD budget exhausted', [
-                'spent_usd_micro' => $this->sponsorshipCostTracker->todaysSpendUsdMicro(),
-                'budget_usd'      => $this->sponsorshipCostTracker->dailyBudgetUsd(),
-            ]);
+        $denied = (new SponsorshipBudget($this->sponsorshipCostTracker))->consume($user->id, 'wallet.send');
 
-            return response()->json([
-                'success' => false,
-                'error'   => [
-                    'code'    => 'SEND_TEMPORARILY_UNAVAILABLE',
-                    'message' => 'Sends are temporarily paused. Please try again later.',
-                ],
-            ], 429);
+        if ($denied === null) {
+            return null;
         }
 
-        $perUserLimit = (int) config('wallet.sponsorship.per_user_daily_limit', 30);
-        $globalLimit = (int) config('wallet.sponsorship.global_daily_limit', 5000);
-
-        $day = now()->utc()->format('Y-m-d');
-        $expiry = now()->addDay();
-        $perUserKey = "wallet_send:count:user:{$user->id}:{$day}";
-        $globalKey = SponsorshipCostTracker::globalSendCountCacheKey();
-
-        // Cache::add + increment — never read-then-write (concurrency-safe).
-        Cache::add($perUserKey, 0, $expiry);
-        Cache::add($globalKey, 0, $expiry);
-
-        $globalCount = (int) Cache::increment($globalKey);
-        $userCount = (int) Cache::increment($perUserKey);
-
-        if ($globalCount > $globalLimit) {
-            Log::critical('wallet.send global daily sponsorship ceiling reached', [
-                'global_count' => $globalCount,
-                'global_limit' => $globalLimit,
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'error'   => [
-                    'code'    => 'SEND_TEMPORARILY_UNAVAILABLE',
-                    'message' => 'Sends are temporarily paused. Please try again later.',
-                ],
-            ], 429);
-        }
-
-        if ($userCount > $perUserLimit) {
-            Log::warning('wallet.send per-user daily limit reached', [
-                'user_id'    => $user->id,
-                'user_count' => $userCount,
-                'user_limit' => $perUserLimit,
-            ]);
-
+        if ($denied === SponsorshipBudget::DENIED_USER_LIMIT) {
             return response()->json([
                 'success' => false,
                 'error'   => [
@@ -956,7 +907,13 @@ class MobileWalletController extends Controller
             ], 429);
         }
 
-        return null;
+        return response()->json([
+            'success' => false,
+            'error'   => [
+                'code'    => 'SEND_TEMPORARILY_UNAVAILABLE',
+                'message' => 'Sends are temporarily paused. Please try again later.',
+            ],
+        ], 429);
     }
 
     /**

@@ -6,6 +6,8 @@ namespace App\Console\Commands;
 
 use App\Domain\Wallet\Services\Send\SolanaSponsorSigner;
 use Illuminate\Console\Command;
+use Illuminate\Foundation\Application;
+use Illuminate\Support\Env;
 use RuntimeException;
 
 /**
@@ -21,6 +23,13 @@ use RuntimeException;
  * block when the app environment is production (or when --strict is passed, so
  * staging pipelines can opt in). WARN never blocks; checks whose feature is
  * disabled report SKIP.
+ *
+ * The `switches` category lists the production switches for demo-only or
+ * platform-billed surfaces (direct ledger funding, mock custodian, card
+ * waitlist deposits, generic gas sponsorship, API sign-ups, SMS, the MCP
+ * money tools, the trading engine). Each WARNs in production while it is on
+ * or while its env var is not set explicitly, so the operator sees the
+ * effective value; none of them blocks a deploy.
  */
 class OpsVerifyEnvCommand extends Command
 {
@@ -48,6 +57,34 @@ class OpsVerifyEnvCommand extends Command
 
     private const CATEGORY_FILES = 'files';
 
+    private const CATEGORY_SWITCHES = 'switches';
+
+    /**
+     * Production switches: config key => [env var, what is live while on].
+     *
+     * @var array<string, array{0: string, 1: string}>
+     */
+    private const PRODUCTION_SWITCHES = [
+        'ledger.direct_funding_enabled'      => ['LEDGER_DIRECT_FUNDING_ENABLED', 'the direct ledger funding endpoints (deposit/withdraw, BIAN, custodian transfer, reversal, ledger GraphQL mutations) move balances without a payment rail'],
+        'custodians.connectors.mock.enabled' => ['CUSTODIAN_MOCK_ENABLED', 'the Mock Bank custodian connector is enabled in config (MockBankConnector::isPermitted() still never registers it in production)'],
+        'cards.waitlist_deposit_enabled'     => ['CARDS_WAITLIST_DEPOSIT_ENABLED', 'POST /api/v1/cards/waitlist/deposit accepts card waitlist deposits'],
+        'relayer.generic_sponsor_enabled'    => ['RELAYER_GENERIC_SPONSOR_ENABLED', 'REST /api/v1/relayer/sponsor and GraphQL sponsorTransaction spend platform gas'],
+        'registration.api_enabled'           => ['REGISTRATION_API_ENABLED', 'new accounts can be created through API, Privy and social sign-up'],
+        'sms.enabled'                        => ['SMS_ENABLED', 'POST /api/v1/sms/send and MCP sms.send send SMS billed to the platform'],
+        'trading.enabled'                    => ['TRADING_ENABLED', 'the demo trading engine (order book, liquidity pools, GraphQL placeOrder) is live'],
+    ];
+
+    /**
+     * MCP tools that move internal ledger balances: tool name => env var.
+     *
+     * @var array<string, string>
+     */
+    private const MCP_MONEY_TOOLS = [
+        'account.create'   => 'MCP_TOOL_ACCOUNT_CREATE',
+        'payment.transfer' => 'MCP_TOOL_PAYMENT_TRANSFER',
+        'exchange.trade'   => 'MCP_TOOL_EXCHANGE_TRADE',
+    ];
+
     /** @var list<array{name: string, category: string, result: string, detail: string}> */
     private array $checks = [];
 
@@ -61,6 +98,7 @@ class OpsVerifyEnvCommand extends Command
         $this->checkBypasses();
         $this->checkConditional($solanaSponsor);
         $this->checkFiles();
+        $this->checkProductionSwitches($isProduction);
 
         $failed = array_values(array_filter(
             $this->checks,
@@ -348,6 +386,41 @@ class OpsVerifyEnvCommand extends Command
         }
 
         $this->checkPrivacyProviders();
+        $this->checkPimlicoBundlerUrl();
+    }
+
+    /**
+     * PIMLICO_BUNDLER_URL is optional: empty, EthRpcClient derives the
+     * per-chain endpoint. A pinned URL serves one chain only, so it misroutes
+     * every other network's bundler calls when several EVM networks are on.
+     */
+    private function checkPimlicoBundlerUrl(): void
+    {
+        if ($this->configString('relayer.pimlico.bundler_url') === '') {
+            $this->add(self::CATEGORY_CONDITIONAL, 'relayer.pimlico.bundler_url', self::PASS, 'PIMLICO_BUNDLER_URL is empty — the bundler URL is derived per chain.');
+
+            return;
+        }
+
+        $networks = config('wallet.evm.enabled_networks');
+        $networks = is_array($networks)
+            ? array_values(array_unique(array_filter(array_map(
+                static fn (mixed $network): string => is_scalar($network) ? strtolower(trim((string) $network)) : '',
+                $networks,
+            ))))
+            : [];
+
+        if (count($networks) > 1) {
+            $this->add(self::CATEGORY_CONDITIONAL, 'relayer.pimlico.bundler_url', self::WARN, sprintf(
+                'PIMLICO_BUNDLER_URL is set while %d EVM networks are enabled (WALLET_SEND_EVM_NETWORKS=%s) — a pinned bundler URL serves one chain, so every other network\'s UserOps go to the wrong chain. Leave PIMLICO_BUNDLER_URL empty.',
+                count($networks),
+                implode(',', $networks),
+            ));
+
+            return;
+        }
+
+        $this->add(self::CATEGORY_CONDITIONAL, 'relayer.pimlico.bundler_url', self::PASS, 'PIMLICO_BUNDLER_URL is pinned and at most one EVM network is enabled.');
     }
 
     /**
@@ -544,6 +617,86 @@ class OpsVerifyEnvCommand extends Command
         }
 
         return $normalized;
+    }
+
+    // ── Category: switches ───────────────────────────────────────────────
+
+    /**
+     * Production switches. WARN (never FAIL) in production while a switch is
+     * on, or while its env var is not set explicitly; SKIP elsewhere unless
+     * --strict is passed (demo and local run with these on).
+     */
+    private function checkProductionSwitches(bool $isProduction): void
+    {
+        $applies = $isProduction || (bool) $this->option('strict');
+
+        foreach (self::PRODUCTION_SWITCHES as $configKey => [$envName, $whenOn]) {
+            if (! $applies) {
+                $this->add(self::CATEGORY_SWITCHES, $configKey, self::SKIP, 'Checked in production only.');
+
+                continue;
+            }
+
+            $this->checkSwitch($configKey, $envName, config($configKey), $whenOn);
+        }
+
+        $tools = config('mcp.tools');
+        $tools = is_array($tools) ? $tools : [];
+
+        foreach (self::MCP_MONEY_TOOLS as $tool => $envName) {
+            $name = 'mcp.tools.' . $tool;
+
+            if (! $applies) {
+                $this->add(self::CATEGORY_SWITCHES, $name, self::SKIP, 'Checked in production only.');
+
+                continue;
+            }
+
+            $entry = $tools[$tool] ?? null;
+            $enabled = is_array($entry) ? ($entry['enabled'] ?? null) : null;
+
+            $this->checkSwitch($name, $envName, $enabled, "the MCP {$tool} tool moves internal ledger balances");
+        }
+    }
+
+    private function checkSwitch(string $name, string $envName, mixed $value, string $whenOn): void
+    {
+        if ($value === null) {
+            $this->add(self::CATEGORY_SWITCHES, $name, self::WARN, sprintf('%s is not configured (%s unset). Set %s=false explicitly unless %s is intended.', $name, $envName, $envName, $whenOn));
+
+            return;
+        }
+
+        if ((bool) $value) {
+            $this->add(self::CATEGORY_SWITCHES, $name, self::WARN, sprintf('%s is ON: %s. Set %s=false unless this is intended.', $envName, $whenOn, $envName));
+
+            return;
+        }
+
+        $explicit = $this->envIsSet($envName);
+
+        if ($explicit === false) {
+            $this->add(self::CATEGORY_SWITCHES, $name, self::WARN, sprintf('%s is not set — it resolves to off (secure default). Set %s=false (or true) explicitly so the deployed value is visible.', $envName, $envName));
+
+            return;
+        }
+
+        $this->add(self::CATEGORY_SWITCHES, $name, self::PASS, $explicit === null
+            ? sprintf('%s resolves to off (config is cached; explicit setting not checked).', $envName)
+            : sprintf('%s=false.', $envName));
+    }
+
+    /**
+     * Whether the env var is set explicitly, or null when that cannot be told
+     * (with a cached config the .env file is not loaded).
+     */
+    private function envIsSet(string $name): ?bool
+    {
+        if ($this->laravel instanceof Application && $this->laravel->configurationIsCached()) {
+            return null;
+        }
+
+        return Env::get($name) !== null;
     }
 
     // ── Plumbing ─────────────────────────────────────────────────────────

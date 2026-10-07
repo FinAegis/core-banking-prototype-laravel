@@ -101,4 +101,18 @@ return [
     // `error.reason` carries REGISTRATION_CLOSED / INVITATION_REQUIRED.
     'ERR_REG_001' => ['http' => 403, 'description' => 'New account registration is currently closed.'],
     'ERR_REG_002' => ['http' => 403, 'description' => 'Registration is by invitation only. Use the email address your invitation was sent to (password sign-up also needs the invitation token).'],
+
+    // ─── Generic relayer sponsorship (SponsorshipRequestValidator) ────────
+    // REST POST /api/v1/relayer/sponsor; GraphQL sponsorTransaction returns
+    // the same messages as errors.
+    'ERR_RELAYER_300' => ['http' => 404, 'description' => 'Transaction sponsorship is not available.'],
+    'ERR_RELAYER_301' => ['http' => 403, 'description' => 'The sender must be a smart account or wallet address registered to your account on this network.'],
+    'ERR_RELAYER_302' => ['http' => 422, 'description' => 'Only USDC/USDT transfers from your smart account can be sponsored.'],
+    'ERR_RELAYER_303' => ['http' => 422, 'description' => 'Sponsored transactions are not available on this network.'],
+    'ERR_RELAYER_304' => ['http' => 422, 'description' => 'The init code does not match the deployment data of your smart account.'],
+    'ERR_RELAYER_305' => ['http' => 429, 'description' => "You've reached today's sponsored transaction limit. It resets at 00:00 UTC."],
+    'ERR_RELAYER_306' => ['http' => 429, 'description' => 'Sponsored transactions are temporarily paused. Please try again later.'],
+
+    // ─── SMS (POST /api/v1/sms/send) ───────────────────────────────────────
+    'ERR_SMS_001' => ['http' => 429, 'description' => 'The daily SMS sending limit has been reached. Please try again after 00:00 UTC.'],
 ];

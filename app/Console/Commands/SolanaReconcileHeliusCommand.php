@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Domain\Account\Models\BlockchainAddress;
+use App\Support\SecretRedactor;
 use Illuminate\Console\Command;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -47,14 +49,24 @@ class SolanaReconcileHeliusCommand extends Command
             ->values()
             ->all();
 
-        $response = Http::timeout(15)
-            ->withQueryParameters(['api-key' => $apiKey])
-            ->get("https://api.helius.xyz/v0/webhooks/{$webhookId}");
+        try {
+            $response = Http::timeout(15)
+                ->withQueryParameters(['api-key' => $apiKey])
+                ->get("https://api.helius.xyz/v0/webhooks/{$webhookId}");
+        } catch (ConnectionException $e) {
+            // The Helius key is the api-key query parameter of the request URL.
+            $error = SecretRedactor::message($e);
+
+            Log::error('Helius reconcile: webhook API unreachable', ['error' => $error]);
+            $this->error("Helius API unreachable: {$error}");
+
+            return self::FAILURE;
+        }
 
         if (! $response->successful()) {
             Log::error('Helius reconcile: failed to fetch webhook config', [
                 'status' => $response->status(),
-                'body'   => $response->body(),
+                'body'   => SecretRedactor::redact($response->body()),
             ]);
             $this->error("Helius API returned {$response->status()}.");
 

@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace App\Domain\Wallet\Services;
 
 use App\Domain\Account\Models\BlockchainAddress;
+use App\Support\SecretRedactor;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 /**
  * Syncs Solana user addresses with Helius webhook monitoring.
@@ -159,10 +163,7 @@ class HeliusWebhookSyncService
      */
     private function fetchAddressesFromApi(string $webhookId, string $apiKey): array
     {
-        $response = Http::timeout(15)
-            ->get("https://api.helius.xyz/v0/webhooks/{$webhookId}", [
-                'api-key' => $apiKey,
-            ]);
+        $response = $this->send('GET', $webhookId, $apiKey);
 
         if (! $response->successful()) {
             Log::error('Helius: Failed to fetch webhook', [
@@ -198,14 +199,12 @@ class HeliusWebhookSyncService
     {
         $uniqueAddresses = array_values(array_unique($addresses));
 
-        $current = Http::timeout(15)
-            ->withQueryParameters(['api-key' => $apiKey])
-            ->get("https://api.helius.xyz/v0/webhooks/{$webhookId}");
+        $current = $this->send('GET', $webhookId, $apiKey);
 
         if (! $current->successful()) {
             Log::error('Helius: Failed to fetch current webhook config for update', [
                 'status' => $current->status(),
-                'body'   => $current->body(),
+                'body'   => SecretRedactor::redact($current->body()),
             ]);
 
             return false;
@@ -219,14 +218,12 @@ class HeliusWebhookSyncService
         $config = array_intersect_key($config, array_flip(self::PUT_ALLOWED_FIELDS));
         $config['accountAddresses'] = $uniqueAddresses;
 
-        $response = Http::timeout(15)
-            ->withQueryParameters(['api-key' => $apiKey])
-            ->put("https://api.helius.xyz/v0/webhooks/{$webhookId}", $config);
+        $response = $this->send('PUT', $webhookId, $apiKey, $config);
 
         if (! $response->successful()) {
             Log::error('Helius: Failed to update webhook addresses', [
                 'status' => $response->status(),
-                'body'   => $response->body(),
+                'body'   => SecretRedactor::redact($response->body()),
                 'count'  => count($uniqueAddresses),
             ]);
 
@@ -238,6 +235,28 @@ class HeliusWebhookSyncService
         Log::info('Helius: Webhook addresses updated', ['count' => count($uniqueAddresses)]);
 
         return true;
+    }
+
+    /**
+     * Call the Helius webhook API. Helius only accepts the key as the
+     * `api-key` query parameter, so transport errors (which embed the request
+     * URL) are rethrown with the key redacted and without the original
+     * exception attached.
+     *
+     * @param  array<string, mixed>  $body
+     *
+     * @throws RuntimeException when Helius cannot be reached
+     */
+    private function send(string $method, string $webhookId, string $apiKey, array $body = []): Response
+    {
+        $request = Http::timeout(15)->withQueryParameters(['api-key' => $apiKey]);
+        $url = "https://api.helius.xyz/v0/webhooks/{$webhookId}";
+
+        try {
+            return $method === 'PUT' ? $request->put($url, $body) : $request->get($url);
+        } catch (ConnectionException $e) {
+            throw new RuntimeException('Helius webhook API unreachable: ' . SecretRedactor::message($e));
+        }
     }
 
     private function isReservedAddress(string $address): bool

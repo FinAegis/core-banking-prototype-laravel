@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Domain\Account\Models\BlockchainAddress;
 use App\Domain\Wallet\Services\HeliusTransactionProcessor;
+use App\Support\SecretRedactor;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -143,9 +144,10 @@ class SolanaTransactionBackfillCommand extends Command
 
             return collect($response->json());
         } catch (Throwable $e) {
+            // The Helius key is the api-key query parameter of the request URL.
             Log::error('Helius: Transaction history fetch error', [
                 'address' => $address,
-                'error'   => $e->getMessage(),
+                'error'   => SecretRedactor::message($e),
             ]);
 
             return null;

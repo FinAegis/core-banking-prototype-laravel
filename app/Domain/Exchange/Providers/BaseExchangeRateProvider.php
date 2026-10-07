@@ -7,6 +7,7 @@ namespace App\Domain\Exchange\Providers;
 use App\Domain\Exchange\Contracts\IExchangeRateProvider;
 use App\Domain\Exchange\Exceptions\RateLimitException;
 use App\Domain\Exchange\Exceptions\RateProviderException;
+use App\Support\SecretRedactor;
 use Closure;
 use Exception;
 use Illuminate\Http\Client\PendingRequest;
@@ -66,7 +67,7 @@ abstract class BaseExchangeRateProvider implements IExchangeRateProvider
             Log::error(
                 "Exchange rate provider {$this->getName()} health check failed",
                 [
-                    'error' => $e->getMessage(),
+                    'error' => SecretRedactor::message($e),
                 ]
             );
 
@@ -140,7 +141,7 @@ abstract class BaseExchangeRateProvider implements IExchangeRateProvider
                 [
                     'method'   => $method,
                     'endpoint' => $endpoint,
-                    'data'     => $data,
+                    'data'     => SecretRedactor::redactArray($data),
                 ]
             );
         }

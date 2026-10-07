@@ -6,6 +6,7 @@ namespace App\Domain\Relayer\Services;
 
 use App\Domain\Relayer\Contracts\WalletBalanceProviderInterface;
 use App\Domain\Relayer\Enums\SupportedNetwork;
+use App\Support\SecretRedactor;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -224,13 +225,18 @@ class WalletBalanceService implements WalletBalanceProviderInterface
             // Remove 0x prefix and convert from hex
             return $this->hexToDecimal($result);
         } catch (Throwable $e) {
+            // Alchemy and Infura take the key in the URL path, and transport
+            // errors embed the request URL: redact before logging or
+            // rethrowing (the original exception is not chained).
+            $error = SecretRedactor::message($e);
+
             Log::error('Balance RPC call failed', [
                 'wallet'  => $walletAddress,
                 'token'   => $tokenAddress,
                 'network' => $network->value,
-                'error'   => $e->getMessage(),
+                'error'   => $error,
             ]);
-            throw new RuntimeException('Failed to fetch balance: ' . $e->getMessage());
+            throw new RuntimeException('Failed to fetch balance: ' . $error);
         }
     }
 

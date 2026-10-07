@@ -42,7 +42,9 @@ class RelayerController extends Controller
      * otherwise). The sender must be a smart account / wallet address
      * registered to the caller, the network must be enabled for wallet sends
      * and the calldata must be an execute(USDC|USDT, 0, transfer(to, amount))
-     * call (see SponsorshipRequestValidator).
+     * call (see SponsorshipRequestValidator). Each accepted request counts
+     * against the daily sponsorship budget shared with wallet sends (429
+     * once it is used up).
      */
     #[OA\Post(
         path: '/api/v1/relayer/sponsor',
@@ -93,6 +95,10 @@ class RelayerController extends Controller
         response: 422,
         description: 'Calldata, network or init code not allowed (ERR_RELAYER_302/303/304)'
     )]
+    #[OA\Response(
+        response: 429,
+        description: 'Daily sponsorship limit reached (ERR_RELAYER_305 per user, ERR_RELAYER_306 platform-wide); shared with wallet sends'
+    )]
     public function sponsor(Request $request): JsonResponse
     {
         // Max lengths: call_data 50KB (100000 hex chars), signature 132 chars (65 bytes), init_code 20KB
@@ -111,7 +117,7 @@ class RelayerController extends Controller
         }
 
         try {
-            $network = $this->sponsorshipValidator->validate(
+            $network = $this->sponsorshipValidator->admit(
                 user: $user,
                 sender: $validated['user_address'],
                 callData: $validated['call_data'],

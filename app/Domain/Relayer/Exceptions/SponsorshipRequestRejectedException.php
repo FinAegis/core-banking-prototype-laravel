@@ -27,6 +27,10 @@ class SponsorshipRequestRejectedException extends RuntimeException implements Cl
 
     public const CODE_INIT_CODE_NOT_ALLOWED = 'ERR_RELAYER_304';
 
+    public const CODE_DAILY_LIMIT_REACHED = 'ERR_RELAYER_305';
+
+    public const CODE_TEMPORARILY_UNAVAILABLE = 'ERR_RELAYER_306';
+
     public function __construct(
         string $message,
         public readonly string $errorCode,
@@ -73,6 +77,30 @@ class SponsorshipRequestRejectedException extends RuntimeException implements Cl
             'The init code does not match the deployment data of your smart account.',
             self::CODE_INIT_CODE_NOT_ALLOWED,
             422,
+        );
+    }
+
+    /**
+     * The caller's share of the daily sponsorship budget is used up.
+     */
+    public static function dailyLimitReached(): self
+    {
+        return new self(
+            "You've reached today's sponsored transaction limit. It resets at 00:00 UTC.",
+            self::CODE_DAILY_LIMIT_REACHED,
+            429,
+        );
+    }
+
+    /**
+     * The platform-wide daily sponsorship budget is used up.
+     */
+    public static function temporarilyUnavailable(): self
+    {
+        return new self(
+            'Sponsored transactions are temporarily paused. Please try again later.',
+            self::CODE_TEMPORARILY_UNAVAILABLE,
+            429,
         );
     }
 

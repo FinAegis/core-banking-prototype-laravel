@@ -64,7 +64,7 @@ Runbook: `docs/operations/bridge-ramp.md`. ADRs: `docs/adr/0005-*`, `docs/adr/00
 
 Runbook: `docs/operations/wallet-sponsorship.md`.
 
-- [ ] EVM sponsorship: `PIMLICO_API_KEY` + `PIMLICO_BUNDLER_URL` set. `WALLET_SEND_EVM_NETWORKS=polygon,base,arbitrum` (Ethereum L1 stays disabled — uncapped gas).
+- [ ] EVM sponsorship: `PIMLICO_API_KEY` set, `PIMLICO_BUNDLER_URL` left empty (derived per chain). `WALLET_SEND_EVM_NETWORKS=polygon,base,arbitrum` (Ethereum L1 stays disabled — uncapped gas).
 - [ ] Solana sponsorship: `WALLET_SOLANA_SPONSOR_SECRET_KEY` set (base58 64-byte ed25519) if 0-SOL wallets must send. `ops:verify-env` FAILs when the key is set but undecodable; SKIPs when unset (legacy sender-pays, which fails for 0-SOL wallets).
 - [ ] **Sponsor balance monitoring**: `solana:check-sponsor-balance` scheduled hourly (it is, in `routes/console.php`); CRITICAL alert routes to Slack; sponsor account funded above `WALLET_SOLANA_SPONSOR_LOW_BALANCE_LAMPORTS` (default 0.1 SOL).
 - [ ] Sponsorship caps reviewed: per-user 30/day, global 5000/day (`WALLET_SEND_*_DAILY_LIMIT`). Note these are **cache counters** — a Redis flush resets the day's counts.

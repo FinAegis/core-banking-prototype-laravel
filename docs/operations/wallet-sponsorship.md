@@ -16,7 +16,7 @@ Operator-only runbook for gas/fee sponsorship on non-custodial wallet sends (v7.
 
 EVM sends are ERC-4337 v0.6 UserOps from passkey-controlled smart accounts. At prepare time (`POST /api/v1/wallet/transactions/prepare`), `EvmUserOpPreparer` asks the **Pimlico** paymaster to sponsor the op — the sponsorship response supplies `paymasterAndData` plus the gas limits baked into the UserOp hash the device signs. The platform's Pimlico account is billed for the gas.
 
-- Credentials: `PIMLICO_API_KEY` (+ `PIMLICO_BUNDLER_URL`) in `config/relayer.php` (`pimlico` block).
+- Credentials: `PIMLICO_API_KEY` in `config/relayer.php` (`pimlico` block). Leave `PIMLICO_BUNDLER_URL` empty: the bundler URL is derived per chain (`https://api.pimlico.io/v2/{chainId}/rpc`). A pinned URL sends every network to one chain; `ops:verify-env` warns when it is set with more than one EVM network.
 - Enabled networks: `WALLET_SEND_EVM_NETWORKS`, default `polygon,base,arbitrum`. **Ethereum L1 is deliberately excluded** — a single L1 send can cost $1–$20+ in sponsored gas vs fractions of a cent on the L2s. Re-add `ethereum` only with a deliberate cost decision.
 - A send on a network not in the list returns **422 `NETWORK_DISABLED`** (also surfaced when a Wallet `NetworkDisabledException` bubbles up). This is the expected response, not a bug.
 
@@ -33,7 +33,7 @@ Config: `config/wallet.php` → `wallet.solana.sponsor`.
 
 ## Count caps (anti-abuse guardrail)
 
-`config/wallet.php` `sponsorship` block, enforced in `MobileWalletController::enforceSendRateLimit` **at prepare time** (abandoned prepares count — deliberately conservative):
+`config/wallet.php` `sponsorship` block, enforced by `App\Domain\Wallet\Services\SponsorshipBudget` **at prepare time** (abandoned prepares count — deliberately conservative). Generic relayer sponsorship (REST `POST /api/v1/relayer/sponsor`, GraphQL `sponsorTransaction`, only when `RELAYER_GENERIC_SPONSOR_ENABLED=true`) draws on the same counters and answers 429 `ERR_RELAYER_305` / `ERR_RELAYER_306` (GraphQL: an error with the same message) when they are used up:
 
 | Cap | Env | Default | On breach |
 |---|---|---|---|

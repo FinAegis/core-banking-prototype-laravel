@@ -51,11 +51,111 @@ function opsVerifyEnvAllGoodConfig(): void
         'mobile.attestation.enabled'       => false,
         'privy.web_login_enabled'          => false,
         'backup.backup.destination.disks'  => ['s3'],
+        'relayer.pimlico.bundler_url'      => '',
+
+        // switches (testing defaults several of these to on)
+        'ledger.direct_funding_enabled'      => false,
+        'custodians.connectors.mock.enabled' => false,
+        'cards.waitlist_deposit_enabled'     => false,
+        'relayer.generic_sponsor_enabled'    => false,
+        'registration.api_enabled'           => false,
+        'sms.enabled'                        => false,
+        'trading.enabled'                    => false,
 
         // files — the repo ships storage/app/apple/AppleRootCA-G3.cer, whose
         // sha256 matches the default pinned fingerprint in config/subscription.php.
     ]);
+
+    opsVerifyEnvMcpMoneyTools(false);
 }
+
+/**
+ * The MCP tool names contain dots, so they cannot be set with dot notation.
+ */
+function opsVerifyEnvMcpMoneyTools(bool $enabled): void
+{
+    /** @var array<string, array<string, mixed>> $tools */
+    $tools = config('mcp.tools');
+
+    foreach (['account.create', 'payment.transfer', 'exchange.trade'] as $tool) {
+        $tools[$tool]['enabled'] = $enabled;
+    }
+
+    config(['mcp.tools' => $tools]);
+}
+
+/**
+ * Run ops:verify-env --json and return the exit code plus the checks keyed
+ * by name.
+ *
+ * @param  array<string, mixed>  $options
+ * @return array{0: int, 1: array<string, array{name: string, category: string, result: string, detail: string}>}
+ */
+function opsVerifyEnvRun(array $options = []): array
+{
+    $exitCode = Artisan::call('ops:verify-env', array_merge(['--json' => true], $options));
+
+    /** @var array{checks: list<array{name: string, category: string, result: string, detail: string}>} $decoded */
+    $decoded = json_decode(Artisan::output(), true);
+
+    return [$exitCode, collect($decoded['checks'])->keyBy('name')->all()];
+}
+
+/**
+ * Run the callback with the given variables set in the process environment
+ * (as if they were in .env) and restore it afterwards.
+ *
+ * @param  array<string, string>  $env
+ */
+function opsVerifyEnvWithEnv(array $env, callable $callback): mixed
+{
+    $saved = [];
+
+    foreach ($env as $key => $value) {
+        $saved[$key] = [$_SERVER[$key] ?? null, $_ENV[$key] ?? null, getenv($key)];
+        $_SERVER[$key] = $value;
+        $_ENV[$key] = $value;
+        putenv("{$key}={$value}");
+    }
+
+    try {
+        return $callback();
+    } finally {
+        foreach ($saved as $key => [$server, $envValue, $getenv]) {
+            if ($server === null) {
+                unset($_SERVER[$key]);
+            } else {
+                $_SERVER[$key] = $server;
+            }
+            if ($envValue === null) {
+                unset($_ENV[$key]);
+            } else {
+                $_ENV[$key] = $envValue;
+            }
+            if ($getenv === false) {
+                putenv($key);
+            } else {
+                putenv("{$key}={$getenv}");
+            }
+        }
+    }
+}
+
+const OPS_VERIFY_ENV_SWITCHES = [
+    'ledger.direct_funding_enabled'      => 'LEDGER_DIRECT_FUNDING_ENABLED',
+    'custodians.connectors.mock.enabled' => 'CUSTODIAN_MOCK_ENABLED',
+    'cards.waitlist_deposit_enabled'     => 'CARDS_WAITLIST_DEPOSIT_ENABLED',
+    'relayer.generic_sponsor_enabled'    => 'RELAYER_GENERIC_SPONSOR_ENABLED',
+    'registration.api_enabled'           => 'REGISTRATION_API_ENABLED',
+    'sms.enabled'                        => 'SMS_ENABLED',
+    'trading.enabled'                    => 'TRADING_ENABLED',
+];
+
+const OPS_VERIFY_ENV_MCP_TOOLS = [
+    'mcp.tools.account.create'   => 'MCP_TOOL_ACCOUNT_CREATE',
+    'mcp.tools.payment.transfer' => 'MCP_TOOL_PAYMENT_TRANSFER',
+    'mcp.tools.exchange.trade'   => 'MCP_TOOL_EXCHANGE_TRADE',
+];
 
 it('exits 0 in production when every check passes', function (): void {
     opsVerifyEnvAllGoodConfig();
@@ -336,3 +436,135 @@ it('blocks railgun in production even with a bridge secret (custodial path forbi
         ->and($check)->not->toBeNull()
         ->and($check['result'])->toBe('FAIL');
 });
+
+it('warns (never blocks) in production about each switch that is on', function (string $configKey, string $envName): void {
+    opsVerifyEnvAllGoodConfig();
+    config([$configKey => true]);
+    app()->detectEnvironment(fn () => 'production');
+
+    [$exitCode, $checks] = opsVerifyEnvRun();
+
+    expect($exitCode)->toBe(0)
+        ->and($checks[$configKey]['category'])->toBe('switches')
+        ->and($checks[$configKey]['result'])->toBe('WARN')
+        ->and($checks[$configKey]['detail'])->toContain("{$envName} is ON");
+})->with(array_map(null, array_keys(OPS_VERIFY_ENV_SWITCHES), array_values(OPS_VERIFY_ENV_SWITCHES)));
+
+it('warns (never blocks) in production about each MCP money tool that is on', function (string $tool, string $envName): void {
+    opsVerifyEnvAllGoodConfig();
+    /** @var array<string, array<string, mixed>> $tools */
+    $tools = config('mcp.tools');
+    $tools[substr($tool, strlen('mcp.tools.'))]['enabled'] = true;
+    config(['mcp.tools' => $tools]);
+    app()->detectEnvironment(fn () => 'production');
+
+    [$exitCode, $checks] = opsVerifyEnvRun();
+
+    expect($exitCode)->toBe(0)
+        ->and($checks[$tool]['result'])->toBe('WARN')
+        ->and($checks[$tool]['detail'])->toContain("{$envName} is ON");
+})->with(array_map(null, array_keys(OPS_VERIFY_ENV_MCP_TOOLS), array_values(OPS_VERIFY_ENV_MCP_TOOLS)));
+
+it('warns in production when a switch is off only because its env var is unset', function (): void {
+    opsVerifyEnvAllGoodConfig();
+    app()->detectEnvironment(fn () => 'production');
+
+    $envNames = array_merge(array_values(OPS_VERIFY_ENV_SWITCHES), array_values(OPS_VERIFY_ENV_MCP_TOOLS));
+    $saved = [];
+    foreach ($envNames as $name) {
+        $saved[$name] = [$_SERVER[$name] ?? null, $_ENV[$name] ?? null, getenv($name)];
+        unset($_SERVER[$name], $_ENV[$name]);
+        putenv($name);
+    }
+
+    try {
+        [$exitCode, $checks] = opsVerifyEnvRun();
+    } finally {
+        foreach ($saved as $name => [$server, $envValue, $getenv]) {
+            if ($server !== null) {
+                $_SERVER[$name] = $server;
+            }
+            if ($envValue !== null) {
+                $_ENV[$name] = $envValue;
+            }
+            if ($getenv !== false) {
+                putenv("{$name}={$getenv}");
+            }
+        }
+    }
+
+    expect($exitCode)->toBe(0);
+    foreach (array_merge(OPS_VERIFY_ENV_SWITCHES, OPS_VERIFY_ENV_MCP_TOOLS) as $name => $envName) {
+        expect($checks[$name]['result'])->toBe('WARN')
+            ->and($checks[$name]['detail'])->toContain("{$envName} is not set");
+    }
+});
+
+it('passes a switch in production when it is explicitly off', function (): void {
+    opsVerifyEnvAllGoodConfig();
+    app()->detectEnvironment(fn () => 'production');
+
+    $env = array_fill_keys(array_merge(array_values(OPS_VERIFY_ENV_SWITCHES), array_values(OPS_VERIFY_ENV_MCP_TOOLS)), 'false');
+
+    [$exitCode, $checks] = opsVerifyEnvWithEnv($env, fn (): array => opsVerifyEnvRun());
+
+    expect($exitCode)->toBe(0);
+    foreach (array_keys(array_merge(OPS_VERIFY_ENV_SWITCHES, OPS_VERIFY_ENV_MCP_TOOLS)) as $name) {
+        expect($checks[$name]['result'])->toBe('PASS');
+    }
+});
+
+it('skips the switch checks outside production', function (): void {
+    opsVerifyEnvAllGoodConfig();
+    config(['ledger.direct_funding_enabled' => true, 'sms.enabled' => true]);
+
+    [$exitCode, $checks] = opsVerifyEnvRun();
+
+    expect($exitCode)->toBe(0)
+        ->and($checks['ledger.direct_funding_enabled']['result'])->toBe('SKIP')
+        ->and($checks['sms.enabled']['result'])->toBe('SKIP')
+        ->and($checks['mcp.tools.payment.transfer']['result'])->toBe('SKIP');
+});
+
+it('still exits 0 in production with every switch on', function (): void {
+    opsVerifyEnvAllGoodConfig();
+    config(array_fill_keys(array_keys(OPS_VERIFY_ENV_SWITCHES), true));
+    opsVerifyEnvMcpMoneyTools(true);
+    app()->detectEnvironment(fn () => 'production');
+
+    $this->artisan('ops:verify-env')
+        ->expectsOutputToContain('all preflight checks passed')
+        ->assertExitCode(0);
+});
+
+it('warns when PIMLICO_BUNDLER_URL is pinned while several EVM networks are enabled', function (): void {
+    opsVerifyEnvAllGoodConfig();
+    config([
+        'relayer.pimlico.bundler_url' => 'https://api.pimlico.io/v2/137/rpc',
+        'wallet.evm.enabled_networks' => ['polygon', 'base', 'arbitrum'],
+    ]);
+    app()->detectEnvironment(fn () => 'production');
+
+    [$exitCode, $checks] = opsVerifyEnvRun();
+
+    expect($exitCode)->toBe(0)
+        ->and($checks['relayer.pimlico.bundler_url']['result'])->toBe('WARN')
+        ->and($checks['relayer.pimlico.bundler_url']['detail'])->toContain('polygon,base,arbitrum');
+});
+
+it('passes PIMLICO_BUNDLER_URL when it is empty or only one EVM network is enabled', function (string $url, array $networks): void {
+    opsVerifyEnvAllGoodConfig();
+    config([
+        'relayer.pimlico.bundler_url' => $url,
+        'wallet.evm.enabled_networks' => $networks,
+    ]);
+    app()->detectEnvironment(fn () => 'production');
+
+    [$exitCode, $checks] = opsVerifyEnvRun();
+
+    expect($exitCode)->toBe(0)
+        ->and($checks['relayer.pimlico.bundler_url']['result'])->toBe('PASS');
+})->with([
+    'empty, three networks' => ['', ['polygon', 'base', 'arbitrum']],
+    'pinned, one network'   => ['https://api.pimlico.io/v2/137/rpc', ['polygon']],
+]);

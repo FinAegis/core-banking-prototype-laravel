@@ -6,6 +6,7 @@ namespace App\Domain\Wallet\Observers;
 
 use App\Domain\Account\Models\BlockchainAddress;
 use App\Domain\Wallet\Services\HeliusWebhookSyncService;
+use App\Support\SecretRedactor;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -35,7 +36,7 @@ class BlockchainAddressObserver
             } catch (Throwable $e) {
                 Log::error('Solana webhook: Failed to sync new Solana address', [
                     'address' => $address->address,
-                    'error'   => $e->getMessage(),
+                    'error'   => SecretRedactor::message($e),
                 ]);
             }
         })->afterCommit();
@@ -53,7 +54,7 @@ class BlockchainAddressObserver
             } catch (Throwable $e) {
                 Log::error('Solana webhook: Failed to remove Solana address', [
                     'address' => $address->address,
-                    'error'   => $e->getMessage(),
+                    'error'   => SecretRedactor::message($e),
                 ]);
             }
         })->afterCommit();

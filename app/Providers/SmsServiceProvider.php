@@ -41,8 +41,8 @@ class SmsServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Per-user limits for POST /api/v1/sms/send (route middleware
-        // `throttle:sms-send`, applied after auth:sanctum).
+        // Per-user limits for unpaid POST /api/v1/sms/send requests (applied
+        // by SmsSendGateMiddleware after Sanctum authentication).
         RateLimiter::for('sms-send', function (Request $request): array {
             $key = 'sms-send:' . ($request->user()?->getAuthIdentifier() ?? $request->ip());
 

@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Domain\Account\Models\BlockchainAddress;
 use App\Domain\Wallet\Constants\EvmTokens;
 use App\Domain\Wallet\Services\EvmTransactionProcessor;
+use App\Support\SecretRedactor;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -105,11 +106,14 @@ class EvmTransactionBackfillCommand extends Command
                 try {
                     $transfers = $this->fetchTransfers($apiKey, $chain, $address, $direction, $limit);
                 } catch (Throwable $e) {
-                    $this->error("  {$chain} {$address} ({$direction}): {$e->getMessage()}");
+                    // The Alchemy key is part of the request URL path.
+                    $error = SecretRedactor::message($e);
+
+                    $this->error("  {$chain} {$address} ({$direction}): {$error}");
                     Log::warning('EVM backfill: transfer fetch failed', [
                         'chain'   => $chain,
                         'address' => $address,
-                        'error'   => $e->getMessage(),
+                        'error'   => $error,
                     ]);
 
                     continue;

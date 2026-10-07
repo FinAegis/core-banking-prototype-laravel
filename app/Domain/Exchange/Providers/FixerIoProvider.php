@@ -7,7 +7,10 @@ namespace App\Domain\Exchange\Providers;
 use App\Domain\Exchange\Exceptions\RateProviderException;
 use App\Domain\Exchange\ValueObjects\ExchangeRateQuote;
 use App\Domain\Exchange\ValueObjects\RateProviderCapabilities;
+use App\Support\SecretRedactor;
 use Carbon\Carbon;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Response;
 
 class FixerIoProvider extends BaseExchangeRateProvider
 {
@@ -54,7 +57,7 @@ class FixerIoProvider extends BaseExchangeRateProvider
 
                 $this->logRequest('GET', $endpoint, $params);
 
-                $response = $this->client->get($endpoint, $params);
+                $response = $this->fetch($endpoint, $params);
 
                 $this->logResponse('GET', $endpoint, $response);
 
@@ -153,7 +156,7 @@ class FixerIoProvider extends BaseExchangeRateProvider
 
                 $this->logRequest('GET', $endpoint, $params);
 
-                $response = $this->client->get($endpoint, $params);
+                $response = $this->fetch($endpoint, $params);
 
                 $this->logResponse('GET', $endpoint, $response);
 
@@ -220,6 +223,24 @@ class FixerIoProvider extends BaseExchangeRateProvider
     public function getPriority(): int
     {
         return $this->config['priority'] ?? 50;
+    }
+
+    /**
+     * Fixer.io takes the key as the `access_key` query parameter, so a
+     * transport error (which embeds the request URL) is rethrown with the key
+     * redacted and without the original exception attached.
+     *
+     * @param  array<string, mixed>  $params
+     *
+     * @throws RateProviderException
+     */
+    private function fetch(string $endpoint, array $params): Response
+    {
+        try {
+            return $this->client->get($endpoint, $params);
+        } catch (ConnectionException $e) {
+            throw new RateProviderException('Fixer.io unreachable: ' . SecretRedactor::message($e));
+        }
     }
 
     protected function getBaseUrl(): string
