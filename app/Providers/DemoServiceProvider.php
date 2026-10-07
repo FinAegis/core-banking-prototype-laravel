@@ -64,6 +64,13 @@ class DemoServiceProvider extends ServiceProvider
 
             // Register demo bank connector
             $this->app->booted(function () {
+                // The demo bank accepts any account id and always succeeds, so
+                // it is only registered in local, testing and demo environments
+                // (never in production or staging, whatever SANDBOX_MODE says).
+                if (! $this->app->environment(['local', 'testing', 'demo'])) {
+                    return;
+                }
+
                 $registry = $this->app->make(CustodianRegistry::class);
 
                 // Add demo bank as an available connector

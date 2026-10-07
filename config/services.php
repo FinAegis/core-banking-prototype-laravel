@@ -120,6 +120,14 @@ return [
         ),
     ],
 
+    // Paysera Checkout (web deposit flow). The sign password signs the
+    // payment request and verifies Paysera's response (ss1); with either
+    // value empty the Paysera deposit flow refuses to start or credit.
+    'paysera' => [
+        'project_id'    => env('PAYSERA_PROJECT_ID'),
+        'sign_password' => env('PAYSERA_SIGN_PASSWORD'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | OAuth Services Configuration

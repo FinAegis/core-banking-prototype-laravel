@@ -63,6 +63,7 @@ type ComplianceCase @model(class: "App\\Domain\\Compliance\\Models\\ComplianceCa
 extend type Query {
     kycVerification(id: ID! @eq): KycVerification
         @find
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")
         @guard(with: ["sanctum"])
 
     kycVerifications(
@@ -72,6 +73,7 @@ extend type Query {
         type: String @where(operator: "=")
     ): [KycVerification!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\Compliance\\Models\\KycVerification")
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")
         @guard(with: ["sanctum"])
 
     complianceAlert(id: ID! @eq): ComplianceAlert

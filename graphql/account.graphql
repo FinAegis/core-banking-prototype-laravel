@@ -17,6 +17,7 @@ input CreateAccountInput {
 extend type Query {
     account(id: ID! @eq): Account
         @find
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userUuid")
         @guard(with: ["sanctum"])
 
     accounts(
@@ -24,10 +25,12 @@ extend type Query {
         first: Int @rules(apply: ["integer", "min:1", "max:100"])
     ): [Account!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\Account\\Models\\Account")
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userUuid")
         @guard(with: ["sanctum"])
 
     accountByUuid(uuid: String! @eq): Account
         @find
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userUuid")
         @guard(with: ["sanctum"])
 }
 

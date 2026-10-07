@@ -48,6 +48,7 @@ type CustodianWebhook @model(class: "App\\Domain\\Custodian\\Models\\CustodianWe
 extend type Query {
     custodianAccount(id: ID! @eq): CustodianAccount
         @find
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@accountUuid")
         @guard(with: ["sanctum"])
 
     custodianAccounts(
@@ -57,10 +58,12 @@ extend type Query {
         status: String @where(operator: "=")
     ): [CustodianAccount!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\Custodian\\Models\\CustodianAccount")
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@accountUuid")
         @guard(with: ["sanctum"])
 
     custodianTransfer(id: ID! @eq): CustodianTransfer
         @find
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@custodianTransfer")
         @guard(with: ["sanctum"])
 
     custodianTransfers(
@@ -70,6 +73,7 @@ extend type Query {
         asset_code: String @where(operator: "=")
     ): [CustodianTransfer!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\Custodian\\Models\\CustodianTransfer")
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@custodianTransfer")
         @guard(with: ["sanctum"])
 
     custodianWebhooks(

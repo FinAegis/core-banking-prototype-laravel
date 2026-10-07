@@ -61,6 +61,7 @@ extend type Query {
 
     vote(id: ID! @eq): Vote
         @find
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userUuid")
         @guard(with: ["sanctum"])
 
     pollVotes(
@@ -69,6 +70,7 @@ extend type Query {
         poll_id: ID @where(operator: "=")
     ): [Vote!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\Governance\\Models\\Vote")
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userUuid")
         @guard(with: ["sanctum"])
 }
 

@@ -24,6 +24,7 @@ input CreateInvestmentInput {
 extend type Query {
     investment(id: ID! @eq): CgoInvestment
         @find
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")
         @guard(with: ["sanctum"])
 
     investments(
@@ -32,6 +33,7 @@ extend type Query {
         status: String @where(operator: "=")
     ): [CgoInvestment!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\Cgo\\Models\\CgoInvestment")
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")
         @guard(with: ["sanctum"])
 }
 

@@ -149,7 +149,7 @@ class PayseraDepositController extends Controller
     {
         $this->ensureAvailable();
 
-        Log::info('Paysera callback received', $request->all());
+        Log::info('Paysera callback received', ['order_id' => $request->input('order_id')]);
 
         // Check for cancellation
         if ($request->has('cancelled') && $request->input('cancelled')) {
@@ -167,7 +167,10 @@ class PayseraDepositController extends Controller
 
         // Validate callback data
         $validator = Validator::make($request->all(), [
-            'order_id'       => 'required|string',
+            'order_id'       => 'required_without:data|nullable|string',
+            'data'           => 'nullable|string',
+            'ss1'            => 'nullable|string',
+            'ss2'            => 'nullable|string',
             'status'         => 'nullable|string',
             'amount'         => 'nullable|integer',
             'currency'       => 'nullable|string',
@@ -198,7 +201,7 @@ class PayseraDepositController extends Controller
 
         try {
             $callbackData = [
-                'order_id' => (string) $request->input('order_id'),
+                'order_id' => (string) $request->input('order_id', ''),
                 'status'   => (string) $request->input('status', 'completed'),
                 // The order is credited only to the user who started it.
                 'user_id' => (int) $user->getAuthIdentifier(),
@@ -216,8 +219,16 @@ class PayseraDepositController extends Controller
             if ($request->filled('payment_type')) {
                 $callbackData['payment_type'] = (string) $request->input('payment_type');
             }
+            // Paysera's signed response; the Paysera service credits only
+            // when it verifies.
+            if ($request->filled('data')) {
+                $callbackData['paysera_data'] = (string) $request->input('data');
+            }
+            if ($request->filled('ss1')) {
+                $callbackData['paysera_ss1'] = (string) $request->input('ss1');
+            }
 
-            /** @var array{order_id: string, status: string, user_id: int, amount?: int, currency?: string, payment_type?: string, transaction_id?: string} $callbackData */
+            /** @var array{order_id: string, status: string, user_id: int, amount?: int, currency?: string, payment_type?: string, transaction_id?: string, paysera_data?: string, paysera_ss1?: string} $callbackData */
             $result = $this->payseraDepositService->handleCallback($callbackData);
 
             if ($request->expectsJson()) {

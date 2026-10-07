@@ -30,7 +30,10 @@ final class SmartAccountNonceQuery
         }
 
         /** @var SmartAccount $account */
-        $account = SmartAccount::findOrFail($args['account_id']);
+        $account = SmartAccount::query()
+            ->whereKey($args['account_id'])
+            ->where('user_id', $user->getKey())
+            ->firstOrFail();
 
         $nonceInfo = $this->smartAccountService->getNonceInfo(
             $account->owner_address,

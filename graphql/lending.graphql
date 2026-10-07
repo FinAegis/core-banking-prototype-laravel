@@ -33,6 +33,7 @@ input ApproveLoanInput {
 extend type Query {
     loanApplication(id: ID! @eq): LoanApplication
         @find
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@borrower")
         @guard(with: ["sanctum"])
 
     loanApplications(
@@ -41,6 +42,7 @@ extend type Query {
         status: String @where(operator: "=")
     ): [LoanApplication!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\Lending\\Models\\LoanApplication")
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@borrower")
         @guard(with: ["sanctum"])
 }
 

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Account\Models\Account;
 use App\Domain\Payment\Models\PaymentTransaction;
 use App\Models\User;
 use Illuminate\Support\Str;
@@ -21,9 +22,10 @@ describe('GraphQL Payment API', function () {
 
     it('queries payment by id with authentication', function () {
         $user = User::factory()->create();
+        $account = Account::factory()->create(['user_uuid' => $user->uuid]);
         $payment = PaymentTransaction::create([
             'aggregate_uuid' => Str::uuid()->toString(),
-            'account_uuid'   => Str::uuid()->toString(),
+            'account_uuid'   => $account->uuid,
             'type'           => 'deposit',
             'status'         => 'pending',
             'amount'         => 10000,
@@ -55,10 +57,11 @@ describe('GraphQL Payment API', function () {
 
     it('paginates payments', function () {
         $user = User::factory()->create();
+        $account = Account::factory()->create(['user_uuid' => $user->uuid]);
         for ($i = 0; $i < 3; $i++) {
             PaymentTransaction::create([
                 'aggregate_uuid' => Str::uuid()->toString(),
-                'account_uuid'   => Str::uuid()->toString(),
+                'account_uuid'   => $account->uuid,
                 'type'           => 'deposit',
                 'status'         => 'pending',
                 'amount'         => 5000 + $i,

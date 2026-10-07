@@ -15,6 +15,7 @@ type MultiSigWallet @model(class: "App\\Domain\\Wallet\\Models\\MultiSigWallet")
 extend type Query {
     wallet(id: ID! @eq): MultiSigWallet
         @find
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@wallet")
         @guard(with: ["sanctum"])
 
     wallets(
@@ -24,6 +25,7 @@ extend type Query {
         status: String @where(operator: "=")
     ): [MultiSigWallet!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\Wallet\\Models\\MultiSigWallet")
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@wallet")
         @guard(with: ["sanctum"])
 }
 

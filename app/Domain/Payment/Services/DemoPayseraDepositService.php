@@ -94,7 +94,7 @@ class DemoPayseraDepositService implements PayseraDepositServiceInterface
         Cache::put("paysera_order:{$orderId}", $orderData, now()->addHours(24));
 
         // Build demo redirect URL - in demo mode, redirect back to callback immediately
-        $returnUrl = $data['return_url'] ?? route('paysera.callback');
+        $returnUrl = $data['return_url'] ?? route('wallet.deposit.paysera.callback');
         $redirectUrl = $returnUrl . (str_contains($returnUrl, '?') ? '&' : '?') . http_build_query([
             'order_id'       => $orderId,
             'status'         => 'completed',
@@ -126,7 +126,9 @@ class DemoPayseraDepositService implements PayseraDepositServiceInterface
      *     amount?: int,
      *     currency?: string,
      *     payment_type?: string,
-     *     transaction_id?: string
+     *     transaction_id?: string,
+     *     paysera_data?: string,
+     *     paysera_ss1?: string
      * } $callbackData
      * @return array{
      *     success: bool,

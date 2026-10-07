@@ -22,7 +22,8 @@ describe('GraphQL Account API', function () {
     it('queries account by id with authentication', function () {
         $user = User::factory()->create();
         $account = Account::factory()->create([
-            'name' => 'Test Account',
+            'name'      => 'Test Account',
+            'user_uuid' => $user->uuid,
         ]);
 
         $response = $this->actingAs($user, 'sanctum')
@@ -48,8 +49,9 @@ describe('GraphQL Account API', function () {
         $user = User::factory()->create();
         $uuid = Str::uuid()->toString();
         Account::factory()->create([
-            'uuid' => $uuid,
-            'name' => 'UUID Account',
+            'uuid'      => $uuid,
+            'name'      => 'UUID Account',
+            'user_uuid' => $user->uuid,
         ]);
 
         $response = $this->actingAs($user, 'sanctum')
@@ -72,7 +74,7 @@ describe('GraphQL Account API', function () {
 
     it('paginates accounts', function () {
         $user = User::factory()->create();
-        Account::factory()->count(5)->create();
+        Account::factory()->count(5)->create(['user_uuid' => $user->uuid]);
 
         $response = $this->actingAs($user, 'sanctum')
             ->postJson('/graphql', [

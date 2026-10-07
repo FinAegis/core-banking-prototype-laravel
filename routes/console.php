@@ -170,8 +170,9 @@ Schedule::command('sitemap:generate')
 // mobile-wallet production (its route file also serves /exchange-rates,
 // /settings, /sub-products and /status used by the mobile app), so these
 // trading-only jobs are additionally gated on the trading platform toggle
-// (TRADING_ENABLED, config/trading.php — default true, so demo/showcase
-// deployments are unaffected).
+// (TRADING_ENABLED, config/trading.php — defaults to off under
+// APP_ENV=production and on elsewhere, so demo/showcase deployments are
+// unaffected).
 if (! DomainManager::isDisabledByConfig('Exchange') && config('trading.enabled')) {
     // Liquidity Pool Management
     Schedule::command('liquidity:distribute-rewards')

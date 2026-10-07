@@ -15,6 +15,7 @@ type DelegatedProofJob @model(class: "App\\Domain\\Privacy\\Models\\DelegatedPro
 extend type Query {
     delegatedProofJob(id: ID! @eq): DelegatedProofJob
         @find
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")
         @guard(with: ["sanctum"])
 
     delegatedProofJobs(
@@ -24,6 +25,7 @@ extend type Query {
         proof_type: String @where(operator: "=")
     ): [DelegatedProofJob!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\Privacy\\Models\\DelegatedProofJob")
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")
         @guard(with: ["sanctum"])
 
     zkKycProofTypes: [String!]!

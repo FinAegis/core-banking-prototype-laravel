@@ -30,6 +30,7 @@ input InitiateBridgeTransferInput {
 extend type Query {
     bridgeTransaction(id: ID! @eq): BridgeTransaction
         @find
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")
         @guard(with: ["sanctum"])
 
     bridgeTransactions(
@@ -40,6 +41,7 @@ extend type Query {
         dest_chain: String @where(operator: "=")
     ): [BridgeTransaction!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\CrossChain\\Models\\BridgeTransaction")
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")
         @guard(with: ["sanctum"])
 }
 

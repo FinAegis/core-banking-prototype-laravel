@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Account\Models\Account;
 use App\Domain\Exchange\Projections\Order;
 use App\Domain\Exchange\Projections\OrderBook;
 use App\Domain\Exchange\Projections\Trade;
@@ -12,9 +13,10 @@ uses(Illuminate\Foundation\Testing\RefreshDatabase::class);
 describe('GraphQL Exchange API', function () {
     it('paginates orders', function () {
         $user = User::factory()->create();
+        $account = Account::factory()->create(['user_uuid' => $user->uuid]);
         Order::create([
             'order_id'       => 'ORD-001',
-            'account_id'     => 'ACC-001',
+            'account_id'     => (string) $account->id,
             'type'           => 'buy',
             'order_type'     => 'limit',
             'base_currency'  => 'BTC',
@@ -54,11 +56,12 @@ describe('GraphQL Exchange API', function () {
 
     it('paginates trades', function () {
         $user = User::factory()->create();
+        $account = Account::factory()->create(['user_uuid' => $user->uuid]);
         Trade::create([
             'trade_id'          => 'TRD-001',
             'buy_order_id'      => 'ORD-001',
             'sell_order_id'     => 'ORD-002',
-            'buyer_account_id'  => 'ACC-001',
+            'buyer_account_id'  => (string) $account->id,
             'seller_account_id' => 'ACC-002',
             'base_currency'     => 'BTC',
             'quote_currency'    => 'USD',

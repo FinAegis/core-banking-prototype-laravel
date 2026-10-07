@@ -61,6 +61,7 @@ extend type Query {
         success: Boolean @where(operator: "=")
     ): [AiLlmUsage!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\AI\\Models\\AiLlmUsage")
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userUuid")
         @guard(with: ["sanctum"])
 
     aiConversation(conversation_id: String!): AiConversationResult

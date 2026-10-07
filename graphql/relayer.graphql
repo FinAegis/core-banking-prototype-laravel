@@ -28,6 +28,7 @@ type NonceInfo {
 extend type Query {
     smartAccount(id: ID! @eq): SmartAccount
         @find
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")
         @guard(with: ["sanctum"])
 
     smartAccounts(
@@ -37,10 +38,12 @@ extend type Query {
         deployed: Boolean @where(operator: "=")
     ): [SmartAccount!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\Relayer\\Models\\SmartAccount")
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")
         @guard(with: ["sanctum"])
 
     smartAccountByAddress(account_address: String! @eq): SmartAccount
         @find
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")
         @guard(with: ["sanctum"])
 
     estimateGas(network: String!, data: String!): GasEstimate

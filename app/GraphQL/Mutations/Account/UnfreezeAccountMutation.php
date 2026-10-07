@@ -7,9 +7,12 @@ namespace App\GraphQL\Mutations\Account;
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Workflows\UnfreezeAccountWorkflow;
+use App\Models\User;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
+use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 use Workflow\WorkflowStub;
 
 class UnfreezeAccountMutation
@@ -32,6 +35,12 @@ class UnfreezeAccountMutation
             throw new ModelNotFoundException('Account not found.');
         }
 
+        // Same rule as REST AccountController::unfreeze(): the account owner or
+        // an admin role.
+        if (! $account->isOwnedBy($user) && ! $this->isAdmin($user)) {
+            throw new AuthorizationException('You are not authorized to unfreeze this account.');
+        }
+
         $accountUuid = AccountUuid::fromString($account->uuid);
         $reason = $args['reason'] ?? 'Unfrozen via GraphQL';
         $authorizedBy = $user->name ?? (string) $user->id;
@@ -43,5 +52,10 @@ class UnfreezeAccountMutation
         $account->update(['frozen' => false]);
 
         return $account->fresh() ?? $account;
+    }
+
+    private function isAdmin(Authenticatable $user): bool
+    {
+        return $user instanceof User && $user->hasRole(['admin', 'super_admin', 'bank_admin']);
     }
 }

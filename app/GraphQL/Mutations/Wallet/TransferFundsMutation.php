@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\GraphQL\Mutations\Wallet;
 
+use App\Domain\Account\Models\Account;
 use App\Domain\Wallet\Models\MultiSigWallet;
 use App\Domain\Wallet\Services\WalletService;
+use App\Models\User;
 use GraphQL\Error\Error;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
+use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 
 class TransferFundsMutation
 {
@@ -38,6 +41,18 @@ class TransferFundsMutation
 
         if (! $wallet) {
             throw new ModelNotFoundException('Wallet not found.');
+        }
+
+        // Only the wallet owner or one of its active signers may move funds
+        // from it.
+        $userId = (int) $user->getAuthIdentifier();
+        if (! $user instanceof User || ((int) $wallet->user_id !== $userId && ! $wallet->isUserSigner($userId))) {
+            throw new AuthorizationException('You are not authorized to use this wallet.');
+        }
+
+        // A source account, when one is given, must belong to the caller.
+        if (isset($args['from_account_uuid']) && Account::findOwnedBy((string) $args['from_account_uuid'], $user) === null) {
+            throw new AuthorizationException('You are not authorized to use this account.');
         }
 
         $this->walletService->transfer(

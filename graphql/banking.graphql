@@ -52,6 +52,7 @@ type BankTransferResult {
 extend type Query {
     bankAccount(id: ID! @eq): BankAccountModel
         @find
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userUuid")
         @guard(with: ["sanctum"])
 
     bankAccounts(
@@ -62,10 +63,12 @@ extend type Query {
         currency: String @where(operator: "=")
     ): [BankAccountModel!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\Banking\\Models\\BankAccountModel")
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userUuid")
         @guard(with: ["sanctum"])
 
     bankConnection(id: ID! @eq): BankConnectionModel
         @find
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userUuid")
         @guard(with: ["sanctum"])
 
     bankConnections(
@@ -75,6 +78,7 @@ extend type Query {
         status: String @where(operator: "=")
     ): [BankConnectionModel!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\Banking\\Models\\BankConnectionModel")
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userUuid")
         @guard(with: ["sanctum"])
 
     aggregatedBalance(user_uuid: String!): [AggregatedBalance!]!

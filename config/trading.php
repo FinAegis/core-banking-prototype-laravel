@@ -8,9 +8,13 @@ return [
     |
     | Configuration for the FinAegis Trading Exchange platform
     |
+    | `enabled` gates the demo trading engine (exchange order book, liquidity
+    | pools, GraphQL placeOrder and the trading scheduler jobs). Secure by
+    | default: off when APP_ENV=production (or unset), on for every other
+    | environment. An explicit TRADING_ENABLED value always wins.
+    |
     */
-
-    'enabled' => env('TRADING_ENABLED', true),
+    'enabled' => (bool) env('TRADING_ENABLED', env('APP_ENV', 'production') !== 'production'),
 
     /*
     |--------------------------------------------------------------------------

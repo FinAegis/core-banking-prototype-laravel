@@ -16,6 +16,7 @@ type Certificate @model(class: "App\\Domain\\TrustCert\\Models\\Certificate") {
 extend type Query {
     certificate(id: ID! @eq): Certificate
         @find
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")
         @guard(with: ["sanctum"])
 
     certificates(
@@ -24,5 +25,6 @@ extend type Query {
         status: String @where(operator: "=")
     ): [Certificate!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\TrustCert\\Models\\Certificate")
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")
         @guard(with: ["sanctum"])
 }

@@ -31,6 +31,7 @@ input ClosePositionInput {
 extend type Query {
     defiPosition(id: ID! @eq): DeFiPosition
         @find
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")
         @guard(with: ["sanctum"])
 
     defiPositions(
@@ -42,6 +43,7 @@ extend type Query {
         type: String @where(operator: "=")
     ): [DeFiPosition!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\DeFi\\Models\\DeFiPosition")
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")
         @guard(with: ["sanctum"])
 }
 

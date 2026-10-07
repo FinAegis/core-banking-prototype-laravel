@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Account\Models\Account;
 use App\Domain\Exchange\Projections\Order;
 use App\Models\User;
 use Illuminate\Support\Str;
@@ -21,9 +22,10 @@ describe('GraphQL Exchange API', function () {
 
     it('queries order by id with authentication', function () {
         $user = User::factory()->create();
+        $account = Account::factory()->create(['user_uuid' => $user->uuid]);
         $order = Order::create([
             'order_id'       => Str::uuid()->toString(),
-            'account_id'     => (string) $user->id,
+            'account_id'     => (string) $account->id,
             'type'           => 'buy',
             'order_type'     => 'limit',
             'base_currency'  => 'BTC',
@@ -59,10 +61,11 @@ describe('GraphQL Exchange API', function () {
 
     it('paginates orders', function () {
         $user = User::factory()->create();
+        $account = Account::factory()->create(['user_uuid' => $user->uuid]);
         for ($i = 0; $i < 3; $i++) {
             Order::create([
                 'order_id'       => Str::uuid()->toString(),
-                'account_id'     => (string) $user->id,
+                'account_id'     => (string) $account->id,
                 'type'           => 'buy',
                 'order_type'     => 'market',
                 'base_currency'  => 'ETH',

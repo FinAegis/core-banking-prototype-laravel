@@ -31,6 +31,7 @@ input InitiatePaymentInput {
 extend type Query {
     payment(id: ID! @eq): PaymentTransaction
         @find
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@accountUuid")
         @guard(with: ["sanctum"])
 
     payments(
@@ -41,6 +42,7 @@ extend type Query {
         type: String @where(operator: "=")
     ): [PaymentTransaction!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\Payment\\Models\\PaymentTransaction")
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@accountUuid")
         @guard(with: ["sanctum"])
 }
 

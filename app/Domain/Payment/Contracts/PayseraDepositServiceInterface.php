@@ -37,6 +37,8 @@ interface PayseraDepositServiceInterface
      *
      * Implementations credit the stored order amount only to the user who
      * started the order (user_id = the authenticated user), at most once.
+     * The Paysera service credits only on Paysera's signed response
+     * (paysera_data + paysera_ss1); the demo service simulates the payment.
      *
      * @param array{
      *     order_id: string,
@@ -45,7 +47,9 @@ interface PayseraDepositServiceInterface
      *     amount?: int,
      *     currency?: string,
      *     payment_type?: string,
-     *     transaction_id?: string
+     *     transaction_id?: string,
+     *     paysera_data?: string,
+     *     paysera_ss1?: string
      * } $callbackData
      * @return array{
      *     success: bool,

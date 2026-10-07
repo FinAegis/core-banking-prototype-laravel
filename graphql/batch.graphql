@@ -23,6 +23,7 @@ input CreateBatchJobInput {
 extend type Query {
     batchJob(id: ID! @eq): BatchJob
         @find
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userUuid")
         @guard(with: ["sanctum"])
 
     batchJobs(
@@ -31,6 +32,7 @@ extend type Query {
         status: String @where(operator: "=")
     ): [BatchJob!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\Batch\\Models\\BatchJob")
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userUuid")
         @guard(with: ["sanctum"])
 }
 

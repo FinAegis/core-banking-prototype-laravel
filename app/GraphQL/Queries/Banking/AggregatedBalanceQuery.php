@@ -11,6 +11,7 @@ use Exception;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 
 final class AggregatedBalanceQuery
 {
@@ -34,9 +35,14 @@ final class AggregatedBalanceQuery
             throw new AuthenticationException('Unauthenticated.');
         }
 
+        // Only the caller's own bank accounts can be aggregated.
+        if (! hash_equals((string) $user->uuid, (string) $args['user_uuid'])) {
+            throw new AuthorizationException('You are not authorized to view these balances.');
+        }
+
         // Aggregate from bank accounts directly
         $accounts = BankAccountModel::query()
-            ->where('user_uuid', $args['user_uuid'])
+            ->where('user_uuid', (string) $user->uuid)
             ->where('status', 'active')
             ->get();
 

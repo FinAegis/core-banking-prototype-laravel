@@ -10,7 +10,7 @@ uses(Illuminate\Foundation\Testing\RefreshDatabase::class);
 describe('GraphQL Core Domain Mutations', function () {
     it('freezes an account via mutation', function () {
         $user = User::factory()->create();
-        $account = Account::factory()->create(['frozen' => false]);
+        $account = Account::factory()->create(['frozen' => false, 'user_uuid' => $user->uuid]);
 
         $response = $this->actingAs($user, 'sanctum')
             ->postJson('/graphql', [
@@ -39,7 +39,7 @@ describe('GraphQL Core Domain Mutations', function () {
 
     it('unfreezes an account via mutation', function () {
         $user = User::factory()->create();
-        $account = Account::factory()->create(['frozen' => true]);
+        $account = Account::factory()->create(['frozen' => true, 'user_uuid' => $user->uuid]);
 
         $response = $this->actingAs($user, 'sanctum')
             ->postJson('/graphql', [

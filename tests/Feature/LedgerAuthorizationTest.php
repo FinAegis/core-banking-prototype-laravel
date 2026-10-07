@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Account\Models\Account;
+use App\Domain\Custodian\Models\CustodianAccount;
 use App\Domain\Exchange\Projections\Order;
 use App\Domain\Lending\Models\LoanApplication;
 use App\Domain\Payment\Contracts\PaymentServiceInterface;
@@ -11,6 +12,7 @@ use App\Domain\Payment\Exceptions\DepositNotAllowedException;
 use App\Domain\Payment\Models\PaymentTransaction;
 use App\Domain\Payment\Services\DepositReplayGuard;
 use App\Domain\Payment\Services\PaymentGatewayService;
+use App\Domain\Payment\Services\PayseraDepositService;
 use App\Domain\Subscription\Models\ProcessedWebhookEvent;
 use App\Http\Controllers\Api\TransactionReversalController;
 use App\Models\Role;
@@ -109,6 +111,28 @@ function ledgerAuthPayseraOrder(int $amount = 2500): array
     ], now()->addHour());
 
     return [$user, $account, $orderId];
+}
+
+/**
+ * Query string carrying a Paysera-signed response (data + ss1) for an order.
+ */
+function ledgerAuthPayseraSigned(string $orderId, int $amount, string $currency = 'EUR', string $status = '1'): string
+{
+    $data = PayseraDepositService::encodePayseraData(http_build_query([
+        'projectid' => '12345',
+        'orderid'   => $orderId,
+        'amount'    => $amount,
+        'currency'  => $currency,
+        'status'    => $status,
+        'requestid' => 'REQ-' . $orderId,
+        'test'      => '1',
+    ]));
+
+    return http_build_query([
+        'order_id' => $orderId,
+        'data'     => $data,
+        'ss1'      => md5($data . 'test-sign-password'),
+    ]);
 }
 
 describe('GraphQL ownership', function (): void {
@@ -287,6 +311,13 @@ describe('custodian transfer and mock custodian', function (): void {
     it('lets the owner past the ownership check', function (): void {
         $owner = User::factory()->create();
         $account = Account::factory()->create(['user_uuid' => $owner->uuid]);
+        CustodianAccount::create([
+            'account_uuid'         => $account->uuid,
+            'custodian_name'       => 'mock',
+            'custodian_account_id' => 'mock-account-1',
+            'status'               => 'active',
+            'is_primary'           => true,
+        ]);
         Sanctum::actingAs($owner, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/custodians/mock/transfer', [
@@ -417,7 +448,11 @@ describe('Paysera deposit callback', function (): void {
     });
 
     it('credits the stored amount once, only to the user who started the order', function (): void {
-        config(['custodians.connectors.paysera.enabled' => true]);
+        config([
+            'custodians.connectors.paysera.enabled' => true,
+            'services.paysera.project_id'           => '12345',
+            'services.paysera.sign_password'        => 'test-sign-password',
+        ]);
         [$user, $account, $orderId] = ledgerAuthPayseraOrder(2500);
 
         /** @var PaymentServiceInterface&MockInterface $paymentService */
@@ -430,27 +465,27 @@ describe('Paysera deposit callback', function (): void {
                 && $data['currency'] === 'EUR'))
             ->andReturn('txn_paysera');
 
-        // Another user cannot complete it.
+        // Another user cannot complete it, even with a valid Paysera response.
         $other = User::factory()->withPersonalTeam()->create();
         $this->actingAs($other)
-            ->getJson("/wallet/deposit/paysera/callback?order_id={$orderId}&status=completed")
+            ->getJson('/wallet/deposit/paysera/callback?' . ledgerAuthPayseraSigned($orderId, 2500))
             ->assertStatus(400)
             ->assertJsonPath('success', false);
 
-        // A different amount than the order is refused.
+        // A different (signed) amount than the order is refused.
         $this->actingAs($user)
-            ->getJson("/wallet/deposit/paysera/callback?order_id={$orderId}&status=completed&amount=999999")
+            ->getJson('/wallet/deposit/paysera/callback?' . ledgerAuthPayseraSigned($orderId, 999999))
             ->assertStatus(400)
             ->assertJsonPath('success', false);
 
         $this->actingAs($user)
-            ->getJson("/wallet/deposit/paysera/callback?order_id={$orderId}&status=completed&amount=2500&currency=EUR")
+            ->getJson('/wallet/deposit/paysera/callback?' . ledgerAuthPayseraSigned($orderId, 2500))
             ->assertOk()
             ->assertJsonPath('success', true);
 
         // Replay.
         $this->actingAs($user)
-            ->getJson("/wallet/deposit/paysera/callback?order_id={$orderId}&status=completed")
+            ->getJson('/wallet/deposit/paysera/callback?' . ledgerAuthPayseraSigned($orderId, 2500))
             ->assertStatus(400)
             ->assertJsonPath('message', 'Deposit already processed');
     });

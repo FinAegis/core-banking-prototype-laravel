@@ -55,6 +55,7 @@ type OrderBook @model(class: "App\\Domain\\Exchange\\Projections\\OrderBook") {
 extend type Query {
     order(id: ID! @eq): ExchangeOrder
         @find
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@accountId")
         @guard(with: ["sanctum"])
 
     orders(
@@ -64,6 +65,7 @@ extend type Query {
         base_currency: String @where(operator: "=")
     ): [ExchangeOrder!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\Exchange\\Projections\\Order")
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@accountId")
         @guard(with: ["sanctum"])
 
     trades(
@@ -72,6 +74,7 @@ extend type Query {
         base_currency: String @where(operator: "=")
     ): [Trade!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\Exchange\\Projections\\Trade")
+        @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@trade")
         @guard(with: ["sanctum"])
 
     orderBook(order_book_id: String! @eq): OrderBook

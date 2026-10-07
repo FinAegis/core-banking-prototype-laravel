@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Models\Account;
+use App\Domain\Custodian\Models\CustodianAccount;
 use App\Domain\Custodian\Services\CustodianRegistry;
 use App\Domain\Custodian\Workflows\CustodianTransferWorkflow;
 use App\Http\Controllers\Controller;
@@ -258,6 +259,25 @@ class CustodianController extends Controller
             return response()->json(
                 [
                     'message' => 'Access denied to this account',
+                    'error'   => 'FORBIDDEN',
+                ],
+                403
+            );
+        }
+
+        // The custodian account must be linked to that internal account for
+        // this custodian (an active CustodianAccount row).
+        $linked = CustodianAccount::query()
+            ->where('account_uuid', $validated['internal_account_uuid'])
+            ->where('custodian_name', $custodian)
+            ->where('custodian_account_id', $validated['custodian_account_id'])
+            ->where('status', CustodianAccount::STATUS_ACTIVE)
+            ->exists();
+
+        if (! $linked) {
+            return response()->json(
+                [
+                    'message' => 'Custodian account is not linked to this account',
                     'error'   => 'FORBIDDEN',
                 ],
                 403
