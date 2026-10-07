@@ -12,6 +12,7 @@ use App\Domain\Relayer\Services\GasStationService;
 use App\Domain\Relayer\Services\SmartAccountService;
 use App\Domain\Relayer\ValueObjects\UserOperation;
 use App\Http\Controllers\Controller;
+use App\Support\SecretRedactor;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -383,7 +384,7 @@ class MobileRelayerController extends Controller
         } catch (Throwable $e) {
             Log::error('UserOp submission failed', [
                 'network' => $network->value,
-                'error'   => $e->getMessage(),
+                'error'   => SecretRedactor::message($e),
             ]);
 
             return response()->json([
@@ -452,7 +453,7 @@ class MobileRelayerController extends Controller
         } catch (Throwable $e) {
             Log::warning('UserOp status query failed', [
                 'hash'  => $hash,
-                'error' => $e->getMessage(),
+                'error' => SecretRedactor::message($e),
             ]);
 
             return response()->json([

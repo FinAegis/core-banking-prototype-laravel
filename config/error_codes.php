@@ -96,4 +96,9 @@ return [
 
     // ─── Card waitlist deposit switch ──────────────────────────────────────
     'ERR_CARDS_019' => ['http' => 503, 'description' => 'Card deposits are paused.'],
+
+    // ─── API registration switch (config/registration.php) ────────────────
+    // `error.reason` carries REGISTRATION_CLOSED / INVITATION_REQUIRED.
+    'ERR_REG_001' => ['http' => 403, 'description' => 'New account registration is currently closed.'],
+    'ERR_REG_002' => ['http' => 403, 'description' => 'Registration is by invitation only. Use the email address your invitation was sent to.'],
 ];

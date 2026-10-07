@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Newsletter\Exceptions\SubscriptionThrottledException;
 use App\Domain\Newsletter\Models\Subscriber;
 use App\Domain\Newsletter\Services\SubscriberEmailService;
 use Exception;
@@ -134,6 +135,15 @@ class BlogController extends Controller
                     'success' => true,
                     'message' => $message,
                 ]
+            );
+        } catch (SubscriptionThrottledException $e) {
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'Too many requests. Please try again later.',
+                ],
+                429,
+                ['Retry-After' => (string) max(1, $e->retryAfterSeconds)]
             );
         } catch (Exception $e) {
             // Check if it's a member exists error

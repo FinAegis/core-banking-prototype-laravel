@@ -37,6 +37,11 @@ class ValidateWebhookSignature
                 'ip'       => $request->ip(),
             ]);
 
+            // Marqeta authenticates with HTTP Basic credentials: answer 401.
+            if ($provider === 'marqeta') {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+
             return response()->json(['error' => 'Invalid signature'], 403);
         }
 
@@ -212,37 +217,61 @@ class ValidateWebhookSignature
     }
 
     /**
-     * Validate Marqeta card issuer webhook via Basic Auth + optional HMAC signature.
+     * Validate a Marqeta card issuer webhook (JIT authorization, settlement,
+     * transaction events).
      *
-     * Marqeta sends webhooks with HTTP Basic Auth credentials configured in the
-     * Marqeta dashboard. Optionally, it also includes an HMAC signature header.
+     * - Basic Auth (MARQETA_WEBHOOK_USERNAME + MARQETA_WEBHOOK_PASSWORD) is
+     *   enforced when configured; configuring only one of the two is treated
+     *   as a misconfiguration and rejected.
+     * - HMAC (MARQETA_WEBHOOK_SECRET, or MARQETA_HMAC_SECRET): when a secret
+     *   is configured the X-Marqeta-Webhook-Signature header is required and
+     *   must be the hex HMAC-SHA256 of the raw body.
+     * - With neither configured the request is accepted only in the local
+     *   and testing environments; everywhere else it is rejected.
      */
     private function validateMarqetaWebhook(Request $request): bool
     {
-        $expectedUsername = config('cardissuance.issuers.marqeta.webhook_username');
-        $expectedPassword = config('cardissuance.issuers.marqeta.webhook_password');
+        $expectedUsername = (string) (config('cardissuance.issuers.marqeta.webhook_username') ?? '');
+        $expectedPassword = (string) (config('cardissuance.issuers.marqeta.webhook_password') ?? '');
+        $secret = (string) (config('cardissuance.issuers.marqeta.webhook_secret') ?: config('cardissuance.issuers.marqeta.hmac_secret') ?: '');
 
-        // Basic Auth is required when credentials are configured
-        if ($expectedUsername !== null && $expectedUsername !== '') {
-            $providedUsername = $request->getUser() ?? '';
-            $providedPassword = $request->getPassword() ?? '';
+        $basicAuthConfigured = $expectedUsername !== '' && $expectedPassword !== '';
+        $hmacConfigured = $secret !== '';
+
+        if (! $basicAuthConfigured && ! $hmacConfigured) {
+            if ($expectedUsername !== '' || $expectedPassword !== '') {
+                return false;
+            }
+
+            return app()->environment(['local', 'testing']);
+        }
+
+        if (($expectedUsername !== '') !== ($expectedPassword !== '')) {
+            return false;
+        }
+
+        if ($basicAuthConfigured) {
+            $providedUsername = (string) ($request->getUser() ?? '');
+            $providedPassword = (string) ($request->getPassword() ?? '');
 
             if (
-                ! hash_equals((string) $expectedUsername, $providedUsername)
-                || ! hash_equals((string) $expectedPassword, $providedPassword)
+                ! hash_equals($expectedUsername, $providedUsername)
+                || ! hash_equals($expectedPassword, $providedPassword)
             ) {
                 return false;
             }
         }
 
-        // HMAC signature check (optional but recommended for additional security)
-        $secret = config('cardissuance.issuers.marqeta.webhook_secret');
-        $signature = $request->header('X-Marqeta-Webhook-Signature');
+        if ($hmacConfigured) {
+            $signature = $request->header('X-Marqeta-Webhook-Signature');
 
-        if ($secret !== null && $secret !== '' && $signature !== null) {
-            $expectedSignature = hash_hmac('sha256', $request->getContent(), (string) $secret);
+            if (! is_string($signature) || $signature === '') {
+                return false;
+            }
 
-            if (! hash_equals($expectedSignature, $signature)) {
+            $expectedSignature = hash_hmac('sha256', $request->getContent(), $secret);
+
+            if (! hash_equals($expectedSignature, strtolower(trim($signature)))) {
                 return false;
             }
         }

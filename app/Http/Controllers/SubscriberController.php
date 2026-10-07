@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Newsletter\Exceptions\SubscriptionThrottledException;
+use App\Domain\Newsletter\Models\Subscriber;
 use App\Domain\Newsletter\Services\SubscriberEmailService;
 use Exception;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
@@ -101,8 +104,17 @@ class SubscriberController extends Controller
             return response()->json(
                 [
                     'success' => true,
-                    'message' => 'Thank you for subscribing! Please check your email.',
+                    'message' => 'Almost done! Check your inbox and confirm your email address to subscribe.',
                 ]
+            );
+        } catch (SubscriptionThrottledException $e) {
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'Too many requests. Please try again later.',
+                ],
+                429,
+                ['Retry-After' => (string) max(1, $e->retryAfterSeconds)]
             );
         } catch (Exception $e) {
             return response()->json(
@@ -113,5 +125,54 @@ class SubscriberController extends Controller
                 500
             );
         }
+    }
+
+    /**
+     * Confirm a subscription from the signed link in the confirmation email
+     * (double opt-in). Only a valid, unexpired link activates the subscriber;
+     * the welcome email is sent at that point.
+     */
+    public function confirm(Request $request, string $subscriber): View
+    {
+        $invalid = view(
+            'subscriber.confirmed',
+            [
+                'title'   => 'Link expired or invalid',
+                'message' => 'This confirmation link is no longer valid. Sign up again to receive a new one.',
+            ]
+        );
+
+        if (! $request->hasValidSignature()) {
+            return $invalid;
+        }
+
+        /** @var Subscriber|null $record */
+        $record = Subscriber::query()->find($subscriber);
+
+        if ($record === null) {
+            return $invalid;
+        }
+
+        if ($record->isActive() && $record->confirmation_token_hash === null) {
+            return view(
+                'subscriber.confirmed',
+                [
+                    'title'   => 'Already confirmed',
+                    'message' => 'Your email address is already confirmed. Thanks for subscribing!',
+                ]
+            );
+        }
+
+        if (! $this->emailService->confirm($record, (string) $request->query('token', ''))) {
+            return $invalid;
+        }
+
+        return view(
+            'subscriber.confirmed',
+            [
+                'title'   => 'Subscription confirmed',
+                'message' => 'Thanks for confirming your email address. You are now subscribed.',
+            ]
+        );
     }
 }

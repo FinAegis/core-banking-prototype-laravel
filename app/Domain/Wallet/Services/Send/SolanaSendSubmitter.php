@@ -8,6 +8,7 @@ use App\Domain\Wallet\Exceptions\InvalidSendStateException;
 use App\Domain\Wallet\Exceptions\InvalidSignatureException;
 use App\Domain\Wallet\Exceptions\SolanaRpcException;
 use App\Domain\Wallet\Models\WalletSendRecord;
+use App\Support\SecretRedactor;
 
 /**
  * Step 2 of the non-custodial Solana send flow.
@@ -68,7 +69,7 @@ class SolanaSendSubmitter
         } catch (SolanaRpcException $e) {
             $record->status = WalletSendRecord::STATUS_FAILED;
             $record->error_code = 'HELIUS_REJECTED';
-            $record->error_message = $e->getMessage();
+            $record->error_message = SecretRedactor::message($e);
             $record->failed_at = now();
             $record->save();
 

@@ -31,6 +31,7 @@ use App\Domain\Wallet\Services\Send\SolanaSendPreparer;
 use App\Domain\Wallet\Services\Send\SolanaSendSubmitter;
 use App\Domain\Wallet\Services\SponsorshipCostTracker;
 use App\Http\Controllers\Controller;
+use App\Support\SecretRedactor;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -769,7 +770,7 @@ class MobileWalletController extends Controller
                 'error'   => ['code' => $this->errorCodeFor($e), 'message' => $e->getMessage()],
             ], 422);
         } catch (Throwable $e) {
-            Log::warning('wallet.prepare failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
+            Log::warning('wallet.prepare failed', ['exception' => $e::class, 'message' => SecretRedactor::message($e)]);
 
             return response()->json([
                 'success' => false,
@@ -849,7 +850,7 @@ class MobileWalletController extends Controller
                 'error'   => ['code' => $this->errorCodeFor($e), 'message' => $e->getMessage()],
             ], 422);
         } catch (Throwable $e) {
-            Log::warning('wallet.submit failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
+            Log::warning('wallet.submit failed', ['exception' => $e::class, 'message' => SecretRedactor::message($e)]);
 
             return response()->json([
                 'success' => false,

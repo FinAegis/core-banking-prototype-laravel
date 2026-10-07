@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Relayer;
 
 use App\Domain\Relayer\Enums\SupportedNetwork;
+use App\Domain\Relayer\Exceptions\SponsorshipRequestRejectedException;
 use App\Domain\Relayer\Services\GasStationService;
+use App\Domain\Relayer\Services\SponsorshipRequestValidator;
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Support\SecretRedactor;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -21,6 +25,7 @@ class RelayerController extends Controller
 {
     public function __construct(
         private readonly GasStationService $gasStationService,
+        private readonly SponsorshipRequestValidator $sponsorshipValidator,
     ) {
     }
 
@@ -32,6 +37,12 @@ class RelayerController extends Controller
      *
      * For first-time account deployment, include the init_code parameter with
      * the Smart Account factory call data.
+     *
+     * Available only when RELAYER_GENERIC_SPONSOR_ENABLED is on (404
+     * otherwise). The sender must be a smart account / wallet address
+     * registered to the caller, the network must be enabled for wallet sends
+     * and the calldata must be an execute(USDC|USDT, 0, transfer(to, amount))
+     * call (see SponsorshipRequestValidator).
      */
     #[OA\Post(
         path: '/api/v1/relayer/sponsor',
@@ -70,6 +81,18 @@ class RelayerController extends Controller
         response: 401,
         description: 'Unauthorized'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Sender is not registered to the caller (ERR_RELAYER_301)'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Generic sponsorship is disabled (RELAYER_GENERIC_SPONSOR_ENABLED)'
+    )]
+    #[OA\Response(
+        response: 422,
+        description: 'Calldata, network or init code not allowed (ERR_RELAYER_302/303/304)'
+    )]
     public function sponsor(Request $request): JsonResponse
     {
         // Max lengths: call_data 50KB (100000 hex chars), signature 132 chars (65 bytes), init_code 20KB
@@ -82,8 +105,30 @@ class RelayerController extends Controller
             'init_code'    => ['nullable', 'string', 'regex:/^0x[a-fA-F0-9]*$/', 'max:40002'],
         ]);
 
+        $user = $request->user();
+        if (! $user instanceof User) {
+            return response()->json(['success' => false, 'error' => ['code' => 'UNAUTHORIZED', 'message' => 'Not authenticated.']], 401);
+        }
+
         try {
-            $network = SupportedNetwork::from($validated['network'] ?? 'polygon');
+            $network = $this->sponsorshipValidator->validate(
+                user: $user,
+                sender: $validated['user_address'],
+                callData: $validated['call_data'],
+                networkKey: $validated['network'] ?? 'polygon',
+                initCode: $validated['init_code'] ?? null,
+            );
+        } catch (SponsorshipRequestRejectedException $e) {
+            return response()->json([
+                'success' => false,
+                'error'   => [
+                    'code'    => $e->errorCode,
+                    'message' => $e->getMessage(),
+                ],
+            ], $e->httpStatusCode);
+        }
+
+        try {
             $feeToken = $validated['fee_token'] ?? 'USDC';
             $initCode = $validated['init_code'] ?? null;
 
@@ -102,7 +147,7 @@ class RelayerController extends Controller
             ]);
         } catch (Throwable $e) {
             Log::error('Transaction sponsorship failed', [
-                'error'         => $e->getMessage(),
+                'error'         => SecretRedactor::message($e),
                 'user_address'  => $validated['user_address'],
                 'has_init_code' => isset($validated['init_code']),
             ]);
@@ -168,7 +213,7 @@ class RelayerController extends Controller
             ]);
         } catch (Throwable $e) {
             Log::error('Gas estimation failed', [
-                'error' => $e->getMessage(),
+                'error' => SecretRedactor::message($e),
             ]);
 
             return response()->json([

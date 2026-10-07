@@ -133,6 +133,12 @@ class SmsSendTool implements MCPToolInterface
             return ToolExecutionResult::failure('Missing required parameters: to, message');
         }
 
+        // The public MCP server executes tools without calling authorize(),
+        // so the master switch is checked here as well (and in SmsService).
+        if (! $this->authorize(null)) {
+            return ToolExecutionResult::failure('SMS service is not enabled');
+        }
+
         try {
             $price = $this->pricing->getPriceForNumber($to);
 

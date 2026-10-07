@@ -6,6 +6,7 @@ namespace App\Domain\Relayer\Services;
 
 use App\Domain\Relayer\Enums\SupportedNetwork;
 use App\Domain\Relayer\Exceptions\RpcException;
+use App\Support\SecretRedactor;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -73,9 +74,15 @@ class EthRpcClient
             throw RpcException::connectionFailed($method, 'PIMLICO_API_KEY not configured');
         }
 
+        // PIMLICO_BUNDLER_URL is optional; an empty value (the config key is
+        // always defined, so its default never applies) falls back to the
+        // per-chain Pimlico v2 endpoint.
         $chainId = $network->getChainId();
-        $baseUrl = config('relayer.pimlico.bundler_url', "https://api.pimlico.io/v2/{$chainId}/rpc");
-        $url = $baseUrl . '?apikey=' . $apiKey;
+        $configuredUrl = config('relayer.pimlico.bundler_url');
+        $baseUrl = is_string($configuredUrl) && trim($configuredUrl) !== ''
+            ? trim($configuredUrl)
+            : "https://api.pimlico.io/v2/{$chainId}/rpc";
+        $url = $baseUrl . (str_contains($baseUrl, '?') ? '&' : '?') . 'apikey=' . rawurlencode((string) $apiKey);
 
         return $this->executeWithRetry($url, $method, $params);
     }
@@ -186,7 +193,7 @@ class EthRpcClient
                     'method'  => $method,
                     'attempt' => $attempt,
                     'max'     => $this->retryCount,
-                    'error'   => $e->getMessage(),
+                    'error'   => SecretRedactor::message($e),
                 ]);
 
                 if ($attempt < $this->retryCount) {
@@ -195,9 +202,11 @@ class EthRpcClient
             }
         }
 
+        // Transport errors embed the request URL (and with it the provider
+        // key); RpcException redacts its message, this keeps the intent explicit.
         throw RpcException::connectionFailed(
             $method,
-            $lastException?->getMessage() ?? 'All retry attempts exhausted'
+            $lastException !== null ? SecretRedactor::message($lastException) : 'All retry attempts exhausted'
         );
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api\Auth;
 
+use App\Domain\User\Exceptions\RegistrationNotAllowedException;
+use App\Domain\User\Services\ApiRegistrationGate;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Traits\HasApiScopes;
@@ -90,7 +92,11 @@ class SocialAuthController extends Controller
         response: 400,
         description: 'Invalid provider or authentication failed'
     )]
-    public function callback(Request $request, $provider)
+    #[OA\Response(
+        response: 403,
+        description: 'First social login of a new user while API registration is closed (ERR_REG_001) or invite-only without an invitation (ERR_REG_002)'
+    )]
+    public function callback(Request $request, $provider, ApiRegistrationGate $registrationGate)
     {
         $validProviders = ['google', 'facebook', 'github'];
 
@@ -125,6 +131,9 @@ class SocialAuthController extends Controller
                     );
                 }
             } else {
+                // New account: REGISTRATION_API_ENABLED / REGISTRATION_API_INVITE_ONLY.
+                $invitation = $registrationGate->admit((string) $socialUser->getEmail());
+
                 // Create new user
                 $user = User::create(
                     [
@@ -137,6 +146,8 @@ class SocialAuthController extends Controller
                         'email_verified_at' => now(), // Auto-verify OAuth users
                     ]
                 );
+
+                $registrationGate->accepted($invitation, $user);
             }
 
             // Generate token with proper expiration
@@ -149,6 +160,8 @@ class SocialAuthController extends Controller
                     'message' => 'Authenticated successfully',
                 ]
             );
+        } catch (RegistrationNotAllowedException $e) {
+            return $e->toResponse();
         } catch (Exception $e) {
             return response()->json(
                 [

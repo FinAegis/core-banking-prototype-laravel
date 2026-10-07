@@ -4,13 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Domain\Cgo\Jobs\VerifyCgoPayment;
 use App\Domain\Cgo\Mail\CgoInvestmentReceived;
-use App\Domain\Cgo\Mail\CgoNotificationReceived;
 use App\Domain\Cgo\Models\CgoInvestment;
 use App\Domain\Cgo\Models\CgoNotification;
 use App\Domain\Cgo\Models\CgoPricingRound;
 use App\Domain\Cgo\Services\CgoKycService;
 use App\Domain\Cgo\Services\CoinbaseCommerceService;
 use App\Domain\Cgo\Services\StripePaymentService;
+use App\Domain\Newsletter\Exceptions\SubscriptionThrottledException;
 use App\Domain\Newsletter\Models\Subscriber;
 use App\Domain\Newsletter\Services\SubscriberEmailService;
 use App\Infrastructure\Domain\DomainManager;
@@ -74,7 +74,25 @@ class CgoController extends Controller
             ]
         );
 
-        // Check if email already exists in CGO notifications
+        // Double opt-in: the address only receives a confirmation link here;
+        // the CGO welcome email is sent once the link is opened. The
+        // per-IP / per-email limits apply before anything is stored.
+        try {
+            $emailService->subscribe(
+                $validated['email'],
+                Subscriber::SOURCE_CGO,
+                ['cgo_early_access', 'investment_opportunities'],
+                $request->ip(),
+                $request->userAgent()
+            );
+        } catch (SubscriptionThrottledException) {
+            return back()
+                ->withInput($request->only('email'))
+                ->withErrors(['email' => 'Too many requests. Please try again later.']);
+        } catch (Exception $e) {
+            Log::error('Failed to add CGO subscriber: ' . $e->getMessage());
+        }
+
         /** @var CgoNotification|null $existing */
         $existing = CgoNotification::where('email', $validated['email'])->first();
 
@@ -86,26 +104,6 @@ class CgoController extends Controller
                     'user_agent' => $request->userAgent(),
                 ]
             );
-
-            // Also add to subscriber list
-            try {
-                $emailService->subscribe(
-                    $validated['email'],
-                    Subscriber::SOURCE_CGO,
-                    ['cgo_early_access', 'investment_opportunities'],
-                    $request->ip(),
-                    $request->userAgent()
-                );
-            } catch (Exception $e) {
-                Log::error('Failed to add CGO subscriber: ' . $e->getMessage());
-            }
-
-            // Send confirmation email (keep existing functionality)
-            try {
-                Mail::to($validated['email'])->send(new CgoNotificationReceived($validated['email']));
-            } catch (Exception $e) {
-                Log::error('Failed to send CGO notification email: ' . $e->getMessage());
-            }
         }
 
         return redirect()->route('cgo.notify-success');

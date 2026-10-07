@@ -50,6 +50,7 @@ class SubscriberResource extends Resource
                                     ->required()
                                     ->options(
                                         [
+                                            Subscriber::STATUS_PENDING      => 'Pending confirmation',
                                             Subscriber::STATUS_ACTIVE       => 'Active',
                                             Subscriber::STATUS_UNSUBSCRIBED => 'Unsubscribed',
                                             Subscriber::STATUS_BOUNCED      => 'Bounced',
@@ -128,6 +129,7 @@ class SubscriberResource extends Resource
                         ->color(
                             fn (string $state): string => match ($state) {
                                 Subscriber::STATUS_ACTIVE       => 'success',
+                                Subscriber::STATUS_PENDING      => 'info',
                                 Subscriber::STATUS_UNSUBSCRIBED => 'warning',
                                 Subscriber::STATUS_BOUNCED      => 'danger',
                                 default                         => 'gray',
@@ -154,6 +156,7 @@ class SubscriberResource extends Resource
                     SelectFilter::make('status')
                         ->options(
                             [
+                                Subscriber::STATUS_PENDING      => 'Pending confirmation',
                                 Subscriber::STATUS_ACTIVE       => 'Active',
                                 Subscriber::STATUS_UNSUBSCRIBED => 'Unsubscribed',
                                 Subscriber::STATUS_BOUNCED      => 'Bounced',

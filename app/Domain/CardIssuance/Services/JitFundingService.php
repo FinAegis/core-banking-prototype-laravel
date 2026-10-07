@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace App\Domain\CardIssuance\Services;
 
+use App\Domain\Account\Models\Account;
+use App\Domain\Asset\Models\Asset;
 use App\Domain\CardIssuance\Contracts\CardIssuerInterface;
 use App\Domain\CardIssuance\Enums\AuthorizationDecision;
 use App\Domain\CardIssuance\Events\AuthorizationApproved;
 use App\Domain\CardIssuance\Events\AuthorizationDeclined;
 use App\Domain\CardIssuance\ValueObjects\AuthorizationRequest;
 use App\Infrastructure\Monitoring\MetricsService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -21,6 +25,12 @@ use Throwable;
  *
  * This service handles incoming authorization requests from the card issuer
  * and decides whether to approve based on the user's stablecoin balance.
+ *
+ * Demo mode applies only when the configured issuer
+ * (`cardissuance.default_issuer`, env CARD_ISSUER) is `demo`. For any real
+ * issuer the decision uses the cardholder's ledger balance for the funding
+ * token, minus the funds already held by earlier approvals, and fails closed:
+ * a missing account, asset, balance or hold store declines the authorization.
  *
  * CRITICAL: Latency budget is < 2000ms for the entire authorization flow.
  */
@@ -30,6 +40,11 @@ class JitFundingService
      * Default stablecoin to use for funding.
      */
     private const DEFAULT_FUNDING_TOKEN = 'USDC';
+
+    /**
+     * Balance assumed for every cardholder in demo mode.
+     */
+    private const DEMO_BALANCE = 1000.00;
 
     public function __construct(
         private readonly CardIssuerInterface $cardIssuer,
@@ -83,24 +98,49 @@ class JitFundingService
         // 2. Check balance + create hold atomically to prevent TOCTOU race condition.
         //    Without a transaction lock, two concurrent authorizations could both pass
         //    the balance check before either creates a hold, leading to double-spending.
-        $userId = $card->metadata['user_id'] ?? '';
+        $userId = (string) ($card->metadata['user_id'] ?? '');
         $requiredAmount = (float) $request->getAmountDecimal();
 
         $declineReason = null;
         $holdId = '';
 
         DB::transaction(function () use ($request, $userId, $requiredAmount, &$declineReason, &$holdId): void {
-            // Acquire row lock on account to serialize concurrent authorizations.
-            // Demo mode skips locking (no real account rows exist).
-            if (! $this->isDemoMode()) {
-                \App\Domain\Account\Models\Account::where('user_uuid', $userId)
-                    ->lockForUpdate()
-                    ->first();
+            if ($this->isDemoMode()) {
+                // Demo issuer: no real account rows, fixed balance.
+                if (self::DEMO_BALANCE < $requiredAmount) {
+                    $declineReason = AuthorizationDecision::DECLINED_INSUFFICIENT_FUNDS;
+
+                    return;
+                }
+
+                if (! $this->spendLimitService->checkLimit($request->cardToken, $requiredAmount)) {
+                    $declineReason = AuthorizationDecision::DECLINED_LIMIT_EXCEEDED;
+
+                    return;
+                }
+
+                $holdId = 'hold_' . bin2hex(random_bytes(16));
+
+                return;
             }
 
-            $balance = $this->getStablecoinBalance($userId);
+            // Live issuer. Acquire a row lock on the account to serialize
+            // concurrent authorizations for the same cardholder.
+            $account = $userId === ''
+                ? null
+                : Account::where('user_uuid', $userId)->lockForUpdate()->first();
 
-            if ($balance < $requiredAmount) {
+            if (! $account instanceof Account) {
+                Log::warning('JIT Funding: no funding account for cardholder, declining', [
+                    'authorization_id' => $request->authorizationId,
+                ]);
+                $declineReason = AuthorizationDecision::DECLINED_INSUFFICIENT_FUNDS;
+
+                return;
+            }
+
+            $requiredMinor = $this->toTokenMinorUnits($request, self::DEFAULT_FUNDING_TOKEN);
+            if ($requiredMinor === null) {
                 $declineReason = AuthorizationDecision::DECLINED_INSUFFICIENT_FUNDS;
 
                 return;
@@ -113,17 +153,22 @@ class JitFundingService
                 return;
             }
 
-            // Create hold while lock is held — guarantees no concurrent double-spend
-            $holdId = $this->createHold(
+            // Create the hold while the lock is held — guarantees no concurrent double-spend
+            $hold = $this->placeHold(
+                $request,
                 $userId,
                 self::DEFAULT_FUNDING_TOKEN,
-                $requiredAmount,
-                [
-                    'authorization_id'  => $request->authorizationId,
-                    'merchant'          => $request->merchantName,
-                    'merchant_category' => $request->merchantCategory,
-                ]
+                $account->getBalance(self::DEFAULT_FUNDING_TOKEN),
+                $requiredMinor,
             );
+
+            if ($hold === null) {
+                $declineReason = AuthorizationDecision::DECLINED_INSUFFICIENT_FUNDS;
+
+                return;
+            }
+
+            $holdId = $hold;
         });
 
         if ($declineReason !== null) {
@@ -194,65 +239,103 @@ class JitFundingService
     }
 
     /**
-     * Get user's stablecoin balance from their primary account.
+     * Convert the authorization amount (cents) into minor units of the
+     * funding token, using the token's precision from the assets table.
+     * Returns null (decline) when the asset is not configured.
      */
-    private function getStablecoinBalance(string $userId): float
+    private function toTokenMinorUnits(AuthorizationRequest $request, string $token): ?int
     {
-        if ($this->isDemoMode()) {
-            return 1000.00;
-        }
-
         try {
-            $account = \App\Domain\Account\Models\Account::where('user_uuid', $userId)->first();
-
-            if ($account === null) {
-                return 0.0;
-            }
-
-            $balance = app(\App\Domain\Account\Services\AccountQueryService::class)
-                ->getBalance($account->uuid, 'USDC');
-
-            return (float) $balance;
+            $precision = Asset::where('code', $token)->value('precision');
         } catch (Throwable $e) {
-            Log::error('JIT Funding: Balance lookup failed', [
-                'user_id' => $userId,
-                'error'   => $e->getMessage(),
+            Log::error('JIT Funding: asset lookup failed, declining', [
+                'authorization_id' => $request->authorizationId,
+                'error'            => $e->getMessage(),
             ]);
 
-            return 0.0;
+            return null;
         }
+
+        // Precision outside [2, 12] cannot be represented with the integer
+        // balances used here; treat it as a configuration error.
+        if ($precision === null || (int) $precision < 2 || (int) $precision > 12) {
+            Log::error('JIT Funding: funding asset not configured, declining', [
+                'authorization_id' => $request->authorizationId,
+                'token'            => $token,
+            ]);
+
+            return null;
+        }
+
+        // amountCents has 2 decimals; scale to the token's precision.
+        return $request->amountCents * (10 ** ((int) $precision - 2));
     }
 
     /**
-     * Create a hold on user's funds for card authorization.
+     * Reserve funds for an approved authorization.
      *
-     * @param array<string, mixed> $metadata
+     * Holds are tracked per cardholder and token as a running total in the
+     * cache (`card_jit_holds:{user}:{token}`, expiring after
+     * `cardissuance.jit_funding.hold_ttl_seconds`), so each approval reduces
+     * what later authorizations can draw on. The total is updated atomically
+     * (increment, then roll back if it exceeds the balance). Any cache
+     * failure declines the authorization.
+     *
+     * @return string|null the hold id, or null to decline
      */
-    private function createHold(
+    private function placeHold(
+        AuthorizationRequest $request,
         string $userId,
         string $token,
-        float $amount,
-        array $metadata
-    ): string {
-        if ($this->isDemoMode()) {
-            return 'hold_' . bin2hex(random_bytes(16));
+        int $balanceMinor,
+        int $amountMinor,
+    ): ?string {
+        $key = "card_jit_holds:{$userId}:{$token}";
+        $ttl = max(60, (int) config('cardissuance.jit_funding.hold_ttl_seconds', 604800));
+
+        try {
+            Cache::add($key, 0, $ttl);
+            $held = Cache::increment($key, $amountMinor);
+
+            if ($held === false) {
+                throw new RuntimeException('Hold store did not return a running total.');
+            }
+
+            if ((int) $held > $balanceMinor) {
+                Cache::decrement($key, $amountMinor);
+
+                Log::info('JIT Funding: insufficient available balance', [
+                    'authorization_id' => $request->authorizationId,
+                ]);
+
+                return null;
+            }
+        } catch (Throwable $e) {
+            Log::error('JIT Funding: hold store unavailable, declining', [
+                'authorization_id' => $request->authorizationId,
+                'error'            => $e->getMessage(),
+            ]);
+
+            return null;
         }
 
-        // Create a pending debit record in the account ledger
         $holdId = 'hold_' . bin2hex(random_bytes(16));
 
         Log::info('JIT Funding: Hold created', [
-            'hold_id' => $holdId,
-            'user_id' => $userId,
-            'amount'  => $amount,
-            'token'   => $token,
+            'hold_id'      => $holdId,
+            'user_id'      => $userId,
+            'amount_minor' => $amountMinor,
+            'token'        => $token,
         ]);
 
         return $holdId;
     }
 
+    /**
+     * Demo mode only when the configured card issuer is the demo issuer.
+     */
     private function isDemoMode(): bool
     {
-        return config('card-issuance.driver', 'demo') === 'demo';
+        return (string) config('cardissuance.default_issuer', 'demo') === 'demo';
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Domain\Newsletter\Services;
 
+use App\Domain\Newsletter\Mail\SubscriberConfirmation;
 use App\Domain\Newsletter\Mail\SubscriberNewsletter;
 use App\Domain\Newsletter\Mail\SubscriberWelcome;
 use App\Domain\Newsletter\Models\Subscriber;
@@ -103,15 +104,17 @@ class SubscriberEmailServiceTest extends TestCase
             'TestAgent'
         );
 
+        // Double opt-in: stored pending, only the confirmation email is sent.
         $this->assertInstanceOf(Subscriber::class, $subscriber);
         $this->assertEquals('new@example.com', $subscriber->email);
         $this->assertEquals(Subscriber::SOURCE_FOOTER, $subscriber->source);
-        $this->assertTrue($subscriber->isActive());
-        $this->assertNotNull($subscriber->confirmed_at);
-        Mail::assertQueued(SubscriberWelcome::class);
+        $this->assertTrue($subscriber->isPending());
+        $this->assertNull($subscriber->confirmed_at);
+        Mail::assertQueued(SubscriberConfirmation::class);
+        Mail::assertNotQueued(SubscriberWelcome::class);
     }
 
-    public function test_subscribe_reactivates_unsubscribed_user(): void
+    public function test_subscribe_requires_reconfirmation_for_unsubscribed_user(): void
     {
         $existing = $this->createSubscriber([
             'email'  => 'comeback@test.com',
@@ -120,8 +123,10 @@ class SubscriberEmailServiceTest extends TestCase
 
         $subscriber = $this->service->subscribe('comeback@test.com', Subscriber::SOURCE_BLOG);
 
-        $this->assertTrue($subscriber->isActive());
+        $this->assertTrue($subscriber->isPending());
         $this->assertEquals($existing->id, $subscriber->id);
+        Mail::assertQueued(SubscriberConfirmation::class);
+        Mail::assertNotQueued(SubscriberWelcome::class);
     }
 
     public function test_subscribe_adds_tags_to_existing_subscriber(): void

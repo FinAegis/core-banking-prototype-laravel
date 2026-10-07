@@ -1303,7 +1303,7 @@
                     "Accounts"
                 ],
                 "summary": "Create a new account",
-                "description": "Creates a new bank account for a user with an optional initial balance",
+                "description": "Creates a new, empty account for the authenticated user. Fund it through a supported deposit method.",
                 "operationId": "createAccount",
                 "requestBody": {
                     "required": true,
@@ -1326,9 +1326,10 @@
                                         "maxLength": 255
                                     },
                                     "initial_balance": {
-                                        "description": "Initial balance in cents",
+                                        "description": "Deprecated: only 0 is accepted. Accounts open empty.",
                                         "type": "integer",
-                                        "example": 10000,
+                                        "example": 0,
+                                        "maximum": 0,
                                         "minimum": 0
                                     }
                                 },
@@ -5977,6 +5978,39 @@
                             }
                         }
                     },
+                    "403": {
+                        "description": "First login of a new Privy identity while API registration is closed (ERR_REG_001) or invite-only without an invitation for the Privy email (ERR_REG_002). Existing users are not affected.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "ERR_REG_001"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "New account registration is currently closed."
+                                                },
+                                                "reason": {
+                                                    "type": "string",
+                                                    "example": "REGISTRATION_CLOSED"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
                     "409": {
                         "description": "Email already in use by a non-Privy user",
                         "content": {
@@ -6967,6 +7001,39 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Registration closed (ERR_REG_001, REGISTRATION_API_ENABLED=false) or invite-only without a valid invitation for this email (ERR_REG_002)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "ERR_REG_001"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "New account registration is currently closed."
+                                                },
+                                                "reason": {
+                                                    "type": "string",
+                                                    "example": "REGISTRATION_CLOSED"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -7101,6 +7168,9 @@
                     },
                     "400": {
                         "description": "Invalid provider or authentication failed"
+                    },
+                    "403": {
+                        "description": "First social login of a new user while API registration is closed (ERR_REG_001) or invite-only without an invitation (ERR_REG_002)"
                     }
                 }
             }
@@ -7402,8 +7472,9 @@
                                         ]
                                     },
                                     "initialDeposit": {
-                                        "description": "Initial deposit amount in cents",
+                                        "description": "Deprecated: only 0 is accepted. Accounts open empty; fund them through a supported deposit method.",
                                         "type": "integer",
+                                        "maximum": 0,
                                         "minimum": 0
                                     },
                                     "currency": {
@@ -39632,7 +39703,7 @@
                     "Gas Relayer"
                 ],
                 "summary": "Submit a sponsored transaction",
-                "description": "Sponsor a transaction (meta-transaction).\n\nAllows users to execute blockchain transactions without holding native\ngas tokens (ETH/MATIC). The fee is deducted from their stablecoin balance.\n\nFor first-time account deployment, include the init_code parameter with\nthe Smart Account factory call data.",
+                "description": "Sponsor a transaction (meta-transaction).\n\nAllows users to execute blockchain transactions without holding native\ngas tokens (ETH/MATIC). The fee is deducted from their stablecoin balance.\n\nFor first-time account deployment, include the init_code parameter with\nthe Smart Account factory call data.\n\nAvailable only when RELAYER_GENERIC_SPONSOR_ENABLED is on (404\notherwise). The sender must be a smart account / wallet address\nregistered to the caller, the network must be enabled for wallet sends\nand the calldata must be an execute(USDC|USDT, 0, transfer(to, amount))\ncall (see SponsorshipRequestValidator).",
                 "operationId": "7e4c07a424eee8f0874198f2de05b951",
                 "requestBody": {
                     "required": true,
@@ -39735,6 +39806,15 @@
                     },
                     "401": {
                         "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Sender is not registered to the caller (ERR_RELAYER_301)"
+                    },
+                    "404": {
+                        "description": "Generic sponsorship is disabled (RELAYER_GENERIC_SPONSOR_ENABLED)"
+                    },
+                    "422": {
+                        "description": "Calldata, network or init code not allowed (ERR_RELAYER_302/303/304)"
                     }
                 },
                 "security": [
@@ -41048,8 +41128,8 @@
                 "tags": [
                     "SMS"
                 ],
-                "summary": "Send an SMS message (payment-gated)",
-                "description": "Send an SMS to any phone number via VertexSMS. Protected by MPP payment gate — the first request without payment returns 402 with available rails and pricing. After paying via USDC (x402), Stripe, or Lightning, resend with the payment proof in the Authorization header. Rate limited to 60 requests/minute, 1 SMS/second outbound.",
+                "summary": "Send an SMS message (authenticated, payment-gated)",
+                "description": "Send an SMS to any phone number via VertexSMS. Requires a Sanctum bearer token and is limited per user (SMS_SEND_PER_USER_PER_MINUTE / SMS_SEND_PER_USER_PER_DAY) on top of a global 60 requests/minute. When the MPP payment gate is enabled, the first request without payment returns 402 with available rails and pricing. Outbound rate is 1 SMS/second.",
                 "operationId": "smsSend",
                 "requestBody": {
                     "required": true,
@@ -41157,10 +41237,21 @@
                     "422": {
                         "description": "Validation error — invalid phone number format, missing message, or message exceeds 1600 chars"
                     },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "429": {
+                        "description": "Per-user or global send limit reached"
+                    },
                     "503": {
                         "description": "SMS service disabled — SMS_ENABLED is false"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/api/v1/sms/rates": {

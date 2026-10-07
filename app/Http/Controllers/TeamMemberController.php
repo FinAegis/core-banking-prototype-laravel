@@ -120,7 +120,9 @@ class TeamMemberController extends Controller
             ]
         );
 
-        // Create the user
+        // Create the user. Business owners adding members to their own team
+        // (authenticated web route) are not subject to the API registration
+        // switch (REGISTRATION_API_ENABLED, config/registration.php).
         $user = User::create(
             [
                 'name'     => $validated['name'],

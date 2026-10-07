@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Newsletter\Mail\SubscriberConfirmation;
 use App\Domain\Newsletter\Mail\SubscriberNewsletter;
 use App\Domain\Newsletter\Mail\SubscriberWelcome;
 use App\Domain\Newsletter\Models\Subscriber;
@@ -25,22 +26,25 @@ class SubscriberTest extends DomainTestCase
         $response->assertStatus(200)
             ->assertJson([
                 'success' => true,
-                'message' => 'Thank you for subscribing! Please check your email.',
+                'message' => 'Almost done! Check your inbox and confirm your email address to subscribe.',
             ]);
 
+        // Double opt-in: pending until the emailed link is opened.
         $this->assertDatabaseHas('subscribers', [
-            'email'  => 'test@example.com',
-            'source' => 'blog',
-            'status' => 'active',
+            'email'        => 'test@example.com',
+            'source'       => 'blog',
+            'status'       => 'pending',
+            'confirmed_at' => null,
         ]);
 
-        Mail::assertQueued(SubscriberWelcome::class, function ($mail) {
+        Mail::assertQueued(SubscriberConfirmation::class, function ($mail) {
             return $mail->hasTo('test@example.com');
         });
+        Mail::assertNotQueued(SubscriberWelcome::class);
     }
 
     #[Test]
-    public function it_reactivates_existing_unsubscribed_subscriber()
+    public function it_requires_reconfirmation_for_existing_unsubscribed_subscriber(): void
     {
         Mail::fake();
 
@@ -56,10 +60,11 @@ class SubscriberTest extends DomainTestCase
 
         $response->assertStatus(200);
 
+        // Re-subscribing an unsubscribed address needs a fresh confirmation.
         $subscriber->refresh();
-        $this->assertEquals('active', $subscriber->status);
-        $this->assertNull($subscriber->unsubscribed_at);
+        $this->assertEquals('pending', $subscriber->status);
 
+        Mail::assertQueued(SubscriberConfirmation::class);
         Mail::assertNotQueued(SubscriberWelcome::class);
     }
 

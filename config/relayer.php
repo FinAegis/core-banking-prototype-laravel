@@ -21,6 +21,24 @@ return [
 
     'default_network' => env('RELAYER_DEFAULT_NETWORK', 'polygon'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Generic sponsorship (REST POST /api/v1/relayer/sponsor, GraphQL
+    | sponsorTransaction)
+    |--------------------------------------------------------------------------
+    |
+    | Operator-paid gas for client-built UserOperations. Secure by default:
+    | off when APP_ENV=production (or unset), on for every other environment;
+    | an explicit RELAYER_GENERIC_SPONSOR_ENABLED value always wins. When off,
+    | the REST route answers 404 and the mutation returns an error. When on,
+    | SponsorshipRequestValidator binds the sender to the caller and only
+    | sponsors USDC/USDT transfers on WALLET_SEND_EVM_NETWORKS. The wallet send
+    | flow (/api/v1/wallet/transactions/*) does not depend on this flag.
+    |
+    */
+
+    'generic_sponsor_enabled' => (bool) env('RELAYER_GENERIC_SPONSOR_ENABLED', env('APP_ENV', 'production') !== 'production'),
+
     // Cache TTL for read-only RPC calls (blockNumber, gasPrice) in seconds.
     // Reduces Alchemy/Infura usage by serving cached results for repeated queries.
     'rpc_cache_ttl_seconds' => (int) env('RPC_CACHE_TTL', 15),
@@ -158,7 +176,9 @@ return [
     */
 
     'pimlico' => [
-        'api_key'     => env('PIMLICO_API_KEY'),
+        'api_key' => env('PIMLICO_API_KEY'),
+        // Optional override; empty = https://api.pimlico.io/v2/{chainId}/rpc
+        // per network. The key is appended as ?apikey= by EthRpcClient.
         'bundler_url' => env('PIMLICO_BUNDLER_URL'),
         'chain_id'    => (int) env('PIMLICO_CHAIN_ID', 137),
         'timeout'     => (int) env('PIMLICO_TIMEOUT', 15),

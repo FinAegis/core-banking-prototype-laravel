@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Web;
 
 use App\Domain\Auth\Exceptions\PrivyEmailOtpException;
 use App\Domain\Auth\Services\PrivyEmailOtpClient;
+use App\Domain\User\Exceptions\RegistrationNotAllowedException;
+use App\Domain\User\Services\ApiRegistrationGate;
 use App\Http\Controllers\Concerns\ProvisionsPersonalTeam;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -36,6 +38,7 @@ final class PrivyWebAuthController extends Controller
     public function __construct(
         private readonly PrivyEmailOtpClient $privy,
         private readonly RateLimiter $rateLimiter,
+        private readonly ApiRegistrationGate $registrationGate,
     ) {
     }
 
@@ -102,7 +105,20 @@ final class PrivyWebAuthController extends Controller
                 ->withErrors(['code' => __('That code did not work. Try again or request a new one.')]);
         }
 
-        $user = $this->resolveOrCreateUser($resolved['id'], $resolved['email']);
+        try {
+            $user = $this->resolveOrCreateUser($resolved['id'], $resolved['email']);
+        } catch (RegistrationNotAllowedException $e) {
+            // Same switch as the mobile Privy login: an account created here
+            // could otherwise sign in on mobile while sign-ups are closed.
+            return redirect()
+                ->route('login')
+                ->withErrors([
+                    'email' => $e->errorCode === RegistrationNotAllowedException::CODE_INVITATION_REQUIRED
+                        ? __('Sign-up is by invitation only. Use the email address your invitation was sent to.')
+                        : __('New account registration is currently closed.'),
+                ])
+                ->with('error_code', $e->errorCode);
+        }
 
         // Returning a 409 Conflict from a redirect form is awkward; instead we
         // surface a flash error and bounce back to /login. This is the rare
@@ -137,7 +153,8 @@ final class PrivyWebAuthController extends Controller
     /**
      * Match the mobile flow: lookup by privy_user_id; if not found and an
      * unrelated user already owns the email, refuse (account-takeover-shaped);
-     * otherwise create. Web signup is intentionally one-step — there's no
+     * otherwise create, subject to the API registration switch
+     * (config/registration.php; throws RegistrationNotAllowedException). Web signup is intentionally one-step — there's no
      * separate /register surface, the first OTP success either signs you in
      * or signs you up depending on whether the Privy DID is known.
      */
@@ -153,7 +170,10 @@ final class PrivyWebAuthController extends Controller
             return null;
         }
 
-        return User::create([
+        // New account: REGISTRATION_API_ENABLED / REGISTRATION_API_INVITE_ONLY.
+        $invitation = $this->registrationGate->admit($email);
+
+        $user = User::create([
             'name'              => 'New User',
             'email'             => $email,
             'password'          => Str::random(64),
@@ -161,5 +181,9 @@ final class PrivyWebAuthController extends Controller
             'privy_user_id'     => $privyUserId,
             'privy_linked_at'   => now(),
         ]);
+
+        $this->registrationGate->accepted($invitation, $user);
+
+        return $user;
     }
 }

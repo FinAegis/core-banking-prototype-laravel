@@ -2,6 +2,7 @@
 
 namespace App\Actions\Fortify;
 
+use App\Domain\User\Services\ApiRegistrationGate;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -18,16 +19,23 @@ class CreateNewUser implements CreatesNewUsers
      * Create a newly registered user.
      *
      * @param  array<string, string>  $input
-     * @param  bool  $isApiRegistration  When true, skip the Fortify registration gate (API user signup is always allowed)
+     * @param  bool  $isApiRegistration  When true, skip the Fortify web registration gate and apply the
+     *                                   API registration switch instead (config/registration.php)
      *
      * @throws \Illuminate\Validation\ValidationException
+     * @throws \App\Domain\User\Exceptions\RegistrationNotAllowedException when API registration is
+     *                                                                         closed or invite-only without a valid invitation
      */
     public function create(array $input, bool $isApiRegistration = false): User
     {
-        // Block Fortify web registration when disabled — API registration is always allowed
+        // Block Fortify web registration when disabled (REGISTRATION_ENABLED).
         if (! $isApiRegistration && ! config('fortify.registration_enabled', false)) {
             abort(403, 'Admin registration is disabled. Users register via the API or CLI.');
         }
+
+        // API sign-ups follow REGISTRATION_API_ENABLED / REGISTRATION_API_INVITE_ONLY.
+        $gate = $isApiRegistration ? app(ApiRegistrationGate::class) : null;
+        $invitation = $gate?->admit((string) ($input['email'] ?? ''));
 
         Validator::make(
             $input,
@@ -48,6 +56,8 @@ class CreateNewUser implements CreatesNewUsers
                 'password' => Hash::make($input['password']),
             ]
         );
+
+        $gate?->accepted($invitation, $user);
 
         // Track referral if code provided
         if (! empty($input['referral_code'])) {

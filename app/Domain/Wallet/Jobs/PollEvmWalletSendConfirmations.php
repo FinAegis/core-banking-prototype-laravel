@@ -7,6 +7,7 @@ namespace App\Domain\Wallet\Jobs;
 use App\Domain\Relayer\Contracts\BundlerInterface;
 use App\Domain\Wallet\Models\WalletSendRecord;
 use App\Domain\Wallet\Services\SponsorshipCostTracker;
+use App\Support\SecretRedactor;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -69,7 +70,7 @@ class PollEvmWalletSendConfirmations implements ShouldQueue
                 'record_id'    => $record->id,
                 'user_op_hash' => $record->user_op_hash,
                 'network'      => $record->network,
-                'error'        => $e->getMessage(),
+                'error'        => SecretRedactor::message($e),
             ]);
 
             return;

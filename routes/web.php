@@ -348,13 +348,22 @@ Route::middleware('module.enabled:Cgo')->group(function () {
         return view('legal.cgo-terms');
     })->name('cgo.terms');
 
-    Route::post('/cgo/notify', [App\Http\Controllers\CgoController::class, 'notify'])->name('cgo.notify');
+    Route::post('/cgo/notify', [App\Http\Controllers\CgoController::class, 'notify'])
+        ->middleware('throttle:10,1')
+        ->name('cgo.notify');
     Route::get('/cgo/notify-success', [App\Http\Controllers\CgoController::class, 'notifySuccess'])->name('cgo.notify-success');
 });
 
-// Subscriber routes
+// Subscriber routes. Sign-ups are double opt-in: POST stores a pending
+// subscriber and emails a signed confirmation link (per-IP and per-email
+// limits in SubscriberEmailService); the confirm route activates it.
 Route::get('/subscriber/unsubscribe/{email}', [App\Http\Controllers\SubscriberController::class, 'unsubscribe'])->name('subscriber.unsubscribe');
-Route::post('/subscriber/{source}', [App\Http\Controllers\SubscriberController::class, 'subscribe'])->name('subscriber.subscribe');
+Route::get('/subscriber/confirm/{subscriber}', [App\Http\Controllers\SubscriberController::class, 'confirm'])
+    ->middleware('throttle:30,1')
+    ->name('subscriber.confirm');
+Route::post('/subscriber/{source}', [App\Http\Controllers\SubscriberController::class, 'subscribe'])
+    ->middleware('throttle:10,1')
+    ->name('subscriber.subscribe');
 
 // Authenticated CGO routes
 Route::middleware(['module.enabled:Cgo', 'auth', 'verified'])->prefix('cgo')->name('cgo.')->group(function () {

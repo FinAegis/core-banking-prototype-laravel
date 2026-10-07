@@ -111,6 +111,11 @@ return [
         // Per-card rate limit: maximum JIT authorization attempts per 60-second window.
         // Prevents a compromised card token from flooding the authorization pipeline.
         'max_auth_per_minute' => (int) env('CARD_JIT_MAX_AUTH_PER_MINUTE', 10),
+
+        // Live issuers only (CARD_ISSUER other than demo): approved amounts
+        // are held against the cardholder's balance for this long, so later
+        // authorizations cannot spend the same funds.
+        'hold_ttl_seconds' => (int) env('CARD_JIT_HOLD_TTL_SECONDS', 604800),
     ],
 
     /*

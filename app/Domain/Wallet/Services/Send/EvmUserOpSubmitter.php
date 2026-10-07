@@ -10,6 +10,7 @@ use App\Domain\Relayer\ValueObjects\UserOperation;
 use App\Domain\Wallet\Exceptions\InvalidSendStateException;
 use App\Domain\Wallet\Exceptions\InvalidSignatureException;
 use App\Domain\Wallet\Models\WalletSendRecord;
+use App\Support\SecretRedactor;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -70,7 +71,7 @@ class EvmUserOpSubmitter
         } catch (Throwable $e) {
             $record->status = WalletSendRecord::STATUS_FAILED;
             $record->error_code = 'BUNDLER_REJECTED';
-            $record->error_message = $e->getMessage();
+            $record->error_message = SecretRedactor::message($e);
             $record->failed_at = now();
             $record->save();
 

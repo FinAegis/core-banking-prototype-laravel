@@ -8,6 +8,7 @@ use App\Domain\Relayer\Contracts\PaymasterInterface;
 use App\Domain\Relayer\Enums\SupportedNetwork;
 use App\Domain\Relayer\Exceptions\RpcException;
 use App\Domain\Relayer\ValueObjects\UserOperation;
+use App\Support\SecretRedactor;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -68,7 +69,7 @@ class PimlicoPaymasterService implements PaymasterInterface
             return $result['paymasterAndData'] ?? '0x';
         } catch (RpcException $e) {
             Log::warning('Pimlico sponsorship failed, falling back to empty paymaster data', [
-                'error'  => $e->getMessage(),
+                'error'  => SecretRedactor::message($e),
                 'sender' => $userOp->sender,
             ]);
 
@@ -101,7 +102,7 @@ class PimlicoPaymasterService implements PaymasterInterface
         } catch (RpcException $e) {
             Log::debug('Using static gas estimate, RPC unavailable', [
                 'network' => $network->value,
-                'error'   => $e->getMessage(),
+                'error'   => SecretRedactor::message($e),
             ]);
             $gasPriceUsd = ($totalGas / 1_000_000) * $network->getAverageGasCostUsd();
         }

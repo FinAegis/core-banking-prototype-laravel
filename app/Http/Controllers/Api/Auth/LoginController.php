@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\Auth;
 use App\Domain\Auth\Exceptions\PrivyJwtException;
 use App\Domain\Auth\Services\PrivyJwtVerifier;
 use App\Domain\Mobile\Services\BiometricJWTService;
+use App\Domain\User\Exceptions\RegistrationNotAllowedException;
+use App\Domain\User\Services\ApiRegistrationGate;
 use App\Http\Controllers\Concerns\ProvisionsPersonalTeam;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -201,6 +203,18 @@ class LoginController extends Controller
         ])
     )]
     #[OA\Response(
+        response: 403,
+        description: 'First login of a new Privy identity while API registration is closed (ERR_REG_001) or invite-only without an invitation for the Privy email (ERR_REG_002). Existing users are not affected.',
+        content: new OA\JsonContent(properties: [
+        new OA\Property(property: 'success', type: 'boolean', example: false),
+        new OA\Property(property: 'error', type: 'object', properties: [
+        new OA\Property(property: 'code', type: 'string', example: 'ERR_REG_001'),
+        new OA\Property(property: 'message', type: 'string', example: 'New account registration is currently closed.'),
+        new OA\Property(property: 'reason', type: 'string', example: 'REGISTRATION_CLOSED'),
+        ]),
+        ])
+    )]
+    #[OA\Response(
         response: 409,
         description: 'Email already in use by a non-Privy user',
         content: new OA\JsonContent(properties: [
@@ -219,7 +233,7 @@ class LoginController extends Controller
         new OA\Property(property: 'errors', type: 'object'),
         ])
     )]
-    public function privyLogin(Request $request, PrivyJwtVerifier $verifier): JsonResponse
+    public function privyLogin(Request $request, PrivyJwtVerifier $verifier, ApiRegistrationGate $registrationGate): JsonResponse
     {
         $validated = $request->validate([
             'privy_token' => ['required', 'string'],
@@ -274,6 +288,14 @@ class LoginController extends Controller
                 ], 409);
             }
 
+            // New account: REGISTRATION_API_ENABLED / REGISTRATION_API_INVITE_ONLY
+            // (invitation matched against the Privy-verified email).
+            try {
+                $invitation = $registrationGate->admit($email);
+            } catch (RegistrationNotAllowedException $e) {
+                return $e->toResponse();
+            }
+
             $name = is_string($validated['name'] ?? null) ? trim((string) $validated['name']) : '';
 
             $user = User::create([
@@ -285,6 +307,8 @@ class LoginController extends Controller
                 'privy_linked_at'   => now(),
                 'timezone'          => $timezone,
             ]);
+
+            $registrationGate->accepted($invitation, $user);
         } elseif ($timezone !== null && $user->timezone !== $timezone) {
             // Returning user with a new device tz — update silently. The user
             // explicitly setting tz from the profile screen takes precedence

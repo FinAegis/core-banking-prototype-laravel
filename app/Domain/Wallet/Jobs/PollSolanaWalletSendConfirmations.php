@@ -6,6 +6,7 @@ namespace App\Domain\Wallet\Jobs;
 
 use App\Domain\Wallet\Models\WalletSendRecord;
 use App\Domain\Wallet\Services\Send\HeliusRpcClient;
+use App\Support\SecretRedactor;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -75,7 +76,7 @@ class PollSolanaWalletSendConfirmations implements ShouldQueue
             Log::warning('PollSolanaWalletSendConfirmations: RPC error', [
                 'record_id' => $record->id,
                 'signature' => $signature,
-                'error'     => $e->getMessage(),
+                'error'     => SecretRedactor::message($e),
             ]);
 
             return;

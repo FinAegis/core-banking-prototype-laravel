@@ -13,8 +13,10 @@ Route::prefix('v1/relayer')->name('api.relayer.')->group(function () {
 
     // Authenticated endpoints
     Route::middleware(['auth:sanctum'])->group(function () {
+        // Generic sponsorship: 404 unless RELAYER_GENERIC_SPONSOR_ENABLED
+        // (off by default under APP_ENV=production).
         Route::post('/sponsor', [RelayerController::class, 'sponsor'])
-            ->middleware('transaction.rate_limit:relayer')
+            ->middleware(['feature:relayer.generic_sponsor_enabled', 'transaction.rate_limit:relayer'])
             ->name('sponsor');
         Route::post('/estimate', [RelayerController::class, 'estimate'])->name('estimate');
 

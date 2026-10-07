@@ -17,6 +17,7 @@ use App\Domain\Wallet\Exceptions\InvalidAssetException;
 use App\Domain\Wallet\Exceptions\NetworkDisabledException;
 use App\Domain\Wallet\Models\WalletSendRecord;
 use App\Models\User;
+use App\Support\SecretRedactor;
 use Illuminate\Support\Str;
 use kornrunner\Keccak;
 use Throwable;
@@ -181,7 +182,7 @@ class EvmUserOpPreparer
                 'idempotency_key'   => ($idempotencyKey !== null && $idempotencyKey !== '') ? $idempotencyKey : null,
                 'quote_id'          => $quoteId,
                 'error_code'        => 'PAYMASTER_REJECTED',
-                'error_message'     => $e->getMessage(),
+                'error_message'     => SecretRedactor::message($e),
                 'failed_at'         => now(),
                 'metadata'          => [
                     'entry_point' => $entryPoint,

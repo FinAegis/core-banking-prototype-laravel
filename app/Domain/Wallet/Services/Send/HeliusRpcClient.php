@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Wallet\Services\Send;
 
 use App\Domain\Wallet\Exceptions\SolanaRpcException;
+use App\Support\SecretRedactor;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 
@@ -196,6 +198,13 @@ class HeliusRpcClient
                 $e->response->status(),
                 "HTTP {$e->response->status()} from Helius RPC ({$method})"
             );
+        } catch (ConnectionException $e) {
+            // Transport errors embed the request URL, which carries the
+            // api-key query parameter.
+            throw SolanaRpcException::fromRpcError(
+                0,
+                "Helius RPC unreachable ({$method}): " . SecretRedactor::message($e)
+            );
         }
 
         /** @var array<string, mixed> $body */
@@ -203,7 +212,7 @@ class HeliusRpcClient
 
         if (isset($body['error']) && is_array($body['error'])) {
             $code = (int) ($body['error']['code'] ?? 0);
-            $message = (string) ($body['error']['message'] ?? 'Unknown RPC error');
+            $message = SecretRedactor::redact((string) ($body['error']['message'] ?? 'Unknown RPC error'));
             throw SolanaRpcException::fromRpcError($code, $message);
         }
 

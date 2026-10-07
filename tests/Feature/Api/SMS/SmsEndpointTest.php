@@ -44,6 +44,7 @@ describe('SMS Endpoints', function (): void {
 
     it('returns 503 when SMS disabled for send', function (): void {
         config(['sms.enabled' => false]);
+        Sanctum::actingAs(User::factory()->create(), ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/v1/sms/send', [
             'to'      => '+37069912345',
@@ -55,6 +56,7 @@ describe('SMS Endpoints', function (): void {
 
     it('validates phone number format', function (): void {
         config(['sms.enabled' => true]);
+        Sanctum::actingAs(User::factory()->create(), ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/v1/sms/send', [
             'to'      => 'not-a-number',
@@ -66,6 +68,7 @@ describe('SMS Endpoints', function (): void {
 
     it('validates message is required', function (): void {
         config(['sms.enabled' => true]);
+        Sanctum::actingAs(User::factory()->create(), ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/v1/sms/send', [
             'to' => '+37069912345',
@@ -76,6 +79,7 @@ describe('SMS Endpoints', function (): void {
 
     it('validates message max length', function (): void {
         config(['sms.enabled' => true]);
+        Sanctum::actingAs(User::factory()->create(), ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/v1/sms/send', [
             'to'      => '+37069912345',
@@ -83,6 +87,15 @@ describe('SMS Endpoints', function (): void {
         ]);
 
         expect($response->status())->toBeIn([402, 422]);
+    });
+
+    it('requires authentication for send', function (): void {
+        config(['sms.enabled' => true]);
+
+        $this->postJson('/api/v1/sms/send', [
+            'to'      => '+37069912345',
+            'message' => 'Hello from test',
+        ])->assertUnauthorized();
     });
 
     it('requires authentication for status check', function (): void {

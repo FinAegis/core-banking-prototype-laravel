@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Domain\Mobile\Services\BiometricJWTService;
+use App\Domain\User\Exceptions\RegistrationNotAllowedException;
+use App\Domain\User\Services\ApiRegistrationGate;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Traits\HasApiScopes;
@@ -22,6 +24,7 @@ class RegisterController extends Controller
 
     public function __construct(
         private readonly BiometricJWTService $biometricJWTService,
+        private readonly ApiRegistrationGate $registrationGate,
     ) {
     }
 
@@ -75,8 +78,28 @@ class RegisterController extends Controller
         ]),
         ])
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Registration closed (ERR_REG_001, REGISTRATION_API_ENABLED=false) or invite-only without a valid invitation for this email (ERR_REG_002)',
+        content: new OA\JsonContent(properties: [
+        new OA\Property(property: 'success', type: 'boolean', example: false),
+        new OA\Property(property: 'error', type: 'object', properties: [
+        new OA\Property(property: 'code', type: 'string', example: 'ERR_REG_001'),
+        new OA\Property(property: 'message', type: 'string', example: 'New account registration is currently closed.'),
+        new OA\Property(property: 'reason', type: 'string', example: 'REGISTRATION_CLOSED'),
+        ]),
+        ])
+    )]
     public function register(Request $request): JsonResponse
     {
+        // REGISTRATION_API_ENABLED: refuse before validation so a closed
+        // endpoint does not reveal which email addresses are taken.
+        try {
+            $this->registrationGate->ensureOpen();
+        } catch (RegistrationNotAllowedException $e) {
+            return $e->toResponse();
+        }
+
         $validated = $request->validate(
             [
                 'name'                 => ['required', 'string', 'max:255'],
@@ -102,17 +125,21 @@ class RegisterController extends Controller
         // Use the same CreateNewUser action as Fortify for consistency
         // Pass isApiRegistration=true to bypass the Fortify web registration gate
         $creator = new CreateNewUser();
-        $user = $creator->create(
-            [
-                'name'                  => $validated['name'],
-                'email'                 => $validated['email'],
-                'password'              => $validated['password'],
-                'password_confirmation' => $request->password_confirmation,
-                'is_business_customer'  => $validated['is_business_customer'] ?? false,
-                'terms'                 => true, // For API, we assume terms are accepted
-            ],
-            isApiRegistration: true,
-        );
+        try {
+            $user = $creator->create(
+                [
+                    'name'                  => $validated['name'],
+                    'email'                 => $validated['email'],
+                    'password'              => $validated['password'],
+                    'password_confirmation' => $request->password_confirmation,
+                    'is_business_customer'  => $validated['is_business_customer'] ?? false,
+                    'terms'                 => true, // For API, we assume terms are accepted
+                ],
+                isApiRegistration: true,
+            );
+        } catch (RegistrationNotAllowedException $e) {
+            return $e->toResponse();
+        }
 
         // Create access/refresh token pair
         $tokenPair = $this->createTokenPair($user, 'api-token');

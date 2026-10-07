@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Wallet\Models;
 
+use App\Support\SecretRedactor;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
@@ -103,7 +104,7 @@ class WalletSendRecord extends Model
             'requiredConfirmations' => 1,
             'error'                 => $this->error_code ? [
                 'code'    => $this->error_code,
-                'message' => $this->error_message,
+                'message' => $this->redactedErrorMessage(),
             ] : null,
             'quoteId' => $this->quote_id,
         ];
@@ -130,12 +131,22 @@ class WalletSendRecord extends Model
             'tx_hash'       => $this->tx_hash,
             'explorer_url'  => $this->buildExplorerUrl(),
             'error_code'    => $this->error_code,
-            'error_message' => $this->error_message,
+            'error_message' => $this->redactedErrorMessage(),
             'created_at'    => $this->created_at->toIso8601String(),
             'submitted_at'  => $this->submitted_at?->toIso8601String(),
             'confirmed_at'  => $this->confirmed_at?->toIso8601String(),
             'failed_at'     => $this->failed_at?->toIso8601String(),
         ];
+    }
+
+    /**
+     * Error text as returned to clients. Rows written before provider errors
+     * were redacted at the source may still carry a provider URL, so the
+     * text is redacted again on the way out.
+     */
+    private function redactedErrorMessage(): ?string
+    {
+        return $this->error_message === null ? null : SecretRedactor::redact($this->error_message);
     }
 
     private function buildExplorerUrl(): ?string

@@ -69,16 +69,29 @@ class Subscriber extends Model
         'ip_address',
         'user_agent',
         'confirmed_at',
+        'confirmation_token_hash',
+        'confirmation_sent_at',
         'unsubscribed_at',
         'unsubscribe_reason',
     ];
 
-    protected $casts = [
-        'preferences'     => 'array',
-        'tags'            => 'array',
-        'confirmed_at'    => 'datetime',
-        'unsubscribed_at' => 'datetime',
+    protected $hidden = [
+        'confirmation_token_hash',
     ];
+
+    protected $casts = [
+        'preferences'          => 'array',
+        'tags'                 => 'array',
+        'confirmed_at'         => 'datetime',
+        'confirmation_sent_at' => 'datetime',
+        'unsubscribed_at'      => 'datetime',
+    ];
+
+    /**
+     * Signed up but has not opened the confirmation link yet (double
+     * opt-in). Pending subscribers receive no mail except the confirmation.
+     */
+    public const STATUS_PENDING = 'pending';
 
     public const STATUS_ACTIVE = 'active';
 
@@ -131,6 +144,11 @@ class Subscriber extends Model
     public function isActive(): bool
     {
         return $this->status === self::STATUS_ACTIVE;
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === self::STATUS_PENDING;
     }
 
     public function unsubscribe($reason = null): void

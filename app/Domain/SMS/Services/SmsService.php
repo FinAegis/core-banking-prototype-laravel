@@ -38,6 +38,12 @@ class SmsService
         string $message,
         array $paymentMeta = [],
     ): array {
+        // Every send path (REST, MCP sms.send, AI agents) goes through here,
+        // so the master switch is enforced once for all of them.
+        if (! (bool) config('sms.enabled', false)) {
+            throw new RuntimeException('SMS service is not enabled');
+        }
+
         $callerId = (string) (auth()->id() ?? 'system');
         $dedupKey = 'sms:dedup:' . hash('sha256', $callerId . '|' . $to . '|' . $from . '|' . $message);
         if (! Cache::add($dedupKey, true, 60)) {

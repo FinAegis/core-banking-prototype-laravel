@@ -13,7 +13,23 @@ return [
     |
     */
 
-    'enabled' => (bool) env('SMS_ENABLED', false),
+    /*
+    | Master switch for outbound SMS (POST /api/v1/sms/send and the MCP
+    | sms.send tool). Secure by default: off when APP_ENV=production (or
+    | unset), on for every other environment (local/testing use the mock
+    | provider). An explicit SMS_ENABLED value always wins.
+    */
+    'enabled' => (bool) env('SMS_ENABLED', env('APP_ENV', 'production') !== 'production'),
+
+    /*
+    | Per-user limits for POST /api/v1/sms/send (named rate limiter
+    | `sms-send`, keyed by the authenticated user). The route also keeps its
+    | global 60/minute throttle.
+    */
+    'rate_limit' => [
+        'per_user_per_minute' => (int) env('SMS_SEND_PER_USER_PER_MINUTE', 5),
+        'per_user_per_day'    => (int) env('SMS_SEND_PER_USER_PER_DAY', 50),
+    ],
 
     'default_provider' => env('SMS_PROVIDER', 'mock'),
 

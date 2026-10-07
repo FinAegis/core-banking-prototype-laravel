@@ -2,22 +2,53 @@
 
 namespace App\Domain\Newsletter\Services;
 
+use App\Domain\Cgo\Mail\CgoNotificationReceived;
+use App\Domain\Newsletter\Exceptions\SubscriptionThrottledException;
+use App\Domain\Newsletter\Mail\SubscriberConfirmation;
 use App\Domain\Newsletter\Mail\SubscriberNewsletter;
 use App\Domain\Newsletter\Mail\SubscriberWelcome;
 use App\Domain\Newsletter\Models\Subscriber;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 
 class SubscriberEmailService
 {
     /**
-     * Send welcome email to new subscriber.
+     * Subscription requests accepted per IP address per window.
+     */
+    public const MAX_REQUESTS_PER_IP = 10;
+
+    /**
+     * Subscription requests accepted per email address per window.
+     */
+    public const MAX_REQUESTS_PER_EMAIL = 3;
+
+    /**
+     * Throttle window (seconds). A pending subscriber is re-sent the
+     * confirmation email at most once per window.
+     */
+    public const THROTTLE_WINDOW_SECONDS = 3600;
+
+    /**
+     * Lifetime of a confirmation link.
+     */
+    public const CONFIRMATION_TTL_HOURS = 48;
+
+    /**
+     * Send welcome email to a subscriber (after confirmation).
      */
     public function sendWelcomeEmail(Subscriber $subscriber): void
     {
         try {
-            Mail::to($subscriber->email)->send(new SubscriberWelcome($subscriber));
+            $mailable = $subscriber->source === Subscriber::SOURCE_CGO
+                ? new CgoNotificationReceived($subscriber->email)
+                : new SubscriberWelcome($subscriber);
+
+            Mail::to($subscriber->email)->send($mailable);
 
             Log::info(
                 'Welcome email sent to subscriber',
@@ -161,65 +192,208 @@ class SubscriberEmailService
     }
 
     /**
-     * Subscribe or update existing subscriber.
+     * Request a subscription (double opt-in).
+     *
+     * A new address is stored as `pending` with a hashed confirmation token
+     * and receives only the confirmation email; nothing else is sent until
+     * {@see confirm()} succeeds. A pending address is re-sent the
+     * confirmation at most once per throttle window. An unsubscribed or
+     * bounced address must confirm again before it is reactivated. An
+     * active address only gets the new tags. The caller sees the same
+     * outcome in every case, so the endpoint does not reveal whether an
+     * address is already subscribed.
+     *
+     * @param  array<int, string>  $tags
+     *
+     * @throws SubscriptionThrottledException when the IP or the email address
+     *                                        exceeded its request budget
      */
     public function subscribe(string $email, string $source, array $tags = [], ?string $ipAddress = null, ?string $userAgent = null): Subscriber
     {
-        $subscriber = Subscriber::firstOrNew(['email' => $email]);
+        $email = trim($email);
 
-        if ($subscriber->exists) {
-            // Reactivate if unsubscribed
-            if (! $subscriber->isActive()) {
-                $subscriber->update(
-                    [
-                    'status'             => Subscriber::STATUS_ACTIVE,
-                    'unsubscribed_at'    => null,
-                    'unsubscribe_reason' => null,
-                    ]
-                );
-            }
+        $this->throttle($email, $ipAddress);
 
-            // Add new tags
-            if (! empty($tags)) {
-                $subscriber->addTags($tags);
-            }
+        /** @var Subscriber|null $subscriber */
+        $subscriber = Subscriber::query()->whereRaw('LOWER(email) = ?', [strtolower($email)])->first();
 
-            Log::info(
-                'Existing subscriber reactivated or updated',
-                [
-                'subscriber_id' => $subscriber->id,
-                'email'         => $email,
-                'source'        => $source,
-                ]
-            );
-        } else {
-            // New subscriber
+        if ($subscriber === null) {
+            $subscriber = new Subscriber();
             $subscriber->fill(
                 [
-                'source'       => $source,
-                'status'       => Subscriber::STATUS_ACTIVE,
-                'tags'         => $tags,
-                'ip_address'   => $ipAddress,
-                'user_agent'   => $userAgent,
-                'confirmed_at' => now(),
+                    'email'        => $email,
+                    'source'       => $source,
+                    'status'       => Subscriber::STATUS_PENDING,
+                    'tags'         => array_values($tags),
+                    'ip_address'   => $ipAddress,
+                    'user_agent'   => $userAgent,
+                    'confirmed_at' => null,
                 ]
             );
-
             $subscriber->save();
 
-            // Send welcome email
-            $this->sendWelcomeEmail($subscriber);
+            $this->sendConfirmationEmail($subscriber);
 
             Log::info(
-                'New subscriber created',
+                'New subscriber pending confirmation',
                 [
-                'subscriber_id' => $subscriber->id,
-                'email'         => $email,
-                'source'        => $source,
+                    'subscriber_id' => $subscriber->id,
+                    'source'        => $source,
                 ]
             );
+
+            return $subscriber;
         }
 
+        if (! empty($tags)) {
+            $subscriber->addTags($tags);
+        }
+
+        if ($subscriber->isActive()) {
+            Log::info(
+                'Existing subscriber updated',
+                [
+                    'subscriber_id' => $subscriber->id,
+                    'source'        => $source,
+                ]
+            );
+
+            return $subscriber;
+        }
+
+        // Pending, unsubscribed or bounced: (re)confirmation required.
+        if (! $subscriber->isPending()) {
+            $subscriber->update(['status' => Subscriber::STATUS_PENDING]);
+        }
+
+        $lastSent = $subscriber->confirmation_sent_at;
+        if ($lastSent === null || $lastSent->lte(now()->subSeconds(self::THROTTLE_WINDOW_SECONDS))) {
+            $this->sendConfirmationEmail($subscriber);
+        }
+
+        Log::info(
+            'Subscriber pending confirmation',
+            [
+                'subscriber_id' => $subscriber->id,
+                'source'        => $source,
+            ]
+        );
+
         return $subscriber;
+    }
+
+    /**
+     * Confirm a pending subscription from the emailed link. Activates the
+     * subscriber and only then sends the welcome email. Returns false for an
+     * unknown, already-used or replaced token.
+     */
+    public function confirm(Subscriber $subscriber, string $token): bool
+    {
+        $storedHash = $subscriber->confirmation_token_hash;
+
+        if (! is_string($storedHash) || $storedHash === '' || $token === '') {
+            return false;
+        }
+
+        if (! hash_equals($storedHash, hash('sha256', $token))) {
+            return false;
+        }
+
+        $subscriber->forceFill(
+            [
+                'status'                  => Subscriber::STATUS_ACTIVE,
+                'confirmed_at'            => now(),
+                'confirmation_token_hash' => null,
+                'unsubscribed_at'         => null,
+                'unsubscribe_reason'      => null,
+            ]
+        )->save();
+
+        Log::info(
+            'Subscriber confirmed',
+            [
+                'subscriber_id' => $subscriber->id,
+                'source'        => $subscriber->source,
+            ]
+        );
+
+        try {
+            $this->sendWelcomeEmail($subscriber);
+        } catch (Exception) {
+            // Logged in sendWelcomeEmail(); the confirmation itself stands.
+        }
+
+        return true;
+    }
+
+    /**
+     * Issue a fresh confirmation token (replacing any previous one) and
+     * email the signed confirmation link.
+     */
+    private function sendConfirmationEmail(Subscriber $subscriber): void
+    {
+        $token = Str::random(64);
+
+        $subscriber->forceFill(
+            [
+                'confirmation_token_hash' => hash('sha256', $token),
+                'confirmation_sent_at'    => now(),
+            ]
+        )->save();
+
+        $url = URL::temporarySignedRoute(
+            'subscriber.confirm',
+            now()->addHours(self::CONFIRMATION_TTL_HOURS),
+            [
+                'subscriber' => $subscriber->id,
+                'token'      => $token,
+            ]
+        );
+
+        try {
+            Mail::to($subscriber->email)->send(
+                new SubscriberConfirmation($subscriber, $url, self::CONFIRMATION_TTL_HOURS)
+            );
+        } catch (Exception $e) {
+            // Allow an immediate retry: the re-send window starts only once
+            // a confirmation email actually went out.
+            $subscriber->forceFill(['confirmation_sent_at' => null])->save();
+
+            Log::error(
+                'Failed to send subscription confirmation email',
+                [
+                    'subscriber_id' => $subscriber->id,
+                    'error'         => $e->getMessage(),
+                ]
+            );
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Per-IP and per-email request budget for {@see subscribe()}.
+     *
+     * @throws SubscriptionThrottledException
+     */
+    private function throttle(string $email, ?string $ipAddress): void
+    {
+        $keys = [
+            'newsletter-subscribe:email:' . hash('sha256', strtolower($email)) => self::MAX_REQUESTS_PER_EMAIL,
+        ];
+
+        if ($ipAddress !== null && $ipAddress !== '') {
+            $keys['newsletter-subscribe:ip:' . $ipAddress] = self::MAX_REQUESTS_PER_IP;
+        }
+
+        foreach ($keys as $key => $max) {
+            if (RateLimiter::tooManyAttempts($key, $max)) {
+                throw new SubscriptionThrottledException(RateLimiter::availableIn($key));
+            }
+        }
+
+        foreach (array_keys($keys) as $key) {
+            RateLimiter::hit($key, self::THROTTLE_WINDOW_SECONDS);
+        }
     }
 }

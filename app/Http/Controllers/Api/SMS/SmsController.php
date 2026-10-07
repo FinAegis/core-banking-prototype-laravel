@@ -23,9 +23,10 @@ class SmsController extends Controller
     #[OA\Post(
         path: '/api/v1/sms/send',
         operationId: 'smsSend',
-        summary: 'Send an SMS message (payment-gated)',
-        description: 'Send an SMS to any phone number via VertexSMS. Protected by MPP payment gate — the first request without payment returns 402 with available rails and pricing. After paying via USDC (x402), Stripe, or Lightning, resend with the payment proof in the Authorization header. Rate limited to 60 requests/minute, 1 SMS/second outbound.',
+        summary: 'Send an SMS message (authenticated, payment-gated)',
+        description: 'Send an SMS to any phone number via VertexSMS. Requires a Sanctum bearer token and is limited per user (SMS_SEND_PER_USER_PER_MINUTE / SMS_SEND_PER_USER_PER_DAY) on top of a global 60 requests/minute. When the MPP payment gate is enabled, the first request without payment returns 402 with available rails and pricing. Outbound rate is 1 SMS/second.',
         tags: ['SMS'],
+        security: [['sanctum' => []]],
     )]
     #[OA\RequestBody(
         required: true,
@@ -66,6 +67,8 @@ class SmsController extends Controller
         ),
     )]
     #[OA\Response(response: 422, description: 'Validation error — invalid phone number format, missing message, or message exceeds 1600 chars')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 429, description: 'Per-user or global send limit reached')]
     #[OA\Response(response: 503, description: 'SMS service disabled — SMS_ENABLED is false')]
     public function send(Request $request): JsonResponse
     {

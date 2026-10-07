@@ -7,6 +7,9 @@ namespace App\Providers;
 use App\Domain\SMS\Clients\VertexSmsClient;
 use App\Domain\SMS\Services\SmsPricingService;
 use App\Domain\SMS\Services\SmsService;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class SmsServiceProvider extends ServiceProvider
@@ -33,6 +36,20 @@ class SmsServiceProvider extends ServiceProvider
                 $app->make(VertexSmsClient::class),
                 $app->make(SmsPricingService::class),
             );
+        });
+    }
+
+    public function boot(): void
+    {
+        // Per-user limits for POST /api/v1/sms/send (route middleware
+        // `throttle:sms-send`, applied after auth:sanctum).
+        RateLimiter::for('sms-send', function (Request $request): array {
+            $key = 'sms-send:' . ($request->user()?->getAuthIdentifier() ?? $request->ip());
+
+            return [
+                Limit::perMinute(max(1, (int) config('sms.rate_limit.per_user_per_minute', 5)))->by($key . ':minute'),
+                Limit::perDay(max(1, (int) config('sms.rate_limit.per_user_per_day', 50)))->by($key . ':day'),
+            ];
         });
     }
 }

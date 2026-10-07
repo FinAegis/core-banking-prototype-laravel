@@ -4,20 +4,29 @@ declare(strict_types=1);
 
 namespace App\Domain\Relayer\Exceptions;
 
+use App\Support\SecretRedactor;
 use RuntimeException;
 
 /**
  * Structured exception for JSON-RPC errors from Ethereum nodes and bundlers.
+ *
+ * The message and error data are passed through {@see SecretRedactor}: they
+ * end up in logs, persisted send records and API responses, and transport
+ * errors embed the provider URL (which carries the API key).
  */
 class RpcException extends RuntimeException
 {
+    public readonly ?string $rpcErrorData;
+
     public function __construct(
         string $message,
         public readonly string $rpcMethod,
         public readonly int $rpcErrorCode = 0,
-        public readonly ?string $rpcErrorData = null,
+        ?string $rpcErrorData = null,
     ) {
-        parent::__construct($message, $rpcErrorCode);
+        $this->rpcErrorData = $rpcErrorData === null ? null : SecretRedactor::redact($rpcErrorData);
+
+        parent::__construct(SecretRedactor::redact($message), $rpcErrorCode);
     }
 
     /**

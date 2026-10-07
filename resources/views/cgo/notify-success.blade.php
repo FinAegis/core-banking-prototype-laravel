@@ -38,10 +38,10 @@
                     <div class="text-center mb-10">
                         <p class="text-lg text-gray-700 mb-4">
                             Thank you for your interest in the {{ config('brand.name', 'Zelta') }} CGO concept.
-                            We've added your email to our notification list for future updates.
+                            One last step: confirm your email address to join the notification list.
                         </p>
                         <p class="text-gray-600">
-                            A confirmation email has been sent to your inbox with more details about the CGO program.
+                            We've sent a confirmation link to your inbox. Until you open it, we won't send you any updates.
                         </p>
                     </div>
 
@@ -62,7 +62,7 @@
                                 </div>
                                 <div class="ml-4">
                                     <h3 class="text-lg font-semibold text-gray-900 mb-2">Email Confirmation</h3>
-                                    <p class="text-gray-600">Check your inbox for our welcome email with more details about the CGO concept and how it works.</p>
+                                    <p class="text-gray-600">Open the confirmation link in your inbox. We'll then send our welcome email with more details about the CGO concept and how it works.</p>
                                 </div>
                             </div>
                             <div class="flex items-start">
