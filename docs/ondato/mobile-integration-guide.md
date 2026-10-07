@@ -2,7 +2,7 @@
 
 ## Overview
 
-FinAegis uses Ondato for identity verification via a mobile SDK flow:
+FinAegis includes an integration adapter for the Ondato identity-verification API (no partnership or endorsement implied), using a mobile SDK flow:
 1. **Backend** creates an identity verification session
 2. **Mobile SDK** captures documents/selfie using the returned `identityVerificationId`
 3. **Ondato** processes the verification

@@ -5,8 +5,8 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'You\'re on the list — ' . config('brand.name', 'Zelta'),
-        'description' => 'Thanks for registering interest in the ' . config('brand.name', 'Zelta') . ' Continuous Growth Offering. We\'ll be in touch when allocations open.',
-        'keywords' => config('brand.name', 'Zelta') . ', CGO, Continuous Growth Offering, investor interest',
+        'description' => 'Thanks for your interest in the ' . config('brand.name', 'Zelta') . ' CGO concept. We will send project updates.',
+        'keywords' => config('brand.name', 'Zelta') . ', CGO, Continuous Growth Offering',
         'robots' => 'noindex, nofollow',
     ])
 @endsection
@@ -85,17 +85,6 @@
                                 <div class="ml-4">
                                     <h3 class="text-lg font-semibold text-gray-900 mb-2">Platform Development</h3>
                                     <p class="text-gray-600">Follow the open-source development of the {{ config('brand.name', 'Zelta') }} platform and contribute to the community.</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0">
-                                    <div class="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-600 text-white">
-                                        4
-                                    </div>
-                                </div>
-                                <div class="ml-4">
-                                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Future Participation</h3>
-                                    <p class="text-gray-600">Be among the first to know when the CGO programme opens for participation.</p>
                                 </div>
                             </div>
                         </div>

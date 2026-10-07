@@ -2,7 +2,7 @@
 
 ## Overview
 
-The FinAegis Core Banking Platform provides a comprehensive custodian integration framework that allows seamless connection with external banking and financial institutions. This enables the platform to leverage existing banking infrastructure while maintaining complete control over the core banking logic.
+The FinAegis Core Banking Platform provides a comprehensive custodian integration framework that allows seamless connection with external banking and financial institutions. This enables the platform to leverage existing banking infrastructure while maintaining complete control over the core banking logic. Connectors (e.g. Paysera, Santander, Deutsche Bank) are integration adapters for third-party APIs; no partnership or endorsement implied.
 
 ## Architecture
 

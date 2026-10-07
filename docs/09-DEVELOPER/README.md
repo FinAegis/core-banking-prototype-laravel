@@ -26,7 +26,7 @@ All API requests require authentication using Laravel Sanctum tokens:
 
 ```bash
 # Get auth token
-curl -X POST https://api.zelta.app/api/login \
+curl -X POST https://your-finaegis-host.example/api/login \
   -H "Content-Type: application/json" \
   -d '{"email": "user@example.com", "password": "password"}'
 ```
@@ -34,7 +34,7 @@ curl -X POST https://api.zelta.app/api/login \
 ### 2. Making API Calls
 ```bash
 # Get account balance
-curl -X GET https://api.zelta.app/api/accounts/{uuid}/balance \
+curl -X GET https://your-finaegis-host.example/api/accounts/{uuid}/balance \
   -H "Authorization: Bearer {token}"
 ```
 
@@ -64,13 +64,14 @@ if (!hash_equals($signature, $expectedSignature)) {
 - Currency conversion
 - Basket operations
 
-### GCU Trading
-- Buy/sell operations
+### GCU demo (simulated conversions)
+_The Global Currency Unit (GCU) is a software demonstration: it is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" are simulated._
+- Simulated buy/sell conversions
 - Price quotes
 - Trading limits
 - Market data
 
-### CGO Investment Platform
+### CGO demo module (reference software; not an offer of securities)
 - Investment creation
 - Payment processing
 - KYC verification
@@ -113,14 +114,13 @@ npx openapi-to-postmanv2 -s storage/api-docs/api-docs.json \
 ```
 
 ### Test Environment
-- Base URL: `https://test-api.zelta.app`
-- Test credentials available upon request
+- Base URL: your own deployment (e.g. `https://your-finaegis-host.example`)
 - Rate limits: 100 requests per minute
 
 ## Support
 
 ### Developer Resources
-- API Documentation: https://api.zelta.app/documentation
+- API Documentation: https://your-finaegis-host.example/api/documentation
 - Status Page: https://status.finaegis.org
 - Developer Forum: https://developers.finaegis.org
 

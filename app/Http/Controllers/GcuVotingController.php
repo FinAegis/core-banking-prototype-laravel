@@ -12,7 +12,7 @@ use OpenApi\Attributes as OA;
 
 #[OA\Tag(
     name: 'GCU Voting',
-    description: 'GCU governance voting and proposals'
+    description: 'GCU governance demo: simulated basket votes and proposals (no monetary effect)'
 )]
 class GcuVotingController extends Controller
 {
@@ -130,7 +130,7 @@ class GcuVotingController extends Controller
             operationId: 'gCUVotingVote',
             tags: ['GCU Voting'],
             summary: 'Cast vote',
-            description: 'Casts a vote on a governance proposal',
+            description: 'Casts a simulated demo vote on a GCU demo proposal',
             security: [['sanctum' => []]],
             parameters: [
             new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
@@ -167,7 +167,7 @@ class GcuVotingController extends Controller
             ->first()?->balance ?? 0;
 
         if ($gcuBalance <= 0) {
-            return back()->with('error', 'You need GCU holdings to vote.');
+            return back()->with('error', 'Voting in the demo requires a simulated demo GCU balance.');
         }
 
         DB::transaction(

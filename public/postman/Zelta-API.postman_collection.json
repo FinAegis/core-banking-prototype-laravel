@@ -3449,7 +3449,7 @@
                                             "request": {
                                                 "name": "Provision virtual card for mobile wallet",
                                                 "description": {
-                                                    "content": "Provision a new virtual card for Apple Pay / Google Pay.",
+                                                    "content": "Provision a virtual card to a mobile wallet (planned; subject to the card-issuing partner's approval).",
                                                     "type": "text/plain"
                                                 },
                                                 "url": {
@@ -10503,7 +10503,7 @@
                                                     "request": {
                                                         "name": "Get staking info and positions",
                                                         "description": {
-                                                            "content": "Returns staking APY and the user's staked balance for the specified chain via the Lido liquid staking protocol.",
+                                                            "content": "Returns staking rate data (informational) and the user's staked balance for the specified chain via the Lido liquid staking protocol.",
                                                             "type": "text/plain"
                                                         },
                                                         "url": {
@@ -10792,11 +10792,11 @@
                                             "item": [
                                                 {
                                                     "id": "463887a5-8884-4920-8858-71a27385de17",
-                                                    "name": "Get best yield opportunities",
+                                                    "name": "List DeFi protocol rate data (informational)",
                                                     "request": {
-                                                        "name": "Get best yield opportunities",
+                                                        "name": "List DeFi protocol rate data (informational)",
                                                         "description": {
-                                                            "content": "Returns the best yield opportunities across all supported chains and DeFi protocols for the given wallet address.",
+                                                            "content": "Returns DeFi protocol rate data across all supported chains and DeFi protocols for the given wallet address (informational; no yield offered).",
                                                             "type": "text/plain"
                                                         },
                                                         "url": {
@@ -10814,7 +10814,7 @@
                                                                 {
                                                                     "disabled": false,
                                                                     "description": {
-                                                                        "content": "(Required) Wallet address to find yield opportunities for",
+                                                                        "content": "(Required) Wallet address to list protocol rate data for",
                                                                         "type": "text/plain"
                                                                     },
                                                                     "key": "wallet_address",
@@ -10844,7 +10844,7 @@
                                                     "response": [
                                                         {
                                                             "id": "10a2e87e-0690-483d-b31c-7a739fa6aff4",
-                                                            "name": "Yield opportunities returned",
+                                                            "name": "Protocol rate data returned",
                                                             "originalRequest": {
                                                                 "url": {
                                                                     "path": [
@@ -10861,7 +10861,7 @@
                                                                         {
                                                                             "disabled": false,
                                                                             "description": {
-                                                                                "content": "(Required) Wallet address to find yield opportunities for",
+                                                                                "content": "(Required) Wallet address to list protocol rate data for",
                                                                                 "type": "text/plain"
                                                                             },
                                                                             "key": "wallet_address",
@@ -10918,7 +10918,7 @@
                                                                         {
                                                                             "disabled": false,
                                                                             "description": {
-                                                                                "content": "(Required) Wallet address to find yield opportunities for",
+                                                                                "content": "(Required) Wallet address to list protocol rate data for",
                                                                                 "type": "text/plain"
                                                                             },
                                                                             "key": "wallet_address",
@@ -10965,7 +10965,7 @@
                                                                         {
                                                                             "disabled": false,
                                                                             "description": {
-                                                                                "content": "(Required) Wallet address to find yield opportunities for",
+                                                                                "content": "(Required) Wallet address to list protocol rate data for",
                                                                                 "type": "text/plain"
                                                                             },
                                                                             "key": "wallet_address",
@@ -75646,9 +75646,9 @@
                                                             "item": [
                                                                 {
                                                                     "id": "50a397ba-6848-40a8-a3ea-a8bd8785ef01",
-                                                                    "name": "Cast a vote",
+                                                                    "name": "Cast a demo vote (simulated)",
                                                                     "request": {
-                                                                        "name": "Cast a vote",
+                                                                        "name": "Cast a demo vote (simulated)",
                                                                         "description": {},
                                                                         "url": {
                                                                             "path": [
@@ -75906,11 +75906,11 @@
                                     "item": [
                                         {
                                             "id": "6c504975-1ae0-4b98-bfe9-6252482b95a0",
-                                            "name": "Optimize portfolio for yield",
+                                            "name": "Portfolio allocation analysis",
                                             "request": {
-                                                "name": "Optimize portfolio for yield",
+                                                "name": "Portfolio allocation analysis",
                                                 "description": {
-                                                    "content": "Optimize portfolio for yield.",
+                                                    "content": "Portfolio allocation analysis.",
                                                     "type": "text/plain"
                                                 },
                                                 "url": {
@@ -140420,9 +140420,9 @@
                                             "item": [
                                                 {
                                                     "id": "19d35b4a-7c1b-4611-97cb-0690b48236a4",
-                                                    "name": "Submit vote for GCU basket composition",
+                                                    "name": "Submit demo vote for GCU demo basket composition",
                                                     "request": {
-                                                        "name": "Submit vote for GCU basket composition",
+                                                        "name": "Submit demo vote for GCU demo basket composition",
                                                         "description": {
                                                             "content": "Submit weighted allocation vote for basket composition",
                                                             "type": "text/plain"
@@ -143112,7 +143112,7 @@
                     "request": {
                         "name": "Get GCU information",
                         "description": {
-                            "content": "Get current information about the Global Currency Unit including composition and value",
+                            "content": "Get current information about the GCU demo basket (software demonstration; no monetary value), including composition and simulated value",
                             "type": "text/plain"
                         },
                         "url": {
@@ -143187,7 +143187,7 @@
                             "request": {
                                 "name": "Get GCU value history",
                                 "description": {
-                                    "content": "Get historical value data for the Global Currency Unit",
+                                    "content": "Get simulated historical value data for the GCU demo basket",
                                     "type": "text/plain"
                                 },
                                 "url": {
@@ -143304,11 +143304,11 @@
                             "item": [
                                 {
                                     "id": "ea3174ad-e507-4902-991c-9bbde25294c8",
-                                    "name": "Get active GCU governance polls",
+                                    "name": "Get active GCU demo governance polls",
                                     "request": {
-                                        "name": "Get active GCU governance polls",
+                                        "name": "Get active GCU demo governance polls",
                                         "description": {
-                                            "content": "Get currently active polls related to GCU governance",
+                                            "content": "Get currently active polls in the GCU governance demo (simulated votes; no monetary effect)",
                                             "type": "text/plain"
                                         },
                                         "url": {
@@ -143391,7 +143391,7 @@
                             "request": {
                                 "name": "Get real-time GCU composition data",
                                 "description": {
-                                    "content": "Get detailed real-time composition data for the Global Currency Unit including current weights, values, and recent changes",
+                                    "content": "Get detailed composition data for the GCU demo basket including current weights, simulated values, and recent changes",
                                     "type": "text/plain"
                                 },
                                 "url": {
@@ -143466,11 +143466,11 @@
                     "item": [
                         {
                             "id": "be7c154d-3fdb-4f70-bd4c-127455662002",
-                            "name": "Get supported banks for GCU",
+                            "name": "Get illustrative bank list for the GCU demo",
                             "request": {
-                                "name": "Get supported banks for GCU",
+                                "name": "Get illustrative bank list for the GCU demo",
                                 "description": {
-                                    "content": "Get list of banks that support GCU deposits and their coverage",
+                                    "content": "Illustrative demo data for the GCU demo; no relationship with any bank is implied.",
                                     "type": "text/plain"
                                 },
                                 "url": {
@@ -143497,7 +143497,7 @@
                             "response": [
                                 {
                                     "id": "24b6bf15-e7d7-4f75-b88c-b9eb35f53c2c",
-                                    "name": "Supported banks",
+                                    "name": "Illustrative demo bank list (GCU demo module)",
                                     "originalRequest": {
                                         "url": {
                                             "path": [
@@ -143545,11 +143545,11 @@
                     "item": [
                         {
                             "id": "37521ba3-2ae3-40a4-afa6-449602097020",
-                            "name": "Buy GCU tokens",
+                            "name": "Simulated GCU purchase (GCU demo module)",
                             "request": {
-                                "name": "Buy GCU tokens",
+                                "name": "Simulated GCU purchase (GCU demo module)",
                                 "description": {
-                                    "content": "Purchase GCU tokens using fiat currency",
+                                    "content": "GCU demo module (simulated): converts a balance into GCU demo units. GCU has no monetary value.",
                                     "type": "text/plain"
                                 },
                                 "url": {
@@ -143597,7 +143597,7 @@
                             "response": [
                                 {
                                     "id": "c7c5fff5-7952-46bf-8fa2-1576bfe6ea34",
-                                    "name": "GCU purchase successful",
+                                    "name": "Simulated GCU purchase recorded (GCU demo module)",
                                     "originalRequest": {
                                         "url": {
                                             "path": [
@@ -143780,11 +143780,11 @@
                     "item": [
                         {
                             "id": "5967d828-c57c-4b02-a033-6b6f236dfefe",
-                            "name": "Sell GCU tokens",
+                            "name": "Simulated GCU sale (GCU demo module)",
                             "request": {
-                                "name": "Sell GCU tokens",
+                                "name": "Simulated GCU sale (GCU demo module)",
                                 "description": {
-                                    "content": "Sell GCU tokens for fiat currency",
+                                    "content": "GCU demo module (simulated): converts GCU demo units back into a balance. GCU has no monetary value.",
                                     "type": "text/plain"
                                 },
                                 "url": {
@@ -143832,7 +143832,7 @@
                             "response": [
                                 {
                                     "id": "a39084db-6f18-4afd-8915-f67a3025bf51",
-                                    "name": "GCU sale successful",
+                                    "name": "Simulated GCU sale recorded (GCU demo module)",
                                     "originalRequest": {
                                         "url": {
                                             "path": [
@@ -144015,11 +144015,11 @@
                     "item": [
                         {
                             "id": "101deda9-4d79-4511-b92e-cc80a201e2b0",
-                            "name": "Get GCU trading quote",
+                            "name": "Get simulated GCU conversion quote (demo)",
                             "request": {
-                                "name": "Get GCU trading quote",
+                                "name": "Get simulated GCU conversion quote (demo)",
                                 "description": {
-                                    "content": "Get a quote for buying or selling GCU",
+                                    "content": "Get an illustrative quote for a simulated GCU conversion (GCU demo module)",
                                     "type": "text/plain"
                                 },
                                 "url": {
@@ -144166,11 +144166,11 @@
                     "item": [
                         {
                             "id": "55d5ed5e-bd89-4270-8066-2a6cf936b8d0",
-                            "name": "Get user's GCU trading limits",
+                            "name": "Get user's GCU demo conversion limits",
                             "request": {
-                                "name": "Get user's GCU trading limits",
+                                "name": "Get user's GCU demo conversion limits",
                                 "description": {
-                                    "content": "Get the authenticated user's trading limits for GCU operations",
+                                    "content": "Get the authenticated user's limits for simulated GCU demo conversions",
                                     "type": "text/plain"
                                 },
                                 "url": {
@@ -145167,7 +145167,7 @@
         "name": "Zelta API",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
         "description": {
-            "content": "Core banking API — stablecoin-powered virtual cards, non-custodial wallet, AI agent card issuance, ISO 20022, Open Banking, US Payment Rails, Interledger, and Microfinance. Built with Laravel 12, featuring 61 DDD domains, event sourcing, CQRS, and privacy-preserving architecture.\n\nContact Support:\n Name: Zelta Support\n Email: support@finaegis.org",
+            "content": "Open-source core banking software API — non-custodial wallet, card-issuing integration adapters, ISO 20022, Open Banking, US Payment Rails, Interledger, and Microfinance modules. Built with Laravel 12, featuring 61 DDD domains, event sourcing, CQRS, and privacy-preserving architecture. Integration adapters for third-party APIs; no partnership or endorsement implied.\n\nContact Support:\n Name: Zelta Support\n Email: support@finaegis.org",
             "type": "text/plain"
         }
     }

@@ -1,15 +1,23 @@
 # ADR-004: GCU Basket Currency Design
 
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis.
+> It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or
+> basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a
+> basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under
+> MiCA (Title III); no such authorisation is held.
+>
+> See [REGULATORY-CLAIMS.md](../REGULATORY-CLAIMS.md).
+
 ## Status
 
 Accepted
 
 ## Context
 
-The Global Currency Unit (GCU) is designed as a democratic digital currency that:
+The GCU demo is designed as a reference implementation of a basket-referenced unit that:
 
-1. **Provides Stability** - Less volatile than single currencies
-2. **Democratic Governance** - Community decides composition
+1. **Diversified Reference** - Value referenced to a basket rather than a single currency
+2. **Governance Module** - Weighted polls on composition (simulated in the demo)
 3. **Transparent Valuation** - Clear NAV calculation
 4. **Automatic Rebalancing** - Maintains target weights
 
@@ -203,9 +211,9 @@ return [
 
 ### Positive
 
-- **Stability** - Diversified basket reduces volatility
+- **Diversification** - Basket reference reduces single-currency dependence
 - **Transparency** - Clear, auditable NAV calculation
-- **Democratic** - Community controls composition
+- **Governance** - Composition changes go through (simulated) polls
 - **Flexible** - Composition can evolve over time
 - **Educational** - Demonstrates basket currency concepts
 
@@ -259,7 +267,7 @@ return [
 **Pros**: Simpler, predictable
 **Cons**: Cannot adapt to economic changes
 
-**Rejected because**: Democratic governance is core to GCU vision
+**Rejected because**: Governance is a core part of the GCU demo
 
 ### 2. Market-Cap Weighted
 
@@ -279,8 +287,6 @@ return [
 
 1. **Additional Components** - Could add CNY, CAD, AUD
 2. **Dynamic Weighting** - Algorithmic adjustment based on volatility
-3. **Derivative Backing** - Options/futures for hedging
-4. **Multi-Chain** - GCU on multiple blockchains
 
 ## References
 

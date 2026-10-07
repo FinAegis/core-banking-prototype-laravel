@@ -1,6 +1,8 @@
 # FinAegis SDK Developer Guide
 
-Welcome to the FinAegis API SDK documentation. This guide will help you integrate with the FinAegis Global Currency Unit (GCU) platform.
+Welcome to the FinAegis API SDK documentation. This guide will help you integrate with the FinAegis API (GCU endpoints operate on the GCU software demo; balances are simulated).
+
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
 
 ## Table of Contents
 - [Getting Started](#getting-started)
@@ -14,9 +16,8 @@ Welcome to the FinAegis API SDK documentation. This guide will help you integrat
 
 ## Getting Started
 
-### Base URLs
-- **Production**: `https://api.zelta.app/v2`
-- **Sandbox**: `https://sandbox.api.zelta.app/v2`
+### Base URL
+Use the base URL of your own FinAegis deployment (e.g. `http://localhost:8000/api/v2`).
 
 ### API Version
 Current version: `2.0.0`
@@ -44,10 +45,7 @@ Authorization: Bearer your_jwt_token_here
 
 ### Getting API Credentials
 
-1. Sign up at [https://developers.finaegis.org](https://developers.finaegis.org)
-2. Create a new application
-3. Generate API keys from the dashboard
-4. For production access, complete KYC verification
+Create API keys in your deployment's admin panel.
 
 ## API Endpoints
 
@@ -68,9 +66,9 @@ Response:
     "database": "operational",
     "redis": "operational",
     "bank_connectors": {
-      "paysera": "operational",
-      "deutsche_bank": "operational",
-      "santander": "degraded"
+      "bank_a": "operational",
+      "bank_b": "operational",
+      "bank_c": "degraded"
     }
   }
 }

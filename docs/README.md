@@ -1,5 +1,9 @@
 # FinAegis Documentation
 
+> FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
+>
+> Some documents in this repository describe concepts, plans or demo features; none of them describe a licensed service.
+
 Welcome to the FinAegis documentation. This guide covers the platform's 56 domain modules, APIs, and operational patterns.
 
 ## Start Here
@@ -16,7 +20,7 @@ Welcome to the FinAegis documentation. This guide covers the platform's 56 domai
 ## Documentation by Topic
 
 ### Vision & Strategy
-- [GCU Vision](01-VISION/GCU_VISION.md) - Global Currency Unit concept
+- [GCU Vision](01-VISION/GCU_VISION.md) - GCU demo concept (software demonstration; not issued or offered)
 - [Platform Vision](01-VISION/UNIFIED_PLATFORM_VISION.md) - Overall platform architecture
 - [Roadmap](01-VISION/ROADMAP.md) - Development phases
 
@@ -29,7 +33,7 @@ Welcome to the FinAegis documentation. This guide covers the platform's 56 domai
 ### Features
 - [Feature Overview](03-FEATURES/FEATURES.md) - Complete feature list
 - [Exchange Trading](03-FEATURES/EXCHANGE.md) - Trading engine
-- [Treasury Management](03-FEATURES/TREASURY-MANAGEMENT.md) - Bank allocation
+- [Treasury Management](03-FEATURES/TREASURY-MANAGEMENT.md) - Cash-allocation modelling
 - [Liquidity Pools](03-FEATURES/LIQUIDITY-POOLS.md) - AMM and pools
 - [Demo Mode](03-FEATURES/DEMO-MODE.md) - Demo environment features
 
@@ -46,9 +50,9 @@ Welcome to the FinAegis documentation. This guide covers the platform's 56 domai
 - [Demo Guide](05-USER-GUIDES/DEMO-USER-GUIDE.md) - Demo environment walkthrough
 - [Wallet Management](05-USER-GUIDES/WALLET_MANAGEMENT_GUIDE.md) - Managing wallets
 - [Exchange Trading](05-USER-GUIDES/EXCHANGE_ENGINE_GUIDE.md) - Trading guide
-- [P2P Lending](05-USER-GUIDES/P2P_LENDING_GUIDE.md) - Lending platform
-- [Stablecoins](05-USER-GUIDES/STABLECOIN_GUIDE.md) - Token management
-- [GCU Guide](05-USER-GUIDES/GCU-USER-GUIDE.md) - Global Currency Unit
+- [P2P Lending](05-USER-GUIDES/P2P_LENDING_GUIDE.md) (withdrawn — see [REGULATORY-CLAIMS.md](REGULATORY-CLAIMS.md))
+- [Stablecoins](05-USER-GUIDES/STABLECOIN_GUIDE.md) (withdrawn — see [REGULATORY-CLAIMS.md](REGULATORY-CLAIMS.md))
+- [GCU demo guide](05-USER-GUIDES/GCU-USER-GUIDE.md) - Global Currency Unit software demonstration (simulated; not issued, offered or sold)
 
 ### Development
 - [Development Setup](06-DEVELOPMENT/DEVELOPMENT.md) - Environment setup
@@ -88,7 +92,7 @@ Welcome to the FinAegis documentation. This guide covers the platform's 56 domai
 ## Platform Status
 
 - **Version**: 7.9.0
-- **Status**: Production-Grade Platform
+- **Status**: Open-source reference platform
 - **Last Updated**: April 4, 2026
 
 ### Current Release (v7.9.x)
@@ -97,13 +101,16 @@ Welcome to the FinAegis documentation. This guide covers the platform's 56 domai
 - **v7.8.3**: GoPlus/OFAC address screening
 
 ### Previous Releases
+
 - v7.x: ISO 20022, Open Banking, payment rails, ledger, microfinance, production hardening, Helm chart, Solana x402
-- v6.x: Post-quantum crypto, Rain card issuing, developer ecosystem, plugin marketplace, SDKs
-- v5.x: x402 micropayments, RAILGUN privacy, event streaming, rewards, fiat ramp, design system v2
+- v6.x: Post-quantum crypto, card-issuing integration adapter (e.g. Rain API), developer ecosystem, plugin marketplace, SDKs
+- v5.x: x402 micropayments, RAILGUN privacy, event streaming, rewards, fiat ramp adapter, design system v2
 - v4.x: GraphQL API (36 domains), Event Store v2, Plugin Marketplace, real-time subscriptions
-- v3.x: Cross-chain & DeFi, compliance certification (SOC 2, PCI DSS, GDPR), production readiness
+- v3.x: Cross-chain & DeFi adapters, compliance readiness tooling (SOC 2 / PCI DSS evidence helpers, GDPR export/erasure — no certification is held)
 - v2.x: Multi-tenancy, hardware wallets, mobile backend, privacy layer, ERC-4337, RegTech
 - v1.x: Foundation — event sourcing, DDD, core banking domains
+
+*Named third-party providers: Integration adapters for third-party APIs; no partnership or endorsement implied.*
 
 ## Contributing to Docs
 

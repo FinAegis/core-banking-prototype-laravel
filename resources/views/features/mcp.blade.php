@@ -9,12 +9,12 @@
     $mcpUrl    = 'https://' . (string) config('mcp.host', 'mcp.zelta.app') . '/mcp';
 @endphp
 
-@section('title', 'MCP-native banking — connect Claude, Cursor, or any agent | ' . $brand)
+@section('title', 'MCP Server for AI Agents | ' . $brand)
 
 @section('seo')
     @include('partials.seo', [
-        'title'       => 'MCP-native banking — connect Claude, Cursor, or any agent',
-        'description' => 'Public OAuth-protected MCP server with ' . $toolCount . ' banking tools. Move money, exchange, ramp, send SMS from Claude Desktop, Cursor, or any agent.',
+        'title'       => 'MCP Server for AI Agents | ' . $brand,
+        'description' => 'Public OAuth-protected MCP server with ' . $toolCount . ' banking tools. Payments, exchange and SMS from Claude Desktop, Cursor, or any agent.',
         'keywords'    => 'MCP, Model Context Protocol, AI banking, Claude Desktop, Cursor, agent banking, OAuth banking, AI payments, ' . $brand,
     ])
 
@@ -49,10 +49,10 @@
                     v7.11.0 &middot; New
                 </div>
                 <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">
-                    MCP-native banking
+                    MCP server for banking APIs
                 </h1>
                 <p class="text-lg md:text-xl text-slate-300 max-w-3xl mx-auto mb-8">
-                    Connect Claude Desktop, Cursor, Continue.dev, or any spec-compliant agent to your {{ $brand }} account through one OAuth-protected JSON-RPC endpoint. Move money, exchange, on/off-ramp, send SMS — without writing API glue.
+                    Connect Claude Desktop, Cursor, Continue.dev, or any spec-compliant agent to your {{ $brand }} account through one OAuth-protected JSON-RPC endpoint. Call payment, exchange and SMS tools — without writing API glue.
                 </p>
                 <div class="inline-flex items-center gap-3 bg-black/30 rounded-lg px-5 py-3 font-mono text-sm text-slate-200 mb-8">
                     <span class="text-emerald-300">$</span>
@@ -72,13 +72,13 @@
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
                 <h2 class="text-3xl font-bold mb-3">Get started in 3 steps</h2>
-                <p class="text-slate-600 max-w-2xl mx-auto">From zero to "Claude paid my supplier" in about four minutes. Free to try — no credit card.</p>
+                <p class="text-slate-600 max-w-2xl mx-auto">From zero to your first agent tool call in about four minutes. Free to try — no credit card.</p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="border border-slate-200 rounded-xl p-6 relative">
                     <div class="absolute -top-4 -left-4 w-10 h-10 rounded-full bg-emerald-500 text-white font-bold flex items-center justify-center text-lg shadow-md">1</div>
-                    <h3 class="font-bold text-lg mb-2 mt-2">Create your {{ $brand }} account</h3>
-                    <p class="text-sm text-slate-600 mb-4">Sign in with email — passwordless, OTP-only. You're live in under a minute.</p>
+                    <h3 class="font-bold text-lg mb-2 mt-2">Create a Zelta account</h3>
+                    <p class="text-sm text-slate-600 mb-4">Sign in with email — passwordless, OTP-only.</p>
                     <a href="https://zelta.app" target="_blank" rel="noopener" class="btn-primary !px-4 !py-2 text-sm inline-flex">Open zelta.app →</a>
                 </div>
                 <div class="border border-slate-200 rounded-xl p-6 relative">
@@ -117,15 +117,15 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
                 <h2 class="text-3xl font-bold mb-4">Why {{ $brand }}'s MCP is different</h2>
-                <p class="text-slate-600 max-w-2xl mx-auto">Most "MCP-compatible" launches stop at read-only data. Ours moves real money — under proper consent and audit.</p>
+                <p class="text-slate-600 max-w-2xl mx-auto">Most "MCP-compatible" launches stop at read-only data. Ours supports write operations — under explicit consent and audit.</p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div class="card-feature !p-6">
                     <div class="w-12 h-12 bg-emerald-50 rounded-lg flex items-center justify-center mb-4">
                         <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/></svg>
                     </div>
-                    <h3 class="font-bold text-lg mb-2">Real money rails</h3>
-                    <p class="text-slate-600 text-sm">Send payments, execute exchanges, on/off-ramp via Stripe Bridge. Not just balance reads — actual settlement, with audit-grade attribution to the token + scope + client.</p>
+                    <h3 class="font-bold text-lg mb-2">Payment rails</h3>
+                    <p class="text-slate-600 text-sm">Payment and exchange tools, within the scopes and spending limits you set, with attribution to the token + scope + client. Converting stablecoins to fiat, where available, will be provided by licensed third parties under their own terms.</p>
                 </div>
                 <div class="card-feature !p-6">
                     <div class="w-12 h-12 bg-cyan-50 rounded-lg flex items-center justify-center mb-4">
@@ -139,14 +139,14 @@
                         <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
                     <h3 class="font-bold text-lg mb-2">Multi-rail payments</h3>
-                    <p class="text-slate-600 text-sm">Stripe, Tempo, Lightning, Card, x402 — all via the same MCP catalog. The agent picks a rail; the server settles it. SMS sends settle per-message via x402 micropayments.</p>
+                    <p class="text-slate-600 text-sm">Stripe, Tempo, Lightning, Card, x402 — all via the same MCP catalog. The agent picks a rail. SMS sends are paid per message via x402 micropayments. Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
                 </div>
                 <div class="card-feature !p-6">
                     <div class="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center mb-4">
                         <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                     </div>
-                    <h3 class="font-bold text-lg mb-2">Regulated foundation</h3>
-                    <p class="text-slate-600 text-sm">{{ $brand }} is a real banking platform with KYC, AML, and audit trail compliance. Every $-impact agent action is attributed in the regulatory feed — agents inherit the platform's posture, not bolt-on permissioning.</p>
+                    <h3 class="font-bold text-lg mb-2">Audit attribution</h3>
+                    <p class="text-slate-600 text-sm">Every $-impact agent action is attributed to token, scope and client in the audit log.</p>
                 </div>
             </div>
         </div>
@@ -186,11 +186,11 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="card-feature !p-6">
                     <h3 class="font-bold text-lg mb-3">Agent treasurer</h3>
-                    <p class="text-slate-600 text-sm">A finance agent watches accounts and sweeps idle balances into yield, executes FX hedges against the daily cap, and reports back. Spending limit caps the worst case; idempotency keeps retries safe.</p>
+                    <p class="text-slate-600 text-sm">A finance agent watches accounts, executes FX conversions against the daily cap, and reports back. Spending limit caps the worst case; idempotency keeps retries safe.</p>
                 </div>
                 <div class="card-feature !p-6">
                     <h3 class="font-bold text-lg mb-3">Customer-service co-pilot</h3>
-                    <p class="text-slate-600 text-sm">A support agent reads transaction history, posts reversals up to a per-token cap, and triggers SMS on the user's behalf. Each settlement attributes the action to the support persona for audit.</p>
+                    <p class="text-slate-600 text-sm">A support agent reads transaction history, posts reversals up to a per-token cap, and triggers SMS on the user's behalf. Each action is attributed to the support persona for audit.</p>
                 </div>
                 <div class="card-feature !p-6">
                     <h3 class="font-bold text-lg mb-3">Recurring agent workflows</h3>

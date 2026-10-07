@@ -94,7 +94,7 @@ class SchemaHelperTest extends TestCase
         // installUrl points at the Zelta wallet's Play Store listing — it is
         // emitted only under the Zelta brand (demo brands omit it so a
         // FinAegis-named schema never links the Zelta store entry).
-        if ($brand === 'Zelta') {
+        if (strtolower((string) $brand) === 'zelta') {
             $this->assertArrayHasKey('installUrl', $schema);
             $this->assertStringContainsString('play.google.com', $schema['installUrl']);
         } else {
@@ -115,13 +115,15 @@ class SchemaHelperTest extends TestCase
         $schema = json_decode($json, true);
 
         $this->assertEquals('https://schema.org', $schema['@context']);
-        $this->assertEquals('Product', $schema['@type']);
+        // GCU is a software demo, typed as a CreativeWork rather than a Product.
+        $this->assertEquals('CreativeWork', $schema['@type']);
         $this->assertEquals('Global Currency Unit (GCU)', $schema['name']);
-        $this->assertArrayHasKey('brand', $schema);
-        $this->assertEquals(config('brand.name', 'Zelta'), $schema['brand']['name']);
-        $this->assertEquals('Digital Currency', $schema['category']);
-        $this->assertArrayHasKey('offers', $schema);
-        $this->assertEquals('1.00', $schema['offers']['price']);
+        $this->assertEquals('Software demonstration', $schema['genre']);
+        $this->assertArrayNotHasKey('brand', $schema);
+        $this->assertStringContainsString('GCU demo', $schema['description']);
+        // GCU is a software demo: the markup must never advertise an offer or price.
+        $this->assertArrayNotHasKey('offers', $schema);
+        $this->assertArrayNotHasKey('isRelatedTo', $schema);
     }
 
     #[Test]
@@ -190,7 +192,9 @@ class SchemaHelperTest extends TestCase
         $this->assertEquals($name, $schema['name']);
         $this->assertEquals($description, $schema['description']);
         $this->assertEquals($category, $schema['serviceType']);
-        $this->assertEquals('Global', $schema['areaServed']);
+        // No service-area or offer-catalog claims in the service markup.
+        $this->assertArrayNotHasKey('areaServed', $schema);
+        $this->assertArrayNotHasKey('hasOfferCatalog', $schema);
         $this->assertArrayHasKey('provider', $schema);
         $this->assertEquals(config('brand.name', 'Zelta'), $schema['provider']['name']);
     }

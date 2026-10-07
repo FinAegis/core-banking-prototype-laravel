@@ -64,7 +64,7 @@ $result = $service->optimizeYield(
 
 ### Regulatory Reporting Service
 
-Generates comprehensive regulatory reports for compliance.
+Generates report formats modelled on regulatory reporting requirements; they do not by themselves make a deployment compliant.
 
 **Supported Reports:**
 - **BASEL III**: Capital adequacy, liquidity coverage, leverage ratio
@@ -216,7 +216,7 @@ Comprehensive test coverage is provided in `tests/Feature/Treasury/TreasuryAggre
 1. **Access Control**: All treasury operations require proper authentication and authorization
 2. **Audit Trail**: Complete event sourcing provides immutable audit log
 3. **Risk Limits**: Automatic enforcement of risk thresholds
-4. **Regulatory Compliance**: Built-in compliance with banking regulations
+4. **Regulatory reporting modules**: report formats modelled on banking reporting requirements; they do not by themselves make a deployment compliant
 5. **Data Integrity**: Event sourcing ensures data consistency
 
 ## Performance Optimization
@@ -232,7 +232,7 @@ The system provides monitoring capabilities for:
 - Risk level changes
 - Allocation deviations
 - Yield target achievement
-- Regulatory compliance status
+- Regulatory report status
 - System performance metrics
 
 ## Future Enhancements
@@ -241,4 +241,4 @@ The system provides monitoring capabilities for:
 2. **Real-time Market Data**: Integration with market data feeds
 3. **Advanced Risk Models**: Value at Risk (VaR), Monte Carlo simulations
 4. **Multi-currency Support**: Cross-currency allocation strategies
-5. **Blockchain Integration**: DeFi protocol integration for yield farming
+5. **Blockchain Integration**: DeFi protocol integration

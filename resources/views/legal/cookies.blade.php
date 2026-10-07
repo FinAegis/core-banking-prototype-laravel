@@ -124,7 +124,10 @@
 
                 <h3>4.2 Analytics Services</h3>
                 <ul>
-                    <li><strong>Self-hosted Analytics:</strong> We use our own analytics system to protect your privacy</li>
+                    {{-- Previously claimed "self-hosted analytics"; the site actually loads Google Analytics when brand.ga_id is set. --}}
+                    @if(config('brand.ga_id'))
+                    <li><strong>Google Analytics (Google LLC):</strong> Usage analytics</li>
+                    @endif
                     <li><strong>Error Monitoring:</strong> Technical error tracking for service improvement</li>
                 </ul>
 

@@ -4,6 +4,10 @@
 
 Welcome to the FinAegis Core Banking Platform demonstration environment! This guide will help you explore all the features of our comprehensive banking platform without any real financial transactions.
 
+> All balances, tokens and transactions in the demo are simulated demo balances with no real value.
+> FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory
+> compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
+
 ## Quick Start
 
 ### 1. Access the Demo
@@ -81,22 +85,21 @@ Look for these indicators that confirm you're in demo mode:
 
 ### 💰 Stablecoin Operations
 
-#### EUR Stablecoin (EURS)
+#### EUR Stablecoin (EURS) — demo only, not issued
 1. **Mint Tokens**: Stablecoins → Mint EURS
    - Enter amount (up to €100,000)
    - View backing ratio (always 105% in demo)
-   - Instant minting confirmation
+   - Simulated minting confirmation
 
 2. **Redeem Tokens**: Stablecoins → Redeem
-   - Convert EURS back to EUR
+   - Convert demo EURS back to demo EUR
    - No fees in demo mode
-   - Instant redemption
+   - Simulated redemption (no real funds)
 
 **Demo Stablecoin Features:**
 - Transparent reserve status
 - Simulated audit reports
 - Backing composition breakdown
-- Yield generation simulation (2-3% APY)
 
 ### 🏦 P2P Lending
 
@@ -106,7 +109,7 @@ Look for these indicators that confirm you're in demo mode:
    - Amount: €100 - €50,000
    - Term: 3-60 months
    - Purpose: Select from dropdown
-3. **View Offers**: See investor offers with rates
+3. **View Offers**: See simulated lender offers with rates
 4. **Accept Offer**: Choose best rate and terms
 
 **Demo Credit Scores:**
@@ -114,16 +117,22 @@ Look for these indicators that confirm you're in demo mode:
 - Instant approval decisions
 - Interest rates: 5-15% APR
 
-#### As an Investor
-1. **Browse Loans**: Lending → Investment Opportunities
+#### As a lender (demo)
+1. **Browse Loans**: Lending → Loan listings
 2. **Filter Options**:
    - Risk level (A-F rating)
    - Interest rate range
    - Loan term
-3. **Invest**: Select amount to invest (min €50)
-4. **Track Portfolio**: Monitor returns and repayments
+3. **Fund**: Select a demo amount (min €50)
+4. **Track**: Monitor simulated repayments
 
 ### 🗳️ Governance (GCU Voting)
+
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis.
+> It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or
+> basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a
+> basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under
+> MiCA (Title III); no such authorisation is held.
 
 #### Participating in Votes
 1. **View Proposals**: Governance → Active Proposals
@@ -133,28 +142,10 @@ Look for these indicators that confirm you're in demo mode:
    - Confirm with demo signature
 4. **Track Results**: Real-time vote counting
 
-**Demo Voting Power:**
-- Each demo account has 1,000 GCU tokens
-- Voting power proportional to holdings
+**Demo Voting Weight:**
+- Each demo account has 1,000 simulated GCU demo units (no monetary value)
+- Voting weight proportional to the simulated demo balance
 - Instant vote confirmation
-
-### 💼 CGO Investment
-
-#### Investment Process
-1. **Access CGO**: Navigate to Invest → CGO
-2. **Review Terms**: Read investment memorandum
-3. **Select Amount**: €100 - €100,000
-4. **Choose Payment**:
-   - Card (use test card: 4242 4242 4242 4242)
-   - Crypto (generates demo address)
-   - Bank transfer (provides demo IBAN)
-5. **Receive Confirmation**: Instant token allocation
-
-**Demo Investment Features:**
-- Simulated KYC (auto-approved)
-- Demo investment certificates (PDF)
-- Token price: €1.00 (fixed in demo)
-- Bonus calculation preview
 
 ## Demo Scenarios
 
@@ -321,24 +312,14 @@ Configure webhook URL in Settings → Webhooks
 ## Support
 
 ### Demo Support Channels
-- 📧 Email: demo-support@finaegis.com
-- 💬 Live Chat: Available 9 AM - 5 PM CET
-- 📚 Documentation: docs.finaegis.com
-- 🎥 Video Tutorials: youtube.com/finaegis
+- [GitHub Issues](https://github.com/FinAegis/core-banking-prototype-laravel/issues)
 
 ### Feedback
 We value your feedback! Please share your demo experience:
 - In-app feedback widget
 - Survey after demo session
-- Email suggestions to feedback@finaegis.com
 
 ## Next Steps
-
-### Ready for Production?
-1. **Schedule a Demo**: Book personalized walkthrough
-2. **Free Trial**: 30-day production trial available
-3. **Contact Sales**: sales@finaegis.com
-4. **View Pricing**: finaegis.com/pricing
 
 ### Technical Documentation
 - [API Documentation](/docs/api)

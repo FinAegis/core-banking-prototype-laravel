@@ -236,6 +236,8 @@ DEMO_DEBUG=true
 
 ## Production Transition
 
+> FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
+
 To move from demo to production:
 
 1. **Update Environment:**

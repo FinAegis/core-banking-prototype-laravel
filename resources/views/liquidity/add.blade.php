@@ -29,7 +29,7 @@
                                     <p class="font-medium">{{ $pool['fee_rate'] * 100 }}%</p>
                                 </div>
                                 <div>
-                                    <p class="text-gray-600 dark:text-gray-400">APY</p>
+                                    <p class="text-gray-600 dark:text-gray-400">Simulated fee rate (demo)</p>
                                     <p class="font-medium text-green-600">{{ number_format($metrics['fee_apy'], 2) }}%</p>
                                 </div>
                             </div>
@@ -134,7 +134,7 @@
                                     <span id="lp_tokens">0</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-gray-600 dark:text-gray-400">Estimated APY</span>
+                                    <span class="text-gray-600 dark:text-gray-400">Simulated fee rate (demo)</span>
                                     <span class="text-green-600">{{ number_format($metrics['fee_apy'], 2) }}%</span>
                                 </div>
                             </div>

@@ -1,6 +1,6 @@
 # CGO Payment Verification Dashboard
 
-This document describes the payment verification system for CGO (Continuous Growth Offering) investments, including both admin and investor interfaces.
+This document describes the payment verification flow of the CGO (Continuous Growth Offering) demo module (reference software; not an offer of securities), including admin and investor interfaces.
 
 ## Overview
 
@@ -179,7 +179,7 @@ amount_paid INTEGER NULL -- Amount actually received (in cents)
 - Payment details are encrypted at rest
 - API keys stored in environment variables
 - Sensitive data masked in logs
-- PCI compliance for card payments (via Stripe)
+- Card data is handled by Stripe Checkout; no card data is stored by the application
 
 ## Configuration
 

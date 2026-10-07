@@ -45,7 +45,7 @@ Once logged in, you'll see:
 | **Accounts** | View multi-currency accounts |
 | **Transfers** | Send money between accounts |
 | **Exchange** | Convert between currencies |
-| **GCU Wallet** | Explore Global Currency Unit features |
+| **GCU Wallet** | Explore the GCU demo (simulated balances) |
 
 ## Try These Features
 
@@ -56,7 +56,7 @@ FinAegis supports multiple asset types:
 **Fiat**: USD, EUR, GBP, CHF, JPY
 **Crypto**: BTC, ETH
 **Commodities**: XAU (Gold), XAG (Silver)
-**Special**: GCU (Global Currency Unit)
+**Demo unit**: GCU (Global Currency Unit) — simulated, no monetary value
 
 Try adding a new currency under **Accounts → Add Currency**.
 
@@ -83,11 +83,17 @@ Note: Exchange rates in demo mode are simulated but realistic.
 
 ### 4. Global Currency Unit (GCU)
 
-GCU is the flagship concept - a basket currency backed by multiple assets:
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis.
+> It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or
+> basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a
+> basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under
+> MiCA (Title III); no such authorisation is held.
 
-- **Current Composition**: USD 35%, EUR 30%, GBP 20%, CHF 10%, JPY 3%, Gold 2%
-- **Bank Allocation**: Explore how funds could be distributed across banks
-- **Voting**: See how democratic governance could work
+GCU demo — a reference implementation of a basket-referenced unit built with FinAegis (balances, conversions and votes are simulated):
+
+- **Demo Composition**: USD 35%, EUR 30%, GBP 20%, CHF 10%, JPY 3%, Gold 2%
+- **Bank Allocation**: Explore how funds could be distributed across banks (simulated)
+- **Voting**: See how basket polls could work (simulated)
 
 Navigate to **GCU Wallet** to explore these features.
 
@@ -122,7 +128,7 @@ curl http://localhost:8000/api/accounts \
 | Account management | Works | Full CRUD operations |
 | Transfers | Works | Instant (simulated) |
 | Currency exchange | Works | Simulated rates |
-| GCU basket | Works | Full functionality |
+| GCU basket | Works | Simulated (demo only; not issued) |
 | Voting system | Works | Demo votes |
 | Admin dashboard | Works | Full access |
 | API endpoints | Works | All documented endpoints |

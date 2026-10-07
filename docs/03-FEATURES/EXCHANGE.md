@@ -2,14 +2,14 @@
 
 ## Overview
 
-FinAegis Exchange is a multi-asset trading platform that enables users to trade digital assets (cryptocurrencies) and traditional currencies with institutional-grade infrastructure.
+FinAegis Exchange is an open-source exchange-engine module (order book, matching, fees) for multi-asset trading. Licensing and regulatory compliance are the responsibility of the operator of each deployment.
 
 ## Key Features
 
 ### 1. **Multi-Asset Support**
 - **Cryptocurrencies**: BTC, ETH
 - **Fiat Currencies**: EUR, USD, GBP
-- **Digital Currencies**: GCU (Global Currency Unit)
+- **Demo units**: GCU demo (simulated; not issued or offered)
 - **Trading Pairs**: All combinations of tradeable assets
 
 ### 2. **Order Types**
@@ -31,7 +31,7 @@ FinAegis Exchange is a multi-asset trading platform that enables users to trade 
 
 ### 5. **Security Features**
 - **Balance Locking**: Funds locked during order placement
-- **Atomic Swaps**: Guaranteed execution or full reversal
+- **Atomic Swaps**: All-or-nothing execution (full reversal on failure)
 - **Event Sourcing**: Complete audit trail of all actions
 - **Rate Limiting**: Protection against abuse
 
@@ -194,7 +194,7 @@ EXCHANGE_TAKER_FEE=0.002
    - Iceberg orders
    - Time-weighted average price (TWAP)
 
-2. **External Connectivity**
+2. **External Connectivity** (integration adapters for third-party APIs; no partnership or endorsement implied)
    - Binance API integration
    - Kraken API integration
    - Liquidity aggregation

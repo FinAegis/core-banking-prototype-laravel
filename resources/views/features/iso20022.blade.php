@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'ISO 20022 Financial Messaging',
-        'description' => 'Standards-compliant ISO 20022 message engine with 8 message types. Parse, generate, and validate pacs, pain, and camt messages via REST and GraphQL APIs.',
+        'description' => 'Standards-based ISO 20022 message engine with 8 message types. Parse, generate, and validate pacs, pain, and camt messages via REST and GraphQL APIs.',
         'keywords' => 'ISO 20022, financial messaging, pacs, pain, camt, SWIFT migration, SEPA messaging, cross-border payments, UETR tracking, XML validation, XSD, payment standards',
     ])
 
@@ -42,7 +42,7 @@
                 </div>
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">ISO 20022 Financial Messaging</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    Standards-compliant message processing for cross-border payments. Parse, generate, and validate pacs, pain, and camt messages via REST and GraphQL APIs — ready for SWIFT migration and SEPA.
+                    Standards-based message processing for cross-border payments. Parse, generate, and validate pacs, pain, and camt messages via REST and GraphQL APIs — ready for SWIFT migration and SEPA.
                 </p>
                 <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('register') }}" class="bg-white text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">
@@ -170,7 +170,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">Engine Capabilities</h2>
             <p class="text-lg text-slate-500 text-center max-w-2xl mx-auto mb-12">
-                A production-grade message engine handling the full lifecycle from parsing raw XML to generating standards-compliant output with namespace detection and XSD validation.
+                A message engine handling the full lifecycle from parsing raw XML to generating schema-valid output with namespace detection and XSD validation.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -311,7 +311,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">Use Cases</h2>
             <p class="text-lg text-slate-500 text-center max-w-2xl mx-auto mb-12">
-                From SWIFT migration projects to SEPA compliance and regulatory reporting — ISO 20022 is the common thread.
+                From SWIFT migration projects to SEPA messaging and regulatory reporting — ISO 20022 is the common thread.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

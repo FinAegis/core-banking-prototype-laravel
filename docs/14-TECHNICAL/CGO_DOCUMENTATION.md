@@ -1,11 +1,13 @@
 # CGO (Continuous Growth Offering) Technical Documentation
 
 **Last Updated:** September 2024  
-**Status:** ✅ COMPLETED - Production Ready
+**Status:** Reference implementation (demo module)
 
 ## Overview
 
-The Continuous Growth Offering (CGO) is a sophisticated investment platform built on FinAegis that allows users to invest in the platform's growth through a tiered investment system. It features complete payment integration, KYC/AML compliance, automated agreement generation, and event-sourced refund processing.
+The Continuous Growth Offering (CGO) module is reference software demonstrating an investment-intake workflow (tiers, payment-integration adapters, KYC/AML checks, agreement generation and event-sourced refunds). It is not an offer of securities or tokens.
+
+> FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
 
 ## Architecture
 
@@ -450,7 +452,7 @@ CREATE TABLE cgo_events (
 - Payment references are unique UUIDs to prevent duplicate processing
 - Sensitive payment data is never stored directly
 
-### KYC/AML Compliance
+### KYC/AML Checks
 - Tiered verification based on investment amount
 - Automated sanctions list checking
 - Manual review for high-risk profiles
@@ -524,17 +526,12 @@ php artisan test --filter=CgoTest
 
 ## Future Enhancements
 
-1. **Token Distribution**
-   - Automated token allocation
-   - Vesting schedules
-   - Token transfer restrictions
-
-2. **Advanced Analytics**
+1. **Advanced Analytics**
    - Investment performance tracking
    - Investor demographics
    - Conversion funnel analysis
 
-3. **Mobile App Integration**
+2. **Mobile App Integration**
    - Native mobile SDKs
    - Push notifications
    - Biometric authentication

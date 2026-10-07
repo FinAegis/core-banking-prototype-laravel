@@ -2,6 +2,17 @@
 
 This tutorial walks you through creating a custom basket currency using FinAegis, using the GCU (Global Currency Unit) as a reference implementation.
 
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis.
+> It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or
+> basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a
+> basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under
+> MiCA (Title III); no such authorisation is held.
+>
+> FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory
+> compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
+>
+> See [REGULATORY-CLAIMS.md](../REGULATORY-CLAIMS.md).
+
 ## Table of Contents
 
 1. [Introduction](#introduction)
@@ -764,7 +775,7 @@ You've learned how to:
 4. **Integrate** with governance for democratic control
 5. **Test** thoroughly with unit and integration tests
 
-Use the [GCU implementation](../../app/Domain/Basket/) as your reference for production-ready patterns.
+Use the [GCU implementation](../../app/Domain/Basket/) as your reference patterns.
 
 ---
 

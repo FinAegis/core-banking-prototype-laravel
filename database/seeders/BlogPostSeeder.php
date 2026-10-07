@@ -13,64 +13,6 @@ class BlogPostSeeder extends Seeder
     public function run(): void
     {
         $posts = [
-            // Featured Post
-            [
-                'title'   => 'Introducing Multi-Bank Distribution: Enhanced Security Through Diversification',
-                'slug'    => 'multi-bank-distribution-security',
-                'excerpt' => 'Our revolutionary multi-bank distribution system spreads your funds across multiple licensed financial institutions, maximizing deposit protection up to €500,000 while minimizing risk through strategic diversification.',
-                'content' => <<<'EOT'
-## Revolutionary Fund Distribution Technology
-
-FinAegis introduces a groundbreaking approach to deposit security through our multi-bank distribution system. Unlike traditional banking where your funds sit in a single institution, our platform intelligently distributes your deposits across multiple licensed European banks.
-
-### How It Works
-
-Our proprietary algorithm analyzes real-time factors including:
-- Current bank health metrics and credit ratings
-- Deposit insurance coverage limits per institution
-- Interest rate optimization opportunities
-- Regulatory compliance requirements
-
-Based on this analysis, your funds are automatically distributed to maximize both security and returns. Each partner bank provides up to €100,000 in deposit insurance, allowing total coverage of up to €500,000 through strategic distribution.
-
-### Security Benefits
-
-**Risk Mitigation**: By spreading funds across multiple institutions, you're protected from single-bank failures or systemic issues affecting individual banks.
-
-**Enhanced Coverage**: Instead of the standard €100,000 limit, enjoy protection up to €500,000 through our network of 5 primary partner banks.
-
-**Real-time Monitoring**: Our systems continuously monitor bank health metrics and can automatically rebalance your funds if risk profiles change.
-
-### Technical Implementation
-
-The system leverages:
-- Event-sourced architecture for complete audit trails
-- SEPA Instant for real-time fund movements
-- Advanced encryption for all inter-bank communications
-- Smart routing algorithms for optimal distribution
-
-### Compliance and Regulation
-
-All fund distributions comply with:
-- PSD2 requirements for payment services
-- EMD2 regulations for e-money operations
-- GDPR for data protection
-- National banking regulations in each jurisdiction
-
-This feature is now available to all verified accounts and can be enabled through your account settings.
-EOT,
-                'category'        => 'platform',
-                'author_name'     => 'FinAegis Team',
-                'author_role'     => 'Product & Engineering',
-                'author_initials' => 'FA',
-                'reading_time'    => 8,
-                'gradient_from'   => 'blue-500',
-                'gradient_to'     => 'purple-600',
-                'is_featured'     => true,
-                'is_published'    => true,
-                'published_at'    => now()->subDays(3),
-            ],
-
             // Platform Updates
             [
                 'title'   => 'Event Sourcing Architecture: Building a Bulletproof Financial Platform',
@@ -112,16 +54,9 @@ Our event sourcing implementation includes:
 
 4. **Business Intelligence**: Historical data analysis becomes trivial when you have every state change recorded.
 
-### Performance at Scale
-
-Despite the additional complexity, our event-sourced system handles:
-- 10,000+ transactions per second
-- Sub-100ms event processing latency
-- 99.99% uptime across all services
-
 ### Open Source Contribution
 
-We're proud to contribute back to the community. Check out our event sourcing utilities package on GitHub, used by financial institutions across Europe.
+We're proud to contribute back to the community. Check out our event sourcing utilities package on GitHub.
 EOT,
                 'category'        => 'platform',
                 'author_name'     => 'Tech Team',
@@ -137,11 +72,11 @@ EOT,
             [
                 'title'   => 'Batch Processing 2.0: Handling Millions of Transactions Efficiently',
                 'slug'    => 'batch-processing-efficient-transactions',
-                'excerpt' => 'Learn how our new batch processing system handles millions of transactions daily with built-in validation, reconciliation, and automatic retry mechanisms.',
+                'excerpt' => 'Learn how our new batch processing system is designed to handle large transaction volumes with built-in validation, reconciliation, and automatic retry mechanisms.',
                 'content' => <<<'EOT'
 ## Next-Generation Batch Processing
 
-FinAegis Batch Processing 2.0 represents a quantum leap in transaction processing efficiency. Built from the ground up to handle enterprise-scale operations, our system processes millions of transactions daily with unmatched reliability.
+FinAegis Batch Processing 2.0 represents a quantum leap in transaction processing efficiency. It is built from the ground up to handle enterprise-scale operations.
 
 ### Key Features
 
@@ -171,14 +106,6 @@ The system leverages:
 - Kubernetes for auto-scaling processing pods
 - Redis for high-speed transaction caching
 - PostgreSQL for persistent storage
-
-### Performance Metrics
-
-Current production statistics:
-- **Processing Speed**: Up to 50,000 transactions per minute
-- **Validation Accuracy**: 99.98% automatic validation success
-- **Error Recovery**: 95% of errors auto-resolved without intervention
-- **Uptime**: 99.99% availability over the past 12 months
 
 ### Use Cases
 
@@ -229,11 +156,11 @@ EOT,
             [
                 'title'   => 'Quantum-Resistant Cryptography: Preparing for the Future',
                 'slug'    => 'quantum-resistant-cryptography-implementation',
-                'excerpt' => 'FinAegis becomes the first European fintech to implement quantum-resistant cryptography, ensuring your financial data remains secure in the post-quantum era.',
+                'excerpt' => 'FinAegis adds quantum-resistant cryptography modules to its open-source platform.',
                 'content' => <<<'EOT'
 ## Leading the Quantum-Safe Revolution
 
-As quantum computing advances threaten traditional cryptography, FinAegis takes proactive steps to protect your financial future. We're proud to be the first European fintech platform to implement comprehensive quantum-resistant cryptography.
+As quantum computing advances threaten traditional cryptography, FinAegis adds quantum-resistant cryptography modules to its open-source platform.
 
 ### The Quantum Threat
 
@@ -266,7 +193,7 @@ We've implemented NIST-approved post-quantum algorithms:
 Our rollout follows a careful migration path:
 
 1. **Hybrid Mode**: Currently running both classical and quantum-resistant algorithms in parallel
-2. **Testing Phase**: Extensive testing with academic partners and security researchers
+2. **Testing Phase**: Extensive testing
 3. **Full Migration**: Complete transition planned for Q2 2024
 
 ### Performance Impact
@@ -275,21 +202,6 @@ Despite the additional complexity, we maintain:
 - <10ms additional latency for encrypted operations
 - No noticeable impact on user experience
 - Optimized implementations for all major platforms
-
-### Industry Leadership
-
-We're working with:
-- European Central Bank on quantum-safe CBDC standards
-- Academic institutions on algorithm optimization
-- Other fintechs to establish industry standards
-
-### What This Means for You
-
-Your FinAegis account is protected against:
-- Future quantum computer attacks
-- Advanced persistent threats
-- Long-term data harvest attacks
-- Cryptographic obsolescence
 
 ### Open Source Contribution
 
@@ -316,7 +228,7 @@ EOT,
                 'content' => <<<'EOT'
 ## FinAegis API v2.0: Built for Developers, Designed for Scale
 
-We're excited to announce the general availability of FinAegis API v2.0, a complete reimagining of our developer platform. Based on feedback from thousands of developers, we've built the most powerful and flexible financial API in Europe.
+We're excited to announce the general availability of FinAegis API v2.0, a complete reimagining of our developer platform.
 
 ### What's New
 
@@ -351,7 +263,6 @@ query {
 
 API v2.0 delivers:
 - **50% faster response times** through optimized queries
-- **99.99% uptime SLA** with redundant infrastructure
 - **10x higher rate limits** for verified applications
 - **Regional endpoints** for reduced latency
 
@@ -412,7 +323,6 @@ Every API request includes:
 ### Community and Support
 
 Join our thriving developer community:
-- Discord server with 5,000+ members
 - Monthly developer webinars
 - Hackathon sponsorships
 - Priority support for integration partners
@@ -490,7 +400,6 @@ Open Finance enables new business models:
 - Federated learning for AI without data centralization
 
 **Interoperability**: Building universal connectors
-- Support for 100+ financial institutions
 - Real-time data synchronization
 - Standardized data models
 - Error handling and reconciliation
@@ -498,18 +407,10 @@ Open Finance enables new business models:
 ### FinAegis Platform Advantages
 
 Our infrastructure provides:
-- Pre-built integrations with major financial institutions
-- Compliance modules for all EU regulations
+- Integration adapters for financial-institution APIs (reference implementations; no partnership or endorsement implied)
+- Compliance tooling modelled on EU regulations
 - Scalable architecture for millions of connections
 - Developer tools for rapid integration
-
-### Industry Collaboration
-
-We're working with:
-- European Banking Authority on technical standards
-- Berlin Group on API specifications
-- Open Banking Europe on best practices
-- Academic institutions on research
 
 ### Looking Ahead
 
@@ -548,13 +449,13 @@ EOT,
 
             // Compliance
             [
-                'title'   => 'MiCA Compliance: Your Gateway to Crypto-Asset Services',
+                'title'   => 'MiCA Compliance Tooling for Crypto-Asset Services',
                 'slug'    => 'mica-compliance-crypto-asset-services',
-                'excerpt' => 'How FinAegis helps financial institutions navigate the Markets in Crypto-Assets (MiCA) regulation and launch compliant digital asset services.',
+                'excerpt' => 'How FinAegis helps financial institutions navigate the Markets in Crypto-Assets (MiCA) regulation and build digital asset services with open-source compliance tooling.',
                 'content' => <<<'EOT'
 ## Navigating MiCA: A Comprehensive Compliance Framework
 
-The Markets in Crypto-Assets (MiCA) regulation represents the most comprehensive crypto framework globally. FinAegis provides the infrastructure and compliance tools needed to launch MiCA-compliant services quickly and confidently.
+The Markets in Crypto-Assets (MiCA) regulation represents the most comprehensive crypto framework globally. FinAegis provides open-source compliance tooling modelled on MiCA requirements; it does not by itself make a deployment compliant.
 
 ### Understanding MiCA
 
@@ -594,7 +495,6 @@ Our comprehensive platform includes:
 - Audit trail maintenance
 
 **Reserve Management**:
-- Multi-bank custody solutions
 - Real-time reserve verification
 - Automated rebalancing
 - Transparency reports
@@ -613,7 +513,7 @@ Our comprehensive platform includes:
 - Minting/burning mechanisms
 - Compliance reporting
 
-**Phase 2 (In Progress)**: CASP Services
+**Phase 2 (In Progress)**: CASP-related modules
 - Trading venue integration
 - Custody solutions
 - Exchange services
@@ -633,7 +533,7 @@ Infrastructure:
   - Blockchain nodes: Ethereum, Polygon, Arbitrum
   - Custody: Multi-sig with hardware security modules
   - Monitoring: Real-time on-chain analytics
-  - Reporting: Automated regulatory submissions
+  - Reporting: Regulatory report generation
 ```
 
 ### Cost-Benefit Analysis
@@ -644,36 +544,20 @@ Infrastructure:
 - Reputational damage
 - Market exclusion
 
-**Benefits of Our Solution**:
-- 80% faster time to market
-- 90% reduction in compliance overhead
-- Built-in regulatory updates
-- Full EU market access
-
-### Success Stories
-
-**Case Study: Nordic Stablecoin Issuer**
-- Launched MiCA-compliant EUR stablecoin in 3 months
-- Processed €100M in volume in first quarter
-- Zero compliance violations
-- Expanded to 5 EU countries
-
 ### Getting Started
 
 1. **Assessment**: Evaluate your current operations
 2. **Planning**: Design compliant service architecture
 3. **Implementation**: Deploy FinAegis infrastructure
 4. **Authorization**: Submit regulatory applications
-5. **Launch**: Go live with full compliance
+5. **Launch**: Go live
 
 ### Ongoing Support
 
 - Regulatory updates and alerts
-- Quarterly compliance reviews
-- Direct regulator liaison support
 - Community best practices
 
-Don't let MiCA complexity slow your crypto ambitions. Launch compliant services with confidence using FinAegis infrastructure.
+Build financial services with open-source compliance tooling. FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
 EOT,
                 'category'        => 'compliance',
                 'author_name'     => 'Compliance Team',
@@ -765,7 +649,6 @@ const paymentWorkflow = defineWorkflow({
 ### Performance and Reliability
 
 - Process 10,000+ workflows per minute
-- 99.99% execution reliability
 - Sub-second step transitions
 - Automatic scaling based on load
 
@@ -859,7 +742,6 @@ Zero-trust directly supports:
 
 Despite comprehensive security:
 - <50ms authentication overhead
-- 99.9% availability maintained
 - No user experience degradation
 - Automatic failover capabilities
 

@@ -173,7 +173,9 @@ echo "\${$conversion['from_amount']} = €{$conversion['to_amount']}\n";
 $result = $client->exchangeRates->refresh();
 ```
 
-### GCU (Global Currency Unit)
+### GCU demo (Global Currency Unit)
+
+The GCU is a software demonstration — it is not issued, offered or sold to anyone and has no monetary value.
 
 ```php
 // Get GCU information
@@ -191,7 +193,8 @@ $history = $client->gcu->getValueHistory('7d', 'daily');
 // Get active governance polls
 $polls = $client->gcu->getActivePolls();
 
-// Get supported banks
+// Get demo custodian connectors
+// GCU demo endpoint (simulated data; no bank partnership implied)
 $banks = $client->gcu->getSupportedBanks();
 ```
 
@@ -252,10 +255,10 @@ $basket = $client->baskets->create(
     ['USD' => 0.5, 'EUR' => 0.3, 'GBP' => 0.2]
 );
 
-// Compose basket tokens
+// Compose basket units (demo)
 $result = $client->baskets->compose('account-uuid', 'GCU', 1000);
 
-// Decompose basket tokens
+// Decompose basket units (demo)
 $result = $client->baskets->decompose('account-uuid', 'GCU', 500);
 ```
 

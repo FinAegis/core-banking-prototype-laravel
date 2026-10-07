@@ -1,5 +1,7 @@
 # CGO Refund Processing System
 
+> Concept and demo code for an investment-round workflow (tiers, payments, KYC, agreements, refunds). The CGO round is closed.
+
 ## Overview
 
 The CGO Refund Processing System implements a comprehensive event-sourced workflow for handling refund requests on CGO investments. It follows domain-driven design principles with event sourcing, sagas, and temporal workflows.

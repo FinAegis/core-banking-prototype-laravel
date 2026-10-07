@@ -6,16 +6,28 @@ class SchemaHelper
 {
     /**
      * Generate Organization schema.
+     *
+     * Brand-aware like softwareApplication(): the wallet description, slogan
+     * and support address describe Zelta specifically. Under any other brand
+     * (e.g. the FinAegis demo) a generic open-source description is used and
+     * no Zelta slogan or Zelta support address is emitted.
      */
     public static function organization(): string
     {
         $brand = config('brand.name', 'Zelta');
+        $isZelta = self::isZeltaBrand();
+
+        $supportEmail = (string) config('brand.support_email', 'info@finaegis.org');
+        if (! $isZelta && str_ends_with(strtolower($supportEmail), '@zelta.app')) {
+            $supportEmail = 'info@finaegis.org';
+        }
+
         $schema = [
             '@context' => 'https://schema.org',
             '@type'    => 'Organization',
             'name'     => $brand,
             'url'      => config('app.url'),
-            'logo'     => config('app.url') . '/images/og-default.png',
+            'logo'     => self::logoUrl(),
             'sameAs'   => array_values(array_filter([
                 config('brand.github_url', 'https://github.com/FinAegis'),
                 config('brand.twitter_url'),
@@ -24,20 +36,24 @@ class SchemaHelper
             'contactPoint' => [
                 '@type'       => 'ContactPoint',
                 'contactType' => 'customer support',
-                'email'       => config('brand.support_email', 'info@finaegis.org'),
+                'email'       => $supportEmail,
                 'url'         => config('app.url') . '/support/contact',
             ],
-            'description'  => $brand . ' — Non-custodial stablecoin wallet with passkey sign-in, virtual Visa & Mastercard cards, bank-rail deposits, and an agent-callable MCP API. Six networks: Solana, Tron, Polygon, Base, Arbitrum, Ethereum.',
+            'description' => $isZelta
+                ? $brand . ' — Non-custodial stablecoin wallet software with passkey sign-in and an agent-callable MCP API. Six networks: Solana, Tron, Polygon, Base, Arbitrum, Ethereum.'
+                : $brand . ' — open-source core banking software with multi-asset accounts, payment rails, and developer APIs.',
             'foundingDate' => '2024',
-            'slogan'       => config('brand.tagline', 'No seed phrase. Tap to pay. Truly yours.'),
-            'knowsAbout'   => [
-                'Non-Custodial Wallets',
-                'Stablecoin Cards',
-                'Virtual Visa & Mastercard',
-                'Passkey Authentication',
-                'Agent-Callable Payment API',
-                'Financial Technology',
-            ],
+        ];
+
+        if ($isZelta) {
+            $schema['slogan'] = config('brand.tagline', 'No seed phrase. Truly yours.');
+        }
+
+        $schema['knowsAbout'] = [
+            'Non-Custodial Wallets',
+            'Passkey Authentication',
+            'Agent-Callable Payment API',
+            'Financial Technology',
         ];
 
         return self::generateScript($schema);
@@ -69,7 +85,7 @@ class SchemaHelper
     public static function softwareApplication(): string
     {
         $brand = config('brand.name', 'Zelta');
-        $isZelta = $brand === 'Zelta';
+        $isZelta = self::isZeltaBrand();
 
         $schema = [
             '@context'            => 'https://schema.org',
@@ -91,8 +107,8 @@ class SchemaHelper
             ],
         ];
         $schema['description'] = $isZelta
-            ? 'Non-custodial stablecoin wallet with passkey sign-in, virtual Visa & Mastercard cards, bank-rail deposits, and an agent-callable MCP API. Six networks (Solana, Tron, Polygon, Base, Arbitrum, Ethereum). In open testing on Android.'
-            : $brand . ' — digital banking and stablecoin platform with multi-asset accounts, payment rails, and developer APIs.';
+            ? 'Non-custodial stablecoin wallet software with passkey sign-in and an agent-callable MCP API. Six networks (Solana, Tron, Polygon, Base, Arbitrum, Ethereum). In open testing on Android.'
+            : $brand . ' — open-source core banking software with multi-asset accounts, payment rails, and developer APIs.';
         $schema['developer'] = [
             '@type' => 'Organization',
             'name'  => $brand,
@@ -102,31 +118,20 @@ class SchemaHelper
     }
 
     /**
-     * Generate Product schema for GCU.
+     * Generate schema for the GCU demo page.
+     *
+     * GCU is a software demonstration only (see docs/REGULATORY-CLAIMS.md):
+     * it is typed as a CreativeWork, not a Product, and this markup must never
+     * advertise an offer, price, availability, backing or insurance.
      */
     public static function gcuProduct(): string
     {
         $schema = [
             '@context'    => 'https://schema.org',
-            '@type'       => 'Product',
+            '@type'       => 'CreativeWork',
             'name'        => 'Global Currency Unit (GCU)',
-            'description' => 'The world\'s first democratically governed basket currency with real bank backing and government insurance.',
-            'brand'       => [
-                '@type' => 'Brand',
-                'name'  => config('brand.name', 'Zelta'),
-            ],
-            'category'    => 'Digital Currency',
-            'isRelatedTo' => [
-                '@type' => 'FinancialProduct',
-                'name'  => 'Stable Digital Currency',
-            ],
-            'offers' => [
-                '@type'           => 'Offer',
-                'availability'    => 'https://schema.org/InStock',
-                'price'           => '1.00',
-                'priceCurrency'   => 'USD',
-                'priceValidUntil' => date('Y-12-31'),
-            ],
+            'description' => 'GCU demo — a reference implementation of a basket-referenced unit built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value.',
+            'genre'       => 'Software demonstration',
         ];
 
         return self::generateScript($schema);
@@ -198,12 +203,7 @@ class SchemaHelper
                 '@type' => 'Organization',
                 'name'  => config('brand.name', 'Zelta'),
             ],
-            'serviceType'     => $category,
-            'areaServed'      => 'Global',
-            'hasOfferCatalog' => [
-                '@type' => 'OfferCatalog',
-                'name'  => $name . ' Services',
-            ],
+            'serviceType' => $category,
         ];
 
         return self::generateScript($schema);
@@ -228,7 +228,7 @@ class SchemaHelper
                 'name'  => config('brand.name', 'Zelta'),
                 'logo'  => [
                     '@type' => 'ImageObject',
-                    'url'   => config('app.url') . '/images/og-default.png',
+                    'url'   => self::logoUrl(),
                 ],
             ],
             'datePublished'    => $data['published_at'] ?? now()->toIso8601String(),
@@ -244,6 +244,27 @@ class SchemaHelper
         }
 
         return self::generateScript($schema);
+    }
+
+    /**
+     * Live APP_BRAND is lowercase 'zelta' — compare case-insensitively.
+     */
+    private static function isZeltaBrand(): bool
+    {
+        return strtolower((string) config('brand.name', 'Zelta')) === 'zelta';
+    }
+
+    /**
+     * Neutral brand icon used as the schema logo.
+     *
+     * TODO(regulatory): stopgap — images/og-default.png shows card artwork;
+     * new OG artwork needed (see docs/REGULATORY-CLAIMS.md).
+     */
+    private static function logoUrl(): string
+    {
+        return config('app.url') . (self::isZeltaBrand()
+            ? '/brand/zelta/android-chrome-512x512.png'
+            : '/brand/finaegis/android-chrome-512x512.png');
     }
 
     /**

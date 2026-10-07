@@ -1,8 +1,10 @@
 # FinCard Cards — Mobile Integration Spec
 
-Audience: Zelta mobile developers (iOS / Android). This is the contract for the
-crypto- and fiat-funded virtual card product backed by FinCard. It describes the
-end-to-end flows, the `/api/v1/cards/*` HTTP surface, realtime events, and state
+Audience: Zelta mobile developers (iOS / Android). This is the integration contract
+for planned virtual cards via the FinCard card-issuing API (integration adapter for a
+third-party API; no partnership or endorsement implied). Virtual cards are planned, to
+be issued by a licensed card-issuing partner. Availability is subject to partner
+approval and jurisdiction. It describes the end-to-end flows, the `/api/v1/cards/*` HTTP surface, realtime events, and state
 machines so the app can be built in parallel with the backend.
 
 - **Backend design:** `docs/superpowers/specs/2026-07-06-fincard-card-issuing-design.md`
@@ -24,7 +26,7 @@ KYC (cardholder)  →  Fund account  →  Open card  →  Use & manage
    pass_audit         balance > 0      active         spend / freeze / topup
 ```
 
-v1 is **virtual cards only**, viewed in-app (no Apple/Google Pay, no physical cards).
+v1 is **virtual cards only**, viewed in-app (no mobile-wallet provisioning, no physical cards).
 
 ---
 

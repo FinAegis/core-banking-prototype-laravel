@@ -1,15 +1,14 @@
 @extends('layouts.public')
 
-@section('title', config('brand.name', 'Zelta') . ' Lending - P2P Lending Platform')
+@section('title', config('brand.name', 'Zelta') . ' Lending - P2P Lending Module Demo')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => config('brand.name', 'Zelta') . ' Lending - P2P Lending Platform',
-        'description' => config('brand.name', 'Zelta') . ' Lending - P2P lending marketplace connecting capital with opportunity. Automated credit scoring and smart contract collateral.',
-        'keywords' => config('brand.name', 'Zelta') . ' Lending, P2P lending, business loans, investment platform',
+        'title' => config('brand.name', 'Zelta') . ' Lending - P2P Lending Module Demo',
+        'description' => config('brand.name', 'Zelta') . ' Lending - P2P lending module demo: loan origination, automated credit scoring and smart contract collateral workflows (sandbox, test data only).',
+        'keywords' => config('brand.name', 'Zelta') . ' Lending, P2P lending module, loan origination, credit scoring',
     ])
 
-    <x-schema type="service" :data="['name' => 'Lending', 'description' => 'P2P lending platform', 'category' => 'Financial Services']" />
     <x-schema type="breadcrumb" :data="[['name' => 'Home', 'url' => url('/')], ['name' => 'Lending', 'url' => url('/subproducts/lending')]]" />
 @endsection
 
@@ -22,13 +21,13 @@
                 <div class="text-center">
                     <div class="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm mb-6">
                         <span class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
-                        <span>Now Live</span>
+                        <span>Sandbox Demo</span>
                     </div>
                     <h1 class="text-5xl md:text-6xl font-bold mb-6">
                         {{ config('brand.name', 'Zelta') }} Lending
                     </h1>
                     <p class="text-xl md:text-2xl text-slate-400 max-w-3xl mx-auto mb-8">
-                        Connect capital with opportunity through our P2P lending marketplace
+                        P2P lending module demo: loan origination to repayment (sandbox, test data only)
                     </p>
                 </div>
             </div>
@@ -45,67 +44,38 @@
         <section class="py-20 bg-white">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-16">
-                    <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Revolutionizing Business Finance</h2>
+                    <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Lending Module Features</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        Direct lending between investors and businesses, powered by smart contracts
+                        Lending module: loan origination, scoring and repayment workflows.
                     </p>
                 </div>
 
-                <div class="grid md:grid-cols-3 gap-8">
+                <div class="grid md:grid-cols-2 gap-8">
                     <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 border border-green-200">
                         <div class="w-14 h-14 bg-green-600 rounded-xl flex items-center justify-center mb-6">
                             <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-bold text-slate-900 mb-4">For Borrowers</h3>
+                        <h3 class="text-xl font-bold text-slate-900 mb-4">Borrower Workflows</h3>
                         <ul class="space-y-2 text-slate-600">
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Competitive interest rates
+                                Configurable interest rates
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Quick approval process
+                                Approval workflow
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Flexible repayment terms
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-200">
-                        <div class="w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center mb-6">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                            </svg>
-                        </div>
-                        <h3 class="text-xl font-bold text-slate-900 mb-4">For Investors</h3>
-                        <ul class="space-y-2 text-slate-600">
-                            <li class="flex items-start">
-                                <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                8-15% annual returns
-                            </li>
-                            <li class="flex items-start">
-                                <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                Diversified portfolio options
-                            </li>
-                            <li class="flex items-start">
-                                <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                Auto-invest features
+                                Repayment schedules
                             </li>
                         </ul>
                     </div>
@@ -134,7 +104,7 @@
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Instant settlement
+                                Settlement workflows
                             </li>
                         </ul>
                     </div>
@@ -149,7 +119,7 @@
                     <div>
                         <h3 class="text-2xl font-bold text-slate-900 mb-2">DeFi Lending & Flash Loans</h3>
                         <p class="text-slate-500 max-w-xl">
-                            Connect to DeFi lending markets through Aave and Compound. Access flash loans for arbitrage and refinancing, with real-time market rate comparison across protocols.
+                            DeFi lending adapters (e.g. Aave, Compound), including flash-loan workflows and market-rate comparison across protocols. Integration adapters for third-party APIs; no partnership or endorsement implied.
                         </p>
                     </div>
                     <a href="{{ route('features.show', 'crosschain-defi') }}" class="mt-4 md:mt-0 inline-flex items-center px-6 py-3 bg-cyan-600 text-white rounded-lg font-semibold hover:bg-cyan-700 transition-colors flex-shrink-0">
@@ -172,10 +142,10 @@
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('lending.index') }}" class="btn-primary px-8 py-4 text-lg">
-                        Start Lending or Borrowing
+                        Explore the Lending Demo
                     </a>
                     <a href="{{ route('gcu') }}" class="btn-outline px-8 py-4 text-lg">
-                        Global Currency Unit
+                        GCU demo
                     </a>
                 </div>
             </div>

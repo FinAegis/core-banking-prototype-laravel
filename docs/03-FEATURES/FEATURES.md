@@ -2,9 +2,13 @@
 
 **Version:** 7.9.0
 **Last Updated:** 2026-04-04
-**Documentation Status:** Production Ready - v7.9.0
+**Documentation Status:** Open-source reference platform - v7.9.0
 
-This document provides a comprehensive overview of all features implemented in the FinAegis Core Banking Platform, including the flagship Global Currency Unit (GCU) and all sub-products.
+This document provides a comprehensive overview of all features implemented in the FinAegis Core Banking Platform, including the GCU demo (a reference implementation of a basket-referenced unit built with FinAegis) and all sub-products.
+
+> FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
+>
+> Named third-party providers in this document: Integration adapters for third-party APIs; no partnership or endorsement implied.
 
 ## Table of Contents
 
@@ -182,35 +186,30 @@ This document provides a comprehensive overview of all features implemented in t
 
 ## Global Currency Unit (GCU)
 
-### GCU Platform
-- **User-controlled digital currency** backed by real bank deposits
-- **Democratic governance** through monthly voting on composition
-- **Multi-bank distribution** across 5 partner banks for security
-- **Deposit insurance protection** up to €100k per bank
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
+
+### GCU Demo
+- **GCU demo**: reference implementation of a basket-referenced unit built with FinAegis
+- **Simulated governance**: demo basket "votes" on composition
+- **Simulated multi-custodian allocation** (demo only)
 - **Real-time value calculation** based on basket composition
 
 ### GCU Wallet Interface
-- **Comprehensive dashboard** with real-time GCU balance display
+- **Demo dashboard** with simulated GCU balance display
 - **Asset breakdown visualization** showing basket components
-- **Quick action buttons** for buy, sell, and transfer operations
+- **Quick action buttons** for simulated conversion and transfer operations
 - **Transaction history** filtered specifically for GCU operations
 - **Performance tracking** with historical value charts
 
-### Bank Allocation Management
+### Bank Allocation Management (demo)
 - **Interactive allocation interface** with visual sliders
-- **Multi-bank preference system** supporting 5 partner banks:
-  - Paysera (Lithuania) - up to 50%
-  - Deutsche Bank (Germany) - up to 40%
-  - Santander (Spain) - up to 40%
-  - Revolut (UK) - up to 30%
-  - N26 (Germany) - up to 30%
-- **Primary bank designation** for quick withdrawals
+- **Multi-custodian preference interface** (demo; simulated allocations)
+- **Primary custodian designation** (demo)
 - **Real-time validation** ensuring 100% allocation
-- **Deposit protection visualization** showing insurance coverage
 
-### Democratic Voting System
-- **Monthly basket composition voting** on the 1st of each month
-- **Asset-weighted voting power** based on GCU holdings
+### Simulated Voting Module (demo)
+- **Monthly basket composition polls** (simulated) on the 1st of each month
+- **Asset-weighted voting power** based on simulated demo balances
 - **Intuitive voting interface** with allocation sliders
 - **Real-time voting results** during active polls
 - **Automated rebalancing** on the 10th of each month
@@ -224,25 +223,24 @@ This document provides a comprehensive overview of all features implemented in t
   - CHF (Swiss Franc) - typically 5-15%
   - JPY (Japanese Yen) - typically 2-5%
   - XAU (Gold) - typically 1-3%
-- **Weighted average calculation** for democratic decision-making
+- **Weighted average calculation** of simulated votes
 - **Automatic rebalancing** based on voting results
 - **Historical composition tracking** for analysis
 
 ### GCU Operations
-- **GCU purchase** from any supported currency
-- **GCU sale** to any supported currency
-- **GCU transfers** between users with instant settlement
-- **Cross-currency conversions** at competitive rates (0.01% fee)
+- **Simulated GCU conversions** (demo balances only)
+- **GCU demo transfers** between demo users
+- **Cross-currency conversion module** (configurable fee)
 - **Recurring conversions** for regular transactions
 
 ### GCU API Endpoints
 - **GET /api/v2/gcu** - Current GCU information and composition
 - **GET /api/v2/gcu/value** - Real-time GCU value calculation
-- **POST /api/v2/gcu/buy** - Purchase GCU tokens
-- **POST /api/v2/gcu/sell** - Sell GCU tokens
+- **POST /api/v2/gcu/buy** - Simulated conversion into GCU demo units
+- **POST /api/v2/gcu/sell** - Simulated conversion out of GCU demo units
 - **GET /api/v2/gcu/history** - Historical value and composition data
 - **GET /api/voting/polls** - Active governance polls
-- **POST /api/voting/polls/{id}/vote** - Submit basket composition vote
+- **POST /api/voting/polls/{id}/vote** - Submit simulated basket composition vote
 
 ---
 
@@ -604,7 +602,7 @@ POST   /api/custodians/{id}/reconcile   # Trigger reconciliation
 - **Automated CTR generation** for large transactions
 - **SAR reporting** for suspicious activities
 
-### GDPR Compliance
+### GDPR Tooling
 - **Data export functionality** for user requests
 - **Right to deletion** with anonymization
 - **Consent management** for data processing
@@ -650,7 +648,7 @@ POST   /api/custodians/{id}/reconcile   # Trigger reconciliation
 ### Data Privacy
 - **Data anonymization** options
 - **User consent** tracking
-- **GDPR compliance** features
+- **GDPR tooling** features
 - **Data retention** policies
 
 ---
@@ -677,7 +675,7 @@ POST   /api/custodians/{id}/reconcile   # Trigger reconciliation
 - **Transfer events**: initiated, completed, failed
 - **Governance events**: poll created, vote cast, poll completed
 - **Asset events**: created, updated, rate changed
-- **GCU events**: purchase, sale, rebalancing, voting
+- **GCU demo events**: simulated conversion, rebalancing, voting
 
 ### Webhook Management
 - **Full CRUD operations** via API endpoints
@@ -718,9 +716,9 @@ POST   /api/custodians/{id}/reconcile   # Trigger reconciliation
 
 ## September 2024 Feature Additions ✅
 
-### GCU Democratic Voting System
+### GCU Demo Voting Module
 - **Monthly Voting Templates** for currency basket composition ✅
-- **Asset-Weighted Voting** where 1 GCU = 1 vote ✅
+- **Asset-weighted voting module** (simulated demo votes) ✅
 - **Vue.js Voting Dashboard** interactive interface ✅
 - **Automated Basket Rebalancing** based on vote results ✅
 - **Complete REST API** for voting operations ✅
@@ -731,8 +729,8 @@ POST   /api/custodians/{id}/reconcile   # Trigger reconciliation
 - **Password Reset Flow** complete recovery system ✅
 - **Email Verification** account verification ✅
 
-### GCU Trading Operations
-- **Buy/Sell Functionality** for Global Currency Unit ✅
+### GCU Demo Conversion Module
+- **Simulated conversions** for the GCU demo ✅
 - **Order Management System** ✅
 - **Trading History** complete transaction tracking ✅
 - **Real-time Price Updates** ✅
@@ -746,35 +744,7 @@ POST   /api/custodians/{id}/reconcile   # Trigger reconciliation
 ### Platform Improvements
 - **Browser Testing** critical path test coverage ✅
 - **Navigation Reorganization** improved UX ✅
-- **Floating Investment CTAs** better conversion ✅
 - **Test Coverage** increased to 88% ✅
-
-### CGO (Continuous Growth Offering) ✅ COMPLETED
-- **Payment Integration** 
-  - Stripe integration for card payments ✅
-  - Coinbase Commerce for cryptocurrency payments ✅
-  - Bank transfer reconciliation system ✅
-  - Automated payment verification workflows ✅
-- **Investment Management**
-  - Three-tier investment packages (Explorer, Innovator, Visionary) ✅
-  - Automated investment agreement PDF generation ✅
-  - Investment certificate creation ✅
-  - Pricing round management system ✅
-- **Compliance & Security**
-  - Tiered KYC/AML verification (Basic: $1k, Enhanced: $10k, Full: $50k+) ✅
-  - Investment limits based on KYC status ✅
-  - Secure payment processing with webhook verification ✅
-  - Event-sourced refund processing system ✅
-- **Admin Features**
-  - Comprehensive Filament resources for CGO management ✅
-  - Real-time payment verification dashboard ✅
-  - Investment tracking and reporting ✅
-  - Refund request management interface ✅
-- **Configuration & Safety**
-  - Configurable crypto addresses via .env ✅
-  - Production safety measures with multiple safeguards ✅
-  - Warning banners for test environments ✅
-  - Bank details configuration via environment ✅
 
 ---
 
@@ -789,11 +759,11 @@ POST   /api/custodians/{id}/reconcile   # Trigger reconciliation
 | Multi-Asset | ✅ Complete | 100% | Complete |
 | Exchange Rates | ✅ Complete | 100% | Complete |
 | Basket Assets | ✅ Complete | 100% | Complete |
-| Global Currency Unit (GCU) | ✅ Complete | 100% | Complete |
-| GCU Democratic Voting | ✅ Complete | 100% | Complete |
-| GCU Trading Operations | ✅ Complete | 100% | Complete |
+| GCU demo (reference implementation) | ✅ Complete | 100% | Complete |
+| GCU demo voting (simulated) | ✅ Complete | 100% | Complete |
+| GCU demo conversions (simulated) | ✅ Complete | 100% | Complete |
 | Custodian Integration | ✅ Complete | 95% | Complete |
-| Bank Connectors (3 Banks) | ✅ Complete | 100% | Complete |
+| Bank connector adapters (example APIs) | ✅ Complete | 100% | Complete |
 | Governance System | ✅ Complete | 100% | Complete |
 | Admin Dashboard | ✅ Complete | 100% | Complete |
 | API Layer | ✅ Complete | 100% | Complete |
@@ -801,11 +771,10 @@ POST   /api/custodians/{id}/reconcile   # Trigger reconciliation
 | Performance Testing | ✅ Complete | 100% | Complete |
 | Caching | ✅ Complete | 95% | Complete |
 | Security | ✅ Complete | 100% | Complete |
-| Compliance (KYC/AML/GDPR) | ✅ Complete | 100% | Complete |
+| Compliance tooling (KYC/AML/GDPR) | ✅ Complete | 100% | Complete |
 | Export/Reporting | ✅ Complete | 100% | Complete |
 | Webhooks | ✅ Complete | 100% | Complete |
 | Subscriber Management | ✅ Complete | 100% | Complete |
-| CGO Investment Platform | ✅ Complete | 100% | Complete |
 | User Interface | ✅ Complete | 100% | Complete |
 | Mobile API | ✅ Complete | 100% | Complete |
 | Test Coverage | ✅ Complete | 88% | Complete |
@@ -900,7 +869,7 @@ curl -X POST /api/auth/forgot-password \
 ### Crypto Exchange Capabilities ✅
 - **Multi-Asset Support**: Full support for fiat currencies + cryptocurrencies (BTC, ETH) ✅
 - **Exchange Engine**: Event-sourced order book with saga-based matching engine ✅
-- **External Exchange Integration**: Live connectors for Binance, Kraken, and Coinbase ✅
+- **External Exchange Integration**: Exchange API connectors (Binance and Kraken APIs) — integration adapters for third-party APIs; no partnership or endorsement implied ✅
 - **Liquidity Management**: AMM-based internal pools with external market access ✅
 - **Real-time Rate Feeds**: Multi-source crypto and forex rate aggregation ✅
 - **Arbitrage Detection**: Real-time opportunity detection across exchanges ✅
@@ -912,10 +881,10 @@ curl -X POST /api/auth/forgot-password \
 - **Minting/Burning Engine**: Automated token supply management with limits ✅
 - **Liquidation System**: Automated liquidation with configurable thresholds ✅
 - **Oracle Integration**: Multi-source price feeds with aggregation ✅
-- **Stability Mechanisms**: DSR, emergency pause, and rebalancing ✅
+- **Stability Mechanisms**: emergency pause and rebalancing ✅
 
-### P2P Lending Platform ✅
-- **Loan Marketplace**: Connect lenders with borrowers ✅
+### P2P Lending Module ✅
+- **Loan Marketplace module**: lender/borrower matching workflows ✅
 - **Loan Origination**: Application, credit scoring, and approval workflows ✅
 - **Risk Assessment**: Multi-factor risk scoring and categorization ✅
 - **Interest Calculation**: Dynamic rates based on risk profile ✅
@@ -953,11 +922,10 @@ curl -X POST /api/auth/forgot-password \
 - **Automated Market Making (AMM)**: Dynamic spread adjustment based on market conditions ✅
 - **Pool Creation**: Support for any asset pair with configurable fees ✅
 - **Liquidity Provision**: Add/remove liquidity with share-based tracking ✅
-- **Impermanent Loss Protection**: Tracking and mitigation strategies ✅
-- **Reward Distribution**: Performance-based rewards for liquidity providers ✅
+- **Impermanent loss tracking** ✅
+- **Fee and reward accounting** for liquidity-provider shares ✅
 - **Pool Rebalancing**: Automated rebalancing with multiple strategies ✅
 - **Market Making Orders**: 5-level depth automated order generation ✅
-- **Performance Metrics**: APY calculation and tracking for LPs ✅
 
 ### Liquidity Pool Features
 - **Pool Types**
@@ -965,13 +933,6 @@ curl -X POST /api/auth/forgot-password \
   - Weighted pools with custom ratios
   - Stable pools for correlated assets
   - Concentrated liquidity ranges
-
-- **Incentive Mechanisms**
-  - Base rewards based on TVL contribution
-  - Performance multipliers for volume and fees
-  - Early LP bonuses (50% boost)
-  - Large LP bonuses (20% boost)
-  - Loyalty rewards for long-term providers
 
 - **Risk Management**
   - Impermanent loss calculations

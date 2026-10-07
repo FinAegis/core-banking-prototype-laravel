@@ -152,7 +152,7 @@
                 <!-- Transactions -->
                 <div class="endpoint-card card-feature !p-8">
                     <h3 class="text-2xl font-bold mb-4">Transactions & Transfers</h3>
-                    <p class="text-slate-500 mb-6">Process payments and transfers with instant settlement.</p>
+                    <p class="text-slate-500 mb-6">Process payments and transfers.</p>
                     <div class="space-y-3">
                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                             <div class="flex items-center">
@@ -177,19 +177,13 @@
 
                 <!-- GCU & Voting -->
                 <div class="endpoint-card card-feature !p-8">
-                    <h3 class="text-2xl font-bold mb-4">GCU & Governance</h3>
-                    <p class="text-slate-500 mb-6">Global Currency Unit operations and voting endpoints.</p>
+                    <h3 class="text-2xl font-bold mb-4">GCU demo (simulated)</h3>
+                    <p class="text-slate-500 mb-6">GCU demo endpoints — simulated balances and votes.</p>
                     <div class="space-y-3">
                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                             <div class="flex items-center">
                                 <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">GET</span>
                                 <span class="ml-3 font-mono text-sm">/api/v2/gcu</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div class="flex items-center">
-                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">POST</span>
-                                <span class="ml-3 font-mono text-sm">/api/v2/gcu/buy</span>
                             </div>
                         </div>
                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">

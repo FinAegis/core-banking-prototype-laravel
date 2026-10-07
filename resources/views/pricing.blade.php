@@ -72,9 +72,6 @@
 
                     <!-- Cloud Platform (Featured) -->
                     <div class="card-pricing is-featured animate-on-scroll stagger-1 relative">
-                        <div class="absolute -top-3 left-1/2 -translate-x-1/2">
-                            <span class="badge badge-accent">Most Popular</span>
-                        </div>
                         <div class="mb-8">
                             <div class="icon-box bg-blue-50 mb-4">
                                 <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
@@ -115,18 +112,20 @@
                         <ul class="space-y-3 mb-8 text-sm text-slate-600">
                             <li class="list-check">Everything in Cloud</li>
                             <li class="list-check">On-premise deployment</li>
-                            <li class="list-check">Dedicated payment rail connections</li>
-                            <li class="list-check">PSD2 compliance support</li>
+                            <li class="list-check">PSD2 module support</li>
                             <li class="list-check">Custom ISO 20022 message types</li>
                             <li class="list-check">Dedicated support team</li>
                             <li class="list-check">Service level agreements</li>
-                            <li class="list-check">Compliance assistance</li>
+                            <li class="list-check">Compliance-tooling configuration support</li>
                         </ul>
                         <a href="{{ route('support.contact') }}" class="btn-secondary w-full text-center">
                             Contact Enterprise Sales
                         </a>
                     </div>
                 </div>
+                <p class="mt-10 text-xs text-slate-500 text-center max-w-3xl mx-auto leading-relaxed">
+                    FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
+                </p>
             </div>
         </section>
 

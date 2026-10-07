@@ -10,8 +10,9 @@ class GCUBasketSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     * This seeder creates the GCU (Global Currency Unit) basket as the primary basket
-     * for this specific FinAegis implementation.
+     * This seeder creates the GCU (Global Currency Unit) demo basket as the primary basket
+     * for this specific FinAegis implementation. GCU is a software demonstration only:
+     * it is not issued, offered or sold and has no monetary value.
      */
     public function run(): void
     {
@@ -19,7 +20,7 @@ class GCUBasketSeeder extends Seeder
         $basketCode = config('baskets.primary_code', env('PRIMARY_BASKET_CODE', 'GCU'));
         $basketName = config('baskets.primary_name', env('PRIMARY_BASKET_NAME', 'Global Currency Unit'));
         $basketSymbol = config('baskets.primary_symbol', env('PRIMARY_BASKET_SYMBOL', 'Ǥ'));
-        $basketDescription = config('baskets.primary_description', env('PRIMARY_BASKET_DESCRIPTION', 'Global Currency Unit - A stable, diversified currency basket'));
+        $basketDescription = config('baskets.primary_description', env('PRIMARY_BASKET_DESCRIPTION', 'GCU demo — a reference implementation of a basket-referenced unit built with FinAegis.'));
 
         // Create the GCU basket asset
         $basket = BasketAsset::updateOrCreate(
@@ -81,7 +82,7 @@ class GCUBasketSeeder extends Seeder
             ]
         );
 
-        $this->command->info('GCU basket created successfully with 6 currency components.');
+        $this->command->info('GCU demo basket created successfully with 6 currency components.');
         $this->command->info("Basket code: {$basketCode}");
         $this->command->info("Basket name: {$basketName}");
     }

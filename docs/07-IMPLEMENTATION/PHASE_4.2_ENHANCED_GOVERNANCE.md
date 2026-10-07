@@ -6,7 +6,15 @@
 
 ## Overview
 
-Phase 4.2 enhanced the existing governance system to support GCU (Global Currency Unit) implementation with environment-configurable basket management, weighted average voting calculations, user-friendly voting interfaces, and automated monthly poll creation.
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis.
+> It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or
+> basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a
+> basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under
+> MiCA (Title III); no such authorisation is held.
+>
+> See [REGULATORY-CLAIMS.md](../REGULATORY-CLAIMS.md).
+
+Phase 4.2 enhanced the existing governance system to support the GCU (Global Currency Unit) demo implementation with environment-configurable basket management, weighted average voting calculations, user-friendly voting interfaces, and automated monthly poll creation.
 
 ## Key Features Implemented
 
@@ -294,4 +302,4 @@ php artisan voting:setup --year=2024
 
 ## Conclusion
 
-Phase 4.2 successfully implemented all planned features for enhanced governance, providing a robust foundation for GCU operations. The system is production-ready with comprehensive testing, proper documentation, and flexible configuration options.
+Phase 4.2 successfully implemented all planned features for enhanced governance, providing a foundation for the GCU demo, with automated tests, documentation and flexible configuration options.

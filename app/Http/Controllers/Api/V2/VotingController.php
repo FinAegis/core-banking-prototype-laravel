@@ -135,7 +135,7 @@ class VotingController extends Controller
 
         #[OA\Post(
             path: '/api/v2/gcu/voting/proposals/{id}/vote',
-            summary: 'Cast a vote',
+            summary: 'Cast a demo vote (simulated)',
             tags: ['GCU Voting'],
             security: [['sanctum' => []]],
             parameters: [
