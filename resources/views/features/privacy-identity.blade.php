@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Privacy & Identity',
-        'description' => 'Privacy-preserving identity verification with zero-knowledge proofs, verifiable credentials, Merkle trees, and ERC-4337 gas abstraction. Protect user data while meeting compliance requirements.',
+        'description' => 'Privacy-preserving identity verification with zero-knowledge proofs, verifiable credentials, Merkle trees, and ERC-4337 gas abstraction. Privacy-preserving identity tooling.',
         'keywords' => 'privacy identity, zero knowledge proofs, ZK-KYC, verifiable credentials, Merkle trees, soulbound tokens, ERC-4337, gas abstraction, key management, ' . config('brand.name', 'Zelta'),
     ])
 
@@ -47,7 +47,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">Core Technologies</h2>
             <p class="text-lg text-slate-500 text-center max-w-2xl mx-auto mb-12">
-                A comprehensive privacy stack built on proven cryptographic foundations, enabling compliant identity verification without compromising user data.
+                A privacy stack built on proven cryptographic foundations for privacy-preserving identity verification.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -60,7 +60,7 @@
                     </div>
                     <h3 class="text-xl font-bold mb-3 text-slate-900">ZK-KYC</h3>
                     <p class="text-slate-500 mb-4">
-                        Zero-knowledge identity verification that proves compliance status without exposing personal documents. Users complete KYC once and generate reusable ZK proofs for future verifications.
+                        Zero-knowledge proof modules for identity attributes without exposing personal documents. Not a regulated KYC service; not intended to satisfy any third party's legal KYC or AML obligations.
                     </p>
                     <ul class="space-y-2 text-sm text-gray-500">
                         <li class="flex items-center">
@@ -79,7 +79,7 @@
                             <svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Jurisdiction compliance checks
+                            Jurisdiction attribute checks
                         </li>
                     </ul>
                 </div>
@@ -126,7 +126,7 @@
                     </div>
                     <h3 class="text-xl font-bold mb-3 text-slate-900">Soulbound Tokens</h3>
                     <p class="text-slate-500 mb-4">
-                        Non-transferable on-chain attestations that bind credentials permanently to an identity. Perfect for certifications, compliance status, and reputation that should not be sold or transferred.
+                        Non-transferable on-chain attestations that bind credentials permanently to an identity. Perfect for certifications, attestations, and reputation that should not be sold or transferred.
                     </p>
                     <ul class="space-y-2 text-sm text-gray-500">
                         <li class="flex items-center">
@@ -166,7 +166,7 @@
                             <svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            W3C VC Data Model compliant
+                            W3C VC Data Model support
                         </li>
                         <li class="flex items-center">
                             <svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -194,7 +194,7 @@
                         <div>
                             <h3 class="text-xl font-bold mb-3 text-slate-900">Key Management</h3>
                             <p class="text-slate-500 mb-4">
-                                Enterprise-grade key management using Shamir's Secret Sharing for key sharding and HSM integration for hardware-backed security. Split private keys across multiple custodians with configurable threshold recovery, ensuring no single point of compromise.
+                                Key management using Shamir's Secret Sharing for key sharding and HSM integration for hardware-backed security. Split private keys across multiple custodians with configurable threshold recovery, ensuring no single point of compromise.
                             </p>
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div class="bg-amber-50 rounded-lg p-4">
@@ -265,7 +265,7 @@
                     </div>
                     <h3 class="text-xl font-bold mb-3 text-slate-900">Proof of Innocence</h3>
                     <p class="text-slate-500 mb-4">
-                        Cryptographically demonstrate that funds are not associated with sanctioned addresses or illicit activity, all without revealing full transaction history or account balances.
+                        Sanctions-list non-membership proof modules that work without revealing full transaction history or balances.
                     </p>
                     <div class="border-t pt-4 mt-4">
                         <h4 class="font-semibold text-sm text-slate-900 mb-2">Capabilities</h4>
@@ -273,14 +273,6 @@
                             <li class="flex items-start">
                                 <span class="text-emerald-400 mr-2 mt-0.5">--</span>
                                 Sanctions list non-membership proof
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-emerald-400 mr-2 mt-0.5">--</span>
-                                Source-of-funds attestation
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-emerald-400 mr-2 mt-0.5">--</span>
-                                AML compliance without data exposure
                             </li>
                         </ul>
                     </div>
@@ -295,7 +287,7 @@
                     </div>
                     <h3 class="text-xl font-bold mb-3 text-slate-900">ZK Production Prover</h3>
                     <p class="text-slate-500 mb-4">
-                        Production-grade zero-knowledge proof infrastructure with 5 Circom circuit sources, TrustedSetupService for ceremony management, CircuitCompilationService, and auto-generated Solidity verifier contracts. Run <code class="text-xs bg-gray-100 px-1.5 py-0.5 rounded">php artisan zk:setup</code> to bootstrap the full proving pipeline.
+                        Zero-knowledge proof infrastructure with 5 Circom circuit sources, TrustedSetupService for ceremony management, CircuitCompilationService, and auto-generated Solidity verifier contracts. Run <code class="text-xs bg-gray-100 px-1.5 py-0.5 rounded">php artisan zk:setup</code> to bootstrap the full proving pipeline.
                     </p>
                     <div class="border-t pt-4 mt-4">
                         <h4 class="font-semibold text-sm text-slate-900 mb-2">Features</h4>
@@ -515,7 +507,7 @@
                         <h3 class="text-xl font-bold text-slate-900">Gas Station</h3>
                     </div>
                     <p class="text-slate-500 mb-6">
-                        A production-ready paymaster service that sponsors transaction gas fees for users. Supports policy-based sponsorship rules, per-user gas budgets, and real-time gas price optimization across networks.
+                        A paymaster service that sponsors transaction gas fees for users. Supports policy-based sponsorship rules, per-user gas budgets, and real-time gas price optimization across networks.
                     </p>
                     <div class="grid grid-cols-2 gap-3">
                         <div class="bg-orange-50 rounded-lg p-3 text-center">
@@ -570,7 +562,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">Technical Features</h2>
             <p class="text-lg text-slate-500 text-center max-w-2xl mx-auto mb-12">
-                Built on battle-tested cryptographic libraries and standards, every component is designed for production-grade security and performance.
+                Built on established cryptographic libraries and standards.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
@@ -701,9 +693,9 @@
     <section class="bg-fa-navy relative overflow-hidden">
         <div class="absolute inset-0 bg-dot-pattern"></div>
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Protect Identity. Prove Compliance.</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Privacy-Preserving Identity Tooling</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                Experience the next generation of digital identity where privacy and compliance coexist. Zero-knowledge proofs, verifiable credentials, and gasless transactions -- all in one platform.
+                Zero-knowledge proofs, verifiable credentials, and gasless transactions — open-source modules for operators to build on.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">

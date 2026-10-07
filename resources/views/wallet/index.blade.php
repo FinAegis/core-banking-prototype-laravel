@@ -39,7 +39,7 @@
                     <!-- Balance Overview -->
                     <div class="mb-8">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Account Balance</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="grid grid-cols-1 {{ config('brand.show_promo_pages') ? 'md:grid-cols-3' : 'md:grid-cols-2' }} gap-6">
                             <!-- Total Balance -->
                             <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl p-6 text-white">
                                 <p class="text-sm font-medium opacity-90">Total Balance</p>
@@ -58,14 +58,17 @@
                                 <p class="text-xs mt-2 opacity-75">Ready to use</p>
                             </div>
 
+                            {{-- GCU demo card: finaegis.org demo only (GCU is a software demonstration; see docs/REGULATORY-CLAIMS.md) --}}
+                            @if(config('brand.show_promo_pages'))
                             <!-- GCU Balance -->
                             <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white">
-                                <p class="text-sm font-medium opacity-90">GCU Balance</p>
+                                <p class="text-sm font-medium opacity-90">GCU demo balance</p>
                                 <p class="text-3xl font-bold mt-2">
                                     Ǥ{{ number_format(auth()->user()->accounts->first() ? auth()->user()->accounts->first()->getBalance('GCU') / 100 : 0, 2) }}
                                 </p>
-                                <p class="text-xs mt-2 opacity-75">Global Currency Units</p>
+                                <p class="text-xs mt-2 opacity-75">Simulated — no monetary value</p>
                             </div>
+                            @endif
                         </div>
                     </div>
 
@@ -148,12 +151,12 @@
                                     <li>2. Select "Card Deposit" as your method</li>
                                     <li>3. Enter the amount you want to deposit</li>
                                     <li>4. Complete the secure payment form</li>
-                                    <li>5. Funds appear instantly in your account</li>
+                                    <li>5. Funds appear once the transfer is processed</li>
                                 </ol>
                             </div>
                         </div>
                         <p class="text-xs text-blue-600 dark:text-blue-400 mt-4">
-                            Note: Card deposits include a 2.9% + $0.30 processing fee. Bank transfers have no fees but take longer.
+                            Note: Card deposits include a 2.9% + $0.30 processing fee. Bank transfers take longer.
                         </p>
                     </div>
 
@@ -235,7 +238,11 @@
                                            value="Personal Account"
                                            required>
                                     <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                        This will create a multi-currency account that supports USD, EUR, GBP, and GCU.
+                                        @if(config('brand.show_promo_pages'))
+                                            This will create a multi-currency demo account (balances are simulated).
+                                        @else
+                                            This will create a multi-currency account.
+                                        @endif
                                     </p>
                                 </div>
                                 <div id="accountError" class="mt-2 text-sm text-red-600 dark:text-red-400 hidden"></div>

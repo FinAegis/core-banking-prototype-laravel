@@ -1,11 +1,11 @@
 @extends('layouts.public')
 
-@section('title', 'Open Banking & PSD2 Compliance - ' . config('brand.name', 'Zelta'))
+@section('title', 'Open Banking & PSD2 Modules - ' . config('brand.name', 'Zelta'))
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Open Banking & PSD2 Compliance',
-        'description' => 'PSD2-compliant Open Banking with full consent lifecycle, AISP/PISP services, Berlin Group NextGenPSD2 and UK Open Banking adapters, and eIDAS TPP validation.',
+        'title' => 'Open Banking & PSD2 Modules',
+        'description' => 'Open Banking modules modelled on PSD2: consent lifecycle, AISP/PISP flows, Berlin Group NextGenPSD2 and UK Open Banking adapters, and eIDAS TPP certificate validation.',
         'keywords' => 'Open Banking, PSD2, AISP, PISP, consent lifecycle, Berlin Group, NextGenPSD2, UK Open Banking, TPP, eIDAS, QWAC, payment initiation, account information',
     ])
 
@@ -50,11 +50,11 @@
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-24">
             <div class="text-center">
                 <div class="inline-flex items-center bg-teal-500/10 border border-teal-500/20 rounded-full px-4 py-2 mb-6">
-                    <span class="text-teal-400 text-sm font-medium">PSD2 Compliant</span>
+                    <span class="text-teal-400 text-sm font-medium">PSD2-Modelled</span>
                 </div>
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Open Banking &amp; PSD2</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    Consent-driven account access and payment initiation. Full PSD2 compliance with AISP and PISP services, Berlin Group NextGenPSD2 and UK Open Banking adapters, and eIDAS TPP certificate validation.
+                    Consent-driven account access and payment initiation modules modelled on PSD2 AISP and PISP flows, with Berlin Group NextGenPSD2 and UK Open Banking adapters and eIDAS TPP certificate validation. They do not by themselves make a deployment compliant.
                 </p>
                 <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('register') }}" class="bg-white text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">
@@ -121,9 +121,9 @@
     <!-- AISP & PISP -->
     <section class="py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">AISP &amp; PISP Services</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">AISP &amp; PISP Modules</h2>
             <p class="text-lg text-slate-500 text-center max-w-2xl mx-auto mb-12">
-                Two fully independent service roles — Account Information Service Provider and Payment Initiation Service Provider — each enforced by separate consent scopes.
+                Two independent modules modelled on the Account Information and Payment Initiation service roles, each enforced by separate consent scopes.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -197,7 +197,7 @@
                     <ul class="space-y-2 text-sm text-gray-500">
                         <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Account and transaction resources</li>
                         <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Domestic and international payments</li>
-                        <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>FAPI-compliant security profile</li>
+                        <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>FAPI security profile</li>
                     </ul>
                 </div>
             </div>
@@ -232,7 +232,7 @@
                         <svg class="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                     </div>
                     <h3 class="font-bold text-lg mb-2">Frequency Limiting</h3>
-                    <p class="text-slate-500 text-sm">Per-consent access frequency limits comply with PSD2 EBA guidelines. Prevents excessive data scraping while maintaining full regulatory access rights.</p>
+                    <p class="text-slate-500 text-sm">Per-consent access frequency limits modelled on the EBA guidelines under PSD2.</p>
                 </div>
             </div>
         </div>
@@ -241,8 +241,8 @@
     <!-- CTA -->
     <section class="py-20 bg-fa-navy">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Build PSD2-Compliant Products Faster</h2>
-            <p class="text-lg text-slate-400 mb-8">The consent engine, adapters, and security middleware are all included. Focus on your product, not the regulation.</p>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Build Open Banking Products Faster</h2>
+            <p class="text-lg text-slate-400 mb-8">The consent engine, adapters, and security middleware are included. They do not by themselves make a deployment compliant.</p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="bg-white text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">Start Free Trial</a>
                 <a href="{{ route('developers') }}" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-indigo-600 transition">View API Docs</a>

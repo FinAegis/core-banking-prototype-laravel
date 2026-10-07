@@ -42,15 +42,13 @@ Then point your client at `npx -y @finaegis/mcp` as the command. The relay handl
 
 Once connected, ask the agent:
 
-> "What is my Zelta USD balance?"
+> "Show my recent Zelta wallet activity"
 
-It will call `account.balance` and surface the result.
+It will call `wallet.activity` and surface the result.
 
-## Try a write tool
+## Write tools
 
-> "Send $1 to my friend's account at jane@example.com"
-
-The agent will call `payment.transfer` with an `idempotency_key` (UUID), and the response will include the settlement reference. Repeat the same prompt within 24 hours and the server returns the cached result rather than re-charging.
+Write tools (e.g. `payment.transfer`) require explicit scopes and are subject to the per-token daily limit.
 
 ## Spending limit
 

@@ -449,21 +449,6 @@ View and manage NFTs:
    - List for sale
    - Metadata viewing
 
-### Staking
-
-Earn rewards by staking:
-
-1. Select stakeable asset (ETH, MATIC, etc.)
-2. Click **Stake**
-3. Choose validator
-4. Enter amount
-5. Confirm staking
-
-**Unstaking:**
-- May have lock period
-- Rewards auto-compound
-- Track earnings in dashboard
-
 ### Cross-Chain Bridges
 
 Transfer between blockchains:
@@ -590,16 +575,7 @@ Transfer between blockchains:
 
 ### Getting Support
 
-#### Self-Help Resources
-- Knowledge Base: help.finaegis.com/wallets
-- Video Guides: youtube.com/finaegis
-- Community: forum.finaegis.com
-
-#### Contact Support
-- **Critical** (funds at risk): +1-800-URGENT
-- **Email**: wallet-support@finaegis.com
-- **Live Chat**: 24/7 available
-- **Ticket System**: support.finaegis.com
+- [GitHub Issues](https://github.com/FinAegis/core-banking-prototype-laravel/issues)
 
 **Include in support request:**
 - Wallet address
@@ -637,7 +613,7 @@ For holding (HODLing):
 5. Multiple backups
 6. Consider time-locks
 
-## Regulatory Compliance
+## Tax and Regulatory Reporting
 
 ### Tax Reporting
 
@@ -652,9 +628,9 @@ Export data for tax purposes:
    - Gains/losses
    - Mining/staking income
 
-### Travel Rule Compliance
+### Travel Rule Data
 
-For large transfers:
+For large transfers (module modelled on Travel Rule requirements):
 
 - Transactions over $1,000 may require:
   - Recipient name
@@ -672,7 +648,7 @@ Some features limited by jurisdiction:
 
 ## Conclusion
 
-The FinAegis Wallet Management System provides enterprise-grade security with user-friendly features. Start with basic features, gradually explore advanced options, and always prioritize security. Remember: you are your own bank in the crypto world - with great power comes great responsibility.
+The FinAegis wallet module provides HD, multi-signature and hardware-wallet support. Start with basic features, gradually explore advanced options, and always prioritize security.
 
 For API integration and development, see our [Developer Documentation](/docs/api/wallets) and [Integration Guide](/docs/developer/wallet-integration).
 

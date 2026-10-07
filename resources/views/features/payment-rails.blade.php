@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Multi-Rail Payment Processing',
-        'description' => 'ACH, Fedwire, RTP, FedNow, and SEPA payment rails with intelligent routing. NACHA file generation, ISO 20022 native FedNow, and ML-style rail selection.',
+        'description' => 'Message-format and routing modules for ACH, Fedwire, RTP, FedNow, and SEPA. NACHA file generation, ISO 20022 native FedNow, and ML-style rail selection (reference implementation).',
         'keywords' => 'payment rails, ACH, Fedwire, RTP, FedNow, SEPA, NACHA, ISO 8583, intelligent routing, same-day ACH, SEPA Instant, SCT Inst, payment processing',
     ])
 
@@ -42,7 +42,7 @@
                 </div>
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Multi-Rail Payments</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    Every payment rail, one API. ACH, Fedwire, RTP, FedNow, SEPA, and ISO 8583 card networks — with intelligent ML-style routing that selects the optimal rail for every transaction.
+                    Message-format and routing modules for ACH, Fedwire, RTP, FedNow, SEPA and ISO 8583 — with ML-style rail selection (reference implementation — no live scheme settlement).
                 </p>
                 <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('register') }}" class="bg-white text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">
@@ -62,7 +62,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">US Payment Rails</h2>
             <p class="text-lg text-slate-500 text-center max-w-2xl mx-auto mb-12">
-                Full coverage of the US payments infrastructure — from batch ACH to real-time FedNow — with native NACHA file generation and ISO 20022 support.
+                Message-format modules for US payment rails — from batch ACH to real-time FedNow — with native NACHA file generation and ISO 20022 support.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -162,7 +162,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">EU Payment Rails</h2>
             <p class="text-lg text-slate-500 text-center max-w-2xl mx-auto mb-12">
-                SEPA Credit Transfer, Direct Debit, and Instant Credit Transfer — all with full mandate management and EPC rulebook compliance.
+                SEPA Credit Transfer, Direct Debit, and Instant Credit Transfer message modules — with mandate management, built to the EPC rulebook formats.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -197,9 +197,9 @@
                         <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                     </div>
                     <h3 class="text-lg font-bold mb-2">SCT Inst (SEPA Instant)</h3>
-                    <p class="text-slate-500 text-sm mb-4">SEPA Instant Credit Transfer with 10-second end-to-end settlement. 24/7/365 availability with EPC compliance and €100,000 limit.</p>
+                    <p class="text-slate-500 text-sm mb-4">SEPA Instant Credit Transfer message module (10-second scheme window, €100,000 limit).</p>
                     <ul class="space-y-1 text-xs text-gray-500">
-                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>10-second settlement guarantee</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>10-second scheme settlement window</li>
                         <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>24/7/365 availability</li>
                         <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>EPC SCT Inst rulebook v1.0</li>
                     </ul>
@@ -269,8 +269,8 @@
     <section class="py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="max-w-4xl mx-auto text-center">
-                <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">ISO 8583 Card Network Processing</h2>
-                <p class="text-lg text-slate-500 mb-10">Full card network message processing with bitmap codec for direct Visa/Mastercard integration. Authorization, reversal, and settlement messages with MTI routing.</p>
+                <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">ISO 8583 Message Processing</h2>
+                <p class="text-lg text-slate-500 mb-10">ISO 8583 message processing with bitmap codec (card-network message format). Authorization, reversal, and settlement messages with MTI routing.</p>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
                     <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
                         <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mb-4"><svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
@@ -296,7 +296,7 @@
     <section class="py-20 bg-fa-navy">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">One API for Every Payment Rail</h2>
-            <p class="text-lg text-slate-400 mb-8">Stop managing multiple integrations. Connect once and route intelligently across ACH, Fedwire, RTP, FedNow, and SEPA.</p>
+            <p class="text-lg text-slate-400 mb-8">Model routing across ACH, Fedwire, RTP, FedNow, and SEPA with one API (reference implementation — no live scheme settlement).</p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="bg-white text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">Start Free Trial</a>
                 <a href="{{ route('developers') }}" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-indigo-600 transition">View API Docs</a>

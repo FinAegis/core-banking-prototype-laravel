@@ -29,24 +29,24 @@ These documents provide:
   - Enhanced governance
   - Compliance framework
   
-- ✅ **Phase 5**: Real Bank Integration
-  - Paysera, Deutsche Bank, Santander connectors
+- ✅ **Phase 5**: Bank connector adapters
+  - Integration adapters for third-party bank APIs (e.g. Paysera, Deutsche Bank, Santander); no partnership or endorsement implied
   - Multi-bank transfers
   - Settlement logic
   - Monitoring & operations
   
-- ✅ **Phase 6**: GCU Launch
+- ✅ **Phase 6**: GCU demo (reference implementation; simulated)
   - User interface
   - Public API
   - Webhook integration
   - Documentation
 
 - ✅ **Phase 7**: Platform Enhancement
-  - GCU voting system
+  - GCU demo basket voting (simulated)
   - Security enhancements (2FA, OAuth2)
   - Trading operations
   - Compliance monitoring
-  - CGO implementation
+  - CGO demo module (not an offer of securities)
 
 ### Implementation Highlights
 - **Event Sourcing**: Full implementation across all domains

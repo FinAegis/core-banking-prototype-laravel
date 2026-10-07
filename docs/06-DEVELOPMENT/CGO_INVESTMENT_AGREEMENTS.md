@@ -1,5 +1,9 @@
 # CGO Investment Agreement System
 
+> Demo module: reference software that generates sample agreement and certificate documents for an investment-intake workflow. It is not an offer of securities.
+>
+> FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
+
 ## Overview
 
 The CGO Investment Agreement System generates legal documents for investments including investment agreements and share certificates. The system uses PDF generation with customizable templates and provides secure document storage and retrieval.
@@ -174,12 +178,12 @@ return [
 ### Company Information
 Add to `.env`:
 ```env
-COMPANY_NAME="FinAegis Ltd"
-COMPANY_REGISTRATION="12345678"
-COMPANY_ADDRESS="123 Business St, London, UK"
-COMPANY_EMAIL="invest@finaegis.com"
-CEO_NAME="John Doe"
-CFO_NAME="Jane Smith"
+COMPANY_NAME="Example Company Ltd"
+COMPANY_REGISTRATION="00000000"
+COMPANY_ADDRESS="1 Example Street, Example City"
+COMPANY_EMAIL="invest@example.com"
+CEO_NAME="Example CEO"
+CFO_NAME="Example CFO"
 ```
 
 ## Security Considerations

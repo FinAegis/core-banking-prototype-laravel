@@ -1,6 +1,6 @@
 # Partner Onboarding Checklist
 
-This checklist covers the end-to-end process for onboarding a new partner to the Zelta payment platform. Target timeline: 14 days from kickoff to production traffic.
+This checklist covers the end-to-end process for onboarding a new partner to the Zelta payment-protocol SDK and API. Target timeline: 14 days from kickoff to production traffic.
 
 For technical details, see [Partner Integration Guide](PARTNER_INTEGRATION_GUIDE.md).
 
@@ -40,7 +40,7 @@ For technical details, see [Partner Integration Guide](PARTNER_INTEGRATION_GUIDE
 
 - [ ] KYC/AML requirements reviewed and acknowledged
 - [ ] Data processing agreement (DPA) signed
-- [ ] Partner privacy policy updated to disclose Zelta as a payment processor
+- [ ] Partner privacy policy updated to disclose Zelta as a technical integration provider (payments are processed by the underlying rail providers under their own terms)
 - [ ] Partner terms of service updated to cover payment protocol usage
 - [ ] PCI DSS scope confirmed (MPP card rail only; x402 is out of scope)
 - [ ] Geographic restrictions reviewed (sanctioned jurisdictions)
@@ -66,10 +66,10 @@ For technical details, see [Partner Integration Guide](PARTNER_INTEGRATION_GUIDE
 - [ ] First week metrics review completed:
   - [ ] Transaction volume
   - [ ] Success rate
-  - [ ] Average settlement time
+  - [ ] Average payment completion time
   - [ ] Webhook delivery rate
 - [ ] Error rate confirmed below 1% threshold
-- [ ] Settlement reconciliation verified (amounts match between partner and Zelta)
+- [ ] Payment reconciliation verified (amounts match between partner records and rail-provider reports)
 - [ ] Partner success contact assigned for ongoing support
 - [ ] Monthly business review cadence established
 - [ ] SDK update plan agreed (minor/patch auto-update, major manual review)

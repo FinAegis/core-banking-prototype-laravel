@@ -25,6 +25,7 @@
                     </h1>
                     
                     <div class="prose prose-lg max-w-none">
+                        {{-- TODO(regulatory): operator legal entity details pending — see docs/REGULATORY-CLAIMS.md (page recommended for unpublishing; governing-law placeholder unresolved) --}}
                         <p class="text-gray-600 mb-6">
                             <strong>Effective Date:</strong> July 21, 2025<br>
                             <strong>Last Updated:</strong> {{ now()->format('F j, Y') }}
@@ -44,6 +45,7 @@
                         <ul class="list-disc pl-6 mb-4">
                             <li>Your contribution is a <strong>donation to support development</strong> of the {{ config('brand.name') }} platform and the democratic banking movement</li>
                             <li>This is <strong>NOT an investment</strong> in securities or any financial instrument</li>
+                            {{-- TODO(regulatory): operator legal entity details pending — see docs/REGULATORY-CLAIMS.md --}}
                             <li>You are <strong>NOT purchasing equity</strong>, shares, or any ownership interest in {{ config('brand.legal_entity') }} Ltd. or any affiliated entity</li>
                             <li>You should <strong>NOT expect financial returns</strong>, dividends, or profit from your contribution</li>
                             <li>The certificates and benefits provided are <strong>symbolic recognition</strong> of your support</li>
@@ -118,6 +120,7 @@
 
                         <h2 class="text-2xl font-bold mt-8 mb-4">8. Intellectual Property</h2>
                         <p>
+                            {{-- TODO(regulatory): operator legal entity details pending — see docs/REGULATORY-CLAIMS.md --}}
                             All intellectual property developed using CGO contributions remains the property of {{ config('brand.legal_entity') }} Ltd.
                             Contributors receive no ownership rights to any intellectual property.
                         </p>
@@ -130,6 +133,7 @@
 
                         <h2 class="text-2xl font-bold mt-8 mb-4">10. Limitation of Liability</h2>
                         <p>
+                            {{-- TODO(regulatory): operator legal entity details pending — see docs/REGULATORY-CLAIMS.md --}}
                             TO THE MAXIMUM EXTENT PERMITTED BY LAW, {{ Str::upper(config('brand.legal_entity')) }} LTD. SHALL NOT BE LIABLE FOR ANY INDIRECT,
                             INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES ARISING FROM YOUR CONTRIBUTION.
                         </p>

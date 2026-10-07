@@ -66,7 +66,7 @@ final class BridgePostKycHandler
             $user,
             type: 'bridge.kyc.completed',
             title: 'Identity verification approved',
-            body: 'You can now buy and sell crypto with bank transfers.',
+            body: 'Bank-transfer funding via our third-party ramp provider is now available, under its own terms.',
             data: [
                 'bridge_customer_id' => $customer->bridge_customer_id,
                 'route'              => self::MOBILE_ROUTE,

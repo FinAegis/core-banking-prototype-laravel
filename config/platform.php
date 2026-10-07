@@ -7,7 +7,9 @@ return [
     |--------------------------------------------------------------------------
     |
     | This file contains configuration for the FinAegis platform including
-    | GCU composition, statistics, and feature availability.
+    | the GCU demo basket composition, statistics, and feature availability.
+    | GCU is a software demonstration only: it is not issued, offered or sold
+    | and has no monetary value (see docs/REGULATORY-CLAIMS.md).
     |
     */
 
@@ -22,13 +24,12 @@ return [
             'JPY' => 3,
             'XAU' => 2,
         ],
-        'next_voting_date' => '2025-07-15', // Next monthly voting date
+        'next_voting_date' => '2025-07-15', // Demo only: next simulated basket poll date
         'voting_enabled'   => false, // Not yet implemented
     ],
 
     'statistics' => [
         'supported_currencies' => 6,
-        'banking_partners'     => 3, // Paysera, Deutsche Bank, Santander (actual implemented)
         'api_endpoints'        => 12, // Actual count from our API routes
         'transaction_speed'    => '< 1s', // Target, not yet measured
         'uptime_sla'           => '99.9%', // Target, not yet measured
@@ -38,7 +39,7 @@ return [
         'multi_asset_support'   => true,
         'instant_settlements'   => false, // Not yet implemented
         'democratic_governance' => false, // Not yet implemented
-        'bank_integration'      => true, // Paysera implemented
+        'bank_integration'      => true, // Integration adapter only; no partnership or endorsement implied
         'api_access'            => true,
         'security_features'     => true,
     ],
@@ -67,24 +68,6 @@ return [
             'status'      => 'planned',
             'launch_date' => 'Q4 2025',
             'pricing'     => 'TBD',
-        ],
-    ],
-
-    'banking_partners' => [
-        'paysera' => [
-            'name'       => 'Paysera',
-            'country'    => 'Lithuania',
-            'integrated' => true,
-        ],
-        'deutsche_bank' => [
-            'name'       => 'Deutsche Bank',
-            'country'    => 'Germany',
-            'integrated' => false, // Planned
-        ],
-        'santander' => [
-            'name'       => 'Santander',
-            'country'    => 'Spain',
-            'integrated' => false, // Planned
         ],
     ],
 

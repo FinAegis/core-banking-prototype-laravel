@@ -5,8 +5,8 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Interledger Protocol',
-        'description' => 'Cross-network value transfer with ILP connector, Open Payments authorization, and cross-currency quotes. Bridge fiat and crypto payment networks.',
-        'keywords' => 'Interledger, ILP, Open Payments, GNAP, STREAM protocol, cross-currency, payment pointer, cross-network payments, fiat crypto bridge',
+        'description' => 'Cross-network value transfer with ILP connector, Open Payments authorization, and cross-currency quotes.',
+        'keywords' => 'Interledger, ILP, Open Payments, GNAP, STREAM protocol, cross-currency, payment pointer, cross-network payments',
     ])
 
     {{-- Schema.org Markup --}}
@@ -42,7 +42,7 @@
                 </div>
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Interledger Protocol</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    Cross-network payment interoperability. ILP connector with STREAM protocol, Open Payments GNAP authorization, real-time cross-currency quotes, and payment pointer resolution — bridging fiat and crypto payment networks.
+                    Cross-network payment interoperability. ILP connector with STREAM protocol, Open Payments GNAP authorization, real-time cross-currency quotes, and payment pointer resolution.
                 </p>
                 <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('register') }}" class="bg-white text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">
@@ -62,7 +62,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">ILP Connector</h2>
             <p class="text-lg text-slate-500 text-center max-w-2xl mx-auto mb-12">
-                A production ILP connector implementing the Interledger v4 packet-switched protocol. Route value across any ledger using STREAM for bidirectional, multiplexed payment streams.
+                An ILP connector implementing the Interledger v4 packet-switched protocol. Route value across any ledger using STREAM for bidirectional, multiplexed payment streams.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -196,7 +196,7 @@
     <section class="py-20 bg-fa-navy">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Connect Every Network</h2>
-            <p class="text-lg text-slate-400 mb-8">ILP lets you send value to any wallet, on any network, in any currency — with a single payment pointer. Bridge fiat and crypto without custom integrations.</p>
+            <p class="text-lg text-slate-400 mb-8">ILP lets you send value to any wallet, on any network, in any currency — with a single payment pointer.</p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="bg-white text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">Start Free Trial</a>
                 <a href="{{ route('developers') }}" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-indigo-600 transition">View API Docs</a>

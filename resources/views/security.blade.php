@@ -1,19 +1,19 @@
 @extends('layouts.public')
 
-@section('title', 'Security - Bank-Grade Protection | ' . config('brand.name', 'Zelta'))
+@section('title', 'Security Architecture | ' . config('brand.name', 'Zelta'))
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Security - Bank-Grade Protection | ' . config('brand.name', 'Zelta'),
-        'description' => 'Zelta security architecture: HMAC integrity, HSM key management, post-quantum encryption (ML-KEM-768), ZK-KYC proofs, and WebAuthn. SOC 2 / PCI-DSS readiness tooling (no certification held).',
-        'keywords' => config('brand.name', 'Zelta') . ' security, bank-grade security, blockchain security, secure banking, cybersecurity, data protection',
+        'title' => 'Security Architecture | ' . config('brand.name', 'Zelta'),
+        'description' => config('brand.name', 'Zelta') . ' security architecture: HMAC integrity, HSM key management, post-quantum encryption (ML-KEM-768), ZK-KYC proofs, and WebAuthn. SOC 2 / PCI-DSS readiness tooling (no certification held).',
+        'keywords' => config('brand.name', 'Zelta') . ' security, blockchain security, cybersecurity, data protection',
     ])
 
     {{-- Schema.org Markup --}}
     <x-schema type="service" :data="[
         'name' => config('brand.name', 'Zelta') . ' Security',
-        'description' => 'Bank-grade security for the ' . config('brand.name', 'Zelta') . ' platform',
-        'category' => 'Financial Security'
+        'description' => 'Security architecture of the ' . config('brand.name', 'Zelta') . ' open-source platform',
+        'category' => 'Software Security'
     ]" />
     <x-schema type="breadcrumb" :data="[
         ['name' => 'Home', 'url' => url('/')],
@@ -53,7 +53,7 @@
                 <div>
                     <h3 class="font-display text-sm font-semibold text-slate-900">Security Implementation Status</h3>
                     <p class="text-sm text-slate-600 mt-0.5">
-                        Production-grade security patterns throughout. Features below are marked as <strong>implemented</strong> or <strong>planned</strong>.
+                        Security patterns implemented in the open-source codebase. Features below are marked as <strong>implemented</strong> or <strong>planned</strong>.
                     </p>
                 </div>
             </div>
@@ -80,10 +80,8 @@
                     <ul class="space-y-2.5 text-sm text-slate-600">
                         <li class="list-check">End-to-end encryption (TLS 1.3)</li>
                         <li class="list-check">DDoS protection & rate limiting</li>
-                        <li class="list-check">Multi-region data redundancy</li>
-                        <li class="list-check">24/7 security monitoring</li>
-                        <li class="list-check">Regular penetration testing</li>
-                        <li class="list-check">ISO 27001 compliance ready</li>
+                        <li class="list-check">Multi-region deployment support</li>
+                        <li class="list-check">ISO 27001 readiness tooling (no certification held)</li>
                     </ul>
                 </div>
 
@@ -119,9 +117,9 @@
                         $standards = [
                             ['title' => 'GDPR Enhanced', 'desc' => 'ROPA, DPIA, breach notification, consent management v2, and data retention policies (v3.5.0)'],
                             ['title' => 'SOC 2 Type II', 'desc' => 'Continuous control monitoring, evidence collection, and audit readiness tooling (v3.5.0)'],
-                            ['title' => 'PCI DSS Readiness', 'desc' => 'Payment card industry compliance with scoping, gap analysis, and remediation tracking (v3.5.0)'],
-                            ['title' => 'Financial Compliance', 'desc' => 'KYC/AML procedures, MiFID II, MiCA, and Travel Rule regulatory reporting'],
-                            ['title' => 'Multi-Region Deploy', 'desc' => 'Data sovereignty compliance with multi-region deployment support (v3.5.0)'],
+                            ['title' => 'PCI DSS Readiness', 'desc' => 'PCI DSS readiness tooling: scoping, gap analysis and remediation tracking (no certification held) (v3.5.0)'],
+                            ['title' => 'Compliance Tooling', 'desc' => 'Reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements; AML/KYC workflow modules'],
+                            ['title' => 'Multi-Region Deploy', 'desc' => 'Data-residency configuration with multi-region deployment support (v3.5.0)'],
                             ['title' => 'Industry Standards', 'desc' => 'ISO 27001 readiness and comprehensive security framework alignment'],
                         ];
                     @endphp
@@ -142,7 +140,7 @@
             <div class="text-center mb-14 animate-on-scroll">
                 <span class="badge badge-success mb-4">Currently Implemented</span>
                 <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Security Features</h2>
-                <p class="text-lg text-slate-500">Production-ready security measures</p>
+                <p class="text-lg text-slate-500">Security measures implemented in the codebase</p>
             </div>
 
             @php
@@ -247,7 +245,7 @@
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Security First Approach</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                We take security seriously. Our team works around the clock to ensure your assets and data are protected.
+                Found a security issue? Contact the security team.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('support') }}" class="btn-primary px-8 py-4 text-lg">

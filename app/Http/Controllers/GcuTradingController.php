@@ -11,7 +11,7 @@ use OpenApi\Attributes as OA;
 
 #[OA\Tag(
     name: 'GCU Trading',
-    description: 'GCU token trading interface'
+    description: 'GCU demo conversion interface (simulated; GCU has no monetary value)'
 )]
 class GcuTradingController extends Controller
 {
@@ -19,8 +19,8 @@ class GcuTradingController extends Controller
             path: '/gcu/trading',
             operationId: 'gCUTradingIndex',
             tags: ['GCU Trading'],
-            summary: 'GCU trading dashboard',
-            description: 'Returns the GCU token trading interface',
+            summary: 'GCU demo conversion dashboard',
+            description: 'Returns the simulated GCU demo conversion interface',
             security: [['sanctum' => []]]
         )]
     #[OA\Response(

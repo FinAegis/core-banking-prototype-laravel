@@ -245,8 +245,7 @@ class LLMOrchestrationService
 
         if (str_contains($lowerMessage, 'balance') || str_contains($lowerMessage, 'account')) {
             return 'Based on my analysis, your current account balance is $12,456.78 USD. ' .
-                'You have 3 active accounts with a total balance of $25,234.56 across all currencies. ' .
-                'Your GCU holdings are worth approximately €4,500.00.';
+                'You have 3 active accounts with a total balance of $25,234.56 across all currencies.';
         }
 
         if (str_contains($lowerMessage, 'transaction') || str_contains($lowerMessage, 'spend')) {
@@ -261,25 +260,20 @@ class LLMOrchestrationService
             return "I can help you transfer money. To complete a transfer, I'll need:\n\n" .
                 "1. **Recipient**: Name or account number\n" .
                 "2. **Amount**: How much would you like to send?\n" .
-                "3. **Currency**: USD, EUR, GBP, or GCU\n\n" .
+                "3. **Currency**: USD, EUR, or GBP\n\n" .
                 "Please provide these details and I'll process your transfer request.";
         }
 
         if (str_contains($lowerMessage, 'loan') || str_contains($lowerMessage, 'borrow')) {
-            return "Based on your profile, you're eligible for the following loan options:\n\n" .
+            return "Example loan options (demo data):\n\n" .
                 "- **Personal Loan**: Up to $25,000 at 8.5% APR\n" .
-                "- **Credit Line**: Up to $10,000 at 12.9% APR\n\n" .
-                'Your credit score of 742 qualifies you for our premium rates. ' .
-                'Would you like me to start an application for any of these options?';
+                '- **Credit Line**: Up to $10,000 at 12.9% APR';
         }
 
         if (str_contains($lowerMessage, 'invest') || str_contains($lowerMessage, 'portfolio')) {
             return "Your investment portfolio analysis:\n\n" .
                 "- **Total Value**: $45,678.90\n" .
-                "- **YTD Return**: +12.3%\n" .
-                "- **Asset Allocation**: 60% Stocks, 30% Bonds, 10% GCU\n\n" .
-                'Based on market conditions, I recommend rebalancing to increase your GCU allocation ' .
-                'for better stability. Shall I prepare a detailed recommendation?';
+                '- **YTD Return**: +12.3%';
         }
 
         if (str_contains($lowerMessage, 'compliance') || str_contains($lowerMessage, 'kyc')) {
@@ -293,8 +287,8 @@ class LLMOrchestrationService
 
         return 'I understand your query: "' . substr($message, 0, 100) . "...\"\n\n" .
             'In a production environment, I would process this using advanced AI models ' .
-            "with access to your banking data and tools. For now, I'm running in demo mode.\n\n" .
-            'How else can I assist you with your banking needs?';
+            "with access to your account data and tools. For now, I'm running in demo mode.\n\n" .
+            'How else can I assist you?';
     }
 
     /**

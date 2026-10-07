@@ -5,7 +5,11 @@
             <div class="flex items-center">
                 <a href="/" class="flex items-center">
                     <h1 class="text-2xl font-bold">
-                        <span class="text-indigo-600">Fin</span><span class="text-purple-600">Aegis</span>
+                        @if(config('brand.show_promo_pages'))
+                            <span class="text-indigo-600">Fin</span><span class="text-purple-600">Aegis</span>
+                        @else
+                            <span class="text-indigo-600">{{ config('brand.name', 'Zelta') }}</span>
+                        @endif
                     </h1>
                 </a>
             </div>
@@ -13,7 +17,9 @@
             <div class="hidden md:flex items-center space-x-8">
                 <a href="/" class="text-gray-600 hover:text-gray-900 font-medium {{ request()->is('/') ? 'text-gray-900' : '' }}">Home</a>
                 <a href="/platform" class="text-gray-600 hover:text-gray-900 font-medium {{ request()->is('platform*') ? 'text-gray-900' : '' }}">Platform</a>
-                <a href="/gcu" class="text-gray-600 hover:text-gray-900 font-medium {{ request()->is('gcu*') ? 'text-gray-900' : '' }}">GCU</a>
+                @if(config('brand.show_promo_pages'))
+                <a href="/gcu" class="text-gray-600 hover:text-gray-900 font-medium {{ request()->is('gcu*') ? 'text-gray-900' : '' }}">GCU demo</a>
+                @endif
                 <a href="/developers" class="text-gray-600 hover:text-gray-900 font-medium {{ request()->is('developers*') ? 'text-gray-900' : '' }}">Developers</a>
                 <a href="/pricing" class="text-gray-600 hover:text-gray-900 font-medium {{ request()->is('pricing') ? 'text-gray-900' : '' }}">Pricing</a>
             </div>

@@ -1,14 +1,16 @@
 # GCU Basket Domain - Reference Implementation
 
-> **This domain serves as the reference implementation for FinAegis**, demonstrating how to build complex financial products using the platform's primitives.
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
+
+> **This domain serves as the reference implementation for FinAegis**, demonstrating how the platform's primitives fit together.
 
 ## Overview
 
-The Global Currency Unit (GCU) is a democratic basket currency that showcases:
+The GCU demo — a reference implementation of a basket-referenced unit built with FinAegis — showcases:
 
 - **Event Sourcing** - Complete audit trail of all basket operations
 - **Workflow Orchestration** - Saga pattern for composition/decomposition
-- **Governance Integration** - Democratic voting on basket composition
+- **Governance Integration** - Simulated voting on basket composition (demo)
 - **Multi-Domain Coordination** - Integrates Account, Exchange, Compliance, Treasury
 
 ## GCU Basket Composition
@@ -287,4 +289,4 @@ Test files:
 
 ---
 
-**This is a reference implementation.** Use it as a template for building your own basket currencies and financial instruments on the FinAegis platform.
+**This is a reference implementation.** Use it as a template for basket implementations built on the FinAegis platform; see the disclaimer at the top of this file.

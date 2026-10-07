@@ -17,7 +17,7 @@ use OpenApi\Attributes as OA;
 
 #[OA\Tag(
     name: 'User Voting',
-    description: 'User-friendly voting interface for GCU governance'
+    description: 'Voting interface for the GCU governance demo (simulated votes; no monetary effect)'
 )]
 class UserVotingController extends Controller
 {
@@ -125,7 +125,7 @@ class UserVotingController extends Controller
 
         #[OA\Post(
             path: '/api/voting/polls/{uuid}/vote',
-            summary: 'Submit vote for GCU basket composition',
+            summary: 'Submit demo vote for GCU demo basket composition',
             description: 'Submit weighted allocation vote for basket composition',
             tags: ['User Voting'],
             security: [['sanctum' => []]],

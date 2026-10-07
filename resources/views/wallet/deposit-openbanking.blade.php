@@ -205,7 +205,7 @@
                                 </div>
                                 <div class="ml-4">
                                     <p class="text-sm text-gray-700 dark:text-gray-300">
-                                        Funds are instantly credited to your account
+                                        Funds are credited to your account once the transfer is processed
                                     </p>
                                 </div>
                             </div>

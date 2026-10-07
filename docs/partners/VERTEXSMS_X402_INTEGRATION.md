@@ -2,7 +2,7 @@
 
 **Version:** 2.0
 **Date:** 2026-03-24
-**Parties:** Zelta (powered by FinAegis) + VertexSMS
+**Note:** Integration design between Zelta (powered by FinAegis) and the VertexSMS API. Integration adapters for third-party APIs; no partnership or endorsement implied.
 
 ---
 
@@ -15,7 +15,7 @@ AI agents send SMS via VertexSMS and pay per-message. Agents choose how to pay:
 | **USDC on Base** | On-chain stablecoin transfer (x402 protocol) | ~2 seconds |
 | **USDC on Ethereum** | Same, higher gas | ~12 seconds |
 | **USDC on Solana** | Same, cheapest gas | ~400ms |
-| **Stripe (card/fiat)** | Card or bank payment via Stripe Connect | Instant |
+| **Stripe (card/fiat)** | Card or bank payment via Stripe Connect | Per Stripe terms |
 | **Lightning** | Bitcoin Lightning invoice | Instant |
 
 Three protocols work together:
@@ -238,7 +238,7 @@ Agent ──► BOLT11 invoice ──► VertexSMS Lightning node
                           Direct payment, Zelta verifies preimage
 ```
 
-**Key: Zelta does not hold funds.** On USDC: facilitator transfers directly. On Stripe: Connect transfers directly. On Lightning: invoice paid directly. Zelta is the orchestrator, not a custodian.
+On USDC: facilitator transfers directly. On Stripe: Connect transfers directly. On Lightning: invoice paid directly. Settlement design is under discussion.
 
 ---
 
@@ -262,7 +262,7 @@ Long messages split into multiple parts. Two approaches:
 
 **Flat rate (beta):** Charge single-part price. Accept margin risk on long messages.
 
-**`upto` scheme (production):** Agent authorizes maximum (e.g., 5 parts). Zelta settles actual cost after VertexSMS reports parts used via `X-VertexSMS-Amount-Sent`.
+**`upto` scheme (production):** Agent authorizes maximum (e.g., 5 parts). The actual cost is settled via the payment rail after VertexSMS reports parts used via `X-VertexSMS-Amount-Sent`.
 
 ### Platform Fees
 

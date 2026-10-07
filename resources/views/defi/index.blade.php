@@ -55,12 +55,12 @@
                     </div>
                 </div>
 
-                <!-- Average APY -->
+                <!-- Average rate -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
                     <div class="p-6">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Average APY</p>
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Average rate (informational)</p>
                                 <p class="text-2xl font-bold text-gray-900 dark:text-white">0.00%</p>
                             </div>
                             <div class="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-full">
@@ -131,7 +131,7 @@
                                 </svg>
                             </div>
                             <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Stake Tokens</span>
-                            <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">Earn rewards</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">Staking protocols</span>
                         </a>
 
                         <!-- Flash Loan -->
@@ -168,7 +168,7 @@
                                 </svg>
                                 <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No Active Positions</h4>
                                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto">
-                                    Get started by supplying assets to a lending protocol, staking tokens, or providing liquidity to earn yield.
+                                    Get started by supplying assets to a lending protocol, staking tokens, or providing liquidity.
                                 </p>
                                 <div class="flex justify-center gap-3">
                                     <a href="#" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition">
@@ -270,10 +270,10 @@
                         </div>
                     </div>
 
-                    <!-- Yield Overview -->
+                    <!-- Rate overview -->
                     <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Yield Overview</h3>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Rate overview (informational)</h3>
                             <!-- Placeholder Chart Area -->
                             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-8 text-center">
                                 <svg class="w-12 h-12 text-gray-300 dark:text-gray-500 mx-auto mb-3" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -281,17 +281,17 @@
                                 </svg>
                                 <p class="text-sm font-medium text-gray-500 dark:text-gray-400">No Data Yet</p>
                                 <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                                    Yield history and performance charts will appear here once you have active positions.
+                                    Rate history and performance charts will appear here once you have active positions.
                                 </p>
                             </div>
                             <!-- Summary Stats -->
                             <div class="mt-4 grid grid-cols-2 gap-4">
                                 <div class="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">Total Earned</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Net change</p>
                                     <p class="text-lg font-semibold text-gray-900 dark:text-white">$0.00</p>
                                 </div>
                                 <div class="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">30d Yield</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">30d rate</p>
                                     <p class="text-lg font-semibold text-gray-900 dark:text-white">$0.00</p>
                                 </div>
                             </div>

@@ -1,6 +1,6 @@
 # CGO Admin Resources
 
-This document describes the Filament admin resources for managing CGO (Continuous Growth Offering) investments and pricing rounds.
+This document describes the Filament admin resources of the CGO (Continuous Growth Offering) demo module — reference software only; not an offer of securities.
 
 ## Overview
 

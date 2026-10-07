@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'About ' . config('brand.name', 'Zelta') . ' — Open Source Core Banking Infrastructure',
-        'description' => 'Learn about Zelta, the open-source core banking platform — 61 modules covering payments, lending, compliance, DeFi, and a public MCP server for AI agents. Apache-2.0, built with Laravel.',
+        'description' => 'Learn about ' . config('brand.name', 'Zelta') . ', the open-source core banking platform — 61 modules covering payments, lending, compliance tooling, DeFi, and a public MCP server for AI agents. Apache-2.0, built with Laravel.',
         'keywords' => config('brand.name', 'Zelta') . ' about, open source banking, core banking platform, GCU, ISO 20022, PSD2, open banking, Interledger, microfinance, event sourcing, CQRS, Laravel banking, DDD, fintech infrastructure',
     ])
 
@@ -33,7 +33,7 @@
                 @include('partials.breadcrumb', ['items' => [['name' => 'About', 'url' => url('/about')]]])
                 <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">About <span class="text-gradient">{{ config('brand.name', 'Zelta') }}</span></h1>
                 <p class="text-lg text-slate-400 max-w-2xl mx-auto">
-                    Open-source core banking infrastructure built with Laravel — 61 domain modules covering everything from democratic currency governance to AI agent commerce.
+                    Open-source core banking infrastructure built with Laravel — 61 domain modules covering everything from governance modules to AI agent commerce.
                 </p>
             </div>
         </div>
@@ -50,7 +50,7 @@
                         {{ config('brand.name', 'Zelta') }} is a core banking platform built with Laravel, implementing event sourcing, CQRS, domain-driven design, and AI agent integration across 61 bounded contexts.
                     </p>
                     <p class="text-lg text-slate-600 mb-6 leading-relaxed">
-                        At its heart is the <strong>Global Currency Unit (GCU)</strong>&mdash;a democratically governed basket currency where users vote on composition from six global reserve assets.
+                        It includes the <strong>GCU demo</strong>&mdash;a reference implementation of a basket-referenced unit built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value.
                     </p>
                     <div class="card-stat border-l-4 !border-l-blue-500 bg-blue-50/50">
                         <p class="text-sm text-slate-700">
@@ -114,7 +114,7 @@
                 @php
                     $reasons = [
                         ['title' => 'Transparency', 'desc' => 'Core banking systems are rarely open. ' . config('brand.name', 'Zelta') . ' lets developers see how ledgers, transactions, and financial workflows actually work — no black boxes.', 'color' => 'blue', 'icon' => 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'],
-                        ['title' => 'Experimentation', 'desc' => 'What if users could vote on their currency\'s composition? What if AI agents could autonomously transact? ' . config('brand.name', 'Zelta') . ' is where these ideas become working code.', 'color' => 'teal', 'icon' => 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z'],
+                        ['title' => 'Experimentation', 'desc' => 'What could a basket-referenced unit with simulated governance look like? What if AI agents could autonomously transact? ' . config('brand.name', 'Zelta') . ' is where these ideas become working code.', 'color' => 'teal', 'icon' => 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z'],
                         ['title' => 'Architecture Patterns', 'desc' => "Event sourcing, CQRS, domain-driven design, saga patterns\x{2014}real implementations of patterns that are often only discussed in theory.", 'color' => 'slate', 'icon' => 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4'],
                     ];
                 @endphp
@@ -141,20 +141,20 @@
 
             @php
                 $capabilities = [
-                    ['title' => 'Global Currency Unit (GCU)', 'desc' => 'A basket currency backed by USD, EUR, GBP, CHF, JPY, and gold. Users vote monthly on composition through stake-weighted governance with full event-sourced audit trails.'],
+                    ['title' => 'GCU demo', 'desc' => 'GCU demo — a reference implementation of a basket-referenced unit built with FinAegis. Balances, conversions and basket "votes" are simulated, with full event-sourced audit trails; it is not issued, offered or sold and has no monetary value.'],
                     ['title' => 'Event-Sourced Ledger', 'desc' => "Every transaction is stored as an immutable event. Complete audit trails, point-in-time reconstruction, and replay capability\x{2014}built with Spatie Event Sourcing."],
                     ['title' => 'AI Agent Protocol', 'desc' => "Implementation of Google's A2A protocol for AI agent commerce. Agents can register, negotiate, and execute transactions with escrow services and reputation tracking."],
                     ['title' => 'Model Context Protocol (MCP)', 'desc' => "Public OAuth-protected MCP server at mcp.zelta.app exposing 12 banking tools to Claude Desktop, Cursor, Continue.dev, and any spec-compliant agent. Per-token spending limits, atomic idempotency, and full audit attribution."],
-                    ['title' => 'Banking API Patterns', 'desc' => 'Open Banking-compliant API adapters including Ondato KYC, Chainalysis sanctions screening, and Marqeta card issuing for real-world integration patterns.'],
+                    ['title' => 'Banking API Patterns', 'desc' => 'Open Banking-style API adapters, including a card-issuing integration adapter (e.g. Marqeta API) and Ondato KYC and Chainalysis sanctions-screening adapters, for real-world integration patterns.'],
                     ['title' => 'Cross-Chain & DeFi', 'desc' => 'Bridge protocols (Wormhole, LayerZero, Axelar), DEX aggregation via Uniswap/Aave/Curve/Lido, cross-chain swaps across EVM and Solana, and multi-chain portfolio management.'],
                     ['title' => 'Privacy & Identity', 'desc' => 'ZK-KYC proofs, Merkle tree commitments, soulbound tokens, W3C verifiable credentials, Shamir secret sharing, and delegated proof verification.'],
                     ['title' => 'GraphQL API', 'desc' => 'Lighthouse-powered GraphQL covering 45 domains with real-time subscriptions, N+1 safe DataLoaders, and cursor-based pagination alongside REST/OpenAPI.'],
                     ['title' => 'Plugin Marketplace', 'desc' => 'Extensible plugin system with sandboxed execution, static security scanning, hook-based integration points, and a manager UI for discovering and installing plugins.'],
                     ['title' => 'Event Streaming', 'desc' => 'Redis Streams-powered event streaming with a live dashboard, consumer groups, backpressure handling, and dead-letter queues for reliable event processing.'],
-                    ['title' => 'Compliance Certification', 'desc' => 'SOC 2 Type II and PCI DSS readiness tooling, GDPR enhanced privacy (ROPA, DPIA, breach notification, consent v2), and multi-region deployment support.'],
-                    ['title' => 'Payment Standards & Rails', 'desc' => 'ISO 20022 messaging, ISO 8583 card processing, ACH, Fedwire, RTP, FedNow, SEPA DD/CT, and intelligent multi-rail routing that selects the optimal payment network automatically.'],
-                    ['title' => 'Open Banking & PSD2', 'desc' => 'Complete PSD2 consent lifecycle with AISP/PISP services, Berlin Group NextGenPSD2 and UK Open Banking adapters, and TPP eIDAS certificate validation.'],
-                    ['title' => 'Double-Entry Ledger', 'desc' => 'Production-grade accounting with chart of accounts, journal entries, GL auto-posting, reconciliation, trial balance, and an optional TigerBeetle high-throughput driver.'],
+                    ['title' => 'Compliance Readiness Tooling', 'desc' => 'SOC 2 Type II and PCI DSS readiness tooling, GDPR enhanced privacy (ROPA, DPIA, breach notification, consent v2), and multi-region deployment support.'],
+                    ['title' => 'Payment Standards & Rails', 'desc' => 'ISO 20022 messaging, ISO 8583 card processing, ACH, Fedwire, RTP, FedNow and SEPA DD/CT adapters, and multi-rail routing logic that selects a payment network automatically.'],
+                    ['title' => 'Open Banking & PSD2', 'desc' => 'PSD2 consent-lifecycle modules with AISP/PISP flows, Berlin Group NextGenPSD2 and UK Open Banking adapters, and TPP eIDAS certificate validation.'],
+                    ['title' => 'Double-Entry Ledger', 'desc' => 'Double-entry accounting module with chart of accounts, journal entries, GL auto-posting, reconciliation, trial balance, and an optional TigerBeetle high-throughput driver.'],
                     ['title' => 'Microfinance', 'desc' => 'Group lending with joint liability, IFRS loan provisioning, cooperative share accounts, teller operations, field officer tools, and savings products with dormancy tracking for inclusion banking.'],
                 ];
             @endphp
@@ -166,6 +166,11 @@
                     <p class="text-sm text-slate-500 leading-relaxed">{{ $cap['desc'] }}</p>
                 </div>
                 @endforeach
+            </div>
+            <p class="mt-8 text-xs text-slate-400 text-center">Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
+            {{-- F4 GCU disclaimer (see docs/REGULATORY-CLAIMS.md) --}}
+            <div class="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-slate-600" role="note">
+                The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
             </div>
         </div>
     </section>
@@ -201,7 +206,7 @@
                 <div class="card-feature">
                     <h4 class="font-display text-base font-bold text-slate-900 mb-2">For Developers</h4>
                     <p class="text-sm text-slate-500 mb-3">
-                        Fork the codebase, contribute features, or explore how production banking systems are built under the hood.
+                        Fork the codebase, contribute features, or explore how banking systems are built under the hood.
                     </p>
                     <a href="{{ config('brand.github_url') }}" target="_blank" class="text-sm text-blue-600 font-semibold hover:text-blue-700 transition">
                         Contribute on GitHub &rarr;
@@ -210,7 +215,7 @@
                 <div class="card-feature">
                     <h4 class="font-display text-base font-bold text-slate-900 mb-2">For Founders</h4>
                     <p class="text-sm text-slate-500 mb-3">
-                        Build your fintech product on battle-tested infrastructure. 61 domain modules, Apache-2.0 licensed, ready to customize.
+                        Build your fintech product on open-source infrastructure. 61 domain modules, Apache-2.0 licensed, ready to customize.
                     </p>
                     <a href="{{ route('developers') }}" class="text-sm text-blue-600 font-semibold hover:text-blue-700 transition">
                         View Documentation &rarr;
@@ -226,7 +231,7 @@
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">See It in Action</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                Create a free account to explore the GCU, governance voting, cross-chain operations, and the full banking interface.
+                Create a free sandbox account to explore the GCU demo, simulated governance voting, cross-chain operations, and the full banking interface.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">

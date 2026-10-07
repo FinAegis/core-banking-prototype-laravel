@@ -16,7 +16,7 @@ use OpenApi\Attributes as OA;
 
 #[OA\Tag(
     name: 'GCU',
-    description: 'Global Currency Unit specific endpoints'
+    description: 'GCU demo endpoints (software demonstration; GCU is not issued, offered or sold and has no monetary value)'
 )]
 class GCUController extends Controller
 {
@@ -25,7 +25,7 @@ class GCUController extends Controller
             operationId: 'getGCUInfo',
             tags: ['GCU'],
             summary: 'Get GCU information',
-            description: 'Get current information about the Global Currency Unit including composition and value'
+            description: 'Get current information about the GCU demo basket (software demonstration; no monetary value), including composition and simulated value'
         )]
     #[OA\Response(
         response: 200,
@@ -104,7 +104,7 @@ class GCUController extends Controller
             operationId: 'getGCUValueHistory',
             tags: ['GCU'],
             summary: 'Get GCU value history',
-            description: 'Get historical value data for the Global Currency Unit',
+            description: 'Get simulated historical value data for the GCU demo basket',
             parameters: [
             new OA\Parameter(name: 'period', in: 'query', required: false, description: 'Time period for history', schema: new OA\Schema(type: 'string', enum: ['24h', '7d', '30d', '90d', '1y', 'all'], default: '30d')),
             new OA\Parameter(name: 'interval', in: 'query', required: false, description: 'Data interval', schema: new OA\Schema(type: 'string', enum: ['hourly', 'daily', 'weekly', 'monthly'], default: 'daily')),
@@ -184,8 +184,8 @@ class GCUController extends Controller
             path: '/gcu/governance/active-polls',
             operationId: 'getGCUActivePolls',
             tags: ['GCU'],
-            summary: 'Get active GCU governance polls',
-            description: 'Get currently active polls related to GCU governance'
+            summary: 'Get active GCU demo governance polls',
+            description: 'Get currently active polls in the GCU governance demo (simulated votes; no monetary effect)'
         )]
     #[OA\Response(
         response: 200,
@@ -248,7 +248,7 @@ class GCUController extends Controller
             operationId: 'getGCUComposition',
             tags: ['GCU'],
             summary: 'Get real-time GCU composition data',
-            description: 'Get detailed real-time composition data for the Global Currency Unit including current weights, values, and recent changes'
+            description: 'Get detailed composition data for the GCU demo basket including current weights, simulated values, and recent changes'
         )]
     #[OA\Response(
         response: 200,
@@ -360,12 +360,12 @@ class GCUController extends Controller
             path: '/gcu/supported-banks',
             operationId: 'getGCUSupportedBanks',
             tags: ['GCU'],
-            summary: 'Get supported banks for GCU',
-            description: 'Get list of banks that support GCU deposits and their coverage'
+            summary: 'Get illustrative bank list for the GCU demo',
+            description: 'Illustrative demo data for the GCU demo; no relationship with any bank is implied.'
         )]
     #[OA\Response(
         response: 200,
-        description: 'Supported banks',
+        description: 'Illustrative demo bank list (GCU demo module)',
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'data', type: 'array', items: new OA\Items(properties: [
         new OA\Property(property: 'code', type: 'string'),
@@ -384,10 +384,10 @@ class GCUController extends Controller
         $banks = [
             [
                 'code'                        => 'paysera',
-                'name'                        => 'Paysera LT',
+                'name'                        => 'Demo Bank A',
                 'country'                     => 'Lithuania',
-                'deposit_protection'          => 'EU Deposit Guarantee Scheme',
-                'deposit_protection_amount'   => 100000,
+                'deposit_protection'          => 'Not applicable (demo data)',
+                'deposit_protection_amount'   => 0,
                 'deposit_protection_currency' => 'EUR',
                 'supported_currencies'        => ['EUR', 'USD', 'GBP', 'CHF'],
                 'features'                    => ['instant_transfers', 'multi_currency', 'api_access'],
@@ -395,10 +395,10 @@ class GCUController extends Controller
             ],
             [
                 'code'                        => 'deutsche_bank',
-                'name'                        => 'Deutsche Bank',
+                'name'                        => 'Demo Bank B',
                 'country'                     => 'Germany',
-                'deposit_protection'          => 'German Deposit Protection Scheme',
-                'deposit_protection_amount'   => 100000,
+                'deposit_protection'          => 'Not applicable (demo data)',
+                'deposit_protection_amount'   => 0,
                 'deposit_protection_currency' => 'EUR',
                 'supported_currencies'        => ['EUR', 'USD', 'GBP', 'CHF', 'JPY'],
                 'features'                    => ['corporate_banking', 'fx_trading', 'global_network'],
@@ -406,10 +406,10 @@ class GCUController extends Controller
             ],
             [
                 'code'                        => 'santander',
-                'name'                        => 'Santander',
+                'name'                        => 'Demo Bank C',
                 'country'                     => 'Spain',
-                'deposit_protection'          => 'Spanish Deposit Guarantee Fund',
-                'deposit_protection_amount'   => 100000,
+                'deposit_protection'          => 'Not applicable (demo data)',
+                'deposit_protection_amount'   => 0,
                 'deposit_protection_currency' => 'EUR',
                 'supported_currencies'        => ['EUR', 'USD', 'GBP'],
                 'features'                    => ['retail_banking', 'mobile_app', 'international_presence'],

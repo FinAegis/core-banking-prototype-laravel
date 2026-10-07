@@ -5,16 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    @php $brand = config('brand.name'); @endphp
+    {{-- Zelta-only landing: brand is fixed to Zelta on zelta.app and on finaegis.org/app. --}}
+    @php
+        $brand = 'Zelta';
+        $isFinAegisSite = app()->environment('demo') || config('brand.show_promo_pages');
+    @endphp
 
-    <title>{{ $brand }} — Non-custodial stablecoin wallet · Virtual cards · Passkey sign-in</title>
+    <title>{{ $brand }} — Non-custodial stablecoin wallet · Passkey sign-in</title>
 
     @include('partials.favicon')
 
     @include('partials.seo', [
-        'title' => $brand . ' — Stablecoins. Tap to pay. No seed phrase.',
-        'description' => 'Non-custodial stablecoin wallet with passkey sign-in, virtual Visa & Mastercard cards, bank-rail deposits, and an agent-callable API. Six networks (Solana, Tron, Polygon, Base, Arbitrum, Ethereum). Open testing on Android.',
-        'keywords' => $brand . ', stablecoin wallet, virtual card, USDC card, passkey wallet, non-custodial wallet, tap to pay, agentic payments, MCP wallet',
+        'title' => $brand . ' — Stablecoins. No seed phrase.',
+        'description' => 'Non-custodial stablecoin wallet software with passkey sign-in and an agent-callable API. Six networks. Open testing on Android.',
+        'keywords' => $brand . ', stablecoin wallet, passkey wallet, non-custodial wallet, agentic payments, MCP wallet',
     ])
 
     {{-- Fonts: Space Grotesk, JetBrains Mono, DM Sans --}}
@@ -112,7 +116,7 @@
 
         /* ── FAQ accordion ── */
         .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease, opacity 0.3s ease; opacity: 0; }
-        .faq-answer.open { max-height: 300px; opacity: 1; }
+        .faq-answer.open { max-height: 1000px; opacity: 1; }
         .faq-toggle { transition: transform 0.25s ease; }
         .faq-toggle.open { transform: rotate(45deg); }
 
@@ -222,12 +226,12 @@
             {{-- Left text --}}
             <div class="anim-fade-in-left">
                 <h1 class="text-5xl sm:text-6xl lg:text-7xl font-black leading-[0.95] font-heading tracking-tighter">
-                    No seed phrase. <span class="text-z-purple">Tap to pay.</span> Truly yours.
+                    No seed phrase. <span class="text-z-purple">Truly yours.</span>
                 </h1>
 
                 <p class="mt-6 text-lg md:text-xl max-w-lg font-medium font-body text-text-sec">
-                    {{ $brand }} is the stablecoin wallet that signs in with Face ID, spends through virtual cards
-                    anywhere in the world, and never asks you to trust anyone with your keys. Now in open testing on Android.
+                    {{ $brand }} is the stablecoin wallet that signs in with Face ID and never asks you to trust
+                    anyone with your keys. Now in open testing on Android.
                 </p>
 
                 <div class="mt-8 flex flex-wrap gap-4">
@@ -396,7 +400,7 @@
                                 <div class="flex flex-col" style="gap: 12px;">
                                     <span class="font-heading tracking-tighter text-xl font-bold">Security Status</span>
                                     <div class="flex" style="gap: 12px;">
-                                        @foreach([['icon' => '/icons/fingerprint.svg', 'title' => 'Passkey', 'sub' => 'Face ID Active'], ['icon' => '/icons/shield-check.svg', 'title' => 'Verified', 'sub' => 'On-chain Identity']] as $card)
+                                        @foreach([['icon' => '/icons/fingerprint.svg', 'title' => 'Passkey', 'sub' => 'Face ID Active']] as $card)
                                         <div class="flex items-center flex-1 bg-white bru-card" style="gap: 12px; padding: 14px; border-radius: 14px;">
                                             <div class="overflow-hidden bru-border flex-shrink-0" style="width: 44px; height: 44px; border-radius: 10px;">
                                                 <img src="{{ $card['icon'] }}" alt="{{ $card['title'] }}" class="w-full h-full">
@@ -420,10 +424,10 @@
                                     <div class="overflow-hidden bg-white bru-card" style="border-radius: 16px;">
                                         @php
                                         $transactions = [
-                                            ['svg' => '/icons/credit-card.svg', 'name' => 'Merchant Payment', 'date' => 'Today 3:41 PM', 'amount' => '-$42.50', 'pos' => false, 'network' => 'Solana'],
+                                            ['svg' => '/icons/qr-code.svg', 'name' => 'Merchant Payment', 'date' => 'Today 3:41 PM', 'amount' => '-$42.50', 'pos' => false, 'network' => 'Solana'],
                                             ['svg' => '/icons/arrow-up-right.svg', 'name' => 'Transfer to Wallet', 'date' => 'Yesterday 2:15 PM', 'amount' => '-$14.99', 'pos' => false, 'network' => 'Polygon'],
                                             ['svg' => '/icons/arrow-down-left.svg', 'name' => 'USDC Received', 'date' => 'Yesterday 11:30 AM', 'amount' => '+$500.00', 'pos' => true, 'network' => 'Base'],
-                                            ['svg' => '/icons/credit-card.svg', 'name' => 'Starbolt Coffee', 'date' => 'Mar 5 9:20 AM', 'amount' => '-$12.00', 'pos' => false, 'network' => 'Arbitrum'],
+                                            ['svg' => '/icons/qr-code.svg', 'name' => 'Starbolt Coffee', 'date' => 'Mar 5 9:20 AM', 'amount' => '-$12.00', 'pos' => false, 'network' => 'Arbitrum'],
                                         ];
                                         @endphp
                                         @foreach($transactions as $i => $tx)
@@ -640,9 +644,7 @@
         <div class="flex whitespace-nowrap" style="animation: z-marquee 20s linear infinite;">
             @for($dup = 0; $dup < 2; $dup++)
             <span class="text-white text-xl md:text-2xl font-black uppercase tracking-wider font-heading tracking-tighter pr-8">
-                NO SEED PHRASE <span class="text-acid">&#9670;</span> TAP TO PAY
-                <span class="text-acid">&#9670;</span> VIRTUAL CARDS
-                <span class="text-acid">&#9670;</span> BANK-RAIL DEPOSITS
+                NO SEED PHRASE
                 <span class="text-acid">&#9670;</span> SIX NETWORKS
                 <span class="text-acid">&#9670;</span> AI-CALLABLE
                 <span class="text-acid">&#9670;</span> NON-CUSTODIAL
@@ -673,7 +675,7 @@
                 ['id' => 'security', 'label' => 'Security', 'active' => false],
                 ['id' => 'shield', 'label' => 'Shield', 'active' => false],
                 ['id' => 'agents', 'label' => 'AI Agents', 'active' => false],
-                ['id' => 'identity', 'label' => 'Identity', 'active' => false],
+                ['id' => 'identity', 'label' => 'Trust', 'active' => false],
             ];
             @endphp
             <div class="flex gap-2 mb-8 flex-wrap" role="tablist" aria-label="Feature categories">
@@ -701,8 +703,9 @@
                 ],
                 [
                     'id' => 'pay', 'bg' => 'bg-z-pink', 'active' => false,
-                    'title' => 'Pay with Your Card',
-                    'desc' => 'Spin up virtual cards (Visa &amp; Mastercard) instantly. Spend stablecoins at any merchant worldwide — they see a normal card payment, not a crypto wallet.',
+                    'title' => 'Virtual cards',
+                    'badge' => 'Coming soon',
+                    'desc' => '',
                     'type' => 'card-mockup',
                 ],
                 [
@@ -715,8 +718,8 @@
                 [
                     'id' => 'shield', 'bg' => 'bg-lavender', 'active' => false,
                     'title' => 'Shield Your Transactions',
-                    'badge' => 'Coming Q3 2026',
-                    'desc' => 'Zero-knowledge proofs (ZK-SNARKs) will make your balance invisible on-chain. Generate a Proof of Innocence when compliance is needed — prove your funds are clean without revealing your history. Launching after public beta.',
+                    'badge' => 'Coming soon',
+                    'desc' => 'Zero-knowledge proofs (ZK-SNARKs) will make your balance invisible on-chain. Launching after public beta.',
                     'type' => 'icon-trio',
                     'icons' => ['/icons/ghost.svg', '/icons/incognito.svg', '/icons/globe.svg'],
                 ],
@@ -729,8 +732,8 @@
                 ],
                 [
                     'id' => 'identity', 'bg' => 'bg-z-green', 'active' => false,
-                    'title' => 'Zelta Trust Identity',
-                    'desc' => 'Verified credentials issued as on-chain attestations. Basic (ID + selfie), Verified (proof of address), High (source of funds). Higher levels unlock larger limits and fiat off-ramps. Verifiable by third parties without exposing your personal data.',
+                    'title' => 'Zelta Trust levels',
+                    'desc' => 'Trust levels recorded as on-chain attestations: Basic (ID + selfie), Enhanced (proof of address), Premium (source of funds). Zelta Trust levels and on-chain attestations are in-app features. They are not a regulated identity-verification or KYC service, not an eIDAS electronic identification or trust service, and are not intended to satisfy any third party\'s legal KYC or AML obligations.',
                     'type' => 'icon-trio',
                     'icons' => ['/icons/user.svg', '/icons/shield-check.svg', '/icons/checkmark.svg'],
                 ],
@@ -749,7 +752,9 @@
                         <span class="inline-block mb-3 px-3 py-1 text-[10px] font-bold uppercase tracking-wider font-mono rounded-full bru-border bg-white text-obsidian">{{ $panel['badge'] }}</span>
                         @endif
                         <h3 class="text-2xl md:text-3xl font-black mb-2 font-heading tracking-tighter">{{ $panel['title'] }}</h3>
+                        @if(!empty($panel['desc']))
                         <p class="text-base text-text-sec">{{ $panel['desc'] }}</p>
+                        @endif
                     </div>
 
                     @if($panel['type'] === 'shard-flow')
@@ -771,12 +776,8 @@
                     @elseif($panel['type'] === 'card-mockup')
                     <div class="flex justify-center">
                         <div class="p-5 w-full max-w-[280px] bg-obsidian rounded-3xl" style="transform: rotate(-2deg);">
-                            <p class="text-white/50 text-xs uppercase tracking-wider">{{ $brand }} Virtual</p>
+                            <p class="text-white/50 text-xs uppercase tracking-wider">{{ $brand }} Virtual &middot; Coming soon</p>
                             <p class="text-white text-lg font-bold mt-1 tracking-widest font-mono">&bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; 4291</p>
-                            <div class="flex justify-between mt-4">
-                                <span class="text-white/40 text-xs">Valid thru 12/28</span>
-                                <span class="text-white/40 text-xs uppercase">Visa &middot; MC</span>
-                            </div>
                         </div>
                     </div>
                     @elseif($panel['type'] === 'icon-trio')
@@ -795,8 +796,8 @@
             {{-- 2-column sub-cards --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 @foreach([
-                    ['icon' => '/icons/credit-card.svg', 'title' => 'Virtual Cards', 'desc' => 'Generate Visa and Mastercard virtual cards backed by your stablecoin balance. Add to Apple Pay or Google Pay. Merchants see a normal card payment — not a crypto wallet.'],
-                    ['icon' => '/icons/incognito.svg', 'title' => 'ZK Privacy Shield', 'badge' => 'Coming Q3 2026', 'desc' => 'Shield and unshield stablecoins with zero-knowledge proofs so your on-chain balance becomes invisible. Generate Proof of Innocence for compliance without revealing history. Launching after public beta.'],
+                    ['icon' => '/icons/credit-card.svg', 'title' => 'Virtual cards — coming soon', 'desc' => 'Virtual cards are planned, to be issued by a licensed card-issuing partner. Availability is subject to partner approval and jurisdiction. Adding cards to mobile wallets is planned, subject to the card-issuing partner\'s approval.'],
+                    ['icon' => '/icons/incognito.svg', 'title' => 'ZK Privacy Shield', 'badge' => 'Coming soon', 'desc' => 'Shield and unshield stablecoins with zero-knowledge proofs so your on-chain balance becomes invisible. Launching after public beta.'],
                     ['icon' => '/icons/lock.svg', 'title' => 'x402 Agent Payments', 'desc' => 'Give AI agents a spending allowance. Daily budgets, per-transaction caps, and biometric approval for over-limit requests. Your agents pay for APIs autonomously — within your rules.'],
                     ['icon' => '/icons/globe.svg', 'title' => 'Six Networks', 'desc' => 'Solana, Tron, Polygon, Base, Arbitrum, and Ethereum. One wallet address for EVM chains. Sub-cent fees on L2s and Solana. Pay gas in USDC — no ETH required.'],
                 ] as $subCard)
@@ -821,12 +822,11 @@
     ═══════════════════════════════════════════════════════════════ --}}
     <section class="px-5 py-16 md:py-20 bg-obsidian">
         <div class="mx-auto max-w-6xl">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
                 @foreach([
                     ['value' => '6', 'label' => 'Networks', 'sub' => 'Solana · Tron · Polygon · Base · Arbitrum · Ethereum'],
-                    ['value' => '€5', 'label' => 'Cards Deposit', 'sub' => 'Refundable · Visa &amp; Mastercard'],
                     ['value' => 'No ETH', 'label' => 'Needed', 'sub' => 'Pay gas in USDC'],
-                    ['value' => 'MCP', 'label' => 'Agent-Callable', 'sub' => '12 OAuth tools'],
+                    ['value' => 'MCP', 'label' => 'Agent-Callable', 'sub' => 'OAuth-scoped tools'],
                 ] as $stat)
                 <div class="text-center">
                     <p class="text-3xl md:text-4xl font-black text-acid font-heading tracking-tighter">{{ $stat['value'] }}</p>
@@ -948,12 +948,12 @@
             <div class="flex flex-col gap-4">
                 @php
                 $faqs = [
-                    ['q' => 'What does ' . $brand . ' actually do?', 'a' => $brand . ' is a non-custodial stablecoin wallet that signs in with your passkey, lets you spend with virtual Visa or Mastercard cards anywhere, deposits and withdraws over bank rails, and exposes a 12-tool agent API so AI assistants can pay on your behalf within limits you set. Six networks supported (Solana, Tron, Polygon, Base, Arbitrum, Ethereum). No seed phrase. Open testing on Android now.'],
-                    ['q' => 'Is ' . $brand . ' a custodial wallet?', 'a' => 'No. ' . $brand . ' is fully non-custodial. Wallets are powered by Privy embedded wallets — a passkey-controlled smart account on EVM (Polygon, Base, Arbitrum, Ethereum) and a device-bound ed25519 keypair on Solana. Private keys never leave the device or Privy\'s secure infrastructure. Every transaction is signed locally by your passkey or device key; ' . $brand . ' only ever sees public addresses and pre-signed payloads. There is no seed phrase to memorize — your passkey is your account, backed by your device\'s Secure Enclave / Keystore and recoverable through Privy\'s cross-device passkey sync.'],
-                    ['q' => 'Is on-chain privacy (ZK shielding) available today?', 'a' => 'Not yet. Zero-knowledge transaction shielding and Proof of Innocence are on the roadmap for Q3 2026, after public beta. When it ships, you\'ll be able to make your stablecoin balance invisible on-chain and generate compliance proofs without revealing your history. Today\'s wallet is fully functional without it — privacy is an additive layer, not a prerequisite.'],
+                    ['q' => 'What does ' . $brand . ' actually do?', 'a' => $brand . ' is a non-custodial stablecoin wallet that signs in with your passkey and exposes an agent API so AI assistants can pay on your behalf within limits you set. Six networks supported (Solana, Tron, Polygon, Base, Arbitrum, Ethereum). No seed phrase. Virtual cards are planned, to be issued by a licensed card-issuing partner; availability is subject to partner approval and jurisdiction. Converting stablecoins to fiat, where available, will be provided by licensed third parties under their own terms. Open testing on Android now.'],
+                    ['q' => 'Is ' . $brand . ' a custodial wallet?', 'a' => 'No. ' . $brand . ' is fully non-custodial. Wallets are built on Privy\'s embedded-wallet infrastructure (a third-party provider; no partnership or endorsement implied) — a passkey-controlled smart account on EVM (Polygon, Base, Arbitrum, Ethereum) and a device-bound ed25519 keypair on Solana. Private keys never leave the device or Privy\'s secure infrastructure. Every transaction is signed locally by your passkey or device key; ' . $brand . ' only ever sees public addresses and pre-signed payloads. There is no seed phrase to memorize — your passkey is your account, backed by your device\'s Secure Enclave / Keystore and recoverable through Privy\'s cross-device passkey sync.'],
+                    ['q' => 'Is on-chain privacy (ZK shielding) available today?', 'a' => 'Not yet. Zero-knowledge transaction shielding is on the roadmap, after public beta. When it ships, you\'ll be able to make your stablecoin balance invisible on-chain. Today\'s wallet is fully functional without it — privacy is an additive layer, not a prerequisite.'],
                     ['q' => 'Do I pay gas fees?', 'a' => 'No ETH required. ' . $brand . ' uses ERC-4337 Account Abstraction — gas is either sponsored by us or paid in the stablecoin you\'re spending. You think in dollars, not in gwei. Sub-cent fees on Polygon, Base, Arbitrum, and Solana.'],
-                    ['q' => 'What is Zelta Trust identity?', 'a' => $brand . ' Trust is our identity verification layer, issued as on-chain attestations. Three consumer tiers: Basic (government-issued ID + selfie), Verified (proof of address), High (source of funds). Higher levels unlock larger spending limits and fiat off-ramps. Verifiable by third parties without exposing your personal data.'],
-                    ['q' => 'Can AI agents use ' . $brand . '?', 'a' => 'Yes — natively. ' . $brand . ' exposes a public Model Context Protocol (MCP) server at mcp.zelta.app with 12 OAuth-scoped tools covering balances, payments, exchange, on/off-ramp, transaction history, and SMS. Behind that, three agentic payment rails are wired in: x402 (USDC micropayments), MPP (multi-rail discovery via Stripe / Lightning / cards), and AP2 (Google agent mandates). Agents operate inside daily budgets and per-transaction caps you control, and you can revoke at any time.'],
+                    ['q' => 'What are Zelta Trust levels?', 'a' => 'Zelta Trust levels are on-chain attestations shown in the app: Basic (ID + selfie), Enhanced (proof of address), Premium (source of funds). Zelta Trust levels and on-chain attestations are in-app features. They are not a regulated identity-verification or KYC service, not an eIDAS electronic identification or trust service, and are not intended to satisfy any third party\'s legal KYC or AML obligations.'],
+                    ['q' => 'Can AI agents use ' . $brand . '?', 'a' => 'Yes — natively. ' . $brand . ' exposes a public Model Context Protocol (MCP) server at mcp.zelta.app with OAuth-scoped tools including balances, payments, transaction history, and SMS. Agents operate inside daily budgets and per-transaction caps you control, and you can revoke at any time.'],
                     ['q' => 'How do I connect Claude or another AI to my ' . $brand . ' wallet?', 'a' => 'Sign in to ' . $brand . ', click Connect to Claude (or paste mcp.zelta.app into your client\'s MCP settings), pick the scopes you want, and set a daily spending cap. The agent gets a token bound to those limits — it can never exceed them, and you can revoke at any time. Works with Claude, Cursor, ChatGPT, Continue.dev, and any other MCP-aware client.'],
                     ['q' => 'Which networks are supported?', 'a' => $brand . ' supports six networks: Solana, Tron, Polygon, Base, Arbitrum, and Ethereum. EVM networks share a single wallet address. Sub-cent fees on L2s and Solana. Solana offers the fastest settlement (~400ms). Switch networks anytime.'],
                 ];
@@ -1052,15 +1052,22 @@
             </div>
         </div>
 
-        {{-- Legal disclaimer --}}
+        {{-- Legal disclaimer — regulatory status (copy kit Z1, see docs/REGULATORY-CLAIMS.md) --}}
         <div class="relative z-10 mx-auto max-w-6xl mt-8 pt-6" style="border-top: 2px solid #e5e5e5;">
             <p class="text-xs opacity-30 leading-relaxed max-w-4xl">
-                {{ $brand }} is a technology platform providing a user interface for services offered by independent third-party providers. {{ $brand }} does not offer, hold, or transmit funds or provide financial, custodial, or regulated services. All wallet functionality is non-custodial &mdash; private keys remain under exclusive user control. Financial services are provided by third-party licensed providers. All investments carry risks, including total loss. The user is responsible for safeguarding their passkeys and any device-bound credentials used to authorize transactions.
+                Zelta is non-custodial wallet software. Zelta and its operator are not a bank, electronic money institution, payment institution or crypto-asset service provider, and do not hold, exchange or transmit users&rsquo; funds. Any card or off-ramp services will be provided by licensed third parties under their own terms. The user is responsible for safeguarding their passkeys and any device-bound credentials used to authorize transactions.
             </p>
+            {{-- F1 on finaegis.org (same branch as connect.blade.php) --}}
+            @if($isFinAegisSite)
+            <p class="text-xs opacity-30 leading-relaxed max-w-4xl mt-3">
+                FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
+            </p>
+            @endif
         </div>
 
         <div class="relative z-10 mx-auto max-w-6xl mt-6 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4"
              style="border-top: 2px solid #e5e5e5;">
+            {{-- TODO(regulatory): operator legal entity details pending — see docs/REGULATORY-CLAIMS.md --}}
             <p class="text-sm opacity-40">&copy; {{ date('Y') }} {{ $brand }}. All rights reserved.</p>
             <div class="flex gap-6">
                 <a href="mailto:{{ config('brand.support_email', 'info@zelta.app') }}" class="text-sm opacity-40 hover:opacity-100 transition-opacity">Contact</a>

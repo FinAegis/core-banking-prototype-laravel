@@ -143,7 +143,7 @@
                             <ul class="list-disc list-inside text-slate-500 space-y-2">
                                 <li>User registration and authentication</li>
                                 <li>Dashboard with simulated account data</li>
-                                <li>GCU concept demonstration</li>
+                                <li>GCU demo (simulated)</li>
                                 <li>Basic API endpoints ({{ config('platform.statistics.api_endpoints') }} endpoints)</li>
                                 <li>Admin panel (for authorized testers)</li>
                             </ul>
@@ -263,15 +263,15 @@
 
                         <div class="card-feature">
                             <h3 class="text-lg font-semibold text-slate-900 mb-3">GCU Demo Features</h3>
-                            <p class="text-slate-500 mb-4">Exploring the Global Currency Unit concept:</p>
+                            <p class="text-slate-500 mb-4">Exploring the GCU demo:</p>
                             <ul class="list-disc list-inside text-slate-500 space-y-2">
                                 <li>View the current GCU composition (demonstration values)</li>
-                                <li>See how democratic voting will work (UI preview only)</li>
-                                <li>Test currency conversion with GCU</li>
+                                <li>See how simulated basket "votes" work (UI preview only)</li>
+                                <li>Try simulated conversions with GCU demo balances</li>
                                 <li>Understand the multi-currency basket concept</li>
                             </ul>
                             <p class="text-slate-500 mt-4">
-                                <strong>Note:</strong> Voting functionality is available in sandbox mode. Production governance cycles are planned for a future release.
+                                <strong>Note:</strong> GCU balances, conversions and basket "votes" in the demo are simulated; GCU is not issued, offered or sold and has no monetary value.
                             </p>
                         </div>
                     </div>
@@ -361,7 +361,7 @@
                         <h4 class="text-white font-semibold mb-4">Platform</h4>
                         <ul class="space-y-2">
                             <li><a href="/platform" class="hover:text-white transition">Overview</a></li>
-                            <li><a href="/gcu" class="hover:text-white transition">GCU</a></li>
+                            <li><a href="/gcu" class="hover:text-white transition">GCU demo</a></li>
                             <li><a href="/sub-products" class="hover:text-white transition">Modules</a></li>
                             <li><a href="/pricing" class="hover:text-white transition">Pricing</a></li>
                         </ul>
@@ -380,7 +380,7 @@
                         <ul class="space-y-2">
                             <li><a href="/support" class="hover:text-white transition">Support</a></li>
                             <li><a href="/blog" class="hover:text-white transition">Blog</a></li>
-                            <li><a href="/partners" class="hover:text-white transition">Partners</a></li>
+                            <li><a href="/partners" class="hover:text-white transition">Bank Connectors</a></li>
                             <li><a href="/about" class="hover:text-white transition">About</a></li>
                         </ul>
                     </div>

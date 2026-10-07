@@ -10,7 +10,7 @@ use OpenApi\Attributes as OA;
 #[OA\Info(
     version: '7.16.0',
     title: 'Zelta API',
-    description: 'Core banking API — stablecoin-powered virtual cards, non-custodial wallet, AI agent card issuance, ISO 20022, Open Banking, US Payment Rails, Interledger, and Microfinance. Built with Laravel 12, featuring 61 DDD domains, event sourcing, CQRS, and privacy-preserving architecture.',
+    description: 'Open-source core banking software API — non-custodial wallet, card-issuing integration adapters, ISO 20022, Open Banking, US Payment Rails, Interledger, and Microfinance modules. Built with Laravel 12, featuring 61 DDD domains, event sourcing, CQRS, and privacy-preserving architecture. Integration adapters for third-party APIs; no partnership or endorsement implied.',
     contact: new OA\Contact(email: 'support@finaegis.org', name: 'Zelta Support'),
     license: new OA\License(name: 'Apache 2.0', url: 'https://www.apache.org/licenses/LICENSE-2.0.html'),
 )]
@@ -29,8 +29,8 @@ use OpenApi\Attributes as OA;
 #[OA\Tag(name: 'AI Agent', description: 'AI Agent chat and conversation management for intelligent banking assistance')]
 #[OA\Tag(name: 'MCP Tools', description: 'Model Context Protocol (MCP) tools for AI agent banking operations')]
 #[OA\Tag(name: 'CrossChain', description: 'Cross-chain bridge operations, multi-chain transfers, and cross-chain swaps')]
-#[OA\Tag(name: 'DeFi', description: 'Decentralized finance operations: DEX swaps, lending, staking, and yield optimization')]
-#[OA\Tag(name: 'RegTech', description: 'Regulatory technology: MiFID II, MiCA, Travel Rule compliance and reporting')]
+#[OA\Tag(name: 'DeFi', description: 'Decentralized finance protocol adapters: DEX swaps, lending, and staking')]
+#[OA\Tag(name: 'RegTech', description: 'Regulatory technology: reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements')]
 #[OA\Tag(name: 'AI Query', description: 'AI-powered natural language transaction queries and spending analysis')]
 #[OA\Tag(name: 'Mobile Payments', description: 'Mobile payment intents, receipts, activity feed, and network status')]
 #[OA\Tag(name: 'Partner BaaS', description: 'Banking-as-a-Service partner API: billing, SDKs, widgets, marketplace')]

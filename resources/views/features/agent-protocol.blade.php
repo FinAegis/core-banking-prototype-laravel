@@ -408,7 +408,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">Event-Sourced Architecture</h2>
             <p class="text-lg text-slate-500 text-center max-w-3xl mx-auto mb-12">
-                Every agent action is recorded as an immutable event. 10 aggregates and 60+ domain events provide a complete audit trail for regulatory compliance.
+                Every agent action is recorded as an immutable event. 10 aggregates and 60+ domain events provide a complete audit trail that can support compliance processes.
             </p>
 
             <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -499,7 +499,7 @@
                         <svg class="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                     </div>
                     <h3 class="font-bold text-slate-900 mb-2 group-hover:text-violet-700">AI Agent Commerce</h3>
-                    <p class="text-sm text-slate-500">Virtuals Protocol integration with TrustCert identity, spending limits, and Pimlico enforcement.</p>
+                    <p class="text-sm text-slate-500">Virtuals Protocol integration adapter with TrustCert identity, spending limits, and Pimlico-based enforcement. Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
                 </a>
             </div>
         </div>
@@ -509,9 +509,9 @@
     <section class="bg-fa-navy relative overflow-hidden">
         <div class="absolute inset-0 bg-dot-pattern"></div>
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Give Your Agents a Bank Account</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Give Your Agents Programmable Wallets</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                Register an agent, fund its wallet, and let it transact autonomously &mdash; with escrow protection, reputation tracking, and compliance built in.
+                Register an agent, fund its wallet, and let it transact autonomously &mdash; with escrow modules, reputation tracking, and compliance tooling.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">

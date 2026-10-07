@@ -1,4 +1,4 @@
-# Visa CLI Integration
+# Card-Payment CLI Adapter (visa-cli)
 
 **Domain:** `app/Domain/VisaCli/`
 **Status:** Beta
@@ -6,7 +6,7 @@
 
 ## Overview
 
-Visa CLI enables AI agents and developers to make programmatic Visa card payments without managing API keys directly. The integration wraps the [Visa CLI](https://visacli.sh/) beta tool and provides:
+This module wraps the third-party [visa-cli](https://visacli.sh/) beta tool (third-party tool; not affiliated with or endorsed by Visa) so AI agents and developers can make programmatic card payments with cards they already hold. Integration adapters for third-party APIs; no partnership or endorsement implied. The module provides:
 
 - **MCP tools** for AI agent autonomous payments
 - **Payment gateway** for partner invoice collection
@@ -51,7 +51,7 @@ VISACLI_WEBHOOK_SECRET=
 
 | Tool | Category | Cacheable | Description |
 |------|----------|-----------|-------------|
-| `visacli.payment` | visacli | No | Execute Visa card payment with spending limit enforcement |
+| `visacli.payment` | visacli | No | Execute a card payment via the third-party Visa CLI tool, with spending limit enforcement |
 | `visacli.cards` | visacli | Yes (300s) | List enrolled cards available for payments |
 
 ## API Endpoints

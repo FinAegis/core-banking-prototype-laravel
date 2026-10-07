@@ -2,7 +2,7 @@
 
 ## Overview
 
-The FinAegis AI Agent Framework is a comprehensive, event-sourced artificial intelligence system designed specifically for banking and financial operations. Built on Domain-Driven Design (DDD) principles, it provides intelligent automation, decision support, and customer service capabilities while maintaining complete auditability and regulatory compliance.
+The FinAegis AI Agent Framework is a comprehensive, event-sourced artificial intelligence system designed specifically for banking and financial operations. Built on Domain-Driven Design (DDD) principles, it provides intelligent automation, decision support, and customer service capabilities while maintaining complete auditability to support operators' compliance processes.
 
 ## Architecture
 
