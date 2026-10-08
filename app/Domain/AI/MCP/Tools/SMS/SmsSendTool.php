@@ -44,9 +44,12 @@ class SmsSendTool implements MCPToolInterface
 
     public function getDescription(): string
     {
-        return 'Send an SMS message via VertexSMS. The SMS endpoint requires payment '
-            . 'via MPP (x402 USDC, Stripe card, or Lightning). Call sms.rates first '
-            . 'to check pricing for the destination country.';
+        return 'Send an SMS message via VertexSMS while SMS sending is enabled. Requires a '
+            . 'signed-in user. A send through this tool is not paid per message: it counts '
+            . 'against the daily limits for unpaid sends shared with POST /api/v1/sms/send, '
+            . 'per user and across all users, which reset at 00:00 UTC (on the public MCP '
+            . 'server it also uses the token\'s spending limit). Call sms.rates or set '
+            . 'check_price_only to see the price for the destination country.';
     }
 
     /** @return array<string, mixed> */
@@ -154,8 +157,12 @@ class SmsSendTool implements MCPToolInterface
                     'rate_eur'   => $price['rate_eur'],
                     'country'    => $price['country_code'],
                     'parts'      => 1,
-                    'note'       => 'This is the price for a single-part SMS. '
-                        . 'The actual endpoint POST /api/v1/sms/send requires MPP payment.',
+                    'note'       => 'This is the price for a single-part SMS, in atomic USDC. '
+                        . 'Sends through this tool and POST /api/v1/sms/send with a Sanctum token '
+                        . 'are not paid: they need a signed-in user and count against the per-user '
+                        . 'and all-users daily limits, which reset at 00:00 UTC. Where MPP payment '
+                        . 'is enabled for POST /api/v1/sms/send, a payment of at least '
+                        . $this->minimumPaidPrice() . ' atomic USDC counts as a paid send.',
                 ]);
             }
 
@@ -198,6 +205,15 @@ class SmsSendTool implements MCPToolInterface
 
             return ToolExecutionResult::failure('SMS send failed: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Smallest payment, in atomic USDC, that counts as a paid send
+     * (SMS_MIN_PAID_PRICE_USDC).
+     */
+    private function minimumPaidPrice(): string
+    {
+        return (string) max(0, (int) config('sms.min_paid_price_usdc', 10000));
     }
 
     /**

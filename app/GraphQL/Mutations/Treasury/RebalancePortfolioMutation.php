@@ -7,9 +7,11 @@ namespace App\GraphQL\Mutations\Treasury;
 use App\Domain\Treasury\Models\AssetAllocation;
 use App\Domain\Treasury\Services\YieldOptimizationService;
 use App\Domain\Treasury\ValueObjects\RiskProfile;
+use App\Support\StaffRoles;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
+use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 
 class RebalancePortfolioMutation
 {
@@ -27,6 +29,11 @@ class RebalancePortfolioMutation
 
         if (! $user) {
             throw new AuthenticationException('Unauthenticated.');
+        }
+
+        // Asset allocations carry no owner, so only operators rebalance them.
+        if (! StaffRoles::userHasAny($user, StaffRoles::OPERATORS)) {
+            throw new AuthorizationException('You are not authorized to rebalance this portfolio.');
         }
 
         $allocation = AssetAllocation::where('portfolio_id', $args['portfolio_id'])->first();

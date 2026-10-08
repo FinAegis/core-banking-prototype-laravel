@@ -138,8 +138,14 @@ class MobileHandoverV571Test extends TestCase
 
     public function test_card_transactions_returns_demo_data(): void
     {
+        // Transactions are served for the caller's own card.
+        $cardToken = $this->withToken($this->token)
+            ->postJson('/api/v1/cards', ['cardholder_name' => 'Test User'])
+            ->assertCreated()
+            ->json('data.card_token');
+
         $response = $this->withToken($this->token)
-            ->getJson('/api/v1/cards/test-card-123/transactions');
+            ->getJson("/api/v1/cards/{$cardToken}/transactions");
 
         $response->assertOk();
         $data = $response->json();

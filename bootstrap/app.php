@@ -127,6 +127,7 @@ return Application::configure(basePath: is_string($_appBasePath) ? $_appBasePath
             'check.blocked.ip'     => App\Http\Middleware\CheckBlockedIp::class,
             'ip.blocking'          => App\Http\Middleware\IpBlocking::class,
             'require.2fa.admin'    => App\Http\Middleware\RequireTwoFactorForAdmin::class,
+            'is_admin'             => App\Http\Middleware\EnsureUserIsAdmin::class,
             // Agent Protocol authentication middleware
             'auth.agent'       => App\Http\Middleware\AuthenticateAgentDID::class,
             'agent.scope'      => App\Http\Middleware\CheckAgentScope::class,

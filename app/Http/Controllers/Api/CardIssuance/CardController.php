@@ -7,8 +7,11 @@ namespace App\Http\Controllers\Api\CardIssuance;
 use App\Domain\CardIssuance\Enums\CardNetwork;
 use App\Domain\CardIssuance\Enums\WalletType;
 use App\Domain\CardIssuance\Services\CardProvisioningService;
+use App\Domain\CardIssuance\ValueObjects\VirtualCard;
 use App\Domain\Mobile\Services\BiometricJWTService;
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Support\StaffRoles;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -293,6 +296,10 @@ class CardController extends Controller
         ])
     )]
     #[OA\Response(
+        response: 404,
+        description: 'Card not found'
+    )]
+    #[OA\Response(
         response: 422,
         description: 'Validation error'
     )]
@@ -303,6 +310,10 @@ class CardController extends Controller
             'nickname'              => ['sometimes', 'string', 'max:50'],
             'notifications_enabled' => ['sometimes', 'boolean'],
         ]);
+
+        if ($this->accessibleCard($request, $cardId) === null) {
+            return $this->cardNotFound();
+        }
 
         // In production, update via card issuer API
         return response()->json([
@@ -339,16 +350,10 @@ class CardController extends Controller
     public function show(Request $request, string $cardId): JsonResponse
     {
         try {
-            $card = $this->provisioningService->getCard($cardId);
+            $card = $this->accessibleCard($request, $cardId);
 
             if ($card === null) {
-                return response()->json([
-                    'success' => false,
-                    'error'   => [
-                        'code'    => 'ERR_CARD_NOT_FOUND',
-                        'message' => 'Card not found',
-                    ],
-                ], 404);
+                return $this->cardNotFound();
             }
 
             return response()->json([
@@ -401,8 +406,16 @@ class CardController extends Controller
         ]),
         ])
     )]
+    #[OA\Response(
+        response: 404,
+        description: 'Card not found'
+    )]
     public function transactions(Request $request, string $cardId): JsonResponse
     {
+        if ($this->accessibleCard($request, $cardId) === null) {
+            return $this->cardNotFound();
+        }
+
         $limit = min((int) $request->query('limit', '20'), 100);
         $cursor = $request->query('cursor');
 
@@ -451,6 +464,10 @@ class CardController extends Controller
     public function freeze(Request $request, string $cardId): JsonResponse
     {
         try {
+            if ($this->accessibleCard($request, $cardId) === null) {
+                return $this->cardNotFound();
+            }
+
             $result = $this->provisioningService->freezeCard($cardId);
 
             return response()->json([
@@ -491,6 +508,10 @@ class CardController extends Controller
     public function unfreeze(Request $request, string $cardId): JsonResponse
     {
         try {
+            if ($this->accessibleCard($request, $cardId) === null) {
+                return $this->cardNotFound();
+            }
+
             $result = $this->provisioningService->unfreezeCard($cardId);
 
             return response()->json([
@@ -562,6 +583,10 @@ class CardController extends Controller
             ], 401);
         }
 
+        if ($this->accessibleCard($request, $cardId) === null) {
+            return $this->cardNotFound();
+        }
+
         // Verify biometric token
         if (! $this->verifyBiometricToken($user, $validated['biometric_token'])) {
             return response()->json([
@@ -595,9 +620,38 @@ class CardController extends Controller
     }
 
     /**
+     * The card, when the caller owns it or is an operator. A card the caller
+     * may not see is reported like an unknown one (null).
+     */
+    private function accessibleCard(Request $request, string $cardId): ?VirtualCard
+    {
+        $user = $request->user();
+
+        if (! $user instanceof User) {
+            return null;
+        }
+
+        $mayAccess = StaffRoles::userHasAny($user, StaffRoles::OPERATORS)
+            || $this->provisioningService->isOwnedBy($cardId, (string) $user->id);
+
+        return $mayAccess ? $this->provisioningService->getCard($cardId) : null;
+    }
+
+    private function cardNotFound(): JsonResponse
+    {
+        return response()->json([
+            'success' => false,
+            'error'   => [
+                'code'    => 'ERR_CARD_NOT_FOUND',
+                'message' => 'Card not found',
+            ],
+        ], 404);
+    }
+
+    /**
      * Verify biometric token using BiometricJWTService or demo fallback.
      *
-     * @param \App\Models\User $user
+     * @param User $user
      */
     private function verifyBiometricToken($user, string $biometricToken): bool
     {
