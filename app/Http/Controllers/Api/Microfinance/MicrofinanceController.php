@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Microfinance;
 
+use App\Domain\Microfinance\Models\ShareAccount;
 use App\Domain\Microfinance\Services\FieldOfficerService;
 use App\Domain\Microfinance\Services\GroupLendingService;
 use App\Domain\Microfinance\Services\LoanProvisioningService;
 use App\Domain\Microfinance\Services\ShareAccountService;
+use App\Domain\Microfinance\Support\MicrofinanceAccess;
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -30,6 +32,10 @@ class MicrofinanceController extends Controller
 
     public function createGroup(Request $request): JsonResponse
     {
+        if (! MicrofinanceAccess::isOperator($request->user())) {
+            return $this->forbidden('You are not authorized to create groups.');
+        }
+
         $validated = $request->validate([
             'name'        => ['required', 'string', 'max:255'],
             'frequency'   => ['sometimes', 'string', 'in:daily,weekly,biweekly,monthly'],
@@ -51,8 +57,12 @@ class MicrofinanceController extends Controller
         }
     }
 
-    public function activateGroup(string $id): JsonResponse
+    public function activateGroup(Request $request, string $id): JsonResponse
     {
+        if (! MicrofinanceAccess::isOperator($request->user())) {
+            return $this->forbidden('You are not authorized to activate groups.');
+        }
+
         try {
             $group = $this->groupLendingService->activateGroup($id);
 
@@ -62,8 +72,12 @@ class MicrofinanceController extends Controller
         }
     }
 
-    public function closeGroup(string $id): JsonResponse
+    public function closeGroup(Request $request, string $id): JsonResponse
     {
+        if (! MicrofinanceAccess::isOperator($request->user())) {
+            return $this->forbidden('You are not authorized to close groups.');
+        }
+
         try {
             $group = $this->groupLendingService->closeGroup($id);
 
@@ -80,11 +94,21 @@ class MicrofinanceController extends Controller
             'role'    => ['sometimes', 'string', 'in:member,leader,treasurer'],
         ]);
 
+        $role = (string) ($validated['role'] ?? 'member');
+
+        if (! MicrofinanceAccess::mayManageGroup($request->user(), $id)) {
+            return $this->forbidden('You are not authorized to manage this group.');
+        }
+
+        if (! MicrofinanceAccess::mayAssignRole($request->user(), $role)) {
+            return $this->forbidden('You are not authorized to assign this role.');
+        }
+
         try {
             $member = $this->groupLendingService->addMember(
                 groupId: $id,
                 userId: (int) $validated['user_id'],
-                role: $validated['role'] ?? 'member',
+                role: $role,
             );
 
             return response()->json(['data' => $member], 201);
@@ -93,8 +117,12 @@ class MicrofinanceController extends Controller
         }
     }
 
-    public function removeMember(string $id, int $userId): JsonResponse
+    public function removeMember(Request $request, string $id, int $userId): JsonResponse
     {
+        if (! MicrofinanceAccess::mayManageGroup($request->user(), $id)) {
+            return $this->forbidden('You are not authorized to manage this group.');
+        }
+
         try {
             $this->groupLendingService->removeMember($id, $userId);
 
@@ -122,6 +150,10 @@ class MicrofinanceController extends Controller
             'minutes'         => ['sometimes', 'nullable', 'string'],
         ]);
 
+        if (! MicrofinanceAccess::mayManageGroup($request->user(), $id)) {
+            return $this->forbidden('You are not authorized to manage this group.');
+        }
+
         try {
             $meeting = $this->groupLendingService->recordMeeting(
                 groupId: $id,
@@ -147,7 +179,7 @@ class MicrofinanceController extends Controller
             return response()->json(['error' => 'Unauthenticated'], 401);
         }
 
-        $accounts = \App\Domain\Microfinance\Models\ShareAccount::forUser($user->id)->get();
+        $accounts = ShareAccount::forUser($user->id)->get();
 
         return response()->json(['data' => $accounts]);
     }
@@ -184,6 +216,10 @@ class MicrofinanceController extends Controller
             'shares' => ['required', 'integer', 'min:1'],
         ]);
 
+        if (! $this->mayUseShareAccount($request, $id)) {
+            return $this->forbidden('You are not authorized to use this share account.');
+        }
+
         try {
             $account = $this->shareAccountService->purchaseShares($id, (int) $validated['shares']);
 
@@ -198,6 +234,10 @@ class MicrofinanceController extends Controller
         $validated = $request->validate([
             'shares' => ['required', 'integer', 'min:1'],
         ]);
+
+        if (! $this->mayUseShareAccount($request, $id)) {
+            return $this->forbidden('You are not authorized to use this share account.');
+        }
 
         try {
             $account = $this->shareAccountService->redeemShares($id, (int) $validated['shares']);
@@ -255,5 +295,26 @@ class MicrofinanceController extends Controller
         } catch (Throwable $e) {
             return response()->json(['error' => $e->getMessage()], 422);
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // Access
+    // -----------------------------------------------------------------------
+
+    /**
+     * The share account's holder or an operator. Unknown ids are left to the
+     * service, which reports them as not found.
+     */
+    private function mayUseShareAccount(Request $request, string $id): bool
+    {
+        /** @var ShareAccount|null $account */
+        $account = ShareAccount::query()->find($id);
+
+        return $account === null || MicrofinanceAccess::mayUseShareAccount($request->user(), $account);
+    }
+
+    private function forbidden(string $message): JsonResponse
+    {
+        return response()->json(['error' => $message], 403);
     }
 }

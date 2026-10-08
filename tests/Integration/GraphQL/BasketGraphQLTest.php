@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\Basket\Models\BasketAsset;
 use App\Models\User;
+use Spatie\Permission\Models\Role;
 
 uses(Tests\TestCase::class);
 uses(Illuminate\Foundation\Testing\RefreshDatabase::class);
@@ -89,7 +90,10 @@ describe('GraphQL Basket API', function () {
     });
 
     it('creates a basket via mutation', function () {
+        // Operators only (StaffRoles::OPERATORS).
+        Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         $user = User::factory()->create();
+        $user->assignRole('admin');
 
         $response = $this->actingAs($user, 'sanctum')
             ->postJson('/graphql', [

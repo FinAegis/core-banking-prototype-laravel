@@ -10,6 +10,8 @@ use App\Domain\Stablecoin\Services\CollateralService;
 use App\Domain\Stablecoin\Services\LiquidationService;
 use App\Domain\Stablecoin\Services\StablecoinIssuanceService;
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Support\StaffRoles;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -322,9 +324,19 @@ class StablecoinOperationsController extends Controller
         description: 'Account not found',
         content: new OA\JsonContent(ref: '#/components/schemas/Error')
     )]
-    public function getAccountPositions(string $accountUuid): JsonResponse
+    #[OA\Response(
+        response: 403,
+        description: 'The account belongs to another user',
+        content: new OA\JsonContent(ref: '#/components/schemas/Error')
+    )]
+    public function getAccountPositions(Request $request, string $accountUuid): JsonResponse
     {
         $account = Account::where('uuid', $accountUuid)->firstOrFail();
+
+        // The account's owner or a stablecoin operator.
+        if (! $this->mayReadAccount($request, $account)) {
+            return $this->accountAccessDenied();
+        }
 
         $positions = StablecoinCollateralPosition::where('account_uuid', $accountUuid)
             ->with(['stablecoin', 'collateralAsset'])
@@ -393,11 +405,23 @@ class StablecoinOperationsController extends Controller
         description: 'Position not found',
         content: new OA\JsonContent(ref: '#/components/schemas/Error')
     )]
-    public function getPositionDetails(string $positionUuid): JsonResponse
+    #[OA\Response(
+        response: 403,
+        description: 'The position belongs to another user',
+        content: new OA\JsonContent(ref: '#/components/schemas/Error')
+    )]
+    public function getPositionDetails(Request $request, string $positionUuid): JsonResponse
     {
         $position = StablecoinCollateralPosition::where('uuid', $positionUuid)
             ->with(['stablecoin', 'collateralAsset', 'account'])
             ->firstOrFail();
+
+        // The owner of the position's account or a stablecoin operator.
+        $account = $position->account;
+
+        if (! $account instanceof Account || ! $this->mayReadAccount($request, $account)) {
+            return $this->accountAccessDenied();
+        }
 
         $this->collateralService->updatePositionCollateralRatio($position);
 
@@ -761,6 +785,17 @@ class StablecoinOperationsController extends Controller
      * Same response as the other REST endpoints that act on an account
      * the caller does not own.
      */
+    private function mayReadAccount(Request $request, Account $account): bool
+    {
+        $user = $request->user();
+
+        if (! $user instanceof User) {
+            return false;
+        }
+
+        return $account->isOwnedBy($user) || StaffRoles::userHasAny($user, StaffRoles::STABLECOIN_OPERATORS);
+    }
+
     private function accountAccessDenied(): JsonResponse
     {
         return response()->json(

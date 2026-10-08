@@ -21,7 +21,8 @@ use Illuminate\Support\Facades\Log;
  *
  * Counts are cache counters keyed by the UTC date, so they reset at
  * 00:00 UTC. One unit is consumed per admitted request; abandoned requests
- * count too, which is deliberately conservative.
+ * count too, which is deliberately conservative. A refused request leaves
+ * both counts unchanged.
  */
 class SponsorshipBudget
 {
@@ -64,31 +65,38 @@ class SponsorshipBudget
         $globalKey = SponsorshipCostTracker::globalSendCountCacheKey();
 
         // Cache::add + increment — never read-then-write (concurrency-safe).
+        // The per-user count is checked first, so a request refused for the
+        // per-user limit never uses a unit of the global count.
         Cache::add($perUserKey, 0, $expiry);
-        Cache::add($globalKey, 0, $expiry);
-
-        $globalCount = (int) Cache::increment($globalKey);
         $userCount = (int) Cache::increment($perUserKey);
 
-        if ($globalCount > $globalLimit) {
-            Log::critical('wallet.send global daily sponsorship ceiling reached', [
-                'source'       => $source,
-                'global_count' => $globalCount,
-                'global_limit' => $globalLimit,
-            ]);
-
-            return self::DENIED_GLOBAL_LIMIT;
-        }
-
         if ($userCount > $perUserLimit) {
+            Cache::decrement($perUserKey);
+
             Log::warning('wallet.send per-user daily limit reached', [
                 'source'     => $source,
                 'user_id'    => $userId,
-                'user_count' => $userCount,
+                'user_count' => $userCount - 1,
                 'user_limit' => $perUserLimit,
             ]);
 
             return self::DENIED_USER_LIMIT;
+        }
+
+        Cache::add($globalKey, 0, $expiry);
+        $globalCount = (int) Cache::increment($globalKey);
+
+        if ($globalCount > $globalLimit) {
+            Cache::decrement($globalKey);
+            Cache::decrement($perUserKey);
+
+            Log::critical('wallet.send global daily sponsorship ceiling reached', [
+                'source'       => $source,
+                'global_count' => $globalCount - 1,
+                'global_limit' => $globalLimit,
+            ]);
+
+            return self::DENIED_GLOBAL_LIMIT;
         }
 
         return null;

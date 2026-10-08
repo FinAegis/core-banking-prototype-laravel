@@ -104,6 +104,10 @@ class X402EndpointController extends Controller
         response: 401,
         description: 'Unauthenticated'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Administrators only (admin, super_admin)'
+    )]
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -208,6 +212,10 @@ class X402EndpointController extends Controller
         response: 401,
         description: 'Unauthenticated'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Administrators only (admin, super_admin)'
+    )]
     public function update(Request $request, string $id): JsonResponse
     {
         $endpoint = X402MonetizedEndpoint::where('team_id', $request->user()?->currentTeam?->id)
@@ -264,6 +272,10 @@ class X402EndpointController extends Controller
     #[OA\Response(
         response: 401,
         description: 'Unauthenticated'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Administrators only (admin, super_admin)'
     )]
     public function destroy(Request $request, string $id): Response
     {

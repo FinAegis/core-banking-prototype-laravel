@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Account\Models\BlockchainAddress;
+use App\Domain\AI\MCP\Tools\SMS\SmsSendTool;
 use App\Domain\CardIssuance\Contracts\CardIssuerInterface;
 use App\Domain\CardIssuance\Enums\AuthorizationDecision;
 use App\Domain\CardIssuance\Enums\CardNetwork;
@@ -26,6 +27,8 @@ use App\Domain\Relayer\Exceptions\SponsorshipRequestRejectedException;
 use App\Domain\Relayer\Models\SmartAccount;
 use App\Domain\Relayer\Services\GasStationService;
 use App\Domain\Relayer\Services\WalletBalanceService;
+use App\Domain\SMS\Services\SmsPricingService;
+use App\Domain\SMS\Services\SmsSendBudget;
 use App\Domain\SMS\Services\SmsService;
 use App\Domain\Wallet\Constants\EvmTokens;
 use App\Domain\Wallet\Observers\BlockchainAddressObserver;
@@ -34,6 +37,7 @@ use App\Domain\Wallet\Services\Send\Erc20Transfer;
 use App\Domain\Wallet\Services\Send\UserOpCallDataBuilder;
 use App\Domain\Wallet\Services\SponsorshipBudget;
 use App\Domain\Wallet\Services\SponsorshipCostTracker;
+use App\Domain\X402\Models\X402MonetizedEndpoint;
 use App\Http\Middleware\SmsSendGateMiddleware;
 use App\Infrastructure\Monitoring\MetricsService;
 use App\Models\User;
@@ -440,6 +444,28 @@ describe('generic sponsorship shares the daily sponsorship budget', function ():
             ->and(Cache::get(SponsorshipCostTracker::globalSendCountCacheKey()))->toBeNull();
     });
 
+    it('leaves the global count alone for a user over the per-user limit', function (): void {
+        config([
+            'wallet.sponsorship.per_user_daily_limit' => 1,
+            'wallet.sponsorship.global_daily_limit'   => 3,
+        ]);
+        $budget = app(SponsorshipBudget::class);
+
+        expect($budget->consume(1001, 'relayer.sponsor'))->toBeNull();
+
+        foreach (range(1, 5) as $ignored) {
+            expect($budget->consume(1001, 'relayer.sponsor'))->toBe(SponsorshipBudget::DENIED_USER_LIMIT);
+        }
+
+        expect((int) Cache::get(SponsorshipCostTracker::globalSendCountCacheKey()))->toBe(1)
+            ->and((int) Cache::get(SponsorshipBudget::perUserCountCacheKey(1001)))->toBe(1)
+            ->and($budget->consume(2002, 'wallet.send'))->toBeNull()
+            ->and($budget->consume(3003, 'graphql.sponsorTransaction'))->toBeNull()
+            ->and($budget->consume(4004, 'wallet.send'))->toBe(SponsorshipBudget::DENIED_GLOBAL_LIMIT)
+            ->and((int) Cache::get(SponsorshipCostTracker::globalSendCountCacheKey()))->toBe(3)
+            ->and((int) Cache::get(SponsorshipBudget::perUserCountCacheKey(4004)))->toBe(0);
+    });
+
     it('limits GraphQL sponsorTransaction per user like REST transaction.rate_limit:relayer', function (): void {
         config([
             'rate_limiting.enabled'                   => true,
@@ -650,6 +676,25 @@ function phvPaymentHeader(): string
 }
 
 /**
+ * @return SmsPricingService&MockInterface
+ */
+function phvMockSmsPrice(string $amountUsdc = '48438'): MockInterface
+{
+    /** @var SmsPricingService&MockInterface $pricing */
+    $pricing = Mockery::mock(SmsPricingService::class);
+    $pricing->shouldReceive('getPriceForNumber')->andReturn([
+        'amount_usdc'  => $amountUsdc,
+        'rate_eur'     => '0.0390',
+        'country_code' => 'LT',
+        'parts'        => 1,
+    ]);
+
+    app()->instance(SmsPricingService::class, $pricing);
+
+    return $pricing;
+}
+
+/**
  * @return array{to: string, message: string}
  */
 function phvSmsBody(string $to = '+37069912345'): array
@@ -804,19 +849,145 @@ describe('SMS send access', function (): void {
         'MPP on, bearer token'       => [true, 'bearer'],
     ]);
 
-    it('lets a request already paid on a protocol subdomain through', function (string $attribute): void {
+    it('lets a request already paid on a protocol subdomain through', function (string $attribute, array $payment): void {
         $request = Request::create('/api/v1/sms/send', 'POST');
-        $request->attributes->set($attribute, ['receipt_id' => 'rcpt_phv']);
+        $request->attributes->set($attribute, $payment);
 
         $response = app(SmsSendGateMiddleware::class)
             ->handle($request, fn (): Illuminate\Http\JsonResponse => response()->json(['passed' => true]));
 
-        expect($response->getStatusCode())->toBe(200);
+        expect($response->getStatusCode())->toBe(200)
+            ->and(Cache::get(SmsSendGateMiddleware::globalUnpaidCountCacheKey()))->toBeNull();
 
         // Without a settled payment the unpaid path still needs a user.
         expect(fn () => app(SmsSendGateMiddleware::class)->handle(
             Request::create('/api/v1/sms/send', 'POST'),
             fn (): Illuminate\Http\JsonResponse => response()->json(['passed' => true]),
         ))->toThrow(AuthenticationException::class);
-    })->with(['mpp_payment', 'x402_payment']);
+    })->with([
+        'MPP, $0.05'            => ['mpp_payment', ['receipt_id' => 'rcpt_phv', 'amount_cents' => 5, 'currency' => 'USD']],
+        'x402, $0.01 (minimum)' => ['x402_payment', ['transaction' => '0xphv', 'amount' => '0.01']],
+    ]);
+
+    it('applies the unpaid rules to a payment below the minimum paid price', function (string $attribute, array $payment): void {
+        config(['sms.global_daily_limit' => 0]);
+        $reached = false;
+        $next = function () use (&$reached): Illuminate\Http\JsonResponse {
+            $reached = true;
+
+            return response()->json(['passed' => true]);
+        };
+
+        $request = Request::create('/api/v1/sms/send', 'POST');
+        $request->attributes->set($attribute, $payment);
+
+        // No user: the unpaid path needs a token.
+        expect(fn () => app(SmsSendGateMiddleware::class)->handle($request, $next))
+            ->toThrow(AuthenticationException::class);
+
+        // With a user, the global cap on unpaid sends applies.
+        Sanctum::actingAs(User::factory()->create(), ['read', 'write', 'delete']);
+        $request = Request::create('/api/v1/sms/send', 'POST');
+        $request->attributes->set($attribute, $payment);
+
+        $response = app(SmsSendGateMiddleware::class)->handle($request, $next);
+
+        expect($response->getStatusCode())->toBe(429)
+            ->and($reached)->toBeFalse();
+    })->with([
+        'x402, 1 atomic unit'   => ['x402_payment', ['transaction' => '0xphv', 'amount' => '0.000001']],
+        'x402, free'            => ['x402_payment', ['transaction' => '0xphv', 'amount' => '0']],
+        'MPP, zero'             => ['mpp_payment', ['receipt_id' => 'rcpt_phv', 'amount_cents' => 0, 'currency' => 'USD']],
+        'MPP, unknown currency' => ['mpp_payment', ['receipt_id' => 'rcpt_phv', 'amount_cents' => 500, 'currency' => 'XYZ']],
+        'MPP, no amount'        => ['mpp_payment', ['receipt_id' => 'rcpt_phv']],
+    ]);
+
+    it('does not offer an MPP resource priced below the minimum paid price', function (): void {
+        config(['machinepay.enabled' => true, 'sms.min_paid_price_usdc' => 100000]);
+        phvMonetizeSmsSend(); // $0.05, below the $0.10 minimum
+        phvMockSettlement()->shouldNotReceive('settle');
+        phvMockSms(times: 0);
+
+        $this->withHeader('Authorization', phvPaymentHeader())
+            ->postJson('/api/v1/sms/send', phvSmsBody())
+            ->assertUnauthorized();
+        $this->postJson('/api/v1/sms/send', phvSmsBody())->assertUnauthorized();
+    });
+
+    it('does not let an x402 price row written by a regular user open the route', function (): void {
+        config(['x402.enabled' => true]);
+
+        Sanctum::actingAs(User::factory()->withPersonalTeam()->create(), ['read', 'write', 'delete']);
+        $this->postJson('/api/v1/x402/endpoints', ['method' => 'POST', 'path' => '/v1/sms/send', 'price' => '0.000001'])
+            ->assertForbidden();
+
+        $json = $this->postJson('/graphql', [
+            'query' => 'mutation { createX402MonetizedEndpoint(input: {method: "POST", path: "/api/v1/sms/send", price: "0"}) { id } }',
+        ])->json();
+
+        expect($json['errors'][0]['message'] ?? null)->toBe('You are not authorized to manage monetized endpoints.')
+            ->and(X402MonetizedEndpoint::query()->count())->toBe(0);
+    });
+
+    it('counts MCP sms.send against the same per-user and global limits', function (): void {
+        config(['sms.global_daily_limit' => 2, 'sms.rate_limit.per_user_per_day' => 1]);
+        phvMockSms(times: 2);
+        phvMockSmsPrice();
+
+        $first = User::factory()->create();
+        $second = User::factory()->create();
+        $third = User::factory()->create();
+
+        // One REST send uses up the first user's day.
+        Sanctum::actingAs($first, ['read', 'write', 'delete']);
+        $this->postJson('/api/v1/sms/send', phvSmsBody())->assertOk();
+
+        $this->actingAs($first);
+        $refused = app(SmsSendTool::class)->execute(['to' => '+37069912345', 'message' => 'hello']);
+        expect($refused->isSuccess())->toBeFalse()
+            ->and($refused->getError())->toContain("Today's SMS sending limit has been reached");
+
+        // A second user sends through MCP; the global cap is then reached.
+        $this->actingAs($second);
+        expect(app(SmsSendTool::class)->execute(['to' => '+37069912345', 'message' => 'hello'])->isSuccess())->toBeTrue();
+
+        $this->actingAs($third);
+        expect(app(SmsSendTool::class)->execute(['to' => '+37069912345', 'message' => 'hello'])->isSuccess())->toBeFalse();
+
+        Sanctum::actingAs($third, ['read', 'write', 'delete']);
+        $this->postJson('/api/v1/sms/send', phvSmsBody())
+            ->assertStatus(429)
+            ->assertJsonPath('error.code', 'ERR_SMS_001');
+
+        expect((int) Cache::get(SmsSendBudget::globalCountCacheKey()))->toBe(2)
+            ->and((int) Cache::get(SmsSendBudget::userCountCacheKey($first->id)))->toBe(1)
+            ->and((int) Cache::get(SmsSendBudget::userCountCacheKey($third->id)))->toBe(0);
+    });
+
+    it('refuses MCP sms.send without a signed-in user', function (): void {
+        phvMockSms(times: 0);
+        phvMockSmsPrice();
+
+        $result = app(SmsSendTool::class)->execute(['to' => '+37069912345', 'message' => 'hello']);
+
+        expect($result->isSuccess())->toBeFalse()
+            ->and($result->getError())->toBe('SMS sending requires a signed-in user')
+            ->and(Cache::get(SmsSendBudget::globalCountCacheKey()))->toBeNull();
+    });
+
+    it('hands the MCP unit back when the send fails', function (): void {
+        /** @var SmsService&MockInterface $sms */
+        $sms = Mockery::mock(SmsService::class);
+        $sms->shouldReceive('send')->once()->andThrow(new RuntimeException('provider down'));
+        app()->instance(SmsService::class, $sms);
+        phvMockSmsPrice();
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $result = app(SmsSendTool::class)->execute(['to' => '+37069912345', 'message' => 'hello']);
+
+        expect($result->isSuccess())->toBeFalse()
+            ->and((int) Cache::get(SmsSendBudget::globalCountCacheKey()))->toBe(0)
+            ->and((int) Cache::get(SmsSendBudget::userCountCacheKey($user->id)))->toBe(0);
+    });
 });

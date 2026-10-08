@@ -27,7 +27,7 @@ use RuntimeException;
  * The `switches` category lists the production switches for demo-only or
  * platform-billed surfaces (direct ledger funding, mock custodian, card
  * waitlist deposits, generic gas sponsorship, API sign-ups, SMS, the MCP
- * money tools, the trading engine). Each WARNs in production while it is on
+ * money and SMS tools, the trading engine). Each WARNs in production while it is on
  * or while its env var is not set explicitly, so the operator sees the
  * effective value; none of them blocks a deploy.
  */
@@ -75,14 +75,16 @@ class OpsVerifyEnvCommand extends Command
     ];
 
     /**
-     * MCP tools that move internal ledger balances: tool name => env var.
+     * MCP tools that move internal ledger balances or are billed to the
+     * platform: tool name => [env var, what is live while on].
      *
-     * @var array<string, string>
+     * @var array<string, array{0: string, 1: string}>
      */
     private const MCP_MONEY_TOOLS = [
-        'account.create'   => 'MCP_TOOL_ACCOUNT_CREATE',
-        'payment.transfer' => 'MCP_TOOL_PAYMENT_TRANSFER',
-        'exchange.trade'   => 'MCP_TOOL_EXCHANGE_TRADE',
+        'account.create'   => ['MCP_TOOL_ACCOUNT_CREATE', 'the MCP account.create tool moves internal ledger balances'],
+        'payment.transfer' => ['MCP_TOOL_PAYMENT_TRANSFER', 'the MCP payment.transfer tool moves internal ledger balances'],
+        'exchange.trade'   => ['MCP_TOOL_EXCHANGE_TRADE', 'the MCP exchange.trade tool moves internal ledger balances'],
+        'sms.send'         => ['MCP_TOOL_SMS_SEND', 'the MCP sms.send tool sends SMS billed to the platform while SMS_ENABLED is on'],
     ];
 
     /** @var list<array{name: string, category: string, result: string, detail: string}> */
@@ -643,7 +645,7 @@ class OpsVerifyEnvCommand extends Command
         $tools = config('mcp.tools');
         $tools = is_array($tools) ? $tools : [];
 
-        foreach (self::MCP_MONEY_TOOLS as $tool => $envName) {
+        foreach (self::MCP_MONEY_TOOLS as $tool => [$envName, $whenOn]) {
             $name = 'mcp.tools.' . $tool;
 
             if (! $applies) {
@@ -655,7 +657,7 @@ class OpsVerifyEnvCommand extends Command
             $entry = $tools[$tool] ?? null;
             $enabled = is_array($entry) ? ($entry['enabled'] ?? null) : null;
 
-            $this->checkSwitch($name, $envName, $enabled, "the MCP {$tool} tool moves internal ledger balances");
+            $this->checkSwitch($name, $envName, $enabled, $whenOn);
         }
     }
 

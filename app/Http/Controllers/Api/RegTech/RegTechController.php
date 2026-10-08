@@ -138,6 +138,10 @@ class RegTechController extends Controller
         response: 401,
         description: 'Unauthorized'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function submitReport(SubmitReportRequest $request): JsonResponse
     {
         $validated = $request->validated();

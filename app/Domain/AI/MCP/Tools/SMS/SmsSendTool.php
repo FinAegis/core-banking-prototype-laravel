@@ -7,22 +7,28 @@ namespace App\Domain\AI\MCP\Tools\SMS;
 use App\Domain\AI\Contracts\MCPToolInterface;
 use App\Domain\AI\ValueObjects\ToolExecutionResult;
 use App\Domain\SMS\Services\SmsPricingService;
+use App\Domain\SMS\Services\SmsSendBudget;
 use App\Domain\SMS\Services\SmsService;
+use App\Models\User;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 /**
  * MCP tool that allows AI agents to send SMS via VertexSMS.
  *
- * Agents discover this tool automatically. In practice, the SMS endpoint
- * is MPP-gated — the agent must pay via one of the supported rails.
- * This tool provides pricing info and delegates to the SMS service.
+ * Agents discover this tool automatically. This tool provides pricing info
+ * and delegates to the SMS service. A send through this tool is not paid
+ * for, so it needs a signed-in user and counts against the same daily
+ * unpaid-send limits as POST /api/v1/sms/send (per user and all users
+ * together, {@see SmsSendBudget}).
  */
 class SmsSendTool implements MCPToolInterface
 {
     public function __construct(
         private readonly SmsService $smsService,
         private readonly SmsPricingService $pricing,
+        private readonly SmsSendBudget $budget,
     ) {
     }
 
@@ -153,7 +159,23 @@ class SmsSendTool implements MCPToolInterface
                 ]);
             }
 
-            $result = $this->smsService->send($to, $from, $message);
+            $user = $this->resolveUser();
+
+            if ($user === null) {
+                return ToolExecutionResult::failure('SMS sending requires a signed-in user');
+            }
+
+            if ($this->budget->reserve($user->id, 'mcp') !== null) {
+                return ToolExecutionResult::failure("Today's SMS sending limit has been reached. Try again after 00:00 UTC.");
+            }
+
+            try {
+                $result = $this->smsService->send($to, $from, $message);
+            } catch (Exception $e) {
+                $this->budget->release($user->id);
+
+                throw $e;
+            }
 
             Log::info('MCP: SMS sent via tool', [
                 'to'         => $to,
@@ -176,5 +198,16 @@ class SmsSendTool implements MCPToolInterface
 
             return ToolExecutionResult::failure('SMS send failed: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * The signed-in user: under the MCP server, the user the bearer token is
+     * bound to (McpOAuthGuard switches the default guard to `api`).
+     */
+    private function resolveUser(): ?User
+    {
+        $user = Auth::user();
+
+        return $user instanceof User ? $user : null;
     }
 }

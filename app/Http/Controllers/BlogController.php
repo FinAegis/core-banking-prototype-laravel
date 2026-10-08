@@ -105,7 +105,7 @@ class BlogController extends Controller
         response: 500,
         description: 'Server error'
     )]
-    public function subscribe(Request $request, SubscriberEmailService $emailService, MailchimpSyncService $mailchimp)
+    public function subscribe(Request $request, SubscriberEmailService $emailService)
     {
         $validated = $request->validate(
             [
@@ -125,14 +125,10 @@ class BlogController extends Controller
                 $request->userAgent()
             );
 
-            $message = $mailchimp->isConfigured()
-                ? 'Thank you for subscribing! Check your email for confirmation.'
-                : 'Thank you for subscribing! (Note: Mailchimp integration not configured)';
-
             return response()->json(
                 [
                     'success' => true,
-                    'message' => $message,
+                    'message' => 'Almost done! Check your inbox and confirm your email address to subscribe.',
                 ]
             );
         } catch (SubscriptionThrottledException $e) {

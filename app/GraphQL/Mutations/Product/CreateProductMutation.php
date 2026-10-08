@@ -6,8 +6,10 @@ namespace App\GraphQL\Mutations\Product;
 
 use App\Domain\Product\Models\Product;
 use App\Domain\Product\Services\ProductCatalogService;
+use App\Support\StaffRoles;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
+use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 
 class CreateProductMutation
 {
@@ -25,6 +27,11 @@ class CreateProductMutation
 
         if (! $user) {
             throw new AuthenticationException('Unauthenticated.');
+        }
+
+        // Catalog products are managed by platform operators.
+        if (! StaffRoles::userHasAny($user, StaffRoles::OPERATORS)) {
+            throw new AuthorizationException('You are not authorized to create products.');
         }
 
         $product = $this->productCatalogService->createProduct(

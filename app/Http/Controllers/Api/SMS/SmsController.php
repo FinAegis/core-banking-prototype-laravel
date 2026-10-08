@@ -24,7 +24,7 @@ class SmsController extends Controller
         path: '/api/v1/sms/send',
         operationId: 'smsSend',
         summary: 'Send an SMS message (authenticated or paid)',
-        description: 'Send an SMS to any phone number via VertexSMS. Answers 503 while SMS_ENABLED is off. Unpaid sends require a Sanctum bearer token and are limited per user (SMS_SEND_PER_USER_PER_MINUTE / SMS_SEND_PER_USER_PER_DAY) and by a global daily cap on unpaid sends (SMS_SEND_GLOBAL_PER_DAY, 429 ERR_SMS_001 until 00:00 UTC), on top of 60 requests/minute. When the MPP payment gate is enabled for this route, a request with an `Authorization: Payment` credential is paid and needs no token, and a request with neither a credential nor a token returns 402 with available rails and pricing. Outbound rate is 1 SMS/second.',
+        description: 'Send an SMS to any phone number via VertexSMS. Answers 503 while SMS_ENABLED is off. Unpaid sends require a Sanctum bearer token and are limited per user (SMS_SEND_PER_USER_PER_MINUTE / SMS_SEND_PER_USER_PER_DAY; the daily count is shared with the MCP sms.send tool) and by a global daily cap on unpaid sends (SMS_SEND_GLOBAL_PER_DAY, 429 ERR_SMS_001 until 00:00 UTC), on top of 60 requests/minute. When the MPP payment gate is enabled for this route, a request with an `Authorization: Payment` credential is paid and needs no token, and a request with neither a credential nor a token returns 402 with available rails and pricing. A payment below SMS_MIN_PAID_PRICE_USDC is treated as unpaid. Outbound rate is 1 SMS/second.',
         tags: ['SMS'],
         security: [['sanctum' => []]],
     )]

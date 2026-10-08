@@ -140,12 +140,12 @@ describe('web Privy login', function (): void {
 
         $this->from(route('login'))->post('/login/privy/send', ['email' => 'known@example.com'])
             ->assertRedirect(route('login', ['email' => 'known@example.com', 'step' => 'verify']))
-            ->assertSessionHas('status', 'We sent a 6-digit code to known@example.com.')
+            ->assertSessionHas('status', 'If this email can sign in, a 6-digit code is on its way to known@example.com.')
             ->assertSessionHasNoErrors();
 
         $this->from(route('login'))->post('/login/privy/send', ['email' => 'Unknown@Example.com'])
             ->assertRedirect(route('login', ['email' => 'unknown@example.com', 'step' => 'verify']))
-            ->assertSessionHas('status', 'We sent a 6-digit code to unknown@example.com.')
+            ->assertSessionHas('status', 'If this email can sign in, a 6-digit code is on its way to unknown@example.com.')
             ->assertSessionHasNoErrors();
     });
 
@@ -222,6 +222,26 @@ describe('web Privy login', function (): void {
         });
 
         $this->post('/login/privy/send', ['email' => 'newcomer@example.com'])->assertSessionHas('status');
+    });
+
+    it('gives the same answer when Privy fails to send the code', function (): void {
+        config(['registration.api_enabled' => false]);
+        User::factory()->create(['email' => 'known@example.com']);
+
+        achPrivy(function (MockInterface $m): void {
+            $m->shouldReceive('sendCode')->once()->with('known@example.com')
+                ->andThrow(new App\Domain\Auth\Exceptions\PrivyEmailOtpException('rate limited'));
+        });
+
+        $this->from(route('login'))->post('/login/privy/send', ['email' => 'known@example.com'])
+            ->assertRedirect(route('login', ['email' => 'known@example.com', 'step' => 'verify']))
+            ->assertSessionHas('status', 'If this email can sign in, a 6-digit code is on its way to known@example.com.')
+            ->assertSessionHasNoErrors();
+
+        $this->from(route('login'))->post('/login/privy/send', ['email' => 'nobody@example.com'])
+            ->assertRedirect(route('login', ['email' => 'nobody@example.com', 'step' => 'verify']))
+            ->assertSessionHas('status', 'If this email can sign in, a 6-digit code is on its way to nobody@example.com.')
+            ->assertSessionHasNoErrors();
     });
 
     it('still refuses account creation when Privy resolves a different new address while closed', function (): void {
@@ -457,6 +477,56 @@ describe('stablecoin REST endpoints', function (): void {
     it('requires authentication for liquidation', function (): void {
         $this->postJson('/api/v2/stablecoin-operations/liquidation/execute')->assertUnauthorized();
         $this->postJson('/api/v2/stablecoin-operations/liquidation/positions/' . Str::uuid()->toString())->assertUnauthorized();
+    });
+
+    it('shows positions only to the account owner or a stablecoin operator', function (): void {
+        $owner = User::factory()->create();
+        $account = Account::factory()->create(['user_uuid' => $owner->uuid]);
+        $position = StablecoinCollateralPositionFactory::new()->createOne([
+            'account_uuid'          => $account->uuid,
+            'stablecoin_code'       => 'ACHUSD',
+            'collateral_asset_code' => 'USD',
+        ]);
+
+        Sanctum::actingAs(User::factory()->create(), ['read', 'write', 'delete']);
+        $this->getJson("/api/v2/stablecoin-operations/accounts/{$account->uuid}/positions")
+            ->assertForbidden()
+            ->assertJson(['error' => 'FORBIDDEN']);
+        $this->getJson("/api/v2/stablecoin-operations/positions/{$position->uuid}")
+            ->assertForbidden()
+            ->assertJsonMissingPath('data');
+
+        Sanctum::actingAs($owner, ['read', 'write', 'delete']);
+        $this->getJson("/api/v2/stablecoin-operations/accounts/{$account->uuid}/positions")
+            ->assertOk()
+            ->assertJsonPath('data.0.uuid', $position->uuid);
+        $this->getJson("/api/v2/stablecoin-operations/positions/{$position->uuid}")
+            ->assertOk()
+            ->assertJsonPath('data.uuid', $position->uuid);
+
+        Sanctum::actingAs(achUserWithRole('stablecoin_operator'), ['read', 'write', 'delete']);
+        $this->getJson("/api/v2/stablecoin-operations/positions/{$position->uuid}")->assertOk();
+    });
+
+    it('puts the web console mint and burn behind the ledger flag and the sub-product gate', function (): void {
+        $routes = collect(app('router')->getRoutes()->getRoutes())
+            ->filter(fn (Illuminate\Routing\Route $route): bool => in_array('POST', $route->methods(), true)
+                && in_array($route->uri(), ['wallet/stablecoin-operations/mint', 'wallet/stablecoin-operations/burn'], true));
+
+        expect($routes)->toHaveCount(2);
+        foreach ($routes as $route) {
+            expect($route->gatherMiddleware())->toContain('feature:ledger.direct_funding_enabled', 'sub_product:stablecoins');
+        }
+
+        config(['ledger.direct_funding_enabled' => false]);
+        $this->actingAs(achUserWithRole('stablecoin_operator'))
+            ->post('/wallet/stablecoin-operations/mint', [])
+            ->assertNotFound();
+    });
+
+    it('uses one stablecoin operator role set for REST, GraphQL and the web console', function (): void {
+        expect(App\GraphQL\Mutations\Stablecoin\MintStablecoinMutation::OPERATOR_ROLES)
+            ->toBe(App\Support\StaffRoles::STABLECOIN_OPERATORS);
     });
 
     it('keeps the sub-product gate', function (): void {
@@ -814,3 +884,232 @@ describe('GraphQL back-office mutations', function (): void {
         expect($json['data']['activateProduct']['status'] ?? null)->toBe('active');
     });
 });
+
+describe('REST endpoints that match the GraphQL role checks', function (): void {
+    beforeEach(function (): void {
+        Cache::forget('domain_manager_disabled');
+        config(['modules.disabled' => []]);
+    });
+
+    it('limits general ledger writes to operators', function (): void {
+        Sanctum::actingAs(User::factory()->create(), ['read', 'write', 'delete']);
+
+        $this->postJson('/api/v1/ledger/accounts', ['code' => '9300', 'name' => 'Access asset', 'type' => 'asset'])->assertForbidden();
+        $this->postJson('/api/v1/ledger/entries', [
+            'description' => 'x',
+            'lines'       => [
+                ['account_code' => '9300', 'debit' => 5, 'credit' => 0],
+                ['account_code' => '9301', 'debit' => 0, 'credit' => 5],
+            ],
+        ])->assertForbidden();
+        $this->postJson('/api/v1/ledger/entries/' . Str::uuid()->toString() . '/reverse', ['reason' => 'x'])->assertForbidden();
+
+        expect(DB::table('ledger_accounts')->where('code', '9300')->exists())->toBeFalse();
+
+        Sanctum::actingAs(achUserWithRole('bank_admin'), ['read', 'write', 'delete']);
+        $this->postJson('/api/v1/ledger/accounts', ['code' => '9300', 'name' => 'Access asset', 'type' => 'asset'])->assertCreated();
+    });
+
+    it('limits regulatory report submission to compliance staff', function (): void {
+        $payload = ['report_type' => 'sar', 'jurisdiction' => 'US', 'report_data' => ['x' => 1]];
+
+        Sanctum::actingAs(User::factory()->create(), ['read', 'write', 'delete']);
+        $this->postJson('/api/regtech/reports', $payload)->assertForbidden();
+
+        Sanctum::actingAs(achUserWithRole('compliance_officer'), ['read', 'write', 'delete']);
+        $this->postJson('/api/regtech/reports', $payload)->assertStatus(201);
+    });
+
+    it('lets only the holder or an operator buy or redeem shares', function (): void {
+        $holder = User::factory()->create();
+        $account = app(ShareAccountService::class)->openAccount($holder->id);
+
+        Sanctum::actingAs(User::factory()->create(), ['read', 'write', 'delete']);
+        $this->postJson("/api/v1/microfinance/share-accounts/{$account->id}/purchase", ['shares' => 3])->assertForbidden();
+        $this->postJson("/api/v1/microfinance/share-accounts/{$account->id}/redeem", ['shares' => 1])->assertForbidden();
+        expect((int) ShareAccount::query()->findOrFail($account->id)->shares_purchased)->toBe(0);
+
+        Sanctum::actingAs($holder, ['read', 'write', 'delete']);
+        $this->postJson("/api/v1/microfinance/share-accounts/{$account->id}/purchase", ['shares' => 3])->assertOk();
+
+        Sanctum::actingAs(achUserWithRole('bank_admin'), ['read', 'write', 'delete']);
+        $this->postJson("/api/v1/microfinance/share-accounts/{$account->id}/redeem", ['shares' => 1])->assertOk();
+        expect((int) ShareAccount::query()->findOrFail($account->id)->shares_purchased)->toBe(2);
+    });
+
+    it('leaves group set-up to operators and member management to the group leader or an operator', function (): void {
+        $group = app(App\Domain\Microfinance\Services\GroupLendingService::class)->createGroup('Access group', 'weekly');
+        $plain = User::factory()->create();
+        $leader = User::factory()->create();
+
+        Sanctum::actingAs($plain, ['read', 'write', 'delete']);
+        $this->postJson('/api/v1/microfinance/groups', ['name' => 'Mine'])->assertForbidden();
+        $this->postJson("/api/v1/microfinance/groups/{$group->id}/activate")->assertForbidden();
+        $this->postJson("/api/v1/microfinance/groups/{$group->id}/close")->assertForbidden();
+        $this->postJson("/api/v1/microfinance/groups/{$group->id}/members", ['user_id' => $plain->id, 'role' => 'leader'])->assertForbidden();
+        $this->postJson("/api/v1/microfinance/groups/{$group->id}/meetings", ['attendees_count' => 1])->assertForbidden();
+        expect($group->fresh()?->status?->value)->toBe('pending');
+
+        $operator = achUserWithRole('bank_admin');
+        Sanctum::actingAs($operator, ['read', 'write', 'delete']);
+        $this->postJson("/api/v1/microfinance/groups/{$group->id}/activate")->assertOk();
+        $this->postJson("/api/v1/microfinance/groups/{$group->id}/members", ['user_id' => $leader->id, 'role' => 'leader'])->assertCreated();
+
+        // The leader adds plain members only, and removes them.
+        Sanctum::actingAs($leader, ['read', 'write', 'delete']);
+        $this->postJson("/api/v1/microfinance/groups/{$group->id}/members", ['user_id' => $plain->id, 'role' => 'treasurer'])->assertForbidden();
+        $this->postJson("/api/v1/microfinance/groups/{$group->id}/members", ['user_id' => $plain->id])->assertCreated();
+        $this->deleteJson("/api/v1/microfinance/groups/{$group->id}/members/{$plain->id}")->assertOk();
+        $this->postJson("/api/v1/microfinance/groups/{$group->id}/close")->assertForbidden();
+    });
+
+    it('lets only the creator or an operator activate a poll', function (): void {
+        $creator = User::factory()->create();
+        $poll = achPoll($creator);
+
+        Sanctum::actingAs(User::factory()->create(), ['read', 'write', 'delete']);
+        $this->postJson("/api/polls/{$poll->uuid}/activate")->assertForbidden();
+        expect($poll->fresh()?->status?->value)->toBe('draft');
+
+        Sanctum::actingAs($creator, ['read', 'write', 'delete']);
+        $this->postJson("/api/polls/{$poll->uuid}/activate")->assertOk();
+        expect($poll->fresh()?->status?->value)->toBe('active');
+    });
+
+    it('leaves execution workflows on polls to operators', function (): void {
+        $payload = [
+            'title'              => 'Workflow poll',
+            'type'               => 'single_choice',
+            'options'            => [['id' => 'a', 'label' => 'A'], ['id' => 'b', 'label' => 'B']],
+            'start_date'         => now()->addMinute()->toIso8601String(),
+            'end_date'           => now()->addMinutes(2)->toIso8601String(),
+            'execution_workflow' => 'AddAssetWorkflow',
+        ];
+
+        Sanctum::actingAs(User::factory()->create(), ['read', 'write', 'delete']);
+        $this->postJson('/api/polls', $payload)->assertForbidden();
+        expect(Poll::query()->where('title', 'Workflow poll')->exists())->toBeFalse();
+
+        // A poll that already has a workflow: its creator cannot activate or
+        // complete it.
+        $creator = User::factory()->create();
+        $poll = achPoll($creator, ['execution_workflow' => 'AddAssetWorkflow']);
+
+        Sanctum::actingAs($creator, ['read', 'write', 'delete']);
+        $this->postJson("/api/polls/{$poll->uuid}/activate")->assertForbidden();
+        foreach (['activatePoll', 'completePoll'] as $mutation) {
+            $json = achGraphql($this, $creator, 'mutation ($id: ID!) { ' . $mutation . '(id: $id) { id } }', ['id' => $poll->id]);
+            expect(achGraphqlError($json))->toBe('You are not authorized to manage this poll.');
+        }
+        expect($poll->fresh()?->status?->value)->toBe('draft');
+
+        $operator = achUserWithRole('admin');
+        Sanctum::actingAs($operator, ['read', 'write', 'delete']);
+        $this->postJson('/api/polls', $payload)->assertCreated();
+        $this->postJson("/api/polls/{$poll->uuid}/activate")->assertOk();
+    });
+
+    it('limits basket creation and rebalancing to operators', function (): void {
+        Sanctum::actingAs(User::factory()->create(), ['read', 'write', 'delete']);
+
+        $this->postJson('/api/v2/baskets', ['code' => 'ACHB'])->assertForbidden();
+        $this->postJson('/api/v2/baskets/GCU/rebalance')->assertForbidden();
+    });
+});
+
+describe('GraphQL mutations on platform records', function (): void {
+    beforeEach(function (): void {
+        Cache::forget('domain_manager_disabled');
+        config(['modules.disabled' => []]);
+    });
+
+    it('limits basket creation and rebalancing to operators', function (): void {
+        $basket = App\Domain\Basket\Models\BasketAsset::create([
+            'code'                => 'ACH-BSK',
+            'name'                => 'Access basket',
+            'type'                => 'dynamic',
+            'rebalance_frequency' => 'daily',
+            'is_active'           => true,
+        ]);
+        $plain = User::factory()->create();
+
+        $json = achGraphql($this, $plain, 'mutation { createBasket(input: { name: "Mine" }) { id } }');
+        expect(achGraphqlError($json))->toBe('You are not authorized to manage baskets.')
+            ->and(App\Domain\Basket\Models\BasketAsset::query()->where('name', 'Mine')->exists())->toBeFalse();
+
+        $json = achGraphql($this, $plain, 'mutation ($id: ID!) { rebalanceBasket(input: { id: $id }) { id } }', ['id' => $basket->id]);
+        expect(achGraphqlError($json))->toBe('You are not authorized to manage baskets.');
+
+        $json = achGraphql($this, achUserWithRole('admin'), 'mutation { createBasket(input: { name: "Operator basket" }) { id name } }');
+        expect(achGraphqlError($json))->not->toBe('You are not authorized to manage baskets.');
+
+        $json = achGraphql($this, achUserWithRole('bank_admin'), 'mutation ($id: ID!) { rebalanceBasket(input: { id: $id }) { id } }', ['id' => $basket->id]);
+        expect(achGraphqlError($json))->not->toBe('You are not authorized to manage baskets.');
+    });
+
+    it('limits product creation to operators', function (): void {
+        $query = 'mutation { createProduct(input: { name: "Access checking", category: "checking", type: "deposit" }) { id name } }';
+
+        $json = achGraphql($this, User::factory()->create(), $query);
+        expect(achGraphqlError($json))->toBe('You are not authorized to create products.')
+            ->and(Product::query()->where('name', 'Access checking')->exists())->toBeFalse();
+
+        $json = achGraphql($this, achUserWithRole('bank_admin'), $query);
+        expect($json['data']['createProduct']['name'] ?? null)->toBe('Access checking');
+    });
+
+    it('limits microfinance group set-up to operators and member management to the leader', function (): void {
+        $group = app(App\Domain\Microfinance\Services\GroupLendingService::class)->createGroup('Access group', 'weekly');
+        $plain = User::factory()->create();
+        $leader = User::factory()->create();
+
+        $json = achGraphql($this, $plain, 'mutation { mfiCreateGroup(input: { name: "Mine", meeting_frequency: "weekly" }) { id } }');
+        expect(achGraphqlError($json))->toBe('You are not authorized to create groups.');
+
+        $json = achGraphql($this, $plain, 'mutation ($id: ID!) { mfiActivateGroup(id: $id) { id } }', ['id' => $group->id]);
+        expect(achGraphqlError($json))->toBe('You are not authorized to activate groups.')
+            ->and($group->fresh()?->status?->value)->toBe('pending');
+
+        $addMember = 'mutation ($input: MfiAddMemberInput!) { mfiAddMember(input: $input) { id } }';
+        $json = achGraphql($this, $plain, $addMember, ['input' => ['group_id' => $group->id, 'user_id' => $plain->id, 'role' => 'leader']]);
+        expect(achGraphqlError($json))->toBe('You are not authorized to manage this group.');
+
+        $operator = achUserWithRole('bank_admin');
+        $json = achGraphql($this, $operator, $addMember, ['input' => ['group_id' => $group->id, 'user_id' => $leader->id, 'role' => 'leader']]);
+        expect($json)->not->toHaveKey('errors');
+
+        $json = achGraphql($this, $leader, $addMember, ['input' => ['group_id' => $group->id, 'user_id' => $plain->id, 'role' => 'treasurer']]);
+        expect(achGraphqlError($json))->toBe('You are not authorized to assign this role.');
+
+        $json = achGraphql($this, $leader, $addMember, ['input' => ['group_id' => $group->id, 'user_id' => $plain->id]]);
+        expect($json)->not->toHaveKey('errors')
+            ->and(App\Domain\Microfinance\Models\GroupMember::query()->where('group_id', $group->id)->where('user_id', $plain->id)->first()?->role->value)->toBe('member');
+
+        $json = achGraphql($this, $operator, 'mutation ($id: ID!) { mfiActivateGroup(id: $id) { id } }', ['id' => $group->id]);
+        expect($json)->not->toHaveKey('errors')
+            ->and($group->fresh()?->status->value)->toBe('active');
+    });
+});
+
+/**
+ * @param  array<string, mixed>  $overrides
+ */
+function achPoll(User $creator, array $overrides = []): Poll
+{
+    return Poll::create(array_merge([
+        'uuid'        => Str::uuid()->toString(),
+        'title'       => 'Access poll',
+        'description' => 'x',
+        'type'        => 'single_choice',
+        'status'      => 'draft',
+        'options'     => [
+            ['id' => 'yes', 'label' => 'Yes'],
+            ['id' => 'no', 'label' => 'No'],
+        ],
+        'start_date'             => now()->subDay(),
+        'end_date'               => now()->addDays(7),
+        'created_by'             => $creator->uuid,
+        'required_participation' => 0,
+        'voting_power_strategy'  => 'one_user_one_vote',
+    ], $overrides));
+}

@@ -6,6 +6,7 @@ use App\Domain\Basket\Models\BasketAsset;
 use App\Domain\Basket\Services\BasketRebalancingService;
 use App\Domain\Basket\Services\BasketValueCalculationService;
 use App\Http\Controllers\Controller;
+use App\Support\StaffRoles;
 use DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -176,8 +177,17 @@ class BasketController extends Controller
         response: 422,
         description: 'Validation error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
+    )]
     public function store(Request $request): JsonResponse
     {
+        // Baskets are platform assets: operators only.
+        if (! StaffRoles::userHasAny($request->user(), StaffRoles::OPERATORS)) {
+            return response()->json(['message' => 'You are not authorized to manage baskets.'], 403);
+        }
+
         $validated = $request->validate(
             [
                 'code'                    => 'required|string|max:20|unique:basket_assets,code',
@@ -313,8 +323,17 @@ class BasketController extends Controller
         new OA\Property(property: 'adjustments', type: 'array', items: new OA\Items(type: 'object')),
         ])
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
+    )]
     public function rebalance(Request $request, string $code): JsonResponse
     {
+        // Baskets are platform assets: operators only.
+        if (! StaffRoles::userHasAny($request->user(), StaffRoles::OPERATORS)) {
+            return response()->json(['message' => 'You are not authorized to manage baskets.'], 403);
+        }
+
         $basket = BasketAsset::where('code', $code)->firstOrFail();
 
         if ($basket->type !== 'dynamic') {

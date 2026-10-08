@@ -140,7 +140,7 @@ class SubscriberController extends Controller
             'subscriber.confirmed',
             [
                 'title'   => 'Link expired or invalid',
-                'message' => 'This confirmation link is no longer valid. Sign up again to receive a new one.',
+                'message' => 'This confirmation link is no longer valid. Subscribe again to get a new confirmation link.',
             ]
         );
 

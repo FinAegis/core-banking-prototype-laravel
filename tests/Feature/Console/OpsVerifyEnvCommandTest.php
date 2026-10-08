@@ -77,7 +77,7 @@ function opsVerifyEnvMcpMoneyTools(bool $enabled): void
     /** @var array<string, array<string, mixed>> $tools */
     $tools = config('mcp.tools');
 
-    foreach (['account.create', 'payment.transfer', 'exchange.trade'] as $tool) {
+    foreach (['account.create', 'payment.transfer', 'exchange.trade', 'sms.send'] as $tool) {
         $tools[$tool]['enabled'] = $enabled;
     }
 
@@ -155,6 +155,7 @@ const OPS_VERIFY_ENV_MCP_TOOLS = [
     'mcp.tools.account.create'   => 'MCP_TOOL_ACCOUNT_CREATE',
     'mcp.tools.payment.transfer' => 'MCP_TOOL_PAYMENT_TRANSFER',
     'mcp.tools.exchange.trade'   => 'MCP_TOOL_EXCHANGE_TRADE',
+    'mcp.tools.sms.send'         => 'MCP_TOOL_SMS_SEND',
 ];
 
 it('exits 0 in production when every check passes', function (): void {

@@ -794,9 +794,13 @@ Route::middleware([
         Route::prefix('stablecoin-operations')->name('stablecoin-operations.')->group(function () {
             Route::get('/', [App\Http\Controllers\StablecoinOperationsController::class, 'index'])->name('index');
             Route::get('/mint', [App\Http\Controllers\StablecoinOperationsController::class, 'mint'])->name('mint');
-            Route::post('/mint', [App\Http\Controllers\StablecoinOperationsController::class, 'processMint'])->name('mint.process');
+            // Mint and burn move ledger balances: same flag and sub-product
+            // gate as the API and GraphQL mint/redeem.
+            Route::post('/mint', [App\Http\Controllers\StablecoinOperationsController::class, 'processMint'])->name('mint.process')
+                ->middleware(['feature:ledger.direct_funding_enabled', 'sub_product:stablecoins']);
             Route::get('/burn', [App\Http\Controllers\StablecoinOperationsController::class, 'burn'])->name('burn');
-            Route::post('/burn', [App\Http\Controllers\StablecoinOperationsController::class, 'processBurn'])->name('burn.process');
+            Route::post('/burn', [App\Http\Controllers\StablecoinOperationsController::class, 'processBurn'])->name('burn.process')
+                ->middleware(['feature:ledger.direct_funding_enabled', 'sub_product:stablecoins']);
             Route::get('/history', [App\Http\Controllers\StablecoinOperationsController::class, 'history'])->name('history');
         });
 

@@ -88,7 +88,7 @@ class BlogSubscriptionTest extends TestCase
 
         $url = $this->subscribeAndGetConfirmationUrl(
             'test@example.com',
-            'Thank you for subscribing! Check your email for confirmation.'
+            'Almost done! Check your inbox and confirm your email address to subscribe.'
         );
 
         $this->get($url)->assertOk()->assertSee('Subscription confirmed');
@@ -124,7 +124,7 @@ class BlogSubscriptionTest extends TestCase
 
         $url = $this->subscribeAndGetConfirmationUrl(
             'test@example.com',
-            'Thank you for subscribing! Check your email for confirmation.'
+            'Almost done! Check your inbox and confirm your email address to subscribe.'
         );
 
         // An address Mailchimp already holds counts as synced.
@@ -159,7 +159,7 @@ class BlogSubscriptionTest extends TestCase
 
         $url = $this->subscribeAndGetConfirmationUrl(
             'test@example.com',
-            'Thank you for subscribing! (Note: Mailchimp integration not configured)'
+            'Almost done! Check your inbox and confirm your email address to subscribe.'
         );
 
         $this->get($url)->assertOk()->assertSee('Subscription confirmed');
@@ -187,7 +187,7 @@ class BlogSubscriptionTest extends TestCase
 
         $url = $this->subscribeAndGetConfirmationUrl(
             'test@example.com',
-            'Thank you for subscribing! Check your email for confirmation.'
+            'Almost done! Check your inbox and confirm your email address to subscribe.'
         );
 
         // Rejected credentials are logged as an error; the local

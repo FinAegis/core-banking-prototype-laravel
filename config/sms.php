@@ -32,11 +32,21 @@ return [
     ],
 
     /*
-    | Global cap on unpaid sends per UTC day (all users together; sends paid
-    | through the MPP gate do not count). Over the cap POST /api/v1/sms/send
-    | answers 429 ERR_SMS_001 until 00:00 UTC. 0 allows no unpaid sends.
+    | Global cap on unpaid sends per UTC day (all users together, REST and
+    | the MCP sms.send tool; sends paid through the MPP or x402 gate do not
+    | count). Over the cap POST /api/v1/sms/send answers 429 ERR_SMS_001 and
+    | MCP sms.send is refused until 00:00 UTC. 0 allows no unpaid sends.
+    | SMS_SEND_PER_USER_PER_DAY above is also counted across REST and MCP.
     */
     'global_daily_limit' => (int) env('SMS_SEND_GLOBAL_PER_DAY', 500),
+
+    /*
+    | Smallest payment (atomic USDC, 6 decimals; 10000 = $0.01) that counts
+    | as a paid send on POST /api/v1/sms/send. A smaller settled payment gets
+    | the unpaid rules (token, per-user limits, global cap), and an MPP
+    | resource priced below it is not offered.
+    */
+    'min_paid_price_usdc' => (int) env('SMS_MIN_PAID_PRICE_USDC', 10000),
 
     'default_provider' => env('SMS_PROVIDER', 'mock'),
 

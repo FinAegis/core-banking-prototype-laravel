@@ -79,8 +79,10 @@ return [
         'ramp.status'    => ['internal' => 'ramp.status',                    'title' => 'Check on/offramp session status',  'scope' => 'ramp:read',         'enabled' => env('MCP_TOOL_RAMP_STATUS', true),         'is_write' => false, 'requires_user' => true],
         'mpp.discovery'  => ['internal' => 'mpp.discovery',                  'title' => 'Discover multi-rail payment routes', 'scope' => null,              'enabled' => env('MCP_TOOL_MPP_DISCOVERY', true),       'is_write' => false],
         // sms.send is fixed-cost: every call reserves `fixed_cost_minor`
-        // against the daily limit (no amount in the tool arguments).
-        'sms.send' => ['internal' => 'sms.send',                       'title' => 'Send an SMS (paid via x402)',      'scope' => 'sms:send',          'enabled' => env('MCP_TOOL_SMS_SEND', true),            'is_write' => true,  'requires_user' => true, 'is_payment' => true,  'fixed_cost_minor' => (int) env('MCP_SMS_PRICE_MINOR', 10), 'fixed_cost_currency' => 'USD'],
+        // against the daily limit (no amount in the tool arguments). Sends
+        // are billed to the platform and count against the unpaid SMS
+        // limits (SmsSendBudget); off by default in production.
+        'sms.send' => ['internal' => 'sms.send',                       'title' => 'Send an SMS (paid via x402)',      'scope' => 'sms:send',          'enabled' => env('MCP_TOOL_SMS_SEND', env('APP_ENV', 'production') !== 'production'),            'is_write' => true,  'requires_user' => true, 'is_payment' => true,  'fixed_cost_minor' => (int) env('MCP_SMS_PRICE_MINOR', 10), 'fixed_cost_currency' => 'USD'],
         // Wallet read tools: registered blockchain addresses + the mobile
         // activity feed. Both reuse the existing accounts:read scope — the
         // scope list has no wallet:read, and these are same-trust-tier reads

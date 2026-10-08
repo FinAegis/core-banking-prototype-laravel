@@ -12,6 +12,7 @@ use App\Http\Controllers\Concerns\ProvisionsPersonalTeam;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Cache\RateLimiter;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -39,6 +40,7 @@ final class PrivyWebAuthController extends Controller
         private readonly PrivyEmailOtpClient $privy,
         private readonly RateLimiter $rateLimiter,
         private readonly ApiRegistrationGate $registrationGate,
+        private readonly Application $app,
     ) {
     }
 
@@ -60,23 +62,42 @@ final class PrivyWebAuthController extends Controller
         }
         $this->rateLimiter->hit($throttleKey, 60);
 
-        // An address that could not sign in or sign up gets the same answer
-        // as a sent code, without a call to Privy.
+        // Every address gets the same answer. The code is requested from
+        // Privy only for an address that could sign in or sign up, after the
+        // response has been sent.
         if ($this->maySignIn($email)) {
-            try {
-                $this->privy->sendCode($email);
-            } catch (PrivyEmailOtpException $e) {
-                report($e);
-
-                return back()
-                    ->withInput($request->only('email'))
-                    ->withErrors(['email' => __('We could not send the code right now. Please try again.')]);
-            }
+            $this->sendCodeAfterResponse($email);
         }
 
         return redirect()
             ->route('login', ['email' => $email, 'step' => 'verify'])
-            ->with('status', __('We sent a 6-digit code to :email.', ['email' => $email]));
+            ->with('status', __('If this email can sign in, a 6-digit code is on its way to :email.', ['email' => $email]));
+    }
+
+    /**
+     * Ask Privy for the code once the response has gone out, so the answer
+     * and its timing do not depend on the address. A failed send is
+     * reported; the user can request a new code.
+     */
+    private function sendCodeAfterResponse(string $email): void
+    {
+        $privy = $this->privy;
+        $done = false;
+
+        $this->app->terminating(static function () use ($privy, $email, &$done): void {
+            // Terminating callbacks can run more than once per process.
+            if ($done) {
+                return;
+            }
+
+            $done = true;
+
+            try {
+                $privy->sendCode($email);
+            } catch (PrivyEmailOtpException $e) {
+                report($e);
+            }
+        });
     }
 
     /**

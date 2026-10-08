@@ -10880,6 +10880,9 @@
                     },
                     "422": {
                         "description": "Validation error"
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 },
                 "security": [
@@ -11023,6 +11026,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 },
                 "security": [
@@ -34807,6 +34813,7 @@
                                         ]
                                     },
                                     "execution_workflow": {
+                                        "description": "Platform operators only (admin, super_admin, bank_admin)",
                                         "type": "string",
                                         "example": "AddAssetWorkflow"
                                     }
@@ -34837,6 +34844,9 @@
                     },
                     "422": {
                         "description": "Validation error"
+                    },
+                    "403": {
+                        "description": "An execution workflow was given by a user who is not a platform operator"
                     }
                 },
                 "security": [
@@ -34960,6 +34970,9 @@
                     },
                     "404": {
                         "description": "Poll not found"
+                    },
+                    "403": {
+                        "description": "Not the poll creator or a platform operator (operators only for a poll with an execution workflow)"
                     }
                 },
                 "security": [
@@ -37181,6 +37194,9 @@
                     },
                     "401": {
                         "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -39708,7 +39724,7 @@
                     "Gas Relayer"
                 ],
                 "summary": "Submit a sponsored transaction",
-                "description": "Sponsor a transaction (meta-transaction).\n\nAllows users to execute blockchain transactions without holding native\ngas tokens (ETH/MATIC). The fee is deducted from their stablecoin balance.\n\nFor first-time account deployment, include the init_code parameter with\nthe Smart Account factory call data.\n\nAvailable only when RELAYER_GENERIC_SPONSOR_ENABLED is on (404\notherwise). The sender must be a smart account / wallet address\nregistered to the caller, the network must be enabled for wallet sends\nand the calldata must be an execute(USDC|USDT, 0, transfer(to, amount))\ncall (see SponsorshipRequestValidator).",
+                "description": "Sponsor a transaction (meta-transaction).\n\nAllows users to execute blockchain transactions without holding native\ngas tokens (ETH/MATIC). The fee is deducted from their stablecoin balance.\n\nFor first-time account deployment, include the init_code parameter with\nthe Smart Account factory call data.\n\nAvailable only when RELAYER_GENERIC_SPONSOR_ENABLED is on (404\notherwise). The sender must be a smart account / wallet address\nregistered to the caller, the network must be enabled for wallet sends\nand the calldata must be an execute(USDC|USDT, 0, transfer(to, amount))\ncall (see SponsorshipRequestValidator). Each accepted request counts\nagainst the daily sponsorship budget shared with wallet sends (429\nonce it is used up).",
                 "operationId": "7e4c07a424eee8f0874198f2de05b951",
                 "requestBody": {
                     "required": true,
@@ -39820,6 +39836,9 @@
                     },
                     "422": {
                         "description": "Calldata, network or init code not allowed (ERR_RELAYER_302/303/304)"
+                    },
+                    "429": {
+                        "description": "Daily sponsorship limit reached (ERR_RELAYER_305 per user, ERR_RELAYER_306 platform-wide); shared with wallet sends"
                     }
                 },
                 "security": [
@@ -41133,8 +41152,8 @@
                 "tags": [
                     "SMS"
                 ],
-                "summary": "Send an SMS message (authenticated, payment-gated)",
-                "description": "Send an SMS to any phone number via VertexSMS. Requires a Sanctum bearer token and is limited per user (SMS_SEND_PER_USER_PER_MINUTE / SMS_SEND_PER_USER_PER_DAY) on top of a global 60 requests/minute. When the MPP payment gate is enabled, the first request without payment returns 402 with available rails and pricing. Outbound rate is 1 SMS/second.",
+                "summary": "Send an SMS message (authenticated or paid)",
+                "description": "Send an SMS to any phone number via VertexSMS. Answers 503 while SMS_ENABLED is off. Unpaid sends require a Sanctum bearer token and are limited per user (SMS_SEND_PER_USER_PER_MINUTE / SMS_SEND_PER_USER_PER_DAY; the daily count is shared with the MCP sms.send tool) and by a global daily cap on unpaid sends (SMS_SEND_GLOBAL_PER_DAY, 429 ERR_SMS_001 until 00:00 UTC), on top of 60 requests/minute. When the MPP payment gate is enabled for this route, a request with an `Authorization: Payment` credential is paid and needs no token, and a request with neither a credential nor a token returns 402 with available rails and pricing. A payment below SMS_MIN_PAID_PRICE_USDC is treated as unpaid. Outbound rate is 1 SMS/second.",
                 "operationId": "smsSend",
                 "requestBody": {
                     "required": true,
@@ -41246,7 +41265,7 @@
                         "description": "Unauthenticated"
                     },
                     "429": {
-                        "description": "Per-user or global send limit reached"
+                        "description": "Per-user limit or global daily cap on unpaid sends reached (ERR_SMS_001)"
                     },
                     "503": {
                         "description": "SMS service disabled — SMS_ENABLED is false"
@@ -42333,6 +42352,16 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "The account belongs to another user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -42459,6 +42488,16 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "The account belongs to another user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -42577,6 +42616,16 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "The account belongs to another user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -42672,6 +42721,16 @@
                     },
                     "404": {
                         "description": "Account not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "The account belongs to another user",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -42793,6 +42852,16 @@
                     },
                     "404": {
                         "description": "Position not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "The position belongs to another user",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -56077,6 +56146,9 @@
                     },
                     "401": {
                         "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Administrators only (admin, super_admin)"
                     }
                 },
                 "security": [
@@ -56194,6 +56266,9 @@
                     },
                     "401": {
                         "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Administrators only (admin, super_admin)"
                     }
                 },
                 "security": [
@@ -56229,6 +56304,9 @@
                     },
                     "401": {
                         "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Administrators only (admin, super_admin)"
                     }
                 },
                 "security": [

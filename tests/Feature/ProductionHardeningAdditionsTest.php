@@ -36,6 +36,7 @@ use App\Domain\Relayer\Services\PimlicoPaymasterService;
 use App\Domain\Relayer\Services\SmartAccountService;
 use App\Domain\Relayer\Services\SponsorshipRequestValidator;
 use App\Domain\SMS\Services\SmsPricingService;
+use App\Domain\SMS\Services\SmsSendBudget;
 use App\Domain\SMS\Services\SmsService;
 use App\Domain\User\Models\UserInvitation;
 use App\Domain\Wallet\Constants\EvmTokens;
@@ -467,7 +468,7 @@ describe('SMS sending', function (): void {
         $pricing = Mockery::mock(SmsPricingService::class);
         $pricing->shouldNotReceive('getPriceForNumber');
 
-        $result = (new SmsSendTool($service, $pricing))->execute(['to' => '+37069912345', 'message' => 'hello']);
+        $result = (new SmsSendTool($service, $pricing, new SmsSendBudget()))->execute(['to' => '+37069912345', 'message' => 'hello']);
 
         expect($result->isSuccess())->toBeFalse()
             ->and($result->getError())->toBe('SMS service is not enabled');

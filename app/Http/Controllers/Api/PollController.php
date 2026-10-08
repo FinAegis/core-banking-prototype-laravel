@@ -9,6 +9,7 @@ use App\Domain\Governance\Enums\PollType;
 use App\Domain\Governance\Models\Poll;
 use App\Domain\Governance\Services\Cache\PollCacheService;
 use App\Domain\Governance\Services\GovernanceService;
+use App\Domain\Governance\Support\PollAccess;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -120,7 +121,7 @@ class PollController extends Controller
             new OA\Property(property: 'end_date', type: 'string', format: 'date-time'),
             new OA\Property(property: 'required_participation', type: 'integer', example: 30),
             new OA\Property(property: 'voting_power_strategy', type: 'string', enum: ['one_user_one_vote', 'asset_weighted_vote']),
-            new OA\Property(property: 'execution_workflow', type: 'string', example: 'AddAssetWorkflow'),
+            new OA\Property(property: 'execution_workflow', type: 'string', example: 'AddAssetWorkflow', description: 'Platform operators only (admin, super_admin, bank_admin)'),
             ]))
         )]
     #[OA\Response(
@@ -134,6 +135,10 @@ class PollController extends Controller
     #[OA\Response(
         response: 422,
         description: 'Validation error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'An execution workflow was given by a user who is not a platform operator'
     )]
     public function store(Request $request): JsonResponse
     {
@@ -154,6 +159,16 @@ class PollController extends Controller
                 'metadata'               => ['sometimes', 'array'],
             ]
         );
+
+        // Completing a poll runs its execution workflow: operators only.
+        if (trim((string) ($validated['execution_workflow'] ?? '')) !== '' && ! PollAccess::mayAttachExecutionWorkflow(Auth::user())) {
+            return response()->json(
+                [
+                    'message' => 'Only platform operators can attach an execution workflow to a poll.',
+                ],
+                403
+            );
+        }
 
         $validated['created_by'] = Auth::user()->uuid;
 
@@ -237,6 +252,10 @@ class PollController extends Controller
         response: 404,
         description: 'Poll not found'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Not the poll creator or a platform operator (operators only for a poll with an execution workflow)'
+    )]
     public function activate(string $uuid): JsonResponse
     {
         $poll = Poll::where('uuid', $uuid)->first();
@@ -247,6 +266,15 @@ class PollController extends Controller
                     'message' => 'Poll not found',
                 ],
                 404
+            );
+        }
+
+        if (! PollAccess::mayManage(Auth::user(), $poll)) {
+            return response()->json(
+                [
+                    'message' => 'You are not authorized to manage this poll.',
+                ],
+                403
             );
         }
 

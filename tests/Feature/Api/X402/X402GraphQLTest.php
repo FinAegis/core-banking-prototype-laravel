@@ -9,6 +9,7 @@ use App\Domain\X402\Models\X402Payment;
 use App\Domain\X402\Models\X402SpendingLimit;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class X402GraphQLTest extends TestCase
@@ -28,12 +29,54 @@ class X402GraphQLTest extends TestCase
         Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
     }
 
+    /**
+     * Monetized endpoint mutations are limited to administrators
+     * (StaffRoles::ADMINS).
+     */
+    private function makeUserAdmin(): void
+    {
+        Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        $this->user->assignRole('admin');
+    }
+
     // ----------------------------------------------------------------
     // Endpoint Mutations — Team Scoping
     // ----------------------------------------------------------------
 
+    public function test_endpoint_mutations_are_refused_without_an_administrator_role(): void
+    {
+        $endpoint = X402MonetizedEndpoint::create([
+            'method'    => 'GET',
+            'path'      => '/api/v1/own',
+            'price'     => '0.01',
+            'network'   => 'eip155:8453',
+            'is_active' => true,
+            'team_id'   => $this->teamId,
+        ]);
+
+        $variables = ['id' => $endpoint->id];
+        $mutations = [
+            'mutation { createX402MonetizedEndpoint(input: {method: "POST", path: "/api/v1/sms/send", price: "0"}) { id } }',
+            'mutation($id: ID!) { updateX402MonetizedEndpoint(id: $id, input: {price: "0"}) { id } }',
+            'mutation($id: ID!) { deleteX402MonetizedEndpoint(id: $id) }',
+        ];
+
+        foreach ($mutations as $query) {
+            $response = $this->postJson('/graphql', ['query' => $query, 'variables' => str_contains($query, '$id') ? $variables : []]);
+
+            $response->assertOk();
+            $this->assertSame('You are not authorized to manage monetized endpoints.', $response->json('errors.0.message'));
+        }
+
+        $this->assertSame(1, X402MonetizedEndpoint::query()->count());
+        $this->assertSame('/api/v1/own', X402MonetizedEndpoint::query()->sole()->path);
+        $this->assertDatabaseHas('x402_monetized_endpoints', ['id' => $endpoint->id, 'price' => $endpoint->price]);
+    }
+
     public function test_create_endpoint_assigns_team_id(): void
     {
+        $this->makeUserAdmin();
+
         $response = $this->postJson('/graphql', [
             'query' => '
                 mutation {
@@ -59,6 +102,8 @@ class X402GraphQLTest extends TestCase
 
     public function test_update_endpoint_rejects_cross_tenant(): void
     {
+        $this->makeUserAdmin();
+
         $otherUser = User::factory()->withPersonalTeam()->create();
         /** @var \App\Models\Team $otherTeam */
         $otherTeam = $otherUser->currentTeam;
@@ -92,6 +137,8 @@ class X402GraphQLTest extends TestCase
 
     public function test_delete_endpoint_rejects_cross_tenant(): void
     {
+        $this->makeUserAdmin();
+
         $otherUser = User::factory()->withPersonalTeam()->create();
         /** @var \App\Models\Team $otherTeam */
         $otherTeam = $otherUser->currentTeam;

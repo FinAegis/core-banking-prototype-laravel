@@ -1008,7 +1008,7 @@
 
             <div id="early-access-success" class="hidden">
                 <div class="inline-block px-8 py-5 rounded-full text-lg font-bold bg-white bru-card text-obsidian">
-                    Almost there! Check your inbox to confirm.
+                    Almost done! Check your inbox and confirm your email address to subscribe.
                 </div>
             </div>
 

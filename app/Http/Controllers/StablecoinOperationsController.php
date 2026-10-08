@@ -8,6 +8,7 @@ use App\Domain\Stablecoin\Models\StablecoinOperation;
 use App\Domain\Stablecoin\Workflows\BurnStablecoinWorkflow;
 use App\Domain\Stablecoin\Workflows\MintStablecoinWorkflow;
 use App\Models\User;
+use App\Support\StaffRoles;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -45,7 +46,7 @@ class StablecoinOperationsController extends Controller
         /** @var User $user */
 
         // Check if user has admin/operator permissions
-        if (! $user->hasRole(['super_admin', 'bank_admin', 'stablecoin_operator'])) {
+        if (! $user->hasRole(StaffRoles::STABLECOIN_OPERATORS)) {
             abort(403, 'Unauthorized access to stablecoin operations');
         }
 
@@ -96,7 +97,7 @@ class StablecoinOperationsController extends Controller
     {
         $user = Auth::user();
         /** @var User $user */
-        if (! $user->hasRole(['super_admin', 'bank_admin', 'stablecoin_operator'])) {
+        if (! $user->hasRole(StaffRoles::STABLECOIN_OPERATORS)) {
             abort(403);
         }
 
@@ -152,7 +153,7 @@ class StablecoinOperationsController extends Controller
 
         $user = Auth::user();
         /** @var User $user */
-        if (! $user->hasRole(['super_admin', 'bank_admin', 'stablecoin_operator'])) {
+        if (! $user->hasRole(StaffRoles::STABLECOIN_OPERATORS)) {
             abort(403);
         }
 
@@ -253,7 +254,7 @@ class StablecoinOperationsController extends Controller
     {
         $user = Auth::user();
         /** @var User $user */
-        if (! $user->hasRole(['super_admin', 'bank_admin', 'stablecoin_operator'])) {
+        if (! $user->hasRole(StaffRoles::STABLECOIN_OPERATORS)) {
             abort(403);
         }
 
@@ -305,7 +306,7 @@ class StablecoinOperationsController extends Controller
 
         $user = Auth::user();
         /** @var User $user */
-        if (! $user->hasRole(['super_admin', 'bank_admin', 'stablecoin_operator'])) {
+        if (! $user->hasRole(StaffRoles::STABLECOIN_OPERATORS)) {
             abort(403);
         }
 
@@ -409,7 +410,7 @@ class StablecoinOperationsController extends Controller
     {
         $user = Auth::user();
         /** @var User $user */
-        if (! $user->hasRole(['super_admin', 'bank_admin', 'stablecoin_operator'])) {
+        if (! $user->hasRole(StaffRoles::STABLECOIN_OPERATORS)) {
             abort(403);
         }
 

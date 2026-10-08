@@ -6,7 +6,9 @@ use App\Http\Controllers\Api\X402\X402EndpointController;
 use App\Http\Controllers\Api\X402\X402PaymentController;
 use App\Http\Controllers\Api\X402\X402SpendingLimitController;
 use App\Http\Controllers\Api\X402\X402StatusController;
+use App\Support\StaffRoles;
 use Illuminate\Support\Facades\Route;
+use Spatie\Permission\Middleware\RoleMiddleware;
 
 // Well-known discovery endpoint
 Route::get('/.well-known/x402-configuration', [X402StatusController::class, 'wellKnown'])
@@ -19,18 +21,22 @@ Route::prefix('v1/x402')->name('api.x402.')->group(function () {
 
     // Authenticated endpoints
     Route::middleware(['auth:sanctum'])->group(function () {
-        // Monetized endpoint management
+        // Monetized endpoint management. Prices apply platform-wide (the
+        // payment gate looks routes up by method and path), so writes are
+        // limited to administrators (StaffRoles::ADMINS).
         Route::get('/endpoints', [X402EndpointController::class, 'index'])->name('endpoints.index');
-        Route::post('/endpoints', [X402EndpointController::class, 'store'])
-            ->middleware(['transaction.rate_limit:x402', 'idempotency'])
-            ->name('endpoints.store');
         Route::get('/endpoints/{id}', [X402EndpointController::class, 'show'])->name('endpoints.show');
-        Route::put('/endpoints/{id}', [X402EndpointController::class, 'update'])
-            ->middleware(['transaction.rate_limit:x402', 'idempotency'])
-            ->name('endpoints.update');
-        Route::delete('/endpoints/{id}', [X402EndpointController::class, 'destroy'])
-            ->middleware('transaction.rate_limit:x402')
-            ->name('endpoints.destroy');
+        Route::middleware(RoleMiddleware::using(StaffRoles::ADMINS))->group(function () {
+            Route::post('/endpoints', [X402EndpointController::class, 'store'])
+                ->middleware(['transaction.rate_limit:x402', 'idempotency'])
+                ->name('endpoints.store');
+            Route::put('/endpoints/{id}', [X402EndpointController::class, 'update'])
+                ->middleware(['transaction.rate_limit:x402', 'idempotency'])
+                ->name('endpoints.update');
+            Route::delete('/endpoints/{id}', [X402EndpointController::class, 'destroy'])
+                ->middleware('transaction.rate_limit:x402')
+                ->name('endpoints.destroy');
+        });
 
         // Payment history and details (stats before {id} wildcard)
         Route::get('/payments', [X402PaymentController::class, 'index'])->name('payments.index');

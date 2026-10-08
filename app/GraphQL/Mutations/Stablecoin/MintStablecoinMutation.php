@@ -8,6 +8,7 @@ use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Stablecoin\Models\StablecoinReserve;
 use App\Domain\Stablecoin\Workflows\MintStablecoinWorkflow;
 use App\Models\User;
+use App\Support\StaffRoles;
 use GraphQL\Error\Error;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
@@ -18,12 +19,13 @@ use Workflow\WorkflowStub;
 class MintStablecoinMutation
 {
     /**
-     * Roles allowed to issue stablecoins (same set as the web stablecoin
-     * operations console).
+     * Roles allowed to issue stablecoins: StaffRoles::STABLECOIN_OPERATORS,
+     * the same set as the REST stablecoin configuration endpoints and the
+     * web stablecoin operations console.
      *
      * @var list<string>
      */
-    public const OPERATOR_ROLES = ['super_admin', 'bank_admin', 'stablecoin_operator'];
+    public const OPERATOR_ROLES = StaffRoles::STABLECOIN_OPERATORS;
 
     /**
      * @param  array<string, mixed>  $args

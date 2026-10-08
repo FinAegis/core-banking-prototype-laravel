@@ -7,7 +7,7 @@ Someone, hopefully you, asked to receive updates from {{ company_name() }} at th
 Confirm subscription
 </x-mail::button>
 
-The link expires in {{ $expiresInHours }} hours. If you didn't sign up, ignore this email: you won't be subscribed and we won't email you again.
+The link expires in {{ $expiresInHours }} hours. If you didn't ask for this, you can ignore this email — you won't be subscribed.
 
 Best regards,<br>
 {{ team_signature() }}

@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\GraphQL\Mutations\Basket;
 
 use App\Domain\Basket\Models\BasketAsset;
+use App\Support\StaffRoles;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 
 class CreateBasketMutation
 {
@@ -20,6 +22,11 @@ class CreateBasketMutation
 
         if (! $user) {
             throw new AuthenticationException('Unauthenticated.');
+        }
+
+        // Baskets are platform assets: operators only.
+        if (! StaffRoles::userHasAny($user, StaffRoles::OPERATORS)) {
+            throw new AuthorizationException('You are not authorized to manage baskets.');
         }
 
         $code = 'BSK-' . strtoupper(Str::random(6));

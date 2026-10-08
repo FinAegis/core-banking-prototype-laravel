@@ -461,7 +461,7 @@ describe('cards.waitlist_deposit_enabled', function (): void {
         ], ['Idempotency-Key' => Str::random(24)])
             ->assertStatus(503)
             ->assertJsonPath('error.code', 'ERR_CARDS_019')
-            ->assertJsonPath('error.message', 'Card deposits are paused.');
+            ->assertJsonPath('error.message', 'Card waitlist deposits are not available.');
 
         expect(PriceQuote::query()->count())->toBe(0);
 
@@ -666,14 +666,14 @@ describe('secure defaults', function (): void {
             ->and($flags['custodians.connectors.mock'])->toBeFalse()
             ->and($flags['mcp.tools.account.create'])->toBeFalse()
             ->and($flags['mcp.tools.payment.transfer'])->toBeFalse()
-            ->and($flags['mcp.tools.exchange.trade'])->toBeFalse();
+            ->and($flags['mcp.tools.exchange.trade'])->toBeFalse()
+            ->and($flags['mcp.tools.sms.send'])->toBeFalse();
 
-        // MCP itself, its read-only tools, ramp.start and sms.send keep their defaults.
+        // MCP itself, its read-only tools and ramp.start keep their defaults.
         expect($flags['mcp.enabled'])->toBeTrue()
             ->and($flags['mcp.tools.account.balance'])->toBeTrue()
             ->and($flags['mcp.tools.exchange.quote'])->toBeTrue()
-            ->and($flags['mcp.tools.ramp.start'])->toBeTrue()
-            ->and($flags['mcp.tools.sms.send'])->toBeTrue();
+            ->and($flags['mcp.tools.ramp.start'])->toBeTrue();
     })->with([
         'production'                                      => ['production'],
         'APP_ENV unset (Laravel treats it as production)' => [null],
@@ -688,6 +688,7 @@ describe('secure defaults', function (): void {
             ->and($flags['mcp.tools.account.create'])->toBeTrue()
             ->and($flags['mcp.tools.payment.transfer'])->toBeTrue()
             ->and($flags['mcp.tools.exchange.trade'])->toBeTrue()
+            ->and($flags['mcp.tools.sms.send'])->toBeTrue()
             ->and($flags['custodians.connectors.mock'])->toBe($mockDefault);
     })->with([
         'demo'    => ['demo', false],

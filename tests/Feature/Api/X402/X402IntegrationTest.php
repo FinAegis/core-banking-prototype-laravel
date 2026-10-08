@@ -8,6 +8,7 @@ use App\Domain\X402\Models\X402SpendingLimit;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
+use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
 
@@ -18,6 +19,20 @@ uses(RefreshDatabase::class);
 function createAuthenticatedUser(): User
 {
     $user = User::factory()->withPersonalTeam()->create();
+    Sanctum::actingAs($user, ['read', 'write', 'delete']);
+
+    return $user;
+}
+
+/**
+ * Monetized endpoint writes are limited to administrators
+ * (StaffRoles::ADMINS).
+ */
+function createAuthenticatedAdmin(): User
+{
+    Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+    $user = User::factory()->withPersonalTeam()->create();
+    $user->assignRole('admin');
     Sanctum::actingAs($user, ['read', 'write', 'delete']);
 
     return $user;
@@ -199,6 +214,21 @@ test('authenticated endpoints return 401 without auth', function (string $method
     ['GET', '/api/v1/x402/spending-limits'],
 ]);
 
+test('endpoint writes return 403 for users without an administrator role', function () {
+    $user = createAuthenticatedUser();
+    $endpoint = createEndpoint($user);
+
+    $this->postJson('/api/v1/x402/endpoints', ['method' => 'POST', 'path' => 'v1/sms/send', 'price' => '0.000001'])
+        ->assertForbidden();
+    $this->putJson("/api/v1/x402/endpoints/{$endpoint->id}", ['price' => '0.000001'])
+        ->assertForbidden();
+    $this->deleteJson("/api/v1/x402/endpoints/{$endpoint->id}")
+        ->assertForbidden();
+
+    expect(X402MonetizedEndpoint::query()->count())->toBe(1)
+        ->and($endpoint->fresh()?->price)->toBe('0.01');
+});
+
 // ================================================================
 // ENDPOINT MANAGEMENT (CRUD)
 // ================================================================
@@ -300,7 +330,7 @@ test('GET /api/v1/x402/endpoints respects per_page parameter', function () {
 // ----------------------------------------------------------------
 
 test('POST /api/v1/x402/endpoints creates a monetized endpoint', function () {
-    $user = createAuthenticatedUser();
+    $user = createAuthenticatedAdmin();
 
     $response = $this->postJson('/api/v1/x402/endpoints', [
         'method'      => 'GET',
@@ -346,7 +376,7 @@ test('POST /api/v1/x402/endpoints creates a monetized endpoint', function () {
 });
 
 test('POST /api/v1/x402/endpoints assigns default network when omitted', function () {
-    createAuthenticatedUser();
+    createAuthenticatedAdmin();
     config(['x402.server.default_network' => 'eip155:84532']);
 
     $response = $this->postJson('/api/v1/x402/endpoints', [
@@ -360,7 +390,7 @@ test('POST /api/v1/x402/endpoints assigns default network when omitted', functio
 });
 
 test('POST /api/v1/x402/endpoints returns 422 for missing required fields', function () {
-    createAuthenticatedUser();
+    createAuthenticatedAdmin();
 
     $response = $this->postJson('/api/v1/x402/endpoints', []);
 
@@ -370,7 +400,7 @@ test('POST /api/v1/x402/endpoints returns 422 for missing required fields', func
 });
 
 test('POST /api/v1/x402/endpoints returns 422 for invalid method', function () {
-    createAuthenticatedUser();
+    createAuthenticatedAdmin();
 
     $response = $this->postJson('/api/v1/x402/endpoints', [
         'method' => 'INVALID',
@@ -383,7 +413,7 @@ test('POST /api/v1/x402/endpoints returns 422 for invalid method', function () {
 });
 
 test('POST /api/v1/x402/endpoints returns 422 for invalid price format', function () {
-    createAuthenticatedUser();
+    createAuthenticatedAdmin();
 
     $response = $this->postJson('/api/v1/x402/endpoints', [
         'method' => 'GET',
@@ -396,7 +426,7 @@ test('POST /api/v1/x402/endpoints returns 422 for invalid price format', functio
 });
 
 test('POST /api/v1/x402/endpoints returns 422 for invalid network format', function () {
-    createAuthenticatedUser();
+    createAuthenticatedAdmin();
 
     $response = $this->postJson('/api/v1/x402/endpoints', [
         'method'  => 'GET',
@@ -464,7 +494,7 @@ test('GET /api/v1/x402/endpoints/{id} returns 404 for endpoint from different te
 // ----------------------------------------------------------------
 
 test('PUT /api/v1/x402/endpoints/{id} updates endpoint fields', function () {
-    $user = createAuthenticatedUser();
+    $user = createAuthenticatedAdmin();
     $endpoint = createEndpoint($user);
 
     $response = $this->putJson("/api/v1/x402/endpoints/{$endpoint->id}", [
@@ -485,7 +515,7 @@ test('PUT /api/v1/x402/endpoints/{id} updates endpoint fields', function () {
 });
 
 test('PUT /api/v1/x402/endpoints/{id} returns 404 for non-existent endpoint', function () {
-    createAuthenticatedUser();
+    createAuthenticatedAdmin();
 
     $response = $this->putJson('/api/v1/x402/endpoints/00000000-0000-0000-0000-000000000000', [
         'price' => '0.05',
@@ -495,7 +525,7 @@ test('PUT /api/v1/x402/endpoints/{id} returns 404 for non-existent endpoint', fu
 });
 
 test('PUT /api/v1/x402/endpoints/{id} returns 404 for endpoint from different team', function () {
-    createAuthenticatedUser();
+    createAuthenticatedAdmin();
     $otherUser = User::factory()->withPersonalTeam()->create();
     $otherEndpoint = createEndpoint($otherUser, ['path' => 'api/v1/other/update']);
 
@@ -507,7 +537,7 @@ test('PUT /api/v1/x402/endpoints/{id} returns 404 for endpoint from different te
 });
 
 test('PUT /api/v1/x402/endpoints/{id} returns 422 for invalid price format', function () {
-    $user = createAuthenticatedUser();
+    $user = createAuthenticatedAdmin();
     $endpoint = createEndpoint($user);
 
     $response = $this->putJson("/api/v1/x402/endpoints/{$endpoint->id}", [
@@ -519,7 +549,7 @@ test('PUT /api/v1/x402/endpoints/{id} returns 422 for invalid price format', fun
 });
 
 test('PUT /api/v1/x402/endpoints/{id} validates optional fields', function () {
-    $user = createAuthenticatedUser();
+    $user = createAuthenticatedAdmin();
     $endpoint = createEndpoint($user);
 
     $response = $this->putJson("/api/v1/x402/endpoints/{$endpoint->id}", [
@@ -535,7 +565,7 @@ test('PUT /api/v1/x402/endpoints/{id} validates optional fields', function () {
 // ----------------------------------------------------------------
 
 test('DELETE /api/v1/x402/endpoints/{id} removes endpoint', function () {
-    $user = createAuthenticatedUser();
+    $user = createAuthenticatedAdmin();
     $endpoint = createEndpoint($user);
 
     $response = $this->deleteJson("/api/v1/x402/endpoints/{$endpoint->id}");
@@ -548,7 +578,7 @@ test('DELETE /api/v1/x402/endpoints/{id} removes endpoint', function () {
 });
 
 test('DELETE /api/v1/x402/endpoints/{id} returns 404 for non-existent endpoint', function () {
-    createAuthenticatedUser();
+    createAuthenticatedAdmin();
 
     $response = $this->deleteJson('/api/v1/x402/endpoints/00000000-0000-0000-0000-000000000000');
 
@@ -556,7 +586,7 @@ test('DELETE /api/v1/x402/endpoints/{id} returns 404 for non-existent endpoint',
 });
 
 test('DELETE /api/v1/x402/endpoints/{id} returns 404 for endpoint from different team', function () {
-    createAuthenticatedUser();
+    createAuthenticatedAdmin();
     $otherUser = User::factory()->withPersonalTeam()->create();
     $otherEndpoint = createEndpoint($otherUser, ['path' => 'api/v1/other/delete']);
 
@@ -1061,7 +1091,7 @@ test('DELETE /api/v1/x402/spending-limits/{agentId} returns 404 for agent from d
 // ================================================================
 
 test('full endpoint CRUD lifecycle works end-to-end', function () {
-    createAuthenticatedUser();
+    createAuthenticatedAdmin();
 
     // Create
     $createResponse = $this->postJson('/api/v1/x402/endpoints', [
