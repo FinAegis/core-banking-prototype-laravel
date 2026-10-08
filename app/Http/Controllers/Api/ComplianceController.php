@@ -36,6 +36,10 @@ class ComplianceController extends Controller
         response: 401,
         description: 'Unauthorized'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function dashboard(): JsonResponse
     {
         return response()->json(
@@ -72,6 +76,10 @@ class ComplianceController extends Controller
     #[OA\Response(
         response: 401,
         description: 'Unauthorized'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function getViolations(): JsonResponse
     {
@@ -110,6 +118,10 @@ class ComplianceController extends Controller
         response: 404,
         description: 'Violation not found'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function getViolationDetails($id): JsonResponse
     {
         return response()->json(
@@ -147,6 +159,10 @@ class ComplianceController extends Controller
         response: 404,
         description: 'Violation not found'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function resolveViolation($id): JsonResponse
     {
         return response()->json(
@@ -176,6 +192,10 @@ class ComplianceController extends Controller
     #[OA\Response(
         response: 401,
         description: 'Unauthorized'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function getComplianceRules(): JsonResponse
     {
@@ -214,6 +234,10 @@ class ComplianceController extends Controller
         response: 404,
         description: 'Jurisdiction not found'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function getRulesByJurisdiction($jurisdiction): JsonResponse
     {
         return response()->json(
@@ -243,6 +267,10 @@ class ComplianceController extends Controller
     #[OA\Response(
         response: 401,
         description: 'Unauthorized'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function getComplianceChecks(): JsonResponse
     {
@@ -283,6 +311,10 @@ class ComplianceController extends Controller
         response: 422,
         description: 'Validation error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function runComplianceCheck(Request $request): JsonResponse
     {
         return response()->json(
@@ -312,6 +344,10 @@ class ComplianceController extends Controller
     #[OA\Response(
         response: 401,
         description: 'Unauthorized'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function getCertifications(): JsonResponse
     {
@@ -352,6 +388,10 @@ class ComplianceController extends Controller
         response: 422,
         description: 'Validation error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function renewCertification(Request $request): JsonResponse
     {
         return response()->json(
@@ -381,6 +421,10 @@ class ComplianceController extends Controller
     #[OA\Response(
         response: 401,
         description: 'Unauthorized'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function getPolicies(): JsonResponse
     {
@@ -428,6 +472,10 @@ class ComplianceController extends Controller
     #[OA\Response(
         response: 422,
         description: 'Validation error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function updatePolicy($id, Request $request): JsonResponse
     {

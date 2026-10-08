@@ -29,7 +29,7 @@ class MetricsMiddleware
             $this->metrics->recordHttpRequest(
                 method: $request->method(),
                 path: $request->path(),
-                statusCode: $response->status(),
+                statusCode: $response->getStatusCode(),
                 duration: $duration
             );
 
@@ -48,11 +48,11 @@ class MetricsMiddleware
             Cache::put('metrics:http:by_path', $byPath, 60);
 
             // Track error rates (some already handled by recordHttpRequest)
-            if ($response->status() >= 400) {
+            if ($response->getStatusCode() >= 400) {
                 Cache::increment('metrics:errors:total');
                 Cache::increment('metrics.http.errors');
 
-                if ($response->status() >= 500) {
+                if ($response->getStatusCode() >= 500) {
                     Cache::increment('metrics:errors:server');
                 } else {
                     Cache::increment('metrics:errors:client');

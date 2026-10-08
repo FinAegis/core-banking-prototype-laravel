@@ -16,6 +16,8 @@ class AuditControllerTest extends ControllerTestCase
         parent::setUp();
 
         $this->user = User::factory()->create();
+        // The audit trail endpoints are limited to compliance staff.
+        $this->user->assignRole('compliance_officer');
     }
 
     #[Test]

@@ -11,7 +11,9 @@ use App\Http\Controllers\Api\BatchProcessingController;
 use App\Http\Controllers\Api\DailyReconciliationController;
 use App\Http\Controllers\Api\RegulatoryReportingController;
 use App\Http\Controllers\Api\WorkflowMonitoringController;
+use App\Support\StaffRoles;
 use Illuminate\Support\Facades\Route;
+use Spatie\Permission\Middleware\RoleMiddleware;
 
 // Bank webhook endpoints (no auth — signature-verified)
 Route::prefix('webhooks/bank')->middleware('api.rate_limit:webhook')->group(function () {
@@ -58,8 +60,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/distribution-preview', [BankAllocationController::class, 'previewDistribution']);
     });
 
-    // Regulatory Reporting endpoints (admin only)
-    Route::prefix('regulatory')->group(function () {
+    // Regulatory Reporting endpoints: compliance staff only (the CTR, SAR,
+    // KYC and summary reports cover every user)
+    Route::prefix('regulatory')->middleware(RoleMiddleware::using(StaffRoles::COMPLIANCE))->group(function () {
         Route::post('/reports/ctr', [RegulatoryReportingController::class, 'generateCTR']);
         Route::post('/reports/sar-candidates', [RegulatoryReportingController::class, 'generateSARCandidates']);
         Route::post('/reports/compliance-summary', [RegulatoryReportingController::class, 'generateComplianceSummary']);

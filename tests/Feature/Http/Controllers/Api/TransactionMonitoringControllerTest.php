@@ -22,6 +22,8 @@ class TransactionMonitoringControllerTest extends TestCase
         parent::setUp();
 
         $this->user = User::factory()->create();
+        // Transaction monitoring is limited to compliance staff.
+        $this->user->assignRole('compliance_officer');
         $this->account = Account::factory()->create(['user_id' => $this->user->id]);
         Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
     }

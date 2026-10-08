@@ -16,6 +16,8 @@ class ComplianceControllerTest extends ControllerTestCase
         parent::setUp();
 
         $this->user = User::factory()->create();
+        // The compliance management endpoints are limited to compliance staff.
+        $this->user->assignRole('compliance_officer');
     }
 
     #[Test]

@@ -21,7 +21,8 @@ use Illuminate\Support\Facades\URL;
  * Process a GDPR data export request asynchronously.
  *
  * Collects all user data sections and stores the result in cache
- * for retrieval via the export status endpoint.
+ * for retrieval via the export status endpoint. Each cache entry records
+ * the requesting user_id, which the status and download endpoints check.
  */
 class ProcessGdprDataExport implements ShouldQueue
 {
@@ -48,8 +49,9 @@ class ProcessGdprDataExport implements ShouldQueue
         if (! $user) {
             Log::warning('GDPR export: user not found', ['user_id' => $this->userId, 'export_id' => $this->exportId]);
             Cache::put($this->cacheKey(), [
-                'status' => 'failed',
-                'error'  => 'User not found',
+                'user_id' => $this->userId,
+                'status'  => 'failed',
+                'error'   => 'User not found',
             ], now()->addHours(24));
 
             return;
@@ -57,6 +59,7 @@ class ProcessGdprDataExport implements ShouldQueue
 
         try {
             Cache::put($this->cacheKey(), [
+                'user_id'    => $this->userId,
                 'status'     => 'processing',
                 'started_at' => now()->toIso8601String(),
             ], now()->addHours(24));
@@ -75,6 +78,7 @@ class ProcessGdprDataExport implements ShouldQueue
             );
 
             Cache::put($this->cacheKey(), [
+                'user_id'      => $this->userId,
                 'status'       => 'completed',
                 'sections'     => array_keys($data),
                 'completed_at' => now()->toIso8601String(),
@@ -95,8 +99,9 @@ class ProcessGdprDataExport implements ShouldQueue
             ]);
 
             Cache::put($this->cacheKey(), [
-                'status' => 'failed',
-                'error'  => 'Export processing failed',
+                'user_id' => $this->userId,
+                'status'  => 'failed',
+                'error'   => 'Export processing failed',
             ], now()->addHours(24));
 
             throw $e;

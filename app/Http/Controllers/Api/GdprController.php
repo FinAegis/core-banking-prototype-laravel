@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\Domain\Compliance\Services\GdprService;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\StaffRoles;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -182,7 +183,7 @@ class GdprController extends Controller
         operationId: 'getGdprExportStatus',
         tags: ['GDPR'],
         summary: 'Check data export status',
-        description: 'Poll the status of a previously requested data export',
+        description: 'Poll the status of a previously requested data export. Only the user who requested the export, or compliance staff, can read it; other callers get 404.',
         security: [['sanctum' => []]],
         parameters: [
         new OA\Parameter(name: 'exportId', in: 'path', required: true, description: 'Export request ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
@@ -205,7 +206,7 @@ class GdprController extends Controller
         $cacheKey = "gdpr_export:{$exportId}";
         $status = \Illuminate\Support\Facades\Cache::get($cacheKey);
 
-        if ($status === null) {
+        if ($status === null || ! $this->callerMayReadExport((array) $status)) {
             return response()->json([
                 'error' => 'Export request not found or expired',
             ], 404);
@@ -215,6 +216,7 @@ class GdprController extends Controller
             ['export_id' => $exportId],
             (array) $status,
         );
+        unset($response['user_id']);
 
         // Regenerate a fresh signed download URL if export is completed
         if (($response['status'] ?? '') === 'completed' && ! empty($response['file_path'])) {
@@ -234,7 +236,7 @@ class GdprController extends Controller
         operationId: 'downloadGdprExport',
         tags: ['GDPR'],
         summary: 'Download completed GDPR data export',
-        description: 'Download the exported data as a JSON file. Requires a valid signed URL.',
+        description: 'Download the exported data as a JSON file. Requires a valid signed URL; only the user who requested the export, or compliance staff, can download it.',
         security: [['sanctum' => []]],
         parameters: [
         new OA\Parameter(name: 'exportId', in: 'path', required: true, description: 'Export request ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
@@ -262,7 +264,7 @@ class GdprController extends Controller
         $cacheKey = "gdpr_export:{$exportId}";
         $status = \Illuminate\Support\Facades\Cache::get($cacheKey);
 
-        if ($status === null || ($status['status'] ?? '') !== 'completed') {
+        if ($status === null || ($status['status'] ?? '') !== 'completed' || ! $this->callerMayReadExport((array) $status)) {
             return response()->json(['error' => 'Export not found or not yet completed.'], 404);
         }
 
@@ -278,6 +280,27 @@ class GdprController extends Controller
             'Content-Type'        => 'application/json',
             'Content-Disposition' => "attachment; filename=\"gdpr-export-{$exportId}.json\"",
         ]);
+    }
+
+    /**
+     * An export can be read by the user who requested it and by compliance
+     * staff. Entries without a recorded owner are readable by staff only.
+     *
+     * @param  array<mixed>  $status
+     */
+    private function callerMayReadExport(array $status): bool
+    {
+        $user = Auth::user();
+
+        if (! $user instanceof User) {
+            return false;
+        }
+
+        if (isset($status['user_id']) && (string) $status['user_id'] === (string) $user->id) {
+            return true;
+        }
+
+        return StaffRoles::userHasAny($user, StaffRoles::COMPLIANCE);
     }
 
         #[OA\Post(

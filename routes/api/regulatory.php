@@ -15,11 +15,14 @@ use Spatie\Permission\Middleware\RoleMiddleware;
 | Regulatory Reporting API Routes
 |--------------------------------------------------------------------------
 |
-| These routes handle regulatory reporting, compliance, and audit trails
+| These routes handle regulatory reporting, compliance, and audit trails.
+| Every route in this file is limited to compliance staff
+| (StaffRoles::COMPLIANCE): the reports, transaction monitoring, audit,
+| SAR and CTR data cover all users.
 |
 */
 
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['auth:sanctum', RoleMiddleware::using(StaffRoles::COMPLIANCE)])->group(function () {
     // Regulatory Reporting
     Route::prefix('regulatory')->group(function () {
         Route::get('/reports', [RegulatoryReportingController::class, 'getReports']);
@@ -52,33 +55,30 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/policies', [ComplianceController::class, 'getPolicies']);
         Route::put('/policies/{id}', [ComplianceController::class, 'updatePolicy']);
 
-        // Compliance alerts and cases: compliance staff only
-        Route::middleware(RoleMiddleware::using(StaffRoles::COMPLIANCE))->group(function () {
-            // Compliance Alerts
-            Route::get('/alerts', [ComplianceAlertController::class, 'index']);
-            Route::get('/alerts/statistics', [ComplianceAlertController::class, 'statistics']);
-            Route::get('/alerts/trends', [ComplianceAlertController::class, 'trends']);
-            Route::post('/alerts', [ComplianceAlertController::class, 'store']);
-            Route::post('/alerts/link', [ComplianceAlertController::class, 'linkAlerts']);
-            Route::post('/alerts/create-case', [ComplianceAlertController::class, 'createCase']);
-            Route::post('/alerts/search', [ComplianceAlertController::class, 'search']);
-            Route::get('/alerts/{id}', [ComplianceAlertController::class, 'show']);
-            Route::put('/alerts/{id}/status', [ComplianceAlertController::class, 'updateStatus']);
-            Route::put('/alerts/{id}/assign', [ComplianceAlertController::class, 'assign']);
-            Route::post('/alerts/{id}/notes', [ComplianceAlertController::class, 'addNote']);
+        // Compliance Alerts
+        Route::get('/alerts', [ComplianceAlertController::class, 'index']);
+        Route::get('/alerts/statistics', [ComplianceAlertController::class, 'statistics']);
+        Route::get('/alerts/trends', [ComplianceAlertController::class, 'trends']);
+        Route::post('/alerts', [ComplianceAlertController::class, 'store']);
+        Route::post('/alerts/link', [ComplianceAlertController::class, 'linkAlerts']);
+        Route::post('/alerts/create-case', [ComplianceAlertController::class, 'createCase']);
+        Route::post('/alerts/search', [ComplianceAlertController::class, 'search']);
+        Route::get('/alerts/{id}', [ComplianceAlertController::class, 'show']);
+        Route::put('/alerts/{id}/status', [ComplianceAlertController::class, 'updateStatus']);
+        Route::put('/alerts/{id}/assign', [ComplianceAlertController::class, 'assign']);
+        Route::post('/alerts/{id}/notes', [ComplianceAlertController::class, 'addNote']);
 
-            // Compliance Cases
-            Route::get('/cases', [ComplianceCaseController::class, 'index']);
-            Route::get('/cases/{id}', [ComplianceCaseController::class, 'show']);
-            Route::post('/cases', [ComplianceCaseController::class, 'store']);
-            Route::put('/cases/{id}', [ComplianceCaseController::class, 'update']);
-            Route::put('/cases/{id}/assign', [ComplianceCaseController::class, 'assign']);
-            Route::post('/cases/{id}/evidence', [ComplianceCaseController::class, 'addEvidence']);
-            Route::post('/cases/{id}/notes', [ComplianceCaseController::class, 'addNote']);
-            Route::post('/cases/{id}/escalate', [ComplianceCaseController::class, 'escalate']);
-            Route::get('/cases/{id}/timeline', [ComplianceCaseController::class, 'timeline']);
-            Route::delete('/cases/{id}', [ComplianceCaseController::class, 'destroy']);
-        });
+        // Compliance Cases
+        Route::get('/cases', [ComplianceCaseController::class, 'index']);
+        Route::get('/cases/{id}', [ComplianceCaseController::class, 'show']);
+        Route::post('/cases', [ComplianceCaseController::class, 'store']);
+        Route::put('/cases/{id}', [ComplianceCaseController::class, 'update']);
+        Route::put('/cases/{id}/assign', [ComplianceCaseController::class, 'assign']);
+        Route::post('/cases/{id}/evidence', [ComplianceCaseController::class, 'addEvidence']);
+        Route::post('/cases/{id}/notes', [ComplianceCaseController::class, 'addNote']);
+        Route::post('/cases/{id}/escalate', [ComplianceCaseController::class, 'escalate']);
+        Route::get('/cases/{id}/timeline', [ComplianceCaseController::class, 'timeline']);
+        Route::delete('/cases/{id}', [ComplianceCaseController::class, 'destroy']);
     });
 
     // Transaction Monitoring

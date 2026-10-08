@@ -52,7 +52,8 @@ Route::middleware('auth:sanctum')->prefix('compliance')->group(function () {
         Route::post('/{case}/documents', [ComplianceCaseController::class, 'addDocument']);
     });
 
-    // KYC endpoints
+    // KYC endpoints: the caller's own KYC record (document download is
+    // also open to compliance staff, checked in the controller)
     Route::prefix('kyc')->group(function () {
         Route::get('/status', [KycController::class, 'status']);
         Route::get('/requirements', [KycController::class, 'requirements']);
@@ -65,8 +66,8 @@ Route::middleware('auth:sanctum')->prefix('compliance')->group(function () {
         Route::get('/ondato/status/{verificationId}', [KycController::class, 'getOndatoVerificationStatus']);
     });
 
-    // Compliance Certification (SOC 2, PCI DSS)
-    Route::prefix('certification')->group(function () {
+    // Compliance Certification (SOC 2, PCI DSS): compliance staff only
+    Route::prefix('certification')->middleware(RoleMiddleware::using(StaffRoles::COMPLIANCE))->group(function () {
         Route::get('/evidence', [ComplianceCertificationController::class, 'getEvidence']);
         Route::post('/evidence/collect', [ComplianceCertificationController::class, 'collectEvidence']);
         Route::get('/access-review', [ComplianceCertificationController::class, 'getAccessReview']);
@@ -91,7 +92,8 @@ Route::middleware('auth:sanctum')->prefix('compliance')->group(function () {
         Route::get('/data-residency/routing', [ComplianceCertificationController::class, 'getRoutingConfig']);
     });
 
-    // GDPR endpoints
+    // GDPR endpoints: the caller's own consents, export and deletion (an
+    // export can also be read by compliance staff, checked in the controller)
     Route::prefix('gdpr')->group(function () {
         Route::get('/consent', [GdprController::class, 'consentStatus']);
         Route::post('/consent', [GdprController::class, 'updateConsent']);
@@ -104,28 +106,31 @@ Route::middleware('auth:sanctum')->prefix('compliance')->group(function () {
 
     // GDPR Enhanced (v2) — Article 30, DPIA, Breach Notification, Consent v2, Retention
     Route::prefix('gdpr/v2')->group(function () {
-        // Article 30 — Processing Register
-        Route::get('/register', [GdprEnhancedController::class, 'getRegister']);
-        Route::post('/register/activities', [GdprEnhancedController::class, 'createActivity']);
-        Route::get('/register/completeness', [GdprEnhancedController::class, 'getRegisterCompleteness']);
-
-        // DPIA — Data Protection Impact Assessments
-        Route::get('/dpia', [GdprEnhancedController::class, 'getDpiaSummary']);
-        Route::post('/dpia', [GdprEnhancedController::class, 'createDpia']);
-        Route::post('/dpia/{id}/approve', [GdprEnhancedController::class, 'approveDpia']);
-
-        // Breach Notification
-        Route::get('/breaches', [GdprEnhancedController::class, 'getBreachSummary']);
-        Route::post('/breaches', [GdprEnhancedController::class, 'reportBreach']);
-        Route::post('/breaches/{id}/notify-authority', [GdprEnhancedController::class, 'notifyAuthority']);
-        Route::get('/breaches/deadlines', [GdprEnhancedController::class, 'checkDeadlines']);
-
-        // Consent Management v2
+        // Consent Management v2: the caller's own consents
         Route::get('/consent', [GdprEnhancedController::class, 'getConsentStatus']);
         Route::post('/consent', [GdprEnhancedController::class, 'recordConsent']);
 
-        // Data Retention
-        Route::get('/retention', [GdprEnhancedController::class, 'getRetentionSummary']);
-        Route::post('/retention/policies', [GdprEnhancedController::class, 'createRetentionPolicy']);
+        // Processing register, DPIA, breaches and retention: compliance staff only
+        Route::middleware(RoleMiddleware::using(StaffRoles::COMPLIANCE))->group(function () {
+            // Article 30 — Processing Register
+            Route::get('/register', [GdprEnhancedController::class, 'getRegister']);
+            Route::post('/register/activities', [GdprEnhancedController::class, 'createActivity']);
+            Route::get('/register/completeness', [GdprEnhancedController::class, 'getRegisterCompleteness']);
+
+            // DPIA — Data Protection Impact Assessments
+            Route::get('/dpia', [GdprEnhancedController::class, 'getDpiaSummary']);
+            Route::post('/dpia', [GdprEnhancedController::class, 'createDpia']);
+            Route::post('/dpia/{id}/approve', [GdprEnhancedController::class, 'approveDpia']);
+
+            // Breach Notification
+            Route::get('/breaches', [GdprEnhancedController::class, 'getBreachSummary']);
+            Route::post('/breaches', [GdprEnhancedController::class, 'reportBreach']);
+            Route::post('/breaches/{id}/notify-authority', [GdprEnhancedController::class, 'notifyAuthority']);
+            Route::get('/breaches/deadlines', [GdprEnhancedController::class, 'checkDeadlines']);
+
+            // Data Retention
+            Route::get('/retention', [GdprEnhancedController::class, 'getRetentionSummary']);
+            Route::post('/retention/policies', [GdprEnhancedController::class, 'createRetentionPolicy']);
+        });
     });
 });

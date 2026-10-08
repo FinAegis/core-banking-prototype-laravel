@@ -34,6 +34,7 @@ class GdprExportDownloadTest extends TestCase
     {
         $exportId = 'test-export-001';
         Cache::put("gdpr_export:{$exportId}", [
+            'user_id'    => $this->user->id,
             'status'     => 'processing',
             'started_at' => now()->toIso8601String(),
         ], now()->addHours(24));
@@ -63,6 +64,7 @@ class GdprExportDownloadTest extends TestCase
         Storage::disk('local')->put($filePath, encrypt(json_encode(['profile' => ['name' => 'Test']])));
 
         Cache::put("gdpr_export:{$exportId}", [
+            'user_id'      => $this->user->id,
             'status'       => 'completed',
             'sections'     => ['profile'],
             'completed_at' => now()->toIso8601String(),
@@ -96,6 +98,7 @@ class GdprExportDownloadTest extends TestCase
         Storage::disk('local')->put($filePath, encrypt(json_encode($exportData)));
 
         Cache::put("gdpr_export:{$exportId}", [
+            'user_id'   => $this->user->id,
             'status'    => 'completed',
             'sections'  => ['profile'],
             'file_path' => $filePath,
@@ -128,7 +131,8 @@ class GdprExportDownloadTest extends TestCase
     {
         $exportId = 'test-pending';
         Cache::put("gdpr_export:{$exportId}", [
-            'status' => 'processing',
+            'user_id' => $this->user->id,
+            'status'  => 'processing',
         ], now()->addHours(24));
 
         $signedUrl = URL::signedRoute(
@@ -146,6 +150,7 @@ class GdprExportDownloadTest extends TestCase
     {
         $exportId = 'test-missing-file';
         Cache::put("gdpr_export:{$exportId}", [
+            'user_id'   => $this->user->id,
             'status'    => 'completed',
             'file_path' => "gdpr-exports/{$exportId}.json.enc",
         ], now()->addHours(24));
@@ -208,6 +213,8 @@ class GdprExportDownloadTest extends TestCase
         $this->assertArrayHasKey('download_url', $cached);
         $this->assertArrayHasKey('file_path', $cached);
         $this->assertEquals(['profile', 'transactions'], $cached['sections']);
+        // The entry records the requesting user for the owner check.
+        $this->assertEquals($this->user->id, $cached['user_id']);
     }
 
     // --- Route existence ---

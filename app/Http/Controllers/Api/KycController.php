@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Domain\Compliance\Models\AuditLog;
+use App\Domain\Compliance\Models\KycDocument;
 use App\Domain\Compliance\Models\KycVerification;
 use App\Domain\Compliance\Services\KycService;
 use App\Domain\Compliance\Services\OndatoService;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\StaffRoles;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -237,7 +239,7 @@ class KycController extends Controller
             operationId: 'downloadKycDocument',
             tags: ['KYC'],
             summary: 'Download a KYC document',
-            description: 'Download a previously uploaded KYC document. Users can only download their own documents.',
+            description: 'Download a previously uploaded KYC document. Users can download only their own documents; compliance staff can download any document.',
             security: [['sanctum' => []]],
             parameters: [
             new OA\Parameter(name: 'documentId', in: 'path', description: 'The document ID', required: true, schema: new OA\Schema(type: 'string')),
@@ -266,7 +268,11 @@ class KycController extends Controller
          */
         $user = Auth::user();
         /** @var User $user */
-        $document = $user->kycDocuments()->findOrFail($documentId);
+        // Users download their own documents; compliance staff may download
+        // any user's document. Others get the same 404 as an unknown id.
+        $document = StaffRoles::userHasAny($user, StaffRoles::COMPLIANCE)
+            ? KycDocument::query()->findOrFail($documentId)
+            : $user->kycDocuments()->findOrFail($documentId);
 
         if (! Storage::disk('private')->exists($document->file_path)) {
             abort(404, 'Document not found');

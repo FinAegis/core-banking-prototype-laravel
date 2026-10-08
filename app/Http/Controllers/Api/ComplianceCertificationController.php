@@ -54,6 +54,10 @@ class ComplianceCertificationController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function getEvidence(Request $request): JsonResponse
     {
         try {
@@ -88,6 +92,10 @@ class ComplianceCertificationController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function collectEvidence(Request $request): JsonResponse
     {
@@ -130,6 +138,10 @@ class ComplianceCertificationController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function getAccessReview(): JsonResponse
     {
         try {
@@ -162,6 +174,10 @@ class ComplianceCertificationController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function getPrivilegedUsers(): JsonResponse
     {
         try {
@@ -193,6 +209,10 @@ class ComplianceCertificationController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function getIncidents(Request $request): JsonResponse
     {
@@ -228,6 +248,10 @@ class ComplianceCertificationController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function createIncident(Request $request): JsonResponse
     {
@@ -271,6 +295,10 @@ class ComplianceCertificationController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function updateIncident(Request $request, string $id): JsonResponse
     {
@@ -316,6 +344,10 @@ class ComplianceCertificationController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function resolveIncident(Request $request, string $id): JsonResponse
     {
         try {
@@ -356,6 +388,10 @@ class ComplianceCertificationController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function getPostmortem(string $id): JsonResponse
     {
         try {
@@ -389,6 +425,10 @@ class ComplianceCertificationController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function getDataClassification(Request $request): JsonResponse
     {
@@ -426,6 +466,10 @@ class ComplianceCertificationController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function getEncryptionVerification(): JsonResponse
     {
         try {
@@ -462,6 +506,10 @@ class ComplianceCertificationController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function getKeyRotationStatus(): JsonResponse
     {
         try {
@@ -497,6 +545,10 @@ class ComplianceCertificationController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function rotateKey(Request $request): JsonResponse
     {
@@ -540,6 +592,10 @@ class ComplianceCertificationController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function getNetworkSegmentation(): JsonResponse
     {
         try {
@@ -578,6 +634,10 @@ class ComplianceCertificationController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function getResidencyStatus(Request $request): JsonResponse
     {
         try {
@@ -614,6 +674,10 @@ class ComplianceCertificationController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function getTransferLogs(Request $request): JsonResponse
     {
         try {
@@ -648,6 +712,10 @@ class ComplianceCertificationController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function logTransfer(Request $request): JsonResponse
     {
@@ -693,6 +761,10 @@ class ComplianceCertificationController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function getRoutingConfig(): JsonResponse
     {

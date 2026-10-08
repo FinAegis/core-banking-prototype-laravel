@@ -43,7 +43,11 @@ class TracingMiddleware
 
             // Set response attributes
             $this->tracingService->setAttribute($traceId, 'http.status_code', $response->getStatusCode());
-            $this->tracingService->setAttribute($traceId, 'http.response_size', strlen($response->getContent()));
+            // Streamed and file responses have no buffered body (getContent() is false).
+            $content = $response->getContent();
+            if (is_string($content)) {
+                $this->tracingService->setAttribute($traceId, 'http.response_size', strlen($content));
+            }
 
             // End span with success status
             $status = $response->getStatusCode() >= 400 ? 'error' : 'ok';

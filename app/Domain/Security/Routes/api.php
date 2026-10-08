@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Api\RiskAnalysisController;
 use App\Http\Controllers\Api\TransactionMonitoringController;
+use App\Support\StaffRoles;
 use Illuminate\Support\Facades\Route;
+use Spatie\Permission\Middleware\RoleMiddleware;
 
 // Risk Analysis endpoints
 Route::middleware('auth:sanctum')->prefix('risk')->group(function () {
@@ -26,8 +28,10 @@ Route::middleware('auth:sanctum')->prefix('risk')->group(function () {
     Route::get('/models', [RiskAnalysisController::class, 'getRiskModels']);
 });
 
-// Transaction Monitoring endpoints
-Route::middleware('auth:sanctum')->prefix('transaction-monitoring')->group(function () {
+// Transaction Monitoring endpoints: compliance staff only (the list and
+// details cover every user's transactions; flag, clear, rules and thresholds
+// are compliance decisions)
+Route::middleware(['auth:sanctum', RoleMiddleware::using(StaffRoles::COMPLIANCE)])->prefix('transaction-monitoring')->group(function () {
     // Transaction monitoring
     Route::get('/', [TransactionMonitoringController::class, 'getMonitoredTransactions']);
     Route::get('/transactions/{transaction}', [TransactionMonitoringController::class, 'getTransactionDetails']);

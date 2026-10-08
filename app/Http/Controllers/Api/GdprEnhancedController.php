@@ -48,6 +48,10 @@ class GdprEnhancedController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function getRegister(Request $request): JsonResponse
     {
         try {
@@ -81,6 +85,10 @@ class GdprEnhancedController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function createActivity(Request $request): JsonResponse
     {
@@ -125,6 +133,10 @@ class GdprEnhancedController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function getRegisterCompleteness(): JsonResponse
     {
         try {
@@ -156,6 +168,10 @@ class GdprEnhancedController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function getDpiaSummary(): JsonResponse
     {
@@ -190,6 +206,10 @@ class GdprEnhancedController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function createDpia(Request $request): JsonResponse
     {
@@ -236,6 +256,10 @@ class GdprEnhancedController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function approveDpia(Request $request, string $id): JsonResponse
     {
         try {
@@ -275,6 +299,10 @@ class GdprEnhancedController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function getBreachSummary(): JsonResponse
     {
         try {
@@ -308,6 +336,10 @@ class GdprEnhancedController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function reportBreach(Request $request): JsonResponse
     {
@@ -354,6 +386,10 @@ class GdprEnhancedController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function notifyAuthority(Request $request, string $id): JsonResponse
     {
         try {
@@ -386,6 +422,10 @@ class GdprEnhancedController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function checkDeadlines(): JsonResponse
     {
@@ -506,6 +546,10 @@ class GdprEnhancedController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function getRetentionSummary(): JsonResponse
     {
         try {
@@ -539,6 +583,10 @@ class GdprEnhancedController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function createRetentionPolicy(Request $request): JsonResponse
     {
