@@ -104,14 +104,17 @@ class MppPaymentController extends Controller
         path: '/api/v1/mpp/spending-limits',
         operationId: 'mppSpendingLimits',
         summary: 'List agent spending limits',
-        description: 'Returns all configured agent spending limits for MPP payments.',
+        description: 'Returns the agent spending limits for MPP payments stored under the caller\'s current team.',
         security: [['sanctum' => []]],
         tags: ['Machine Payments'],
     )]
     #[OA\Response(response: 200, description: 'Spending limits')]
-    public function spendingLimits(): JsonResponse
+    public function spendingLimits(Request $request): JsonResponse
     {
-        $limits = MppSpendingLimit::orderBy('agent_id')->get();
+        // Limits belong to the caller's current team (team_id null without one).
+        $limits = MppSpendingLimit::where('team_id', $this->callerTeamId($request))
+            ->orderBy('agent_id')
+            ->get();
 
         return response()->json([
             'success' => true,
@@ -123,7 +126,7 @@ class MppPaymentController extends Controller
         path: '/api/v1/mpp/spending-limits',
         operationId: 'mppSetSpendingLimit',
         summary: 'Set or update a spending limit',
-        description: 'Creates or updates daily and per-transaction spending limits for an agent.',
+        description: 'Creates or updates daily and per-transaction spending limits for an agent under the caller\'s current team. Agent ids are unique across teams.',
         security: [['sanctum' => []]],
         tags: ['Machine Payments'],
     )]
@@ -140,6 +143,7 @@ class MppPaymentController extends Controller
         ),
     )]
     #[OA\Response(response: 201, description: 'Spending limit set')]
+    #[OA\Response(response: 409, description: 'The agent id has a spending limit under another team')]
     #[OA\Response(response: 422, description: 'Validation error')]
     public function setSpendingLimit(Request $request): JsonResponse
     {
@@ -150,8 +154,19 @@ class MppPaymentController extends Controller
             'auto_pay'     => ['sometimes', 'boolean'],
         ]);
 
+        $teamId = $this->callerTeamId($request);
+
+        // agent_id is unique across teams: never update another team's row.
+        $existing = MppSpendingLimit::where('agent_id', $validated['agent_id'])->first();
+        if ($existing !== null && $existing->team_id !== $teamId) {
+            return response()->json([
+                'success' => false,
+                'error'   => 'This agent id has a spending limit under another team.',
+            ], 409);
+        }
+
         $limit = MppSpendingLimit::updateOrCreate(
-            ['agent_id' => $validated['agent_id']],
+            ['agent_id' => $validated['agent_id'], 'team_id' => $teamId],
             $validated,
         );
 
@@ -165,6 +180,7 @@ class MppPaymentController extends Controller
         path: '/api/v1/mpp/spending-limits/{agentId}',
         operationId: 'mppDeleteSpendingLimit',
         summary: 'Delete a spending limit',
+        description: 'Deletes the agent\'s spending limit stored under the caller\'s current team.',
         security: [['sanctum' => []]],
         tags: ['Machine Payments'],
         parameters: [
@@ -172,13 +188,26 @@ class MppPaymentController extends Controller
         ],
     )]
     #[OA\Response(response: 200, description: 'Spending limit deleted')]
-    public function deleteSpendingLimit(string $agentId): JsonResponse
+    public function deleteSpendingLimit(Request $request, string $agentId): JsonResponse
     {
-        MppSpendingLimit::where('agent_id', $agentId)->delete();
+        MppSpendingLimit::where('agent_id', $agentId)
+            ->where('team_id', $this->callerTeamId($request))
+            ->delete();
 
         return response()->json([
             'success' => true,
             'message' => 'Spending limit deleted.',
         ]);
+    }
+
+    /**
+     * The caller's current team, the team MPP spending limits are stored
+     * under (MppClientService looks them up the same way); null without one.
+     */
+    private function callerTeamId(Request $request): ?int
+    {
+        $teamId = $request->user()?->currentTeam?->id;
+
+        return $teamId !== null ? (int) $teamId : null;
     }
 }

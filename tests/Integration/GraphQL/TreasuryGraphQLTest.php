@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
 
 uses(Tests\TestCase::class);
 uses(Illuminate\Foundation\Testing\RefreshDatabase::class);
@@ -20,7 +21,10 @@ describe('GraphQL Treasury API', function () {
     });
 
     it('queries portfolio by id with authentication', function () {
+        // Asset allocation reads are for operators only.
+        Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         $user = User::factory()->create();
+        $user->assignRole('admin');
         // Insert directly via DB to avoid HasUuids/integer ID mismatch
         $id = DB::table('asset_allocations')->insertGetId([
             'portfolio_id'   => Str::uuid()->toString(),
@@ -60,7 +64,9 @@ describe('GraphQL Treasury API', function () {
     });
 
     it('paginates portfolios', function () {
+        Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         $user = User::factory()->create();
+        $user->assignRole('admin');
         for ($i = 0; $i < 3; $i++) {
             DB::table('asset_allocations')->insert([
                 'portfolio_id'   => Str::uuid()->toString(),

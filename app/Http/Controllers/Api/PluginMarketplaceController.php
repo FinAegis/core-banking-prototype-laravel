@@ -116,7 +116,7 @@ class PluginMarketplaceController extends Controller
             operationId: 'pluginMarketplaceEnable',
             tags: ['Plugin Marketplace'],
             summary: 'Enable a plugin',
-            description: 'Enables a disabled plugin',
+            description: 'Enables a disabled plugin. Requires admin privileges and ADMIN_RUNTIME_MANAGEMENT_ENABLED.',
             security: [['sanctum' => []]],
             parameters: [
             new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
@@ -129,6 +129,14 @@ class PluginMarketplaceController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Not an administrator'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Plugin not found, or runtime management is turned off (ADMIN_RUNTIME_MANAGEMENT_ENABLED)'
     )]
     public function enable(string $id): JsonResponse
     {
@@ -143,7 +151,7 @@ class PluginMarketplaceController extends Controller
             operationId: 'pluginMarketplaceDisable',
             tags: ['Plugin Marketplace'],
             summary: 'Disable a plugin',
-            description: 'Disables an active plugin',
+            description: 'Disables an active plugin. Requires admin privileges and ADMIN_RUNTIME_MANAGEMENT_ENABLED.',
             security: [['sanctum' => []]],
             parameters: [
             new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
@@ -156,6 +164,14 @@ class PluginMarketplaceController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Not an administrator'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Plugin not found, or runtime management is turned off (ADMIN_RUNTIME_MANAGEMENT_ENABLED)'
     )]
     public function disable(string $id): JsonResponse
     {
@@ -170,7 +186,7 @@ class PluginMarketplaceController extends Controller
             operationId: 'pluginMarketplaceDestroy',
             tags: ['Plugin Marketplace'],
             summary: 'Remove a plugin',
-            description: 'Removes a plugin from the system',
+            description: 'Removes a plugin from the system. Requires admin privileges and ADMIN_RUNTIME_MANAGEMENT_ENABLED.',
             security: [['sanctum' => []]],
             parameters: [
             new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
@@ -183,6 +199,14 @@ class PluginMarketplaceController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Not an administrator'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Plugin not found, or runtime management is turned off (ADMIN_RUNTIME_MANAGEMENT_ENABLED)'
     )]
     public function destroy(string $id): JsonResponse
     {
@@ -197,7 +221,7 @@ class PluginMarketplaceController extends Controller
             operationId: 'pluginMarketplaceScan',
             tags: ['Plugin Marketplace'],
             summary: 'Scan a plugin for security issues',
-            description: 'Runs security scanner on a specific plugin',
+            description: 'Runs security scanner on a specific plugin. Requires admin privileges and ADMIN_RUNTIME_MANAGEMENT_ENABLED.',
             security: [['sanctum' => []]],
             parameters: [
             new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
@@ -210,6 +234,14 @@ class PluginMarketplaceController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Not an administrator'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Plugin not found, or runtime management is turned off (ADMIN_RUNTIME_MANAGEMENT_ENABLED)'
     )]
     public function scan(string $id): JsonResponse
     {
@@ -229,7 +261,7 @@ class PluginMarketplaceController extends Controller
             operationId: 'pluginMarketplaceDiscover',
             tags: ['Plugin Marketplace'],
             summary: 'Discover new plugins',
-            description: 'Discovers new plugins from the filesystem',
+            description: 'Discovers new plugins from the filesystem. Requires admin privileges and ADMIN_RUNTIME_MANAGEMENT_ENABLED.',
             security: [['sanctum' => []]]
         )]
     #[OA\Response(
@@ -239,6 +271,14 @@ class PluginMarketplaceController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Not an administrator'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Not available: runtime management is turned off (ADMIN_RUNTIME_MANAGEMENT_ENABLED)'
     )]
     public function discover(): JsonResponse
     {

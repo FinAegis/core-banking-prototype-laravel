@@ -61,6 +61,7 @@ function opsVerifyEnvAllGoodConfig(): void
         'registration.api_enabled'           => false,
         'sms.enabled'                        => false,
         'trading.enabled'                    => false,
+        'modules.runtime_management_enabled' => false,
 
         // files — the repo ships storage/app/apple/AppleRootCA-G3.cer, whose
         // sha256 matches the default pinned fingerprint in config/subscription.php.
@@ -149,6 +150,7 @@ const OPS_VERIFY_ENV_SWITCHES = [
     'registration.api_enabled'           => 'REGISTRATION_API_ENABLED',
     'sms.enabled'                        => 'SMS_ENABLED',
     'trading.enabled'                    => 'TRADING_ENABLED',
+    'modules.runtime_management_enabled' => 'ADMIN_RUNTIME_MANAGEMENT_ENABLED',
 ];
 
 const OPS_VERIFY_ENV_MCP_TOOLS = [

@@ -41,7 +41,7 @@ First launch opens a browser for OAuth consent. The token persists in your OS ke
 | `ramp.start` | `ramp:write` | Start onramp/offramp |
 | `ramp.status` | `ramp:read` | Poll ramp status |
 | `mpp.discovery` | (public) | List supported payment rails |
-| `sms.send` | `sms:send` | Send SMS, paid per-message via x402 |
+| `sms.send` | `sms:send` | Send SMS (per-user and platform daily send limits; subject to spending limit) |
 
 ## Resources (read-context)
 

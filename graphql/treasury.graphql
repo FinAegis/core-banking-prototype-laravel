@@ -22,11 +22,14 @@ input RebalancePortfolioInput {
     threshold: Float
 }
 
-extend type Query {
+extend type Query @module(name: "Treasury") {
+    "Get an asset allocation by ID (operators only; asset allocations have no owner link)."
     portfolio(id: ID! @eq): AssetAllocation
         @find
+        @builder(method: "App\\GraphQL\\Builders\\StaffOnly@operators")
         @guard(with: ["sanctum"])
 
+    "List asset allocations (operators only; asset allocations have no owner link)."
     portfolios(
         page: Int @rules(apply: ["integer", "min:1"])
         first: Int @rules(apply: ["integer", "min:1", "max:100"])
@@ -34,6 +37,7 @@ extend type Query {
         portfolio_id: String @where(operator: "=")
     ): [AssetAllocation!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\Treasury\\Models\\AssetAllocation")
+        @builder(method: "App\\GraphQL\\Builders\\StaffOnly@operators")
         @guard(with: ["sanctum"])
 }
 

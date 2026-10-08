@@ -117,7 +117,7 @@ All of these must be true before submitting (rejection rate is high; the form do
 | `ramp.start` | Start an on/offramp session | destructiveHint (idempotent, spending-limited) | ramp:write |
 | `ramp.status` | Check on/offramp session status | readOnlyHint | ramp:read |
 | `mpp.discovery` | Multi-rail payment route discovery | readOnlyHint | (none — public) |
-| `sms.send` | Send an SMS (paid per-message via x402) | destructiveHint (idempotent, spending-limited — flat per-message charge) | sms:send |
+| `sms.send` | Send an SMS | destructiveHint (idempotent, spending-limited — flat per-message charge; daily send limits) | sms:send |
 | `wallet.addresses` | List wallet addresses | readOnlyHint | accounts:read |
 | `wallet.activity` | Recent wallet activity | readOnlyHint | accounts:read |
 

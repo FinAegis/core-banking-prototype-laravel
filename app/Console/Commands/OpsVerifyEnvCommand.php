@@ -27,7 +27,8 @@ use RuntimeException;
  * The `switches` category lists the production switches for demo-only or
  * platform-billed surfaces (direct ledger funding, mock custodian, card
  * waitlist deposits, generic gas sponsorship, API sign-ups, SMS, the MCP
- * money and SMS tools, the trading engine). Each WARNs in production while it is on
+ * money and SMS tools, the trading engine) and runtime module and plugin
+ * management by admins. Each WARNs in production while it is on
  * or while its env var is not set explicitly, so the operator sees the
  * effective value; none of them blocks a deploy.
  */
@@ -72,6 +73,7 @@ class OpsVerifyEnvCommand extends Command
         'registration.api_enabled'           => ['REGISTRATION_API_ENABLED', 'new accounts can be created through API, Privy and social sign-up'],
         'sms.enabled'                        => ['SMS_ENABLED', 'POST /api/v1/sms/send and MCP sms.send send SMS billed to the platform'],
         'trading.enabled'                    => ['TRADING_ENABLED', 'the demo trading engine (order book, liquidity pools, GraphQL placeOrder) is live'],
+        'modules.runtime_management_enabled' => ['ADMIN_RUNTIME_MANAGEMENT_ENABLED', 'admins can enable or disable modules and plugins at runtime (REST /api/v2/modules and /api/v2/plugins, GraphQL plugin mutations, admin panel), and a runtime module change overrides MODULES_DISABLED'],
     ];
 
     /**

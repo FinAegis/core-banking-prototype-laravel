@@ -102,7 +102,7 @@ class SmsSendTool implements MCPToolInterface
     /** @return array<string> */
     public function getCapabilities(): array
     {
-        return ['write', 'sms', 'communication', 'payment-required', 'mpp-gated'];
+        return ['write', 'sms', 'communication', 'daily-limits', 'spending-limits'];
     }
 
     public function isCacheable(): bool

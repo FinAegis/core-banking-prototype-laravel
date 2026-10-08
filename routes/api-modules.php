@@ -23,7 +23,9 @@ Route::prefix('v2/modules')->name('api.modules.')->group(function () {
         Route::get('/health', [ModuleController::class, 'health'])->name('health');
         Route::get('/{name}', [ModuleController::class, 'show'])->name('show');
 
-        Route::middleware('is_admin')->group(function () {
+        // Runtime module management: admins only, and only while
+        // ADMIN_RUNTIME_MANAGEMENT_ENABLED is on (404 otherwise).
+        Route::middleware(['feature:modules.runtime_management_enabled', 'is_admin'])->group(function () {
             Route::post('/{name}/enable', [ModuleController::class, 'enable'])->name('enable');
             Route::post('/{name}/disable', [ModuleController::class, 'disable'])->name('disable');
             Route::post('/{name}/verify', [ModuleController::class, 'verify'])->name('verify');
@@ -46,7 +48,9 @@ Route::prefix('v2/plugins')->name('api.plugins.')->group(function () {
         Route::get('/', [PluginMarketplaceController::class, 'index'])->name('index');
         Route::get('/{id}', [PluginMarketplaceController::class, 'show'])->name('show');
 
-        Route::middleware('is_admin')->group(function () {
+        // Runtime plugin management: admins only, and only while
+        // ADMIN_RUNTIME_MANAGEMENT_ENABLED is on (404 otherwise).
+        Route::middleware(['feature:modules.runtime_management_enabled', 'is_admin'])->group(function () {
             Route::post('/{id}/enable', [PluginMarketplaceController::class, 'enable'])->name('enable');
             Route::post('/{id}/disable', [PluginMarketplaceController::class, 'disable'])->name('disable');
             Route::delete('/{id}', [PluginMarketplaceController::class, 'destroy'])->name('destroy');

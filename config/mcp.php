@@ -35,7 +35,7 @@ return [
         'exchange:write'    => 'Execute exchange trades (idempotent; not yet counted against the daily spending limit)',
         'ramp:read'         => 'Read on/offramp session status',
         'ramp:write'        => 'Start on/offramp sessions (subject to spending limit)',
-        'sms:send'          => 'Send SMS messages (paid per-message via x402, subject to spending limit)',
+        'sms:send'          => 'Send SMS messages (subject to daily send limits and spending limit)',
     ],
 
     /*
@@ -82,7 +82,7 @@ return [
         // against the daily limit (no amount in the tool arguments). Sends
         // are billed to the platform and count against the unpaid SMS
         // limits (SmsSendBudget); off by default in production.
-        'sms.send' => ['internal' => 'sms.send',                       'title' => 'Send an SMS (paid via x402)',      'scope' => 'sms:send',          'enabled' => env('MCP_TOOL_SMS_SEND', env('APP_ENV', 'production') !== 'production'),            'is_write' => true,  'requires_user' => true, 'is_payment' => true,  'fixed_cost_minor' => (int) env('MCP_SMS_PRICE_MINOR', 10), 'fixed_cost_currency' => 'USD'],
+        'sms.send' => ['internal' => 'sms.send',                       'title' => 'Send an SMS',                      'scope' => 'sms:send',          'enabled' => env('MCP_TOOL_SMS_SEND', env('APP_ENV', 'production') !== 'production'),            'is_write' => true,  'requires_user' => true, 'is_payment' => true,  'fixed_cost_minor' => (int) env('MCP_SMS_PRICE_MINOR', 10), 'fixed_cost_currency' => 'USD'],
         // Wallet read tools: registered blockchain addresses + the mobile
         // activity feed. Both reuse the existing accounts:read scope — the
         // scope list has no wallet:read, and these are same-trust-tier reads

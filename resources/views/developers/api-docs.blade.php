@@ -1715,7 +1715,7 @@ curl -X POST \
                     <section id="interledger" class="mb-16">
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Interledger API</h2>
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>Cross-network value transfer with ILP connector, Open Payments (GNAP authorization), and cross-currency quotes. Bridge fiat and crypto payment networks seamlessly.</p>
+                            <p>Cross-network value transfer with ILP connector, Open Payments (GNAP authorization), and cross-currency quotes. Bridge fiat and crypto payment networks seamlessly. The quote, payment and connection endpoints are available to platform operators only.</p>
                         </div>
                         <div class="space-y-8">
                             <div class="border rounded-lg p-6">

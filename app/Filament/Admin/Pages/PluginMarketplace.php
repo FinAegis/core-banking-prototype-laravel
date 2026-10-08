@@ -107,6 +107,10 @@ class PluginMarketplace extends Page
      */
     public function enablePlugin(string $vendor, string $name): void
     {
+        if (! $this->runtimeManagementAllowed()) {
+            return;
+        }
+
         try {
             $result = $this->getPluginManager()->enable($vendor, $name);
 
@@ -147,6 +151,10 @@ class PluginMarketplace extends Page
      */
     public function disablePlugin(string $vendor, string $name): void
     {
+        if (! $this->runtimeManagementAllowed()) {
+            return;
+        }
+
         try {
             $result = $this->getPluginManager()->disable($vendor, $name);
 
@@ -238,6 +246,10 @@ class PluginMarketplace extends Page
      */
     public function discoverPlugins(): void
     {
+        if (! $this->runtimeManagementAllowed()) {
+            return;
+        }
+
         try {
             $result = $this->getPluginManager()->discover();
 
@@ -263,6 +275,25 @@ class PluginMarketplace extends Page
                 'error' => $e->getMessage(),
             ]);
         }
+    }
+
+    /**
+     * Plugin enable, disable and discovery need
+     * ADMIN_RUNTIME_MANAGEMENT_ENABLED; otherwise show a notice.
+     */
+    private function runtimeManagementAllowed(): bool
+    {
+        if ((bool) config('modules.runtime_management_enabled')) {
+            return true;
+        }
+
+        Notification::make()
+            ->title('Not Available')
+            ->body('Runtime plugin management is turned off (ADMIN_RUNTIME_MANAGEMENT_ENABLED).')
+            ->warning()
+            ->send();
+
+        return false;
     }
 
     /**

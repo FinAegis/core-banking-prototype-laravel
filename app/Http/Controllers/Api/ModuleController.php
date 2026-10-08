@@ -175,7 +175,7 @@ class ModuleController extends Controller
         path: '/api/v2/modules/{name}/enable',
         operationId: 'moduleEnable',
         summary: 'Enable a module',
-        description: 'Enables a previously disabled domain module. Requires admin privileges.',
+        description: 'Enables a previously disabled domain module. Requires admin privileges and ADMIN_RUNTIME_MANAGEMENT_ENABLED.',
         tags: ['Module Management'],
         security: [['sanctum' => []]],
         parameters: [
@@ -197,6 +197,14 @@ class ModuleController extends Controller
     #[OA\Response(
         response: 422,
         description: 'Enable failed'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Not an administrator'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Not available: runtime management is turned off (ADMIN_RUNTIME_MANAGEMENT_ENABLED)'
     )]
     public function enable(string $name): JsonResponse
     {
@@ -228,7 +236,7 @@ class ModuleController extends Controller
         path: '/api/v2/modules/{name}/disable',
         operationId: 'moduleDisable',
         summary: 'Disable a module',
-        description: 'Disables an active domain module. Core modules cannot be disabled. Requires admin privileges.',
+        description: 'Disables an active domain module. Core modules cannot be disabled. Requires admin privileges and ADMIN_RUNTIME_MANAGEMENT_ENABLED.',
         tags: ['Module Management'],
         security: [['sanctum' => []]],
         parameters: [
@@ -250,6 +258,14 @@ class ModuleController extends Controller
     #[OA\Response(
         response: 422,
         description: 'Disable failed'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Not an administrator'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Not available: runtime management is turned off (ADMIN_RUNTIME_MANAGEMENT_ENABLED)'
     )]
     public function disable(string $name): JsonResponse
     {
@@ -359,7 +375,7 @@ class ModuleController extends Controller
         path: '/api/v2/modules/{name}/verify',
         operationId: 'moduleVerify',
         summary: 'Verify module health',
-        description: 'Runs health verification checks on a specific module. Requires admin privileges.',
+        description: 'Runs health verification checks on a specific module. Requires admin privileges and ADMIN_RUNTIME_MANAGEMENT_ENABLED.',
         tags: ['Module Management'],
         security: [['sanctum' => []]],
         parameters: [
@@ -382,8 +398,12 @@ class ModuleController extends Controller
         description: 'Unauthorized'
     )]
     #[OA\Response(
+        response: 403,
+        description: 'Not an administrator'
+    )]
+    #[OA\Response(
         response: 404,
-        description: 'Module not found'
+        description: 'Module not found, or runtime management is turned off (ADMIN_RUNTIME_MANAGEMENT_ENABLED)'
     )]
     #[OA\Response(
         response: 503,

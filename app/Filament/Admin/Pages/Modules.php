@@ -120,6 +120,10 @@ class Modules extends Page
      */
     public function enableModule(string $domain): void
     {
+        if (! $this->runtimeManagementAllowed()) {
+            return;
+        }
+
         try {
             $result = $this->getDomainManager()->enable($domain);
 
@@ -161,6 +165,10 @@ class Modules extends Page
      */
     public function disableModule(string $domain): void
     {
+        if (! $this->runtimeManagementAllowed()) {
+            return;
+        }
+
         try {
             $result = $this->getDomainManager()->disable($domain);
 
@@ -268,6 +276,25 @@ class Modules extends Page
             ->body('Module cache has been refreshed.')
             ->success()
             ->send();
+    }
+
+    /**
+     * Runtime module changes write the domain_manager_disabled cache key, so
+     * they need ADMIN_RUNTIME_MANAGEMENT_ENABLED; otherwise show a notice.
+     */
+    private function runtimeManagementAllowed(): bool
+    {
+        if ((bool) config('modules.runtime_management_enabled')) {
+            return true;
+        }
+
+        Notification::make()
+            ->title('Not Available')
+            ->body('Runtime module management is turned off (ADMIN_RUNTIME_MANAGEMENT_ENABLED). Change MODULES_DISABLED in the environment instead.')
+            ->warning()
+            ->send();
+
+        return false;
     }
 
     /**
