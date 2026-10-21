@@ -69,12 +69,12 @@ it('PaymentRailRouter has getTransactionStatus method', function (): void {
     expect($reflection->hasMethod('getTransactionStatus'))->toBeTrue();
 });
 
-it('getTransactionStatus accepts one parameter', function (): void {
+it('getTransactionStatus takes the transaction id and the owner user id', function (): void {
     $reflection = new ReflectionClass(PaymentRailRouter::class);
     $method = $reflection->getMethod('getTransactionStatus');
 
-    expect($method->getNumberOfParameters())->toBe(1);
-    expect($method->getNumberOfRequiredParameters())->toBe(1);
+    expect($method->getNumberOfParameters())->toBe(2);
+    expect($method->getNumberOfRequiredParameters())->toBe(2);
 });
 
 // ── Behavioural tests ────────────────────────────────────────────────────────
@@ -120,7 +120,7 @@ it('getSupportedRails returns sepa and sepa_instant for other EU countries', fun
 });
 
 it('getTransactionStatus returns null for a non-existent transaction', function (): void {
-    $result = makeRouter()->getTransactionStatus('00000000-0000-0000-0000-000000000000');
+    $result = makeRouter()->getTransactionStatus('00000000-0000-0000-0000-000000000000', 1);
 
     expect($result)->toBeNull();
 });

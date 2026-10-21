@@ -7,13 +7,19 @@ namespace App\Http\Controllers\Api;
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Models\Account;
+use App\Domain\Custodian\Exceptions\CustodianNotAvailableException;
+use App\Domain\Custodian\Exceptions\CustodianNotFoundException;
 use App\Domain\Custodian\Models\CustodianAccount;
+use App\Domain\Custodian\Models\CustodianTransfer;
 use App\Domain\Custodian\Services\CustodianRegistry;
 use App\Domain\Custodian\Workflows\CustodianTransferWorkflow;
 use App\Http\Controllers\Controller;
+use App\Support\SecretRedactor;
+use App\Support\StaffRoles;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
 use Workflow\WorkflowStub;
 
@@ -107,6 +113,10 @@ class CustodianController extends Controller
         new OA\Property(property: 'message', type: 'string'),
         ])
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'The custodian account is not linked to an account the caller owns (operators may read any)'
+    )]
     public function accountInfo(Request $request, string $custodian): JsonResponse
     {
         $validated = $request->validate(
@@ -114,6 +124,10 @@ class CustodianController extends Controller
                 'account_id' => 'required|string',
             ]
         );
+
+        if (! $this->canReadCustodianAccount($request, $custodian, $validated['account_id'])) {
+            return $this->custodianAccountForbidden();
+        }
 
         try {
             $connector = $this->registry->get($custodian);
@@ -128,7 +142,7 @@ class CustodianController extends Controller
             return response()->json(
                 [
                     'error'   => 'Failed to retrieve account information',
-                    'message' => $e->getMessage(),
+                    'message' => $this->readFailureMessage($e, $custodian),
                 ],
                 400
             );
@@ -166,6 +180,10 @@ class CustodianController extends Controller
         response: 400,
         description: 'Invalid request or custodian error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'The custodian account is not linked to an account the caller owns (operators may read any)'
+    )]
     public function balance(Request $request, string $custodian): JsonResponse
     {
         $validated = $request->validate(
@@ -174,6 +192,10 @@ class CustodianController extends Controller
                 'asset_code' => 'required|string|size:3',
             ]
         );
+
+        if (! $this->canReadCustodianAccount($request, $custodian, $validated['account_id'])) {
+            return $this->custodianAccountForbidden();
+        }
 
         try {
             $connector = $this->registry->get($custodian);
@@ -193,7 +215,7 @@ class CustodianController extends Controller
             return response()->json(
                 [
                     'error'   => 'Failed to retrieve balance',
-                    'message' => $e->getMessage(),
+                    'message' => $this->readFailureMessage($e, $custodian),
                 ],
                 400
             );
@@ -375,6 +397,10 @@ class CustodianController extends Controller
         response: 400,
         description: 'Invalid request or custodian error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'The custodian account is not linked to an account the caller owns (operators may read any)'
+    )]
     public function transactionHistory(Request $request, string $custodian): JsonResponse
     {
         $validated = $request->validate(
@@ -384,6 +410,10 @@ class CustodianController extends Controller
                 'offset'     => 'nullable|integer|min:0',
             ]
         );
+
+        if (! $this->canReadCustodianAccount($request, $custodian, $validated['account_id'])) {
+            return $this->custodianAccountForbidden();
+        }
 
         try {
             $connector = $this->registry->get($custodian);
@@ -407,7 +437,7 @@ class CustodianController extends Controller
             return response()->json(
                 [
                     'error'   => 'Failed to retrieve transaction history',
-                    'message' => $e->getMessage(),
+                    'message' => $this->readFailureMessage($e, $custodian),
                 ],
                 400
             );
@@ -446,8 +476,22 @@ class CustodianController extends Controller
         response: 400,
         description: 'Invalid request or transaction not found'
     )]
-    public function transactionStatus(string $custodian, string $transactionId): JsonResponse
+    #[OA\Response(
+        response: 403,
+        description: 'The caller is not a party to the custodian transfer (operators may read any)'
+    )]
+    public function transactionStatus(Request $request, string $custodian, string $transactionId): JsonResponse
     {
+        if (! $this->canReadCustodianTransaction($request, $transactionId)) {
+            return response()->json(
+                [
+                    'message' => 'Access denied to this transaction',
+                    'error'   => 'FORBIDDEN',
+                ],
+                403
+            );
+        }
+
         try {
             $connector = $this->registry->get($custodian);
             $receipt = $connector->getTransactionStatus($transactionId);
@@ -461,10 +505,99 @@ class CustodianController extends Controller
             return response()->json(
                 [
                     'error'   => 'Failed to retrieve transaction status',
-                    'message' => $e->getMessage(),
+                    'message' => $this->readFailureMessage($e, $custodian),
                 ],
                 400
             );
         }
+    }
+
+    /**
+     * Custodian reads run with the platform's own custodian credentials, so
+     * a caller may read only a custodian account linked (active
+     * CustodianAccount row, the same link transfer() requires) to an
+     * internal account they own. Operators may read any.
+     */
+    private function canReadCustodianAccount(Request $request, string $custodian, string $custodianAccountId): bool
+    {
+        $user = $request->user();
+
+        if (StaffRoles::userHasAny($user, StaffRoles::OPERATORS)) {
+            return true;
+        }
+
+        $linkedAccountUuids = CustodianAccount::query()
+            ->where('custodian_name', $custodian)
+            ->where('custodian_account_id', $custodianAccountId)
+            ->where('status', CustodianAccount::STATUS_ACTIVE)
+            ->pluck('account_uuid');
+
+        foreach ($linkedAccountUuids as $accountUuid) {
+            if (Account::findOwnedBy((string) $accountUuid, $user) !== null) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * A custodian transaction status is readable by a party to the recorded
+     * custodian transfer (owner of its from/to internal account) or by an
+     * operator.
+     */
+    private function canReadCustodianTransaction(Request $request, string $transactionId): bool
+    {
+        $user = $request->user();
+
+        if (StaffRoles::userHasAny($user, StaffRoles::OPERATORS)) {
+            return true;
+        }
+
+        /** @var CustodianTransfer|null $transfer */
+        $transfer = CustodianTransfer::query()->whereKey($transactionId)->first();
+
+        if ($transfer === null) {
+            return false;
+        }
+
+        foreach ([$transfer->from_account_uuid, $transfer->to_account_uuid] as $accountUuid) {
+            if (Account::findOwnedBy((string) $accountUuid, $user) !== null) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function custodianAccountForbidden(): JsonResponse
+    {
+        return response()->json(
+            [
+                'message' => 'Access denied to this custodian account',
+                'error'   => 'FORBIDDEN',
+            ],
+            403
+        );
+    }
+
+    /**
+     * Registry errors (unknown or unavailable custodian) are ours and are
+     * returned as is; connector errors can carry upstream response bodies,
+     * so they are logged (redacted) and answered with a generic message.
+     */
+    private function readFailureMessage(Exception $e, string $custodian): string
+    {
+        if ($e instanceof CustodianNotFoundException || $e instanceof CustodianNotAvailableException) {
+            return $e->getMessage();
+        }
+
+        Log::warning('Custodian read failed', [
+            'custodian' => $custodian,
+            'exception' => $e::class,
+            'error'     => SecretRedactor::redact($e->getMessage()),
+        ]);
+
+        return 'The custodian request failed.';
     }
 }

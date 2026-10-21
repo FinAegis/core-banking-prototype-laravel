@@ -7,6 +7,7 @@ namespace Tests\Feature\Api\Banking;
 use App\Domain\Banking\Services\AccountVerificationService;
 use App\Domain\Banking\Services\BankTransferService;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\Sanctum;
 use Mockery\MockInterface;
 use Tests\TestCase;
@@ -37,21 +38,9 @@ class BankingControllerTest extends TestCase
     {
         Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
+        // Unknown ids are not owned by the caller: 404 before any status lookup.
         $this->mock(BankTransferService::class, function (MockInterface $mock): void {
-            $mock->shouldReceive('getStatus')
-                ->once()
-                ->with('bt_nonexistent')
-                ->andReturn([
-                    'transfer_id'    => 'bt_nonexistent',
-                    'status'         => 'not_found',
-                    'amount'         => 0,
-                    'currency'       => '',
-                    'reference'      => '',
-                    'type'           => '',
-                    'status_history' => [],
-                    'created_at'     => '',
-                    'updated_at'     => '',
-                ]);
+            $mock->shouldNotReceive('getStatus');
         });
 
         $response = $this->getJson('/api/v2/banks/transfer/bt_nonexistent/status');
@@ -63,6 +52,23 @@ class BankingControllerTest extends TestCase
     public function test_transfer_status_returns_data_for_existing_transfer(): void
     {
         Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+
+        // The status is readable by the user who initiated the transfer.
+        DB::table('bank_transfers')->insert([
+            'id'              => 'bt_existing',
+            'user_uuid'       => $this->user->uuid,
+            'from_bank_code'  => 'PAYSERA',
+            'from_account_id' => 'acc-1',
+            'to_bank_code'    => 'REVOLUT',
+            'to_account_id'   => 'acc-2',
+            'amount'          => 500,
+            'currency'        => 'EUR',
+            'type'            => 'SEPA',
+            'status'          => 'initiated',
+            'metadata'        => json_encode(['reference' => 'REF456', 'status_history' => []]),
+            'created_at'      => now(),
+            'updated_at'      => now(),
+        ]);
 
         $this->mock(BankTransferService::class, function (MockInterface $mock): void {
             $mock->shouldReceive('getStatus')

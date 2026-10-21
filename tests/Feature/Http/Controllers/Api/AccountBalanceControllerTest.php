@@ -8,6 +8,7 @@ use App\Domain\Asset\Models\Asset;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\Test;
+use Spatie\Permission\Models\Role;
 use Tests\ControllerTestCase;
 
 class AccountBalanceControllerTest extends ControllerTestCase
@@ -70,6 +71,15 @@ class AccountBalanceControllerTest extends ControllerTestCase
                 'metadata'     => ['symbol' => '₿'],
             ]
         );
+    }
+
+    private function operator(): User
+    {
+        Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        $operator = User::factory()->create();
+        $operator->assignRole('admin');
+
+        return $operator;
     }
 
     #[Test]
@@ -259,7 +269,8 @@ class AccountBalanceControllerTest extends ControllerTestCase
     #[Test]
     public function test_index_returns_all_balances(): void
     {
-        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+        // The platform-wide listing is for operators; regular users see their own accounts.
+        Sanctum::actingAs($this->operator(), ['read', 'write', 'delete']);
 
         // Create multiple accounts with balances
         $account2 = Account::factory()->create();
@@ -385,7 +396,8 @@ class AccountBalanceControllerTest extends ControllerTestCase
     #[Test]
     public function test_index_respects_limit_parameter(): void
     {
-        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+        // The platform-wide listing is for operators; regular users see their own accounts.
+        Sanctum::actingAs($this->operator(), ['read', 'write', 'delete']);
 
         // Create 5 balances
         for ($i = 1; $i <= 5; $i++) {
@@ -406,7 +418,8 @@ class AccountBalanceControllerTest extends ControllerTestCase
     #[Test]
     public function test_index_orders_by_balance_descending(): void
     {
-        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+        // The platform-wide listing is for operators; regular users see their own accounts.
+        Sanctum::actingAs($this->operator(), ['read', 'write', 'delete']);
 
         $account1 = Account::factory()->create();
         $account2 = Account::factory()->create();
@@ -441,7 +454,8 @@ class AccountBalanceControllerTest extends ControllerTestCase
     #[Test]
     public function test_index_calculates_asset_totals(): void
     {
-        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+        // The platform-wide listing is for operators; regular users see their own accounts.
+        Sanctum::actingAs($this->operator(), ['read', 'write', 'delete']);
 
         $account1 = Account::factory()->create();
         $account2 = Account::factory()->create();
@@ -528,7 +542,8 @@ class AccountBalanceControllerTest extends ControllerTestCase
     #[Test]
     public function test_index_includes_metadata_counts(): void
     {
-        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+        // The platform-wide listing is for operators; regular users see their own accounts.
+        Sanctum::actingAs($this->operator(), ['read', 'write', 'delete']);
 
         // Create 3 accounts
         $account1 = Account::factory()->create();

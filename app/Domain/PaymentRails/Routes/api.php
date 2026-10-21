@@ -44,8 +44,10 @@ Route::prefix('v1/payment-rails')->name('api.payment-rails.')->middleware(['auth
         ]);
     })->name('supported');
 
-    Route::get('/transactions/{id}', function (string $id): JsonResponse {
-        $result = app(PaymentRailRouter::class)->getTransactionStatus($id);
+    Route::get('/transactions/{id}', function (Request $request, string $id): JsonResponse {
+        /** @var App\Models\User $user */
+        $user = $request->user();
+        $result = app(PaymentRailRouter::class)->getTransactionStatus($id, (int) $user->id);
         if ($result === null) {
             return response()->json(['success' => false, 'error' => ['code' => 'NOT_FOUND', 'message' => 'Transaction not found']], 404);
         }

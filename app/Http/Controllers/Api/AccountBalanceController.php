@@ -8,6 +8,7 @@ use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Asset\Models\Asset;
 use App\Http\Controllers\Controller;
+use App\Support\StaffRoles;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -58,6 +59,14 @@ class AccountBalanceController extends Controller
         ])
     )]
     #[OA\Response(
+        response: 403,
+        description: 'The account belongs to another user',
+        content: new OA\JsonContent(properties: [
+        new OA\Property(property: 'message', type: 'string', example: 'Access denied to this account'),
+        new OA\Property(property: 'error', type: 'string', example: 'FORBIDDEN'),
+        ])
+    )]
+    #[OA\Response(
         response: 404,
         description: 'Account not found',
         content: new OA\JsonContent(properties: [
@@ -76,6 +85,18 @@ class AccountBalanceController extends Controller
                     'error'   => 'The specified account UUID was not found',
                 ],
                 404
+            );
+        }
+
+        // Only the account owner may read its balances (same response as
+        // the REST account endpoints).
+        if (! $account->isOwnedBy($request->user())) {
+            return response()->json(
+                [
+                    'message' => 'Access denied to this account',
+                    'error'   => 'FORBIDDEN',
+                ],
+                403
             );
         }
 
@@ -132,13 +153,13 @@ class AccountBalanceController extends Controller
             path: '/api/balances',
             operationId: 'listAllBalances',
             tags: ['Account Balances'],
-            summary: 'List all account balances',
-            description: 'Get balances across all accounts with filtering and aggregation options',
+            summary: 'List account balances',
+            description: 'Balances of the caller\'s own accounts with filtering and aggregation options; the totals in meta cover the same accounts. Operators (admin, super_admin, bank_admin) see every account, may filter by user_uuid and get platform-wide totals.',
             security: [['sanctum' => []]],
             parameters: [
             new OA\Parameter(name: 'asset', in: 'query', required: false, description: 'Filter by specific asset code', schema: new OA\Schema(type: 'string', example: 'USD')),
             new OA\Parameter(name: 'min_balance', in: 'query', required: false, description: 'Minimum balance filter (in smallest unit)', schema: new OA\Schema(type: 'integer', example: 1000)),
-            new OA\Parameter(name: 'user_uuid', in: 'query', required: false, description: 'Filter by account owner', schema: new OA\Schema(type: 'string', format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000')),
+            new OA\Parameter(name: 'user_uuid', in: 'query', required: false, description: 'Filter by account owner (operators; for other callers it only narrows their own accounts)', schema: new OA\Schema(type: 'string', format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000')),
             new OA\Parameter(name: 'limit', in: 'query', required: false, description: 'Number of results per page (max 100)', schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 100, example: 20)),
             ]
         )]
@@ -179,7 +200,26 @@ class AccountBalanceController extends Controller
             ]
         );
 
+        // Regular users see their own accounts only; operators keep the
+        // platform-wide view, the user_uuid filter and platform totals.
+        $user = $request->user();
+        $ownAccountUuids = null;
+
+        if (! StaffRoles::userHasAny($user, StaffRoles::OPERATORS)) {
+            $ownAccountUuids = array_values(
+                Account::query()
+                    ->where('user_uuid', (string) ($user->uuid ?? ''))
+                    ->pluck('uuid')
+                    ->map(static fn ($uuid): string => (string) $uuid)
+                    ->all()
+            );
+        }
+
         $query = AccountBalance::with(['account', 'asset']);
+
+        if ($ownAccountUuids !== null) {
+            $query->whereIn('account_uuid', $ownAccountUuids);
+        }
 
         // Apply filters
         if ($request->has('asset')) {
@@ -204,9 +244,14 @@ class AccountBalanceController extends Controller
         $balances = $query->orderBy('balance', 'desc')->limit($limit)->get();
 
         // Calculate aggregations
-        $totalAccounts = Account::count();
-        $totalBalances = AccountBalance::count();
-        $assetTotals = $this->calculateAssetTotals();
+        if ($ownAccountUuids === null) {
+            $totalAccounts = Account::count();
+            $totalBalances = AccountBalance::count();
+        } else {
+            $totalAccounts = count($ownAccountUuids);
+            $totalBalances = AccountBalance::query()->whereIn('account_uuid', $ownAccountUuids)->count();
+        }
+        $assetTotals = $this->calculateAssetTotals($ownAccountUuids);
 
         return response()->json(
             [
@@ -218,8 +263,8 @@ class AccountBalanceController extends Controller
                             'balance'      => $balance->balance,
                             'formatted'    => $this->formatAmount($balance->balance, $balance->asset),
                             'account'      => [
-                                'uuid'      => $balance->account->uuid,
-                                'user_uuid' => $balance->account->user_uuid,
+                                'uuid'      => $balance->account->uuid ?? $balance->account_uuid,
+                                'user_uuid' => $balance->account?->user_uuid,
                             ],
                         ];
                     }
@@ -266,36 +311,60 @@ class AccountBalanceController extends Controller
         return $total;
     }
 
-    private function calculateAssetTotals(): array
+    /**
+     * Summed balance per asset: platform-wide (cached) when $accountUuids is
+     * null, otherwise over those accounts only.
+     *
+     * @param  list<string>|null  $accountUuids
+     * @return array<string, string>
+     */
+    private function calculateAssetTotals(?array $accountUuids = null): array
     {
+        if ($accountUuids !== null) {
+            return $this->sumAssetTotals($accountUuids);
+        }
+
         return Cache::remember(
             'asset_totals',
             300,
-            function () {
-                $totals = AccountBalance::selectRaw('asset_code, SUM(balance) as total')
-                    ->groupBy('asset_code')
-                    ->with('asset')
-                    ->get()
-                    ->mapWithKeys(
-                        function ($item) {
-                            $asset = Asset::where('code', $item->asset_code)->first();
-                            if ($asset) {
-                                $formatted = number_format(
-                                    $item->total / (10 ** $asset->precision),
-                                    $asset->precision,
-                                    '.',
-                                    ''
-                                );
-
-                                return [$item->asset_code => $formatted];
-                            }
-
-                            return [$item->asset_code => (string) $item->total];
-                        }
-                    );
-
-                return $totals->toArray();
-            }
+            fn () => $this->sumAssetTotals(null)
         );
+    }
+
+    /**
+     * @param  list<string>|null  $accountUuids
+     * @return array<string, string>
+     */
+    private function sumAssetTotals(?array $accountUuids): array
+    {
+        $query = AccountBalance::selectRaw('asset_code, SUM(balance) as total');
+
+        if ($accountUuids !== null) {
+            $query->whereIn('account_uuid', $accountUuids);
+        }
+
+        $totals = $query
+            ->groupBy('asset_code')
+            ->with('asset')
+            ->get()
+            ->mapWithKeys(
+                function ($item) {
+                    $asset = Asset::where('code', $item->asset_code)->first();
+                    if ($asset) {
+                        $formatted = number_format(
+                            $item->total / (10 ** $asset->precision),
+                            $asset->precision,
+                            '.',
+                            ''
+                        );
+
+                        return [$item->asset_code => $formatted];
+                    }
+
+                    return [$item->asset_code => (string) $item->total];
+                }
+            );
+
+        return $totals->toArray();
     }
 }

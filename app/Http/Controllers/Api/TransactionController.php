@@ -261,6 +261,11 @@ class TransactionController extends Controller
         ])
     )]
     #[OA\Response(
+        response: 403,
+        description: 'The account belongs to another user',
+        content: new OA\JsonContent(ref: '#/components/schemas/Error')
+    )]
+    #[OA\Response(
         response: 404,
         description: 'Account not found',
         content: new OA\JsonContent(ref: '#/components/schemas/Error')
@@ -276,6 +281,18 @@ class TransactionController extends Controller
         );
 
         $account = Account::where('uuid', $uuid)->firstOrFail();
+
+        // Only the account owner may read its history (same response as
+        // deposit/withdraw).
+        if (! $account->isOwnedBy($request->user())) {
+            return response()->json(
+                [
+                    'message' => 'Access denied to this account',
+                    'error'   => 'FORBIDDEN',
+                ],
+                403
+            );
+        }
 
         // Build event classes to query based on filters
         $eventClasses = [

@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\TrustCert;
 
+use App\Domain\TrustCert\Services\CertificateAuthorityService;
 use App\Domain\TrustCert\Services\CertificateExportService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(
@@ -17,6 +19,7 @@ class CertificateController extends Controller
 {
     public function __construct(
         private readonly CertificateExportService $exportService,
+        private readonly CertificateAuthorityService $certificateAuthority,
     ) {
     }
 
@@ -36,12 +39,19 @@ class CertificateController extends Controller
         description: 'Successful operation'
     )]
     #[OA\Response(
+        response: 404,
+        description: 'Certificate not found or not held by the caller'
+    )]
+    #[OA\Response(
         response: 500,
         description: 'Server error'
     )]
-    public function show(string $certId): JsonResponse
+    public function show(Request $request, string $certId): JsonResponse
     {
-        $details = $this->exportService->getCertificateDetails($certId);
+        // Holder only: another holder's certificate answers like an unknown id.
+        $details = $this->isHeldByCaller($request, $certId)
+            ? $this->exportService->getCertificateDetails($certId)
+            : null;
 
         if (! $details) {
             return response()->json([
@@ -75,12 +85,20 @@ class CertificateController extends Controller
         description: 'Successful operation'
     )]
     #[OA\Response(
+        response: 404,
+        description: 'Certificate not found, not held by the caller, or PDF generation failed'
+    )]
+    #[OA\Response(
         response: 500,
         description: 'Server error'
     )]
-    public function exportPdf(string $certId): JsonResponse
+    public function exportPdf(Request $request, string $certId): JsonResponse
     {
-        $result = $this->exportService->exportToPdf($certId);
+        // Holder only: another holder's certificate answers like an unknown id
+        // (and no PDF is written).
+        $result = $this->isHeldByCaller($request, $certId)
+            ? $this->exportService->exportToPdf($certId)
+            : null;
 
         if (! $result) {
             return response()->json([
@@ -96,5 +114,10 @@ class CertificateController extends Controller
             'success' => true,
             'data'    => $result,
         ]);
+    }
+
+    private function isHeldByCaller(Request $request, string $certId): bool
+    {
+        return $this->certificateAuthority->getCertificate($certId)?->isHeldBy($request->user()) === true;
     }
 }

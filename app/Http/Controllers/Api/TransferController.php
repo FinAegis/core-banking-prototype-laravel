@@ -179,7 +179,7 @@ class TransferController extends Controller
     /**
      * Get transfer details.
      */
-    public function show(string $uuid): JsonResponse
+    public function show(Request $request, string $uuid): JsonResponse
     {
         // Since transfers are event sourced, we need to query stored_events
         $event = DB::table('stored_events')
@@ -187,7 +187,9 @@ class TransferController extends Controller
             ->where('aggregate_uuid', $uuid)
             ->first();
 
-        if (! $event) {
+        // Only a party to the transfer (owner of the sending or receiving
+        // account) may read it; anything else is "not found".
+        if (! $event || ! $this->userOwnsAnyAccount($request, $this->partyAccountUuids($event))) {
             abort(404, 'Transfer not found');
         }
 
@@ -211,9 +213,20 @@ class TransferController extends Controller
     /**
      * Get transfer history for an account.
      */
-    public function history(string $accountUuid): JsonResponse
+    public function history(Request $request, string $accountUuid): JsonResponse
     {
         $account = Account::where('uuid', $accountUuid)->firstOrFail();
+
+        // Only the account owner may read its transfer history.
+        if (! $account->isOwnedBy($request->user())) {
+            return response()->json(
+                [
+                    'message' => 'Access denied to this account',
+                    'error'   => 'FORBIDDEN',
+                ],
+                403
+            );
+        }
 
         // Since transfers are event sourced, we need to query stored_events
         $events = DB::table('stored_events')
@@ -255,5 +268,43 @@ class TransferController extends Controller
                 ],
             ]
         );
+    }
+
+    /**
+     * Account uuids that are a party to a stored transfer event: the
+     * aggregate itself plus the from/to accounts.
+     *
+     * @return list<string>
+     */
+    private function partyAccountUuids(object $event): array
+    {
+        $properties = json_decode((string) ($event->event_properties ?? ''), true);
+        $properties = is_array($properties) ? $properties : [];
+
+        $uuids = [
+            (string) ($event->aggregate_uuid ?? ''),
+            (string) ($properties['from_uuid'] ?? ''),
+            (string) ($properties['to_uuid'] ?? ''),
+            (string) ($properties['from']['uuid'] ?? ''),
+            (string) ($properties['to']['uuid'] ?? ''),
+        ];
+
+        return array_values(array_unique(array_filter($uuids, static fn (string $uuid): bool => $uuid !== '')));
+    }
+
+    /**
+     * @param  list<string>  $accountUuids
+     */
+    private function userOwnsAnyAccount(Request $request, array $accountUuids): bool
+    {
+        $user = $request->user();
+
+        foreach ($accountUuids as $uuid) {
+            if (Account::findOwnedBy($uuid, $user) !== null) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 /**
  * @method static \Illuminate\Database\Eloquent\Builder where(string $column, mixed $operator = null, mixed $value = null, string $boolean = 'and')
@@ -150,6 +151,43 @@ class FinancialInstitutionApplication extends Model
         'agreement_start_date'       => 'date',
         'agreement_end_date'         => 'date',
     ];
+
+    /**
+     * SHA-256 hash of the applicant's access token (see issueAccessToken).
+     *
+     * @var list<string>
+     */
+    protected $hidden = [
+        'access_token_hash',
+    ];
+
+    /**
+     * Issue a new access token for the public status and documents
+     * endpoints. Only its hash is stored; the plain token is returned once.
+     */
+    public function issueAccessToken(): string
+    {
+        $token = Str::random(48);
+
+        $this->forceFill(['access_token_hash' => hash('sha256', $token)])->save();
+
+        return $token;
+    }
+
+    /**
+     * Whether the given token is this application's access token.
+     * Applications without a stored token never match.
+     */
+    public function hasAccessToken(?string $token): bool
+    {
+        $storedHash = (string) ($this->getAttribute('access_token_hash') ?? '');
+
+        if ($storedHash === '' || $token === null || $token === '') {
+            return false;
+        }
+
+        return hash_equals($storedHash, hash('sha256', $token));
+    }
 
     /**
      * Available institution types.
