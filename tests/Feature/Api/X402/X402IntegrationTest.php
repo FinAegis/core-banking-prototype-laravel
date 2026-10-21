@@ -524,7 +524,9 @@ test('PUT /api/v1/x402/endpoints/{id} returns 404 for non-existent endpoint', fu
     $response->assertNotFound();
 });
 
-test('PUT /api/v1/x402/endpoints/{id} returns 404 for endpoint from different team', function () {
+// Prices apply platform-wide, so administrators manage every row
+// (GHSA-385w-q6j4-5qw6 C25).
+test('PUT /api/v1/x402/endpoints/{id} lets an administrator update an endpoint from a different team', function () {
     createAuthenticatedAdmin();
     $otherUser = User::factory()->withPersonalTeam()->create();
     $otherEndpoint = createEndpoint($otherUser, ['path' => 'api/v1/other/update']);
@@ -533,7 +535,7 @@ test('PUT /api/v1/x402/endpoints/{id} returns 404 for endpoint from different te
         'price' => '0.05',
     ]);
 
-    $response->assertNotFound();
+    $response->assertOk()->assertJsonPath('data.price', '0.05');
 });
 
 test('PUT /api/v1/x402/endpoints/{id} returns 422 for invalid price format', function () {
@@ -585,14 +587,15 @@ test('DELETE /api/v1/x402/endpoints/{id} returns 404 for non-existent endpoint',
     $response->assertNotFound();
 });
 
-test('DELETE /api/v1/x402/endpoints/{id} returns 404 for endpoint from different team', function () {
+test('DELETE /api/v1/x402/endpoints/{id} lets an administrator remove an endpoint from a different team', function () {
     createAuthenticatedAdmin();
     $otherUser = User::factory()->withPersonalTeam()->create();
     $otherEndpoint = createEndpoint($otherUser, ['path' => 'api/v1/other/delete']);
 
     $response = $this->deleteJson("/api/v1/x402/endpoints/{$otherEndpoint->id}");
 
-    $response->assertNotFound();
+    $response->assertNoContent();
+    $this->assertDatabaseMissing('x402_monetized_endpoints', ['id' => $otherEndpoint->id]);
 });
 
 // ================================================================

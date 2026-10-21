@@ -54,6 +54,8 @@ type X402MonetizedEndpoint @model(class: "App\\Domain\\X402\\Models\\X402Monetiz
     mime_type: String!
     "Whether the endpoint currently requires payment."
     is_active: Boolean!
+    "Team that created the price row (prices apply platform-wide); null for platform rows."
+    team_id: Int
     created_at: DateTime!
     updated_at: DateTime!
 }

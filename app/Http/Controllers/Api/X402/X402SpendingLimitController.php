@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\X402;
 
 use App\Domain\X402\Models\X402SpendingLimit;
 use App\Http\Controllers\Controller;
+use App\Support\MachinePaymentScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -16,7 +17,8 @@ use OpenApi\Attributes as OA;
  * X402 Agent Spending Limit Controller.
  *
  * Manages per-agent spending limits for the x402 client mode
- * (AI agents making payments to external APIs).
+ * (AI agents making payments to external APIs). Limits belong to the
+ * caller's current team, or to the caller alone without a team.
  */
 #[OA\Tag(
     name: 'X402 Spending Limits',
@@ -48,7 +50,7 @@ class X402SpendingLimitController extends Controller
     {
         $perPage = min(max((int) $request->input('per_page', 20), 1), 100);
 
-        $limits = X402SpendingLimit::where('team_id', $request->user()?->currentTeam?->id)
+        $limits = MachinePaymentScope::spendingLimits(X402SpendingLimit::query(), $request->user())
             ->orderBy('agent_id')
             ->paginate($perPage);
 
@@ -109,10 +111,10 @@ class X402SpendingLimitController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $teamId = $request->user()?->currentTeam?->id;
+        $owner = MachinePaymentScope::limitOwner($request->user());
 
-        $existing = X402SpendingLimit::where('agent_id', $request->input('agent_id'))
-            ->where('team_id', $teamId)
+        $existing = MachinePaymentScope::spendingLimits(X402SpendingLimit::query(), $request->user())
+            ->where('agent_id', $request->input('agent_id'))
             ->first();
 
         if ($existing) {
@@ -128,7 +130,8 @@ class X402SpendingLimitController extends Controller
         } else {
             $limit = X402SpendingLimit::create([
                 'agent_id'              => $request->input('agent_id'),
-                'team_id'               => $teamId,
+                'team_id'               => $owner['team_id'],
+                'user_id'               => $owner['user_id'],
                 'agent_type'            => $request->input('agent_type', 'default'),
                 'daily_limit'           => $request->input('daily_limit'),
                 'per_transaction_limit' => $request->input('per_transaction_limit', config('x402.agent_spending.default_per_transaction_limit')),
@@ -170,8 +173,8 @@ class X402SpendingLimitController extends Controller
     )]
     public function show(Request $request, string $agentId): JsonResponse
     {
-        $limit = X402SpendingLimit::where('agent_id', $agentId)
-            ->where('team_id', $request->user()?->currentTeam?->id)
+        $limit = MachinePaymentScope::spendingLimits(X402SpendingLimit::query(), $request->user())
+            ->where('agent_id', $agentId)
             ->firstOrFail();
 
         return response()->json([
@@ -214,8 +217,8 @@ class X402SpendingLimitController extends Controller
     )]
     public function update(Request $request, string $agentId): JsonResponse
     {
-        $limit = X402SpendingLimit::where('agent_id', $agentId)
-            ->where('team_id', $request->user()?->currentTeam?->id)
+        $limit = MachinePaymentScope::spendingLimits(X402SpendingLimit::query(), $request->user())
+            ->where('agent_id', $agentId)
             ->firstOrFail();
 
         $validator = Validator::make($request->all(), [
@@ -263,8 +266,8 @@ class X402SpendingLimitController extends Controller
     )]
     public function destroy(Request $request, string $agentId): Response
     {
-        $limit = X402SpendingLimit::where('agent_id', $agentId)
-            ->where('team_id', $request->user()?->currentTeam?->id)
+        $limit = MachinePaymentScope::spendingLimits(X402SpendingLimit::query(), $request->user())
+            ->where('agent_id', $agentId)
             ->firstOrFail();
         $limit->delete();
 

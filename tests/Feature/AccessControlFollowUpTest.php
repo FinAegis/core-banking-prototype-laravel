@@ -953,28 +953,27 @@ describe('MPP client spending limits', function (): void {
             ->and($rows->first()?->spent_today)->toBe(50);
     });
 
-    it('refuses an agent id whose limit belongs to another team', function (): void {
+    it('never uses or charges another team\'s limit for the same agent id', function (): void {
         [, $otherTeamId] = acfTeamUser();
         $other = acfMppLimit('shared-agent', $otherTeamId, ['daily_limit' => 1000000, 'per_tx_limit' => 1000000]);
-        [$caller] = acfTeamUser();
+        [$caller, $callerTeamId] = acfTeamUser();
 
         $this->actingAs($caller);
-        expect(fn () => $this->mppClient->handlePaymentRequired($this->mppHeader, 'shared-agent'))
-            ->toThrow(MppSettlementException::class, "has no spending limit for the caller's team");
+        $this->mppClient->handlePaymentRequired($this->mppHeader, 'shared-agent');
 
         expect($other->fresh()?->spent_today)->toBe(0)
-            ->and(MppSpendingLimit::where('agent_id', 'shared-agent')->count())->toBe(1);
+            ->and(MppSpendingLimit::where('agent_id', 'shared-agent')->where('team_id', $callerTeamId)->sole()->spent_today)->toBe(50);
     });
 
     it('does not let a team caller use a limit stored without a team', function (): void {
         $teamless = acfMppLimit('legacy-agent', null);
-        [$caller] = acfTeamUser();
+        [$caller, $callerTeamId] = acfTeamUser();
 
         $this->actingAs($caller);
-        expect(fn () => $this->mppClient->handlePaymentRequired($this->mppHeader, 'legacy-agent'))
-            ->toThrow(MppSettlementException::class, "has no spending limit for the caller's team");
+        $this->mppClient->handlePaymentRequired($this->mppHeader, 'legacy-agent');
 
-        expect($teamless->fresh()?->spent_today)->toBe(0);
+        expect($teamless->fresh()?->spent_today)->toBe(0)
+            ->and(MppSpendingLimit::where('agent_id', 'legacy-agent')->where('team_id', $callerTeamId)->sole()->spent_today)->toBe(50);
     });
 
     it('keeps using limits stored without a team when there is no signed-in user', function (): void {
@@ -1003,9 +1002,10 @@ describe('MPP spending-limit endpoints', function (): void {
         Sanctum::actingAs($other, ['read', 'write', 'delete']);
         expect($this->getJson('/api/v1/mpp/spending-limits')->assertOk()->json('data'))->toBe([]);
 
+        // Agent ids are per team: this creates the other team's own row.
         $this->postJson('/api/v1/mpp/spending-limits', ['agent_id' => 'owner-agent', 'daily_limit' => 999999, 'per_tx_limit' => 999999])
-            ->assertStatus(409)
-            ->assertJsonPath('success', false);
+            ->assertCreated()
+            ->assertJsonPath('data.team_id', $other->currentTeam?->id);
         $this->deleteJson('/api/v1/mpp/spending-limits/owner-agent')->assertOk();
 
         expect($row?->fresh()?->daily_limit)->toBe(5000);

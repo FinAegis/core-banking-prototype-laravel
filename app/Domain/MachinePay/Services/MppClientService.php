@@ -9,7 +9,8 @@ use App\Domain\MachinePay\DataObjects\MppCredential;
 use App\Domain\MachinePay\Exceptions\MppException;
 use App\Domain\MachinePay\Exceptions\MppSettlementException;
 use App\Domain\MachinePay\Models\MppSpendingLimit;
-use App\Models\User;
+use App\Support\MachinePaymentScope;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -55,7 +56,7 @@ class MppClientService
         }
 
         // Enforce spending limits
-        $this->enforceSpendingLimit($agentId, $challenge->amountCents, $this->callerTeamId());
+        $this->enforceSpendingLimit($agentId, $challenge->amountCents, Auth::user());
 
         // Generate a credential (in demo mode, simulated proof)
         $credential = new MppCredential(
@@ -122,53 +123,27 @@ class MppClientService
     }
 
     /**
-     * The current team of the signed-in user, the team spending limits are
-     * stored under (same lookup as the spending-limit endpoints); null
-     * without a signed-in user or team.
-     */
-    private function callerTeamId(): ?int
-    {
-        $user = Auth::user();
-
-        if (! $user instanceof User) {
-            return null;
-        }
-
-        $teamId = $user->currentTeam?->id;
-
-        return $teamId !== null ? (int) $teamId : null;
-    }
-
-    /**
      * Enforce agent spending limits with row-level locking.
      *
-     * The limit is the one stored for the agent under the caller's team
-     * (team_id null for a caller without a team). Without one, a default
-     * limit is created under that same team. Agent ids are unique across
-     * teams, so an agent id whose limit belongs to another team (or to no
-     * team, for a team caller) is refused rather than shared.
+     * The limit is the one stored for the agent under the caller's team, or
+     * for the caller alone without a team (same lookup as the spending-limit
+     * endpoints, {@see MachinePaymentScope::spendingLimits()}). Without one,
+     * a default limit is created under that same owner. Agent ids are
+     * unique per owner, so another team's limit for the same agent id is
+     * never used or charged.
      *
      * @throws MppSettlementException
      */
-    private function enforceSpendingLimit(string $agentId, int $amountCents, ?int $teamId): void
+    private function enforceSpendingLimit(string $agentId, int $amountCents, ?Authenticatable $user): void
     {
-        DB::transaction(function () use ($agentId, $amountCents, $teamId): void {
+        DB::transaction(function () use ($agentId, $amountCents, $user): void {
             /** @var MppSpendingLimit|null $limit */
-            $limit = MppSpendingLimit::where('agent_id', $agentId)
-                ->when(
-                    $teamId !== null,
-                    fn ($query) => $query->where('team_id', $teamId),
-                    fn ($query) => $query->whereNull('team_id'),
-                )
+            $limit = MachinePaymentScope::spendingLimits(MppSpendingLimit::where('agent_id', $agentId), $user)
                 ->lockForUpdate()
                 ->first();
 
             if ($limit === null) {
-                if (MppSpendingLimit::where('agent_id', $agentId)->exists()) {
-                    throw MppSettlementException::spendingLimitUnavailable($agentId);
-                }
-
-                // Create the default limit under the caller's team.
+                // Create the default limit under the caller's team (or user).
                 $limit = MppSpendingLimit::create([
                     'agent_id'     => $agentId,
                     'daily_limit'  => (int) config('machinepay.agent_spending.default_daily_limit', 5000),
@@ -176,7 +151,7 @@ class MppClientService
                     'spent_today'  => 0,
                     'auto_pay'     => (bool) config('machinepay.client.auto_pay', false),
                     'last_reset'   => now()->toDateString(),
-                    'team_id'      => $teamId,
+                    ...MachinePaymentScope::limitOwner($user),
                 ]);
             }
 

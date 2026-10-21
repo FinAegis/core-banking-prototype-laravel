@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\X402;
 
 use App\Domain\X402\Models\X402MonetizedEndpoint;
 use App\Http\Controllers\Controller;
+use App\Support\MachinePaymentScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -18,6 +19,8 @@ use OpenApi\Attributes as OA;
  * X402 Monetized Endpoint Management Controller.
  *
  * Manages which API endpoints require x402 payment and their pricing.
+ * Prices apply platform-wide, so administrators (StaffRoles::ADMINS) read
+ * and manage every row; other users read their current team's rows only.
  */
 #[OA\Tag(
     name: 'X402 Endpoints',
@@ -31,6 +34,7 @@ class X402EndpointController extends Controller
     #[OA\Get(
         path: '/api/v1/x402/endpoints',
         summary: 'List monetized endpoints',
+        description: 'Every monetized endpoint for platform administrators (admin, super_admin); the rows of the caller\'s current team otherwise (none without a team).',
         tags: ['X402 Endpoints'],
         security: [['sanctum' => []]],
         parameters: [
@@ -49,8 +53,7 @@ class X402EndpointController extends Controller
     )]
     public function index(Request $request): JsonResponse
     {
-        $query = X402MonetizedEndpoint::query()
-            ->where('team_id', $request->user()?->currentTeam?->id);
+        $query = MachinePaymentScope::teamRecords(X402MonetizedEndpoint::query(), $request->user());
 
         if ($request->filled('active')) {
             $query->where('is_active', $request->boolean('active'));
@@ -147,6 +150,7 @@ class X402EndpointController extends Controller
     #[OA\Get(
         path: '/api/v1/x402/endpoints/{id}',
         summary: 'Get monetized endpoint details',
+        description: 'Any monetized endpoint for platform administrators (admin, super_admin); a row of the caller\'s current team otherwise; 404 for anything else.',
         tags: ['X402 Endpoints'],
         security: [['sanctum' => []]],
         parameters: [
@@ -167,7 +171,7 @@ class X402EndpointController extends Controller
     )]
     public function show(Request $request, string $id): JsonResponse
     {
-        $endpoint = X402MonetizedEndpoint::where('team_id', $request->user()?->currentTeam?->id)
+        $endpoint = MachinePaymentScope::teamRecords(X402MonetizedEndpoint::query(), $request->user())
             ->findOrFail($id);
 
         return response()->json([
@@ -181,6 +185,7 @@ class X402EndpointController extends Controller
     #[OA\Put(
         path: '/api/v1/x402/endpoints/{id}',
         summary: 'Update monetized endpoint pricing or status',
+        description: 'Administrators only (admin, super_admin). Prices apply platform-wide, so any monetized endpoint can be updated, whichever team created it.',
         tags: ['X402 Endpoints'],
         security: [['sanctum' => []]],
         parameters: [
@@ -218,7 +223,8 @@ class X402EndpointController extends Controller
     )]
     public function update(Request $request, string $id): JsonResponse
     {
-        $endpoint = X402MonetizedEndpoint::where('team_id', $request->user()?->currentTeam?->id)
+        // Administrators only (route middleware): any row, whatever the team.
+        $endpoint = MachinePaymentScope::teamRecords(X402MonetizedEndpoint::query(), $request->user())
             ->findOrFail($id);
 
         $validator = Validator::make($request->all(), [
@@ -255,6 +261,7 @@ class X402EndpointController extends Controller
     #[OA\Delete(
         path: '/api/v1/x402/endpoints/{id}',
         summary: 'Remove monetization from an endpoint',
+        description: 'Administrators only (admin, super_admin). Prices apply platform-wide, so any monetized endpoint can be removed, whichever team created it.',
         tags: ['X402 Endpoints'],
         security: [['sanctum' => []]],
         parameters: [
@@ -279,7 +286,8 @@ class X402EndpointController extends Controller
     )]
     public function destroy(Request $request, string $id): Response
     {
-        $endpoint = X402MonetizedEndpoint::where('team_id', $request->user()?->currentTeam?->id)
+        // Administrators only (route middleware): any row, whatever the team.
+        $endpoint = MachinePaymentScope::teamRecords(X402MonetizedEndpoint::query(), $request->user())
             ->findOrFail($id);
 
         Cache::forget("x402:route:{$endpoint->method}:{$endpoint->path}");

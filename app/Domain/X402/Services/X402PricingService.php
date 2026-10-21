@@ -28,9 +28,13 @@ class X402PricingService
         $path = '/' . ltrim($request->path(), '/');
 
         return Cache::remember("x402:route:{$method}:{$path}", 60, function () use ($method, $path): ?MonetizedRouteConfig {
+            // Rows of several teams can match one route (unique per team);
+            // the oldest active row wins, never an arbitrary one.
             $endpoint = X402MonetizedEndpoint::query()
                 ->active()
                 ->forRoute($method, $path)
+                ->orderBy('created_at')
+                ->orderBy('id')
                 ->first();
 
             return $endpoint?->toMonetizedRouteConfig();

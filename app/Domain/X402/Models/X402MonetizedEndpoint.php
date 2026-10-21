@@ -143,6 +143,7 @@ class X402MonetizedEndpoint extends Model
             'mimeType'    => $this->mime_type,
             'isActive'    => $this->is_active,
             'extra'       => $this->extra,
+            'teamId'      => $this->team_id,
             'createdAt'   => $this->created_at->toIso8601String(),
             'updatedAt'   => $this->updated_at->toIso8601String(),
         ];

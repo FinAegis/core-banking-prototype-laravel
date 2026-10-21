@@ -7,15 +7,17 @@ namespace App\Http\Controllers\Api\X402;
 use App\Domain\X402\Enums\SettlementStatus;
 use App\Domain\X402\Models\X402Payment;
 use App\Http\Controllers\Controller;
+use App\Support\MachinePaymentScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use OpenApi\Attributes as OA;
 
 /**
  * X402 Payment History Controller.
  *
- * Provides read access to x402 payment records and statistics.
+ * Provides read access to x402 payment records and statistics: the records
+ * of the caller's current team (none without a team), or every record for
+ * platform administrators (StaffRoles::ADMINS).
  */
 #[OA\Tag(
     name: 'X402 Payments',
@@ -29,6 +31,7 @@ class X402PaymentController extends Controller
     #[OA\Get(
         path: '/api/v1/x402/payments',
         summary: 'List x402 payment records',
+        description: 'Payments recorded for the caller\'s current team (none without a team), or every payment for platform administrators (admin, super_admin).',
         tags: ['X402 Payments'],
         security: [['sanctum' => []]],
         parameters: [
@@ -48,8 +51,7 @@ class X402PaymentController extends Controller
     )]
     public function index(Request $request): JsonResponse
     {
-        $query = X402Payment::query()
-            ->where('team_id', $request->user()?->currentTeam?->id);
+        $query = MachinePaymentScope::teamRecords(X402Payment::query(), $request->user());
 
         if ($request->filled('status')) {
             $status = SettlementStatus::tryFrom($request->input('status'));
@@ -91,6 +93,7 @@ class X402PaymentController extends Controller
     #[OA\Get(
         path: '/api/v1/x402/payments/{id}',
         summary: 'Get x402 payment details',
+        description: 'A payment recorded for the caller\'s current team, or any payment for platform administrators (admin, super_admin); 404 otherwise.',
         tags: ['X402 Payments'],
         security: [['sanctum' => []]],
         parameters: [
@@ -111,7 +114,7 @@ class X402PaymentController extends Controller
     )]
     public function show(Request $request, string $id): JsonResponse
     {
-        $payment = X402Payment::where('team_id', $request->user()?->currentTeam?->id)
+        $payment = MachinePaymentScope::teamRecords(X402Payment::query(), $request->user())
             ->findOrFail($id);
 
         return response()->json([
@@ -125,6 +128,7 @@ class X402PaymentController extends Controller
     #[OA\Get(
         path: '/api/v1/x402/payments/stats',
         summary: 'Get x402 payment statistics',
+        description: 'Statistics over the payments recorded for the caller\'s current team (zero without a team), or over every payment for platform administrators (admin, super_admin).',
         tags: ['X402 Payments'],
         security: [['sanctum' => []]],
         parameters: [
@@ -172,8 +176,8 @@ class X402PaymentController extends Controller
         };
 
         /** @var object{total_payments: int, total_settled: int, total_failed: int, total_volume_atomic: string, unique_payers: int} $stats */
-        $stats = DB::table('x402_payments')
-            ->where('team_id', $request->user()?->currentTeam?->id)
+        $stats = MachinePaymentScope::teamRecords(X402Payment::query(), $request->user())
+            ->toBase()
             ->where('created_at', '>=', $since)
             ->selectRaw('COUNT(*) as total_payments')
             ->selectRaw("SUM(CASE WHEN status = 'settled' THEN 1 ELSE 0 END) as total_settled")

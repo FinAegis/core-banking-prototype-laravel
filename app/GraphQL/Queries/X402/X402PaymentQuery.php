@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\GraphQL\Queries\X402;
 
 use App\Domain\X402\Models\X402Payment;
+use App\Support\MachinePaymentScope;
+use Illuminate\Support\Facades\Auth;
 
 class X402PaymentQuery
 {
@@ -14,9 +16,8 @@ class X402PaymentQuery
      */
     public function __invoke($_, array $args): ?X402Payment
     {
-        $teamId = auth()->user()?->currentTeam?->id;
-
+        // The caller's team's payment (any payment for administrators).
         /** @var X402Payment|null */
-        return X402Payment::where('team_id', $teamId)->find($args['id']);
+        return MachinePaymentScope::teamRecords(X402Payment::query(), Auth::user())->find($args['id']);
     }
 }

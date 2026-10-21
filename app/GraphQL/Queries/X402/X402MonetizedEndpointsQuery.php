@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\GraphQL\Queries\X402;
 
 use App\Domain\X402\Models\X402MonetizedEndpoint;
+use App\Support\MachinePaymentScope;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 
 class X402MonetizedEndpointsQuery
 {
@@ -18,17 +20,17 @@ class X402MonetizedEndpointsQuery
      */
     public function __invoke($_, array $args): X402MonetizedEndpoint|LengthAwarePaginator|null
     {
-        $teamId = auth()->user()?->currentTeam?->id;
+        // Prices apply platform-wide: administrators see every row, other
+        // users their current team's rows (none without a team).
+        $query = MachinePaymentScope::teamRecords(X402MonetizedEndpoint::query(), Auth::user());
 
         // Single endpoint lookup by ID
         if (isset($args['id'])) {
             /** @var X402MonetizedEndpoint|null */
-            return X402MonetizedEndpoint::where('team_id', $teamId)->find($args['id']);
+            return $query->find($args['id']);
         }
 
         // Paginated list
-        $query = X402MonetizedEndpoint::where('team_id', $teamId);
-
         if (isset($args['is_active'])) {
             $query->where('is_active', $args['is_active']);
         }

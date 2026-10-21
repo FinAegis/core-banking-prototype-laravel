@@ -100,7 +100,11 @@ class X402GraphQLTest extends TestCase
         $this->assertSame($this->teamId, $endpoint->team_id);
     }
 
-    public function test_update_endpoint_rejects_cross_tenant(): void
+    /**
+     * Prices apply platform-wide, so administrators manage every row,
+     * whichever team created it (GHSA-385w-q6j4-5qw6 C25).
+     */
+    public function test_admin_updates_endpoint_of_another_team(): void
     {
         $this->makeUserAdmin();
 
@@ -130,12 +134,13 @@ class X402GraphQLTest extends TestCase
             'variables' => ['id' => $otherEndpoint->id],
         ]);
 
-        // Should get an error (model not found for this team)
         $response->assertOk();
-        $this->assertNotNull($response->json('errors'));
+        $this->assertNull($response->json('errors'));
+        $this->assertSame('0.99', $response->json('data.updateX402MonetizedEndpoint.price'));
+        $this->assertDatabaseHas('x402_monetized_endpoints', ['id' => $otherEndpoint->id, 'price' => '0.99']);
     }
 
-    public function test_delete_endpoint_rejects_cross_tenant(): void
+    public function test_admin_deletes_endpoint_of_another_team(): void
     {
         $this->makeUserAdmin();
 
@@ -161,10 +166,8 @@ class X402GraphQLTest extends TestCase
         ]);
 
         $response->assertOk();
-        $this->assertNotNull($response->json('errors'));
-
-        // Endpoint should still exist
-        $this->assertDatabaseHas('x402_monetized_endpoints', ['id' => $otherEndpoint->id]);
+        $this->assertNull($response->json('errors'));
+        $this->assertDatabaseMissing('x402_monetized_endpoints', ['id' => $otherEndpoint->id]);
     }
 
     // ----------------------------------------------------------------
