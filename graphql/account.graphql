@@ -14,7 +14,7 @@ input CreateAccountInput {
     name: String!
 }
 
-extend type Query {
+extend type Query @module(name: "Account") {
     account(id: ID! @eq): Account
         @find
         @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userUuid")
@@ -39,7 +39,7 @@ input FreezeAccountInput {
     reason: String
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "Account") {
     createAccount(input: CreateAccountInput! @spread): Account!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Account\\CreateAccountMutation")

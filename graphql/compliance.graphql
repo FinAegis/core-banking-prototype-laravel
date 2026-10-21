@@ -60,7 +60,7 @@ type ComplianceCase @model(class: "App\\Domain\\Compliance\\Models\\ComplianceCa
     updated_at: DateTime!
 }
 
-extend type Query {
+extend type Query @module(name: "Compliance") {
     kycVerification(id: ID! @eq): KycVerification
         @find
         @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")
@@ -122,7 +122,7 @@ input TriggerAmlCheckInput {
     check_type: String
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "Compliance") {
     submitKycDocument(input: SubmitKycDocumentInput! @spread): KycVerification!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Compliance\\SubmitKycDocumentMutation")

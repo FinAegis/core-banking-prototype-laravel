@@ -64,7 +64,7 @@ input IlpOutgoingPaymentInput {
     grant_token: String!
 }
 
-extend type Query {
+extend type Query @module(name: "Interledger") {
     "List assets supported by the ILP connector."
     ilpSupportedAssets: [IlpAsset!]!
         @guard(with: ["sanctum"])

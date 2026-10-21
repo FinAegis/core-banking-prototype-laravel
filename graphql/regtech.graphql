@@ -42,7 +42,7 @@ type ComplianceSummary {
     last_check: DateTime
 }
 
-extend type Query {
+extend type Query @module(name: "RegTech") {
     regulatoryEndpoint(id: ID! @eq): RegulatoryEndpoint
         @find
         @guard(with: ["sanctum"])
@@ -84,7 +84,7 @@ input SubmitRegulatoryReportInput {
     report_data: String!
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "RegTech") {
     submitRegulatoryReport(input: SubmitRegulatoryReportInput! @spread): String!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\RegTech\\SubmitRegulatoryReportMutation")

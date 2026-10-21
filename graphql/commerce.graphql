@@ -30,7 +30,7 @@ type SoulboundTokenResult {
     is_valid: Boolean!
 }
 
-extend type Query {
+extend type Query @module(name: "Commerce") {
     merchant(id: ID! @eq): Merchant
         @find
         @guard(with: ["sanctum"])
@@ -76,7 +76,7 @@ input IssueSoulboundTokenInput {
     metadata: String
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "Commerce") {
     submitMerchantApplication(input: SubmitMerchantApplicationInput! @spread): Merchant!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Commerce\\SubmitMerchantApplicationMutation")

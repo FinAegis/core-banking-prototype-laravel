@@ -48,7 +48,7 @@ type SendSmsResult {
     price_usdc: String!
 }
 
-extend type Query {
+extend type Query @module(name: "SMS") {
     "Get an SMS send record by provider message ID (operators only; senders use GET /api/v1/sms/status/{messageId})."
     smsStatus(messageId: String! @eq(key: "provider_id")): SmsMessage
         @find(model: "App\\Domain\\SMS\\Models\\SmsMessage")

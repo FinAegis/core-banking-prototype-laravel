@@ -26,7 +26,7 @@ type ExchangeRate @model(class: "App\\Domain\\Asset\\Models\\ExchangeRate") {
     updated_at: DateTime!
 }
 
-extend type Query {
+extend type Query @module(name: "Asset") {
     asset(id: ID! @eq): Asset
         @find
         @guard(with: ["sanctum"])
@@ -71,7 +71,7 @@ input InitiateAssetTransferInput {
     amount: Float!
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "Asset") {
     initiateAssetTransfer(input: InitiateAssetTransferInput! @spread): String!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Asset\\InitiateAssetTransferMutation")

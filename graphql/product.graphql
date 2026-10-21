@@ -25,7 +25,7 @@ input ActivateProductInput {
     id: ID!
 }
 
-extend type Query {
+extend type Query @module(name: "Product") {
     product(id: ID! @eq): Product
         @find
         @guard(with: ["sanctum"])
@@ -39,7 +39,7 @@ extend type Query {
         @guard(with: ["sanctum"])
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "Product") {
     createProduct(input: CreateProductInput! @spread): Product!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Product\\CreateProductMutation")

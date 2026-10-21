@@ -94,7 +94,7 @@ input MfiPurchaseSharesInput {
     shares: Int!
 }
 
-extend type Query {
+extend type Query @module(name: "Microfinance") {
     mfiGroups(
         status: String @where(operator: "=")
         first: Int @rules(apply: ["integer", "min:1", "max:100"])

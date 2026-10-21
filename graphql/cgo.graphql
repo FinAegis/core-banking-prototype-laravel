@@ -21,7 +21,7 @@ input CreateInvestmentInput {
     payment_method: String
 }
 
-extend type Query {
+extend type Query @module(name: "Cgo") {
     investment(id: ID! @eq): CgoInvestment
         @find
         @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")

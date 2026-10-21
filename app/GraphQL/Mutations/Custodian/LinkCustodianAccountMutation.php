@@ -51,8 +51,11 @@ final class LinkCustodianAccountMutation
         $custodianName = (string) $args['custodian_name'];
 
         if (self::isOperator($user)) {
+            // Any team's account (the BelongsToTeam scope would otherwise
+            // limit the operator to their own current team).
             /** @var Account $account */
             $account = Account::query()
+                ->allTeams()
                 ->where('uuid', $accountUuid)
                 ->firstOrFail();
         } else {

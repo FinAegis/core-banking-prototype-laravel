@@ -146,6 +146,10 @@ class SmartAccountController extends Controller
         description: 'Unauthorized'
     )]
     #[OA\Response(
+        response: 409,
+        description: 'The owner address is already registered to another user\'s smart account (ERR_RELAYER_101)'
+    )]
+    #[OA\Response(
         response: 422,
         description: 'Validation error'
     )]

@@ -58,7 +58,7 @@ input CreateCardholderInput {
     shipping_country: String
 }
 
-extend type Query {
+extend type Query @module(name: "CardIssuance") {
     card(id: ID!): VirtualCard
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Queries\\CardIssuance\\CardQuery")
@@ -86,13 +86,15 @@ extend type Query {
         @field(resolver: "App\\GraphQL\\Queries\\CardIssuance\\CardholderQuery")
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "CardIssuance") {
     provisionCard(input: ProvisionCardInput! @spread): VirtualCard!
         @guard(with: ["sanctum"])
+        @throttle(name: "card-provision")
         @field(resolver: "App\\GraphQL\\Mutations\\CardIssuance\\ProvisionCardMutation")
 
     createCard(input: CreateCardInput! @spread): VirtualCard!
         @guard(with: ["sanctum"])
+        @throttle(name: "card-provision")
         @field(resolver: "App\\GraphQL\\Mutations\\CardIssuance\\CreateCardMutation")
 
     freezeCard(id: ID!): VirtualCard!

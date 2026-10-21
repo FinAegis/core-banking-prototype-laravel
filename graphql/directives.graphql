@@ -1,5 +1,6 @@
 # Custom directives are defined via PHP classes in app/GraphQL/Directives/
 # The @tenant directive is provided by TenantDirective.php
 # The @module directive is provided by ModuleDirective.php — placed on a
-# domain's `extend type Mutation` block, it answers "This operation is not
-# available." for those fields while the domain is listed in MODULES_DISABLED.
+# domain's `extend type Query` / `extend type Mutation` blocks, it answers
+# "This operation is not available." for those fields while the domain is
+# listed in MODULES_DISABLED.

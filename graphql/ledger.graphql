@@ -43,15 +43,18 @@ input CreateLedgerAccountInput {
     description: String
 }
 
-extend type Query {
+extend type Query @module(name: "Ledger") {
+    "Chart of accounts (operators only)."
     ledgerAccounts: [LedgerAccount!]!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Queries\\Ledger\\AccountsQuery")
 
+    "Balance of a general-ledger account (operators only)."
     ledgerBalance(account_code: String!): AccountBalance!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Queries\\Ledger\\BalanceQuery")
 
+    "Trial balance of the general ledger (operators only)."
     ledgerTrialBalance: [TrialBalanceEntry!]!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Queries\\Ledger\\TrialBalanceQuery")

@@ -25,7 +25,7 @@ type NonceInfo {
     pending_ops: Int!
 }
 
-extend type Query {
+extend type Query @module(name: "Relayer") {
     smartAccount(id: ID! @eq): SmartAccount
         @find
         @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")
@@ -71,7 +71,7 @@ input SponsorTransactionInput {
     value: String
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "Relayer") {
     createSmartAccount(input: CreateSmartAccountInput! @spread): SmartAccount!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Relayer\\CreateSmartAccountMutation")

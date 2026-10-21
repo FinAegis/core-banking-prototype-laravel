@@ -31,7 +31,7 @@ input BeneficiaryInput {
     bic: String
 }
 
-extend type Query {
+extend type Query @module(name: "PaymentRails") {
     paymentRailsSupportedRails(country: String!): [String!]!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Queries\\PaymentRails\\SupportedRailsQuery")

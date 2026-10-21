@@ -29,7 +29,7 @@ input RedeemStablecoinInput {
     amount: Float!
 }
 
-extend type Query {
+extend type Query @module(name: "Stablecoin") {
     stablecoinReserve(id: ID! @eq): StablecoinReserve
         @find
         @guard(with: ["sanctum"])

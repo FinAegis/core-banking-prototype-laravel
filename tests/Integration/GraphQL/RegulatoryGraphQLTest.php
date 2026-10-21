@@ -19,7 +19,10 @@ describe('GraphQL Regulatory API', function () {
     });
 
     it('queries regulatory report by id with authentication', function () {
+        // Regulatory reports are readable by compliance staff only.
+        Spatie\Permission\Models\Role::firstOrCreate(['name' => 'compliance_officer', 'guard_name' => 'web']);
         $user = User::factory()->create();
+        $user->assignRole('compliance_officer');
         $report = RegulatoryReport::create([
             'report_type'            => 'SAR',
             'jurisdiction'           => 'US',
@@ -57,7 +60,9 @@ describe('GraphQL Regulatory API', function () {
     });
 
     it('paginates regulatory reports', function () {
+        Spatie\Permission\Models\Role::firstOrCreate(['name' => 'compliance_officer', 'guard_name' => 'web']);
         $user = User::factory()->create();
+        $user->assignRole('compliance_officer');
         for ($i = 0; $i < 3; $i++) {
             RegulatoryReport::create([
                 'report_type'            => 'CTR',

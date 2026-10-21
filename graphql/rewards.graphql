@@ -45,7 +45,7 @@ type RedemptionResult {
     redeemed_at: String
 }
 
-extend type Query {
+extend type Query @module(name: "Rewards") {
     rewardProfile: RewardProfile!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Queries\\Rewards\\ProfileQuery")
@@ -59,7 +59,7 @@ extend type Query {
         @field(resolver: "App\\GraphQL\\Queries\\Rewards\\ShopQuery")
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "Rewards") {
     redeemShopItem(item_id: ID!): RedemptionResult!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Rewards\\RedeemItemMutation")

@@ -24,17 +24,21 @@ input OnboardPartnerInput {
     tier: String
 }
 
-extend type Query {
+extend type Query @module(name: "FinancialInstitution") {
+    "Get a financial-institution partner by ID (operators only)."
     partner(id: ID! @eq): Partner
         @find
+        @builder(method: "App\\GraphQL\\Builders\\StaffOnly@operators")
         @guard(with: ["sanctum"])
 
+    "List financial-institution partners (operators only)."
     partners(
         page: Int @rules(apply: ["integer", "min:1"])
         first: Int @rules(apply: ["integer", "min:1", "max:100"])
         status: String @where(operator: "=")
     ): [Partner!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner")
+        @builder(method: "App\\GraphQL\\Builders\\StaffOnly@operators")
         @guard(with: ["sanctum"])
 }
 

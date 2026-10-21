@@ -22,7 +22,7 @@ input RebalanceBasketInput {
     id: ID!
 }
 
-extend type Query {
+extend type Query @module(name: "Basket") {
     basket(id: ID! @eq): BasketPortfolio
         @find
         @guard(with: ["sanctum"])

@@ -43,15 +43,31 @@ final class InitiateCustodianTransferMutation
             throw new AuthorizationException('You are not authorized to use this account.');
         }
 
-        /** @var CustodianAccount $fromAccount */
+        // Only an active custodian link counts (same rule as the REST
+        // custodian transfer), and the destination link must be on the same
+        // custodian as the source link.
+        /** @var CustodianAccount|null $fromAccount */
         $fromAccount = CustodianAccount::query()
+            ->active()
             ->where('account_uuid', $args['from_account_uuid'])
-            ->firstOrFail();
+            ->orderByDesc('is_primary')
+            ->first();
 
-        /** @var CustodianAccount $toAccount */
+        if ($fromAccount === null) {
+            throw new AuthorizationException('Custodian account is not linked to this account.');
+        }
+
+        /** @var CustodianAccount|null $toAccount */
         $toAccount = CustodianAccount::query()
+            ->active()
             ->where('account_uuid', $args['to_account_uuid'])
-            ->firstOrFail();
+            ->where('custodian_name', $fromAccount->custodian_name)
+            ->orderByDesc('is_primary')
+            ->first();
+
+        if ($toAccount === null) {
+            throw new Error('The destination account has no active link with this custodian.');
+        }
 
         $transferId = $this->custodianAccountService->initiateTransfer(
             fromAccount: $fromAccount,

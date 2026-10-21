@@ -131,7 +131,7 @@ type X402NetworkInfo {
     explorer_url: String!
 }
 
-extend type Query {
+extend type Query @module(name: "X402") {
     "Retrieve a single x402 payment by ID."
     x402Payment(id: ID!): X402Payment
         @guard(with: ["sanctum"])
@@ -246,7 +246,7 @@ input SetX402SpendingLimitInput {
     auto_pay_enabled: Boolean
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "X402") {
     "Register an API endpoint for x402 payment."
     createX402MonetizedEndpoint(input: CreateX402MonetizedEndpointInput! @spread): X402MonetizedEndpoint!
         @guard(with: ["sanctum"])

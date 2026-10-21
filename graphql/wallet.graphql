@@ -12,7 +12,7 @@ type MultiSigWallet @model(class: "App\\Domain\\Wallet\\Models\\MultiSigWallet")
     updated_at: DateTime!
 }
 
-extend type Query {
+extend type Query @module(name: "Wallet") {
     wallet(id: ID! @eq): MultiSigWallet
         @find
         @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@wallet")
@@ -43,7 +43,7 @@ input TransferFundsInput {
     chain: String!
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "Wallet") {
     createWallet(input: CreateWalletInput! @spread): MultiSigWallet!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Wallet\\CreateWalletMutation")

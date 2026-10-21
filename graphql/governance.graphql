@@ -37,7 +37,7 @@ type PollResults {
     results: String!
 }
 
-extend type Query {
+extend type Query @module(name: "Governance") {
     poll(id: ID! @eq): Poll
         @find
         @guard(with: ["sanctum"])

@@ -19,7 +19,7 @@ input RegisterAgentInput {
     capabilities: [String]
 }
 
-extend type Query {
+extend type Query @module(name: "AgentProtocol") {
     agent(id: ID! @eq): Agent
         @find
         @guard(with: ["sanctum"])
@@ -33,7 +33,7 @@ extend type Query {
         @guard(with: ["sanctum"])
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "AgentProtocol") {
     registerAgent(input: RegisterAgentInput! @spread): Agent!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\AgentProtocol\\RegisterAgentMutation")

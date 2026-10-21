@@ -28,7 +28,7 @@ input InitiatePaymentInput {
     reference: String
 }
 
-extend type Query {
+extend type Query @module(name: "Payment") {
     payment(id: ID! @eq): PaymentTransaction
         @find
         @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@accountUuid")
@@ -46,7 +46,7 @@ extend type Query {
         @guard(with: ["sanctum"])
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "Payment") {
     initiatePayment(input: InitiatePaymentInput! @spread): PaymentTransaction!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Payment\\InitiatePaymentMutation")

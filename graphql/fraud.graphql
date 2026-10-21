@@ -17,7 +17,7 @@ type FraudCase @model(class: "App\\Domain\\Fraud\\Models\\FraudCase") {
     updated_at: DateTime!
 }
 
-extend type Query {
+extend type Query @module(name: "Fraud") {
     fraudCase(id: ID! @eq): FraudCase
         @find
         @builder(method: "App\\GraphQL\\Builders\\StaffOnly@compliance")
@@ -40,7 +40,7 @@ input EscalateFraudCaseInput {
     notes: String
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "Fraud") {
     escalateFraudCase(input: EscalateFraudCaseInput! @spread): FraudCase!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Fraud\\EscalateFraudCaseMutation")

@@ -14,12 +14,15 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('regtech')->name('a
     Route::get('/regulations/applicable', [RegTechController::class, 'applicableRegulations'])->name('regulations.applicable');
 
     // Report submission & status (stricter rate limit on write operations).
-    // Submission is limited to compliance staff (StaffRoles::COMPLIANCE), as
-    // for the GraphQL submitRegulatoryReport mutation.
+    // Submission and status are limited to compliance staff
+    // (StaffRoles::COMPLIANCE), as for the GraphQL submitRegulatoryReport
+    // mutation and the regulatory report queries.
     Route::post('/reports', [RegTechController::class, 'submitReport'])
         ->middleware(['throttle:10,1', RoleMiddleware::using(StaffRoles::COMPLIANCE)])
         ->name('reports.submit');
-    Route::get('/reports/{reference}/status', [RegTechController::class, 'reportStatus'])->name('reports.status');
+    Route::get('/reports/{reference}/status', [RegTechController::class, 'reportStatus'])
+        ->middleware(RoleMiddleware::using(StaffRoles::COMPLIANCE))
+        ->name('reports.status');
 
     // MiFID II
     Route::get('/mifid/status', [RegTechController::class, 'mifidStatus'])->name('mifid.status');

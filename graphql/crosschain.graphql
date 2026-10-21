@@ -27,7 +27,7 @@ input InitiateBridgeTransferInput {
     provider: String
 }
 
-extend type Query {
+extend type Query @module(name: "CrossChain") {
     bridgeTransaction(id: ID! @eq): BridgeTransaction
         @find
         @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")

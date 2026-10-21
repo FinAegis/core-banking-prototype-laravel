@@ -16,7 +16,8 @@ use Illuminate\Support\Facades\Auth;
  * cases, fraud cases, SMS send records). Used as
  * `@builder(method: "App\\GraphQL\\Builders\\StaffOnly@compliance")`.
  * Callers without one of the roles get no rows (null for @find, an empty
- * page for @paginate).
+ * page for @paginate). Staff see the records of every team: the BelongsToTeam
+ * global scope (team_id = the caller's current team) is removed for them.
  */
 final class StaffOnly
 {
@@ -52,7 +53,7 @@ final class StaffOnly
         $user = Auth::user();
 
         if ($user instanceof User && $user->hasRole($roles)) {
-            return $builder;
+            return $builder->withoutGlobalScope('team');
         }
 
         return $builder->whereRaw('1 = 0');

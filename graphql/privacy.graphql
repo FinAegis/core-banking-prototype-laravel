@@ -12,7 +12,7 @@ type DelegatedProofJob @model(class: "App\\Domain\\Privacy\\Models\\DelegatedPro
     updated_at: DateTime!
 }
 
-extend type Query {
+extend type Query @module(name: "Privacy") {
     delegatedProofJob(id: ID! @eq): DelegatedProofJob
         @find
         @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")
@@ -55,7 +55,7 @@ input VerifyMerkleCommitmentInput {
     commitment: String!
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "Privacy") {
     requestDelegatedProof(input: RequestDelegatedProofInput! @spread): DelegatedProofJob!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Privacy\\RequestDelegatedProofMutation")
