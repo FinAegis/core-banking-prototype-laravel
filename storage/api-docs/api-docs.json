@@ -13299,6 +13299,9 @@
                             }
                         }
                     },
+                    "404": {
+                        "description": "Card not found"
+                    },
                     "422": {
                         "description": "Validation error"
                     }
@@ -13407,6 +13410,9 @@
                                 }
                             }
                         }
+                    },
+                    "404": {
+                        "description": "Card not found"
                     }
                 },
                 "security": [
@@ -15749,6 +15755,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -15772,6 +15781,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -15795,6 +15807,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -15818,6 +15833,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -15841,6 +15859,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -15862,6 +15883,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -15895,6 +15919,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -15928,6 +15955,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -15961,6 +15991,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -15984,6 +16017,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -16007,6 +16043,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -16030,6 +16069,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -16053,6 +16095,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -16076,6 +16121,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -16099,6 +16147,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -16122,6 +16173,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -16143,6 +16197,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -16166,6 +16223,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -16235,6 +16295,9 @@
                     },
                     "401": {
                         "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -16277,6 +16340,9 @@
                     },
                     "401": {
                         "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -16331,6 +16397,9 @@
                     },
                     "404": {
                         "description": "Violation not found"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -16385,6 +16454,9 @@
                     },
                     "404": {
                         "description": "Violation not found"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -16427,6 +16499,9 @@
                     },
                     "401": {
                         "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -16483,6 +16558,9 @@
                     },
                     "404": {
                         "description": "Jurisdiction not found"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -16525,6 +16603,9 @@
                     },
                     "401": {
                         "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -16594,6 +16675,9 @@
                     },
                     "422": {
                         "description": "Validation error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -16636,6 +16720,9 @@
                     },
                     "401": {
                         "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -16704,6 +16791,9 @@
                     },
                     "422": {
                         "description": "Validation error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -16746,6 +16836,9 @@
                     },
                     "401": {
                         "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -16835,6 +16928,9 @@
                     },
                     "422": {
                         "description": "Validation error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -23753,7 +23849,7 @@
                     "GDPR"
                 ],
                 "summary": "Check data export status",
-                "description": "Poll the status of a previously requested data export",
+                "description": "Poll the status of a previously requested data export. Only the user who requested the export, or compliance staff, can read it; other callers get 404.",
                 "operationId": "getGdprExportStatus",
                 "parameters": [
                     {
@@ -23810,7 +23906,7 @@
                     "GDPR"
                 ],
                 "summary": "Download completed GDPR data export",
-                "description": "Download the exported data as a JSON file. Requires a valid signed URL.",
+                "description": "Download the exported data as a JSON file. Requires a valid signed URL; only the user who requested the export, or compliance staff, can download it.",
                 "operationId": "downloadGdprExport",
                 "parameters": [
                     {
@@ -24027,6 +24123,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -24050,6 +24149,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -24073,6 +24175,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -24096,6 +24201,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -24117,6 +24225,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -24150,6 +24261,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -24173,6 +24287,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -24194,6 +24311,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -24227,6 +24347,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -24250,6 +24373,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -24317,6 +24443,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -24340,6 +24469,9 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -25010,7 +25142,7 @@
                     "KYC"
                 ],
                 "summary": "Download a KYC document",
-                "description": "Download a previously uploaded KYC document. Users can only download their own documents.",
+                "description": "Download a previously uploaded KYC document. Users can download only their own documents; compliance staff can download any document.",
                 "operationId": "downloadKycDocument",
                 "parameters": [
                     {
@@ -27417,7 +27549,7 @@
                     "Machine Payments"
                 ],
                 "summary": "List agent spending limits",
-                "description": "Returns all configured agent spending limits for MPP payments.",
+                "description": "Returns the agent spending limits for MPP payments stored under the caller's current team.",
                 "operationId": "mppSpendingLimits",
                 "responses": {
                     "200": {
@@ -27435,7 +27567,7 @@
                     "Machine Payments"
                 ],
                 "summary": "Set or update a spending limit",
-                "description": "Creates or updates daily and per-transaction spending limits for an agent.",
+                "description": "Creates or updates daily and per-transaction spending limits for an agent under the caller's current team. Agent ids are unique across teams.",
                 "operationId": "mppSetSpendingLimit",
                 "requestBody": {
                     "required": true,
@@ -27473,6 +27605,9 @@
                     "201": {
                         "description": "Spending limit set"
                     },
+                    "409": {
+                        "description": "The agent id has a spending limit under another team"
+                    },
                     "422": {
                         "description": "Validation error"
                     }
@@ -27490,6 +27625,7 @@
                     "Machine Payments"
                 ],
                 "summary": "Delete a spending limit",
+                "description": "Deletes the agent's spending limit stored under the caller's current team.",
                 "operationId": "mppDeleteSpendingLimit",
                 "parameters": [
                     {
@@ -30437,7 +30573,7 @@
                     "Module Management"
                 ],
                 "summary": "Enable a module",
-                "description": "Enables a previously disabled domain module. Requires admin privileges.",
+                "description": "Enables a previously disabled domain module. Requires admin privileges and ADMIN_RUNTIME_MANAGEMENT_ENABLED.",
                 "operationId": "moduleEnable",
                 "parameters": [
                     {
@@ -30474,6 +30610,12 @@
                     },
                     "422": {
                         "description": "Enable failed"
+                    },
+                    "403": {
+                        "description": "Not an administrator"
+                    },
+                    "404": {
+                        "description": "Not available: runtime management is turned off (ADMIN_RUNTIME_MANAGEMENT_ENABLED)"
                     }
                 },
                 "security": [
@@ -30489,7 +30631,7 @@
                     "Module Management"
                 ],
                 "summary": "Disable a module",
-                "description": "Disables an active domain module. Core modules cannot be disabled. Requires admin privileges.",
+                "description": "Disables an active domain module. Core modules cannot be disabled. Requires admin privileges and ADMIN_RUNTIME_MANAGEMENT_ENABLED.",
                 "operationId": "moduleDisable",
                 "parameters": [
                     {
@@ -30526,6 +30668,12 @@
                     },
                     "422": {
                         "description": "Disable failed"
+                    },
+                    "403": {
+                        "description": "Not an administrator"
+                    },
+                    "404": {
+                        "description": "Not available: runtime management is turned off (ADMIN_RUNTIME_MANAGEMENT_ENABLED)"
                     }
                 },
                 "security": [
@@ -30625,7 +30773,7 @@
                     "Module Management"
                 ],
                 "summary": "Verify module health",
-                "description": "Runs health verification checks on a specific module. Requires admin privileges.",
+                "description": "Runs health verification checks on a specific module. Requires admin privileges and ADMIN_RUNTIME_MANAGEMENT_ENABLED.",
                 "operationId": "moduleVerify",
                 "parameters": [
                     {
@@ -30669,8 +30817,11 @@
                     "401": {
                         "description": "Unauthorized"
                     },
+                    "403": {
+                        "description": "Not an administrator"
+                    },
                     "404": {
-                        "description": "Module not found"
+                        "description": "Module not found, or runtime management is turned off (ADMIN_RUNTIME_MANAGEMENT_ENABLED)"
                     },
                     "503": {
                         "description": "Module is unhealthy"
@@ -34509,7 +34660,7 @@
                     "Plugin Marketplace"
                 ],
                 "summary": "Remove a plugin",
-                "description": "Removes a plugin from the system",
+                "description": "Removes a plugin from the system. Requires admin privileges and ADMIN_RUNTIME_MANAGEMENT_ENABLED.",
                 "operationId": "pluginMarketplaceDestroy",
                 "parameters": [
                     {
@@ -34527,6 +34678,12 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Not an administrator"
+                    },
+                    "404": {
+                        "description": "Plugin not found, or runtime management is turned off (ADMIN_RUNTIME_MANAGEMENT_ENABLED)"
                     }
                 },
                 "security": [
@@ -34542,7 +34699,7 @@
                     "Plugin Marketplace"
                 ],
                 "summary": "Enable a plugin",
-                "description": "Enables a disabled plugin",
+                "description": "Enables a disabled plugin. Requires admin privileges and ADMIN_RUNTIME_MANAGEMENT_ENABLED.",
                 "operationId": "pluginMarketplaceEnable",
                 "parameters": [
                     {
@@ -34560,6 +34717,12 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Not an administrator"
+                    },
+                    "404": {
+                        "description": "Plugin not found, or runtime management is turned off (ADMIN_RUNTIME_MANAGEMENT_ENABLED)"
                     }
                 },
                 "security": [
@@ -34575,7 +34738,7 @@
                     "Plugin Marketplace"
                 ],
                 "summary": "Disable a plugin",
-                "description": "Disables an active plugin",
+                "description": "Disables an active plugin. Requires admin privileges and ADMIN_RUNTIME_MANAGEMENT_ENABLED.",
                 "operationId": "pluginMarketplaceDisable",
                 "parameters": [
                     {
@@ -34593,6 +34756,12 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Not an administrator"
+                    },
+                    "404": {
+                        "description": "Plugin not found, or runtime management is turned off (ADMIN_RUNTIME_MANAGEMENT_ENABLED)"
                     }
                 },
                 "security": [
@@ -34608,7 +34777,7 @@
                     "Plugin Marketplace"
                 ],
                 "summary": "Scan a plugin for security issues",
-                "description": "Runs security scanner on a specific plugin",
+                "description": "Runs security scanner on a specific plugin. Requires admin privileges and ADMIN_RUNTIME_MANAGEMENT_ENABLED.",
                 "operationId": "pluginMarketplaceScan",
                 "parameters": [
                     {
@@ -34626,6 +34795,12 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Not an administrator"
+                    },
+                    "404": {
+                        "description": "Plugin not found, or runtime management is turned off (ADMIN_RUNTIME_MANAGEMENT_ENABLED)"
                     }
                 },
                 "security": [
@@ -34641,7 +34816,7 @@
                     "Plugin Marketplace"
                 ],
                 "summary": "Discover new plugins",
-                "description": "Discovers new plugins from the filesystem",
+                "description": "Discovers new plugins from the filesystem. Requires admin privileges and ADMIN_RUNTIME_MANAGEMENT_ENABLED.",
                 "operationId": "pluginMarketplaceDiscover",
                 "responses": {
                     "201": {
@@ -34649,6 +34824,12 @@
                     },
                     "500": {
                         "description": "Server error"
+                    },
+                    "403": {
+                        "description": "Not an administrator"
+                    },
+                    "404": {
+                        "description": "Not available: runtime management is turned off (ADMIN_RUNTIME_MANAGEMENT_ENABLED)"
                     }
                 },
                 "security": [
