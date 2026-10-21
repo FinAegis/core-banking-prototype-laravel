@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\StaffRoles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Laravel\Jetstream\Events\TeamCreated;
 use Laravel\Jetstream\Events\TeamDeleted;
@@ -109,11 +110,15 @@ class Team extends JetstreamTeam
             return [];
         }
 
-        return $this->allowed_roles ?? [
-            'compliance_officer',
+        $roles = is_array($this->allowed_roles) ? $this->allowed_roles : [
             'accountant',
             'operations_manager',
             'customer_service',
         ];
+
+        // Team roles are labels inside the organisation (team_user_roles).
+        // Staff role names are never team roles, even when a team row
+        // stored before this rule still lists them.
+        return array_values(array_diff($roles, StaffRoles::ALL));
     }
 }

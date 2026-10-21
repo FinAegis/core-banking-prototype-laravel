@@ -78,4 +78,22 @@ return [
 
     'profile_photo_disk' => 'public',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Team Invitation Limits
+    |--------------------------------------------------------------------------
+    |
+    | Every team invitation sends an email from the platform's domain to an
+    | address the inviter chooses. These caps bound that mail: per inviter
+    | (across all of their teams), per recipient address and platform-wide.
+    |
+    */
+
+    'invitation_limits' => [
+        'per_inviter_hourly'  => (int) env('TEAM_INVITATIONS_PER_INVITER_HOURLY', 10),
+        'per_inviter_daily'   => (int) env('TEAM_INVITATIONS_PER_INVITER_DAILY', 50),
+        'per_recipient_daily' => (int) env('TEAM_INVITATIONS_PER_RECIPIENT_DAILY', 3),
+        'global_daily'        => (int) env('TEAM_INVITATIONS_GLOBAL_DAILY', 1000),
+    ],
+
 ];

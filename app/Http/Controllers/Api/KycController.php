@@ -278,13 +278,16 @@ class KycController extends Controller
             abort(404, 'Document not found');
         }
 
+        // Staff downloads of another user's document are marked separately.
+        $staffAccess = $document->user_uuid !== $user->uuid;
+
         AuditLog::log(
             'kyc.document_downloaded',
             $document,
             null,
             null,
-            null,
-            'kyc,document'
+            $staffAccess ? ['staff_access' => true, 'document_owner_uuid' => $document->user_uuid] : null,
+            $staffAccess ? 'kyc,document,staff_access' : 'kyc,document'
         );
 
         return Storage::disk('private')->download(

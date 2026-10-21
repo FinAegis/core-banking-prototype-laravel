@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Models\User;
+use App\Support\StaffRoles;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
@@ -15,19 +16,21 @@ class UserDemoteCommand extends Command
      */
     protected $signature = 'user:demote
                             {email : Email of the user to demote}
-                            {--role=admin : Role to remove (admin, super_admin)}';
+                            {--role=admin : Role to remove (a staff role, e.g. admin, super_admin, compliance_officer)}';
 
     /**
      * @var string
      */
-    protected $description = 'Remove admin or super_admin role from a user';
+    protected $description = 'Remove an admin or other staff role from a user';
 
     public function handle(): int
     {
         $email = (string) $this->argument('email');
         $roleName = (string) $this->option('role');
 
-        $allowedRoles = ['admin', 'super_admin'];
+        // Staff roles, plus the legacy roles business team management used to
+        // grant (see user:audit-staff-roles).
+        $allowedRoles = array_values(array_unique([...StaffRoles::ALL, ...UserAuditStaffRolesCommand::LEGACY_TEAM_ROLES]));
         if (! in_array($roleName, $allowedRoles, true)) {
             $this->error("Invalid role: {$roleName}. Allowed: " . implode(', ', $allowedRoles));
 

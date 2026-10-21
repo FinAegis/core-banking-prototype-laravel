@@ -5,10 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use OpenApi\Attributes as OA;
-use Spatie\Permission\Models\Role;
 
 #[OA\Tag(
     name: 'Team Members',
@@ -123,26 +123,28 @@ class TeamMemberController extends Controller
         // Create the user. Business owners adding members to their own team
         // (authenticated web route) are not subject to the API registration
         // switch (REGISTRATION_API_ENABLED, config/registration.php).
-        $user = User::create(
-            [
-                'name'     => $validated['name'],
-                'email'    => $validated['email'],
-                'password' => Hash::make($validated['password']),
-            ]
-        );
+        DB::transaction(function () use ($team, $validated): void {
+            $user = User::create(
+                [
+                    'name'     => $validated['name'],
+                    'email'    => $validated['email'],
+                    'password' => Hash::make($validated['password']),
+                ]
+            );
 
-        // Add to team
-        $team->users()->attach($user);
+            // Add to team
+            $team->users()->attach($user);
 
-        // Set as current team for the new user
-        $user->current_team_id = $team->id;
-        $user->save();
+            // Set as current team for the new user
+            $user->current_team_id = $team->id;
+            $user->save();
 
-        // Assign global role based on team role
-        $this->assignGlobalRole($user, $validated['role']);
-
-        // Assign team-specific role
-        $team->assignUserRole($user, $validated['role']);
+            // A member of a business organisation is a business customer.
+            // The team role lives in team_user_roles only and never becomes
+            // a global (spatie) role: global roles are platform staff roles.
+            $user->assignRole('customer_business');
+            $team->assignUserRole($user, $validated['role']);
+        });
 
         return redirect()->route('teams.members.index', $team)
             ->with('success', 'Team member added successfully.');
@@ -164,6 +166,10 @@ class TeamMemberController extends Controller
         description: 'Successful operation'
     )]
     #[OA\Response(
+        response: 404,
+        description: 'The user is not a member of the team'
+    )]
+    #[OA\Response(
         response: 500,
         description: 'Server error'
     )]
@@ -174,6 +180,8 @@ class TeamMemberController extends Controller
         if (! $team->is_business_organization) {
             abort(403, 'This feature is only available for business organizations.');
         }
+
+        $this->ensureTeamMember($team, $user);
 
         // Prevent editing the team owner
         if ($team->user_id === $user->id) {
@@ -203,6 +211,10 @@ class TeamMemberController extends Controller
         description: 'Successful operation'
     )]
     #[OA\Response(
+        response: 404,
+        description: 'The user is not a member of the team'
+    )]
+    #[OA\Response(
         response: 500,
         description: 'Server error'
     )]
@@ -213,6 +225,8 @@ class TeamMemberController extends Controller
         if (! $team->is_business_organization) {
             abort(403, 'This feature is only available for business organizations.');
         }
+
+        $this->ensureTeamMember($team, $user);
 
         if ($team->user_id === $user->id) {
             return redirect()->route('teams.members.index', $team)
@@ -225,10 +239,8 @@ class TeamMemberController extends Controller
             ]
         );
 
-        // Update global role
-        $this->assignGlobalRole($user, $validated['role']);
-
-        // Update team role
+        // Update the team role only; global (spatie) roles are never
+        // granted or removed from team management.
         $team->assignUserRole($user, $validated['role']);
 
         return redirect()->route('teams.members.index', $team)
@@ -251,6 +263,10 @@ class TeamMemberController extends Controller
         description: 'Successful operation'
     )]
     #[OA\Response(
+        response: 404,
+        description: 'The user is not a member of the team'
+    )]
+    #[OA\Response(
         response: 500,
         description: 'Server error'
     )]
@@ -261,6 +277,8 @@ class TeamMemberController extends Controller
         if (! $team->is_business_organization) {
             abort(403, 'This feature is only available for business organizations.');
         }
+
+        $this->ensureTeamMember($team, $user);
 
         // Prevent removing the team owner
         if ($team->user_id === $user->id) {
@@ -285,14 +303,17 @@ class TeamMemberController extends Controller
     }
 
     /**
-     * Assign appropriate global role based on team role.
+     * The {user} route parameter binds any user: answer 404 unless the user
+     * is the owner or a member of this team.
      */
-    private function assignGlobalRole(User $user, string $teamRole)
+    private function ensureTeamMember(Team $team, User $user): void
     {
-        // Remove existing roles
-        $user->roles()->detach();
+        if ($team->user_id === $user->id) {
+            return;
+        }
 
-        // Assign new role
-        $user->assignRole($teamRole);
+        if (! $team->users()->whereKey($user->getKey())->exists()) {
+            abort(404);
+        }
     }
 }

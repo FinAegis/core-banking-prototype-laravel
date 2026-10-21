@@ -45,6 +45,12 @@ class RedirectNonAdmins extends FilamentAuthenticate
             : config('app.env') === 'local';
 
         if (! $canAccess) {
+            // Livewire update requests (this middleware is persistent) get
+            // a plain 403 instead of a redirect.
+            if ($request->hasHeader('X-Livewire')) {
+                abort(403, 'Your account does not have admin access.');
+            }
+
             // Bail out via a thrown HttpResponseException so the redirect
             // takes effect immediately and the rest of the middleware
             // pipeline doesn't run on a half-authorised request.

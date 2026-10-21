@@ -63,10 +63,14 @@ class AdminPanelProvider extends PanelProvider
                     DispatchServingFilamentEvent::class,
                 ]
             )
+            // Persistent: Livewire re-runs the admin check on every
+            // livewire/update request of an admin component, so a demoted
+            // admin or a replayed snapshot cannot keep using admin actions.
             ->authMiddleware(
                 [
                     RedirectNonAdmins::class,
-                ]
+                ],
+                isPersistent: true
             );
     }
 

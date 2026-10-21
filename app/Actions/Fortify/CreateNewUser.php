@@ -87,15 +87,15 @@ class CreateNewUser implements CreatesNewUsers
         if (isset($input['is_business_customer']) && $input['is_business_customer']) {
             $user->assignRole('customer_business');
 
-            // Convert personal team to business organization
+            // Convert personal team to business organization. Team roles are
+            // organisation labels only; staff role names (StaffRoles) are
+            // never offered here.
             $team->update(
                 [
                     'is_business_organization' => true,
                     'organization_type'        => 'business',
                     'max_users'                => 10, // Default limit for business accounts
                     'allowed_roles'            => [
-                        'compliance_officer',
-                        'risk_manager',
                         'accountant',
                         'operations_manager',
                         'customer_service',
