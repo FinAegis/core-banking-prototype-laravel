@@ -66,7 +66,7 @@ class PortfolioController extends Controller
     )]
     #[OA\Response(
         response: 403,
-        description: 'Forbidden - insufficient treasury permissions'
+        description: 'Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope'
     )]
     #[OA\Response(
         response: 429,
@@ -150,7 +150,7 @@ class PortfolioController extends Controller
     )]
     #[OA\Response(
         response: 403,
-        description: 'Forbidden - insufficient treasury permissions'
+        description: 'Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope'
     )]
     #[OA\Response(
         response: 422,
@@ -232,7 +232,7 @@ class PortfolioController extends Controller
     )]
     #[OA\Response(
         response: 403,
-        description: 'Forbidden'
+        description: 'Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope'
     )]
     #[OA\Response(
         response: 429,
@@ -309,6 +309,10 @@ class PortfolioController extends Controller
         response: 422,
         description: 'Validation failed'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope'
+    )]
     public function update(UpdatePortfolioRequest $request, string $id): JsonResponse
     {
         try {
@@ -381,6 +385,10 @@ class PortfolioController extends Controller
         response: 409,
         description: 'Conflict - portfolio cannot be deleted'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope'
+    )]
     public function destroy(string $id): JsonResponse
     {
         try {
@@ -448,6 +456,10 @@ class PortfolioController extends Controller
         new OA\Property(property: 'message', type: 'string', example: 'Assets allocated successfully'),
         ])
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope'
+    )]
     public function allocate(AllocateAssetsRequest $request, string $id): JsonResponse
     {
         try {
@@ -509,6 +521,10 @@ class PortfolioController extends Controller
         ]),
         ])
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope'
+    )]
     public function getAllocations(string $id): JsonResponse
     {
         try {
@@ -561,6 +577,10 @@ class PortfolioController extends Controller
         ]),
         new OA\Property(property: 'message', type: 'string', example: 'Rebalancing workflow started'),
         ])
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope'
     )]
     public function triggerRebalancing(TriggerRebalancingRequest $request, string $id): JsonResponse
     {
@@ -624,6 +644,10 @@ class PortfolioController extends Controller
         new OA\Property(property: 'data', type: 'object'),
         ])
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope'
+    )]
     public function getRebalancingPlan(string $id): JsonResponse
     {
         try {
@@ -667,6 +691,10 @@ class PortfolioController extends Controller
         new OA\Property(property: 'success', type: 'boolean', example: true),
         new OA\Property(property: 'message', type: 'string', example: 'Rebalancing executed successfully'),
         ])
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope'
     )]
     public function approveRebalancing(ApproveRebalancingRequest $request, string $id): JsonResponse
     {
@@ -725,6 +753,10 @@ class PortfolioController extends Controller
         new OA\Property(property: 'data', type: 'object'),
         ])
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope'
+    )]
     public function getPerformance(Request $request, string $id): JsonResponse
     {
         try {
@@ -778,6 +810,10 @@ class PortfolioController extends Controller
         new OA\Property(property: 'data', type: 'object'),
         ])
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope'
+    )]
     public function getValuation(string $id): JsonResponse
     {
         try {
@@ -825,6 +861,10 @@ class PortfolioController extends Controller
         new OA\Property(property: 'success', type: 'boolean', example: true),
         new OA\Property(property: 'data', type: 'object'),
         ])
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope'
     )]
     public function getHistory(Request $request, string $id): JsonResponse
     {
@@ -887,6 +927,10 @@ class PortfolioController extends Controller
         ]),
         new OA\Property(property: 'message', type: 'string', example: 'Report generation started'),
         ])
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope'
     )]
     public function generateReport(CreateReportRequest $request, string $id): JsonResponse
     {
@@ -951,6 +995,10 @@ class PortfolioController extends Controller
         new OA\Property(property: 'success', type: 'boolean', example: true),
         new OA\Property(property: 'data', type: 'array', items: new OA\Items(type: 'object')),
         ])
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope'
     )]
     public function listReports(string $id): JsonResponse
     {

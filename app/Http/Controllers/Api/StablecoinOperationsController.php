@@ -474,6 +474,10 @@ class StablecoinOperationsController extends Controller
         ])),
         ])
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Stablecoin operators only (admin, super_admin, bank_admin, stablecoin_operator)'
+    )]
     public function getLiquidationOpportunities(Request $request): JsonResponse
     {
         $limit = $request->integer('limit', 50);
@@ -527,8 +531,12 @@ class StablecoinOperationsController extends Controller
     )]
     #[OA\Response(
         response: 404,
-        description: 'Position not found',
+        description: 'Position not found, or the demo ledger flag (ledger.direct_funding_enabled) is off',
         content: new OA\JsonContent(ref: '#/components/schemas/Error')
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Stablecoin operators only (admin, super_admin, bank_admin, stablecoin_operator)'
     )]
     public function liquidatePosition(string $positionUuid): JsonResponse
     {
@@ -586,6 +594,10 @@ class StablecoinOperationsController extends Controller
         description: 'Position not found',
         content: new OA\JsonContent(ref: '#/components/schemas/Error')
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Stablecoin operators only (admin, super_admin, bank_admin, stablecoin_operator)'
+    )]
     public function calculateLiquidationReward(string $positionUuid): JsonResponse
     {
         $position = StablecoinCollateralPosition::where('uuid', $positionUuid)
@@ -637,6 +649,10 @@ class StablecoinOperationsController extends Controller
         description: 'Validation error',
         content: new OA\JsonContent(ref: '#/components/schemas/ValidationError')
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Stablecoin operators only (admin, super_admin, bank_admin, stablecoin_operator)'
+    )]
     public function simulateMassLiquidation(Request $request, string $stablecoinCode): JsonResponse
     {
         $validated = $request->validate(
@@ -683,6 +699,14 @@ class StablecoinOperationsController extends Controller
         response: 400,
         description: 'Bad request',
         content: new OA\JsonContent(ref: '#/components/schemas/Error')
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Stablecoin operators only (admin, super_admin, bank_admin, stablecoin_operator)'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'The demo ledger flag (ledger.direct_funding_enabled) is off'
     )]
     public function executeAutoLiquidation(): JsonResponse
     {
@@ -737,6 +761,10 @@ class StablecoinOperationsController extends Controller
         ])),
         ])),
         ])
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Stablecoin operators only (admin, super_admin, bank_admin, stablecoin_operator)'
     )]
     public function getPositionsAtRisk(Request $request): JsonResponse
     {

@@ -5,12 +5,16 @@ declare(strict_types=1);
 use App\Http\Controllers\Api\LiquidityForecastController;
 use App\Http\Controllers\Api\Treasury\PortfolioController;
 use App\Http\Controllers\Api\YieldOptimizationController;
+use App\Support\StaffRoles;
 use Illuminate\Support\Facades\Route;
+use Spatie\Permission\Middleware\RoleMiddleware;
 
 // Treasury Management endpoints
 Route::prefix('treasury')->name('api.treasury.')->group(function () {
-    // Authenticated treasury routes
-    Route::middleware(['auth:sanctum', 'scope:treasury'])->group(function () {
+    // Authenticated treasury routes: platform operators only, as on the
+    // GraphQL treasury surface (portfolios and forecasts have no owner link,
+    // and scope:treasury alone passes for any session login).
+    Route::middleware(['auth:sanctum', 'scope:treasury', RoleMiddleware::using(StaffRoles::OPERATORS)])->group(function () {
         // Portfolio Management endpoints
         Route::prefix('portfolios')->name('portfolios.')->group(function () {
             Route::get('/', [PortfolioController::class, 'index'])->name('index');

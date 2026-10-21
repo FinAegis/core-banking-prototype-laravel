@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Domain\Compliance\Services\RegulatoryReportingService;
 use App\Http\Controllers\Controller;
+use App\Support\StaffRoles;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -13,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use OpenApi\Attributes as OA;
 use ReflectionClass;
+use Spatie\Permission\Middleware\RoleMiddleware;
 
 #[OA\Tag(
     name: 'Regulatory Reporting',
@@ -24,7 +26,9 @@ class RegulatoryReportingController extends Controller
         private readonly RegulatoryReportingService $regulatoryReportingService
     ) {
         $this->middleware('auth:sanctum');
-        $this->middleware('admin')->except(['getReport', 'listReports']);
+        // Compliance staff only, as in both route files that register this
+        // controller.
+        $this->middleware(RoleMiddleware::using(StaffRoles::COMPLIANCE));
     }
 
     /**
@@ -65,7 +69,7 @@ class RegulatoryReportingController extends Controller
     )]
     #[OA\Response(
         response: 403,
-        description: 'Forbidden - Admin access required'
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function generateCTR(Request $request): JsonResponse
     {
@@ -142,7 +146,7 @@ class RegulatoryReportingController extends Controller
     )]
     #[OA\Response(
         response: 403,
-        description: 'Forbidden - Admin access required'
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function generateSARCandidates(Request $request): JsonResponse
     {
@@ -221,7 +225,7 @@ class RegulatoryReportingController extends Controller
     )]
     #[OA\Response(
         response: 403,
-        description: 'Forbidden - Admin access required'
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function generateComplianceSummary(Request $request): JsonResponse
     {
@@ -292,7 +296,7 @@ class RegulatoryReportingController extends Controller
     )]
     #[OA\Response(
         response: 403,
-        description: 'Forbidden - Admin access required'
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function generateKycReport(): JsonResponse
     {
@@ -371,6 +375,10 @@ class RegulatoryReportingController extends Controller
     #[OA\Response(
         response: 401,
         description: 'Unauthenticated'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function listReports(Request $request): JsonResponse
     {
@@ -494,6 +502,10 @@ class RegulatoryReportingController extends Controller
         response: 401,
         description: 'Unauthenticated'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function getReport(Request $request, string $filename): JsonResponse
     {
         try {
@@ -612,6 +624,10 @@ class RegulatoryReportingController extends Controller
         response: 401,
         description: 'Unauthenticated'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function downloadReport(string $filename)
     {
         try {
@@ -713,7 +729,7 @@ class RegulatoryReportingController extends Controller
     )]
     #[OA\Response(
         response: 403,
-        description: 'Forbidden - Admin access required'
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function deleteReport(string $filename): JsonResponse
     {
@@ -819,7 +835,7 @@ class RegulatoryReportingController extends Controller
     )]
     #[OA\Response(
         response: 403,
-        description: 'Forbidden - Admin access required'
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function getMetrics(Request $request): JsonResponse
     {

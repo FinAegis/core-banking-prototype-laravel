@@ -287,9 +287,9 @@ class ExchangeRateProviderController extends Controller
         operationId: 'refreshExchangeRates',
         tags: ['Exchange Rates'],
         summary: 'Refresh exchange rates',
-        description: 'Manually triggers a refresh of exchange rates for specified currency pairs or all active pairs',
+        description: 'Manually triggers a refresh of exchange rates for specified currency pairs or all active pairs (platform operators only)',
         requestBody: new OA\RequestBody(required: false, content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'pairs', type: 'array', description: 'Optional array of currency pairs to refresh', items: new OA\Items(type: 'string', pattern: '^[A-Z]{3}/[A-Z]{3}$', example: 'EUR/USD')),
+        new OA\Property(property: 'pairs', type: 'array', description: 'Optional array of up to 50 distinct currency pairs to refresh', maxItems: 50, uniqueItems: true, items: new OA\Items(type: 'string', pattern: '^[A-Z]{3}/[A-Z]{3}$', example: 'EUR/USD')),
         ]))
     )]
     #[OA\Response(
@@ -310,12 +310,16 @@ class ExchangeRateProviderController extends Controller
         response: 400,
         description: 'Invalid request parameters'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
+    )]
     public function refresh(Request $request): JsonResponse
     {
         $validated = $request->validate(
             [
-                'pairs'   => 'nullable|array',
-                'pairs.*' => 'string|regex:/^[A-Z]{3}\/[A-Z]{3}$/',
+                'pairs'   => 'nullable|array|max:50',
+                'pairs.*' => 'distinct|string|regex:/^[A-Z]{3}\/[A-Z]{3}$/',
             ]
         );
 

@@ -30,9 +30,11 @@ class PortfolioControllerTest extends TestCase
     {
         parent::setUp();
 
+        // The treasury API is limited to platform operators.
         $this->testUser = User::factory()->create([
             'email_verified_at' => now(),
         ]);
+        $this->testUser->assignRole('admin');
 
         $this->treasuryId = $this->testUser->uuid;
 

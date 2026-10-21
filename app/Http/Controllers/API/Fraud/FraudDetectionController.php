@@ -43,6 +43,10 @@ class FraudDetectionController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function analyzeTransaction(Request $request, string $transactionId): JsonResponse
     {
         $transaction = Transaction::findOrFail($transactionId);
@@ -108,6 +112,10 @@ class FraudDetectionController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function analyzeUser(Request $request, string $userId): JsonResponse
     {
         $user = User::findOrFail($userId);
@@ -157,6 +165,10 @@ class FraudDetectionController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function getFraudScore(string $fraudScoreId): JsonResponse
     {
         $fraudScore = FraudScore::with(['fraudCase'])->findOrFail($fraudScoreId);
@@ -191,6 +203,10 @@ class FraudDetectionController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function updateOutcome(Request $request, string $fraudScoreId): JsonResponse
     {
@@ -241,6 +257,10 @@ class FraudDetectionController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function getStatistics(Request $request): JsonResponse
     {
@@ -310,6 +330,10 @@ class FraudDetectionController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function getModelMetrics(): JsonResponse
     {

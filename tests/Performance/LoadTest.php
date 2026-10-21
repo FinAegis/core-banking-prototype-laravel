@@ -212,7 +212,9 @@ class LoadTest extends DomainTestCase
     #[Test]
     public function test_webhook_delivery_performance()
     {
+        // Webhook management is limited to platform administrators.
         $user = User::factory()->create();
+        $user->assignRole('admin');
         // Create token with write scope for webhook creation
         $token = $user->createToken('test-token', ['read', 'write', 'delete'])->plainTextToken;
 

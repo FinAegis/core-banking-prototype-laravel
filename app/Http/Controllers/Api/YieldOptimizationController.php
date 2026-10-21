@@ -54,6 +54,10 @@ class YieldOptimizationController extends Controller
         response: 422,
         description: 'Validation error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope'
+    )]
     public function optimizePortfolio(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -119,6 +123,10 @@ class YieldOptimizationController extends Controller
     #[OA\Response(
         response: 404,
         description: 'Portfolio not found'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope'
     )]
     public function getPortfolio(Request $request, string $treasuryId): JsonResponse
     {

@@ -27,6 +27,10 @@ class FraudDetectionController extends Controller
         response: 401,
         description: 'Unauthorized'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function dashboard(): JsonResponse
     {
         return response()->json(
@@ -57,6 +61,10 @@ class FraudDetectionController extends Controller
     #[OA\Response(
         response: 401,
         description: 'Unauthorized'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function getAlerts(): JsonResponse
     {
@@ -89,6 +97,10 @@ class FraudDetectionController extends Controller
         response: 401,
         description: 'Unauthorized'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function getAlertDetails($id): JsonResponse
     {
         return response()->json(
@@ -120,6 +132,10 @@ class FraudDetectionController extends Controller
     #[OA\Response(
         response: 401,
         description: 'Unauthorized'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function acknowledgeAlert($id): JsonResponse
     {
@@ -154,6 +170,10 @@ class FraudDetectionController extends Controller
         response: 401,
         description: 'Unauthorized'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function investigateAlert($id): JsonResponse
     {
         return response()->json(
@@ -182,6 +202,10 @@ class FraudDetectionController extends Controller
         response: 401,
         description: 'Unauthorized'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function getStatistics(): JsonResponse
     {
         return response()->json(
@@ -208,6 +232,10 @@ class FraudDetectionController extends Controller
     #[OA\Response(
         response: 401,
         description: 'Unauthorized'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function getPatterns(): JsonResponse
     {
@@ -239,6 +267,10 @@ class FraudDetectionController extends Controller
         response: 401,
         description: 'Unauthorized'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function getCases(): JsonResponse
     {
         return response()->json(
@@ -269,6 +301,10 @@ class FraudDetectionController extends Controller
     #[OA\Response(
         response: 401,
         description: 'Unauthorized'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function getCaseDetails($id): JsonResponse
     {
@@ -304,6 +340,10 @@ class FraudDetectionController extends Controller
     #[OA\Response(
         response: 401,
         description: 'Unauthorized'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function updateCase($id): JsonResponse
     {

@@ -6,12 +6,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Domain\Custodian\Services\DailyReconciliationService;
 use App\Http\Controllers\Controller;
+use App\Support\StaffRoles;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
+use Spatie\Permission\Middleware\RoleMiddleware;
 
 #[OA\Tag(
     name: 'Daily Reconciliation',
@@ -23,7 +25,8 @@ class DailyReconciliationController extends Controller
         private readonly DailyReconciliationService $reconciliationService
     ) {
         $this->middleware('auth:sanctum');
-        $this->middleware('admin');
+        // Platform operators only (the route group applies the same check).
+        $this->middleware(RoleMiddleware::using(StaffRoles::OPERATORS));
     }
 
     /**
@@ -64,7 +67,7 @@ class DailyReconciliationController extends Controller
     )]
     #[OA\Response(
         response: 403,
-        description: 'Forbidden - Admin access required'
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
     )]
     public function triggerReconciliation(): JsonResponse
     {
@@ -146,7 +149,7 @@ class DailyReconciliationController extends Controller
     )]
     #[OA\Response(
         response: 403,
-        description: 'Forbidden - Admin access required'
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
     )]
     public function getLatestReport(): JsonResponse
     {
@@ -227,7 +230,7 @@ class DailyReconciliationController extends Controller
     )]
     #[OA\Response(
         response: 403,
-        description: 'Forbidden - Admin access required'
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
     )]
     public function getHistory(Request $request): JsonResponse
     {
@@ -362,7 +365,7 @@ class DailyReconciliationController extends Controller
     )]
     #[OA\Response(
         response: 403,
-        description: 'Forbidden - Admin access required'
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
     )]
     public function getReportByDate(string $date): JsonResponse
     {
@@ -482,7 +485,7 @@ class DailyReconciliationController extends Controller
     )]
     #[OA\Response(
         response: 403,
-        description: 'Forbidden - Admin access required'
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
     )]
     public function getMetrics(Request $request): JsonResponse
     {
@@ -660,7 +663,7 @@ class DailyReconciliationController extends Controller
     )]
     #[OA\Response(
         response: 403,
-        description: 'Forbidden - Admin access required'
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
     )]
     public function getStatus(): JsonResponse
     {

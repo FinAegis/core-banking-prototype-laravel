@@ -41,8 +41,10 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/instant', [AccountVerificationController::class, 'instantVerify']);
         });
     });
-    // Batch Processing endpoints
-    Route::prefix('batch-operations')->group(function () {
+    // Batch Processing endpoints: platform operators only (the history and
+    // status cover every user's batches; execute and cancel also require the
+    // admin role in the controller)
+    Route::prefix('batch-operations')->middleware(RoleMiddleware::using(StaffRoles::OPERATORS))->group(function () {
         Route::post('/execute', [BatchProcessingController::class, 'executeBatch']);
         Route::get('/{batchId}/status', [BatchProcessingController::class, 'getBatchStatus']);
         Route::get('/', [BatchProcessingController::class, 'getBatchHistory']);
@@ -74,8 +76,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/metrics', [RegulatoryReportingController::class, 'getMetrics']);
     });
 
-    // Daily Reconciliation endpoints (admin only)
-    Route::prefix('reconciliation')->group(function () {
+    // Daily Reconciliation endpoints: platform operators only
+    Route::prefix('reconciliation')->middleware(RoleMiddleware::using(StaffRoles::OPERATORS))->group(function () {
         Route::post('/trigger', [DailyReconciliationController::class, 'triggerReconciliation']);
         Route::get('/latest', [DailyReconciliationController::class, 'getLatestReport']);
         Route::get('/history', [DailyReconciliationController::class, 'getHistory']);
@@ -84,8 +86,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/status', [DailyReconciliationController::class, 'getStatus']);
     });
 
-    // Bank Health & Alerting endpoints (admin only)
-    Route::prefix('bank-health')->group(function () {
+    // Bank Health & Alerting endpoints: platform operators only
+    Route::prefix('bank-health')->middleware(RoleMiddleware::using(StaffRoles::OPERATORS))->group(function () {
         Route::post('/check', [BankAlertingController::class, 'triggerHealthCheck']);
         Route::get('/status', [BankAlertingController::class, 'getHealthStatus']);
         Route::get('/custodians/{custodian}', [BankAlertingController::class, 'getCustodianHealth']);
@@ -97,8 +99,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/alerts/{alertId}/acknowledge', [BankAlertingController::class, 'acknowledgeAlert']);
     });
 
-    // Workflow/Saga Monitoring endpoints (admin only)
-    Route::prefix('workflows')->middleware('api.rate_limit:admin')->group(function () {
+    // Workflow/Saga Monitoring endpoints: platform operators only (stored
+    // workflow arguments and output cover every user's operations)
+    Route::prefix('workflows')->middleware(['api.rate_limit:admin', RoleMiddleware::using(StaffRoles::OPERATORS)])->group(function () {
         Route::get('/', [WorkflowMonitoringController::class, 'index']);
         Route::get('/stats', [WorkflowMonitoringController::class, 'stats']);
         Route::get('/metrics', [WorkflowMonitoringController::class, 'metrics']);

@@ -570,15 +570,6 @@ describe('regulatory reports, transaction monitoring and audit', function (): vo
     });
 
     it('keeps stored regulatory reports away from customers', function (): void {
-        // RegulatoryReportingController also declares an 'admin' controller
-        // middleware whose alias is not registered (it fails with a 500 on its
-        // own). Bind a pass-through here so the route role check alone decides.
-        app()->bind('admin', fn () => new class () {
-            public function handle(Request $request, Closure $next): mixed
-            {
-                return $next($request);
-            }
-        });
         Storage::fake();
         Storage::put('regulatory/kyc/report_2026_01_01.json', (string) json_encode([
             'report_type'           => 'KYC Compliance Report',

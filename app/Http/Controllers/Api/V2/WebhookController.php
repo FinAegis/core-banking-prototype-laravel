@@ -26,7 +26,7 @@ class WebhookController extends Controller
             operationId: 'listWebhooks',
             tags: ['Webhooks'],
             summary: 'List webhooks',
-            description: 'Get a list of all configured webhooks for the authenticated user',
+            description: 'List every configured platform webhook. Platform administrators only: webhooks have no owner and receive every subscribed event.',
             security: [['bearerAuth' => []]]
         )]
     #[OA\Response(
@@ -44,9 +44,14 @@ class WebhookController extends Controller
         ])),
         ])
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform administrators only (admin, super_admin)'
+    )]
     public function index(Request $request): JsonResponse
     {
-        // For now, return all webhooks until user association is implemented
+        // Platform webhooks have no owner; the route is limited to platform
+        // administrators (is_admin).
         $webhooks = Webhook::orderBy('created_at', 'desc')
             ->get();
 
@@ -96,6 +101,10 @@ class WebhookController extends Controller
         new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
         ]),
         ])
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform administrators only (admin, super_admin)'
     )]
     public function store(Request $request): JsonResponse
     {
@@ -179,6 +188,10 @@ class WebhookController extends Controller
         ]),
         ])
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform administrators only (admin, super_admin)'
+    )]
     public function show(Request $request, string $id): JsonResponse
     {
         $webhook = Webhook::findOrFail($id);
@@ -225,6 +238,10 @@ class WebhookController extends Controller
     #[OA\Response(
         response: 200,
         description: 'Webhook updated'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform administrators only (admin, super_admin)'
     )]
     public function update(Request $request, string $id): JsonResponse
     {
@@ -282,6 +299,10 @@ class WebhookController extends Controller
         response: 204,
         description: 'Webhook deleted'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform administrators only (admin, super_admin)'
+    )]
     public function destroy(Request $request, string $id): JsonResponse
     {
         $webhook = Webhook::findOrFail($id);
@@ -306,6 +327,10 @@ class WebhookController extends Controller
     #[OA\Response(
         response: 200,
         description: 'Webhook deliveries'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform administrators only (admin, super_admin)'
     )]
     public function deliveries(Request $request, string $id): JsonResponse
     {

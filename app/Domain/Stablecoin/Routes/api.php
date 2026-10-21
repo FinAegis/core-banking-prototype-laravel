@@ -40,18 +40,27 @@ Route::prefix('v2')->group(function () {
             Route::post('/add-collateral', [StablecoinOperationsController::class, 'addCollateral'])->middleware('idempotency');
         });
 
-        // Position management
+        // Position management (owner or stablecoin operator, checked in the
+        // controller)
         Route::get('/accounts/{accountUuid}/positions', [StablecoinOperationsController::class, 'getAccountPositions']);
-        Route::get('/positions/at-risk', [StablecoinOperationsController::class, 'getPositionsAtRisk']);
+
+        // Platform-wide risk, liquidation and simulation endpoints: stablecoin
+        // operators only (StaffRoles::STABLECOIN_OPERATORS). They list every
+        // user's positions, and a liquidation pays the caller a reward out of
+        // the owner's collateral without the caller repaying any debt.
+        Route::middleware(RoleMiddleware::using(StaffRoles::STABLECOIN_OPERATORS))->group(function () {
+            Route::get('/positions/at-risk', [StablecoinOperationsController::class, 'getPositionsAtRisk']);
+            Route::get('/liquidation/opportunities', [StablecoinOperationsController::class, 'getLiquidationOpportunities']);
+            Route::get('/liquidation/positions/{positionUuid}/reward', [StablecoinOperationsController::class, 'calculateLiquidationReward']);
+            Route::post('/simulation/{stablecoinCode}/mass-liquidation', [StablecoinOperationsController::class, 'simulateMassLiquidation']);
+        });
+
+        // Liquidation moves ledger balances: also behind the ledger flag.
+        Route::middleware(['feature:ledger.direct_funding_enabled', RoleMiddleware::using(StaffRoles::STABLECOIN_OPERATORS)])->group(function () {
+            Route::post('/liquidation/execute', [StablecoinOperationsController::class, 'executeAutoLiquidation']);
+            Route::post('/liquidation/positions/{positionUuid}', [StablecoinOperationsController::class, 'liquidatePosition']);
+        });
+
         Route::get('/positions/{positionUuid}', [StablecoinOperationsController::class, 'getPositionDetails']);
-
-        // Liquidation operations (any authenticated liquidator)
-        Route::get('/liquidation/opportunities', [StablecoinOperationsController::class, 'getLiquidationOpportunities']);
-        Route::post('/liquidation/execute', [StablecoinOperationsController::class, 'executeAutoLiquidation']);
-        Route::post('/liquidation/positions/{positionUuid}', [StablecoinOperationsController::class, 'liquidatePosition']);
-        Route::get('/liquidation/positions/{positionUuid}/reward', [StablecoinOperationsController::class, 'calculateLiquidationReward']);
-
-        // Simulation and analytics
-        Route::post('/simulation/{stablecoinCode}/mass-liquidation', [StablecoinOperationsController::class, 'simulateMassLiquidation']);
     });
 });
