@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'RegTech & Compliance',
-        'description' => 'Enterprise-grade regulatory technology with MiFID II reporting, MiCA compliance, Travel Rule enforcement, and multi-jurisdiction adapter support.',
+        'description' => 'Reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements, with multi-jurisdiction adapters. They do not by themselves make a deployment compliant.',
         'keywords' => 'RegTech, compliance, MiFID II, MiCA, Travel Rule, FATF, regulatory reporting, jurisdiction adapters, KYC, AML, ' . config('brand.name', 'Zelta'),
     ])
 
@@ -28,7 +28,10 @@
             <div class="text-center">
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">RegTech & Compliance</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    Navigate the complex global regulatory landscape with confidence. Automated compliance for MiFID II, MiCA, Travel Rule, and more -- across every jurisdiction you operate in.
+                    Reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements. They do not by themselves make a deployment compliant.
+                </p>
+                <p class="text-sm text-slate-500 max-w-3xl mx-auto mt-4">
+                    FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
                 </p>
             </div>
         </div>
@@ -46,7 +49,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3">MiFID II Reporting</h3>
-                    <p class="text-slate-500">Automated best execution analysis, instrument reference data management, and transaction reporting to national competent authorities.</p>
+                    <p class="text-slate-500">Best-execution analysis, instrument reference data management, and transaction-report generation in formats modelled on MiFID II requirements.</p>
                 </div>
 
                 <div class="regulation-card card-feature !p-8 text-center">
@@ -55,8 +58,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">MiCA Compliance</h3>
-                    <p class="text-slate-500">Whitepaper validation, reserve management verification, licensing requirement checks, and stablecoin issuance compliance.</p>
+                    <h3 class="text-xl font-bold mb-3">MiCA-Modelled Checks</h3>
+                    <p class="text-slate-500">Whitepaper checklist, reserve-monitoring and licensing-requirement tracking modules modelled on MiCA requirements.</p>
                 </div>
 
                 <div class="regulation-card card-feature !p-8 text-center">
@@ -66,7 +69,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3">Travel Rule</h3>
-                    <p class="text-slate-500">FATF-compliant originator and beneficiary data exchange with configurable threshold enforcement across all supported jurisdictions.</p>
+                    <p class="text-slate-500">Originator and beneficiary data-exchange module modelled on the FATF Travel Rule, with configurable thresholds.</p>
                 </div>
             </div>
         </div>
@@ -105,14 +108,14 @@
                             </svg>
                             <div>
                                 <h4 class="font-semibold mb-1">Transaction Reporting</h4>
-                                <p class="text-slate-600">Automated generation of RTS 25 compliant reports with ARM submission support</p>
+                                <p class="text-slate-600">Generation of transaction reports with an ARM submission adapter</p>
                             </div>
                         </li>
                     </ul>
                 </div>
 
                 <div class="card-feature !p-8">
-                    <h3 class="text-2xl font-bold mb-6 text-purple-900">MiCA Compliance</h3>
+                    <h3 class="text-2xl font-bold mb-6 text-purple-900">MiCA-Modelled Modules</h3>
                     <ul class="space-y-4">
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-purple-600 mr-3 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -155,7 +158,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                 <div>
                     <p class="text-lg text-slate-500 mb-6">
-                        The {{ config('brand.name', 'Zelta') }} RegTech engine uses a pluggable adapter architecture to support jurisdiction-specific compliance rules. Each adapter encapsulates the unique regulatory requirements of its target market, enabling seamless operation across borders.
+                        The {{ config('brand.name', 'Zelta') }} RegTech engine uses a pluggable adapter architecture to support jurisdiction-specific compliance rules. Each adapter models rules derived from published requirements of its target market.
                     </p>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="bg-gray-50 rounded-lg p-4 text-center">
@@ -175,10 +178,11 @@
                             <p class="text-sm text-slate-500">MAS, PSA, PDPA</p>
                         </div>
                     </div>
+                    <p class="text-sm text-slate-500 mt-4">Adapters modelled on published requirements; no regulator approval or endorsement implied.</p>
                 </div>
 
                 <div class="bg-gray-50 rounded-2xl p-8">
-                    <h3 class="text-2xl font-bold mb-6 text-slate-900">Travel Rule Enforcement</h3>
+                    <h3 class="text-2xl font-bold mb-6 text-slate-900">Travel Rule Module</h3>
                     <div class="space-y-4">
                         <div class="flex justify-between items-center p-4 bg-white rounded-lg">
                             <span class="text-slate-500">FATF Threshold Detection</span>
@@ -257,7 +261,7 @@
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Unified compliance pipeline for all regulations</span>
+                            <span>Unified compliance pipeline for configured rule sets</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -299,9 +303,9 @@
     <section class="bg-fa-navy relative overflow-hidden">
         <div class="absolute inset-0 bg-dot-pattern"></div>
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Stay Compliant, Stay Ahead</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Open-Source Compliance Tooling</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                Automate your regulatory obligations and focus on building your business. Our RegTech engine handles the complexity so you do not have to.
+                FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">

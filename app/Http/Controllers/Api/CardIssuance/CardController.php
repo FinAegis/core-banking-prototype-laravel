@@ -18,7 +18,7 @@ use Throwable;
 
 #[OA\Tag(
     name: 'Card Issuance',
-    description: 'Virtual card provisioning for Apple Pay / Google Pay'
+    description: 'Card-issuing integration adapter (virtual card provisioning). Adding cards to mobile wallets is planned, subject to the card-issuing partner\'s approval.'
 )]
 class CardController extends Controller
 {
@@ -29,7 +29,7 @@ class CardController extends Controller
     }
 
     /**
-     * Provision a new virtual card for Apple Pay / Google Pay.
+     * Provision a virtual card to a mobile wallet (planned; subject to the card-issuing partner's approval).
      */
     #[OA\Post(
         path: '/api/v1/cards/provision',

@@ -1,5 +1,7 @@
 # FinAegis Core Banking Platform
 
+> FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
+
 [![CI Pipeline](https://github.com/FinAegis/core-banking-prototype-laravel/actions/workflows/ci-pipeline.yml/badge.svg)](https://github.com/FinAegis/core-banking-prototype-laravel/actions/workflows/ci-pipeline.yml)
 [![Version](https://img.shields.io/github/v/release/FinAegis/core-banking-prototype-laravel?sort=semver&label=release)](CHANGELOG.md)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -10,7 +12,7 @@
 
 **An open-source core banking platform built with event sourcing, domain-driven design, and modern financial patterns.**
 
-FinAegis provides the foundation for building digital banking applications. The **Global Currency Unit (GCU)** serves as a complete reference implementation demonstrating how to build basket currencies, governance systems, and democratic financial instruments on this platform.
+FinAegis provides the foundation for building digital banking applications. The **GCU demo** is a reference implementation of a basket-referenced unit built with FinAegis, showing how basket valuation and governance modules fit together.
 
 > **FinAegis vs Zelta:** *FinAegis* is this open-source core-banking platform. *Zelta* is the hosted product and mobile wallet built on top of it — so production and hosted surfaces (for example the MCP server at `mcp.zelta.app`) carry the Zelta brand.
 
@@ -31,7 +33,7 @@ FinAegis provides the foundation for building digital banking applications. The 
 | Mobile wallet backend | Biometric auth, passkeys, push notifications (v2.2.0+) |
 | Privacy-preserving transactions | ZK-KYC, Merkle trees, ERC-4337 gas abstraction (v2.4.0-v2.6.0) |
 | Multi-jurisdiction RegTech | MiFID II / MiCA / FATF Travel Rule *report-format validators & adapters* — no live regulator connectivity; not a licensed CASP/ARM (v2.8.0) |
-| Cross-chain & DeFi | Bridge protocols, DEX aggregation, yield optimization (v3.0.0) |
+| Cross-chain & DeFi | Bridge protocol adapters, DEX aggregation, DeFi protocol adapters (v3.0.0) |
 | Modular plugin architecture | 61 domains with manifests, enable/disable, dependency resolution (v3.2.0) |
 | Compliance scaffolding | SOC 2 evidence helpers + a clean PCI-DSS SAQ-A footprint (tokenized cards, no PAN stored); **no certification is held** (v3.5.0) |
 | GraphQL API | Schema-first Lighthouse PHP, 45 domains, subscriptions (v4.0.0+) |
@@ -41,7 +43,7 @@ FinAegis provides the foundation for building digital banking applications. The 
 | API monetization | x402 protocol: HTTP-native micropayments with USDC on Base (v5.2.0) |
 | Privacy protocol | RAILGUN shield/unshield/transfer with Merkle proofs (v5.6.0); non-custodial backend migration — public-address registration, on-device engine config, signed-URL RPC proxy (v7.16.0) |
 | Mobile gamification | Rewards system: quests, XP/levels, points shop, streaks (v5.7.0) |
-| Fiat on/off ramp | Stripe Bridge with async webhook processing and provider-agnostic session management (v5.12.0) |
+| Fiat on/off ramp adapter | Stripe Bridge with async webhook processing and provider-agnostic session management (v5.12.0) |
 | Design system v2 | Complete frontend overhaul with consistent typography, dark heroes (v5.12.0) |
 | Developer ecosystem | Plugin marketplace, developer portal, 3 official SDKs (v6.0.0) |
 | Post-quantum cryptography | ML-KEM-768, ML-DSA-65, hybrid encryption with key rotation (v6.1.0) |
@@ -55,8 +57,10 @@ FinAegis provides the foundation for building digital banking applications. The 
 | Public MCP server | OAuth-secured Model Context Protocol server at `mcp.zelta.app`, `@finaegis/mcp` npm wrapper (v7.11.0) |
 | Non-custodial wallet | Privy passkey/device-key signing, sponsored EVM + Solana sends, prepare/submit flow (v7.12.0) |
 | Mobile subscriptions | Apple App Store + Google Play IAP verification, pseudonymised receipts, revenue outbox (v7.13.0) |
-| Fiat ↔ stablecoin ramp | Bridge.xyz bank-rail on-ramp, virtual accounts, USDC on Polygon, asymmetric webhook verification (v7.15.0) |
+| Fiat ↔ stablecoin ramp adapter | Bridge.xyz API integration (bank-rail on-ramp, virtual accounts, USDC on Polygon), asymmetric webhook verification. Integration adapter for third-party APIs; no partnership or endorsement implied. (v7.15.0) |
 | Learning modern architecture | Complete DDD + CQRS + Event Sourcing example |
+
+*Named third-party providers: Integration adapters for third-party APIs; no partnership or endorsement implied.*
 
 ---
 
@@ -119,19 +123,21 @@ php artisan event-stream:monitor    # Monitor stream health, lag, throughput
 
 ## GCU: The Reference Implementation
 
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
+
 <table>
 <tr>
 <td width="60%">
 
-The **Global Currency Unit (GCU)** demonstrates FinAegis capabilities through a democratic basket currency:
+The **GCU demo** — a reference implementation of a basket-referenced unit built with FinAegis — exercises these modules:
 
 - **Multi-Asset Basket** - USD (40%), EUR (30%), GBP (15%), CHF (10%), JPY (3%), XAU (2%)
-- **Democratic Governance** - Community votes on basket composition
-- **Automatic Rebalancing** - Monthly adjustment to maintain target weights
-- **Transparent NAV** - Real-time Net Asset Value calculation
+- **Governance module** - Simulated votes on basket composition (demo only)
+- **Automatic Rebalancing** - Monthly adjustment to maintain target weights (simulated in the demo)
+- **Basket valuation** - Real-time value calculation from component rates
 - **Full Integration** - Uses Exchange, Governance, Compliance, and Treasury domains
 
-GCU shows how to build complex financial products using FinAegis primitives.
+The GCU demo shows how FinAegis primitives fit together.
 
 </td>
 <td width="40%">
@@ -235,7 +241,7 @@ See [Domain Management Guide](docs/06-DEVELOPMENT/DOMAIN_MANAGEMENT.md) for deta
 | **Account** | Multi-asset accounts, deposits, withdrawals, statements |
 | **Banking** | SEPA/SWIFT transfers, multi-bank routing, reconciliation |
 | **Compliance** | 3-tier KYC, AML screening, SAR/CTR reporting |
-| **Treasury** | Portfolio management, cash allocation, yield optimization |
+| **Treasury** | Portfolio management and cash-allocation modelling |
 
 ### Digital Assets
 
@@ -244,7 +250,7 @@ See [Domain Management Guide](docs/06-DEVELOPMENT/DOMAIN_MANAGEMENT.md) for deta
 | **Exchange** | Order matching, liquidity pools, AMM, external connectors, WebSocket streaming |
 | **Stablecoin** | Multi-collateral minting, burning, liquidation |
 | **Wallet** | Non-custodial EVM sends (Polygon, Base, Arbitrum) + Solana; USDC receive on Solana/Tron; Ledger/Trezor hardware-wallet integration |
-| **Basket (GCU)** | Weighted currency basket, NAV calculation, rebalancing |
+| **Basket (GCU demo)** | Weighted currency basket, basket value calculation, rebalancing (simulated demo) |
 
 ### Platform Services
 
@@ -254,7 +260,7 @@ See [Domain Management Guide](docs/06-DEVELOPMENT/DOMAIN_MANAGEMENT.md) for deta
 | **Lending** | P2P loans, credit scoring, risk assessment |
 | **AI Framework** | MCP server, 20+ banking tools, natural language queries, pattern analysis (v2.8.0) |
 | **Agent Protocol** | A2A messaging, escrow, reputation system |
-| **RegTech** | MiFID II reporting, MiCA compliance, FATF Travel Rule, 4-jurisdiction adapters (v2.8.0) |
+| **RegTech** | Reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements; 4 jurisdiction report-format adapters — they do not by themselves make a deployment compliant (v2.8.0) |
 | **Multi-Tenancy** | Team-based isolation, tenant-aware event sourcing |
 
 ### Mobile Backend (v2.4.0+)
@@ -263,7 +269,7 @@ See [Domain Management Guide](docs/06-DEVELOPMENT/DOMAIN_MANAGEMENT.md) for deta
 |--------|-------------|
 | **Key Management** | Shamir's Secret Sharing (2-of-3), HSM integration |
 | **Privacy** | ZK-KYC verification, Proof of Innocence, selective disclosure |
-| **Card Issuance** | Virtual cards for Apple Pay/Google Pay, JIT funding |
+| **Card Issuance** | Card-issuing integration adapter (e.g. Marqeta API): virtual card lifecycle, JIT funding |
 | **Gas Relayer** | ERC-4337 meta-transactions, pay fees in USDC |
 | **TrustCert** | W3C Verifiable Credentials, QR/deep link verification |
 | **Mobile** | Biometric auth, push notifications, device management |
@@ -422,9 +428,9 @@ This is a **demonstration platform** showcasing modern banking architecture. Use
 - Understanding core banking concepts
 - Building proof-of-concepts
 - Contributing to open-source fintech
-- Studying GCU as a basket currency reference
+- Studying the GCU demo as a basket reference implementation
 
-**Production Readiness**: The codebase includes production-grade infrastructure (CQRS, event sourcing, multi-tenancy, GraphQL API, event streaming, 50%+ test coverage, PHPStan Level 8, 4,900+ tests). However, **a security audit and compliance review are required** before any production deployment. **No third-party SOC 2 or PCI-DSS certification is held** — the compliance modules are audit-readiness tooling, and the payment-standards domains (ISO 20022, ISO 8583, SWIFT, Open Banking, SEPA, US rails, Interledger) are **reference implementations** at the message/logic layer, not live scheme connectivity or settlement. See [Security Policy](SECURITY.md) for vulnerability reporting.
+**Before any production use**: The codebase includes CQRS, event sourcing, multi-tenancy, a GraphQL API, event streaming, 50%+ test coverage, PHPStan Level 8 and 4,900+ tests. However, **a security audit and compliance review are required** before any production deployment, and licensing and regulatory compliance are the responsibility of the operator of each deployment. **No third-party SOC 2 or PCI-DSS certification is held** — the compliance modules are audit-readiness tooling, and the payment-standards domains (ISO 20022, ISO 8583, SWIFT, Open Banking, SEPA, US rails, Interledger) are **reference implementations** at the message/logic layer, not live scheme connectivity or settlement. See [Security Policy](SECURITY.md) for vulnerability reporting.
 
 ---
 

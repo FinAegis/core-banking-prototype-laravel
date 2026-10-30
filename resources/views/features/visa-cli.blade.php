@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Visa CLI - Programmatic Card Payments for AI Agents | ' . config('brand.name', 'Zelta'))
+@section('title', 'Card-Payment CLI Adapter | ' . config('brand.name', 'Zelta'))
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Visa CLI - Programmatic Card Payments for AI Agents',
-        'description' => 'Let AI agents pay for APIs, datasets, and services with real Visa cards. Built-in spending limits, MCP tools, invoice collection, and event-sourced audit trails.',
-        'keywords' => 'visa cli, ai agent payments, programmatic card payments, mcp tools, spending limits, invoice payments, visa api, agent commerce',
+        'title' => 'Card-Payment CLI Adapter | ' . config('brand.name', 'Zelta'),
+        'description' => 'Adapter for a third-party card-payment CLI: let AI agents pay for APIs with spending limits, MCP tools and audit trails.',
+        'keywords' => 'card-payment cli adapter, ai agent payments, mcp tools, spending limits, invoice payments, agent commerce',
     ])
 
     {{-- Schema.org Markup --}}
@@ -14,7 +14,7 @@
     <x-schema type="breadcrumb" :data="[
         ['name' => 'Home', 'url' => url('/')],
         ['name' => 'Features', 'url' => url('/features')],
-        ['name' => 'Visa CLI', 'url' => url('/features/visa-cli')]
+        ['name' => 'Card-Payment CLI Adapter', 'url' => url('/features/visa-cli')]
     ]" />
 @endsection
 
@@ -34,14 +34,14 @@
                 </div>
                 @include('partials.breadcrumb', ['items' => [
                     ['name' => 'Features', 'url' => url('/features')],
-                    ['name' => 'Visa CLI', 'url' => url('/features/visa-cli')]
+                    ['name' => 'Card-Payment CLI Adapter', 'url' => url('/features/visa-cli')]
                 ]])
                 <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">
-                    Visa CLI <span class="text-gradient">Payment Rail</span>
+                    Card-Payment CLI <span class="text-gradient">Adapter</span>
                 </h1>
                 <p class="text-lg text-slate-400 max-w-2xl mx-auto mb-10">
-                    Give AI agents a Visa card. Pay for APIs, image generation, datasets, and cloud services
-                    on demand &mdash; with per-agent budgets, atomic spending limits, and a full audit trail.
+                    Let AI agents pay for APIs and services through visa-cli, a third-party card-payment CLI (third-party tool; not affiliated with or endorsed by Visa)
+                    &mdash; with per-agent budgets, atomic spending limits, and a full audit trail. Integration adapters for third-party APIs; no partnership or endorsement implied.
                 </p>
                 <div class="flex flex-wrap justify-center gap-4 mb-8">
                     <div class="flex items-center gap-2 text-sm text-slate-400">
@@ -92,8 +92,8 @@
                     <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
                         <span class="text-2xl font-bold text-blue-600">3</span>
                     </div>
-                    <h3 class="font-display text-lg font-semibold text-slate-900 mb-3">Visa Payment Settles</h3>
-                    <p class="text-slate-500 text-sm">The payment executes via the enrolled Visa card. An immutable <code class="text-xs bg-white px-1.5 py-0.5 rounded border border-slate-200">ShouldBeStored</code> event captures every state transition for audit.</p>
+                    <h3 class="font-display text-lg font-semibold text-slate-900 mb-3">Payment Settles</h3>
+                    <p class="text-slate-500 text-sm">The payment executes via the card enrolled in the third-party CLI. An immutable <code class="text-xs bg-white px-1.5 py-0.5 rounded border border-slate-200">ShouldBeStored</code> event captures every state transition for audit.</p>
                 </div>
             </div>
         </div>
@@ -104,7 +104,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
                 <h2 class="font-display text-3xl font-bold text-slate-900">What Agents Pay For</h2>
-                <p class="text-slate-500 mt-4 max-w-xl mx-auto">Visa CLI targets the growing market of AI agents that need to purchase services autonomously.</p>
+                <p class="text-slate-500 mt-4 max-w-xl mx-auto">The adapter targets AI agents that need to purchase services autonomously.</p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="bg-white rounded-2xl p-8 border border-slate-100">
@@ -166,7 +166,7 @@
                         <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                     </div>
                     <h3 class="text-lg font-semibold mb-2">Card Enrollment Bridge</h3>
-                    <p class="text-slate-500 text-sm">Enrolled Visa cards sync to the CardIssuance domain via <code>VisaCliCardEnrolled</code> events. DDD boundary maintained &mdash; unified card view, separate bounded contexts.</p>
+                    <p class="text-slate-500 text-sm">Enrolled cards sync to the CardIssuance domain via <code>VisaCliCardEnrolled</code> events. DDD boundary maintained &mdash; unified card view, separate bounded contexts.</p>
                 </div>
                 <div class="card-feature">
                     <div class="w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center mb-4">
@@ -311,7 +311,7 @@ VISACLI_PER_TX_LIMIT=1000    <span class="text-slate-500"># $10.00 per transacti
     <section class="py-20 bg-slate-50">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
-                <h2 class="font-display text-3xl font-bold text-slate-900">Visa CLI vs x402 Protocol</h2>
+                <h2 class="font-display text-3xl font-bold text-slate-900">Card-payment CLI vs x402 Protocol</h2>
                 <p class="text-slate-500 mt-4">Two payment rails, different strengths. Use both in the same platform.</p>
             </div>
             <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
@@ -319,12 +319,12 @@ VISACLI_PER_TX_LIMIT=1000    <span class="text-slate-500"># $10.00 per transacti
                     <thead class="bg-slate-50 border-b border-slate-200">
                         <tr>
                             <th class="text-left py-4 px-6 font-semibold text-slate-900"></th>
-                            <th class="text-center py-4 px-6 font-semibold text-blue-600">Visa CLI</th>
+                            <th class="text-center py-4 px-6 font-semibold text-blue-600">Card-payment CLI</th>
                             <th class="text-center py-4 px-6 font-semibold text-emerald-600">x402 Protocol</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
-                        <tr><td class="py-3 px-6 text-slate-700">Payment method</td><td class="py-3 px-6 text-center text-slate-600">Visa card</td><td class="py-3 px-6 text-center text-slate-600">USDC on-chain</td></tr>
+                        <tr><td class="py-3 px-6 text-slate-700">Payment method</td><td class="py-3 px-6 text-center text-slate-600">Card (via third-party CLI)</td><td class="py-3 px-6 text-center text-slate-600">USDC on-chain</td></tr>
                         <tr><td class="py-3 px-6 text-slate-700">Settlement</td><td class="py-3 px-6 text-center text-slate-600">Card network (1-2 days)</td><td class="py-3 px-6 text-center text-slate-600">Instant on-chain</td></tr>
                         <tr><td class="py-3 px-6 text-slate-700">Best for</td><td class="py-3 px-6 text-center text-slate-600">Traditional APIs, SaaS</td><td class="py-3 px-6 text-center text-slate-600">Crypto-native APIs</td></tr>
                         <tr><td class="py-3 px-6 text-slate-700">Auth model</td><td class="py-3 px-6 text-center text-slate-600">GitHub + enrolled card</td><td class="py-3 px-6 text-center text-slate-600">Wallet signature</td></tr>
@@ -339,8 +339,8 @@ VISACLI_PER_TX_LIMIT=1000    <span class="text-slate-500"># $10.00 per transacti
     <!-- CTA -->
     <section class="py-16 bg-fa-navy">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="font-display text-3xl font-bold text-white mb-4">Start building with Visa CLI</h2>
-            <p class="text-slate-400 mb-8 max-w-xl mx-auto">Enable the demo driver and run <code class="text-blue-300">visa:status</code> in under a minute. No Visa account needed for development.</p>
+            <h2 class="font-display text-3xl font-bold text-white mb-4">Start building with the card-payment CLI adapter</h2>
+            <p class="text-slate-400 mb-8 max-w-xl mx-auto">Enable the demo driver and run <code class="text-blue-300">visa:status</code> in under a minute.</p>
             <div class="flex flex-wrap justify-center gap-4">
                 <a href="{{ url('/developers') }}" class="btn-primary px-8 py-4 text-lg">Developer Docs</a>
                 <a href="{{ route('features.show', 'x402-protocol') }}" class="btn-outline px-8 py-4 text-lg">Compare with x402</a>

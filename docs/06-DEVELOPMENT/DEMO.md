@@ -2,6 +2,8 @@
 
 This guide explains how to set up and use the demo environment for the FinAegis platform with GCU implementation.
 
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
+
 ## Quick Start
 
 ```bash
@@ -19,37 +21,37 @@ The demo environment includes 5 user personas representing different use cases:
 ### 1. High-Inflation Country User (Argentina)
 - **Email**: demo.argentina@gcu.global
 - **Password**: demo123
-- **Scenario**: User from Argentina protecting savings from inflation
+- **Scenario**: Demo persona with simulated multi-currency balances
 - **Holdings**: $500 USD, 450 GCU
-- **Banks**: 40% Paysera, 30% Deutsche Bank, 30% Santander
+- **Banks**: 40% Bank A, 30% Bank B, 30% Bank C
 
 ### 2. Digital Nomad
 - **Email**: demo.nomad@gcu.global
 - **Password**: demo123
 - **Scenario**: International freelancer needing multi-currency support
 - **Holdings**: $2,000 USD, €1,500 EUR, 1,800 GCU
-- **Banks**: 50% Revolut, 30% Paysera, 20% Wise
+- **Banks**: 50% Bank D, 30% Bank A, 20% Bank E
 
 ### 3. Business User
 - **Email**: demo.business@gcu.global
 - **Password**: demo123
 - **Scenario**: Tech company with international operations
 - **Holdings**: $10,000 USD, €8,000 EUR, £5,000 GBP, 9,500 GCU
-- **Banks**: 60% Deutsche Bank, 40% Santander
+- **Banks**: 60% Bank B, 40% Bank C
 
 ### 4. Investor
 - **Email**: demo.investor@gcu.global
 - **Password**: demo123
 - **Scenario**: High net worth individual diversifying holdings
 - **Holdings**: $50,000 USD, 48,500 GCU, 1oz Gold
-- **Banks**: 35% Santander, 35% Deutsche Bank, 30% Paysera
+- **Banks**: 35% Bank C, 35% Bank B, 30% Bank A
 
 ### 5. Regular User
 - **Email**: demo.user@gcu.global
 - **Password**: demo123
 - **Scenario**: Standard user with simple needs
 - **Holdings**: $1,000 USD, 950 GCU
-- **Banks**: 100% Paysera
+- **Banks**: 100% Bank A
 
 ## Admin Access
 
@@ -70,7 +72,7 @@ The demo environment includes 5 user personas representing different use cases:
 - Completed poll from last month showing results
 - Draft poll for next month
 
-### 3. Multi-Bank Distribution
+### 3. Multi-Bank Distribution (simulated)
 - Each demo user has different bank allocation preferences
 - Showcases the multi-bank distribution feature
 - Demonstrates privacy (each bank only sees their portion)
@@ -98,10 +100,10 @@ curl -X POST http://localhost:8000/api/login \
 
 ## Testing Scenarios
 
-### 1. Inflation Protection (Argentina User)
+### 1. Multi-currency view (Argentina persona)
 - Login as demo.argentina@gcu.global
-- View GCU holdings protecting against peso devaluation
-- Check multi-bank distribution for safety
+- View the simulated GCU demo balance
+- Check the simulated bank-allocation settings
 
 ### 2. International Payments (Nomad User)
 - Login as demo.nomad@gcu.global
@@ -111,13 +113,13 @@ curl -X POST http://localhost:8000/api/login \
 ### 3. Business Operations (Business User)
 - Login as demo.business@gcu.global
 - Check large multi-currency holdings
-- View enterprise bank distribution
+- View simulated bank-allocation settings
 
-### 4. Democratic Voting
+### 4. Basket vote (simulated)
 - Login as any demo user
 - View current voting poll
-- Submit vote for currency basket composition
-- Check voting power based on GCU holdings
+- Submit a simulated vote for the demo basket composition
+- Check simulated voting power based on demo GCU balances
 
 ## Resetting Demo Data
 

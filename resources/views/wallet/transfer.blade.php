@@ -71,10 +71,10 @@
                             </div>
                             <div class="ml-3">
                                 <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">
-                                    {{ __('Instant Transfer') }}
+                                    {{ __('Internal Transfer') }}
                                 </h3>
                                 <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
-                                    <p>{{ __('Transfers between ' . config('brand.name', 'Zelta') . ' accounts are instant and free.') }}</p>
+                                    <p>{{ __('Transfers between ' . config('brand.name', 'Zelta') . ' accounts.') }}</p>
                                 </div>
                             </div>
                         </div>

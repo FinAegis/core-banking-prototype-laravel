@@ -1,12 +1,13 @@
 <x-guest-layout>
     @section('title', 'Delete Your Account — Zelta')
-    @section('description', 'How to delete your Zelta account, what data is deleted, and what records FinAegis retains under financial-services law.')
+    @section('description', 'How to delete your Zelta account, what data is deleted, and what records may be retained where applicable law requires it.')
 
     <div class="bg-white">
         <!-- Header -->
         <div class="bg-gray-50 border-b">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <h1 class="text-4xl font-bold text-gray-900">Delete Your Account</h1>
+                {{-- TODO(regulatory): operator legal entity details pending — see docs/REGULATORY-CLAIMS.md (developer name must match the Play Console listing) --}}
                 <p class="mt-4 text-lg text-gray-600">App: <strong>Zelta</strong> &middot; Developer: <strong>FinAegis</strong></p>
                 <p class="mt-2 text-sm text-gray-500">Last updated: {{ \Carbon\Carbon::parse('2026-04-26')->format('F j, Y') }}</p>
             </div>
@@ -29,7 +30,7 @@
 
                 <h2>Option 2 &mdash; Delete by email</h2>
                 <p>If you cannot access the app, email <a href="mailto:support@zelta.app?subject=Delete%20my%20account">support@zelta.app</a> from the email address on your Zelta account, with the subject line <strong>"Delete my account"</strong>. We will verify your identity and process the request within 30 days.</p>
-                <p>If that email address is no longer accessible, contact us from any address and include enough information for us to verify your identity (full legal name, date of birth, last four digits of any linked card, approximate date of last activity). We may request additional verification before proceeding.</p>
+                <p>If that email address is no longer accessible, contact us from any address and include enough information for us to verify your identity (full legal name, date of birth, approximate date of last activity). We may request additional verification before proceeding.</p>
 
                 <h2>What gets deleted</h2>
                 <ul>
@@ -38,16 +39,15 @@
                     <li>Device shards and passkey credentials</li>
                     <li>In-app activity (notifications, rewards XP, dismissed banners)</li>
                     <li>Push notification tokens</li>
-                    <li>Linked virtual cards (deactivated immediately)</li>
                 </ul>
 
                 <h2>What is retained, and for how long</h2>
-                <p>FinAegis operates as a regulated financial-services provider. Some records must be retained after account closure to comply with anti-money-laundering, sanctions, tax, and consumer-protection law. Specific retention periods depend on the jurisdiction in which your account was held; the figures below reflect the typical range.</p>
+                <p>Some records may be retained after account closure where applicable law requires it (for example anti-money-laundering, sanctions, tax and consumer-protection rules). Specific retention periods depend on the jurisdiction; the figures below reflect the typical range.</p>
 
                 <ul>
-                    <li><strong>KYC and identity-verification records</strong> &mdash; 5&ndash;10 years after account closure (EU AMLD; UK MLR 2017; equivalent regimes elsewhere).</li>
+                    <li><strong>Identity-verification records</strong> &mdash; 5&ndash;10 years after account closure, where applicable law requires it.</li>
                     <li><strong>Transaction history and on-chain references</strong> &mdash; 5&ndash;10 years.</li>
-                    <li><strong>Compliance, sanctions-screening, and fraud-investigation records</strong> &mdash; up to 10 years where required by financial regulators.</li>
+                    <li><strong>Compliance, sanctions-screening, and fraud-investigation records</strong> &mdash; up to 10 years where applicable law requires it.</li>
                     <li><strong>Records subject to an active legal hold or law-enforcement request</strong> &mdash; for the duration of the hold.</li>
                 </ul>
 

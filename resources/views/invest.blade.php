@@ -24,14 +24,14 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url('/invest') }}">
     <meta property="og:title" content="FinAegis. Two ways to invest.">
-    <meta property="og:description" content="Regulated EU banking, or non-custodial software. Founder: ex-CEO of Paysera.">
+    <meta property="og:description" content="Licensed EU model (requires authorisation; not held), or non-custodial software. Founder: ex-CEO of Paysera.">
     <meta property="og:image" content="{{ asset('images/og/invest-card.png') }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:site_name" content="{{ $brand }}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="FinAegis. Two ways to invest.">
-    <meta name="twitter:description" content="Regulated EU banking, or non-custodial software. Founder: ex-CEO of Paysera.">
+    <meta name="twitter:description" content="Licensed EU model (requires authorisation; not held), or non-custodial software. Founder: ex-CEO of Paysera.">
     <meta name="twitter:image" content="{{ asset('images/og/invest-card.png') }}">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -177,13 +177,14 @@
             <section class="text-center mb-16 mt-4">
                 <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-acid bru-border text-sm font-bold mb-6" style="transform: rotate(-1deg);">
                     <span class="w-2 h-2 rounded-full bg-obsidian"></span>
+                    {{-- TODO(regulatory): operator legal entity details pending — see docs/REGULATORY-CLAIMS.md --}}
                     INVESTOR PAGE &middot; AEGIS BRIGHTSMARK LTD.
                 </div>
                 <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-6 font-heading max-w-5xl mx-auto" style="line-height: 0.95;">
                     FinAegis. <span class="block sm:inline">Two ways to invest.</span> <span class="block">One <span class="bg-z-purple px-2 inline-block" style="box-decoration-break: clone; -webkit-box-decoration-break: clone;">operator</span> who&rsquo;s done this before.</span>
                 </h1>
                 <p class="text-lg md:text-xl max-w-2xl mx-auto text-text-sec font-medium mb-8">
-                    Choose the path that matches your thesis: regulated EU banking infrastructure, or non-custodial software margins without a licence.
+                    Choose the path that matches your thesis: a licensed EU model (would require EMI and MiCA authorisation, not held), or non-custodial software margins without a licence.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center mb-6">
                     <a href="#licensed" class="btn-hover inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-black bg-acid text-obsidian bru-border">
@@ -195,6 +196,9 @@
                 </div>
                 <p class="text-sm text-text-sec max-w-2xl mx-auto font-medium">
                     Founded by the former CEO of Paysera (1M+ users scaled, MLRO/CFO/legal in-house). Production codebase live.
+                </p>
+                <p class="text-xs text-text-muted max-w-2xl mx-auto font-medium mt-3">
+                    No banking, e-money, payment or crypto-asset licence or authorisation is currently held.
                 </p>
             </section>
 
@@ -213,7 +217,7 @@
                         <thead>
                             <tr>
                                 <th>Dimension</th>
-                                <th>Path A &mdash; Licensed</th>
+                                <th>Path A &mdash; Licensed model (requires EMI/MiCA authorisation; not held)</th>
                                 <th>Path B &mdash; Non-custodial</th>
                             </tr>
                         </thead>
@@ -271,7 +275,7 @@
                 <div class="compare-stack space-y-4">
                     @php
                         $rows = [
-                            ['Capital ask',                'Path A — Licensed', '<span class="font-mono font-bold">€1.0M</span> (founder-discounted from <span class="font-mono">€1.5–2M</span>)', 'Path B — Non-custodial', '<span class="font-mono font-bold">€300–500k</span>'],
+                            ['Capital ask',                'Path A — Licensed model (requires EMI/MiCA authorisation; not held)', '<span class="font-mono font-bold">€1.0M</span> (founder-discounted from <span class="font-mono">€1.5–2M</span>)', 'Path B — Non-custodial', '<span class="font-mono font-bold">€300–500k</span>'],
                             ['Use of capital',             'Path A',            '<span class="font-mono">€250k</span> locked regulatory capital + <span class="font-mono">€160k</span> setup + <span class="font-mono">€450k</span> runway + <span class="font-mono">€140k</span> buffer', 'Path B', 'Engineering + GTM + 12 mo runway'],
                             ['Regulatory burden',          'Path A',            'MiCA Class 2 + EMI Lithuania', 'Path B', 'None (software vendor)'],
                             ['Time to revenue',            'Path A',            '<span class="font-mono">M3</span> (post-licence-grant)', 'Path B', '<span class="font-mono">M0</span> (already shipping)'],
@@ -287,7 +291,7 @@
                             <summary class="cursor-pointer p-4 font-black text-base">{{ $row[0] }}</summary>
                             <div class="px-4 pb-4 pt-1 space-y-3 text-sm">
                                 <div class="bg-acid bru-border p-3">
-                                    <div class="text-xs font-black uppercase tracking-wide mb-1">A &mdash; Licensed</div>
+                                    <div class="text-xs font-black uppercase tracking-wide mb-1">A &mdash; Licensed model (authorisation not held)</div>
                                     <div>{!! $row[2] !!}</div>
                                 </div>
                                 <div class="bg-z-purple bru-border p-3">
@@ -306,9 +310,9 @@
             <section id="licensed" class="mb-16 scroll-mt-24">
                 <div class="bg-acid bru-card-lg p-6 md:p-10">
                     <div class="inline-block px-3 py-1 bg-obsidian text-acid font-black text-xs tracking-widest mb-4 bru-border" style="transform: rotate(-1deg);">PATH A</div>
-                    <h2 class="text-3xl md:text-5xl font-black font-heading mb-4">Licensed banking. <span class="block">€1.0M raise.</span></h2>
+                    <h2 class="text-3xl md:text-5xl font-black font-heading mb-4">Licensed model. <span class="block">€1.0M raise.</span></h2>
                     <p class="text-base md:text-lg font-medium text-obsidian max-w-3xl mb-8">
-                        MiCA Class&nbsp;2 + EMI Lithuania. Regulatory moat takes a year to replicate; we have the in-house team to clear the licence cycle without hiring out.
+                        Would require MiCA Class&nbsp;2 + EMI Lithuania authorisation (not held). Regulatory moat takes a year to replicate.
                     </p>
 
                     {{-- Use of funds bar --}}
@@ -477,8 +481,7 @@
                     <ul class="space-y-3">
                         @foreach ([
                             'Smart wallet (ERC-4337) means user holds keys; we never hold client money',
-                            'Stripe Bridge handles fiat ramp; we charge software margin only — no MoR risk',
-                            'Same regulatory category as Spotify (software vendor), not as a payment service',
+                            'Fiat ramp via third-party provider APIs (e.g. Bridge), under the provider\'s own terms; no partnership or endorsement implied',
                         ] as $item)
                             <li class="flex gap-3 items-start bg-white bru-border p-4">
                                 <span class="flex-none w-6 h-6 bg-obsidian text-acid font-black flex items-center justify-center text-sm" aria-hidden="true">✓</span>
@@ -502,8 +505,8 @@
                             $credRows = [
                                 ['Prior role',         'CEO, Paysera (Lithuania&rsquo;s largest fintech, 1M+ users at exit)'],
                                 ['Stack capability',   'MLRO + CFO + legal in-house — saves <span class="font-mono">~&euro;200k/year</span> vs hiring out'],
-                                ['Network',            'Direct working relationships with Bank of Lithuania, EU passport regulators, Stripe / Pimlico / Privy partnerships'],
-                                ['References',        'Available in data room (3 prior board members + 2 regulators)'],
+                                ['Network',            'Integrations with Stripe, Pimlico and Privy APIs (no partnership implied)'],
+                                ['References',        'Available on request'],
                             ];
                         @endphp
                         @foreach ($credRows as $r)
@@ -671,6 +674,7 @@
                         <div class="md:col-span-2 flex items-start gap-3 bg-white p-4 bru-border">
                             <input type="checkbox" id="f-gdpr" name="gdpr_consent" value="1" required class="mt-1 flex-none w-5 h-5">
                             <label for="f-gdpr" class="text-obsidian text-sm font-medium">
+                                {{-- TODO(regulatory): operator legal entity details pending — see docs/REGULATORY-CLAIMS.md --}}
                                 I consent to Aegis Brightsmark Ltd. (operator of FinAegis) storing this submission to contact me about this investment opportunity.
                                 <a href="{{ route('legal.privacy') }}" target="_blank" rel="noopener" class="font-bold underline hover:no-underline">Privacy Policy</a>.
                             </label>
@@ -696,6 +700,7 @@
         <div class="mx-auto max-w-6xl bg-white bru-card p-6 md:p-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div>
+                    {{-- TODO(regulatory): operator legal entity details pending — see docs/REGULATORY-CLAIMS.md (legal form, registration and "Registered in Lithuania" unverified) --}}
                     <div class="font-black font-heading text-base mb-2">Aegis Brightsmark Ltd.</div>
                     <p class="text-sm text-text-sec font-medium">
                         Legal entity behind FinAegis &middot; {{ $brand }}. Registered in Lithuania.
@@ -718,6 +723,7 @@
                 </div>
             </div>
             <div class="border-t-2 border-obsidian/10 pt-4 text-xs text-text-muted leading-relaxed">
+                {{-- TODO(regulatory): operator legal entity details pending — see docs/REGULATORY-CLAIMS.md --}}
                 <p class="mb-2">
                     <strong class="text-text-sec">For accredited investors only.</strong>
                     This page is provided for informational purposes and does not constitute an offer to sell or a solicitation to buy any securities. Any investment in Aegis Brightsmark Ltd. (operator of FinAegis &middot; {{ $brand }}) requires a separately executed subscription agreement and is subject to applicable securities laws in your jurisdiction. Past performance is not indicative of future results.

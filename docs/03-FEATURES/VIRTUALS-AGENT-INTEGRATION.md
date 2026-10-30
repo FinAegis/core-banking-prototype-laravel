@@ -8,19 +8,18 @@
 
 ### Problem
 Autonomous AI agents on Virtuals Protocol can trade crypto on Base, but cannot:
-- Legally purchase real-world services (AWS, SaaS, APIs)
-- Hold a compliant identity for merchant acceptance
+- Purchase real-world services (AWS, SaaS, APIs)
+- Hold a verifiable identity attestation
 - Be constrained by enforceable spending budgets
 - Have their financial activity audited by a human employer
 
 ### Solution
-Zelta acts as the **compliant spending bridge** for Virtuals agents: identity via TrustCert, spending limits via X402/Pimlico, real-world purchasing via Marqeta/Rain cards, privacy via ZK shields.
+Zelta provides software for Virtuals agents: identity attestations via TrustCert, spending limits via X402/Pimlico, card-issuing integration adapters (e.g. Marqeta API), and privacy via ZK shields. Virtual cards are planned, to be issued by a licensed card-issuing partner. Availability is subject to partner approval and jurisdiction.
 
 ### Monetization
 | Revenue Stream | Mechanism | Existing Infrastructure |
 |---|---|---|
 | Agent setup fee | Per-agent TrustCert issuance | TrustCert domain |
-| Card interchange | % of agent card spend | CardIssuance (Marqeta, Rain) |
 | BaaS subscription | $99-$1,999/mo partner tiers | PartnerBillingService |
 | X402 facilitation | Micro-fee on agent payments | X402 domain |
 
@@ -61,7 +60,7 @@ app/Domain/VirtualsAgent/
 Current: `subjectId = 'user:' . $user->id`
 Extended: `subjectId = 'agent:' . $agentId . ':employer:' . $user->id`
 
-This lets a human employer's KYC umbrella cover their AI agents while maintaining distinct identity per agent for audit.
+This links each agent to its human employer's account while maintaining distinct identity per agent for audit. Zelta Trust levels and on-chain attestations are in-app features. They are not a regulated identity-verification or KYC service, not an eIDAS electronic identification or trust service, and are not intended to satisfy any third party's legal KYC or AML obligations.
 
 ### On-Chain Spending Enforcement via Pimlico
 
@@ -105,16 +104,19 @@ New Filament resource: `VirtualsAgentProfileResource`
 - Session key policy for agent UserOps
 
 ## Card Issuer Support
+Virtual cards are planned, to be issued by a licensed card-issuing partner. Availability is subject to partner approval and jurisdiction. Integration adapters for third-party APIs; no partnership or endorsement implied.
+
 | Issuer | Status | Use Case |
 |--------|--------|----------|
-| Marqeta | Integrated | Primary card issuer for US/EU agents |
-| Rain | Integrated | Alternative issuer, crypto-native focus |
-| Lithic | Adapter ready | Future option |
-| Stripe Issuing | Adapter ready | Future option |
+| Marqeta | Adapter (API integration) | — |
+| Rain | Adapter (API integration) | — |
+| FinCard | Adapter (API integration) | — |
+| Lithic | Not implemented (config placeholder) | — |
+| Stripe Issuing | Not implemented (config placeholder) | — |
 
 ## Security Considerations
 - Agent can never exceed X402 daily/per-tx limits (database + optional Pimlico enforcement)
-- TrustCert links agent to human employer — regulatory accountability maintained
+- TrustCert links agent to human employer for audit
 - Card provisioning requires employer approval (not agent-initiated)
 - All agent financial events are event-sourced (immutable audit trail)
 - SSRF prevention on all agent-initiated payment URLs

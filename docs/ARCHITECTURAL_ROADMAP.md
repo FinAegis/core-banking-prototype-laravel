@@ -3,11 +3,13 @@
 ## Vision Statement
 
 Transform FinAegis into the **premier open source core banking platform** that:
-- Provides production-ready banking infrastructure
+- Provides open-source reference core banking software
 - Demonstrates best practices with the GCU (Global Currency Unit) reference implementation
 - Enables financial institutions to build custom digital banking solutions
-- Maintains strict regulatory compliance (KYC/AML) out of the box
+- Includes open-source compliance tooling (KYC/AML modules); using it does not make a deployment compliant
 - Offers cross-chain DeFi, privacy-preserving identity, and Banking-as-a-Service capabilities
+
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
 
 ---
 
@@ -62,17 +64,19 @@ Transform FinAegis into the **premier open source core banking platform** that:
 
 | Category | Domains | Status |
 |----------|---------|--------|
-| **Core Banking** | Account, Banking, Asset, Product | Production Ready |
-| **Trading** | Exchange, Basket (GCU) | Production Ready |
-| **Compliance & RegTech** | Compliance, Fraud (ML), Regulatory, RegTech (MiFID II/MiCA/Travel Rule) | Production Ready |
-| **Digital Assets** | Stablecoin, Wallet (HW+Multi-Sig), Governance | Production Ready |
-| **Cross-Chain & DeFi** | CrossChain (Wormhole/LayerZero/Axelar), DeFi (Uniswap/Aave/Curve/Lido) | Production Ready |
-| **Privacy & Identity** | Privacy (ZK-KYC/Merkle), KeyManagement (Shamir/HSM), Commerce (SBT), TrustCert (W3C VC) | Production Ready |
-| **Mobile & Payments** | Mobile, MobilePayment, Relayer (ERC-4337), Payment, X402 (HTTP 402), Rewards | Production Ready |
+| **Core Banking** | Account, Banking, Asset, Product | Implemented (reference) |
+| **Trading** | Exchange, Basket (GCU demo) | Implemented (reference) |
+| **Compliance & RegTech** | Compliance, Fraud (ML), Regulatory, RegTech (reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements) | Implemented (reference) |
+| **Digital Assets** | Stablecoin, Wallet (HW+Multi-Sig), Governance | Implemented (reference) |
+| **Cross-Chain & DeFi** | CrossChain (Wormhole/LayerZero/Axelar), DeFi (Uniswap/Aave/Curve/Lido) | Implemented (reference) |
+| **Privacy & Identity** | Privacy (ZK-KYC/Merkle), KeyManagement (Shamir/HSM), Commerce (SBT), TrustCert (W3C VC) | Implemented (reference) |
+| **Mobile & Payments** | Mobile, MobilePayment, Relayer (ERC-4337), Payment, X402 (HTTP 402), Rewards | Implemented (reference) |
 | **Financial Services** | Treasury, Lending, Custodian, CardIssuance | Mature |
 | **Platform & AI** | AI (MCP/NLP/ML), AgentProtocol, Monitoring, Performance, Security | Mature |
 | **BaaS** | FinancialInstitution (Partner APIs, SDKs, Widgets, Billing, Marketplace) | Mature |
 | **Supporting** | User, Contact, Newsletter, Webhook, Activity, Batch, Cgo, Shared | Complete |
+
+*Named third-party protocols and providers: integration adapters for third-party APIs; no partnership or endorsement implied.*
 
 ### Key Metrics (as of v7.9.0)
 
@@ -241,7 +245,7 @@ interface CachingQueryBus extends QueryBus
 
 ### High Risk
 1. **Regulatory Compliance** - Financial software requires careful compliance
-   - Mitigation: Comprehensive compliance documentation, RegTech adapters (MiFID II, MiCA, Travel Rule)
+   - Mitigation: Comprehensive compliance documentation, reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements (they do not by themselves make a deployment compliant)
 
 2. **Security Vulnerabilities** - Banking platform is high-value target
    - Mitigation: Automated security audit, HSM integration, ZK-KYC, OWASP checks
@@ -269,11 +273,11 @@ The FinAegis platform has evolved from a core banking prototype to a comprehensi
 4. **Cross-Chain & DeFi** - Bridge protocols, DEX aggregation, multi-chain portfolio
 5. **Privacy & Identity** - ZK-KYC, Merkle trees, Soulbound tokens, Verifiable Credentials
 6. **Mobile Payments** - Payment intents, passkeys, ERC-4337 gas abstraction
-7. **RegTech** - MiFID II, MiCA, Travel Rule, multi-jurisdiction adapters
+7. **RegTech** - Reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements, multi-jurisdiction adapters
 8. **Banking-as-a-Service** - Partner APIs, SDK generation, embeddable widgets
 9. **AI Framework** - MCP tools, NLP queries, ML anomaly detection
 
-**v5.8.0 Focus**: Mobile go-live — all 13 handover items resolved, privacy calldata persistence, WebSocket mobile channels, Pimlico bundler production, Marqeta card transactions, Chainalysis sanctions screening.
+**v5.8.0 Focus**: mobile backend readiness — 13 handover items resolved, privacy calldata persistence, WebSocket mobile channels, and integration adapters for third-party APIs (e.g. Pimlico bundler, Marqeta card API, Chainalysis sanctions API); no partnership or endorsement implied.
 
 ---
 

@@ -2,9 +2,11 @@
 
 **Version:** 2.6.0
 **Last Updated:** February 5, 2026
-**Status:** Production-Grade Platform
+**Status:** Open-source reference platform
 
 This document consolidates all REST API endpoints for the FinAegis Core Banking Platform, including v2.6.0 privacy and relayer features.
+
+> FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
 
 ## Table of Contents
 - [Authentication](#authentication)
@@ -16,8 +18,8 @@ This document consolidates all REST API endpoints for the FinAegis Core Banking 
 - [Transfer Operations](#transfer-operations)
 - [Exchange Rates](#exchange-rates)
 - [Governance & Voting](#governance--voting)
-- [GCU Trading](#gcu-trading)
-- [CGO Investment Platform](#cgo-investment-platform)
+- [GCU demo (simulated conversions)](#gcu-demo-simulated-conversions)
+- [CGO demo module (investment-intake workflow)](#cgo-demo-module-investment-intake-workflow)
 - [Custodian Integration](#custodian-integration)
 - [Webhooks](#webhooks)
 - [Bank Allocation](#bank-allocation)
@@ -365,6 +367,8 @@ Content-Type: application/json
 
 ## Governance & Voting
 
+> Basket-composition polls belong to the GCU demo; any basket "votes" are simulated. See the [GCU demo disclaimer](#gcu-demo-simulated-conversions).
+
 ### List Polls
 ```http
 GET /api/voting/polls?status=active
@@ -429,9 +433,13 @@ Content-Type: application/json
 }
 ```
 
-## GCU Trading
+## GCU demo (simulated conversions)
 
-### Buy GCU
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
+
+GCU endpoints operate on simulated demo balances; GCU is not issued, offered or sold and has no monetary value.
+
+### Simulated GCU conversion (buy side)
 ```http
 POST /api/v2/gcu/buy
 Authorization: Bearer {token}
@@ -464,7 +472,7 @@ Response:
 }
 ```
 
-### Sell GCU
+### Simulated GCU conversion (sell side)
 ```http
 POST /api/v2/gcu/sell
 Authorization: Bearer {token}
@@ -497,7 +505,7 @@ Response:
 }
 ```
 
-### Get Trading Quote
+### Get Conversion Quote (demo)
 ```http
 GET /api/v2/gcu/quote?operation=buy&amount=1000&currency=EUR
 Authorization: Bearer {token}
@@ -584,7 +592,9 @@ Response:
 }
 ```
 
-## CGO Investment Platform
+## CGO demo module (investment-intake workflow)
+
+> Reference software only; not an offer of securities or tokens.
 
 ### Create Investment
 ```http
@@ -900,10 +910,10 @@ Paginated responses include metadata:
 {
   "data": [...],
   "links": {
-    "first": "https://api.zelta.app/accounts?page=1",
-    "last": "https://api.zelta.app/accounts?page=10",
+    "first": "https://your-finaegis-host.example/accounts?page=1",
+    "last": "https://your-finaegis-host.example/accounts?page=10",
     "prev": null,
-    "next": "https://api.zelta.app/accounts?page=2"
+    "next": "https://your-finaegis-host.example/accounts?page=2"
   },
   "meta": {
     "current_page": 1,
@@ -916,6 +926,8 @@ Paginated responses include metadata:
 }
 ```
 ## Basket API
+
+> Basket endpoints back the GCU demo; see the [GCU demo disclaimer](#gcu-demo-simulated-conversions).
 
 ### List Baskets
 
@@ -1313,6 +1325,8 @@ Response:
 
 ## Bank Allocation
 
+Integration adapters for third-party APIs; no partnership or endorsement implied. Bank names below are placeholders.
+
 ### Get User Bank Allocation
 ```http
 GET /api/users/{uuid}/bank-allocation
@@ -1325,12 +1339,12 @@ Response:
   "data": {
     "allocations": [
       {
-        "bank_name": "Paysera",
+        "bank_name": "Example Bank A",
         "allocation_percentage": 40.0,
         "priority": 1
       },
       {
-        "bank_name": "Deutsche Bank",
+        "bank_name": "Example Bank B",
         "allocation_percentage": 35.0,
         "priority": 2
       }
@@ -1348,17 +1362,17 @@ Content-Type: application/json
 {
   "allocations": [
     {
-      "bank_name": "Paysera",
+      "bank_name": "Example Bank A",
       "allocation_percentage": 30.0,
       "priority": 1
     },
     {
-      "bank_name": "Deutsche Bank",
+      "bank_name": "Example Bank B",
       "allocation_percentage": 40.0,
       "priority": 2
     },
     {
-      "bank_name": "Santander",
+      "bank_name": "Example Bank C",
       "allocation_percentage": 30.0,
       "priority": 3
     }
@@ -2155,6 +2169,8 @@ Response:
 
 ## Liquidity Pools
 
+> Reference module. Example values (APY, rewards, fees) are sample data, not an offer of returns.
+
 ### List All Pools
 ```http
 GET /api/v2/liquidity/pools
@@ -2523,6 +2539,8 @@ Authorization: Bearer {token}
 ```
 
 ## P2P Lending
+
+> Reference module. Example values (interest rates, repayments) are sample data, not an offer of credit or returns.
 
 ### Apply for Loan
 ```http

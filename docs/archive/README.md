@@ -8,13 +8,13 @@ This directory contains documentation that has been superseded or is preserved f
 | File/Folder | Purpose | Historical Value |
 |-------------|---------|------------------|
 | `LITAS_INTEGRATION_ANALYSIS.md` | Litas platform merger analysis | Platform evolution history |
-| `GCU_USER_VISION.md` | Original GCU concept | Product vision history |
+| `GCU_USER_VISION.md` | Original GCU concept (withdrawn — see [REGULATORY-CLAIMS.md](../REGULATORY-CLAIMS.md)) | Product vision history |
 | `SUBSCRIBER_MANAGEMENT.md` | Newsletter/email system | May contain unique details |
 | `PRODUCTION_READINESS_REPORT.md` | Readiness analysis | Reference for future audits |
 | `PLATFORM_ANALYSIS_SUMMARY.md` | Platform architecture snapshot | Historical architecture |
 | `IMPLEMENTATION_STATUS_2025.md` | v2.0.0 implementation status | Version history |
 | `STRATEGIC_PLAN_2025.md` | 2025 development roadmap | Strategic history |
-| `litas_specification.pdf` | Litas product specification | Reference document |
+| `litas_specification.pdf` | Litas product specification (concept document; not an offer — see [REGULATORY-CLAIMS.md](../REGULATORY-CLAIMS.md)) | Reference document |
 | `08-ARCHITECTURE/` | Old architecture docs | Superseded by `02-ARCHITECTURE/` |
 | `08-OPERATIONS/` | Old operations docs | Superseded by `10-OPERATIONS/` |
 | `deployment/` | Historical deployment guides | Server setup reference |

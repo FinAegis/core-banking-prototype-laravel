@@ -1,15 +1,14 @@
 @extends('layouts.public')
 
-@section('title', config('brand.name', 'Zelta') . ' Exchange - Multi-Asset Trading Platform')
+@section('title', config('brand.name', 'Zelta') . ' Exchange - Exchange Module Demo')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => config('brand.name', 'Zelta') . ' Exchange - Multi-Asset Trading Platform',
-        'description' => config('brand.name', 'Zelta') . ' Exchange - Professional trading platform for digital and traditional assets with institutional-grade infrastructure.',
-        'keywords' => config('brand.name', 'Zelta') . ' Exchange, crypto trading, forex, asset exchange, trading platform',
+        'title' => config('brand.name', 'Zelta') . ' Exchange - Exchange Module Demo',
+        'description' => config('brand.name', 'Zelta') . ' Exchange - Exchange module demo: order matching for digital and traditional assets (sandbox, test data only).',
+        'keywords' => config('brand.name', 'Zelta') . ' Exchange, exchange module, order matching, open-source trading engine',
     ])
 
-    <x-schema type="service" :data="['name' => 'Exchange', 'description' => 'Multi-asset trading platform', 'category' => 'Financial Services']" />
     <x-schema type="breadcrumb" :data="[['name' => 'Home', 'url' => url('/')], ['name' => 'Exchange', 'url' => url('/subproducts/exchange')]]" />
 @endsection
 
@@ -22,13 +21,13 @@
                 <div class="text-center">
                     <div class="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm mb-6">
                         <span class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
-                        <span>Now Live</span>
+                        <span>Sandbox Demo</span>
                     </div>
                     <h1 class="text-5xl md:text-6xl font-bold mb-6">
                         {{ config('brand.name', 'Zelta') }} Exchange
                     </h1>
                     <p class="text-xl md:text-2xl text-slate-400 max-w-3xl mx-auto mb-8">
-                        Professional trading platform for digital and traditional assets with institutional-grade infrastructure
+                        Exchange module demo: order matching for digital and traditional assets (sandbox, test data only).
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
                         @auth
@@ -36,14 +35,14 @@
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
                                 </svg>
-                                Start Trading
+                                Explore the Exchange Demo
                             </a>
                         @else
                             <a href="{{ route('login') }}" class="inline-flex items-center px-8 py-4 bg-white text-purple-600 rounded-lg font-semibold hover:bg-purple-50 transition-colors">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
                                 </svg>
-                                Sign In to Trade
+                                Sign In to the Sandbox
                             </a>
                         @endauth
                         <a href="#features" class="inline-flex items-center px-8 py-4 bg-transparent border-2 border-white text-white rounded-lg font-semibold hover:bg-white/10 transition-colors">
@@ -65,9 +64,9 @@
         <section class="py-20 bg-white">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-16">
-                    <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Trading Features</h2>
+                    <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Module Features</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        Professional trading platform with institutional-grade infrastructure
+                        Order matching and trading workflows in the open-source exchange module
                     </p>
                 </div>
 
@@ -90,12 +89,6 @@
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Forex pairs with GCU
-                            </li>
-                            <li class="flex items-start">
-                                <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
                                 Commodities and precious metals
                             </li>
                         </ul>
@@ -107,25 +100,19 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-bold text-slate-900 mb-4">Institutional Security</h3>
+                        <h3 class="text-xl font-bold text-slate-900 mb-4">Security Modules</h3>
                         <ul class="space-y-2 text-slate-600">
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Cold storage for digital assets
+                                Cold-storage integration patterns
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Multi-signature wallets
-                            </li>
-                            <li class="flex items-start">
-                                <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                Insurance coverage
+                                Multi-signature wallet support
                             </li>
                         </ul>
                     </div>
@@ -169,7 +156,7 @@
                     <div>
                         <h3 class="text-2xl font-bold text-slate-900 mb-2">DeFi DEX Aggregation</h3>
                         <p class="text-slate-500 max-w-xl">
-                            Access decentralized exchange liquidity through our DeFi integration. Aggregate quotes from Uniswap, Curve, and more for optimal pricing across DEX and CEX venues.
+                            DEX aggregation adapters (e.g. Uniswap, Curve) compare quotes across DEX and CEX venues. Integration adapters for third-party APIs; no partnership or endorsement implied.
                         </p>
                     </div>
                     <a href="{{ route('features.show', 'crosschain-defi') }}" class="mt-4 md:mt-0 inline-flex items-center px-6 py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-colors flex-shrink-0">
@@ -186,22 +173,22 @@
         <section class="bg-fa-navy relative overflow-hidden">
             <div class="absolute inset-0 bg-dot-pattern"></div>
             <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
-                <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Start Trading Today</h2>
+                <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Explore the Exchange Demo</h2>
                 <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                    Experience professional trading with institutional-grade infrastructure
+                    Explore order matching in the sandbox (test data only)
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     @auth
                         <a href="{{ route('exchange.index') }}" class="btn-primary px-8 py-4 text-lg">
-                            Start Trading Now
+                            Explore the Exchange Demo
                         </a>
                     @else
                         <a href="{{ route('login') }}" class="btn-primary px-8 py-4 text-lg">
-                            Sign In to Trade
+                            Sign In to the Sandbox
                         </a>
                     @endauth
                     <a href="{{ route('gcu') }}" class="btn-outline px-8 py-4 text-lg">
-                        Global Currency Unit
+                        GCU demo
                     </a>
                 </div>
             </div>

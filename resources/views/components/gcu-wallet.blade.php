@@ -7,12 +7,16 @@
         </div>
         <div>
             <h1 class="text-2xl font-medium text-gray-900 dark:text-white">
-                GCU Wallet
+                GCU demo wallet
             </h1>
             <p class="text-gray-500 dark:text-gray-400">
-                Your gateway to the Global Currency Unit
+                Simulated balances — no monetary value
             </p>
         </div>
+    </div>
+    {{-- F4 GCU demo notice (see docs/REGULATORY-CLAIMS.md) --}}
+    <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-200" role="note">
+        Simulated demo — no real value; not an offered token. The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value.
     </div>
 </div>
 
@@ -24,7 +28,7 @@
             <!-- GCU Balance -->
             <div class="bg-white dark:bg-gray-700 rounded-lg p-6 shadow">
                 <div class="flex items-center justify-between mb-2">
-                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">GCU Balance</span>
+                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">GCU demo balance</span>
                     <span class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">Ǥ</span>
                 </div>
                 <div class="text-2xl font-bold text-gray-900 dark:text-white" 
@@ -33,7 +37,7 @@
                      x-text="balance">
                     0.00
                 </div>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">≈ $<span x-text="(parseFloat(balance) * 1.1).toFixed(2)">0.00</span> USD</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Simulated — no monetary value</p>
             </div>
 
             <!-- Total Value -->
@@ -53,10 +57,10 @@
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Across all currencies</p>
             </div>
 
-            <!-- Voting Power -->
+            <!-- Demo Voting Weight -->
             <div class="bg-white dark:bg-gray-700 rounded-lg p-6 shadow">
                 <div class="flex items-center justify-between mb-2">
-                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Voting Power</span>
+                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Demo voting weight</span>
                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
@@ -67,7 +71,7 @@
                      x-text="power">
                     0
                 </div>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">For governance votes</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Simulated — demo only</p>
             </div>
         </div>
     </div>
@@ -125,7 +129,7 @@
                                         @if(auth()->user()->accounts->count() == 0)
                                             Create an account to get started
                                         @else
-                                            Deposit funds to see your balances here
+                                            Add funds to see your balances here
                                         @endif
                                     </p>
                                 </div>

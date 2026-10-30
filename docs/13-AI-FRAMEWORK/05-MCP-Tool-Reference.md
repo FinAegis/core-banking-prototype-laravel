@@ -2,6 +2,8 @@
 
 The 14 tools and 4 resources exposed at `https://mcp.zelta.app/mcp`.
 
+> FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
+
 > **Canonical schemas live on the wire.** Call `tools/list` (any authenticated client) for the up-to-date `inputSchema` / `outputSchema` of every enabled tool. The summaries below are durable contract notes; field-level detail is read off the running server.
 
 ## Conventions
@@ -68,7 +70,7 @@ Get the current balance of an account, optionally scoped to a single asset.
 
 **Scope:** `accounts:write` · **Idempotent:** required
 
-Open a new account for the authenticated user (or for `user_uuid` if explicitly passed and authorized).
+Create a new account record for the authenticated user (or for `user_uuid` if explicitly passed and authorized).
 
 **Inputs**
 
@@ -219,7 +221,7 @@ Execute a quote.
 
 **Scope:** `ramp:write` · **Idempotent:** required
 
-Start an onramp/offramp session via Stripe Bridge. Returns a checkout URL the agent or user opens to complete the funding flow.
+Start an onramp/offramp session with a third-party provider (integration adapter for the Bridge API; no partnership or endorsement implied). Converting stablecoins to fiat, where available, will be provided by licensed third parties under their own terms. Returns a checkout URL the agent or user opens to complete the funding flow.
 
 **Inputs:** `direction` (`onramp` / `offramp`), `amount`, `currency` (fiat), `crypto_currency`, `account_uuid`, `idempotency_key`.
 

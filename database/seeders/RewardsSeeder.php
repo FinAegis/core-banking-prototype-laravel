@@ -64,8 +64,8 @@ class RewardsSeeder extends Seeder
             ],
             [
                 'slug'          => 'first-card',
-                'title'         => 'Create a Virtual Card',
-                'description'   => 'Issue your first virtual card',
+                'title'         => 'Virtual Cards — Coming Soon',
+                'description'   => 'Virtual cards are planned, subject to partner approval and jurisdiction',
                 'xp_reward'     => 50,
                 'points_reward' => 100,
                 'category'      => 'onboarding',

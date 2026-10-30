@@ -2,7 +2,11 @@
 
 ## Strategic Vision
 
-FinAegis is a **production-grade open-source core banking platform** with world-class developer experience, comprehensive test coverage, and production-ready deployment capabilities.
+FinAegis is an **open-source reference platform** for core banking software, with a strong developer experience, comprehensive test coverage and deployment tooling.
+
+> FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
+
+*Named third-party providers in this roadmap: Integration adapters for third-party APIs; no partnership or endorsement implied. The Global Currency Unit (GCU) referenced here is a software demonstration: it is not issued, offered or sold to anyone and has no monetary value.*
 
 ---
 
@@ -52,7 +56,7 @@ FinAegis is a **production-grade open-source core banking platform** with world-
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    │
-│  │   INTEGRATION   │    │    ENHANCED     │    │   PRODUCTION    │    │
+│  │   INTEGRATION   │    │    ENHANCED     │    │   OPERATIONAL   │    │
 │  │     BRIDGES     │    │    FEATURES     │    │    READINESS    │    │
 │  │                 │    │                 │    │                 │    │
 │  │ • Agent-Payment │    │ • Yield Optim.  │    │ • Metrics       │    │
@@ -88,7 +92,7 @@ class AgentComplianceBridgeService
     public function verifyAgentCompliance(string $agentDid): ComplianceResult;
 }
 ```
-**Impact**: Regulatory compliance for AI-driven transactions
+**Impact**: Compliance tooling for AI-driven transactions
 **Effort**: Medium | **Value**: Critical
 
 #### 1.3 Agent MCP Bridge
@@ -131,7 +135,7 @@ class EnhancedDueDiligenceService
     public function schedulePeriodicReview(string $customerId, Interval $interval): void;
 }
 ```
-**Impact**: Regulatory compliance for high-risk customers
+**Impact**: Compliance tooling (EDD workflows) for high-risk customers
 **Effort**: Medium | **Value**: High
 
 #### 2.3 Batch Processing Completion
@@ -148,7 +152,7 @@ class BatchProcessingService
 **Impact**: Efficient bulk operations
 **Effort**: Low | **Value**: Medium
 
-### Priority 3: Production Readiness
+### Priority 3: Operational Readiness
 
 #### 3.1 Observability Stack
 ```yaml
@@ -796,7 +800,7 @@ finaegis-mobile/
 
 | Feature | Description |
 |---------|-------------|
-| Multi-Asset Dashboard | Show all asset balances (fiat, crypto, GCU) |
+| Multi-Asset Dashboard | Show all asset balances (fiat, crypto) |
 | Balance Refresh | Pull-to-refresh + real-time WebSocket updates |
 | Asset Details | Tap asset for detailed view with mini-chart |
 | Portfolio Value | Total value in user's preferred currency |
@@ -806,7 +810,7 @@ finaegis-mobile/
 | Method | Implementation |
 |--------|----------------|
 | Bank Transfer | Display IBAN/account details for manual transfer |
-| Custodian Banks | Paysera, Deutsche Bank integration |
+| Custodian bank connectors | Bank connector adapters (e.g. Paysera, Deutsche Bank APIs) |
 | Crypto Deposit | Show wallet address with QR code |
 | Card Payment | Future: Stripe integration for card top-ups |
 
@@ -832,16 +836,7 @@ finaegis-mobile/
 
 ### Phase 4: Advanced Features (3-4 weeks)
 
-#### 4.1 GCU Trading
-
-| Feature | Description |
-|---------|-------------|
-| Buy GCU | Purchase GCU with fiat/crypto |
-| Sell GCU | Redeem GCU to fiat/crypto |
-| Price Chart | Historical GCU price visualization |
-| Trading Limits | Display user's daily/monthly limits |
-
-#### 4.2 KYC/Compliance
+#### 4.1 KYC/Compliance
 
 | Feature | Description |
 |---------|-------------|
@@ -850,7 +845,7 @@ finaegis-mobile/
 | Selfie Verification | Liveness check integration |
 | Status Tracking | Push notification on approval/rejection |
 
-#### 4.3 Notifications
+#### 4.2 Notifications
 
 | Feature | Description |
 |---------|-------------|
@@ -940,7 +935,7 @@ finaegis-mobile/
 ### Deferred to v2.5.0
 - Natural language transaction query API endpoints
 - ML anomaly detection activities
-- MiFID II / MiCA compliance services
+- MiFID II / MiCA reporting modules
 - Regulatory API adapters (FinCEN, ESMA, FCA, MAS)
 - SDK generation implementation
 - Embeddable widgets implementation
@@ -1101,17 +1096,17 @@ main ─────────●─────────●─────
 | **v2.5.0** | Mobile App Launch | Mobile Frontend (Expo/React Native), App Store Release | ✅ Released |
 | **v2.6.0** | Privacy Layer & ERC-4337 | Merkle Trees, Smart Accounts, Delegated Proofs, Gas Station | ✅ Released 2026-02-02 |
 | **v2.7.0** | Mobile Payment API | Payment Intents, Receipts, Passkey Auth, P2P Transfers | ✅ Released 2026-02-08 |
-| **v2.8.0** | AI Query & RegTech | AI Transaction Queries, MiFID II, MiCA, Travel Rule | ✅ Released 2026-02-08 |
+| **v2.8.0** | AI Query & RegTech | AI Transaction Queries, reporting modules modelled on MiFID II, MiCA and Travel Rule requirements | ✅ Released 2026-02-08 |
 | **v2.9.0** | BaaS & Production Hardening | ML Anomaly Detection, BaaS Implementation, SDK Generation | ✅ Released 2026-02-10 |
 | **v2.9.1** | Production Hardening | On-Chain SBT, snarkjs, AWS KMS, Azure Key Vault, Security Audit | ✅ Released 2026-02-10 |
 | **v2.10.0** | Mobile API Compatibility | ~30 mobile-facing API endpoints, response envelope consistency, wallet/TrustCert/commerce/relayer mobile APIs | ✅ Released 2026-02-10 |
 | **v3.0.0** | Cross-Chain & DeFi | CrossChain bridges (Wormhole/LayerZero/Axelar), DeFi protocols (Uniswap/Aave/Curve/Lido), cross-chain swaps, multi-chain portfolio | ✅ Released 2026-02-10 |
 | **v3.1.0** | Consolidation & UI | Documentation refresh, Swagger coverage, website features, admin UI (15 domains), user UI, developer portal | ✅ Released 2026-02-11 |
-| **v3.2.0** | Production Readiness & Plugin Architecture | Module manifests, enable/disable, modular routes, admin API/UI, k6 tests, query middleware, open-source templates | ✅ Released 2026-02-11 |
+| **v3.2.0** | Operational Hardening & Plugin Architecture | Module manifests, enable/disable, modular routes, admin API/UI, k6 tests, query middleware, open-source templates | ✅ Released 2026-02-11 |
 | **v3.2.1** | Patch: GitLeaks & Dependencies | GitLeaks false positives fix, 14 dependency updates | ✅ Released 2026-02-12 |
 | **v3.3.0** | Event Store & Observability | Event replay/rebuild, real-time dashboards, structured logging, deep health checks | ✅ Released 2026-02-12 |
 | **v3.4.0** | API Maturity & DX | API versioning, rate limiting per tier, SDK auto-generation, OpenAPI 100% | ✅ Released 2026-02-12 |
-| **v3.5.0** | Compliance Certification | SOC 2, PCI DSS, multi-region, GDPR tooling | ✅ Released 2026-02-12 |
+| **v3.5.0** | Compliance Readiness Tooling | SOC 2 / PCI DSS readiness tooling (no certification is held), multi-region, GDPR tooling | ✅ Released 2026-02-12 |
 | **v4.0.0** | Architecture Evolution | Event Store v2, GraphQL API, Plugin Marketplace | ✅ Released 2026-02-13 |
 | **v4.1.0** | GraphQL Expansion | 6 new GraphQL domains (Treasury, Payment, Lending, Stablecoin, CrossChain, DeFi), event replay filters, projector health monitoring | ✅ Released 2026-02-13 |
 | **v4.2.0** | Real-time Platform | GraphQL subscriptions (4 new), plugin hook system (17 hooks), example plugins, 8 core domain mutations | ✅ Released 2026-02-13 |
@@ -1123,9 +1118,9 @@ main ─────────●─────────●─────
 | **v5.1.2** | Production Landing Page Fix | Standalone pre-compiled CSS for `/app` (CSP-compliant, Vite-independent) | ✅ Released 2026-02-16 |
 | **v5.1.3** | Mobile API Compatibility | Auth response standardization, token refresh/logout-all endpoints, rate limiter fix | ✅ Released 2026-02-17 |
 | **v5.1.4** | Refresh Token Mechanism | Proper access/refresh token pairs, token rotation, PHPStan fix, OpenAPI docs update | ✅ Released 2026-02-18 |
-| **v5.1.5** | Dependency Cleanup & Production Readiness | l5-swagger 9→10 (swagger-php 6), PSR-4 plugin fix, `.env.production.example` for mobile backend, passkey test fix | ✅ Released 2026-02-21 |
+| **v5.1.5** | Dependency Cleanup & Deployment Config | l5-swagger 9→10 (swagger-php 6), PSR-4 plugin fix, `.env.production.example` for mobile backend, passkey test fix | ✅ Released 2026-02-21 |
 | **v5.2.0** | X402 Protocol | HTTP 402 native micropayments (USDC on Base), payment gate middleware, AI agent payments, spending limits | ✅ Released 2026-02-19 |
-| **v5.4.0** | Ondato KYC & Card Issuing | Ondato identity verification, Chainalysis sanctions adapter, Marqeta card issuing, Firebase FCM v1 | ✅ Released 2026-02-21 |
+| **v5.4.0** | KYC & Card-Issuing Adapters | Identity-verification adapter (e.g. Ondato API), sanctions-screening adapter (e.g. Chainalysis API), card-issuing integration adapter (e.g. Marqeta API), Firebase FCM v1 | ✅ Released 2026-02-21 |
 | **v5.5.0** | Production Relayer & Card Webhooks | ERC-4337 Pimlico v2 integration, Marqeta webhook auth, platform hardening | ✅ Released 2026-02-21 |
 | **v5.6.0** | RAILGUN Privacy Protocol | Node.js bridge to @railgun-community/wallet SDK, shield/unshield/transfer, 4-chain support (ETH/Polygon/Arbitrum/BSC) | ✅ Released 2026-02-28 |
 | **v5.7.0** | Mobile Rewards & Security Hardening | Rewards domain (quests, XP/levels, shop, streaks), WebAuthn FIDO2 hardening, recent recipients, route aliases, 44 tests | ✅ Released 2026-02-28 |
@@ -1247,11 +1242,11 @@ Based on mobile architecture review, the following new backend domains are requi
 
 #### Phase 1: Card Issuance Domain 🆕
 
-**Purpose**: Enable tap-to-pay at regular shops using stablecoins via virtual cards.
+**Purpose**: Virtual cards are planned, to be issued by a licensed card-issuing partner. Availability is subject to partner approval and jurisdiction.
 
 | Component | Description | Status |
 |-----------|-------------|--------|
-| `CardProvisioningService` | Apple Pay / Google Pay push provisioning | 🚧 |
+| `CardProvisioningService` | Mobile-wallet push provisioning (planned, subject to the card-issuing partner's approval) | 🚧 |
 | `CardLifecycleService` | Card freeze, cancel, replace operations | 🚧 |
 | `JitFundingService` | Just-in-Time authorization (< 2s latency) | 🚧 |
 | `MarqetaAdapter` | Marqeta card issuer integration | 🚧 |
@@ -1262,7 +1257,7 @@ Based on mobile architecture review, the following new backend domains are requi
 
 **API Endpoints**:
 ```
-POST   /api/v1/cards/provision          # Add to Apple/Google Wallet
+POST   /api/v1/cards/provision          # Add to mobile wallet
 GET    /api/v1/cards                    # List user cards
 POST   /api/v1/cards/{id}/freeze        # Freeze card
 DELETE /api/v1/cards/{id}/freeze        # Unfreeze card
@@ -1311,7 +1306,7 @@ GET    /api/v1/trustcert/verify/{token} # Verify presentation
 |-------|-------------|--------|
 | **Foundation** | Expo project, navigation, auth flow | 🚧 |
 | **Wallet** | Balance display, send/receive, QR codes | 🚧 |
-| **Card Payments** | Push provisioning, tap-to-pay | 🚧 |
+| **Card Payments** | Adding cards to mobile wallets is planned, subject to the card-issuing partner's approval. | 🚧 |
 | **Gas Abstraction** | Stablecoin-only transactions | 🚧 |
 | **Privacy** | Shield/unshield (native ZK prover) | 🚧 |
 | **TrustCert** | Certificate application, verification | 🚧 |
@@ -1322,7 +1317,7 @@ GET    /api/v1/trustcert/verify/{token} # Verify presentation
 | Module | Purpose | Technology |
 |--------|---------|------------|
 | `@finaegis/react-native-zk-prover` | ZK proof generation | Rust via JSI |
-| `@finaegis/react-native-wallet-provisioning` | Apple/Google Pay | Native (Swift/Kotlin) |
+| `@finaegis/react-native-wallet-provisioning` | Mobile-wallet provisioning (planned) | Native (Swift/Kotlin) |
 | `expo-secure-store` | Secure key storage | Native Keychain/Keystore |
 | `expo-local-authentication` | Biometric auth | Native |
 
@@ -1354,7 +1349,7 @@ GET    /api/v1/trustcert/verify/{token} # Verify presentation
 - **GasStationService** - Enhanced with initCode support
 - **UserOperationSigningService** - Auth shard signing with biometric verification
 - **BiometricJWTService** - JWT token verification for UserOp signing
-- **WalletBalanceService** - Production-ready balance checking
+- **WalletBalanceService** - Balance checking
 
 ---
 
@@ -1418,8 +1413,8 @@ GET    /api/v1/trustcert/verify/{token} # Verify presentation
 |---------|--------|-----|
 | AI Transaction Query Tools | ✅ Complete | #397 |
 | AI Query API Endpoints | ✅ Complete | #398 |
-| RegTech Jurisdiction Adapters (FinCEN, ESMA, FCA, MAS) | ✅ Complete | #399 |
-| MiFID II, MiCA, Travel Rule Services + API | ✅ Complete | #400 |
+| Report-format adapters modelled on FinCEN, ESMA, FCA and MAS schemas (no live regulator connectivity) | ✅ Complete | #399 |
+| Reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements + API | ✅ Complete | #400 |
 
 ### AI Query Endpoints
 
@@ -1440,7 +1435,7 @@ GET    /api/v1/trustcert/verify/{token} # Verify presentation
 | `FCAAdapter` | UK Gabriel (MiFID, REP-CRIM, SUP16) | ✅ |
 | `MASAdapter` | SG eServices Gateway (MAS Returns, STR) | ✅ |
 | `MifidReportingService` | Transaction reporting (RTS 25), best execution (RTS 27/28) | ✅ |
-| `MicaComplianceService` | CASP authorization, whitepaper validation, reserves | ✅ |
+| `MicaComplianceService` | MiCA whitepaper/reserve data checks (modelled on MiCA requirements) | ✅ |
 | `TravelRuleService` | FATF Rec 16, jurisdiction thresholds | ✅ |
 | RegTech API | 11 endpoints under `/api/regtech` | ✅ |
 
@@ -1457,7 +1452,7 @@ GET    /api/v1/trustcert/verify/{token} # Verify presentation
 ## Version 2.9.0 - BaaS & Production Hardening ✅ RELEASED
 
 **Release Date**: February 10, 2026
-**Theme**: Banking-as-a-Service + Production Readiness
+**Theme**: Banking-as-a-Service + Operational Hardening
 
 ### Phase 1: ML Anomaly Detection ✅ COMPLETE
 
@@ -1495,7 +1490,7 @@ GET    /api/v1/trustcert/verify/{token} # Verify presentation
 ## Version 2.9.1 - Production Hardening ✅ RELEASED
 
 **Release Date**: February 10, 2026
-**Theme**: Production-grade implementations for smart contracts, ZK circuits, HSM, and security
+**Theme**: Non-demo implementations for smart contracts, ZK circuits, HSM, and security
 
 ### Delivered
 
@@ -1555,7 +1550,7 @@ Adds approximately 30 new mobile-facing API endpoints across wallet, TrustCert, 
 | `BridgeTransactionTracker` | Cache-based bridge transaction lifecycle tracking | ✅ |
 | `CrossChainSwapService` | Atomic cross-chain swaps (bridge + swap in optimal order) | ✅ |
 | `CrossChainSwapSaga` | Compensation-based saga for bridge+swap failure recovery | ✅ |
-| `CrossChainYieldService` | Best yield discovery across chains with bridge cost analysis | ✅ |
+| `CrossChainYieldService` | Cross-chain DeFi protocol rate lookup with bridge cost analysis | ✅ |
 | `MultiChainPortfolioService` | Aggregated portfolio across all chains with DeFi positions | ✅ |
 
 ### DeFi Domain
@@ -1617,7 +1612,7 @@ After 18 releases (v1.1.0 → v3.0.0), the platform has grown to 41 domains, 266
 
 ---
 
-## v3.2.0 — Production Readiness & Plugin Architecture ✅ COMPLETED
+## v3.2.0 — Operational Hardening & Plugin Architecture ✅ COMPLETED
 
 **Released**: February 11, 2026
 **Theme**: Open-Source Readiness, Plugin System, Performance
@@ -1669,7 +1664,7 @@ After 18 releases (v1.1.0 → v3.0.0), the platform has grown to 41 domains, 266
 
 ---
 
-## v3.5.0 — Compliance Certification Readiness ✅ COMPLETED
+## v3.5.0 — Compliance Readiness Tooling (no certification held) ✅ COMPLETED
 
 **Released**: February 13, 2026
 **Theme**: Enterprise Compliance & Security
@@ -1681,7 +1676,7 @@ After 18 releases (v1.1.0 → v3.0.0), the platform has grown to 41 domains, 266
 | SOC 2 Type II Preparation | ✅ | Audit trail, access controls, evidence collection, 14 control families |
 | PCI DSS Readiness | ✅ | Cardholder data isolation, encryption, 12 requirement assessments |
 | Multi-Region Deployment | ✅ | Geographic distribution, data residency, region health monitoring |
-| GDPR Enhanced Compliance | ✅ | Article 30 ROPA, DPIA, breach notification, consent v2, retention policies |
+| GDPR Enhanced Tooling | ✅ | Article 30 ROPA, DPIA, breach notification, consent v2, retention policies |
 
 ---
 
@@ -2131,7 +2126,7 @@ Mobile app polling `wallet/balances` + `wallet/state` every 60s generated ~98K A
 
 ### Domain Completion Audit (March 15, 2026)
 
-**43 domains total — 38 production-ready, 5 need attention:**
+**43 domains total — 38 feature-complete, 5 need attention:**
 
 | Domain | Current | Target | Gap |
 |--------|---------|--------|-----|
@@ -2240,7 +2235,7 @@ Mobile app polling `wallet/balances` + `wallet/state` every 60s generated ~98K A
 
 ---
 
-## v6.1.0 — Feature Completeness & Production Readiness (COMPLETED)
+## v6.1.0 — Feature Completeness & Operational Hardening (COMPLETED)
 
 **Completed**: March 27, 2026 (delivered across v6.2.0–v6.12.0)
 **Theme**: Every advertised feature at 100% — no gaps between marketing and implementation
@@ -2263,10 +2258,9 @@ but zero quantum-related code exists. This is a credibility gap that must be fix
 | Quantum-Safe Key Rotation | HIGH | Key rotation service that upgrades existing keys to PQ-safe |
 | Update Security Feature Page | HIGH | Accurate documentation of what PQ algorithms are implemented |
 
-### Phase 2 — Card Issuance: Rain Integration (HIGH)
+### Phase 2 — Card Issuance: card-issuing integration adapter (e.g. Rain API) (HIGH)
 
 Card Issuance domain is thin (55%) — no persistent models, only demo adapter.
-Rain is a modern card issuing platform for crypto/fintech companies.
 
 | Task | Priority | Description |
 |------|----------|-------------|
@@ -2343,7 +2337,7 @@ Rain is a modern card issuing platform for crypto/fintech companies.
 ### v6.2.0 — Visa CLI Integration (COMPLETED)
 
 **Release Date**: March 21, 2026
-**Theme**: Programmatic Visa Card Payments for AI Agents
+**Theme**: Programmatic card payments for AI agents via the third-party Visa CLI tool (integration adapter; no partnership or endorsement implied)
 
 | Component | Files | Description |
 |-----------|-------|-------------|
@@ -2362,7 +2356,7 @@ Rain is a modern card issuing platform for crypto/fintech companies.
 ### v6.3.0 — Virtuals Protocol Agent Integration (COMPLETED)
 
 **Release Date**: March 23, 2026
-**Theme**: AI Agent Commerce — Compliant Spending Bridge for Autonomous Agents
+**Theme**: AI Agent Commerce — Spending-limit bridge for autonomous agents
 
 | Component | Files | Description |
 |-----------|-------|-------------|
@@ -2500,7 +2494,7 @@ Rain is a modern card issuing platform for crypto/fintech companies.
 ## Version 6.5.0 — SMS Multi-Rail Payments + Mobile Launch (RELEASED)
 
 **Release Date**: March 24, 2026
-**Theme**: First Partner Integration + Mobile Readiness
+**Theme**: First Third-Party SMS Integration + Mobile Readiness
 
 ### SMS Domain (VertexSMS)
 
@@ -2693,10 +2687,10 @@ Rain is a modern card issuing platform for crypto/fintech companies.
 
 ---
 
-## Version 7.0.0 — Production Release (RELEASED)
+## Version 7.0.0 — Major Release (RELEASED)
 
 **Release Date**: March 28, 2026
-**Theme**: Production-Grade Platform — Code Quality, SDK Stability, Deployment Readiness
+**Theme**: Code Quality, SDK Stability, Deployment Readiness
 
 ### Web3 Infrastructure Consolidation
 - Deprecated legacy Relayer EthRpcClient in favor of Infrastructure/Web3 canonical implementation
@@ -2711,7 +2705,7 @@ Rain is a modern card issuing platform for crypto/fintech companies.
 - 23 new tests: BankWebhookController (16 HMAC + payload tests), ZkSetupCommand (7 artisan tests)
 - Total test suite stable across all domains
 
-### Production Readiness Fixes
+### Deployment Configuration Fixes
 - Removed Marqeta sandbox URL from production env examples (was defaulting to sandbox API)
 - Fixed `env()` calls in ProductionMerkleTreeService (would return null after config:cache)
 - Helm Chart bumped to appVersion 7.0.0
@@ -2774,7 +2768,7 @@ Rain is a modern card issuing platform for crypto/fintech companies.
 ## Version 7.2.0 — Standards & Compliance Foundation (RELEASED)
 
 **Release Date**: March 30, 2026
-**Theme**: Close traditional banking infrastructure gaps — ISO standards and Open Banking compliance
+**Theme**: Close traditional banking infrastructure gaps — ISO standards and Open Banking standards support
 
 Based on competitive analysis of 19 worldwide open-source core banking platforms (Apache Fineract, Moov, Open Bank Project, Hyperswitch, Rafiki, Mojaloop, Galoy, and commercial platforms). FinAegis leads in Web3/DeFi/ZK/PQC; these gaps are in traditional banking infrastructure.
 
@@ -2788,10 +2782,10 @@ Based on competitive analysis of 19 worldwide open-source core banking platforms
 - GraphQL: `iso20022Validate` mutation, `iso20022SupportedTypes` query
 - UETR (Unique End-to-End Transaction Reference) for cross-border tracking
 
-### Open Banking PSD2 Compliance (New Domain)
-- PSD2 consent lifecycle: create → authorize → use → expire/revoke
-- AISP (Account Information Service Provider) — consent-gated account/balance/transaction access
-- PISP (Payment Initiation Service Provider) — consent-gated payment initiation
+### Open Banking module modelled on PSD2 requirements (New Domain) — it does not by itself make a deployment compliant
+- PSD2-style consent lifecycle: create → authorize → use → expire/revoke
+- AISP-style account-information flows — consent-gated account/balance/transaction access
+- PISP-style payment-initiation flows — consent-gated payment initiation
 - TPP Registration Service — Third-Party Provider management with certificate validation
 - Berlin Group NextGenPSD2 format adapter
 - UK Open Banking format adapter
@@ -2801,7 +2795,7 @@ Based on competitive analysis of 19 worldwide open-source core banking platforms
 - GraphQL: 2 queries + 3 mutations for consent management
 - 3 models (Consent, TppRegistration, ConsentAccessLog) with migrations
 
-### ISO 8583 Card Network Processor (New Domain)
+### ISO 8583 Message Processor (New Domain)
 - MessageCodec — encode/decode ISO 8583 bitmap-based messages
 - FieldDefinitions — 25 standard fields (PAN, amount, STAN, terminal/merchant IDs, etc.)
 - Bitmap — primary (64-bit) and secondary (128-bit) with hex encode/decode
@@ -2826,6 +2820,7 @@ Based on competitive analysis of 19 worldwide open-source core banking platforms
 **Theme**: US payment rails, SEPA enhancement, intelligent routing, and Interledger interoperability
 
 ### US Payment Rails (New Domain: PaymentRails)
+*Reference implementations at the message/logic layer — not live scheme connectivity or settlement.*
 - **ACH** — NACHA file generation/parsing, originate credits/debits, same-day ACH, return processing (R01-R29)
 - **Fedwire** — Real-time gross settlement with callback processing
 - **RTP** — The Clearing House Real-Time Payments with Request-for-Payment
@@ -2888,7 +2883,7 @@ Based on competitive analysis of 19 worldwide open-source core banking platforms
 
 ### Full Microfinance Suite (New Domain)
 - **Group Lending** — Joint liability groups, center hierarchy, meeting management with frequency-based scheduling
-- **Loan Provisioning** — IFRS-compliant classification (standard/substandard/doubtful/loss), configurable rates and thresholds, batch reclassification
+- **Loan Provisioning** — classification modelled on IFRS categories (standard/substandard/doubtful/loss), configurable rates and thresholds, batch reclassification
 - **Share Accounts** — Cooperative shares with purchase/redeem, dividend calculation and distribution
 - **Teller Operations** — Cashier vault management, cash-in/cash-out with balance guards, reconciliation
 - **Field Officer** — Territory assignment, collection sheet generation, mobile sync
@@ -2947,7 +2942,7 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 
 ---
 
-## Version 7.7.0 — Production Deployment Readiness (RELEASED)
+## Version 7.7.0 — Deployment Configuration (RELEASED)
 
 **Release Date**: 2026-03-29
 **Theme**: Helm chart alignment, card settings API, production environment review, benchmark tooling
@@ -2976,7 +2971,7 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 - **`benchmark:ledger`** — GL posting throughput; posts N journal entries, reports entries/second. Usage: `php artisan benchmark:ledger --count=1000`
 - **`benchmark:payment-rails`** — ISO 8583 codec round-trip throughput; encode+decode N messages, reports ops/second. Usage: `php artisan benchmark:payment-rails --count=5000`
 
-### Production Readiness Scan
+### Deployment Configuration Scan
 - Confirmed zero `env()` calls outside config files in all 7 new domains (ISO20022, OpenBanking, ISO8583, PaymentRails, Interledger, Ledger, Microfinance)
 - All new domain configs default to `enabled => false` — safe for zero-config production deployments
 
@@ -2991,18 +2986,18 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 
 *Document Version: 7.7.0*
 *Created: January 11, 2026*
-*Updated: 2026-03-29 (v7.7.0 Production Deployment Readiness)*
+*Updated: 2026-03-29 (v7.7.0 Deployment Configuration)*
 *Updated: March 30, 2026 (v7.6.0 Security Hardening)*
 
 ---
 
-## Version 7.8.0 — Standards & Compliance (RELEASED)
+## Version 7.8.0 — Standards & Compliance Tooling (RELEASED)
 
 **Release Date**: March 30, 2026
 **Theme**: Consolidated release of v7.2-v7.7 feature development + website content
 
 ### Delivered Features
-- 7 new domains: ISO 20022, Open Banking PSD2, ISO 8583, PaymentRails, Interledger, Ledger, Microfinance
+- 7 new domains: ISO 20022, Open Banking (modelled on PSD2), ISO 8583, PaymentRails, Interledger, Ledger, Microfinance
 - 3 extended domains: Banking (SEPA DD, intelligent routing), FinancialInstitution (sandbox), Webhook (payload sanitizer)
 - Website: 8 new feature cards, 7 feature inner pages, professional copywriting pass
 - Mobile: Device attestation wiring, recovery shard improvements
@@ -3110,7 +3105,7 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 ## Version 7.10.1 — Stripe Bridge Ramp Hardening (RELEASED)
 
 **Release Date**: April 13, 2026
-**Theme**: Production-grade Stripe Crypto Onramp integration and platform-generic ramp abstraction
+**Theme**: Hardened Stripe Crypto Onramp integration and platform-generic ramp abstraction
 
 ### Delivered Features
 - Working Stripe Crypto Onramp signature verification (HMAC-SHA256 with `t=<ts>,v1=<hmac>` parsing)
@@ -3282,7 +3277,7 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 
 ## Version 7.15.0 — Bridge.xyz Fiat Ramp (June 2026)
 
-**Theme**: Bridge.xyz becomes the primary v1 fiat ↔ stablecoin rail — bank transfers in, USDC on Polygon — with Bridge-hosted KYC, virtual accounts, and the ADR-0006 developer-fee markup mechanism. Plus a landing-page truth-pass and HyperSwitch wired into the real deposit flow.
+**Theme**: Bridge.xyz becomes the primary v1 fiat ↔ stablecoin rail — bank transfers in, USDC on Polygon — with Bridge-hosted KYC, virtual accounts, and the ADR-0006 developer-fee markup mechanism. Converting stablecoins to fiat, where available, will be provided by licensed third parties under their own terms. Plus a landing-page truth-pass and HyperSwitch wired into the real deposit flow.
 
 ### Delivered Features
 - Bridge.xyz ramp foundations — `bridge_customers` + `ramp_sessions` persistence (`deposit_instructions` encrypted, `source` enum), `KycProviderInterface` adapters under `app/Domain/Compliance/Kyc/`, shared HTTP client + webhook verifier in `app/Infrastructure/Bridge/`. ADR-0005 records why Bridge over Stripe Crypto Onramp; the prior `StripeBridge` scaffolding is soft-renamed to `StripeCryptoOnramp` with a deprecated `RAMP_PROVIDER=stripe_bridge` alias.

@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Voting Proposal') }}
+            {{ __('Demo Voting Proposal') }}
         </h2>
     </x-slot>
 
@@ -10,8 +10,14 @@
             <!-- Back link -->
             <div class="mb-6">
                 <a href="{{ route('gcu.voting.index') }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium">
-                    ← Back to Voting
+                    ← Back to governance demo
                 </a>
+            </div>
+
+            {{-- F4 GCU demo notice (see docs/REGULATORY-CLAIMS.md) --}}
+            <div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-200" role="note">
+                <p class="font-semibold">Simulated demo — no real value; not an offered token.</p>
+                <p class="mt-1">The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.</p>
             </div>
 
             <div class="grid lg:grid-cols-3 gap-8">
@@ -125,14 +131,14 @@
                     <!-- Voting card -->
                     @if($proposal->isVotingActive())
                     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Cast Your Vote</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Cast a demo vote</h3>
                         
                         @auth
                             @if($gcuBalance > 0)
                                 @if($userVote)
                                     <div class="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-4 mb-4">
                                         <p class="text-sm text-indigo-700 dark:text-indigo-300">
-                                            You voted <strong>{{ ucfirst($userVote->vote) }}</strong> with {{ number_format($userVote->voting_power, 2) }} Ǥ
+                                            You voted <strong>{{ ucfirst($userVote->vote) }}</strong> with {{ number_format($userVote->voting_power, 2) }} Ǥ (simulated demo weight)
                                         </p>
                                     </div>
                                 @endif
@@ -158,23 +164,22 @@
                                     
                                     <div class="pt-4">
                                         <button type="submit" class="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
-                                            {{ $userVote ? 'Update Vote' : 'Submit Vote' }}
+                                            {{ $userVote ? 'Update demo vote' : 'Submit demo vote' }}
                                         </button>
                                     </div>
                                     
                                     <p class="text-xs text-gray-500 dark:text-gray-400 text-center">
-                                        Your voting power: {{ number_format($gcuBalance, 2) }} Ǥ
+                                        Demo voting weight: {{ number_format($gcuBalance, 2) }} Ǥ (simulated)
                                     </p>
                                 </form>
                             @else
                                 <div class="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4">
-                                    <p class="text-sm text-yellow-800 dark:text-yellow-200">You need GCU holdings to vote.</p>
-                                    <a href="{{ route('dashboard') }}" class="text-yellow-700 dark:text-yellow-300 underline text-sm">Get GCU →</a>
+                                    <p class="text-sm text-yellow-800 dark:text-yellow-200">Voting in the demo uses simulated demo GCU balances.</p>
                                 </div>
                             @endif
                         @else
                             <div class="text-center">
-                                <p class="text-gray-600 dark:text-gray-400 mb-4">Login to participate in voting</p>
+                                <p class="text-gray-600 dark:text-gray-400 mb-4">Log in to try the simulated governance demo</p>
                                 <a href="{{ route('login') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
                                     Login
                                 </a>
@@ -185,7 +190,7 @@
 
                     <!-- Voting stats -->
                     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Voting Statistics</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Demo Voting Statistics (simulated)</h3>
                         
                         <div class="space-y-4">
                             <!-- Time remaining -->
@@ -243,7 +248,7 @@
                             <div>
                                 <div class="text-sm text-gray-500 dark:text-gray-400">Total Votes Cast</div>
                                 <div class="font-semibold text-gray-900 dark:text-gray-100">{{ number_format($proposal->total_votes_cast, 2) }} Ǥ</div>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">out of {{ number_format($proposal->total_gcu_supply, 2) }} Ǥ total supply</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">out of {{ number_format($proposal->total_gcu_supply, 2) }} Ǥ simulated demo balances</p>
                             </div>
                         </div>
                     </div>

@@ -5,7 +5,7 @@
 **FinAegis** is a comprehensive banking platform that demonstrates how a unified financial platform could be architected. The platform showcases:
 
 **Core Concept Demonstration:**
-- **Global Currency Unit (GCU)** - Conceptual demonstration of a user-controlled global currency with democratic governance patterns
+- **GCU demo** - a reference implementation of a basket-referenced unit built with FinAegis
 
 **Additional Pattern Demonstrations:**
 - **FinAegis Exchange** - Example architecture for multi-currency and crypto trading  
@@ -14,6 +14,12 @@
 - **FinAegis Treasury** - Multi-bank allocation pattern examples
 
 All demonstrations use the same core platform infrastructure, showcasing code reuse patterns and integrated architecture design.
+
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis.
+> It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or
+> basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a
+> basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under
+> MiCA (Title III); no such authorisation is held.
 
 ## Shared Core Components
 
@@ -34,7 +40,7 @@ All demonstrations use the same core platform infrastructure, showcasing code re
 - **Shared**: Order matching, liquidity management, real-time rate feeds
 
 ### 3. Stablecoin Infrastructure
-- **GCU Use**: GCU tokens representing basket value with democratic governance
+- **GCU Use**: GCU demo units valued against the basket (simulated)
 - **Exchange Use**: Multiple stablecoin pairs for trading and liquidity
 - **Lending Use**: Stable tokens for loan disbursement and collection
 - **Stablecoins Use**: EUR-pegged and multi-backed stable token issuance
@@ -42,7 +48,7 @@ All demonstrations use the same core platform infrastructure, showcasing code re
 - **Shared**: Token minting/burning, reserve management, redemption systems
 
 ### 4. Governance System
-- **GCU Use**: Monthly democratic voting on currency basket composition
+- **GCU Use**: Simulated monthly polls on basket composition (demo)
 - **Exchange Use**: Community governance for trading parameters and listings
 - **Lending Use**: Loan approval voting and risk parameter governance
 - **Stablecoins Use**: Reserve composition and stability mechanism governance
@@ -50,19 +56,19 @@ All demonstrations use the same core platform infrastructure, showcasing code re
 - **Shared**: Voting engine, weighted voting, proposal management, poll system
 
 ### 5. Banking Integration
-- **GCU Use**: Multi-bank allocation (Paysera, Deutsche Bank, Santander)
+- **GCU Use**: simulated multi-custodian allocation (demo)
 - **Exchange Use**: Fiat on/off ramps and settlement banking
 - **Lending Use**: Loan disbursement and collection banking services
-- **Stablecoins Use**: Reserve banking and regulatory compliance
-- **Treasury Use**: Multi-jurisdictional banking relationships
+- **Stablecoins Use**: Reserve banking integration
+- **Treasury Use**: Multi-bank connector patterns
 - **Shared**: Bank connectors, payment processing, reconciliation, custody services
 
 ### 6. Compliance Framework
-- **GCU Use**: EMI license, multi-jurisdiction regulatory reporting
-- **Exchange Use**: VASP registration, MiCA compliance for crypto activities
-- **Lending Use**: Lending license compliance, credit reporting
-- **Stablecoins Use**: E-money token regulations, reserve reporting
-- **Treasury Use**: Cross-border compliance, tax reporting
+- **GCU Use**: regulatory-reporting modules exercised in the demo (no licence held)
+- **Exchange Use**: reporting and data-exchange modules modelled on MiCA requirements (no registration or authorisation held)
+- **Lending Use**: credit-reporting modules (no lending licence held)
+- **Stablecoins Use**: reserve-reporting modules (demo)
+- **Treasury Use**: cross-border and tax reporting modules
 - **Shared**: KYC/AML, transaction monitoring, audit trails, regulatory reporting
 
 ## Unique Components by Product
@@ -73,7 +79,6 @@ All demonstrations use the same core platform infrastructure, showcasing code re
 - Democratic currency composition voting UI
 - Automated basket rebalancing workflows
 - Bank relationship management
-- Deposit insurance coordination
 
 ### FinAegis Exchange-Specific
 - Crypto wallet infrastructure (hot/cold storage)
@@ -97,7 +102,7 @@ All demonstrations use the same core platform infrastructure, showcasing code re
 - Automated stability mechanisms
 - Cross-chain token deployment
 - Redemption and minting interfaces
-- Regulatory compliance for e-money tokens
+- E-money-token reporting patterns (demo)
 
 ### FinAegis Treasury-Specific
 - Advanced allocation algorithms and optimization
@@ -159,8 +164,7 @@ All demonstrations use the same core platform infrastructure, showcasing code re
    - Order book and matching system
 
 2. **FinAegis Stablecoins**
-   - EUR-pegged stablecoin (EURS)
-   - Basket-backed stablecoin (GCU-S)
+   - EUR-pegged stablecoin module (demo)
    - Reserve management system
 
 3. **FinAegis Treasury**

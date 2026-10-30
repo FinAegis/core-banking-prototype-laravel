@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Bank Allocation') }}
+            {{ __('Bank Allocation (demo)') }}
         </h2>
     </x-slot>
 
@@ -9,12 +9,18 @@
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
                 <div class="p-6 lg:p-8" x-data="bankAllocation()">
+                    {{-- F4 GCU demo notice (see docs/REGULATORY-CLAIMS.md) --}}
+                    <div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-200" role="note">
+                        <p class="font-semibold">Simulated demo — no real value; not an offered token.</p>
+                        <p class="mt-1">No funds are held at any bank and no deposit insurance applies. Bank names shown are illustrative placeholders; no partnership or endorsement is implied.</p>
+                    </div>
+
                     <div class="mb-8">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                            Configure Your Bank Distribution
+                            Demo Custodian Allocation (simulated)
                         </h3>
                         <p class="text-gray-600 dark:text-gray-400">
-                            Choose how your funds are distributed across our partner banks. This provides deposit insurance protection across multiple jurisdictions.
+                            Demo: simulate how balances could be allocated across custodians. No funds are held at any bank and no deposit insurance applies.
                         </p>
                     </div>
 
@@ -27,7 +33,7 @@
                                     <div class="flex items-center justify-between mb-2">
                                         <div class="flex items-center space-x-3">
                                             <div class="w-12 h-12 rounded-full bg-white dark:bg-gray-600 flex items-center justify-center shadow">
-                                                <span class="text-xs font-medium" x-text="bank.code.substring(0, 2).toUpperCase()"></span>
+                                                <span class="text-xs font-medium" x-text="bank.name.slice(-1).toUpperCase()"></span>
                                             </div>
                                             <div>
                                                 <h5 class="font-medium text-gray-900 dark:text-white" x-text="bank.name"></h5>
@@ -38,9 +44,6 @@
                                             <div class="text-2xl font-bold text-gray-900 dark:text-white">
                                                 <span x-text="bank.allocation"></span>%
                                             </div>
-                                            <p class="text-sm text-gray-500 dark:text-gray-400">
-                                                ≈ $<span x-text="((totalBalance * bank.allocation / 100) / 100).toFixed(2)"></span>
-                                            </p>
                                         </div>
                                     </div>
                                     <div class="mt-3">
@@ -63,9 +66,6 @@
                                             </span>
                                         </div>
                                     </div>
-                                    <div class="mt-3 text-sm text-gray-600 dark:text-gray-400">
-                                        <p>Deposit Protection: <span class="font-medium" x-text="bank.deposit_protection"></span></p>
-                                    </div>
                                 </div>
                             </template>
                         </div>
@@ -86,59 +86,6 @@
                         </div>
                     </div>
 
-                    <!-- Bank Details -->
-                    <div class="mb-8">
-                        <h4 class="text-md font-medium text-gray-900 dark:text-white mb-4">Partner Bank Details</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="border dark:border-gray-700 rounded-lg p-4">
-                                <h5 class="font-medium text-gray-900 dark:text-white mb-2">Security Features</h5>
-                                <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                                    <li class="flex items-start">
-                                        <svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                        </svg>
-                                        Government deposit insurance up to €100,000 per bank
-                                    </li>
-                                    <li class="flex items-start">
-                                        <svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                        </svg>
-                                        Funds held in segregated client accounts
-                                    </li>
-                                    <li class="flex items-start">
-                                        <svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                        </svg>
-                                        Real-time balance synchronization
-                                    </li>
-                                </ul>
-                            </div>
-                            <div class="border dark:border-gray-700 rounded-lg p-4">
-                                <h5 class="font-medium text-gray-900 dark:text-white mb-2">Distribution Benefits</h5>
-                                <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                                    <li class="flex items-start">
-                                        <svg class="w-5 h-5 text-blue-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                        </svg>
-                                        Maximize deposit insurance coverage
-                                    </li>
-                                    <li class="flex items-start">
-                                        <svg class="w-5 h-5 text-blue-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                        </svg>
-                                        Reduce single bank exposure risk
-                                    </li>
-                                    <li class="flex items-start">
-                                        <svg class="w-5 h-5 text-blue-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                        </svg>
-                                        Access to multiple banking networks
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Action Buttons -->
                     <div class="flex justify-end space-x-4">
                         <button type="button" @click="resetToDefault()" class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
@@ -150,7 +97,7 @@
                             :disabled="totalAllocation !== 100 || saving"
                             class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
                         >
-                            <span x-show="!saving">Save Allocation</span>
+                            <span x-show="!saving">Save demo allocation</span>
                             <span x-show="saving">Saving...</span>
                         </button>
                     </div>
@@ -165,33 +112,30 @@
                 banks: [
                     {
                         code: 'PAYSERA',
-                        name: 'Paysera',
-                        country: 'Lithuania',
+                        name: 'Demo Bank A',
+                        country: 'Illustrative placeholder',
                         allocation: 40,
                         min_allocation: 20,
                         max_allocation: 60,
-                        is_primary: true,
-                        deposit_protection: '€100,000'
+                        is_primary: true
                     },
                     {
                         code: 'DEUTSCHE',
-                        name: 'Deutsche Bank',
-                        country: 'Germany',
+                        name: 'Demo Bank B',
+                        country: 'Illustrative placeholder',
                         allocation: 30,
                         min_allocation: 10,
                         max_allocation: 40,
-                        is_primary: false,
-                        deposit_protection: '€100,000'
+                        is_primary: false
                     },
                     {
                         code: 'SANTANDER',
-                        name: 'Santander',
-                        country: 'Spain',
+                        name: 'Demo Bank C',
+                        country: 'Illustrative placeholder',
                         allocation: 30,
                         min_allocation: 10,
                         max_allocation: 40,
-                        is_primary: false,
-                        deposit_protection: '€100,000'
+                        is_primary: false
                     }
                 ],
                 totalBalance: 0,
@@ -325,7 +269,7 @@
                         const data = await response.json();
                         
                         // Show success message
-                        alert('Bank allocation saved successfully!');
+                        alert('Demo allocation saved (simulated).');
                         
                         // Reload current allocation to confirm changes
                         await this.loadCurrentAllocation();

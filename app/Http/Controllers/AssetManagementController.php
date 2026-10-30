@@ -371,7 +371,7 @@ class AssetManagementController extends Controller
             300,
             function () use ($asset) {
                 return [
-                    'total_supply' => $asset->symbol === 'GCU' ? 1000000000 : null,
+                    'total_supply' => null, // GCU demo is simulated: not issued, so no supply figure is shown
                     'market_cap'   => $this->getMockMarketCap($asset->symbol),
                     'holders'      => DB::table('account_balances')
                         ->where('asset_code', $asset->symbol)
@@ -482,7 +482,7 @@ class AssetManagementController extends Controller
             'EUR' => 800000000000,
             'GBP' => 600000000000,
             'PHP' => 100000000000,
-            'GCU' => 10000000000, // $100 million
+            'GCU' => 0, // GCU demo (simulated): no monetary value
         ];
 
         return $caps[$symbol] ?? 0;
@@ -526,7 +526,7 @@ class AssetManagementController extends Controller
         return [
             'total_return'      => rand(5, 20),
             'annualized_return' => rand(10, 30),
-            'best_performer'    => 'GCU',
+            'best_performer'    => 'EUR', // simulated demo metric
             'worst_performer'   => 'PHP',
             'volatility'        => rand(10, 25),
             'sharpe_ratio'      => rand(50, 150) / 100,
@@ -545,7 +545,7 @@ class AssetManagementController extends Controller
             'max_drawdown'    => rand(5, 15),
             'recommendations' => [
                 'Consider diversifying into more stable assets',
-                'Your GCU allocation is within recommended limits',
+                'GCU demo allocation (simulated)',
                 'Consider rebalancing quarterly',
             ],
         ];

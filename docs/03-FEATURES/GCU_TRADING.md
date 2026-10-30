@@ -1,27 +1,35 @@
-# GCU Trading
+# GCU Trading (Simulated Demo)
+
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis.
+> It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or
+> basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a
+> basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under
+> MiCA (Title III); no such authorisation is held.
+>
+> See [REGULATORY-CLAIMS.md](../REGULATORY-CLAIMS.md).
 
 ## Overview
 
-The GCU Trading feature allows users to buy and sell Global Currency Units (GCU) directly through the FinAegis platform. This feature provides a seamless trading experience with real-time quotes, transparent fees, and trading limits based on KYC verification levels.
+The GCU demo trading module simulates conversions between demo fiat balances and GCU demo units, with quotes, fees and KYC-tiered limits as reference logic. No real funds are used.
 
 ## Features
 
-### 1. Buy GCU
+### 1. Simulated Buy (demo)
 - **Supported Currencies**: EUR, USD, GBP, CHF
 - **Minimum Purchase**: 100 units of selected currency
 - **Trading Fee**: 1% of transaction amount
 - **Real-time Quotes**: Live exchange rates with 5-minute validity
-- **Instant Execution**: Immediate settlement of trades
+- **Execution**: Immediate update of demo ledger balances
 
-### 2. Sell GCU
+### 2. Simulated Sell (demo)
 - **Supported Currencies**: EUR, USD, GBP, CHF
 - **Minimum Sale**: 10 GCU
 - **Trading Fee**: 1% of transaction amount
 - **Real-time Quotes**: Live exchange rates with 5-minute validity
-- **Instant Settlement**: Immediate credit to fiat balance
+- **Settlement**: Immediate update of demo fiat balance
 
-### 3. Trading Limits
-Trading limits are based on KYC verification level:
+### 3. Trading Limits (reference logic)
+Illustrative demo limits are based on KYC verification level:
 
 | KYC Level | Status | Daily Buy | Daily Sell | Monthly Buy | Monthly Sell |
 |-----------|--------|-----------|------------|-------------|--------------|
@@ -43,20 +51,18 @@ Trading limits are based on KYC verification level:
 The trading interface provides:
 
 1. **GCU Summary Card**
-   - Current GCU value in USD
-   - 24-hour price change
-   - User's GCU balance
-   - 24-hour trading volume
-   - Total GCU supply
+   - Illustrative GCU demo value in USD
+   - 24-hour change of the illustrative value
+   - User's simulated GCU demo balance
 
-2. **Buy GCU Panel**
+2. **Simulated Buy Panel**
    - Amount input (fiat currency)
    - Currency selector
    - Real-time quote display
    - Fee breakdown
    - Buy button with validation
 
-3. **Sell GCU Panel**
+3. **Simulated Sell Panel**
    - Amount input (GCU)
    - Currency selector
    - Real-time quote display
@@ -71,7 +77,7 @@ The trading interface provides:
 
 ## API Endpoints
 
-### 1. Buy GCU
+### 1. Simulated Buy (demo ledger)
 ```
 POST /api/v2/gcu/buy
 ```
@@ -105,7 +111,7 @@ POST /api/v2/gcu/buy
 }
 ```
 
-### 2. Sell GCU
+### 2. Simulated Sell (demo ledger)
 ```
 POST /api/v2/gcu/sell
 ```
@@ -223,7 +229,7 @@ GET /api/v2/gcu/trading-limits
    - Progress indicators
    - Success/error notifications
 
-## Trading Flow
+## Trading Flow (simulated)
 
 ### Buy Flow
 1. User enters amount in fiat currency
@@ -287,29 +293,3 @@ Located in `tests/Browser/GCUTradingTest.php`:
 - Quote updates
 - Transaction flow
 - Error display
-
-## Future Enhancements
-
-1. **Advanced Trading Features**
-   - Limit orders
-   - Stop-loss orders
-   - Recurring purchases
-   - Price alerts
-
-2. **Enhanced Analytics**
-   - Trading history charts
-   - P&L calculations
-   - Tax reporting
-   - Export functionality
-
-3. **Mobile Optimization**
-   - Native mobile app
-   - Push notifications
-   - Biometric authentication
-   - Offline quote caching
-
-4. **Institutional Features**
-   - OTC trading desk
-   - API trading access
-   - Custom limits
-   - Bulk operations

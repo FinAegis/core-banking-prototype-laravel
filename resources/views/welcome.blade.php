@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => config('brand.name', 'Zelta') . ' - Open Source Core Banking Infrastructure',
-        'description' => 'Open-source core banking platform with 61 modules: payments, lending, compliance, DeFi, and a public MCP server for AI agents. ISO 20022, PSD2, ACH, SEPA. Apache-2.0 licensed, built with Laravel.',
+        'description' => 'Open-source core banking platform with 61 modules: payments, lending, compliance tooling, DeFi, and a public MCP server for AI agents. ISO 20022, PSD2, ACH, SEPA. Apache-2.0 licensed, built with Laravel.',
         'keywords' => config('brand.name', 'Zelta') . ', open source banking, core banking infrastructure, GCU, ISO 20022, PSD2, open banking, ACH, SEPA, Interledger, microfinance, event sourcing, DeFi, RegTech, banking API, Laravel fintech',
     ])
 
@@ -49,7 +49,12 @@
 
                 <!-- Subheading -->
                 <p class="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in-up" style="animation-delay: 0.15s">
-                    Ship compliant banking products in weeks, not years. 61 production-ready modules cover payments, lending, compliance, and cross-border transfers — so you build features, not infrastructure.
+                    Build financial services with open-source compliance tooling in weeks, not years. 61 modules cover payments, lending, compliance tooling, and cross-border transfers — so you build features, not infrastructure.
+                </p>
+
+                <!-- Disclaimer (F1) -->
+                <p class="text-xs text-slate-500 max-w-2xl mx-auto -mt-6 mb-10 leading-relaxed animate-fade-in-up" style="animation-delay: 0.2s">
+                    FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
                 </p>
 
                 <!-- CTA Buttons -->
@@ -93,13 +98,13 @@
                         What Is {{ config('brand.name', 'Zelta') }}?
                     </h2>
                     <p class="text-lg text-slate-600 leading-relaxed mb-6">
-                        A production-grade core banking platform built with Laravel and domain-driven design. 61 bounded contexts, event sourcing, CQRS, and every integration pattern a modern fintech needs.
+                        An open-source reference core banking platform built with Laravel and domain-driven design. 61 bounded contexts, event sourcing, CQRS, and every integration pattern a modern fintech needs.
                     </p>
                     <div class="space-y-3 mb-8">
                         @foreach([
                             'Cross-chain bridges, DeFi protocols & multi-chain portfolio',
                             'Privacy-preserving identity with ZK-KYC & verifiable credentials',
-                            'RegTech compliance, mobile payments & Banking-as-a-Service',
+                            'RegTech compliance tooling, mobile payments & Banking-as-a-Service',
                         ] as $item)
                             <div class="flex items-start gap-3">
                                 <div class="mt-1 w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
@@ -122,7 +127,7 @@
                         <div class="space-y-8">
                             @foreach([
                                 ['title' => 'Developers & Architects', 'desc' => 'See how event sourcing, CQRS, and DDD work in a real financial system — not just theory, but running code.', 'icon' => 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4', 'color' => 'blue'],
-                                ['title' => 'Fintech Founders', 'desc' => 'Fork the codebase and build your product on top of battle-tested banking infrastructure.', 'icon' => 'M13 10V3L4 14h7v7l9-11h-7z', 'color' => 'amber'],
+                                ['title' => 'Fintech Founders', 'desc' => 'Fork the codebase and build your product on top of open-source banking infrastructure.', 'icon' => 'M13 10V3L4 14h7v7l9-11h-7z', 'color' => 'amber'],
                                 ['title' => 'AI/ML Engineers', 'desc' => 'Integrate AI agents into financial workflows with MCP tools, A2A protocol, and NL transaction queries.', 'icon' => 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', 'color' => 'purple'],
                             ] as $persona)
                                 <div class="flex gap-4">
@@ -154,28 +159,28 @@
     <section id="features" class="py-24 bg-slate-50/50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16 animate-on-scroll">
-                <h2 class="font-display text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight mb-4">61 Production-Ready Modules</h2>
+                <h2 class="font-display text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight mb-4">61 Open-Source Modules</h2>
                 <p class="text-lg text-slate-500 max-w-2xl mx-auto">
-                    Every capability you need — payments, lending, compliance, DeFi, privacy, mobile wallets, AI analytics — all in one codebase.
+                    Every capability you need — payments, lending, compliance tooling, DeFi, privacy, mobile wallets, AI analytics — all in one codebase.
                 </p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 @php
                     $features = [
-                        ['route' => 'features.show', 'slug' => 'gcu', 'title' => 'Global Currency Unit', 'desc' => 'A multi-currency basket with democratic governance. Users vote on composition across USD, EUR, GBP, CHF, JPY, and gold.', 'icon' => null, 'symbol' => "\u{01A4}", 'color' => 'blue'],
-                        ['route' => 'features.show', 'slug' => 'multi-asset', 'title' => 'Multi-Asset Accounts', 'desc' => 'Hold fiat, crypto, and commodities in a single account with real-time conversion and portfolio tracking.', 'icon' => 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z', 'color' => 'purple'],
+                        ['route' => 'gcu', 'slug' => null, 'title' => 'GCU demo', 'desc' => 'GCU demo — a reference implementation of a basket-referenced unit built with FinAegis. Basket "votes" in the demo are simulated.', 'icon' => null, 'symbol' => "\u{01A4}", 'color' => 'blue'],
+                        ['route' => 'features.show', 'slug' => 'multi-asset', 'title' => 'Multi-Asset Accounts', 'desc' => 'Model fiat, crypto, and commodity balances in a single account with real-time conversion and portfolio tracking.', 'icon' => 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z', 'color' => 'purple'],
                         ['route' => 'features.show', 'slug' => 'settlements', 'title' => 'Event-Sourced Ledger', 'desc' => 'Every transaction is an immutable event. Full audit trails, point-in-time reconstruction, and replay capability.', 'icon' => 'M13 10V3L4 14h7v7l9-11h-7z', 'color' => 'emerald'],
-                        ['route' => 'features.show', 'slug' => 'governance', 'title' => 'Democratic Governance', 'desc' => 'Stake-weighted voting on monetary policy. Users shape their currency through on-chain governance proposals.', 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z', 'color' => 'amber'],
-                        ['route' => 'features.show', 'slug' => 'bank-integration', 'title' => 'Banking API Patterns', 'desc' => 'Open Banking-compliant API patterns with Ondato KYC, Chainalysis sanctions, and Marqeta card issuing.', 'icon' => 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4', 'color' => 'red'],
+                        ['route' => 'features.show', 'slug' => 'governance', 'title' => 'Governance Module', 'desc' => 'Weighted-voting governance module, shown with simulated basket "votes" in the GCU demo.', 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z', 'color' => 'amber'],
+                        ['route' => 'features.show', 'slug' => 'bank-integration', 'title' => 'Banking API Patterns', 'desc' => 'Open Banking-style API patterns with integration adapters for third-party APIs (e.g. Ondato KYC, Chainalysis sanctions screening, Marqeta card-issuing API); no partnership or endorsement implied.', 'icon' => 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4', 'color' => 'red'],
                         ['route' => 'features.show', 'slug' => 'api', 'title' => 'REST, GraphQL & OpenAPI', 'desc' => 'Full REST coverage with OpenAPI specs, GraphQL across 45 domains, real-time subscriptions, and webhooks.', 'icon' => 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4', 'color' => 'sky'],
                         ['route' => 'ai-framework', 'slug' => null, 'title' => 'AI Agent Protocol', 'desc' => 'Google A2A protocol for autonomous agent commerce. MCP tools, spending limits, and transaction analytics.', 'icon' => 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', 'color' => 'violet'],
                         ['route' => 'features.show', 'slug' => 'mcp', 'title' => 'MCP Server', 'desc' => 'Connect Claude Desktop, Cursor, or any MCP client. 12 OAuth-protected banking tools with per-token spending limits and idempotent writes.', 'icon' => 'M13 10V3L4 14h7v7l9-11h-7z', 'color' => 'emerald'],
-                        ['route' => 'features.show', 'slug' => 'crosschain-defi', 'title' => 'Cross-Chain & DeFi', 'desc' => 'Bridge across Wormhole, LayerZero, Axelar. EVM + Solana support with DEX aggregation, yield optimization, and multi-chain portfolios.', 'icon' => 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1', 'color' => 'orange'],
+                        ['route' => 'features.show', 'slug' => 'crosschain-defi', 'title' => 'Cross-Chain & DeFi', 'desc' => 'Bridge adapters for third-party protocols (e.g. Wormhole, LayerZero, Axelar; integration adapters, no partnership or endorsement implied). EVM + Solana support with DEX aggregation and multi-chain portfolios.', 'icon' => 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1', 'color' => 'orange'],
                         ['route' => 'features.show', 'slug' => 'privacy-identity', 'title' => 'Privacy & Identity', 'desc' => 'ZK-KYC proofs, RAILGUN shielded transfers, W3C verifiable credentials, soulbound tokens, Shamir key mgmt.', 'icon' => 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z', 'color' => 'teal'],
                         ['route' => 'features.show', 'slug' => 'mobile-payments', 'title' => 'Mobile Payments', 'desc' => 'Passkey authentication, payment intents, P2P transfers, push notifications, ERC-4337 abstraction, and Solana wallet integration.', 'icon' => 'M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z', 'color' => 'pink'],
                         ['route' => 'features.show', 'slug' => 'x402-protocol', 'title' => 'x402 Micropayments', 'desc' => 'HTTP-native payments with USDC on Base, Ethereum, and Solana. AI agents pay for APIs on demand with per-agent spending limits.', 'icon' => 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z', 'color' => 'emerald'],
-                        ['route' => 'features.show', 'slug' => 'regtech-compliance', 'title' => 'RegTech Compliance', 'desc' => 'MiFID II, MiCA, and Travel Rule adapters with jurisdiction-aware routing and automated reporting.', 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'color' => 'yellow'],
+                        ['route' => 'features.show', 'slug' => 'regtech-compliance', 'title' => 'RegTech Tooling', 'desc' => 'Reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements, with jurisdiction-aware routing.', 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'color' => 'yellow'],
                         ['route' => 'features.show', 'slug' => 'baas-platform', 'title' => 'Banking-as-a-Service', 'desc' => 'White-label your banking stack. Partner APIs, auto-generated SDKs, embeddable widgets, and usage billing.', 'icon' => 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10', 'color' => 'indigo'],
                     ];
                 @endphp
@@ -224,7 +229,7 @@
                 </p>
             </div>
 
-            <!-- GCU Flagship -->
+            <!-- GCU demo -->
             <div class="card-dark p-8 lg:p-10 mb-8 animate-on-scroll stagger-1">
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                     <div class="flex items-center gap-4">
@@ -233,22 +238,22 @@
                         </div>
                         <div>
                             <h3 class="font-display text-2xl font-bold text-white">Global Currency Unit (GCU)</h3>
-                            <p class="text-sm text-slate-500">Flagship Product</p>
+                            <p class="text-sm text-slate-500">Software demo</p>
                         </div>
                     </div>
-                    <span class="px-3 py-1 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">Flagship</span>
+                    <span class="px-3 py-1 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">Demo</span>
                 </div>
                 <p class="text-slate-400 mb-8 max-w-3xl">
-                    A democratically governed basket currency where users vote on composition. The system automatically rebalances across six reserve assets based on community governance.
+                    GCU demo — a reference implementation of a basket-referenced unit built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value; balances, conversions and basket "votes" in the demo are simulated.
                 </p>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="text-center p-4 rounded-lg bg-white/[0.02] border border-white/[0.04]">
                         <div class="text-4xl font-display font-bold text-gradient mb-1">&#x01A4;</div>
-                        <p class="text-xs text-slate-500 uppercase tracking-wider">Currency Symbol</p>
+                        <p class="text-xs text-slate-500 uppercase tracking-wider">Demo Unit Symbol</p>
                     </div>
                     <div class="text-center p-4 rounded-lg bg-white/[0.02] border border-white/[0.04]">
                         <div class="text-2xl font-display font-bold text-white mb-1">6 Assets</div>
-                        <p class="text-xs text-slate-500 uppercase tracking-wider">USD, EUR, GBP, CHF, JPY, XAU</p>
+                        <p class="text-xs text-slate-500 uppercase tracking-wider">USD, EUR, GBP, CHF, JPY, XAU (reference basket, simulated)</p>
                     </div>
                     <div class="text-center p-4 rounded-lg bg-white/[0.02] border border-white/[0.04]">
                         <div class="text-2xl font-display font-bold text-white mb-1">Event-Sourced</div>
@@ -263,7 +268,7 @@
                     ['title' => 'Exchange', 'desc' => 'Order matching engine with limit & market orders', 'icon' => 'M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z', 'color' => 'blue'],
                     ['title' => 'Lending', 'desc' => 'P2P lending with risk assessment', 'icon' => 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z', 'color' => 'emerald'],
                     ['title' => 'Stablecoin', 'desc' => 'Minting, burning, and peg management', 'icon' => 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'color' => 'violet'],
-                    ['title' => 'Treasury', 'desc' => 'Portfolio management and yield optimization', 'icon' => 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4', 'color' => 'amber'],
+                    ['title' => 'Treasury', 'desc' => 'Portfolio and treasury management tooling', 'icon' => 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4', 'color' => 'amber'],
                 ] as $module)
                     <div class="card-dark p-5 group">
                         <div class="w-9 h-9 rounded-md bg-{{ $module['color'] }}-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
@@ -291,15 +296,15 @@
             <div class="text-center mb-16 animate-on-scroll">
                 <h2 class="font-display text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight mb-4">The GCU Concept</h2>
                 <p class="text-lg text-slate-500 max-w-2xl mx-auto">
-                    What if users could vote on their currency's composition? The GCU is a working implementation of democratic monetary policy.
+                    GCU demo — a reference implementation of a basket-referenced unit built with FinAegis.
                 </p>
             </div>
 
             <div class="grid md:grid-cols-3 gap-6">
                 @foreach([
-                    ['title' => 'Democratic', 'desc' => 'Users vote on currency basket composition. Holdings determine voting weight in this governance model.', 'items' => ['Monthly voting cycles', 'Transparent tallying', 'Event-sourced audit trail'], 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'color' => 'blue'],
-                    ['title' => 'Multi-Asset Backed', 'desc' => 'Basket currency backed by six reserve assets with automatic rebalancing based on governance outcomes.', 'items' => ['6 reserve assets', 'Automatic rebalancing', 'Stability mechanisms'], 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'color' => 'emerald'],
-                    ['title' => 'Transparent', 'desc' => 'Every governance decision is recorded as an immutable event. Full audit trail from proposal to execution.', 'items' => ['Event sourcing', 'Public audit trail', 'On-chain governance'], 'icon' => 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z', 'color' => 'amber'],
+                    ['title' => 'Governance Model', 'desc' => 'Basket "votes" in the demo are simulated and have no monetary effect; voting weight is modelled in software only.', 'items' => ['Monthly voting cycles', 'Transparent tallying', 'Event-sourced audit trail'], 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'color' => 'blue'],
+                    ['title' => 'Basket Model', 'desc' => 'Demo unit valued against a weighted basket of six reference assets; no reserves are held.', 'items' => ['6 reference assets (demo)', 'Simulated rebalancing'], 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'color' => 'emerald'],
+                    ['title' => 'Transparent', 'desc' => 'Every governance decision is recorded as an immutable event. Full audit trail from proposal to execution.', 'items' => ['Event sourcing', 'Public audit trail'], 'icon' => 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z', 'color' => 'amber'],
                 ] as $i => $concept)
                     <div class="card-elevated p-8 text-center animate-on-scroll stagger-{{ $i + 1 }}">
                         <div class="w-16 h-16 rounded-2xl bg-{{ $concept['color'] }}-50 flex items-center justify-center mx-auto mb-6">
@@ -318,6 +323,11 @@
                     </div>
                 @endforeach
             </div>
+
+            <!-- GCU disclaimer (F4) -->
+            <p class="text-xs text-slate-500 max-w-3xl mx-auto mt-10 text-center leading-relaxed">
+                The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
+            </p>
         </div>
     </section>
 

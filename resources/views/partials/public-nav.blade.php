@@ -40,15 +40,17 @@
                                         <div class="text-xs text-slate-500">61 domain modules</div>
                                     </div>
                                 </a>
+                                @if(config('brand.show_promo_pages'))
                                 <a href="{{ route('gcu') }}" class="dropdown-link {{ request()->routeIs('gcu*') ? 'dropdown-link-active' : '' }}">
                                     <div class="w-8 h-8 rounded-md bg-amber-500/10 flex items-center justify-center flex-shrink-0">
                                         <span class="text-sm font-bold text-amber-400">&#x01A4;</span>
                                     </div>
                                     <div>
-                                        <div class="text-sm font-medium text-slate-200">Global Currency Unit</div>
-                                        <div class="text-xs text-slate-500">Democratic basket currency</div>
+                                        <div class="text-sm font-medium text-slate-200">GCU demo</div>
+                                        <div class="text-xs text-slate-500">Software demo (simulated)</div>
                                     </div>
                                 </a>
+                                @endif
                                 <a href="{{ route('ai-framework') }}" class="dropdown-link {{ request()->routeIs('ai-framework*') ? 'dropdown-link-active' : '' }}">
                                     <div class="w-8 h-8 rounded-md bg-purple-500/10 flex items-center justify-center flex-shrink-0">
                                         <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
@@ -122,7 +124,7 @@
                     </div>
 
                     <a href="{{ route('pricing') }}" class="nav-link {{ request()->routeIs('pricing') ? 'nav-link-active' : '' }}">Pricing</a>
-                    <a href="{{ route('cgo') }}" class="nav-link {{ request()->routeIs('cgo*') ? 'nav-link-active' : '' }}">Invest</a>
+                    <a href="{{ route('cgo') }}" class="nav-link {{ request()->routeIs('cgo*') ? 'nav-link-active' : '' }}">CGO concept</a>
                 </div>
             </div>
 
@@ -161,7 +163,9 @@
                 <div class="px-3 py-1.5 text-[10px] font-semibold text-slate-600 uppercase tracking-widest">Products</div>
                 <a href="{{ route('platform') }}" class="mobile-nav-link">Core Banking</a>
                 <a href="{{ route('features') }}" class="mobile-nav-link">All Features</a>
-                <a href="{{ route('gcu') }}" class="mobile-nav-link">Global Currency Unit</a>
+                @if(config('brand.show_promo_pages'))
+                <a href="{{ route('gcu') }}" class="mobile-nav-link">GCU demo</a>
+                @endif
                 <a href="{{ route('ai-framework') }}" class="mobile-nav-link">AI Framework</a>
             </div>
 
@@ -174,7 +178,7 @@
             </div>
 
             <a href="{{ route('pricing') }}" class="mobile-nav-link">Pricing</a>
-            <a href="{{ route('cgo') }}" class="mobile-nav-link">Invest</a>
+            <a href="{{ route('cgo') }}" class="mobile-nav-link">CGO concept</a>
 
             <div class="border-t border-white/[0.04] pt-3 mt-2 space-y-2">
                 @auth

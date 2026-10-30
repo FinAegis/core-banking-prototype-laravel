@@ -25,7 +25,6 @@ Download Investment Certificate
 - Your shares are now officially registered in our system
 - You will receive quarterly updates on company performance
 - You have full voting rights proportional to your ownership
-- Dividends (when declared) will be distributed to your registered account
 
 ## Important Information:
 

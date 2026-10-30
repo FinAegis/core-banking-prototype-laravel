@@ -5,33 +5,69 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'FAQ - Frequently Asked Questions | ' . config('brand.name', 'Zelta'),
-        'description' => 'Frequently asked questions about ' . config('brand.name', 'Zelta') . ' core banking platform, Global Currency Unit (GCU), architecture, and getting started.',
+        'description' => 'Frequently asked questions about ' . config('brand.name', 'Zelta') . ' core banking platform, the GCU demo, architecture, and getting started.',
     ])
     
-    {{-- Schema.org FAQ Markup --}}
+    {{-- Schema.org FAQ Markup: built from the same strings as the visible answers below --}}
     @php
-    $faqData = [
-        [
-            'question' => 'What is the current status of ' . config('brand.name', 'Zelta') . '?',
-            'answer' => config('brand.name', 'Zelta') . ' v7.13.2 is a fully-featured open-source core banking platform with 61 domain modules, including a public OAuth-protected MCP server for AI agents. The public instance runs in sandbox mode with test data so you can explore every feature freely. No real money is processed in the sandbox environment.'
+    $faqBrand = config('brand.name', 'Zelta');
+    $faqText = [
+        'status' => [
+            'question' => 'What is the current status of ' . $faqBrand . '?',
+            'intro' => $faqBrand . ' is a fully-featured open-source core banking platform at v7.13.2. The sandbox environment lets you:',
+            'items' => [
+                'Explore 61 domain modules including DeFi, cross-chain, privacy, MCP, and rewards',
+                'Test 1,400+ API routes and a 45-domain GraphQL API',
+                'Try KYC/AML workflow modules, the card-issuing integration adapter (sandbox), and mobile payments',
+                'All transactions use test data — no real funds are involved',
+                'Community feedback drives the roadmap forward',
+            ],
+            'outro' => 'Follow our GitHub repository for release notes and upcoming milestones.',
         ],
-        [
-            'question' => 'Can I use real money on the platform?',
-            'answer' => 'The public sandbox environment uses test data only. All balances and transactions are sandboxed, no real bank accounts are connected, and no actual currency conversions occur. This allows you to explore every feature safely. For production deployments, you can self-host or contact us about enterprise options.'
+        'money' => [
+            'question' => 'Can I use real money on the platform now?',
+            'intro' => 'No. The sandbox environment is designed for evaluation and testing only:',
+            'items' => [
+                'All balances and transactions use test data',
+                'Bank and card-issuing integration adapters use sandbox endpoints',
+                'Currency conversions use reference rates, not live markets',
+                'Payment flows are fully functional but process no real funds',
+            ],
+            'outro' => 'This lets you explore every feature safely while we refine the platform.',
         ],
-        [
-            'question' => 'How do I get started?',
-            'answer' => 'Register for a free account to explore the sandbox, or clone the repository from GitHub to self-host. You can explore all 61 domain modules, test the APIs, and provide feedback through our support channels.'
+        'start' => [
+            'question' => 'How do I get started with ' . $faqBrand . '?',
+            'intro' => 'Getting started takes just a few minutes:',
+            'items' => [
+                'Register for a free account on the platform',
+                'Explore the sandbox features and test transactions',
+                'Report bugs and issues on our GitHub repository',
+                'Provide feedback via email at ' . config('brand.support_email', 'info@zelta.app'),
+                'Join discussions on our GitHub community forum',
+            ],
+            'outro' => 'Your feedback helps us build a better platform for everyone.',
         ],
-        [
+        'gcu' => [
             'question' => 'What is the Global Currency Unit (GCU)?',
-            'answer' => 'The GCU is a basket currency concept where holders democratically vote on the composition of currencies backing the unit. Your actual funds remain in FDIC/government-insured bank accounts while you hold GCU tokens representing your share.'
+            'intro' => 'GCU demo — a reference implementation of a basket-referenced unit built with FinAegis, valued against a demo basket of USD, EUR, GBP, CHF, JPY and XAU (no reserves held).',
+            'items' => [],
+            'outro' => 'The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.',
         ],
-        [
-            'question' => 'How does democratic voting work for GCU?',
-            'answer' => 'GCU holders can vote on the currency composition of the basket. The weight of your vote is proportional to your GCU holdings. Voting occurs periodically, and the basket rebalances based on community decisions.'
-        ]
+        'voting' => [
+            'question' => 'How does voting work in the GCU demo?',
+            'intro' => 'The GCU demo includes simulated basket "votes" with monthly cycles, proposals and transparent tallying. All votes and balances are simulated.',
+            'items' => [],
+            'outro' => '',
+        ],
     ];
+    $faqData = array_values(array_map(fn (array $f): array => [
+        'question' => $f['question'],
+        'answer' => trim(implode(' ', array_filter([
+            $f['intro'],
+            $f['items'] === [] ? '' : implode('; ', $f['items']) . '.',
+            $f['outro'],
+        ], fn ($part) => $part !== ''))),
+    ], $faqText));
     @endphp
     <x-schema type="faq" :data="$faqData" />
     <x-schema type="breadcrumb" :data="[
@@ -66,7 +102,7 @@
             <div class="text-center">
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Frequently Asked Questions</h1>
                 <p class="text-xl text-slate-400 max-w-3xl mx-auto">
-                    Find answers to common questions about the {{ config('brand.name', 'Zelta') }} platform and the Global Currency Unit concept.
+                    Find answers to common questions about the {{ config('brand.name', 'Zelta') }} platform and the GCU demo.
                 </p>
 
                 <!-- Search Bar -->
@@ -119,7 +155,7 @@
                 <div class="faq-item" data-category="platform">
                     <button class="faq-question w-full text-left px-6 py-4 bg-white rounded-lg hover:bg-slate-50 transition shadow-sm">
                         <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-slate-900">What is the current status of {{ config('brand.name', 'Zelta') }}?</h3>
+                            <h3 class="text-lg font-semibold text-slate-900">{{ $faqText['status']['question'] }}</h3>
                             <svg class="w-5 h-5 text-slate-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
@@ -127,17 +163,15 @@
                     </button>
                     <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-slate-500">
-                            {{ config('brand.name', 'Zelta') }} is a fully-featured open-source core banking platform at v7.13.2. The sandbox environment lets you:
+                            {{ $faqText['status']['intro'] }}
                         </p>
                         <ul class="list-disc list-inside mt-2 text-slate-500 space-y-1">
-                            <li>Explore 61 domain modules including DeFi, cross-chain, privacy, MCP, and rewards</li>
-                            <li>Test 1,400+ API routes and a 45-domain GraphQL API</li>
-                            <li>Try KYC/AML compliance flows, card issuing, and mobile payments</li>
-                            <li>All transactions use test data &mdash; no real funds are involved</li>
-                            <li>Community feedback drives the roadmap forward</li>
+                            @foreach($faqText['status']['items'] as $faqItem)
+                            <li>{{ $faqItem }}</li>
+                            @endforeach
                         </ul>
                         <p class="text-slate-500 mt-3">
-                            Follow our GitHub repository for release notes and upcoming milestones.
+                            {{ $faqText['status']['outro'] }}
                         </p>
                     </div>
                 </div>
@@ -145,7 +179,7 @@
                 <div class="faq-item" data-category="platform">
                     <button class="faq-question w-full text-left px-6 py-4 bg-white rounded-lg hover:bg-slate-50 transition shadow-sm">
                         <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-slate-900">Can I use real money on the platform now?</h3>
+                            <h3 class="text-lg font-semibold text-slate-900">{{ $faqText['money']['question'] }}</h3>
                             <svg class="w-5 h-5 text-slate-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
@@ -153,16 +187,15 @@
                     </button>
                     <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-slate-500">
-                            No. The sandbox environment is designed for evaluation and testing only:
+                            {{ $faqText['money']['intro'] }}
                         </p>
                         <ul class="list-disc list-inside mt-2 text-slate-500 space-y-1">
-                            <li>All balances and transactions use test data</li>
-                            <li>Bank and card integrations connect to provider sandboxes</li>
-                            <li>Currency conversions use reference rates, not live markets</li>
-                            <li>Payment flows are fully functional but process no real funds</li>
+                            @foreach($faqText['money']['items'] as $faqItem)
+                            <li>{{ $faqItem }}</li>
+                            @endforeach
                         </ul>
                         <p class="text-slate-500 mt-3">
-                            This lets you explore every feature safely while we refine the platform.
+                            {{ $faqText['money']['outro'] }}
                         </p>
                     </div>
                 </div>
@@ -171,7 +204,7 @@
                 <div class="faq-item" data-category="getting-started">
                     <button class="faq-question w-full text-left px-6 py-4 bg-white rounded-lg hover:bg-slate-50 transition shadow-sm">
                         <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-slate-900">How do I get started with {{ config('brand.name', 'Zelta') }}?</h3>
+                            <h3 class="text-lg font-semibold text-slate-900">{{ $faqText['start']['question'] }}</h3>
                             <svg class="w-5 h-5 text-slate-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
@@ -179,17 +212,15 @@
                     </button>
                     <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-slate-500">
-                            Getting started takes just a few minutes:
+                            {{ $faqText['start']['intro'] }}
                         </p>
                         <ol class="list-decimal list-inside mt-2 text-slate-500 space-y-1">
-                            <li>Register for a free account on the platform</li>
-                            <li>Explore the sandbox features and test transactions</li>
-                            <li>Report bugs and issues on our GitHub repository</li>
-                            <li>Provide feedback via email at {{ config('brand.support_email', 'info@zelta.app') }}</li>
-                            <li>Join discussions on our GitHub community forum</li>
+                            @foreach($faqText['start']['items'] as $faqItem)
+                            <li>{{ $faqItem }}</li>
+                            @endforeach
                         </ol>
                         <p class="text-slate-500 mt-3">
-                            Your feedback helps us build a better platform for everyone.
+                            {{ $faqText['start']['outro'] }}
                         </p>
                     </div>
                 </div>
@@ -224,7 +255,7 @@
                 <div class="faq-item" data-category="gcu">
                     <button class="faq-question w-full text-left px-6 py-4 bg-white rounded-lg hover:bg-slate-50 transition shadow-sm">
                         <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-slate-900">What is the Global Currency Unit (GCU)?</h3>
+                            <h3 class="text-lg font-semibold text-slate-900">{{ $faqText['gcu']['question'] }}</h3>
                             <svg class="w-5 h-5 text-slate-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
@@ -232,17 +263,10 @@
                     </button>
                     <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-slate-500">
-                            The Global Currency Unit (GCU) is a concept for a basket currency that will combine multiple fiat currencies into a single, stable unit. The planned features include:
+                            {{ $faqText['gcu']['intro'] }}
                         </p>
-                        <ul class="list-disc list-inside mt-2 text-slate-500 space-y-1">
-                            <li>Backing by USD, EUR, GBP, CHF, JPY, and XAU (gold)</li>
-                            <li>Democratic governance through stake-weighted community voting</li>
-                            <li>Reduced volatility compared to single currencies</li>
-                            <li>Transparent composition and valuation</li>
-                            <li>Real bank backing with government insurance (when launched)</li>
-                        </ul>
                         <p class="text-slate-500 mt-3">
-                            <strong>Note:</strong> GCU is currently available in sandbox mode. Production launch with live currency backing is planned for a future release.
+                            <strong>Note:</strong> {{ $faqText['gcu']['outro'] }}
                         </p>
                     </div>
                 </div>
@@ -250,7 +274,7 @@
                 <div class="faq-item" data-category="gcu">
                     <button class="faq-question w-full text-left px-6 py-4 bg-white rounded-lg hover:bg-slate-50 transition shadow-sm">
                         <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-slate-900">How does GCU voting work?</h3>
+                            <h3 class="text-lg font-semibold text-slate-900">{{ $faqText['voting']['question'] }}</h3>
                             <svg class="w-5 h-5 text-slate-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
@@ -258,15 +282,8 @@
                     </button>
                     <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-slate-500">
-                            GCU voting is available in the platform. Monthly voting cycles let holders propose and vote on basket composition changes:
+                            {{ $faqText['voting']['intro'] }}
                         </p>
-                        <ul class="list-disc list-inside mt-2 text-slate-500 space-y-1">
-                            <li>Monthly voting cycles to adjust currency composition</li>
-                            <li>Voting power proportional to GCU holdings</li>
-                            <li>Community proposals for basket changes</li>
-                            <li>Transparent vote counting and results</li>
-                            <li>Automatic rebalancing based on vote outcomes</li>
-                        </ul>
                     </div>
                 </div>
 
@@ -341,10 +358,10 @@
                         </p>
                         <ul class="list-disc list-inside mt-2 text-slate-500 space-y-1">
                             <li><strong>Delivered:</strong> 61 domain modules, 1,400+ API routes, GraphQL (45 domains), public MCP server, event sourcing</li>
-                            <li><strong>Delivered:</strong> Mobile app backend, passkey auth, card issuing, KYC/AML</li>
+                            <li><strong>Delivered:</strong> Mobile app backend, passkey auth, card-issuing integration adapter, KYC/AML workflow modules</li>
                             <li><strong>Delivered:</strong> Cross-chain bridges, DeFi connectors, X402 micropayments</li>
-                            <li><strong>Delivered:</strong> GCU voting system, production bank integrations</li>
-                            <li><strong>Upcoming:</strong> Live transaction processing, expanded mobile features</li>
+                            <li><strong>Delivered:</strong> GCU demo (simulated voting), bank connector adapters (reference implementations)</li>
+                            <li><strong>Upcoming:</strong> Expanded mobile features</li>
                         </ul>
                         <p class="text-slate-500 mt-3">
                             Follow our GitHub repository for detailed progress updates.

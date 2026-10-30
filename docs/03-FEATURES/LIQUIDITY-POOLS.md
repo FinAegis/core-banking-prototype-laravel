@@ -52,7 +52,7 @@ The AMM uses the constant product formula: `x * y = k`
 
 ### 4. **Fee Structure**
 - Default swap fee: 0.3% (configurable per pool)
-- Fees remain in pool, increasing value for providers
+- Fees remain in pool and are accounted to LP shares
 - No separate protocol fees (can be added later)
 
 ## Features
@@ -62,14 +62,14 @@ The AMM uses the constant product formula: `x * y = k`
 1. **Add Liquidity**
    - Deposit both assets in current pool ratio
    - Receive LP shares representing ownership
-   - Start earning fees immediately
+   - Pool fee share accrues to LP shares
 
 2. **Remove Liquidity**
    - Burn shares to withdraw assets
    - Receive proportional share of reserves
    - Can set minimum amounts to protect against slippage
 
-3. **Earn Rewards**
+3. **Fee and reward accounting**
    - Trading fees auto-compound in pool
    - Additional rewards can be distributed
    - Claim rewards without removing liquidity
@@ -77,7 +77,7 @@ The AMM uses the constant product formula: `x * y = k`
 4. **Position Tracking**
    - View current value of positions
    - Track impermanent loss
-   - Monitor earned fees and rewards
+   - Monitor accrued fees and rewards
 
 ### For Traders
 
@@ -319,19 +319,12 @@ $swap = $liquidityService->swap($poolId, $accountId, 'BTC', '0.1');
    - Multi-asset pools (Balancer style)
    - Flash loan functionality
 
-2. **Incentive Mechanisms**
-   - Liquidity mining programs
-   - Trading fee rebates
-   - Governance token rewards
-   - Referral system
-
-3. **Risk Management**
+2. **Risk Management**
    - Automated IL hedging
    - Portfolio rebalancing
    - Stop-loss for LPs
-   - Insurance fund
 
-4. **Cross-Chain**
+3. **Cross-Chain**
    - Bridge integrations
    - Cross-chain liquidity
    - Unified liquidity layer

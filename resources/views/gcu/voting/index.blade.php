@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('GCU Composition Voting') }}
+            {{ __('GCU Governance Demo') }}
         </h2>
     </x-slot>
 
@@ -9,28 +9,34 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Header -->
             <div class="mb-8">
-                <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">GCU Composition Voting</h1>
-                <p class="mt-2 text-gray-600 dark:text-gray-400">Vote on monthly proposals to optimize the Global Currency Unit basket</p>
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">GCU governance demo</h1>
+                <p class="mt-2 text-gray-600 dark:text-gray-400">Simulated basket "votes" on the GCU demo basket.</p>
             </div>
 
-            <!-- Voting Power Display -->
+            {{-- F4 GCU demo notice (see docs/REGULATORY-CLAIMS.md) --}}
+            <div class="mb-8 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-200" role="note">
+                <p class="font-semibold">Simulated demo — no real value; not an offered token.</p>
+                <p class="mt-1">The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.</p>
+            </div>
+
+            <!-- Demo Voting Weight Display -->
             @auth
             <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg p-6 text-white mb-8">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="text-lg font-semibold">Your Voting Power</h3>
-                        <p class="text-indigo-100">1 GCU = 1 Vote</p>
+                        <h3 class="text-lg font-semibold">Demo voting weight</h3>
+                        <p class="text-indigo-100">Based on simulated demo GCU balance</p>
                     </div>
                     <div class="text-right">
-                        <div class="text-3xl font-bold">{{ number_format($gcuBalance, 2) }} Ǥ</div>
-                        <p class="text-indigo-100">Available votes</p>
+                        <div class="text-3xl font-bold">{{ number_format($gcuBalance, 2) }} Ǥ (simulated)</div>
+                        <p class="text-indigo-100">Demo voting weight</p>
                     </div>
                 </div>
             </div>
             @else
             <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6 mb-8">
                 <p class="text-yellow-800 dark:text-yellow-200">
-                    <a href="{{ route('login') }}" class="font-semibold underline">Login</a> to participate in GCU governance voting.
+                    <a href="{{ route('login') }}" class="font-semibold underline">Log in</a> to try the simulated GCU governance demo.
                 </p>
             </div>
             @endauth
@@ -38,7 +44,7 @@
             <!-- Active Proposals -->
             @if($activeProposals->count() > 0)
             <div class="mb-12">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Active Proposals</h2>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Active Demo Proposals</h2>
                 <div class="space-y-6">
                     @foreach($activeProposals as $proposal)
                     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition">
@@ -81,7 +87,7 @@
                                 </div>
                                 <a href="{{ route('gcu.voting.show', $proposal) }}" 
                                    class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
-                                    View & Vote
+                                    View & Vote (demo)
                                     <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                     </svg>
@@ -97,7 +103,7 @@
             <!-- Upcoming Proposals -->
             @if($upcomingProposals->count() > 0)
             <div class="mb-12">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Upcoming Proposals</h2>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Upcoming Demo Proposals</h2>
                 <div class="grid md:grid-cols-2 gap-6">
                     @foreach($upcomingProposals as $proposal)
                     <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
@@ -120,7 +126,7 @@
             <!-- Past Proposals -->
             @if($pastProposals->count() > 0)
             <div>
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Past Proposals</h2>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Past Demo Proposals</h2>
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50 dark:bg-gray-900">

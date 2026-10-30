@@ -2,7 +2,7 @@
 
 ## Overview
 
-The CGO (Continuous Growth Offering) module implements a tiered KYC/AML system to ensure regulatory compliance for investment activities. This document outlines the implementation details, configuration, and usage.
+The CGO (Continuous Growth Offering) demo module implements tiered KYC/AML checks for its investment-intake workflow. These checks do not by themselves make a deployment or offering compliant. This document outlines the implementation details, configuration, and usage.
 
 ## KYC Tiers
 

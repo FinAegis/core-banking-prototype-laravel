@@ -2,7 +2,7 @@
 
 ## Overview
 
-The OpenBanking withdrawal feature allows users to withdraw funds from their FinAegis accounts directly to their bank accounts using secure OpenBanking APIs. This provides a faster, more secure alternative to traditional bank transfers.
+The OpenBanking withdrawal module shows how a deployment can initiate withdrawals to users' bank accounts via Open Banking APIs. Licensing and regulatory compliance are the responsibility of the operator of each deployment.
 
 ## Features
 
@@ -10,14 +10,10 @@ The OpenBanking withdrawal feature allows users to withdraw funds from their Fin
 - OAuth2-based authorization flow
 - No storage of bank credentials
 - Direct bank-to-bank communication
-- PSD2 compliant
+- Modelled on PSD2 Open Banking flows
 
-### 2. **Multiple Bank Support**
-- Paysera
-- Deutsche Bank
-- Santander
-- Revolut (coming soon)
-- Wise (coming soon)
+### 2. **Bank connector adapters**
+- Example connectors for the Paysera, Deutsche Bank and Santander APIs (integration adapters for third-party APIs; no partnership or endorsement implied)
 
 ### 3. **Fast Processing**
 - 1-2 business days processing time
@@ -113,8 +109,8 @@ Route::prefix('withdraw')->name('withdraw.')->group(function () {
 2. Chooses "OpenBanking Withdrawal"
 3. Selects their bank
 4. Redirected to bank's login page
-5. Authorizes FinAegis access
-6. Returns to FinAegis
+5. Authorizes the application's access
+6. Returns to the application
 7. Selects destination account
 8. Confirms withdrawal
 9. Receives confirmation

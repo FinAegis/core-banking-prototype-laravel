@@ -18,7 +18,7 @@
                         {{ __('Bank Transfer') }}
                     </h4>
                     <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                        {{ __('Transfer funds directly from your bank account using Open Banking or Paysera.') }}
+                        {{ __('Transfer funds from your bank account using Open Banking.') }}
                     </p>
                     
                     <div class="flex space-x-4">
@@ -32,13 +32,7 @@
                             <svg class="w-4 h-4 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                             </svg>
-                            Instant deposits
-                        </div>
-                        <div class="flex items-center">
-                            <svg class="w-4 h-4 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                            </svg>
-                            Secure PSD2 compliant
+                            Open Banking (PSD2) flow
                         </div>
                         <div class="flex items-center">
                             <svg class="w-4 h-4 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20">
@@ -55,7 +49,7 @@
                         {{ __('Card Deposit') }}
                     </h4>
                     <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                        {{ __('Instant deposit using debit or credit card. Processing time: Immediate.') }}
+                        {{ __('Deposit using a debit or credit card.') }}
                     </p>
                     
                     @if(!auth()->user()->accounts->first())
@@ -75,7 +69,7 @@
                         </a>
                         
                         <p class="text-xs text-gray-500 dark:text-gray-500 mt-3">
-                            {{ __('Secure payment processing powered by Stripe. Card processing fee: 2.9% + $0.30') }}
+                            {{ __('Card payments are processed by a third-party payment processor. Card processing fee: 2.9% + $0.30') }}
                         </p>
                     @endif
                 </div>
@@ -125,7 +119,11 @@
                                            value="Personal Account"
                                            required>
                                     <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                        This will create a multi-currency account that supports USD, EUR, GBP, and GCU.
+                                        @if(config('brand.show_promo_pages'))
+                                            This will create a multi-currency demo account (balances are simulated).
+                                        @else
+                                            This will create a multi-currency account.
+                                        @endif
                                     </p>
                                 </div>
                                 <div id="accountError" class="mt-2 text-sm text-red-600 dark:text-red-400 hidden"></div>

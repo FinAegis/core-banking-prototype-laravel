@@ -37,7 +37,7 @@
                 <h3>2.3 Information from Third Parties</h3>
                 <p>We may receive information about you from:</p>
                 <ul>
-                    <li>Banking partners and financial service providers</li>
+                    <li>Third-party service providers you choose to use</li>
                     <li>Identity verification and KYC service providers</li>
                     <li>Credit bureaus and fraud prevention services</li>
                     <li>Public databases and government registries</li>
@@ -52,23 +52,22 @@
                     <li>Processing transactions and transfers</li>
                     <li>Providing customer support</li>
                     <li>Facilitating currency exchanges</li>
-                    <li>Managing bank allocations and distributions</li>
                 </ul>
 
-                <h3>3.2 Legal and Regulatory Compliance</h3>
+                <h3>3.2 Security and fraud prevention</h3>
                 <ul>
-                    <li>Verifying your identity (KYC procedures)</li>
-                    <li>Monitoring for money laundering and terrorist financing (AML)</li>
-                    <li>Reporting to regulatory authorities as required</li>
-                    <li>Maintaining transaction records for audit purposes</li>
-                </ul>
-
-                <h3>3.3 Security and Fraud Prevention</h3>
-                <ul>
+                    <li>Verifying your identity</li>
+                    <li>Monitoring for fraud and suspicious activity</li>
                     <li>Detecting and preventing fraudulent activities</li>
-                    <li>Monitoring for suspicious transactions</li>
                     <li>Securing our platform and systems</li>
                     <li>Investigating security incidents</li>
+                </ul>
+
+                <h3>3.3 Legal Obligations</h3>
+                <ul>
+                    <li>Complying with legal obligations that apply to us</li>
+                    <li>Responding to lawful requests from authorities</li>
+                    <li>Maintaining transaction records for audit purposes</li>
                 </ul>
 
                 <h3>3.4 Communication and Marketing</h3>
@@ -83,9 +82,8 @@
                 <h3>4.1 Service Providers</h3>
                 <p>We may share your information with trusted third-party service providers who assist us in operating our platform, including:</p>
                 <ul>
-                    <li>Banking partners for fund custody and transfers</li>
                     <li>Payment processors for transaction handling</li>
-                    <li>Identity verification services for KYC compliance</li>
+                    <li>Identity-verification service providers</li>
                     <li>Cloud infrastructure providers for data storage</li>
                     <li>Customer support and communication platforms</li>
                 </ul>
@@ -96,7 +94,6 @@
                     <li>Court orders, subpoenas, or other legal processes</li>
                     <li>Regulatory inquiries or investigations</li>
                     <li>Law enforcement requests</li>
-                    <li>Compliance with anti-money laundering regulations</li>
                 </ul>
 
                 <h3>4.3 Business Transfers</h3>
@@ -120,7 +117,7 @@
                     <li>Resolve disputes and enforce our agreements</li>
                     <li>Maintain business records for audit purposes</li>
                 </ul>
-                <p>Typically, we retain transaction records for 7 years after account closure, as required by financial regulations.</p>
+                <p>Typically, we retain transaction records for as long as necessary for these purposes and as required by applicable law.</p>
 
                 <h2>7. Your Rights (GDPR)</h2>
                 <p>If you are in the European Economic Area, you have the following rights:</p>
@@ -165,6 +162,7 @@
 
                 <h2>12. Contact Information</h2>
                 <p>For privacy-related questions or to exercise your rights, contact us at:</p>
+                {{-- TODO(regulatory): operator legal entity details pending — see docs/REGULATORY-CLAIMS.md (controller identity/address; confirm whether a DPO is appointed) --}}
                 <div class="bg-gray-50 p-6 rounded-lg mt-6">
                     <p><strong>Data Protection Officer</strong><br>
                     Email: {{ config('brand.privacy_email') }}<br>
@@ -175,7 +173,7 @@
                 <p>We process your personal data based on the following legal grounds:</p>
                 <ul>
                     <li><strong>Contract Performance:</strong> Processing necessary to provide our services</li>
-                    <li><strong>Legal Obligation:</strong> Compliance with KYC, AML, and other regulations</li>
+                    <li><strong>Legal Obligation:</strong> Compliance with legal obligations that apply to us</li>
                     <li><strong>Legitimate Interest:</strong> Fraud prevention, security, and service improvement</li>
                     <li><strong>Consent:</strong> Marketing communications and optional features</li>
                 </ul>

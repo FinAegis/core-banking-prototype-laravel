@@ -393,7 +393,7 @@ ActivityStub::make(ValidateLiquidityActivity::class)
 # - organization: Company information
 # - website: Site search capabilities  
 # - software: Platform/application details
-# - gcu: Global Currency Unit product
+# - gcu: GCU demo (software demonstration)
 # - faq: Frequently asked questions
 # - breadcrumb: Navigation hierarchy
 # - service: Service offerings
@@ -415,13 +415,13 @@ ActivityStub::make(ValidateLiquidityActivity::class)
 - **Asset Domain** (`app/Domain/Asset/`): Multi-asset ledger, exchange rates, and asset management
 - **Basket Domain** (`app/Domain/Basket/`): Basket asset management with rebalancing services
 - **Exchange Domain** (`app/Domain/Exchange/`): Exchange rate providers and currency conversion
-- **Custodian Domain** (`app/Domain/Custodian/`): External custodian integration with real bank connectors
+- **Custodian Domain** (`app/Domain/Custodian/`): External custodian integration with bank connector adapters
 - **Compliance Domain** (`app/Domain/Compliance/`): KYC, AML, and regulatory reporting
 - **Governance Domain** (`app/Domain/Governance/`): Democratic governance and polling system
 - **Payment Domain** (`app/Domain/Payment/`): Transfer and payment processing
 - **CrossChain Domain** (`app/Domain/CrossChain/`): Bridge protocols (Wormhole/LayerZero/Axelar), cross-chain swaps, multi-chain portfolio (v3.0.0)
 - **DeFi Domain** (`app/Domain/DeFi/`): DEX aggregation, lending, staking, yield optimization (v3.0.0)
-- **RegTech Domain** (`app/Domain/RegTech/`): MiFID II, MiCA, Travel Rule, jurisdiction adapters (v2.8.0)
+- **RegTech Domain** (`app/Domain/RegTech/`): Reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements, jurisdiction adapters (v2.8.0)
 - **Monitoring Domain** (`app/Domain/Monitoring/`): Observability dashboards, structured logging, deep health checks (v3.3.0)
 - Each domain has Aggregates, Events, Workflows, Activities, Projectors, Reactors, and Services
 
@@ -490,7 +490,7 @@ Events are processed through separate queues:
 - **Event integrity**: Cryptographic validation using `Hash` value objects
 - **Audit trails**: Complete event history for all operations
 - **Enhanced error logging**: Comprehensive error tracking with context for hash validation failures
-- **Compliance monitoring**: Automated detection of suspicious patterns, sanctions screening, and regulatory compliance
+- **Compliance monitoring**: Automated detection of suspicious patterns and sanctions screening to support operators' compliance processes
 
 ### Admin Dashboard (Filament)
 - **Account Management**: Full CRUD operations with real-time multi-asset balance updates
@@ -583,7 +583,7 @@ Events are processed through separate queues:
 
 ### Phase 3: Platform Integration with Admin Dashboard and REST APIs ✅ Completed
 - **Filament Admin Resources**: Complete asset and exchange rate management interfaces
-- **REST API Layer**: Production-ready APIs for external platform integration
+- **REST API Layer**: REST APIs for external platform integration
 - **Enhanced Admin Dashboard**: Asset management, exchange rate monitoring, dashboard widgets
 - **API Documentation**: OpenAPI/Swagger documentation for all endpoints
 - **Authentication**: Sanctum-based API authentication for protected endpoints
@@ -1493,7 +1493,7 @@ GCU_ENABLED=true
 GCU_BASKET_CODE=GCU
 GCU_BASKET_NAME="Global Currency Unit"
 GCU_BASKET_SYMBOL=Ǥ
-GCU_BASKET_DESCRIPTION="Democratic global currency backed by real banks"
+GCU_BASKET_DESCRIPTION="GCU demo — a reference implementation of a basket-referenced unit built with FinAegis."
 
 // Seeder uses configuration
 php artisan db:seed --class=GCUBasketSeeder
@@ -1563,8 +1563,8 @@ test('calculates weighted average correctly', function () {
 
 ## Custodian Integration Patterns
 
-### Real Bank Connectors
-Working with production bank APIs:
+### Bank Connector Adapters
+Working with bank connector adapters (integration adapters for third-party APIs; no partnership or endorsement implied):
 ```php
 use App\Domain\Custodian\Services\CustodianRegistry;
 
@@ -2147,4 +2147,4 @@ $user->assignRole('customer_business');
 
 **Last Updated**: 2026-04-04
 **Version**: 7.9.0
-**Status**: Production Ready - v5.1.5 with Dependency Cleanup (l5-swagger 10, swagger-php 6), PSR-4 Plugin Fix, Production Env Template
+**Status**: Open-source reference platform - v5.1.5 with Dependency Cleanup (l5-swagger 10, swagger-php 6), PSR-4 Plugin Fix, Production Env Template

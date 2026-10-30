@@ -1,11 +1,11 @@
 # Continuous Growth Offering (CGO) Documentation
 
 **Last Updated:** September 2024  
-**Status:** ✅ COMPLETED - Production Ready
+**Status:** Concept and demo code. The CGO round is closed.
 
 ## Overview
 
-The Continuous Growth Offering (CGO) is FinAegis's innovative investment platform that allows continuous participation in the platform's growth. Built with event sourcing, comprehensive payment integration, and tiered KYC/AML compliance, the CGO provides a secure and scalable investment mechanism.
+The CGO module is concept and demo code for an investment-round workflow (tiers, payments, KYC, agreements, refunds). It is built with event sourcing, payment integration and tiered KYC/AML checks.
 
 ## Contents
 
@@ -14,28 +14,9 @@ The Continuous Growth Offering (CGO) is FinAegis's innovative investment platfor
 
 ## Key Features
 
-### 1. Investment Tiers
+### 1. Payment Methods
 
-#### Explorer Tier ($1,000 - $9,999)
-- Digital ownership certificate
-- Early access to new features
-- Quarterly investor updates
-- Basic KYC verification required
-
-#### Innovator Tier ($10,000 - $49,999)
-- Everything in Explorer tier
-- Monthly investor updates
-- Priority support access
-- Enhanced KYC verification required
-
-#### Visionary Tier ($50,000+)
-- Everything in Innovator tier
-- Weekly updates and reports
-- Direct access to founding team
-- Advisory board consideration
-- Full KYC verification required
-
-### 2. Payment Methods
+*Integration adapters for third-party APIs; no partnership or endorsement implied.*
 
 #### Stripe (Card Payments)
 - Secure checkout sessions
@@ -55,7 +36,7 @@ The Continuous Growth Offering (CGO) is FinAegis's innovative investment platfor
 - Manual reconciliation interface
 - Multi-currency support
 
-### 3. KYC/AML Compliance
+### 2. KYC/AML Checks
 
 #### Tiered Verification System
 - **Basic KYC** (up to $1,000): Identity verification
@@ -69,7 +50,7 @@ The Continuous Growth Offering (CGO) is FinAegis's innovative investment platfor
 - Transaction pattern analysis
 - Risk scoring algorithm
 
-### 4. Investment Management
+### 3. Investment Management
 
 #### Agreement Generation
 - Automated PDF generation
@@ -83,7 +64,7 @@ The Continuous Growth Offering (CGO) is FinAegis's innovative investment platfor
 - Professional design templates
 - Download functionality
 
-### 5. Refund Processing
+### 4. Refund Processing
 
 #### Event-Sourced Architecture
 - Complete audit trail
@@ -226,7 +207,7 @@ POST   /api/cgo/webhooks/coinbase  - Coinbase webhook handler
 - Encrypted storage
 - Access control
 - Audit logging
-- GDPR compliance
+- GDPR support
 - Data retention policies
 
 ## Configuration
@@ -299,5 +280,3 @@ $schedule->command('cgo:sync-payment-status')->hourly();
 
 ### Support
 - Technical Issues: GitHub Issues
-- Security Concerns: security@finaegis.com
-- Integration Support: developers@finaegis.com

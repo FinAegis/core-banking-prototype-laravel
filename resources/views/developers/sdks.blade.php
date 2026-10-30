@@ -195,7 +195,7 @@
                         </span>
                         <span class="inline-flex items-center px-4 py-2 bg-green-500/20 backdrop-blur-sm rounded-full text-sm">
                             <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
-                            <span>RegTech Compliance</span>
+                            <span>RegTech Tooling</span>
                         </span>
                         <span class="inline-flex items-center px-4 py-2 bg-green-500/20 backdrop-blur-sm rounded-full text-sm">
                             <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
@@ -749,7 +749,7 @@ client = {{ config('brand.name', 'Zelta') }}(
                         <div class="p-6">
                             <p class="text-slate-500 mb-4">
                                 The SDK provides typed interfaces for bridge operations (Wormhole, LayerZero, Axelar), DEX aggregation (Uniswap, Aave, Curve, Lido),
-                                cross-chain swaps, and multi-chain portfolio management.
+                                cross-chain swaps, and multi-chain portfolio management. Integration adapters for third-party APIs; no partnership or endorsement implied.
                             </p>
                             <div class="bg-gray-900 rounded-lg p-6 font-mono text-green-400 text-sm overflow-x-auto">
 <pre><span class="text-gray-500">// TypeScript -- Cross-Chain Bridge + DeFi Swap in one workflow</span>
@@ -800,12 +800,12 @@ async function crossChainSwapWorkflow() {
                         <div class="bg-gradient-to-r from-emerald-600 to-green-600 px-6 py-4">
                             <div class="flex items-center">
                                 <span class="w-8 h-8 bg-white text-emerald-600 rounded-full flex items-center justify-center font-bold text-sm mr-3">3</span>
-                                <h3 class="text-lg font-semibold text-white">Integrate RegTech Compliance</h3>
+                                <h3 class="text-lg font-semibold text-white">Integrate RegTech Modules</h3>
                             </div>
                         </div>
                         <div class="p-6">
                             <p class="text-slate-500 mb-4">
-                                Built-in compliance modules for MiFID II reporting, MiCA compliance, and FATF Travel Rule -- automatically enforced based on your jurisdiction configuration.
+                                Reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements, applied according to your jurisdiction configuration; they do not by themselves make a deployment compliant.
                             </p>
                             <div class="bg-gray-900 rounded-lg p-6 font-mono text-green-400 text-sm overflow-x-auto">
 <pre><span class="text-gray-500">// TypeScript -- Compliance-aware transfer</span>
@@ -902,7 +902,7 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
                             </div>
                             <div class="border border-gray-200 rounded-lg p-4">
                                 <h4 class="font-semibold text-slate-900 mb-1">client.regtech</h4>
-                                <p class="text-sm text-slate-500">MiFID II, MiCA, Travel Rule compliance</p>
+                                <p class="text-sm text-slate-500">MiFID II, MiCA, Travel Rule modules</p>
                                 <span class="text-xs text-gray-400">v2+</span>
                             </div>
                             <div class="border border-gray-200 rounded-lg p-4">
@@ -912,7 +912,7 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
                             </div>
                             <div class="border border-gray-200 rounded-lg p-4">
                                 <h4 class="font-semibold text-slate-900 mb-1">client.defi</h4>
-                                <p class="text-sm text-slate-500">DEX aggregation, lending, staking, yield</p>
+                                <p class="text-sm text-slate-500">DEX aggregation, lending, staking</p>
                                 <span class="text-xs text-gray-400">v5.2+</span>
                             </div>
                             <div class="border border-gray-200 rounded-lg p-4">
@@ -1030,7 +1030,7 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
                                 <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                 </svg>
-                                Virtual card issuance
+                                Card-issuing integration adapter
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">

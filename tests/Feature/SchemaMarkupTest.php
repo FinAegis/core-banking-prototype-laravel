@@ -20,13 +20,15 @@ class SchemaMarkupTest extends TestCase
     }
 
     #[Test]
-    public function test_gcu_page_has_product_and_breadcrumb_schema()
+    public function test_gcu_page_has_creative_work_and_breadcrumb_schema(): void
     {
         $response = $this->get('/gcu');
 
         $response->assertStatus(200);
         $response->assertSee('<script type="application/ld+json">', false);
-        $response->assertSee('"@type": "Product"', false);
+        // GCU is a software demo: CreativeWork, never a Product with offers.
+        $response->assertSee('"@type": "CreativeWork"', false);
+        $response->assertDontSee('"@type": "Product"', false);
         $response->assertSee('"name": "Global Currency Unit (GCU)"', false);
         $response->assertSee('"@type": "BreadcrumbList"', false);
     }
@@ -46,7 +48,7 @@ class SchemaMarkupTest extends TestCase
 
         // Brand-aware truth fix: the Zelta Play Store installUrl must only
         // appear when the brand actually IS Zelta (tests run as FinAegis).
-        if (config('brand.name') !== 'Zelta') {
+        if (strtolower((string) config('brand.name')) !== 'zelta') {
             $response->assertDontSee('play.google.com/store/apps/details?id=com.zelta.wallet', false);
         }
     }

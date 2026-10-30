@@ -11,6 +11,8 @@
 @endsection
 
 @section('content')
+    {{-- finaegis.org (demo / promo pages) vs zelta.app — see docs/REGULATORY-CLAIMS.md --}}
+    @php $isFinAegisSite = app()->environment('demo') || config('brand.show_promo_pages'); @endphp
 
     <!-- Hero Section -->
     <section class="bg-fa-navy relative overflow-hidden">
@@ -259,16 +261,18 @@
                 <p class="text-xl text-slate-500">Explore the concepts and technology behind the platform</p>
             </div>
 
-            <div class="grid md:grid-cols-3 gap-6">
+            <div class="grid {{ $isFinAegisSite ? 'md:grid-cols-3' : 'md:grid-cols-2' }} gap-6">
                 <a href="{{ route('about') }}" class="block card-feature animate-on-scroll stagger-1">
                     <h3 class="font-display text-xl font-bold text-slate-900 mb-2">About the Project</h3>
                     <p class="text-slate-500">Learn what {{ config('brand.name', 'Zelta') }} is and why it was built</p>
                 </a>
 
-                <a href="{{ route('features.show', 'gcu') }}" class="block card-feature animate-on-scroll stagger-2">
-                    <h3 class="font-display text-xl font-bold text-slate-900 mb-2">GCU Concept</h3>
-                    <p class="text-slate-500">Explore the Global Currency Unit idea</p>
+                @if($isFinAegisSite)
+                <a href="{{ route('gcu') }}" class="block card-feature animate-on-scroll stagger-2">
+                    <h3 class="font-display text-xl font-bold text-slate-900 mb-2">GCU demo</h3>
+                    <p class="text-slate-500">A software demonstration: reference implementation of a basket-referenced unit</p>
                 </a>
+                @endif
 
                 <a href="{{ route('developers') }}" class="block card-feature animate-on-scroll stagger-3">
                     <h3 class="font-display text-xl font-bold text-slate-900 mb-2">Developer Docs</h3>
@@ -278,13 +282,14 @@
         </div>
     </section>
 
-    <!-- CTA Section -->
+    <!-- CTA Section (finaegis.org demo only) -->
+    @if($isFinAegisSite)
     <section class="bg-fa-navy relative overflow-hidden">
         <div class="absolute inset-0 bg-dot-pattern"></div>
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
             <h2 class="font-display text-4xl font-bold text-white mb-6">Explore the Demo</h2>
             <p class="text-lg mb-10 text-slate-400 max-w-3xl mx-auto">
-                See the GCU, governance, and all banking features in action. Create a demo account to explore everything—all simulated, all safe.
+                See the GCU demo, governance, and all banking features in action. Create a demo account to explore everything—all simulated, all safe.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary btn-lg">
@@ -296,5 +301,6 @@
             </div>
         </div>
     </section>
+    @endif
 
 @endsection

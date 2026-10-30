@@ -2,7 +2,10 @@
 
 ## Overview
 
-The FinAegis Exchange Engine provides a comprehensive trading platform with advanced order matching, external exchange integration, and automated market making capabilities. This guide will help you understand and use all exchange features effectively.
+The FinAegis Exchange Engine is a configurable component of a self-hosted FinAegis deployment, with order matching, external exchange API connectors and automated market-making capabilities. This guide describes those engine capabilities; which of them are enabled, and on what terms, is decided by the operator of each deployment.
+
+> FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory
+> compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
 
 ## Table of Contents
 
@@ -162,20 +165,9 @@ Expires at end of trading day if not executed
 
 ## Market Making
 
-### Becoming a Market Maker
+### Market-Making Capability
 
-Market makers provide liquidity by placing both buy and sell orders:
-
-1. **Apply for Market Maker Status**
-   - Minimum balance requirements
-   - Trading volume commitments
-   - Spread obligations
-
-2. **Benefits**
-   - Reduced trading fees
-   - Rebates for providing liquidity
-   - Priority API access
-   - Advanced trading tools
+The engine can run market-making strategies that place both buy and sell orders to provide liquidity on a self-hosted deployment. Any market-maker arrangements are defined by the operator of that deployment.
 
 ### Automated Market Making
 
@@ -203,13 +195,9 @@ Monitor and rebalance your inventory:
 
 ## External Exchanges
 
-### Connected Exchanges
+### Exchange API connectors
 
-FinAegis integrates with major exchanges:
-
-- **Binance**: Spot and futures trading
-- **Kraken**: Fiat on/off ramps
-- **Coinbase**: Institutional liquidity
+- Example connectors for the Binance and Kraken APIs. Integration adapters for third-party APIs; no partnership or endorsement implied.
 
 ### Arbitrage Opportunities
 
@@ -319,10 +307,6 @@ Set automatic limits:
    - Max position size: $5,000
    - Max open positions: 5
 
-3. **Leverage Limits**
-   - Maximum leverage: 3x
-   - Margin call at 80% utilization
-
 ### Portfolio Management
 
 Diversify across assets:
@@ -350,13 +334,13 @@ Recommended Allocation:
 
 ### API Endpoints
 
-Base URL: `https://api.finaegis.com/v2`
+Base URL: `https://<your-deployment>/api/v2`
 
 #### Get Order Book
 ```bash
 GET /exchange/orderbook/{pair}
 
-curl https://api.finaegis.com/v2/exchange/orderbook/BTC-USD \
+curl https://<your-deployment>/api/v2/exchange/orderbook/BTC-USD \
   -H "X-API-Key: your-api-key"
 ```
 
@@ -364,7 +348,7 @@ curl https://api.finaegis.com/v2/exchange/orderbook/BTC-USD \
 ```bash
 POST /exchange/orders
 
-curl -X POST https://api.finaegis.com/v2/exchange/orders \
+curl -X POST https://<your-deployment>/api/v2/exchange/orders \
   -H "X-API-Key: your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
@@ -380,7 +364,7 @@ curl -X POST https://api.finaegis.com/v2/exchange/orders \
 ```bash
 DELETE /exchange/orders/{orderId}
 
-curl -X DELETE https://api.finaegis.com/v2/exchange/orders/12345 \
+curl -X DELETE https://<your-deployment>/api/v2/exchange/orders/12345 \
   -H "X-API-Key: your-api-key"
 ```
 
@@ -389,7 +373,7 @@ curl -X DELETE https://api.finaegis.com/v2/exchange/orders/12345 \
 Real-time market data:
 
 ```javascript
-const ws = new WebSocket('wss://stream.finaegis.com');
+const ws = new WebSocket('wss://<your-deployment>/<websocket-path>');
 
 ws.on('open', () => {
   // Subscribe to BTC/USD trades
@@ -439,27 +423,13 @@ Full-featured trading interface:
    - Quick close/modify
    - Risk metrics
 
-### Mobile Trading
-
-Trade on the go:
-
-1. **Download App**
-   - iOS: App Store
-   - Android: Google Play
-
-2. **Features**
-   - Price alerts
-   - Quick trade
-   - Portfolio view
-   - News feed
-
 ### Trading Widgets
 
 Embed trading in your site:
 
 ```html
 <iframe 
-  src="https://widget.finaegis.com/trade?pair=BTC/USD"
+  src="https://<your-deployment>/<widget-path>?pair=BTC/USD"
   width="400"
   height="600">
 </iframe>
@@ -532,19 +502,7 @@ Too many requests:
 
 ### Getting Help
 
-#### Self-Service
-- Knowledge Base: help.finaegis.com
-- Video Tutorials: youtube.com/finaegis
-- Community Forum: forum.finaegis.com
-
-#### Contact Support
-- Live Chat: Available 24/7
-- Email: support@finaegis.com
-- Phone: +1-800-FINAEGIS
-
-#### Report Issues
-- Bug Reports: github.com/finaegis/issues
-- Feature Requests: feedback.finaegis.com
+- [GitHub Issues](https://github.com/FinAegis/core-banking-prototype-laravel/issues)
 
 ## Best Practices
 
@@ -568,7 +526,7 @@ Too many requests:
 
 ## Conclusion
 
-The FinAegis Exchange Engine provides professional-grade trading capabilities with user-friendly interfaces. Start with small trades, learn the platform, and gradually develop your trading strategy. Remember to always trade responsibly and never invest more than you can afford to lose.
+The FinAegis Exchange Engine provides trading capabilities with user-friendly interfaces. Start with small trades, learn the platform, and gradually develop your trading strategy. Remember to always trade responsibly and never invest more than you can afford to lose.
 
 For technical integration and advanced features, refer to the [API Documentation](/docs/api/exchange) and [Developer Guide](/docs/developer/exchange).
 

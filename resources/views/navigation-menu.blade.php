@@ -74,6 +74,7 @@
                                         {{ __('Fund Flow') }}
                                     </div>
                                 </x-dropdown-link>
+                                @if(config('brand.show_promo_pages'))
                                 <x-dropdown-link href="{{ route('wallet.bank-allocation') }}">
                                     <div class="flex items-center">
                                         <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,6 +83,7 @@
                                         {{ __('Banks') }}
                                     </div>
                                 </x-dropdown-link>
+                                @endif
                                 <div class="border-t border-gray-200 dark:border-gray-600"></div>
                                 <x-dropdown-link href="{{ route('wallet.blockchain.index') }}">
                                     <div class="flex items-center">
@@ -95,6 +97,7 @@
                         </x-dropdown>
                     </div>
                     
+                    @if(config('brand.show_promo_pages'))
                     <!-- Governance -->
                     <x-nav-link href="{{ route('wallet.voting') }}" :active="request()->routeIs('wallet.voting')">
                         <div class="flex items-center">
@@ -104,6 +107,7 @@
                             {{ __('Governance') }}
                         </div>
                     </x-nav-link>
+                    @endif
                     
                     <!-- Exchange -->
                     <x-nav-link href="{{ route('exchange.index') }}" :active="request()->routeIs('exchange.*')">
@@ -452,11 +456,13 @@
                 {{ __('Fund Flow') }}
             </x-responsive-nav-link>
             
+            @if(config('brand.show_promo_pages'))
             <!-- Governance -->
             <div class="border-t border-gray-200 dark:border-gray-600"></div>
             <x-responsive-nav-link href="{{ route('wallet.voting') }}" :active="request()->routeIs('wallet.voting')">
                 {{ __('Governance') }}
             </x-responsive-nav-link>
+            @endif
 
             <!-- Web3 Section -->
             <div class="border-t border-gray-200 dark:border-gray-600"></div>

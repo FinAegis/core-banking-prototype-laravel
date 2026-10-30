@@ -178,7 +178,7 @@
                         </svg>
                     </div>
                     <h3 class="font-semibold text-gray-900 mb-2">RegTech &amp; Compliance</h3>
-                    <p class="text-gray-600 text-sm">Travel Rule, MiFID II, MiCA compliance checks</p>
+                    <p class="text-gray-600 text-sm">Checks modelled on Travel Rule, MiFID II and MiCA requirements</p>
                 </a>
 
                 <a href="#baas-partner" class="group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 hover:transform hover:-translate-y-1">
@@ -1823,7 +1823,7 @@ processLoanApplication('cust_456', {
                             <div class="flex items-center justify-between">
                                 <div>
                                     <h3 class="text-xl font-semibold text-gray-900">Cross-Chain Bridge: Quote and Initiate</h3>
-                                    <p class="text-gray-600 mt-1">Get a bridge quote across chains (Wormhole, LayerZero, Axelar) and initiate the transfer</p>
+                                    <p class="text-gray-600 mt-1">Get a bridge quote across chains (Wormhole, LayerZero, Axelar) and initiate the transfer. Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span class="px-3 py-1 bg-cyan-100 text-cyan-700 rounded-full text-xs font-medium">v3.0</span>
@@ -2243,8 +2243,8 @@ swap_tokens('ethereum', 'WETH', 'USDC', '2.5')
                         <div class="bg-gradient-to-r from-emerald-50 to-green-50 px-6 py-5 border-b">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <h3 class="text-xl font-semibold text-gray-900">Travel Rule Compliance Check</h3>
-                                    <p class="text-gray-600 mt-1">Validate FATF Travel Rule compliance before executing cross-border or virtual asset transfers</p>
+                                    <h3 class="text-xl font-semibold text-gray-900">Travel Rule Check</h3>
+                                    <p class="text-gray-600 mt-1">Run the data-exchange check modelled on the FATF Travel Rule before executing cross-border or virtual asset transfers; it does not by itself make a deployment compliant</p>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">v2</span>

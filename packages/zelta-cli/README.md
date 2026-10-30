@@ -55,7 +55,7 @@ zelta endpoints:list
 
 > **Note on wallet sends** — Zelta wallets are non-custodial: every transaction is signed on-device (Privy passkey / device key), so the CLI cannot send funds. `wallet:transactions` and `wallet:intent` give read-only visibility into wallet activity and send intents.
 
-> **Note on ramp & subscription** — `ramp:status` / `ramp:kyc-link` cover bank-rail deposit setup (KYC + virtual account); `subscription:status` shows your tier and period end. All three are read/setup surfaces — money movement and plan changes happen in the app.
+> **Note on ramp & subscription** — `ramp:status` / `ramp:kyc-link` cover bank-rail on-ramp setup (KYC + virtual account with the third-party ramp provider); `subscription:status` shows your tier and period end. All three are read/setup surfaces — money movement and plan changes happen in the app. Converting stablecoins to fiat, where available, will be provided by licensed third parties under their own terms.
 
 ## AI Agent Support
 

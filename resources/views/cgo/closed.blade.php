@@ -11,22 +11,18 @@
                     </svg>
                     
                     <h2 class="mt-6 text-3xl font-bold text-gray-900">
-                        CGO Investment Closed
+                        CGO Concept
                     </h2>
                     
                     <p class="mt-4 text-lg text-gray-600">
-                        The investment opportunity is currently closed.
+                        The CGO round is closed.
                     </p>
                     
                     <p class="mt-2 text-gray-500">
-                        Please check back later for future investment opportunities or contact our support team for more information.
+                        Contact our support team for more information.
                     </p>
                     
                     <div class="mt-8 space-x-4">
-                        <a href="{{ route('cgo.investments') }}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            View My Investments
-                        </a>
-                        
                         <a href="{{ route('dashboard') }}" class="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             Go to Dashboard
                         </a>

@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Compliance-Ready Architecture — PSD2, MiCA, GDPR | ' . config('brand.name', 'Zelta'))
+@section('title', 'Compliance Tooling — PSD2, MiCA, GDPR | ' . config('brand.name', 'Zelta'))
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Compliance-Ready Architecture — PSD2, MiCA, GDPR | ' . config('brand.name', 'Zelta'),
-        'description' => config('brand.name', 'Zelta') . ' compliance-ready architecture. Built to meet EU regulatory standards with PSD2, EMD2, MiCA, KYC/AML, GDPR, and Travel Rule adapters.',
-        'keywords' => config('brand.name', 'Zelta') . ', compliance, regulation, PSD2, EMD2, MiCA, KYC, AML, GDPR, security, Travel Rule, MiFID II',
+        'title' => 'Compliance Tooling — PSD2, MiCA, GDPR | ' . config('brand.name', 'Zelta'),
+        'description' => config('brand.name', 'Zelta') . ' open-source compliance tooling: modules modelled on PSD2, MiCA, AML/KYC, GDPR and Travel Rule requirements.',
+        'keywords' => config('brand.name', 'Zelta') . ', compliance, regulation, PSD2, MiCA, KYC, AML, GDPR, security, Travel Rule, MiFID II',
     ])
 
     <x-schema type="breadcrumb" :data="[
@@ -27,9 +27,9 @@
                     <svg class="w-8 h-8 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                 </div>
                 @include('partials.breadcrumb', ['items' => [['name' => 'Compliance', 'url' => url('/compliance')]]])
-                <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Compliance-Ready <span class="text-gradient">Architecture</span></h1>
+                <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Compliance <span class="text-gradient">Tooling</span></h1>
                 <p class="text-lg text-slate-400 max-w-2xl mx-auto">
-                    Built for EU regulatory compliance from day one. PSD2, EMD2, MiCA, KYC/AML, GDPR, and MiFID II adapters with jurisdiction-aware routing.
+                    Open-source compliance tooling: modules modelled on PSD2, MiCA, AML/KYC, GDPR and MiFID II requirements, with jurisdiction-aware routing. They do not by themselves make a deployment compliant.
                 </p>
             </div>
         </div>
@@ -44,9 +44,12 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <div>
-                    <h3 class="font-display text-sm font-semibold text-slate-900">Designed for EU Regulatory Compliance</h3>
+                    <h3 class="font-display text-sm font-semibold text-slate-900">Regulatory Status</h3>
                     <p class="text-sm text-slate-600 mt-0.5">
-                        Our platform architecture supports EMI licensing requirements and integrates with licensed partners for compliant operations across the European Union.
+                        FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
+                    </p>
+                    <p class="text-sm text-slate-600 mt-1">
+                        FinAegis is a software project and does not hold any banking, e-money, payment-institution, crypto-asset service provider or token-issuer licence or authorisation.
                     </p>
                 </div>
             </div>
@@ -58,17 +61,16 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-14 animate-on-scroll">
                 <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Regulatory Framework Support</h2>
-                <p class="text-lg text-slate-500">Comprehensive adapters for EU financial regulations</p>
+                <p class="text-lg text-slate-500">Modules modelled on EU financial regulations</p>
             </div>
 
             @php
                 $regulations = [
-                    ['title' => 'PSD2 Compatible', 'desc' => 'Architecture designed to support Payment Services Directive 2 requirements when operating with licensed partners.', 'color' => 'blue', 'icon' => 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z', 'items' => ['Strong Customer Authentication (SCA)', 'Open Banking API standards', 'Account Information Services (AIS)', 'Payment Initiation Services (PIS)']],
-                    ['title' => 'EMD2 Ready', 'desc' => 'Platform architecture prepared for Electronic Money Directive 2 compliance requirements.', 'color' => 'teal', 'icon' => 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'items' => ['Support for fund safeguarding', 'Customer fund segregation', 'E-money redemption workflows', 'Operational resilience features']],
-                    ['title' => 'MiCA Compatible', 'desc' => 'Infrastructure designed with Markets in Crypto-Assets regulation in mind for digital asset operations.', 'color' => 'amber', 'icon' => 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', 'items' => ['Asset-referenced token framework', 'E-money token compliance', 'Reserve asset management', 'Stability mechanism requirements']],
+                    ['title' => 'PSD2-Modelled Modules', 'desc' => 'Modules modelled on Payment Services Directive 2 requirements: SCA, Open Banking API standards and AIS/PIS flows.', 'color' => 'blue', 'icon' => 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z', 'items' => ['Strong Customer Authentication (SCA)', 'Open Banking API standards', 'Account information (AIS) flows', 'Payment initiation (PIS) flows']],
+                    ['title' => 'MiCA-Modelled Modules', 'desc' => 'Modules modelled on MiCA requirements for crypto-asset operations.', 'color' => 'amber', 'icon' => 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', 'items' => ['Whitepaper checklist validation', 'Reserve status reporting']],
                     ['title' => 'KYC/AML Framework', 'desc' => 'Multi-tier identity verification with Ondato-compatible verification adapter and Chainalysis-compatible sanctions screening adapter.', 'color' => 'blue', 'icon' => 'M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2', 'items' => ['National ID & passport verification', 'Liveness check & selfie matching', 'PEP & sanctions screening', 'Automated risk scoring']],
-                    ['title' => 'GDPR Enhanced', 'desc' => 'Full data protection framework with ROPA, DPIA, breach notification, and consent management v2.', 'color' => 'teal', 'icon' => 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z', 'items' => ['Full data portability & export', 'Right to deletion & anonymization', 'Automated retention policies', 'Granular consent management']],
-                    ['title' => 'MiFID II & Travel Rule', 'desc' => 'Financial instruments reporting and crypto transfer data requirements with jurisdiction adapters.', 'color' => 'slate', 'icon' => 'M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3', 'items' => ['Transaction reporting adapters', 'Jurisdiction-aware routing', 'Travel Rule VASP compliance', 'Regulatory report generation']],
+                    ['title' => 'GDPR Enhanced', 'desc' => 'Data protection tooling with ROPA, DPIA, breach notification, and consent management v2.', 'color' => 'teal', 'icon' => 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z', 'items' => ['Full data portability & export', 'Right to deletion & anonymization', 'Automated retention policies', 'Granular consent management']],
+                    ['title' => 'MiFID II & Travel Rule', 'desc' => 'Reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements.', 'color' => 'slate', 'icon' => 'M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3', 'items' => ['Transaction reporting adapters', 'Jurisdiction-aware routing', 'Travel Rule data-exchange module', 'Regulatory report generation']],
                 ];
             @endphp
 
@@ -90,6 +92,7 @@
                 </div>
                 @endforeach
             </div>
+            <p class="mt-8 text-xs text-slate-400 text-center">Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
         </div>
     </section>
 
@@ -199,7 +202,7 @@
             <div class="text-center mb-14 animate-on-scroll">
                 <span class="badge badge-success mb-4">Implemented v3.5.0</span>
                 <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">GDPR & Data Protection</h2>
-                <p class="text-lg text-slate-500">Full European data protection compliance</p>
+                <p class="text-lg text-slate-500">GDPR tooling: data export, deletion, retention and consent management</p>
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6 animate-on-scroll stagger-1">
@@ -245,10 +248,10 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 animate-on-scroll stagger-1">
                 @php
                     $integrations = [
-                        ['name' => 'Paysera Connector', 'type' => 'EMI Integration Example', 'items' => ['API integration ready', 'Multi-currency support', 'SEPA payments', 'PSD2 compatible APIs']],
-                        ['name' => 'Deutsche Bank API', 'type' => 'Banking Integration Demo', 'items' => ['Corporate API access', 'Multi-currency accounts', 'SWIFT connectivity', 'SEPA Instant support']],
-                        ['name' => 'Santander Module', 'type' => 'Open Banking Sample', 'items' => ['Open Banking APIs', 'Account aggregation', 'Payment initiation', 'Real-time balances']],
-                        ['name' => 'Custom Integrations', 'type' => 'Your Bank Here', 'items' => ['Modular architecture', 'Standard interfaces', 'Webhook support', 'Easy integration']],
+                        ['name' => 'EMI Connector', 'type' => 'EMI Integration Example', 'items' => ['API integration ready', 'Multi-currency support', 'SEPA payments', 'PSD2 compatible APIs']],
+                        ['name' => 'Corporate Banking API', 'type' => 'Banking Integration Demo', 'items' => ['Corporate API access', 'Multi-currency accounts', 'SWIFT connectivity', 'SEPA Instant support']],
+                        ['name' => 'Open Banking Module', 'type' => 'Open Banking Sample', 'items' => ['Open Banking APIs', 'Account aggregation', 'Payment initiation', 'Real-time balances']],
+                        ['name' => 'Custom Integrations', 'type' => 'Custom Connector', 'items' => ['Modular architecture', 'Standard interfaces', 'Webhook support', 'Easy integration']],
                     ];
                 @endphp
 
@@ -357,9 +360,9 @@
     <!-- CTA -->
     <section class="py-20 bg-white">
         <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 animate-on-scroll">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Ready to Meet Regulatory Requirements?</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Questions About the Compliance Tooling?</h2>
             <p class="text-lg text-slate-500 mb-10 max-w-2xl mx-auto">
-                Interested in how our platform can support your compliance requirements? Contact us to learn more.
+                Contact us to learn more about the open-source modules.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('support.contact') }}" class="btn-primary px-8 py-4 text-lg">

@@ -11,9 +11,9 @@ class GcuVotingProposalSeeder extends Seeder
     {
         // Active proposal
         GcuVotingProposal::create([
-            'title'                => 'Q1 2025 Rebalancing - Increase USD Allocation',
+            'title'                => '[Demo] Q1 2025 Rebalancing - Increase USD Allocation',
             'description'          => 'Proposal to increase USD allocation from 30% to 35% in response to strengthening dollar and Federal Reserve policy changes.',
-            'rationale'            => 'The US Dollar has shown significant strength against other major currencies. Economic indicators suggest this trend will continue through Q1 2025. Increasing USD allocation will provide better stability for GCU holders.',
+            'rationale'            => 'The US Dollar has shown significant strength against other major currencies. Economic indicators suggest this trend will continue through Q1 2025. Increasing USD allocation is proposed for the demo basket.',
             'proposed_composition' => [
                 'USD' => 35,
                 'EUR' => 25,
@@ -43,9 +43,9 @@ class GcuVotingProposalSeeder extends Seeder
 
         // Upcoming proposal
         GcuVotingProposal::create([
-            'title'                => 'Increase Gold Allocation for Inflation Hedge',
-            'description'          => 'Proposal to double gold (XAU) allocation from 5% to 10% as an inflation hedge.',
-            'rationale'            => 'With global inflation concerns rising, increasing our gold allocation will provide better protection against currency devaluation and maintain purchasing power for GCU holders.',
+            'title'                => '[Demo] Increase Gold Allocation',
+            'description'          => 'Proposal to double gold (XAU) allocation from 5% to 10% in the demo basket.',
+            'rationale'            => 'Illustrative demo proposal: increase the gold weighting of the demo basket.',
             'proposed_composition' => [
                 'USD' => 28,
                 'EUR' => 23,
@@ -72,9 +72,9 @@ class GcuVotingProposalSeeder extends Seeder
 
         // Past implemented proposal
         GcuVotingProposal::create([
-            'title'                => 'December 2024 Rebalancing',
-            'description'          => 'Monthly rebalancing to optimize currency weights based on economic conditions.',
-            'rationale'            => 'Regular monthly rebalancing to maintain optimal currency allocation.',
+            'title'                => '[Demo] December 2024 Rebalancing',
+            'description'          => 'Illustrative monthly rebalancing of the demo basket weights.',
+            'rationale'            => 'Illustrative demo proposal: periodic rebalancing of the demo basket.',
             'proposed_composition' => [
                 'USD' => 30,
                 'EUR' => 25,
@@ -104,7 +104,6 @@ class GcuVotingProposalSeeder extends Seeder
             'implementation_details' => [
                 'execution_date'   => now()->subDays(22)->format('Y-m-d'),
                 'total_rebalanced' => 950000,
-                'banks_updated'    => 3,
             ],
         ]);
     }

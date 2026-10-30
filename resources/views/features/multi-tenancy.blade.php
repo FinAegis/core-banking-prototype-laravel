@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Multi-Tenancy',
-        'description' => 'Enterprise-grade multi-tenancy with team-based isolation, per-tenant configuration, data migration, and the UsesTenantConnection trait powered by stancl/tenancy v3.9.',
+        'description' => 'Multi-tenancy with team-based isolation, per-tenant configuration, data migration, and the UsesTenantConnection trait powered by stancl/tenancy v3.9.',
         'keywords' => 'multi-tenancy, tenant isolation, database scoping, enterprise, data migration, tenant configuration, stancl tenancy, ' . config('brand.name', 'Zelta'),
     ])
 
@@ -28,7 +28,7 @@
             <div class="text-center">
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Multi-Tenancy</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    True enterprise-grade tenant isolation built on stancl/tenancy v3.9. Every team gets its own secure, configurable environment with database-level data separation and zero cross-tenant leakage.
+                    Tenant isolation built on stancl/tenancy v3.9. Every team gets its own secure, configurable environment with database-level data separation and zero cross-tenant leakage.
                 </p>
             </div>
         </div>
@@ -313,7 +313,7 @@
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Scale With Confidence</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                Whether you serve ten organizations or ten thousand, {{ config('brand.name', 'Zelta') }} multi-tenancy ensures every tenant gets enterprise-grade isolation, performance, and control.
+                Whether you serve ten organizations or ten thousand, {{ config('brand.name', 'Zelta') }} multi-tenancy ensures every tenant gets isolation, performance, and control.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">

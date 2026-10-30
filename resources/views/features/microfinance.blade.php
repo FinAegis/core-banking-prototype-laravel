@@ -42,7 +42,7 @@
                 </div>
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Microfinance Suite</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    Financial inclusion, production-ready. Complete MFI platform with group lending, IFRS loan provisioning, cooperative share accounts, teller operations, field officer tools, and savings products — all in one API.
+                    Financial inclusion modules. MFI software with group lending, IFRS loan provisioning, cooperative share accounts, teller operations, field officer tools, and savings products — all in one API.
                 </p>
                 <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('register') }}" class="bg-white text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">
@@ -91,7 +91,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3">IFRS Loan Provisioning</h3>
-                    <p class="text-slate-500 text-sm mb-4">IFRS 9-compliant loan loss provisioning with four classification stages. Configurable provision rates per stage with automatic staging based on days past due.</p>
+                    <p class="text-slate-500 text-sm mb-4">Loan loss provisioning modelled on IFRS 9, with four classification stages. Configurable provision rates per stage with automatic staging based on days past due.</p>
                     <ul class="space-y-1 text-xs text-gray-500">
                         <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Standard / Substandard / Doubtful / Loss</li>
                         <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Configurable provision rates per stage</li>
@@ -227,8 +227,8 @@
     <!-- CTA -->
     <section class="py-20 bg-fa-navy">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Launch Your MFI on a Proven Platform</h2>
-            <p class="text-lg text-slate-400 mb-8">Everything from group loan disbursement to regulatory provisioning — production-ready, API-first, and built for the field.</p>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Build Your MFI on Open-Source Software</h2>
+            <p class="text-lg text-slate-400 mb-8">Everything from group loan disbursement to regulatory provisioning — API-first and built for the field.</p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="bg-white text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">Start Free Trial</a>
                 <a href="{{ route('developers') }}" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-indigo-600 transition">View API Docs</a>

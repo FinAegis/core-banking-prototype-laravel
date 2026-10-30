@@ -294,7 +294,7 @@ Add to `config/agent_protocol.php`:
 1. **Data Protection** - All PII is encrypted at rest and in transit
 2. **Audit Logging** - Comprehensive event sourcing for compliance
 3. **Access Control** - Role-based access to compliance data
-4. **Regulatory Compliance** - FATF, OFAC, and AML/CFT standards
+4. **Screening support** - checks modelled on FATF, OFAC and AML/CFT requirements
 5. **Document Security** - Secure storage and verification
 
 ## Integration Points
@@ -342,4 +342,4 @@ Add to `config/agent_protocol.php`:
 
 ## Conclusion
 
-Phase 4 successfully implements a comprehensive compliance framework for the Agent Protocol, ensuring regulatory compliance while maintaining a smooth user experience. The system is designed to scale with growing transaction volumes while maintaining strict compliance standards.
+Phase 4 implements compliance tooling for the Agent Protocol (KYC/KYB checks, transaction limits, report drafts and audit trails). It does not by itself make a deployment compliant.

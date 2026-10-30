@@ -143,7 +143,7 @@
                         Build with 1,400+ API Routes
                     </h1>
                     <p class="text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto mb-12">
-                        REST, GraphQL, WebSocket, and CLI — integrate payments, lending, and compliance in minutes.
+                        REST, GraphQL, WebSocket, and CLI — integrate payments, lending, and compliance tooling in minutes.
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
                         <a href="#quickstart" class="group bg-white text-slate-900 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition shadow-lg hover:shadow-xl inline-flex items-center justify-center">
@@ -444,7 +444,7 @@
                 <!-- Platform API Area Cards -->
                 <div class="mt-16">
                     <h3 class="text-2xl font-bold text-slate-900 mb-2 text-center">Platform API Areas</h3>
-                    <p class="text-slate-500 text-center mb-8">Explore the full breadth of the {{ config('brand.name', 'Zelta') }} platform across 61 DDD domains</p>
+                    <p class="text-slate-500 text-center mb-8">Explore the full breadth of the {{ config('brand.name', 'Zelta') }} platform across 61 DDD domains. Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
                         <!-- CrossChain -->
@@ -480,7 +480,7 @@
                                         <span class="text-xs text-slate-400">8 routes</span>
                                     </div>
                                 </div>
-                                <p class="text-slate-500 text-sm mb-3">DEX aggregation (Uniswap, Curve), lending (Aave), staking (Lido), yield optimization, flash loans, and portfolio management.</p>
+                                <p class="text-slate-500 text-sm mb-3">DEX aggregation (Uniswap, Curve), lending (Aave), staking (Lido), flash loans, and portfolio management.</p>
                                 <span class="text-emerald-600 text-sm font-medium group-hover:text-emerald-700">View endpoints &rarr;</span>
                             </div>
                         </a>
@@ -499,7 +499,7 @@
                                         <span class="text-xs text-slate-400">12 routes</span>
                                     </div>
                                 </div>
-                                <p class="text-slate-500 text-sm mb-3">MiFID II reporting, MiCA compliance, Travel Rule enforcement, jurisdiction adapters, and regulatory orchestration.</p>
+                                <p class="text-slate-500 text-sm mb-3">Reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements, with jurisdiction adapters.</p>
                                 <span class="text-amber-600 text-sm font-medium group-hover:text-amber-700">View endpoints &rarr;</span>
                             </div>
                         </a>
@@ -690,7 +690,7 @@
                                         <span class="text-xs text-slate-400">ACH &middot; Fedwire &middot; SEPA &middot; RTP &middot; FedNow</span>
                                     </div>
                                 </div>
-                                <p class="text-slate-500 text-sm mb-3">ACH, Fedwire, RTP, FedNow, SEPA with intelligent routing that selects the optimal rail automatically.</p>
+                                <p class="text-slate-500 text-sm mb-3">ACH, Fedwire, RTP, FedNow, SEPA message modules with intelligent routing that selects the optimal rail automatically.</p>
                                 <span class="text-orange-600 text-sm font-medium group-hover:text-orange-700">View endpoints &rarr;</span>
                             </div>
                         </a>
@@ -709,7 +709,7 @@
                                         <span class="text-xs text-slate-400">ILP &middot; Open Payments &middot; GNAP</span>
                                     </div>
                                 </div>
-                                <p class="text-slate-500 text-sm mb-3">ILP connections, Open Payments (GNAP authorization), and cross-currency quotes. Bridge fiat and crypto networks.</p>
+                                <p class="text-slate-500 text-sm mb-3">ILP connections, Open Payments (GNAP authorization), and cross-currency quotes.</p>
                                 <span class="text-purple-600 text-sm font-medium group-hover:text-purple-700">View endpoints &rarr;</span>
                             </div>
                         </a>
@@ -1025,7 +1025,7 @@
                     <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                         <div class="p-6 border-b border-gray-200">
                             <h3 class="text-lg font-semibold text-slate-900">Create a New Account</h3>
-                            <p class="text-slate-500 text-sm mt-1">Initialize a new bank account with initial deposit</p>
+                            <p class="text-slate-500 text-sm mt-1">Initialize a new account with an initial balance</p>
                         </div>
                         <div class="code-container">
                             <div class="code-header">
@@ -1113,8 +1113,8 @@
                     <!-- GCU Exchange Example -->
                     <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                         <div class="p-6 border-b border-gray-200">
-                            <h3 class="text-lg font-semibold text-slate-900">Exchange to GCU</h3>
-                            <p class="text-slate-500 text-sm mt-1">Convert traditional currency to Global Currency Units</p>
+                            <h3 class="text-lg font-semibold text-slate-900">GCU Demo Conversion (simulated)</h3>
+                            <p class="text-slate-500 text-sm mt-1">Simulated conversion in the GCU demo — GCU has no monetary value and is not issued or sold.</p>
                         </div>
                         <div class="code-container">
                             <div class="code-header">
@@ -1153,7 +1153,7 @@
 <span class="text-blue-400">$response</span> = <span class="text-green-400">curl_exec</span>(<span class="text-blue-400">$ch</span>);
 <span class="text-blue-400">$result</span> = <span class="text-green-400">json_decode</span>(<span class="text-blue-400">$response</span>, <span class="text-purple-400">true</span>);
 
-<span class="text-purple-400">echo</span> <span class="text-amber-400">"You will receive: "</span> . <span class="text-blue-400">$result</span>[<span class="text-amber-400">'gcu_amount'</span>] . <span class="text-amber-400">" GCU"</span>;
+<span class="text-purple-400">echo</span> <span class="text-amber-400">"Simulated GCU amount: "</span> . <span class="text-blue-400">$result</span>[<span class="text-amber-400">'gcu_amount'</span>] . <span class="text-amber-400">" GCU"</span>;
 <span class="text-purple-400">echo</span> <span class="text-amber-400">"Exchange rate: 1 USD = "</span> . <span class="text-blue-400">$result</span>[<span class="text-amber-400">'rate'</span>] . <span class="text-amber-400">" GCU"</span>;</code></pre>
                         </div>
                     </div>

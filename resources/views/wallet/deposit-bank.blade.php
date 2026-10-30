@@ -41,14 +41,11 @@
                                                 </svg>
                                             </div>
                                             <div>
-                                                <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Paysera</h4>
+                                                <h4 class="text-lg font-semibold text-gray-900 dark:text-white">SEPA bank transfer</h4>
                                                 <p class="text-sm text-gray-600 dark:text-gray-400">
-                                                    SEPA instant payments • Multi-currency support
+                                                    Multi-currency support
                                                 </p>
                                                 <div class="mt-2 flex items-center space-x-2">
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
-                                                        Instant
-                                                    </span>
                                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
                                                         EUR, USD, GBP
                                                     </span>
@@ -76,7 +73,7 @@
                                             <div>
                                                 <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Open Banking</h4>
                                                 <p class="text-sm text-gray-600 dark:text-gray-400">
-                                                    Connect directly to your bank • Secure PSD2 compliant
+                                                    Connect directly to your bank • Open Banking (PSD2) flow
                                                 </p>
                                                 <div class="mt-2 flex items-center space-x-2">
                                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200">

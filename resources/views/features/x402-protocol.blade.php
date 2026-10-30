@@ -36,7 +36,7 @@
                 </div>
                 <div class="inline-flex items-center px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-sm text-slate-300 mb-6">
                     <span class="w-2 h-2 bg-emerald-400 rounded-full mr-2"></span>
-                    v7.13.2 &middot; Production Ready
+                    v7.13.2
                 </div>
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">x402 Protocol</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto mb-8">
@@ -621,7 +621,7 @@ Route::middleware([<span class="text-emerald-400">'x402:250000'</span>])->group(
             <p class="mt-8 text-slate-500 text-sm">
                 Related: <a href="{{ url('/features/machine-payments') }}" class="underline hover:text-white transition text-slate-400">Machine Payments (MPP)</a> &middot;
                 <a href="{{ url('/features/zelta-cli') }}" class="underline hover:text-white transition text-slate-400">Zelta CLI</a> &middot;
-                <a href="{{ url('/features/visa-cli') }}" class="underline hover:text-white transition text-slate-400">Visa CLI</a>
+                <a href="{{ url('/features/visa-cli') }}" class="underline hover:text-white transition text-slate-400">Card-Payment CLI</a>
             </p>
         </div>
     </section>

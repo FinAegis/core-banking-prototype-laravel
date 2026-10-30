@@ -143,15 +143,15 @@
                             <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">Multi-chain breakdown</span>
                         </a>
 
-                        <!-- Yield Opportunities -->
+                        <!-- Protocol rate data -->
                         <a href="#" class="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition group">
                             <div class="p-3 bg-green-100 dark:bg-green-900 rounded-full mb-2 group-hover:bg-green-200 dark:group-hover:bg-green-800 transition">
                                 <svg class="w-6 h-6 text-green-600 dark:text-green-400" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
                                 </svg>
                             </div>
-                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Yield Opportunities</span>
-                            <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cross-chain yields</span>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Protocol rate data</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">(informational)</span>
                         </a>
                     </div>
                 </div>

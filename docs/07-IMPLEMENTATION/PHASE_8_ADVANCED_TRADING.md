@@ -7,7 +7,7 @@
 
 ## Overview
 
-Phase 8 introduces advanced trading capabilities, DeFi features, and blockchain integration to the FinAegis platform. This phase transforms the platform from a traditional banking system into a comprehensive financial services platform supporting both traditional and decentralized finance.
+Phase 8 introduces advanced trading capabilities, DeFi features, and blockchain integration to the FinAegis platform. This phase transforms the platform from a traditional banking system into a comprehensive financial software platform supporting both traditional and decentralized finance.
 
 ## Architecture Overview
 
@@ -202,7 +202,6 @@ $loan->update([
 - **Add/remove liquidity** interface
 - **LP token management**
 - **Pool analytics** dashboard
-- **Yield farming** opportunities
 
 ### Lending Dashboard
 - **Loan application** flow
@@ -344,7 +343,6 @@ GET    /api/wallets/{chain}/transactions
 
 ### Phase 8.5 (Planned)
 - **Derivatives trading**: Futures and options
-- **Yield farming**: Automated strategies
 - **Cross-chain bridges**: Asset transfers
 - **Mobile apps**: iOS/Android trading
 - **Advanced order types**: Stop-loss, OCO

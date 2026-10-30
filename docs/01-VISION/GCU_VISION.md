@@ -1,31 +1,33 @@
 # Global Currency Unit (GCU) - Concept
 
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis.
+> It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or
+> basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a
+> basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under
+> MiCA (Title III); no such authorisation is held.
+>
+> See [REGULATORY-CLAIMS.md](../REGULATORY-CLAIMS.md).
+
 ## What is GCU?
 
-The Global Currency Unit is a conceptual demonstration of how a democratic digital currency could work. In this model:
+The GCU demo is a reference implementation of a basket-referenced unit built with FinAegis. In this model:
 
-- **Basket-Backed**: Value comes from a weighted basket of currencies and gold
-- **Democratic Governance**: Users vote on basket composition
-- **Multi-Bank Distribution**: Funds spread across banks in different countries
-- **Deposit Insurance**: Each bank deposit protected by local insurance schemes
+- **Basket-Referenced**: An illustrative value is calculated from a weighted basket of currencies and gold
+- **Simulated Governance**: Demo accounts cast simulated basket "votes"
+- **Multi-Custodian Allocation (simulated)**: Illustrates how balances could be allocated across custodians; no funds are held at any bank
 
 ## How It Would Work
 
-### For Users
+### In the Demo
 
-**Bank Allocation**
-Choose how your funds are distributed:
-- 40% Paysera (Lithuania)
-- 30% Deutsche Bank (Germany)
-- 30% Santander (Spain)
+**Custodian Allocation (illustrative)**
+Choose how demo balances are allocated:
+- 40% Custodian A
+- 30% Custodian B
+- 30% Custodian C
 
-**Democratic Control**
-Monthly votes determine the basket composition. Your voting power equals your GCU holdings.
-
-**Deposit Insurance**
-Each bank portion is protected separately:
-- EU banks: Up to €100,000 per bank
-- US banks: Up to $250,000 per bank
+**Simulated Governance**
+Demo basket polls are weighted by simulated demo GCU balances. Votes have no monetary effect.
 
 ### Current Basket Composition (Demo)
 
@@ -56,32 +58,14 @@ Built on the FinAegis platform:
 | Basket Management | View and understand basket composition |
 | Bank Allocation | See how multi-bank distribution works |
 | Voting System | Participate in demo governance polls |
-| Currency Exchange | Convert between GCU and other assets |
-| Balance Tracking | See how GCU value tracks the basket |
+| Simulated Conversion | Convert demo balances between GCU and other demo assets |
+| Balance Tracking | See how the illustrative GCU value tracks the basket |
 
 ### What's Simulated
 
 - Bank connections (mock implementations)
-- Deposit insurance verification
 - Real-time basket rebalancing
 - Actual fund movements
-
-## Use Cases
-
-### High-Inflation Protection
-
-For users in countries with unstable currencies, GCU demonstrates how:
-- Savings could be protected through diversification
-- Access remains instant and global
-- No black market needed
-- Existing bank relationships maintained
-
-### Business Treasury
-
-For companies with multi-currency exposure:
-- Reduced FX risk through basket stability
-- Simplified treasury operations
-- Automated rebalancing
 
 ## Getting Started
 
@@ -119,4 +103,4 @@ Key GCU components:
 
 ---
 
-*GCU is a conceptual demonstration. This platform shows how such a system could be built using modern banking architecture patterns.*
+*GCU is a software demonstration built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value.*

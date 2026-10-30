@@ -2,14 +2,16 @@
 
 ## Overview
 
-Zelta is a payment protocol abstraction layer that lets partners accept both crypto (USDC on-chain via x402) and fiat (multi-rail via MPP) payments through a single SDK. Partners integrate once and gain access to all supported payment rails without managing protocol-level complexity.
+The Zelta SDK is a payment-protocol client: it handles HTTP 402 negotiation for x402 (on-chain USDC) and MPP rails through a single SDK. Settlement design is under discussion; see [VERTEXSMS_X402_INTEGRATION §6](partners/VERTEXSMS_X402_INTEGRATION.md#6-money-flow). Partners integrate once and gain access to all supported payment rails without managing protocol-level complexity.
 
 What partners get:
 
 - **Transparent 402 payment negotiation** -- the SDK handles payment challenges automatically
 - **Multi-protocol support** -- x402 (on-chain USDC) and MPP (Stripe, Tempo, Lightning, Card) in one client
-- **Webhook-driven settlement** -- real-time notifications for payment lifecycle events
+- **Webhook notifications** -- real-time notifications for payment lifecycle events
 - **Sandbox environment** -- full test environment with no real value at risk
+
+Integration adapters for third-party APIs; no partnership or endorsement implied.
 
 ## Prerequisites
 
@@ -148,7 +150,7 @@ Use `hash_equals()` for timing-safe comparison to prevent timing attacks.
 
 | Event | Description |
 |-------|-------------|
-| `payment.completed` | Payment successfully processed and settled |
+| `payment.completed` | Payment reported as completed by the underlying rail |
 | `payment.failed` | Payment failed (insufficient funds, network error, etc.) |
 | `payment.refunded` | Payment refunded to the payer |
 | `subscription.created` | Recurring payment subscription started |

@@ -45,6 +45,8 @@
 
 ## Release History
 
+*Named third-party providers below: integration adapters for third-party APIs; no partnership or endorsement implied.*
+
 ### v1.x -- Foundational Architecture
 - Multi-asset ledger core, custodian abstraction layer
 - Event sourcing with CQRS and saga pattern
@@ -81,7 +83,7 @@
 - Passkey auth, P2P transfer helpers, TrustCert export, security hardening
 
 ### v2.8.0 -- AI & RegTech Maturity
-- AI query endpoints, RegTech adapters, MiFID II/MiCA/Travel Rule services
+- AI query endpoints, RegTech adapters, reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements
 
 ### v2.9.0 -- BaaS & Production Hardening
 - BaaS implementation, SDK generation, production hardening
@@ -98,7 +100,7 @@
 - Swagger annotations, 7 feature pages, 15 Filament admin resources
 - 4 user-facing views, developer portal update
 
-### v3.2.0 -- Production Readiness & Plugin Architecture
+### v3.2.0 -- Plugin Architecture
 - Module manifests, enable/disable, modular routes
 - Module admin API/UI, k6 load tests, query performance middleware
 
@@ -110,8 +112,8 @@
 - API versioning, tier-aware rate limiting, SDK generation
 - OpenAPI annotations (143+ endpoints)
 
-### v3.5.0 -- Compliance Certification
-- SOC 2 Type II, PCI DSS readiness, multi-region deployment
+### v3.5.0 -- Compliance Readiness Tooling
+- SOC 2 / PCI DSS readiness tooling (no certification is held), multi-region deployment
 - GDPR enhanced (ROPA, DPIA, breach notification, consent v2, retention)
 
 ### v4.0.0 -- Architecture Evolution
@@ -159,7 +161,7 @@
 - Access/refresh token pairs with rotation via Sanctum abilities
 - `POST /api/auth/refresh` on public route, PHPStan fix, OpenAPI update
 
-### v5.1.5 -- Dependency Cleanup & Production Readiness
+### v5.1.5 -- Dependency Cleanup
 - Upgrade l5-swagger 9 to 10 (swagger-php 5 to 6, modern architecture)
 - Fix PSR-4 autoloading for plugin directories
 - Production environment template (`.env.production.example`)
@@ -175,9 +177,9 @@
 - AI agent payments, spending limits
 - GraphQL/REST APIs, MCP tool
 
-### v5.4.0 -- Ondato KYC, Sanctions Screening & Card Issuing
-- Ondato identity verification with TrustCert linkage
-- Chainalysis sanctions adapter, Marqeta card issuing adapter
+### v5.4.0 -- KYC, Sanctions-Screening & Card-Issuing Adapters
+- Identity-verification integration adapter (e.g. Ondato API) with TrustCert linkage
+- Sanctions-screening adapter (e.g. Chainalysis API), card-issuing integration adapter (e.g. Marqeta API)
 - Firebase FCM v1 migration, X402/mobile test hardening, CVE patches
 
 ### v5.4.1 -- Platform Hardening (Current)

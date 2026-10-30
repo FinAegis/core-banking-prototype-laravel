@@ -318,7 +318,7 @@ php artisan migrate --path=database/migrations/2025_09_23_135028_create_security
 
 ## Conclusion
 
-Phase 4 establishes a robust security foundation for the Agent Protocol implementation. The transaction security infrastructure provides military-grade encryption, comprehensive verification, and intelligent fraud detection. The remaining compliance and advanced authentication components will complete the security framework, preparing the system for Phase 5's API implementation.
+Phase 4 establishes a robust security foundation for the Agent Protocol implementation. The transaction security infrastructure provides strong encryption, comprehensive verification, and fraud detection. The remaining compliance and advanced authentication components will complete the security framework, preparing the system for Phase 5's API implementation.
 
 ## References
 - [AP2 Specification](https://github.com/google-agentic-commerce/AP2/blob/main/docs/specification.md)

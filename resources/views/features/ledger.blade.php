@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Double-Entry Ledger Engine',
-        'description' => 'Production-grade accounting with PHP-native and TigerBeetle drivers. Chart of accounts, journal entries, trial balance, GL auto-posting, and reconciliation.',
+        'description' => 'Double-entry accounting with PHP-native and TigerBeetle drivers. Chart of accounts, journal entries, trial balance, GL auto-posting, and reconciliation.',
         'keywords' => 'double-entry ledger, accounting engine, chart of accounts, journal entries, trial balance, TigerBeetle, GL posting, reconciliation, financial accounting, ledger software',
     ])
 
@@ -42,7 +42,7 @@
                 </div>
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Double-Entry Ledger</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    The accounting foundation for financial platforms. Production-grade double-entry engine with bcmath precision, 21-account chart of accounts, TigerBeetle driver for extreme throughput, and automatic GL posting from domain events.
+                    The accounting foundation for financial platforms. Double-entry engine with bcmath precision, 21-account chart of accounts, TigerBeetle driver for extreme throughput, and automatic GL posting from domain events.
                 </p>
                 <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('register') }}" class="bg-white text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">

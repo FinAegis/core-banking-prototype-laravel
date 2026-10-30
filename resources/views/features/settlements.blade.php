@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Instant Settlements',
-        'description' => 'Experience sub-second transaction processing with our advanced settlement engine. No more waiting days for transfers.',
+        'description' => 'Settlement engine with sub-second ledger processing (reference implementation).',
         'keywords' => 'instant settlements, real-time transactions, fast transfers, payment processing, ' . config('brand.name', 'Zelta'),
     ])
 
@@ -72,7 +72,7 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                 <div>
-                    <h3 class="text-2xl font-bold mb-6">Traditional Banking vs {{ config('brand.name', 'Zelta') }}</h3>
+                    <h3 class="text-2xl font-bold mb-6">Traditional Rails vs {{ config('brand.name', 'Zelta') }} Ledger</h3>
                     <div class="space-y-6">
                         <div>
                             <div class="flex justify-between mb-2">
@@ -208,8 +208,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">Guaranteed Finality</h3>
-                    <p class="text-slate-500">Once confirmed, transactions are irreversible and immediately final.</p>
+                    <h3 class="text-xl font-bold mb-3">Ledger Finality</h3>
+                    <p class="text-slate-500">Once confirmed, ledger entries are immutable.</p>
                 </div>
                 
                 <div class="text-center">
@@ -219,7 +219,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3">Global Reach</h3>
-                    <p class="text-slate-500">Send money anywhere in the world at the same lightning speed.</p>
+                    <p class="text-slate-500">Model cross-border transfers in the same settlement engine.</p>
                 </div>
                 
                 <div class="text-center">
@@ -300,7 +300,7 @@
                 </div>
                 <div class="bg-gray-50 rounded-xl p-6">
                     <h4 class="font-bold text-lg mb-3">Payroll</h4>
-                    <p class="text-slate-500">Pay employees instantly, any day of the week.</p>
+                    <p class="text-slate-500">Model instant payroll runs.</p>
                 </div>
                 <div class="bg-gray-50 rounded-xl p-6">
                     <h4 class="font-bold text-lg mb-3">Trading</h4>
@@ -308,7 +308,7 @@
                 </div>
                 <div class="bg-gray-50 rounded-xl p-6">
                     <h4 class="font-bold text-lg mb-3">Remittances</h4>
-                    <p class="text-slate-500">Send money home instantly at low cost.</p>
+                    <p class="text-slate-500">Model remittance flows.</p>
                 </div>
             </div>
         </div>
@@ -320,7 +320,7 @@
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Experience Instant Settlements</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                Join the future of banking where waiting is a thing of the past
+                Explore the settlement engine in the sandbox.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">

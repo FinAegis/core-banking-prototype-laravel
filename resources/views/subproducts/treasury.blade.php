@@ -1,15 +1,14 @@
 @extends('layouts.public')
 
-@section('title', config('brand.name', 'Zelta') . ' Treasury - Enterprise Cash Management')
+@section('title', config('brand.name', 'Zelta') . ' Treasury - Treasury Module Demo')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => config('brand.name', 'Zelta') . ' Treasury - Enterprise Cash Management',
-        'description' => config('brand.name', 'Zelta') . ' Treasury - Multi-bank cash management, FX optimization, and yield strategies for enterprises. Maximize returns while minimizing risk.',
-        'keywords' => config('brand.name', 'Zelta') . ' Treasury, cash management, FX optimization, corporate treasury, yield optimization',
+        'title' => config('brand.name', 'Zelta') . ' Treasury - Treasury Module Demo',
+        'description' => config('brand.name', 'Zelta') . ' Treasury - Multi-bank cash-management and FX modules for enterprises (sandbox demo).',
+        'keywords' => config('brand.name', 'Zelta') . ' Treasury, cash management, FX optimization, corporate treasury',
     ])
 
-    <x-schema type="service" :data="['name' => 'Treasury', 'description' => 'Enterprise cash management', 'category' => 'Financial Services']" />
     <x-schema type="breadcrumb" :data="[['name' => 'Home', 'url' => url('/')], ['name' => 'Treasury', 'url' => url('/subproducts/treasury')]]" />
 @endsection
 
@@ -22,13 +21,13 @@
                 <div class="text-center">
                     <div class="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm mb-6">
                         <span class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
-                        <span>Available in Sandbox</span>
+                        <span>Sandbox Demo</span>
                     </div>
                     <h1 class="text-5xl md:text-6xl font-bold mb-6">
                         {{ config('brand.name', 'Zelta') }} Treasury
                     </h1>
                     <p class="text-xl md:text-2xl text-slate-400 max-w-3xl mx-auto mb-8">
-                        Enterprise-grade treasury management across multiple banks and currencies
+                        Treasury module demo: cash management across multiple banks and currencies (sandbox, test data only)
                     </p>
                 </div>
             </div>
@@ -45,9 +44,9 @@
         <section class="py-20 bg-white">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-16">
-                    <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Optimize Cash, Minimize Risk</h2>
+                    <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Treasury Module Features</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        Intelligent treasury management that works across all your banking relationships
+                        Treasury workflows across multiple bank connectors
                     </p>
                 </div>
 
@@ -93,13 +92,13 @@
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Best rate execution
+                                Rate comparison
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Hedging strategies
+                                Hedging strategy modelling
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -128,7 +127,7 @@
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Yield optimization
+                                Cash-position reporting
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -142,14 +141,14 @@
             </div>
         </section>
 
-        <!-- Cross-Chain Yield Callout -->
+        <!-- Multi-Chain Portfolio Callout -->
         <section class="py-12 bg-white">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="bg-gradient-to-r from-orange-50 to-teal-50 rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between">
                     <div>
-                        <h3 class="text-2xl font-bold text-slate-900 mb-2">Cross-Chain Yield & Multi-Chain Portfolio</h3>
+                        <h3 class="text-2xl font-bold text-slate-900 mb-2">Multi-Chain Portfolio</h3>
                         <p class="text-slate-500 max-w-xl">
-                            Optimize treasury yields across multiple blockchains. Access DeFi lending, staking, and yield farming with automated cross-chain portfolio rebalancing.
+                            Track treasury positions across multiple blockchains with DeFi protocol adapters.
                         </p>
                     </div>
                     <a href="{{ route('features.show', 'crosschain-defi') }}" class="mt-4 md:mt-0 inline-flex items-center px-6 py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-colors flex-shrink-0">
@@ -166,16 +165,16 @@
         <section class="bg-fa-navy relative overflow-hidden">
             <div class="absolute inset-0 bg-dot-pattern"></div>
             <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
-                <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Transform Your Treasury Operations</h2>
+                <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Explore the Treasury Module</h2>
                 <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                    Explore multi-bank cash management, yield optimization, and FX strategies in the sandbox
+                    Explore multi-bank cash management and FX modules in the sandbox
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('dashboard') }}" class="btn-primary px-8 py-4 text-lg">
                         Explore Treasury
                     </a>
                     <a href="{{ route('gcu') }}" class="btn-outline px-8 py-4 text-lg">
-                        Global Currency Unit
+                        GCU demo
                     </a>
                 </div>
             </div>

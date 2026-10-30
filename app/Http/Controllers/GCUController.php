@@ -9,17 +9,17 @@ use Log;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(
-    name: 'GCU Token',
-    description: 'GCU token composition and information'
+    name: 'GCU Demo',
+    description: 'GCU demo (software demonstration) composition and information'
 )]
 class GCUController extends Controller
 {
         #[OA\Get(
             path: '/gcu',
             operationId: 'gCUTokenIndex',
-            tags: ['GCU Token'],
+            tags: ['GCU Demo'],
             summary: 'GCU dashboard',
-            description: 'Returns the GCU token information dashboard'
+            description: 'Returns the GCU demo information page'
         )]
     #[OA\Response(
         response: 200,
@@ -40,9 +40,9 @@ class GCUController extends Controller
         #[OA\Get(
             path: '/gcu/composition',
             operationId: 'gCUTokenFetchCompositionData',
-            tags: ['GCU Token'],
+            tags: ['GCU Demo'],
             summary: 'Get GCU composition data',
-            description: 'Returns the current GCU token composition data'
+            description: 'Returns the current GCU demo basket composition data'
         )]
     #[OA\Response(
         response: 200,

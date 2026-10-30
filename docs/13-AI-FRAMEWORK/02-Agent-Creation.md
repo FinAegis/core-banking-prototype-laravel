@@ -440,7 +440,7 @@ Handles general inquiries and support:
 - FAQ responses
 
 ### Compliance Agent
-Ensures regulatory compliance:
+Supports operators' compliance processes:
 - KYC verification
 - AML screening
 - Transaction monitoring
@@ -460,8 +460,8 @@ Manages trading operations:
 - Portfolio optimization
 - Strategy recommendations
 
-### Investment Advisor Agent
-Provides investment guidance:
+### Portfolio Analytics Agent (example template)
+Provides portfolio analytics (not investment advice):
 - Portfolio analysis
 - Asset allocation
 - Risk profiling

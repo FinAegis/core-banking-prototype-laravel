@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Multi-Asset Support',
-        'description' => 'Hold and transact in multiple currencies and assets from a single account. Support for fiat, crypto, and commodities with seamless conversion.',
+        'description' => 'Multi-asset account module: model balances in fiat currencies, crypto-assets and commodities in one ledger account.',
         'keywords' => 'multi-asset, multiple currencies, crypto, fiat, commodities, ' . config('brand.name', 'Zelta'),
     ])
 
@@ -28,7 +28,7 @@
             <div class="text-center">
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Multi-Asset Support</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    One account for all your assets. Hold, transact, and convert between fiat currencies, cryptocurrencies, and commodities seamlessly.
+                    Multi-asset account module: model balances in fiat currencies, crypto-assets and commodities in one ledger account (sandbox demo, test data only).
                 </p>
             </div>
         </div>
@@ -39,9 +39,9 @@
     <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">All Your Assets in One Place</h2>
+                <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Multiple Asset Types, One Ledger</h2>
                 <p class="text-lg text-slate-500 max-w-3xl mx-auto">
-                    {{ config('brand.name', 'Zelta') }}'s multi-asset platform lets you manage diverse portfolios with the same ease as traditional banking.
+                    {{ config('brand.name', 'Zelta') }}'s multi-asset module models diverse asset balances in one ledger account.
                 </p>
             </div>
 
@@ -122,7 +122,7 @@
                     </div>
                     <h3 class="text-2xl font-bold mb-4">Commodities</h3>
                     <p class="text-slate-500 mb-6">
-                        Precious metals and other commodities for portfolio diversification.
+                        Precious metals and other commodities.
                     </p>
                     <div class="space-y-2">
                         <div class="flex items-center">
@@ -162,7 +162,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
                             <div>
-                                <h4 class="font-semibold mb-1">Instant Cross-Asset Transfers</h4>
+                                <h4 class="font-semibold mb-1">Cross-Asset Transfers</h4>
                                 <p class="text-slate-500">Convert between any supported assets with real-time exchange rates and automatic execution.</p>
                             </div>
                         </li>
@@ -171,8 +171,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
                             <div>
-                                <h4 class="font-semibold mb-1">Competitive Exchange Rates</h4>
-                                <p class="text-slate-500">Low spreads with transparent pricing from multiple liquidity providers.</p>
+                                <h4 class="font-semibold mb-1">Rate Provider Integration</h4>
+                                <p class="text-slate-500">Configurable exchange-rate providers with transparent pricing.</p>
                             </div>
                         </li>
                         <li class="flex items-start">
@@ -180,8 +180,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
                             <div>
-                                <h4 class="font-semibold mb-1">No Hidden Fees</h4>
-                                <p class="text-slate-500">Clear fee structure with all costs shown upfront before conversion.</p>
+                                <h4 class="font-semibold mb-1">Fee Display</h4>
+                                <p class="text-slate-500">Fee structure shown before conversion.</p>
                             </div>
                         </li>
                     </ul>
@@ -261,8 +261,7 @@
                         <h3 class="text-xl font-bold mb-4">Security & Compliance</h3>
                         <ul class="space-y-3 text-slate-500">
                             <li>• Asset-specific validation rules</li>
-                            <li>• Regulatory compliance for each asset class</li>
-                            <li>• Segregated storage for different asset types</li>
+                            <li>• Separate storage for different asset types</li>
                             <li>• Complete audit trails for all operations</li>
                         </ul>
                     </div>
@@ -313,9 +312,9 @@
     <section class="bg-fa-navy relative overflow-hidden">
         <div class="absolute inset-0 bg-dot-pattern"></div>
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Manage All Your Assets in One Place</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Explore the Multi-Asset Module</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                Experience the future of multi-asset banking with {{ config('brand.name', 'Zelta') }}
+                Explore the multi-asset module in the {{ config('brand.name', 'Zelta') }} sandbox
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">

@@ -709,7 +709,7 @@ class PasskeyController extends Controller
 
 | Factor | Tornado Cash | RAILGUN (FinAegis Choice) |
 |--------|--------------|---------------------------|
-| **Regulatory Status** | OFAC sanctioned | Compliant (Proof of Innocence) |
+| **Regulatory Status** | OFAC sanctioned | Not sanctioned; supports Proof of Innocence |
 | **Fund Tracing** | No audit capability | Encrypted audit vault |
 | **User Protection** | Anonymity only | Anonymity + Compliance |
 | **On-chain Footprint** | Mixer contract | UTXO-based shielded pool |
@@ -719,7 +719,7 @@ class PasskeyController extends Controller
 1. **Proof of Innocence**: Users can prove funds are NOT from sanctioned sources without revealing transaction history
 2. **Encrypted Audit Vault**: Transaction details encrypted with multi-sig (3-of-5) for lawful disclosure
 3. **Selective Disclosure**: Users choose what to reveal for compliance (KYC level, transaction count, etc.)
-4. **Compliant by Design**: Works with regulators, not against them
+4. **Compliance-aware design**: Built to support operators' compliance processes
 
 ```typescript
 // Privacy Transaction Flow
@@ -768,10 +768,11 @@ async function executePrivacyTransaction(
 }
 ```
 
-### 3.4 Card Issuance & Tokenization (Apple/Google Pay)
+### 3.4 Card Issuance & Tokenization (planned)
 
-> **Requirement**: Users must be able to tap-to-pay using stablecoins at regular retail shops.
-> **Implementation**: Just-In-Time (JIT) Funding via Virtual Card with Push Provisioning.
+> **Status**: Virtual cards and adding cards to mobile wallets are planned, subject to card-issuing partner approval. This section is a design for a planned feature, not a description of a current one.
+> **Requirement (planned)**: Users would be able to pay at retail shops with a virtual card funded from stablecoins.
+> **Implementation (planned)**: Just-In-Time (JIT) Funding via Virtual Card with Push Provisioning.
 
 #### 3.4.1 Architecture Overview
 
@@ -1443,6 +1444,8 @@ NetInfo.addEventListener(state => {
 
 #### 5.1.0 Card Issuance APIs (NEW - v2.5.0)
 
+> **Status**: Card issuance and mobile-wallet provisioning are planned, subject to card-issuing partner approval. These endpoints are integration scaffolding for a planned feature.
+
 ```yaml
 # Provision Virtual Card
 POST /api/v1/cards/provision
@@ -1863,7 +1866,7 @@ app/Domain/
 │   │   ├── ProvisioningData.php
 │   │   └── AuthorizationRequest.php
 │   ├── Services/
-│   │   ├── CardProvisioningService.php     # Apple/Google Pay push provisioning
+│   │   ├── CardProvisioningService.php     # Mobile-wallet push provisioning (planned)
 │   │   └── JitFundingService.php           # Real-time JIT authorization (<2s)
 │   ├── Adapters/
 │   │   └── DemoCardIssuerAdapter.php       # Demo implementation

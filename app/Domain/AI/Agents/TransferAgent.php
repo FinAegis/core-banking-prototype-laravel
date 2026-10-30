@@ -67,7 +67,7 @@ class TransferAgent extends BaseAgent
                     . "I can help you transfer money. Please provide:\n\n"
                     . "1. **Recipient**: Name or account number\n"
                     . "2. **Amount**: How much to send\n"
-                    . "3. **Currency**: USD, EUR, GBP, or GCU\n\n"
+                    . "3. **Currency**: USD, EUR, or GBP\n\n"
                     . "Example: \"Send \$100 USD to John Smith\"\n\n"
                     . 'Transfer fees: 0.5% (min $0.50, max $25.00)';
             } else {

@@ -24,11 +24,11 @@ class YieldOptimizationController extends Controller
     }
 
     /**
-     * Optimize portfolio for yield.
+     * Portfolio allocation analysis.
      */
     #[OA\Post(
         path: '/api/v2/treasury/optimize',
-        summary: 'Optimize portfolio for yield',
+        summary: 'Portfolio allocation analysis',
         tags: ['Treasury'],
         security: [['bearerAuth' => []]],
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['account_id', 'total_amount', 'target_yield', 'risk_level'], properties: [

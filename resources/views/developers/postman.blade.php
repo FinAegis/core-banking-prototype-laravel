@@ -274,7 +274,7 @@
                             </svg>
                         </div>
                         <h3 class="text-lg font-semibold mb-2">CrossChain</h3>
-                        <p class="text-gray-600 text-sm mb-3">Bridge protocols (Wormhole, LayerZero, Axelar), cross-chain swaps, and multi-chain portfolio tracking</p>
+                        <p class="text-gray-600 text-sm mb-3">Bridge protocols (Wormhole, LayerZero, Axelar), cross-chain swaps, and multi-chain portfolio tracking. Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
                         <span class="text-sm text-cyan-600 font-medium">18 requests</span>
                     </div>
 
@@ -285,7 +285,7 @@
                             </svg>
                         </div>
                         <h3 class="text-lg font-semibold mb-2">DeFi</h3>
-                        <p class="text-gray-600 text-sm mb-3">DEX aggregation (Uniswap, Curve), lending (Aave), staking (Lido), yield optimization, and flash loans</p>
+                        <p class="text-gray-600 text-sm mb-3">DEX aggregation (Uniswap, Curve), lending (Aave), staking (Lido), and flash loans</p>
                         <span class="text-sm text-emerald-600 font-medium">22 requests</span>
                     </div>
 
@@ -296,7 +296,7 @@
                             </svg>
                         </div>
                         <h3 class="text-lg font-semibold mb-2">RegTech</h3>
-                        <p class="text-gray-600 text-sm mb-3">MiFID II reporting, MiCA compliance, Travel Rule verification, and jurisdiction adapters</p>
+                        <p class="text-gray-600 text-sm mb-3">Reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements, with jurisdiction adapters</p>
                         <span class="text-sm text-rose-600 font-medium">14 requests</span>
                     </div>
 

@@ -34,7 +34,7 @@ class SeoMetaTagsTest extends TestCase
                 'hasOgTags'      => true,
             ],
             '/gcu' => [
-                'title'          => 'Global Currency Unit (GCU) | ' . $brand,
+                'title'          => 'Global Currency Unit (GCU) Demo | ' . $brand,
                 'hasDescription' => true,
                 'hasKeywords'    => true,
                 'hasOgTags'      => true,
@@ -46,7 +46,7 @@ class SeoMetaTagsTest extends TestCase
                 'hasOgTags'      => true,
             ],
             '/security' => [
-                'title'          => 'Security - Bank-Grade Protection | ' . $brand,
+                'title'          => 'Security Architecture | ' . $brand,
                 'hasDescription' => true,
                 'hasKeywords'    => true,
                 'hasOgTags'      => true,

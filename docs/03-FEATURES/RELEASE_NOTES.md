@@ -5,6 +5,10 @@ All notable changes to the FinAegis Core Banking Platform will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
+
+*Named third-party providers below: Integration adapters for third-party APIs; no partnership or endorsement implied.*
+
 ## [8.0.0] - 2024-09-07 - Phase 8 Advanced Trading & DeFi Features
 
 ### Added
@@ -18,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Liquidity provider tokens for tracking shares
   - Dynamic fee distribution to LPs
   - Multi-asset pool support
-- **Stablecoin Framework**: Collateralized stablecoin issuance
+- **Stablecoin Framework**: Collateralized stablecoin minting/burning module
   - Multi-collateral support (ETH, BTC, other assets)
   - Health factor monitoring with real-time valuation
   - Automated liquidation at configurable thresholds
@@ -28,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Polygon Layer 2, Binance Smart Chain
   - HD Wallet Generation (BIP44-compliant)
   - Secure key storage with encryption
-- **P2P Lending Platform**: Peer-to-peer lending marketplace
+- **P2P Lending Module**: Peer-to-peer lending marketplace workflows
   - Credit scoring using multiple data sources
   - Risk assessment and categorization
   - Automated repayment processing
@@ -45,16 +49,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Technical Details
 - Comprehensive test coverage for all Phase 8 features
-- Production-ready exchange and DeFi implementations
 - Full API documentation with OpenAPI specifications
 
-## [7.0.0] - 2024-09-07 - Production Ready Platform with GCU
+## [7.0.0] - 2024-09-07 - GCU Demo Governance and Trading Modules
 
 ### Added
-- **GCU Voting System**: Complete democratic voting implementation
+- **GCU Voting System**: Simulated voting implementation for the GCU demo
   - Monthly voting templates for currency basket composition
   - Vue.js interactive voting dashboard
-  - Asset-weighted voting (1 GCU = 1 vote)
+  - Asset-weighted voting (simulated demo votes)
   - Automated basket rebalancing based on vote results
 - **Enhanced Security Features**: 
   - Two-factor authentication (2FA) implementation
@@ -62,7 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Complete password reset flow
   - Email verification system
 - **GCU Trading Operations**:
-  - Buy/sell functionality for Global Currency Unit
+  - Simulated conversions for the GCU demo
   - Order management system
   - Trading history and transaction tracking
   - Real-time price updates
@@ -73,7 +76,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Browser Testing**: Critical path test coverage
 - **Navigation Improvements**: 
   - Menu reorganization for better UX
-  - Floating investment CTA elements
   - Enhanced mobile responsiveness
 
 ### Changed
@@ -145,13 +147,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Testing**: Fixed UserVotingControllerTest with GCU balance requirements
 - **Documentation**: Updated FEATURES.md to include comprehensive authentication details
 
-## [6.0.0] - 2024-06-21 - GCU Platform Launch
+## [6.0.0] - 2024-06-21 - GCU Demo UI
 
 ### Added
-- **GCU User Interface**: Complete user experience for Global Currency Unit
-  - GCU wallet dashboard with real-time balance display
-  - Interactive bank allocation interface with visual sliders
-  - Democratic voting dashboard for monthly basket composition
+- **GCU User Interface**: Demo user experience for the Global Currency Unit (GCU) reference implementation
+  - GCU wallet dashboard with simulated balance display
+  - Interactive bank allocation interface with visual sliders (demo)
+  - Simulated voting dashboard for monthly basket composition
   - Enhanced transaction history with multi-asset support
 - **Public API v2**: External developer API with webhook support
   - PublicApiController with API info and status endpoints
@@ -184,19 +186,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Transaction Projections**: Dedicated projection system for optimized transaction queries
 - **Daily Reconciliation**: Automated balance reconciliation across all custodians
 - **Bank Health Monitoring**: Real-time monitoring with automated alerting
-- **GDPR Compliance**: Full GDPR controller with data export and deletion
+- **GDPR Tooling**: Full GDPR controller with data export and deletion
 - **KYC Management**: Complete KYC workflow with document management
 
 ### Changed
 - **Transfer Performance**: Optimized from 200ms to 50ms average processing time
 - **Error Handling**: Enhanced with resilience patterns across all bank operations
 
-## [5.1.0] - 2024-06-20 - Real Bank Integration
+## [5.1.0] - 2024-06-20 - Bank Connector Adapters
 
 ### Added
-- **Bank Connectors**: Production-ready connectors for Paysera, Deutsche Bank, and Santander
-- **Multi-Bank Transfers**: Intelligent routing across bank networks
-- **Settlement Processing**: Automated inter-bank settlement management
+- **Bank Connectors**: Connector adapters for the Paysera, Deutsche Bank and Santander APIs (integration adapters for third-party APIs; no partnership or endorsement implied)
+- **Multi-Bank Transfers**: Routing logic across bank connector adapters
+- **Settlement Processing**: Inter-bank settlement workflow modules
 - **Custodian Webhooks**: Real-time webhook processing for bank events
 - **Balance Synchronization**: Automated synchronization with external custodians
 
@@ -205,16 +207,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **KYC/AML System**: Complete Know Your Customer implementation
 - **Regulatory Reporting**: CTR and SAR report generation
-- **GDPR Compliance**: Data protection and privacy management
+- **GDPR Tooling**: Data protection and privacy management
 - **Audit Logging**: Comprehensive audit trail for all operations
 - **Compliance Monitoring**: Real-time suspicious activity detection
 
 ## [4.2.0] - 2024-06-18 - Enhanced Governance & GCU
 
 ### Added
-- **GCU Implementation**: Global Currency Unit basket with democratic governance
+- **GCU demo**: reference implementation of a basket-referenced unit with simulated governance
 - **User Voting Interface**: Intuitive voting system for basket composition
-- **Bank Preferences**: User-specific bank allocation preferences
+- **Bank Preferences**: User-specific bank allocation preferences (demo)
 - **Weighted Voting**: Asset-weighted voting power calculations
 - **Monthly Polls**: Automated monthly voting poll creation
 
@@ -271,7 +273,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **Database Schema Enhancement**: Added `debit` and `credit` fields to `turnovers` table for proper accounting
 - **Comprehensive Error Logging**: Implemented detailed error logging for transaction hash validation failures
-- **Advanced Account Validation**: Enhanced `AccountValidationActivity` with production-ready validation logic:
+- **Advanced Account Validation**: Enhanced `AccountValidationActivity` with fuller validation logic:
   - KYC document verification with field validation and email format checking
   - Address verification with domain validation and temporary email detection  
   - Identity verification with name validation, email uniqueness checks, and fraud detection
@@ -295,7 +297,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - **Schema Mismatch**: Resolved test failures in `TurnoverCacheTest` by implementing proper debit/credit schema
 - **UUID Type Casting**: Fixed type casting issues in cache service tests
-- **Placeholder Implementations**: Replaced all placeholder code with production-ready implementations
+- **Placeholder Implementations**: Replaced all placeholder code with full implementations
 
 ### Technical Details
 - **Migration**: `2025_06_14_120541_add_debit_credit_fields_to_turnovers_table.php`

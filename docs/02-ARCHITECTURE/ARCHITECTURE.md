@@ -2,9 +2,9 @@
 
 **Version:** 7.9.0
 **Last Updated:** April 2026
-**Status:** Production-Grade Platform
+**Status:** Open-source reference platform
 
-This document provides a comprehensive overview of the FinAegis Platform architecture, design patterns, and implementation details. The platform delivers the Global Currency Unit (GCU) as its flagship product alongside modular sub-products: Exchange, Lending, Stablecoins, and Treasury.
+This document provides a comprehensive overview of the FinAegis Platform architecture, design patterns, and implementation details. The platform includes a GCU demo (a reference implementation of a basket-referenced unit) alongside modular sub-products: Exchange, Lending, Stablecoins, and Treasury.
 
 ## Table of Contents
 
@@ -1051,8 +1051,8 @@ The FinAegis platform represents a modern, scalable approach to core banking sys
 
 ### Overview
 FinAegis serves as a unified platform supporting multiple financial products:
-- **Global Currency Unit (GCU)**: User-controlled currency with democratic governance
-- **Litas Platform**: Crypto-fiat exchange and P2P lending marketplace
+- **GCU demo**: a reference implementation of a basket-referenced unit built with FinAegis (balances, conversions and basket votes are simulated)
+- **Litas (design concept, not offered)**: Crypto-fiat exchange and P2P lending marketplace
 
 ### Shared Components
 
@@ -1069,7 +1069,7 @@ interface ExchangeEngine {
 #### Multi-Asset Ledger
 - Supports fiat currencies (USD, EUR, GBP)
 - Supports cryptocurrencies (BTC, ETH)
-- Supports tokens (GCU, Stable LITAS, Crypto LITAS)
+- Supports token asset types (e.g. the GCU demo unit)
 - Unified balance management across all asset types
 
 #### Stablecoin Framework
@@ -1083,13 +1083,16 @@ interface StablecoinManager {
 
 ### Product-Specific Domains
 
-#### GCU-Specific
+#### GCU demo-specific
+
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
+
 - Currency basket management
-- Bank allocation (multi-bank distribution)
-- Monthly voting on composition
+- Bank allocation modelling (simulated)
+- Basket composition votes (simulated)
 - Basket rebalancing algorithms
 
-#### Litas-Specific
+#### Litas-specific (design concept, not offered)
 - Crypto wallet infrastructure
 - Blockchain integration layer
 - P2P lending marketplace
@@ -1120,11 +1123,11 @@ return [
 #### Blockchain Layer
 - **Bitcoin Integration**: Full node or API-based
 - **Ethereum Integration**: Web3 provider connection
-- **Smart Contracts**: Token contracts for Stable/Crypto LITAS
+- **Smart Contracts**: Token contract integration points (design concept)
 - **Transaction Monitoring**: Block confirmation tracking
 
 #### External Services
-- **Crypto Exchanges**: Binance, Kraken API integration
+- **Crypto Exchanges**: Exchange API adapters (e.g. Binance, Kraken APIs) — integration adapters for third-party APIs; no partnership or endorsement implied
 - **Credit Scoring**: Third-party risk assessment
 - **KYC Providers**: Identity verification services
 - **Market Data**: Real-time price feeds
@@ -1137,10 +1140,8 @@ return [
 - **Cold Storage**: Offline key management
 - **HSM Integration**: Hardware security modules
 
-#### Compliance Extensions
-- **VASP Registration**: Virtual Asset Service Provider
-- **MiCA Compliance**: Markets in Crypto-Assets
-- **ECSP License**: European Crowdfunding Service Provider
+#### Regulatory status
+FinAegis is a software project and does not hold any banking, e-money, payment-institution, crypto-asset service provider or token-issuer licence or authorisation. Licensing and regulatory compliance are the responsibility of the operator of each deployment.
 
 ---
 
