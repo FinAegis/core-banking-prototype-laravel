@@ -2,7 +2,7 @@
 
 - **Status:** Approved (design shape) 2026-07-06 — implementation in phases.
 - **Partner:** FinCard Virtual Card BFF, operated by FinHub (`finhub.cloud`, a SEPA Cyber Technologies group product).
-- **Source artifacts:** `docs/partners/FinCard_BFF_Virtual_Card_API_Test_Tenant_Mock_postman_collection.json` (mock test-tenant collection); public docs at `https://docs.finhub.cloud/paas/fincard-virtual/`.
+- **Source artifacts:** FinCard BFF Postman collection (mock test-tenant collection; kept outside this repository); public docs at `https://docs.finhub.cloud/paas/fincard-virtual/`.
 - **Related:** `config/cardissuance.php` (issuer registry), `app/Domain/CardIssuance/` (existing domain), ADR-0005/0006 (Bridge), `docs/operations/bridge-ramp.md` (partner-ops precedent).
 
 ---
