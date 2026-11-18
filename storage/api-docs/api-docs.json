@@ -24,6 +24,27 @@
         }
     ],
     "paths": {
+        "/api/v1/webhooks/fincard": {
+            "post": {
+                "tags": [
+                    "FinCard Webhooks"
+                ],
+                "summary": "FinCard (FinHub) platform event webhook",
+                "description": "RSA-signature-verified (SHA256withRSA over the raw body, base64) against FinCard's platform public key. Accepts the X-FC-SIGNATURE or X-WSB-SIGNATURE header. Idempotent via processed_webhook_events.",
+                "operationId": "v1FinCardWebhook",
+                "responses": {
+                    "200": {
+                        "description": "Event accepted (or ignored as duplicate)"
+                    },
+                    "401": {
+                        "description": "Invalid signature"
+                    },
+                    "400": {
+                        "description": "Invalid payload"
+                    }
+                }
+            }
+        },
         "/api/v1/subscription/iap/verify": {
             "post": {
                 "tags": [
@@ -62342,6 +62363,10 @@
         {
             "name": "X402 Protocol",
             "description": "HTTP 402 Payment Protocol - native micropayments for APIs"
+        },
+        {
+            "name": "FinCard Webhooks",
+            "description": "FinCard Webhooks"
         },
         {
             "name": "Subscription",

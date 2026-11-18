@@ -383,6 +383,14 @@ Schedule::command('cards:purge-expired-deposits')
     ->appendOutputTo(storage_path('logs/cards-deposits-purge.log'))
     ->withoutOverlapping();
 
+// Reconcile cached FinCard account balances against FinCard (catches drift from
+// a missed wallet webhook). No-op unless CARD_ISSUER=fincard.
+Schedule::command('fincard:reconcile-balances')
+    ->hourly()
+    ->description('Reconcile FinCard account balance mirror against FinCard')
+    ->appendOutputTo(storage_path('logs/fincard-reconcile.log'))
+    ->withoutOverlapping();
+
 // Nightly database backup (spatie/laravel-backup, DB-only — for an
 // event-sourced platform the event store IS the ledger). Destination disk is
 // BACKUP_DISK (default `local`; production must point it at s3 — see

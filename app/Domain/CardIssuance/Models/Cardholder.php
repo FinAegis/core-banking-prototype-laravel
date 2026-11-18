@@ -20,6 +20,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $email
  * @property string|null $phone
  * @property string $kyc_status
+ * @property string|null $kyc_stage
+ * @property string|null $kyc_rejection_reason
  * @property string|null $issuer_cardholder_id
  * @property string|null $shipping_address_line1
  * @property string|null $shipping_address_line2
@@ -46,6 +48,8 @@ class Cardholder extends Model
         'email',
         'phone',
         'kyc_status',
+        'kyc_stage',
+        'kyc_rejection_reason',
         'issuer_cardholder_id',
         'shipping_address_line1',
         'shipping_address_line2',

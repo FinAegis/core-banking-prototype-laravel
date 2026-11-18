@@ -73,4 +73,24 @@ return [
     'ERR_CARDS_004' => ['http' => 409, 'description' => 'Deposit state conflict — already shipped or cancellation already in progress.'],
     'ERR_CARDS_005' => ['http' => 422, 'description' => 'Invalid return URL — not in the configured allow-list.'],
     'ERR_CARDS_006' => ['http' => 409, 'description' => 'Quote kind is not card_waitlist_deposit.'],
+
+    // ─── FinCard cardholder / KYC (Phase 2) ────────────────────────────────
+    // User-facing descriptions stay brand-neutral (no partner name) — the app
+    // branches on the code and can override the copy.
+    'ERR_CARDS_007' => ['http' => 403, 'description' => 'Identity verification is required before you can create a card.'],
+    'ERR_CARDS_008' => ['http' => 409, 'description' => 'Your identity verification is still under review.'],
+    'ERR_CARDS_009' => ['http' => 409, 'description' => 'A card profile already exists for your account.'],
+    'ERR_CARDS_010' => ['http' => 422, 'description' => 'Your country is not supported for card issuance.'],
+    'ERR_CARDS_011' => ['http' => 422, 'description' => 'Document upload failed or the document type is not accepted.'],
+    'ERR_CARDS_012' => ['http' => 502, 'description' => 'We could not verify your details right now. Please try again later.'],
+
+    // ─── FinCard funding (Phase 3) ─────────────────────────────────────────
+    'ERR_CARDS_013' => ['http' => 502, 'description' => 'Funding is temporarily unavailable. Please try again later.'],
+    'ERR_CARDS_014' => ['http' => 422, 'description' => 'That deposit coin is not supported.'],
+
+    // ─── FinCard card lifecycle (Phase 4) ──────────────────────────────────
+    'ERR_CARDS_015' => ['http' => 404, 'description' => 'Card not found.'],
+    'ERR_CARDS_016' => ['http' => 502, 'description' => 'The card operation could not be completed right now. Please try again later.'],
+    'ERR_CARDS_017' => ['http' => 422, 'description' => 'Insufficient balance for this operation.'],
+    'ERR_CARDS_018' => ['http' => 422, 'description' => 'No card product was specified and no default is configured.'],
 ];
