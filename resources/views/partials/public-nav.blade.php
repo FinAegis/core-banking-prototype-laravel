@@ -137,7 +137,9 @@
                 @endauth
                 @guest
                     <a href="{{ route('login') }}" class="nav-link">Sign in</a>
-                    <a href="{{ route('register') }}" class="btn-primary !py-2 !px-5 !text-sm !rounded-md">Get Started</a>
+                    @if (Route::has('register'))
+                        <a href="{{ route('register') }}" class="btn-primary !py-2 !px-5 !text-sm !rounded-md">Get Started</a>
+                    @endif
                 @endguest
             </div>
 
@@ -186,7 +188,9 @@
                 @endauth
                 @guest
                     <a href="{{ route('login') }}" class="mobile-nav-link">Sign in</a>
-                    <a href="{{ route('register') }}" class="block mx-3 text-center btn-primary !py-2.5 !text-sm !rounded-md">Get Started</a>
+                    @if (Route::has('register'))
+                        <a href="{{ route('register') }}" class="block mx-3 text-center btn-primary !py-2.5 !text-sm !rounded-md">Get Started</a>
+                    @endif
                 @endguest
             </div>
         </div>
