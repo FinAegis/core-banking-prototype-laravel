@@ -91,16 +91,13 @@ class AccountBalanceTool implements MCPToolInterface
                 'conversation_id' => $conversationId,
             ]);
 
-            // Get account from database
-            $account = Account::where('uuid', $accountUuid)->first();
+            // Only the account owner may read it (same rule as the REST and
+            // GraphQL account reads). Someone else's account answers like a
+            // missing one.
+            $account = Account::findOwnedBy((string) $accountUuid, Auth::user());
 
             if (! $account) {
                 return ToolExecutionResult::failure("Account not found: {$accountUuid}");
-            }
-
-            // Check authorization
-            if (! $this->canAccessAccount($account)) {
-                return ToolExecutionResult::failure('Unauthorized access to account');
             }
 
             // Get balances
@@ -200,33 +197,6 @@ class AccountBalanceTool implements MCPToolInterface
 
         // Additional authorization logic can be added here
         return true;
-    }
-
-    private function canAccessAccount($account): bool
-    {
-        // Check if current user owns the account or has permission
-        $user = Auth::user();
-
-        if (! $user) {
-            return false;
-        }
-
-        // Check ownership via user_uuid
-        if ($account->user_uuid === $user->uuid) {
-            return true;
-        }
-
-        // Check team membership if applicable
-        if ($account->team_id && method_exists($user, 'belongsToTeam') && $user->belongsToTeam($account->team)) {
-            return true;
-        }
-
-        // Check for admin permission
-        if (method_exists($user, 'hasRole') && $user->hasRole('admin')) {
-            return true;
-        }
-
-        return false;
     }
 
     private function calculateTotalValueInUsd(array $balances): float

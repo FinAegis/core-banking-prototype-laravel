@@ -458,7 +458,8 @@ it('warns (never blocks) in production about each MCP money tool that is on', fu
     /** @var array<string, array<string, mixed>> $tools */
     $tools = config('mcp.tools');
     $tools[substr($tool, strlen('mcp.tools.'))]['enabled'] = true;
-    config(['mcp.tools' => $tools]);
+    // MCP sms.send FAILs without the acknowledgement (tested in Ghsa385wAgentsMcpTest).
+    config(['mcp.tools' => $tools, 'mcp.sms_send_acknowledged' => true]);
     app()->detectEnvironment(fn () => 'production');
 
     [$exitCode, $checks] = opsVerifyEnvRun();
@@ -532,6 +533,7 @@ it('skips the switch checks outside production', function (): void {
 it('still exits 0 in production with every switch on', function (): void {
     opsVerifyEnvAllGoodConfig();
     config(array_fill_keys(array_keys(OPS_VERIFY_ENV_SWITCHES), true));
+    config(['mcp.sms_send_acknowledged' => true]);
     opsVerifyEnvMcpMoneyTools(true);
     app()->detectEnvironment(fn () => 'production');
 

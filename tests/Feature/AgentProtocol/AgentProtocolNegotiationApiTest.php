@@ -181,11 +181,10 @@ class AgentProtocolNegotiationApiTest extends TestCase
             ['target_did' => $this->agent2->did]
         );
 
-        $response->assertStatus(400)
-            ->assertJson([
-                'success' => false,
-                'error'   => 'Invalid initiator DID format',
-            ]);
+        // The path DID is the acting agent: anything but the authenticated
+        // agent's own DID (a malformed one included) is refused first.
+        $response->assertStatus(403)
+            ->assertJson(['code' => 'AGENT_DID_MISMATCH']);
     }
 
     public function test_negotiate_validates_target_did_format(): void
@@ -314,11 +313,10 @@ class AgentProtocolNegotiationApiTest extends TestCase
             "/api/agent-protocol/agents/invalid-did/protocol/agreements/{$this->agent2->did}"
         );
 
-        $response->assertStatus(400)
-            ->assertJson([
-                'success' => false,
-                'error'   => 'Invalid agent DID format',
-            ]);
+        // The path DID is the acting agent: anything but the authenticated
+        // agent's own DID (a malformed one included) is refused first.
+        $response->assertStatus(403)
+            ->assertJson(['code' => 'AGENT_DID_MISMATCH']);
     }
 
     public function test_get_agreement_validates_other_did_format(): void
@@ -436,11 +434,10 @@ class AgentProtocolNegotiationApiTest extends TestCase
             "/api/agent-protocol/agents/invalid-did/protocol/agreements/{$this->agent2->did}"
         );
 
-        $response->assertStatus(400)
-            ->assertJson([
-                'success' => false,
-                'error'   => 'Invalid agent DID format',
-            ]);
+        // The path DID is the acting agent: anything but the authenticated
+        // agent's own DID (a malformed one included) is refused first.
+        $response->assertStatus(403)
+            ->assertJson(['code' => 'AGENT_DID_MISMATCH']);
     }
 
     public function test_revoke_agreement_validates_other_did_format(): void
@@ -496,11 +493,10 @@ class AgentProtocolNegotiationApiTest extends TestCase
             "/api/agent-protocol/agents/invalid-did/protocol/agreements/{$this->agent2->did}/refresh"
         );
 
-        $response->assertStatus(400)
-            ->assertJson([
-                'success' => false,
-                'error'   => 'Invalid agent DID format',
-            ]);
+        // The path DID is the acting agent: anything but the authenticated
+        // agent's own DID (a malformed one included) is refused first.
+        $response->assertStatus(403)
+            ->assertJson(['code' => 'AGENT_DID_MISMATCH']);
     }
 
     public function test_refresh_agreement_validates_other_did_format(): void
@@ -575,11 +571,10 @@ class AgentProtocolNegotiationApiTest extends TestCase
             "/api/agent-protocol/agents/invalid-did/protocol/agreements/{$this->agent2->did}/check"
         );
 
-        $response->assertStatus(400)
-            ->assertJson([
-                'success' => false,
-                'error'   => 'Invalid agent DID format',
-            ]);
+        // The path DID is the acting agent: anything but the authenticated
+        // agent's own DID (a malformed one included) is refused first.
+        $response->assertStatus(403)
+            ->assertJson(['code' => 'AGENT_DID_MISMATCH']);
     }
 
     public function test_check_agreement_validates_other_did_format(): void

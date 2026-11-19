@@ -2,9 +2,10 @@ runtime: "remote"
 url: "https://mcp.zelta.app/mcp"
 description: |
   Zelta is a multi-rail payments and wallet platform. This MCP server exposes
-  14 tools (accounts, wallet, payments, transactions, exchange, on/offramp, SMS) gated
-  by OAuth 2.1, with per-token spending limits on payments, ramp sessions and
-  SMS sends, and idempotency on every write.
+  10 tools (account balances, wallet addresses and activity, payment status,
+  transaction history and spending analysis, exchange quotes, on/offramp
+  sessions, payment-route discovery) gated by OAuth 2.1, with per-token
+  spending limits on ramp sessions and idempotency on every write.
 homepage: "https://finaegis.org/features/mcp"
 docs: "https://github.com/FinAegis/core-banking-prototype-laravel/blob/main/packages/finaegis-mcp-stdio/README.md"
 repository: "https://github.com/FinAegis/core-banking-prototype-laravel"

@@ -47,8 +47,13 @@ return [
     |
     | account.create, payment.transfer and exchange.trade move internal ledger
     | balances and default to off when APP_ENV=production (or unset), on
-    | elsewhere; an explicit MCP_TOOL_* value always wins. Every other tool
-    | keeps its default.
+    | elsewhere; an explicit MCP_TOOL_* value always wins (env templates from
+    | v7.16.0 and earlier set them to true explicitly — set them to false in
+    | an existing production .env). Every other tool keeps its default.
+    |
+    | `requires_config` names a config switch the tool also needs: while it is
+    | off the tool is disabled like `enabled` => false (exchange.trade follows
+    | TRADING_ENABLED). See App\Domain\MCP\Server\McpToolCatalog.
     */
     'tools' => [
         // `internal` values must match the registered tool's getName() (dotted format).
@@ -73,8 +78,9 @@ return [
         // no realized quote-currency notional to debit at response time. Wire
         // saga coverage once the trade tool surfaces a settled fiat-equivalent
         // in its result. Until then, all public copy must say exchange.trade
-        // is NOT counted against the daily spending limit.
-        'exchange.trade' => ['internal' => 'exchange.trade',                 'title' => 'Execute an exchange trade',        'scope' => 'exchange:write',    'enabled' => env('MCP_TOOL_EXCHANGE_TRADE', env('APP_ENV', 'production') !== 'production'), 'is_write' => true,  'requires_user' => true],
+        // is NOT counted against the daily spending limit. It is also off
+        // whenever the trading engine is (TRADING_ENABLED, `requires_config`).
+        'exchange.trade' => ['internal' => 'exchange.trade',                 'title' => 'Execute an exchange trade',        'scope' => 'exchange:write',    'enabled' => env('MCP_TOOL_EXCHANGE_TRADE', env('APP_ENV', 'production') !== 'production'), 'is_write' => true,  'requires_user' => true, 'requires_config' => 'trading.enabled'],
         'ramp.start'     => ['internal' => 'ramp.start',                     'title' => 'Start an on/offramp session',      'scope' => 'ramp:write',        'enabled' => env('MCP_TOOL_RAMP_START', true),          'is_write' => true,  'requires_user' => true, 'is_payment' => true,  'amount_arg' => 'fiat_amount', 'currency_arg' => 'fiat_currency', 'amount_decimals' => 2],
         'ramp.status'    => ['internal' => 'ramp.status',                    'title' => 'Check on/offramp session status',  'scope' => 'ramp:read',         'enabled' => env('MCP_TOOL_RAMP_STATUS', true),         'is_write' => false, 'requires_user' => true],
         'mpp.discovery'  => ['internal' => 'mpp.discovery',                  'title' => 'Discover multi-rail payment routes', 'scope' => null,              'enabled' => env('MCP_TOOL_MPP_DISCOVERY', true),       'is_write' => false],
@@ -90,6 +96,11 @@ return [
         'wallet.addresses' => ['internal' => 'wallet.addresses',             'title' => 'List wallet addresses',            'scope' => 'accounts:read',     'enabled' => env('MCP_TOOL_WALLET_ADDRESSES', true),    'is_write' => false, 'requires_user' => true],
         'wallet.activity'  => ['internal' => 'wallet.activity',              'title' => 'Recent wallet activity',           'scope' => 'accounts:read',     'enabled' => env('MCP_TOOL_WALLET_ACTIVITY', true),     'is_write' => false, 'requires_user' => true],
     ],
+
+    // ops:verify-env FAILs a production deploy while sms.send is on (sends
+    // are billed to the platform), unless the operator confirms it with
+    // MCP_TOOL_SMS_SEND_ACKNOWLEDGED=true.
+    'sms_send_acknowledged' => (bool) env('MCP_TOOL_SMS_SEND_ACKNOWLEDGED', false),
 
     /*
     |--------------------------------------------------------------------------

@@ -38,6 +38,7 @@ class Agent extends Model
         'status',
         'network_id',
         'organization',
+        'owner_user_id',
         'endpoints',
         'capabilities',
         'metadata',
@@ -46,6 +47,7 @@ class Agent extends Model
     ];
 
     protected $casts = [
+        'owner_user_id'    => 'integer',
         'endpoints'        => 'array',
         'capabilities'     => 'array',
         'metadata'         => 'array',

@@ -301,7 +301,7 @@ class AgentIdentityController extends Controller
     )]
     #[OA\Response(
         response: 403,
-        description: 'Not authorized'
+        description: 'Not authorized: the authenticated agent is not the agent in the path (AGENT_DID_MISMATCH) or lacks the profile_management capability'
     )]
     public function updateCapabilities(Request $request, string $did): JsonResponse
     {

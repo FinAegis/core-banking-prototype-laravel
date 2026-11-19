@@ -13,6 +13,7 @@ use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 
 /**
  * MCP tool that allows AI agents to send SMS via VertexSMS.
@@ -22,9 +23,35 @@ use Illuminate\Support\Facades\Log;
  * for, so it needs a signed-in user and counts against the same daily
  * unpaid-send limits as POST /api/v1/sms/send (per user and all users
  * together, {@see SmsSendBudget}).
+ *
+ * The public MCP server calls execute() without validating the input
+ * schema, so execute() applies the same rules as POST /api/v1/sms/send
+ * (SmsController::send: `to` and `from` formats, message at most 1600
+ * characters) and a per-user per-minute limit
+ * (`mcp.rate_limits.sms_per_minute`). The daily limits and the token's
+ * spending limit count one unit per call, so a message must also fit in
+ * one billed SMS part ({@see self::billedParts()}).
  */
 class SmsSendTool implements MCPToolInterface
 {
+    /** Same rule as POST /api/v1/sms/send `to`. */
+    public const TO_PATTERN = '/^\+?[1-9]\d{4,18}$/';
+
+    /** Same rule as POST /api/v1/sms/send `from`. */
+    public const FROM_PATTERN = '/^[a-zA-Z0-9 ]{1,20}$/';
+
+    /** Same rule as POST /api/v1/sms/send `message` (max:1600). */
+    public const MAX_MESSAGE_LENGTH = 1600;
+
+    /** Billed SMS parts one call may send (one unit of every limit). */
+    public const MAX_PARTS = 1;
+
+    /** GSM 03.38 basic character set: one septet each. */
+    private const GSM7_BASIC = "@£\$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà";
+
+    /** GSM 03.38 extension table: two septets each (escape + character). */
+    private const GSM7_EXTENSION = "\f^{}\\[~]|€";
+
     public function __construct(
         private readonly SmsService $smsService,
         private readonly SmsPricingService $pricing,
@@ -48,8 +75,9 @@ class SmsSendTool implements MCPToolInterface
             . 'signed-in user. A send through this tool is not paid per message: it counts '
             . 'against the daily limits for unpaid sends shared with POST /api/v1/sms/send, '
             . 'per user and across all users, which reset at 00:00 UTC (on the public MCP '
-            . 'server it also uses the token\'s spending limit). Call sms.rates or set '
-            . 'check_price_only to see the price for the destination country.';
+            . 'server it also uses the token\'s spending limit). A message must fit in one '
+            . 'SMS part: 160 GSM characters, or 70 when it has other characters. Call '
+            . 'sms.rates or set check_price_only to see the price for the destination country.';
     }
 
     /** @return array<string, mixed> */
@@ -61,18 +89,19 @@ class SmsSendTool implements MCPToolInterface
                 'to' => [
                     'type'        => 'string',
                     'description' => 'Destination phone number in E.164 format (e.g., +37069912345)',
-                    'pattern'     => '^\+?[0-9]{5,20}$',
+                    'pattern'     => '^\+?[1-9][0-9]{4,18}$',
                 ],
                 'from' => [
                     'type'        => 'string',
-                    'description' => 'Sender ID or phone number (default: Zelta)',
+                    'description' => 'Sender ID: 1-20 letters, digits or spaces (default: Zelta)',
+                    'pattern'     => '^[a-zA-Z0-9 ]{1,20}$',
                     'maxLength'   => 20,
                 ],
                 'message' => [
                     'type'        => 'string',
-                    'description' => 'SMS message text (max 1600 chars)',
+                    'description' => 'SMS message text that fits in one SMS part: up to 160 GSM characters, or 70 when it has other characters',
                     'minLength'   => 1,
-                    'maxLength'   => 1600,
+                    'maxLength'   => 160,
                 ],
                 'check_price_only' => [
                     'type'        => 'boolean',
@@ -142,6 +171,11 @@ class SmsSendTool implements MCPToolInterface
             return ToolExecutionResult::failure('Missing required parameters: to, message');
         }
 
+        $invalid = self::invalidInput($to, $from, $message);
+        if ($invalid !== null) {
+            return ToolExecutionResult::failure($invalid);
+        }
+
         // The public MCP server executes tools without calling authorize(),
         // so the master switch is checked here as well (and in SmsService).
         if (! $this->authorize(null)) {
@@ -171,6 +205,16 @@ class SmsSendTool implements MCPToolInterface
             if ($user === null) {
                 return ToolExecutionResult::failure('SMS sending requires a signed-in user');
             }
+
+            $minuteKey = 'mcp-sms-send:' . $user->id . ':minute';
+            $perMinute = max(1, (int) config('mcp.rate_limits.sms_per_minute', 10));
+            if (RateLimiter::tooManyAttempts($minuteKey, $perMinute)) {
+                return ToolExecutionResult::failure(sprintf(
+                    'Too many SMS sends. Try again in %d seconds.',
+                    RateLimiter::availableIn($minuteKey),
+                ));
+            }
+            RateLimiter::hit($minuteKey, 60);
 
             if ($this->budget->reserve($user->id, 'mcp') !== null) {
                 return ToolExecutionResult::failure("Today's SMS sending limit has been reached. Try again after 00:00 UTC.");
@@ -205,6 +249,60 @@ class SmsSendTool implements MCPToolInterface
 
             return ToolExecutionResult::failure('SMS send failed: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Why the input breaks the POST /api/v1/sms/send rules, or null.
+     */
+    private static function invalidInput(string $to, string $from, string $message): ?string
+    {
+        if (preg_match(self::TO_PATTERN, $to) !== 1) {
+            return 'Invalid to: use a phone number in E.164 format (5-19 digits, optional leading +)';
+        }
+
+        if (preg_match(self::FROM_PATTERN, $from) !== 1) {
+            return 'Invalid from: use 1-20 letters, digits or spaces';
+        }
+
+        if (mb_strlen($message) > self::MAX_MESSAGE_LENGTH) {
+            return sprintf('Invalid message: at most %d characters', self::MAX_MESSAGE_LENGTH);
+        }
+
+        if (self::billedParts($message) > self::MAX_PARTS) {
+            return 'Invalid message: it must fit in one SMS part (160 GSM characters, or 70 when it has other characters)';
+        }
+
+        return null;
+    }
+
+    /**
+     * SMS parts the message is billed as: GSM-7 (160 septets in one part,
+     * 153 per part when split; extension characters take two) or, when a
+     * character is outside GSM-7, UCS-2 (70 UTF-16 units, 67 per part).
+     */
+    public static function billedParts(string $message): int
+    {
+        $septets = 0;
+
+        foreach (mb_str_split($message) as $character) {
+            if (str_contains(self::GSM7_BASIC, $character)) {
+                $septets++;
+
+                continue;
+            }
+
+            if (str_contains(self::GSM7_EXTENSION, $character)) {
+                $septets += 2;
+
+                continue;
+            }
+
+            $units = intdiv(strlen((string) mb_convert_encoding($message, 'UTF-16BE', 'UTF-8')), 2);
+
+            return $units <= 70 ? 1 : intdiv($units + 66, 67);
+        }
+
+        return $septets <= 160 ? 1 : intdiv($septets + 152, 153);
     }
 
     /**

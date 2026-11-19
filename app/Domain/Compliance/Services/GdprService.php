@@ -128,6 +128,7 @@ class GdprService
      */
     public const EXCLUDED_USER_DATA_TABLES = [
         'account_flags'                => 'Operator-set capability flags (reviewer bypasses); no personal data beyond the user FK; swept by the reviewer-account lifecycle tooling.',
+        'agents'                       => 'Agent Protocol (AP2/A2A) registry of software agents (DID, name, capabilities). owner_user_id only records who may manage the agent\'s keys, sessions and tasks; no personal data beyond that FK, which points at the anonymized users row after erasure.',
         'ach_batches'                  => self::EXCL_LEGACY,
         'ai_llm_usage'                 => self::EXCL_FINANCIAL,
         'anomaly_detections'           => self::EXCL_SECURITY,

@@ -27,6 +27,10 @@ class AgentRegistryService
 
     /**
      * Register a new agent in the registry.
+     *
+     * `ownerUserId` is the id of the user who owns the agent (only that user,
+     * or staff, may manage its API keys, sessions and A2A tasks). Leave it
+     * out for platform agents, which only staff can manage.
      */
     public function registerAgent(array $agentData): Agent
     {
@@ -42,16 +46,17 @@ class AgentRegistryService
 
         // Create agent model
         $agent = Agent::create([
-            'agent_id'     => $agentData['agentId'],
-            'did'          => $agentData['did'],
-            'name'         => $agentData['name'],
-            'type'         => $agentData['type'] ?? 'standard',
-            'status'       => 'active',
-            'network_id'   => $agentData['networkId'] ?? null,
-            'organization' => $agentData['organization'] ?? null,
-            'endpoints'    => $agentData['endpoints'] ?? [],
-            'capabilities' => $agentData['capabilities'] ?? [],
-            'metadata'     => $agentData['metadata'] ?? [],
+            'agent_id'      => $agentData['agentId'],
+            'did'           => $agentData['did'],
+            'name'          => $agentData['name'],
+            'type'          => $agentData['type'] ?? 'standard',
+            'status'        => 'active',
+            'network_id'    => $agentData['networkId'] ?? null,
+            'organization'  => $agentData['organization'] ?? null,
+            'owner_user_id' => isset($agentData['ownerUserId']) ? (int) $agentData['ownerUserId'] : null,
+            'endpoints'     => $agentData['endpoints'] ?? [],
+            'capabilities'  => $agentData['capabilities'] ?? [],
+            'metadata'      => $agentData['metadata'] ?? [],
         ]);
 
         // Clear cache

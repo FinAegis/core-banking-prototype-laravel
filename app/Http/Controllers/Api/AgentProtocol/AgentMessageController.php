@@ -68,6 +68,10 @@ class AgentMessageController extends Controller
         response: 404,
         description: 'Agent not found'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH)'
+    )]
     public function send(Request $request, string $did): JsonResponse
     {
         $validated = $request->validate([
@@ -211,6 +215,10 @@ class AgentMessageController extends Controller
         new OA\Property(property: 'data', type: 'array', items: new OA\Items(type: 'object')),
         ])
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH)'
+    )]
     public function list(Request $request, string $did): JsonResponse
     {
         $validated = $request->validate([
@@ -289,6 +297,10 @@ class AgentMessageController extends Controller
     #[OA\Response(
         response: 404,
         description: 'Message not found'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH)'
     )]
     public function acknowledge(Request $request, string $did, string $messageId): JsonResponse
     {
@@ -399,6 +411,10 @@ class AgentMessageController extends Controller
     #[OA\Response(
         response: 404,
         description: 'Message not found'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH)'
     )]
     public function show(string $did, string $messageId): JsonResponse
     {

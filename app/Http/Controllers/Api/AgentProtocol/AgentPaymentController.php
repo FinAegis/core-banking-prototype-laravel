@@ -71,6 +71,10 @@ class AgentPaymentController extends Controller
         response: 422,
         description: 'Insufficient balance'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH)'
+    )]
     public function initiatePayment(Request $request, string $did): JsonResponse
     {
         $validated = $request->validate([
@@ -210,6 +214,10 @@ class AgentPaymentController extends Controller
         response: 404,
         description: 'Payment not found'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH), or is not a party to the payment'
+    )]
     public function getPaymentStatus(string $did, string $transactionId): JsonResponse
     {
         try {
@@ -296,6 +304,10 @@ class AgentPaymentController extends Controller
     #[OA\Response(
         response: 404,
         description: 'Payment not found'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH), or is not the payment sender'
     )]
     public function confirmPayment(Request $request, string $did, string $transactionId): JsonResponse
     {
@@ -396,6 +408,10 @@ class AgentPaymentController extends Controller
     #[OA\Response(
         response: 404,
         description: 'Payment not found'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH), or is not the payment sender'
     )]
     public function cancelPayment(Request $request, string $did, string $transactionId): JsonResponse
     {
@@ -500,6 +516,10 @@ class AgentPaymentController extends Controller
         new OA\Property(property: 'success', type: 'boolean', example: true),
         new OA\Property(property: 'data', type: 'array', items: new OA\Items(type: 'object')),
         ])
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH)'
     )]
     public function listPayments(Request $request, string $did): JsonResponse
     {

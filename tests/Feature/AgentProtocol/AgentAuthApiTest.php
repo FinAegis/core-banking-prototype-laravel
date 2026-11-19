@@ -33,9 +33,12 @@ class AgentAuthApiTest extends TestCase
             'kyc_status' => 'approved',
         ]);
 
+        // The key and session management endpoints are limited to the
+        // agent's owner (GHSA-385w-q6j4-5qw6).
         $this->agent = Agent::factory()->create([
-            'did'    => 'did:agent:test:api_' . Str::random(16),
-            'status' => 'active',
+            'did'           => 'did:agent:test:api_' . Str::random(16),
+            'status'        => 'active',
+            'owner_user_id' => $this->user->id,
         ]);
     }
 

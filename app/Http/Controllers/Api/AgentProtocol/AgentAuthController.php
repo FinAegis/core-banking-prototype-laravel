@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\AgentProtocol;
 
 use App\Domain\AgentProtocol\Services\AgentAuthenticationService;
+use App\Domain\AgentProtocol\Support\AgentOwnership;
 use App\Http\Controllers\Controller;
 use App\Models\Agent;
 use Carbon\Carbon;
@@ -349,24 +350,30 @@ class AgentAuthController extends Controller
     )]
     #[OA\Response(
         response: 404,
-        description: 'Agent not found'
+        description: 'Agent not found, or not owned by the signed-in user'
     )]
     #[OA\Response(
         response: 422,
-        description: 'Validation error'
+        description: 'Validation error (including the admin scopes and `*`, which only staff may grant)'
     )]
     public function generateApiKey(Request $request, string $did): JsonResponse
     {
+        // The admin scopes (and `*`, which includes them) are restricted to staff.
+        $allowedScopes = array_keys(config('agent_protocol.authentication.scopes', []));
+        if (! AgentOwnership::isStaff($request->user())) {
+            $allowedScopes = array_values(array_diff($allowedScopes, AgentOwnership::RESTRICTED_SCOPES));
+        }
+
         $validated = $request->validate([
             'name'       => 'required|string|max:255',
             'scopes'     => 'nullable|array',
-            'scopes.*'   => ['string', Rule::in(array_keys(config('agent_protocol.authentication.scopes', [])))],
+            'scopes.*'   => ['string', Rule::in($allowedScopes)],
             'expires_at' => 'nullable|date|after:now',
         ]);
 
         try {
-            // Find agent by DID
-            $agent = Agent::where('did', $did)->first();
+            // Find agent by DID; only its owner (or staff) may manage it.
+            $agent = $this->findManagedAgent($request, $did);
             if (! $agent) {
                 return response()->json([
                     'success' => false,
@@ -438,13 +445,13 @@ class AgentAuthController extends Controller
     )]
     #[OA\Response(
         response: 404,
-        description: 'Agent not found'
+        description: 'Agent not found, or not owned by the signed-in user'
     )]
-    public function listApiKeys(string $did): JsonResponse
+    public function listApiKeys(Request $request, string $did): JsonResponse
     {
         try {
-            // Find agent by DID
-            $agent = Agent::where('did', $did)->first();
+            // Find agent by DID; only its owner (or staff) may manage it.
+            $agent = $this->findManagedAgent($request, $did);
             if (! $agent) {
                 return response()->json([
                     'success' => false,
@@ -498,13 +505,13 @@ class AgentAuthController extends Controller
     )]
     #[OA\Response(
         response: 404,
-        description: 'Agent or API key not found'
+        description: 'Agent or API key not found, or agent not owned by the signed-in user'
     )]
-    public function revokeApiKey(string $did, string $keyId): JsonResponse
+    public function revokeApiKey(Request $request, string $did, string $keyId): JsonResponse
     {
         try {
-            // Find agent by DID
-            $agent = Agent::where('did', $did)->first();
+            // Find agent by DID; only its owner (or staff) may manage it.
+            $agent = $this->findManagedAgent($request, $did);
             if (! $agent) {
                 return response()->json([
                     'success' => false,
@@ -566,13 +573,13 @@ class AgentAuthController extends Controller
     )]
     #[OA\Response(
         response: 404,
-        description: 'Agent not found'
+        description: 'Agent not found, or not owned by the signed-in user'
     )]
-    public function listSessions(string $did): JsonResponse
+    public function listSessions(Request $request, string $did): JsonResponse
     {
         try {
-            // Find agent by DID
-            $agent = Agent::where('did', $did)->first();
+            // Find agent by DID; only its owner (or staff) may manage it.
+            $agent = $this->findManagedAgent($request, $did);
             if (! $agent) {
                 return response()->json([
                     'success' => false,
@@ -626,13 +633,13 @@ class AgentAuthController extends Controller
     )]
     #[OA\Response(
         response: 404,
-        description: 'Agent not found'
+        description: 'Agent not found, or not owned by the signed-in user'
     )]
-    public function revokeAllSessions(string $did): JsonResponse
+    public function revokeAllSessions(Request $request, string $did): JsonResponse
     {
         try {
-            // Find agent by DID
-            $agent = Agent::where('did', $did)->first();
+            // Find agent by DID; only its owner (or staff) may manage it.
+            $agent = $this->findManagedAgent($request, $did);
             if (! $agent) {
                 return response()->json([
                     'success' => false,
@@ -705,5 +712,17 @@ class AgentAuthController extends Controller
                 'default_scopes' => config('agent_protocol.authentication.default_scopes', []),
             ],
         ]);
+    }
+
+    /**
+     * The agent with this DID when the signed-in user owns it (or is staff);
+     * null otherwise, so the endpoints answer 404 without revealing whether
+     * the agent exists.
+     */
+    private function findManagedAgent(Request $request, string $did): ?Agent
+    {
+        $agent = Agent::where('did', $did)->first();
+
+        return AgentOwnership::canManage($request->user(), $agent) ? $agent : null;
     }
 }

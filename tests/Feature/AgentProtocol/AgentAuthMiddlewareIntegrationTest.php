@@ -38,9 +38,10 @@ class AgentAuthMiddlewareIntegrationTest extends TestCase
         ]);
 
         $this->agent = Agent::factory()->create([
-            'did'          => 'did:agent:test:middleware_' . Str::random(16),
-            'status'       => 'active',
-            'capabilities' => ['payments', 'escrow', 'messages', 'reputation'],
+            'did'           => 'did:agent:test:middleware_' . Str::random(16),
+            'status'        => 'active',
+            'capabilities'  => ['payments', 'escrow', 'messages', 'reputation'],
+            'owner_user_id' => $this->user->id,
         ]);
 
         $this->authService = app(AgentAuthenticationService::class);

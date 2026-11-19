@@ -119,6 +119,13 @@ class TradeTool implements MCPToolInterface
 
     public function execute(array $parameters, ?string $conversationId = null): ToolExecutionResult
     {
+        // The public MCP server executes tools without calling authorize(),
+        // so the trading master switch (TRADING_ENABLED) is checked here too,
+        // like every other order-placement path.
+        if (! self::tradingEnabled()) {
+            return ToolExecutionResult::failure('Trading is not enabled');
+        }
+
         try {
             $accountUuid = $parameters['account_uuid'];
             $type = $parameters['type'];
@@ -141,16 +148,12 @@ class TradeTool implements MCPToolInterface
                 'conversation_id' => $conversationId,
             ]);
 
-            // Get account from database
-            $account = Account::where('uuid', $accountUuid)->first();
+            // Only the account owner may trade on it. Someone else's account
+            // answers like a missing one.
+            $account = Account::findOwnedBy((string) $accountUuid, Auth::user());
 
             if (! $account) {
                 return ToolExecutionResult::failure("Account not found: {$accountUuid}");
-            }
-
-            // Check authorization
-            if (! $this->canTradeOnAccount($account)) {
-                return ToolExecutionResult::failure('Unauthorized trading access to account');
             }
 
             // Validate currencies exist and are tradeable
@@ -324,6 +327,10 @@ class TradeTool implements MCPToolInterface
 
     public function authorize(?string $userId): bool
     {
+        if (! self::tradingEnabled()) {
+            return false;
+        }
+
         // Trading requires authentication
         if (! $userId && ! Auth::check()) {
             return false;
@@ -332,31 +339,9 @@ class TradeTool implements MCPToolInterface
         return true;
     }
 
-    private function canTradeOnAccount($account): bool
+    private static function tradingEnabled(): bool
     {
-        // Check if current user owns the account or has trading permission
-        $user = Auth::user();
-
-        if (! $user) {
-            return false;
-        }
-
-        // Check ownership via user_uuid
-        if ($account->user_uuid === $user->uuid) {
-            return true;
-        }
-
-        // Check for trading permission
-        if (method_exists($user, 'can') && $user->can('trade', $account)) {
-            return true;
-        }
-
-        // Check for admin permission
-        if (method_exists($user, 'hasRole') && $user->hasRole('admin')) {
-            return true;
-        }
-
-        return false;
+        return (bool) config('trading.enabled', false);
     }
 
     /**

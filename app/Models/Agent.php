@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $name
  * @property string $type
  * @property string $status
+ * @property int|null $owner_user_id
  * @property string $kyc_status
  * @property string|null $kyc_verification_level
  * @property \Carbon\Carbon|null $kyc_verified_at
@@ -45,6 +46,7 @@ class Agent extends Model
         'status',
         'network_id',
         'organization',
+        'owner_user_id',
         'endpoints',
         'capabilities',
         'kyc_status',
@@ -77,6 +79,7 @@ class Agent extends Model
         'weekly_transaction_limit'  => 'decimal:2',
         'monthly_transaction_limit' => 'decimal:2',
         'total_transaction_volume'  => 'decimal:2',
+        'owner_user_id'             => 'integer',
         'risk_score'                => 'integer',
         'reputation_score'          => 'integer',
         'total_transactions'        => 'integer',
