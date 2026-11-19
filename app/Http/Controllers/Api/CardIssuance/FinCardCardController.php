@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\CardIssuance;
 
+use App\Domain\CardIssuance\Exceptions\FinCardAccountNotReadyException;
 use App\Domain\CardIssuance\Http\Requests\FinCardAmountRequest;
 use App\Domain\CardIssuance\Http\Requests\OpenFinCardCardRequest;
 use App\Domain\CardIssuance\Models\Card;
@@ -73,6 +74,8 @@ class FinCardCardController extends Controller
                 $this->orderNo($request),
                 $this->context($request),
             );
+        } catch (FinCardAccountNotReadyException) {
+            return ErrorResponse::make('ERR_CARDS_020');
         } catch (FinCardApiException $e) {
             Log::warning('FinCard open card failed', ['user_id' => $user->id, 'msg' => $e->getMessage()]);
 
@@ -201,6 +204,8 @@ class FinCardCardController extends Controller
         return $this->withCard($request, $cardId, function (Card $card) use ($action, $insufficientCode): JsonResponse {
             try {
                 $card = $action($card);
+            } catch (FinCardAccountNotReadyException) {
+                return ErrorResponse::make('ERR_CARDS_020');
             } catch (FinCardApiException $e) {
                 $code = str_contains($e->getMessage(), 'insufficient') ? $insufficientCode : 'ERR_CARDS_016';
                 Log::warning('FinCard card mutation failed', ['msg' => $e->getMessage()]);

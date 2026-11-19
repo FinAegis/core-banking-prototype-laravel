@@ -14,6 +14,7 @@ use App\Domain\CardIssuance\ValueObjects\VirtualCard;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
+use Throwable;
 
 /**
  * Service for provisioning virtual cards to Apple Pay / Google Pay.
@@ -118,8 +119,10 @@ class CardProvisioningService
 
     /**
      * Whether the card belongs to the user: a local card record links the
-     * issuer token to the user, or the issuer lists the card among the
-     * user's cards.
+     * issuer token to the user, the issuer lists the card among the user's
+     * cards, or the issuer's own record of the card names the user as its
+     * owner. The last check covers cancelled cards (left out of the
+     * listing) and cards beyond the first page of the issuer's listing.
      */
     public function isOwnedBy(string $cardToken, string $userId): bool
     {
@@ -142,7 +145,37 @@ class CardProvisioningService
             }
         }
 
-        return false;
+        try {
+            $card = $this->cardIssuer->getCard($cardToken);
+        } catch (Throwable $e) {
+            Log::warning('Card ownership lookup failed', [
+                'issuer' => $this->cardIssuer->getName(),
+                'error'  => $e->getMessage(),
+            ]);
+
+            return false;
+        }
+
+        $owner = $card === null ? '' : $this->issuerSideOwner($card);
+
+        return $owner !== '' && hash_equals($owner, $userId);
+    }
+
+    /**
+     * The user id the issuer itself holds as the card's owner, set at card
+     * creation from the platform user id and never from caller metadata:
+     * Marqeta's `user_token` (mapped by the adapter) and the demo issuer's
+     * `user_id`. Other issuers keep a local card record instead.
+     */
+    private function issuerSideOwner(VirtualCard $card): string
+    {
+        $owner = match ($this->cardIssuer->getName()) {
+            'marqeta' => $card->metadata['user_token'] ?? '',
+            'demo'    => $card->metadata['user_id'] ?? '',
+            default   => '',
+        };
+
+        return is_scalar($owner) ? (string) $owner : '';
     }
 
     /**

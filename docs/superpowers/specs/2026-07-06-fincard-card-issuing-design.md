@@ -83,7 +83,7 @@ Placed in `Infrastructure` (like `app/Infrastructure/Bridge/`) because both the 
   - A single private `rpc(string $path, array $params, array $context): array` that POSTs to `{base_url}{path}`, injects the bearer + context headers, `->timeout(30)->retry(2, 500, throw: false)`, and decodes the `{success, code, msg, data}` envelope — throwing `FinCardApiException` (carrying `code` + `msg`) on `success=false` or transport failure, logging `path/code/msg` first (never the body — it holds PII/PAN).
   - Typed public methods per endpoint group (auth, common/reference, account, wallet, cardholder, card).
   - `X-Forwarded-For`/`deviceId`/`platform` are passed **per call** from the originating mobile request context (not static), so FinCard's fraud/geo signals reflect the real end user.
-- **`FinCardWebhookVerifier`** — RSA verification, modeled on `BridgeWebhookVerifier`: `openssl_verify($rawBody, base64_decode($sig), $publicKey, OPENSSL_ALGO_SHA256) === 1`, accepting `X-FC-SIGNATURE` or `X-WSB-SIGNATURE`, with the "accept in non-prod, fail closed in production" idiom when no key is configured.
+- **`FinCardWebhookVerifier`** — RSA verification, modeled on `BridgeWebhookVerifier`: `openssl_verify($rawBody, base64_decode($sig), $publicKey, OPENSSL_ALGO_SHA256) === 1`, accepting `X-FC-SIGNATURE` or `X-WSB-SIGNATURE`, and, when no key is configured, accepts unsigned webhooks only in local and testing (staging, demo and production fail closed).
 - **`FinCardApiException`** — carries FinCard's business `code` + `msg` for mapping to our `ERR_CARDS_*` responses.
 
 ### 3.2 Domain contracts & adapter — `app/Domain/CardIssuance/`
@@ -269,6 +269,7 @@ Env keys mirrored into `.env.production.example` and `.env.zelta.example` (a `# 
 5. **Upstream issuer / BIN sponsor identity** and the regulatory license under which cards are issued.
 6. Formal confirmation that FinCard **performs its own KYC** (no third-party passthrough) and the review SLA.
 7. Production **credentials** (org/user/tenant IDs, service-account username/password) and Integration-tenant onboarding.
+8. How `/card/v2/openCard` treats a blank or missing `accountId` for each card mode (PREPAID_CARD and BUDGET_CARD), and which account `/card/deposit` debits. The backend refuses open and top-up unless the user has an active account with a FinCard account id and the card is bound to it (`ERR_CARDS_020`). It still accepts any `card_type_id` the client sends, so we also need to know whether a PREPAID_CARD type ignores `accountId`.
 
 ---
 

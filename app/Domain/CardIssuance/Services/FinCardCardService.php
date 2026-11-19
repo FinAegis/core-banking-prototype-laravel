@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\CardIssuance\Services;
 
 use App\Domain\CardIssuance\Events\Broadcast\CardStateChanged;
+use App\Domain\CardIssuance\Exceptions\FinCardAccountNotReadyException;
 use App\Domain\CardIssuance\Models\Card;
 use App\Domain\CardIssuance\Models\Cardholder;
-use App\Domain\CardIssuance\Models\FinCardAccount;
 use App\Infrastructure\FinCard\FinCardClient;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -59,12 +59,16 @@ final class FinCardCardService
      * loading `$amountCents` onto it. Persists the local mapping; the card's
      * final details (last4/network/expiry) settle via refresh/webhook.
      *
+     * Requires the user's active funding account with a FinCard account id;
+     * otherwise nothing is sent to FinCard.
+     *
      * @param  array<string, mixed>  $context
+     *
+     * @throws FinCardAccountNotReadyException
      */
     public function openCard(User $user, Cardholder $cardholder, int $cardTypeId, int $amountCents, string $merchantOrderNo, array $context): Card
     {
-        $account = $this->accounts->existingAccount($user);
-        $accountId = $account instanceof FinCardAccount ? $account->fincard_account_id : '';
+        $accountId = $this->accounts->requireFundingAccount((string) $user->id)->fincard_account_id;
 
         $response = $this->client->openCard(
             $cardTypeId,
@@ -175,10 +179,22 @@ final class FinCardCardService
     /**
      * Move funds account → card (top up) and reflect the new balance.
      *
+     * FinCard's deposit call names only the card, so the card must be bound to
+     * the owner's current active funding account; a card saved with a blank or
+     * a different account id is refused before FinCard is called.
+     *
      * @param  array<string, mixed>  $context
+     *
+     * @throws FinCardAccountNotReadyException
      */
     public function topUp(Card $card, int $amountCents, string $merchantOrderNo, array $context = []): Card
     {
+        $account = $this->accounts->requireFundingAccount((string) $card->user_id);
+        $cardAccountId = (string) $card->fincard_account_id;
+        if ($cardAccountId === '' || ! hash_equals($account->fincard_account_id, $cardAccountId)) {
+            throw new FinCardAccountNotReadyException('The card is not bound to the owner\'s current funding account.');
+        }
+
         $this->client->depositToCard($card->issuer_card_token, $this->toMajor($amountCents), $merchantOrderNo, $context);
         $card->balance_cents = (int) $card->balance_cents + $amountCents;
         $card->save();

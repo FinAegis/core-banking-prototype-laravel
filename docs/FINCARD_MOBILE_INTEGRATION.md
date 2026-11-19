@@ -107,7 +107,7 @@ FinCard requires its own KYC — richer than the app's existing profile. Prefill
 ### 4.3 Open & use a card ⚪ (phase 4)
 
 1. `GET /v1/cards/reference/card-types` → `{ card_types: [...], default_card_type_id }`. **Optional:** v1 is a single product, so you can skip this call and omit `card_type_id` on open — the backend applies the tenant default. Call it only to let the user choose among multiple products. The `card_types` item shape passes through FinCard *(pending FinCard schema confirmation)*.
-2. `POST /v1/cards/fincard/open` `{ amount_cents, card_type_id?, label? }` (+ `Idempotency-Key`) → opens a card, moving `amount_cents` from the account onto the card. `card_type_id` is **optional** (falls back to the tenant default server-side); do **not** send `cardholder_id` — the backend resolves the caller's single cardholder. Response is the card object (§5.2), `status: "active"`. If no `card_type_id` is sent and no default is configured → `ERR_CARDS_018`.
+2. `POST /v1/cards/fincard/open` `{ amount_cents, card_type_id?, label? }` (+ `Idempotency-Key`) → opens a card, moving `amount_cents` from the account onto the card. `card_type_id` is **optional** (falls back to the tenant default server-side); do **not** send `cardholder_id` — the backend resolves the caller's single cardholder. Response is the card object (§5.2), `status: "active"`. If no `card_type_id` is sent and no default is configured → `ERR_CARDS_018`. The caller needs an active card account (§4.2 — created with the first deposit address); without one, open → `ERR_CARDS_020` and nothing is sent to the issuer.
 3. `GET /v1/cards/fincard/{card_id}/sensitive` → **ephemeral** PAN/CVV/expiry for display or manual entry. Never cache or persist these; fetch on demand behind a biometric re-auth and clear from memory after display.
 4. Manage (all **POST** + `Idempotency-Key`): `/v1/cards/fincard/{card_id}/topup`, `/withdraw`, `/freeze`, `/unfreeze`, `/cancel` (cancel is biometric-gated). Unfreeze and cancel are **POST, not DELETE**.
 5. `GET /v1/cards/fincard/{card_id}/transactions?page=1&limit=20` for history → bare `data: [ … ]` (page-based, not cursor). FinCard transaction item fields are *(pending FinCard schema confirmation)*.
@@ -187,6 +187,7 @@ Card endpoints use the `ERR_CARDS_*` family (registered in `config/error_codes.p
 | `ERR_CARDS_016` | 502 | Card operation (open / refresh / sensitive / mutate / card-types) failed at the issuer → retry |
 | `ERR_CARDS_017` | 422 | Insufficient card balance for the withdraw |
 | `ERR_CARDS_018` | 422 | No `card_type_id` sent and no tenant default configured |
+| `ERR_CARDS_020` | 409 | Open/top-up without an active card account (or the card is not linked to the user's current account) → route to funding (§4.2) |
 | `ERR_VALIDATION_001/003` | 422 | Missing/invalid `Idempotency-Key` or body |
 | `ERR_IDEMPOTENCY_409` | 409 | Same key, different body |
 | (rate limit) | 429 | Too many card operations → back off |

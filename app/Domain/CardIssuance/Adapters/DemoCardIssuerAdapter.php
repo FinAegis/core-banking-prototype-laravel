@@ -8,6 +8,7 @@ use App\Domain\CardIssuance\Contracts\CardIssuerInterface;
 use App\Domain\CardIssuance\Enums\CardNetwork;
 use App\Domain\CardIssuance\Enums\CardStatus;
 use App\Domain\CardIssuance\Enums\WalletType;
+use App\Domain\CardIssuance\Exceptions\UnsupportedCardOperationException;
 use App\Domain\CardIssuance\ValueObjects\CardTransaction;
 use App\Domain\CardIssuance\ValueObjects\ProvisioningData;
 use App\Domain\CardIssuance\ValueObjects\VirtualCard;
@@ -16,6 +17,14 @@ use Illuminate\Support\Facades\Cache;
 
 /**
  * Demo implementation of card issuer for development and testing.
+ *
+ * It issues placeholder cards and wallet passes with no issuer behind them,
+ * so under APP_ENV=production createCard() and getProvisioningData() throw
+ * {@see UnsupportedCardOperationException} (the same rule as the mock ramp
+ * provider). REST answers 400 ERR_CARD_005 (create) or ERR_CARD_001
+ * (provision); GraphQL returns the message as a client-safe error.
+ * CARD_ISSUER defaults to demo, so an unconfigured production deployment
+ * refuses to issue cards.
  */
 class DemoCardIssuerAdapter implements CardIssuerInterface
 {
@@ -34,6 +43,8 @@ class DemoCardIssuerAdapter implements CardIssuerInterface
         ?CardNetwork $network = null,
         ?string $label = null,
     ): VirtualCard {
+        $this->assertNotProduction();
+
         $cardToken = 'card_demo_' . bin2hex(random_bytes(16));
         $last4 = (string) random_int(1000, 9999);
         $expiresAt = (new DateTimeImmutable())->modify('+3 years');
@@ -68,6 +79,8 @@ class DemoCardIssuerAdapter implements CardIssuerInterface
         string $deviceId,
         array $certificates = []
     ): ProvisioningData {
+        $this->assertNotProduction();
+
         // Demo provisioning data - in production, this would come from the card issuer
         return new ProvisioningData(
             cardId: $cardToken,
@@ -223,5 +236,14 @@ class DemoCardIssuerAdapter implements CardIssuerInterface
             'transactions' => $transactions,
             'next_cursor'  => $nextCursor,
         ];
+    }
+
+    private function assertNotProduction(): void
+    {
+        if (app()->environment('production')) {
+            throw new UnsupportedCardOperationException(
+                'Card issuing is not available. The demo card issuer does not issue cards in production.',
+            );
+        }
     }
 }

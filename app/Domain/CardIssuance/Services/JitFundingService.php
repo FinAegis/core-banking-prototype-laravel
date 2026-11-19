@@ -111,13 +111,17 @@ class JitFundingService
         // 2. Check balance + create hold atomically to prevent TOCTOU race condition.
         //    Without a transaction lock, two concurrent authorizations could both pass
         //    the balance check before either creates a hold, leading to double-spending.
+        //    The transaction runs on the Account model's own (tenant) connection:
+        //    a row lock taken on that connection inside a default-connection
+        //    transaction would be released at once. No database row is written
+        //    inside (holds and spend totals live in the cache).
         $userId = (string) ($card->metadata['user_id'] ?? '');
         $requiredAmount = (float) $request->getAmountDecimal();
 
         $declineReason = null;
         $holdId = '';
 
-        DB::transaction(function () use ($request, $userId, $requiredAmount, &$declineReason, &$holdId): void {
+        DB::connection((new Account())->getConnectionName())->transaction(function () use ($request, $userId, $requiredAmount, &$declineReason, &$holdId): void {
             if ($this->isDemoMode()) {
                 // Demo issuer: no real account rows, fixed balance.
                 if (self::DEMO_BALANCE < $requiredAmount) {
@@ -132,6 +136,7 @@ class JitFundingService
                     return;
                 }
 
+                $this->spendLimitService->recordSpend($request->cardToken, $requiredAmount);
                 $holdId = 'hold_' . bin2hex(random_bytes(16));
 
                 return;
@@ -181,6 +186,11 @@ class JitFundingService
                 return;
             }
 
+            // Record the spend while the lock is still held, so a concurrent
+            // authorization on the same card cannot pass checkLimit() against
+            // the total from before this one.
+            $this->spendLimitService->recordSpend($request->cardToken, $requiredAmount);
+
             $holdId = $hold;
         });
 
@@ -208,9 +218,6 @@ class JitFundingService
             holdId: $holdId,
             merchantName: $request->merchantName,
         ));
-
-        // 4b. Record spend against limit tracker
-        $this->spendLimitService->recordSpend($request->cardToken, $requiredAmount);
 
         return [
             'approved' => true,

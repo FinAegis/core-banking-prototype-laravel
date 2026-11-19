@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Domain\CardIssuance\Services;
 
 use App\Domain\CardIssuance\Events\Broadcast\FinCardAccountFunded;
+use App\Domain\CardIssuance\Exceptions\FinCardAccountNotReadyException;
 use App\Domain\CardIssuance\Models\FinCardAccount;
 use App\Domain\CardIssuance\Models\FinCardDepositAddress;
+use App\Infrastructure\FinCard\FinCardApiException;
 use App\Infrastructure\FinCard\FinCardClient;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -39,23 +41,62 @@ final class FinCardAccountService
     }
 
     /**
-     * The user's FinCard account, creating it on FinCard on first use.
+     * The user's funding account, when it can back a card load: status
+     * `active` and a FinCard account id set. FinCard calls run under the
+     * platform's tenant-wide credentials, so this id is what ties a card open
+     * or top-up to the user's own funds; without it nothing is sent.
+     *
+     * @throws FinCardAccountNotReadyException
+     */
+    public function requireFundingAccount(string $userId): FinCardAccount
+    {
+        $account = FinCardAccount::query()->where('user_id', $userId)->first();
+
+        if (
+            ! $account instanceof FinCardAccount
+            || $account->status !== 'active'
+            || trim((string) $account->fincard_account_id) === ''
+        ) {
+            throw new FinCardAccountNotReadyException('No active FinCard funding account for this user.');
+        }
+
+        return $account;
+    }
+
+    /**
+     * The user's FinCard account, creating it on FinCard on first use. A
+     * legacy row saved without a FinCard account id is provisioned again.
+     * A create response without an account id throws (nothing is saved).
      *
      * @param  array<string, mixed>  $context
+     *
+     * @throws FinCardApiException
      */
     public function getOrCreateAccount(User $user, array $context = []): FinCardAccount
     {
         $existing = $this->existingAccount($user);
-        if ($existing instanceof FinCardAccount) {
+        if ($existing instanceof FinCardAccount && trim((string) $existing->fincard_account_id) !== '') {
             return $existing;
         }
 
         $response = $this->client->createAccount("Zelta user {$user->id}", 'USD', $context);
         $data = is_array($response['data'] ?? null) ? $response['data'] : [];
+        $accountId = trim((string) ($data['accountId'] ?? $data['id'] ?? ''));
+
+        if ($accountId === '') {
+            throw new FinCardApiException('FinCard /account/create returned no account id', path: '/account/create');
+        }
+
+        if ($existing instanceof FinCardAccount) {
+            $existing->fincard_account_id = $accountId;
+            $existing->save();
+
+            return $existing;
+        }
 
         $account = new FinCardAccount();
         $account->user_id = (string) $user->id;
-        $account->fincard_account_id = (string) ($data['accountId'] ?? $data['id'] ?? '');
+        $account->fincard_account_id = $accountId;
         $account->currency = 'USD';
         $account->balance_cents = 0;
         $account->status = 'active';
