@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Banking-as-a-Service',
-        'description' => 'Launch your own financial products with ' . config('brand.name', 'Zelta') . ' BaaS. Partner APIs, multi-language SDK generation, embeddable widgets, and white-label branding.',
+        'description' => 'Build financial products on ' . config('brand.name', 'Zelta') . ' open-source BaaS software. Partner APIs, multi-language SDK generation, embeddable widgets, and white-label branding.',
         'keywords' => 'Banking-as-a-Service, BaaS, partner APIs, SDK generation, embeddable widgets, white-label, billing, marketplace, ' . config('brand.name', 'Zelta'),
     ])
 
@@ -26,9 +26,12 @@
         <div class="absolute inset-0 bg-grid-pattern"></div>
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-24">
             <div class="text-center">
-                <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Banking-as-a-Service</h1>
+                <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Banking-as-a-Service Software</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    Embed world-class financial infrastructure into your product. From partner onboarding to white-label branding, launch your fintech offering in weeks instead of years.
+                    Embed open-source financial infrastructure software into your product, from partner onboarding to white-label branding.
+                </p>
+                <p class="text-sm text-slate-500 max-w-3xl mx-auto mt-4">
+                    FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
                 </p>
             </div>
         </div>
@@ -321,7 +324,7 @@
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Launch Your Financial Product</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                Skip years of infrastructure development. Build on {{ config('brand.name', 'Zelta') }} BaaS and go to market faster with enterprise-grade financial services under your own brand.
+                Skip years of infrastructure development. Build on {{ config('brand.name', 'Zelta') }} open-source software under your own brand. Licensing and regulatory compliance are the responsibility of the operator of each deployment.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">

@@ -60,7 +60,10 @@ These documents provide:
   - `tenant.{tenantId}.exchange` - Order book/trading updates
 
 ### Core API Endpoints
-- ✅ **CGO Investment APIs**: Complete investment platform endpoints
+
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
+
+- ✅ **CGO demo module APIs**: investment-intake workflow endpoints (reference software; not an offer of securities)
   - `POST /api/cgo/investments` - Create investment
   - `GET /api/cgo/investments/{uuid}` - Get investment details
   - `POST /api/cgo/payments/stripe/checkout` - Create Stripe checkout
@@ -68,13 +71,13 @@ These documents provide:
   - `POST /api/cgo/webhooks/stripe` - Stripe webhook handler
   - `POST /api/cgo/webhooks/coinbase` - Coinbase webhook handler
   
-- ✅ **GCU Trading APIs**: Buy/sell operations
-  - `POST /api/gcu/buy` - Buy GCU
-  - `POST /api/gcu/sell` - Sell GCU
-  - `GET /api/gcu/price` - Get current GCU price
-  - `GET /api/gcu/balance` - Get user's GCU balance
+- ✅ **GCU demo APIs** (simulated conversions — see GCU disclaimer above)
+  - `POST /api/gcu/buy` - Simulated GCU conversion (buy side)
+  - `POST /api/gcu/sell` - Simulated GCU conversion (sell side)
+  - `GET /api/gcu/price` - Get the GCU demo reference value
+  - `GET /api/gcu/balance` - Get the user's simulated GCU demo balance
 
-- ✅ **Voting System APIs**: Democratic governance
+- ✅ **Voting System APIs** (simulated basket votes in the GCU demo)
   - `GET /api/polls` - List polls
   - `POST /api/polls` - Create poll
   - `POST /api/polls/{uuid}/vote` - Submit vote

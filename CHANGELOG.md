@@ -5,6 +5,10 @@ All notable changes to the FinAegis Core Banking Platform will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+> FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
+>
+> Entries below describe software changes. Named third-party providers are integration adapters for third-party APIs; no partnership or endorsement implied. Mentions of the Global Currency Unit (GCU) refer to a software demonstration that is not issued, offered or sold to anyone and has no monetary value.
+
 ## [7.16.0] - 2026-06-21
 
 **Non-custodial RAILGUN privacy — backend migration.** Moves the RAILGUN privacy stack toward the platform's non-custodial model (the device holds all keys, like Wallet Send): the backend stops holding wallet seeds and becomes a set of support services for an on-device engine. The user-facing private-transaction flow ships once the mobile on-device engine lands — this release is the backend groundwork. Also fixes the iOS Apple App Site Association file that broke passkeys and universal links.
@@ -29,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.15.0] - 2026-06-03
 
-**Bridge.xyz fiat ramp.** Bridge.xyz becomes the primary v1 fiat ↔ stablecoin rail — bank transfers in, USDC on Polygon out — with KYC, virtual accounts, and the ADR-0006 developer-fee markup mechanism. Also ships the landing-page truth-pass and wires HyperSwitch into the real deposit flow.
+**Bridge.xyz fiat ramp adapter.** The Bridge.xyz API integration becomes the primary v1 fiat ↔ stablecoin rail — bank transfers in, USDC on Polygon out — with KYC, virtual accounts, and the ADR-0006 developer-fee markup mechanism. Converting stablecoins to fiat, where available, will be provided by licensed third parties under their own terms. Also ships the landing-page truth-pass and wires HyperSwitch into the real deposit flow.
 
 ### Added
 - **Bridge.xyz ramp** — `bridge_customers` + `ramp_sessions` persistence, `KycProviderInterface` adapters under `app/Domain/Compliance/Kyc/`, shared HTTP client + webhook verifier in `app/Infrastructure/Bridge/` (ADR-0005: Bridge over Stripe Crypto Onramp)

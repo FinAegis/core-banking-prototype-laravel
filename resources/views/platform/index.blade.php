@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => config('brand.name', 'Zelta') . ' Platform - Open Banking for Developers',
-        'description' => 'Zelta Platform: open-source core banking with 61 DDD domains, ISO 20022, PSD2, multi-rail payments, cross-chain DeFi, and a public MCP server. Apache-2.0 licensed, built for developers.',
+        'description' => config('brand.name', 'Zelta') . ' Platform: open-source core banking with 61 DDD domains, ISO 20022, PSD2, multi-rail payments, cross-chain DeFi, and a public MCP server. Apache-2.0 licensed, built for developers.',
         'keywords' => config('brand.name', 'Zelta') . ' platform, banking infrastructure, open source banking, developer API, ISO 20022, PSD2, payment rails, Interledger, microfinance, ledger, Apache-2.0 license, core banking API, fintech development, DDD, event sourcing',
     ])
 
@@ -413,7 +413,7 @@
                 
                 <h2 class="font-display text-4xl font-bold mb-6">Start Building Today</h2>
                 <p class="text-xl text-gray-300 mb-8">
-                    Fork the repo, explore the architecture, and ship your fintech product on production-grade infrastructure
+                    Fork the repo, explore the architecture, and build your fintech product on an open-source reference platform
                 </p>
                 
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The FinAegis platform includes a comprehensive regulatory reporting framework that automates the generation, submission, and tracking of regulatory reports across multiple jurisdictions. The framework integrates with the fraud detection system to provide enhanced reporting capabilities.
+The FinAegis platform includes a regulatory reporting module that helps operators generate and track report drafts modelled on common formats (CTR, SAR, AML, OFAC, BSA, KYC). It does not by itself make a deployment compliant; filing obligations remain the responsibility of the operator of each deployment. The module integrates with the fraud detection system to provide enhanced reporting capabilities.
 
 ## Architecture
 
@@ -24,7 +24,7 @@ The FinAegis platform includes a comprehensive regulatory reporting framework th
    - Maintains report integrity with checksums
 
 4. **Regulatory Filing Service** (`RegulatoryFilingService`)
-   - Submits reports to regulatory authorities
+   - Submits reports to operator-configured endpoints (no regulator connectivity is provided)
    - Supports multiple filing methods (API, Portal, Email)
    - Handles retries and status tracking
 
@@ -197,8 +197,7 @@ The regulatory reporting framework automatically incorporates fraud detection da
 ## Filing Methods
 
 ### 1. API Submission
-- Direct integration with regulatory systems
-- Real-time submission and acknowledgment
+- Adapter for operator-configured submission endpoints (no regulator connectivity is provided)
 - Automatic status tracking
 
 ### 2. Portal Submission
@@ -280,16 +279,16 @@ php artisan regulatory:manage generate-reports --dry-run
 REGULATORY_INSTITUTION_ID=FIN001
 
 # API Endpoints
-REGULATORY_API_US_CTR=https://api.fincen.gov/v1/ctr
-REGULATORY_API_US_SAR=https://api.fincen.gov/v1/sar
+REGULATORY_API_US_CTR=https://regulator.example/ctr
+REGULATORY_API_US_SAR=https://regulator.example/sar
 
 # Credentials (encrypted in database)
 REGULATORY_US_API_KEY=your-api-key
 REGULATORY_US_INSTITUTION_ID=your-institution-id
 
 # Email submission
-REGULATORY_EMAIL_CTR_TO=ctr@fincen.gov
-REGULATORY_EMAIL_SAR_TO=sar@fincen.gov
+REGULATORY_EMAIL_CTR_TO=ctr@regulator.example
+REGULATORY_EMAIL_SAR_TO=sar@regulator.example
 
 # Thresholds
 REGULATORY_CTR_THRESHOLD=1000000

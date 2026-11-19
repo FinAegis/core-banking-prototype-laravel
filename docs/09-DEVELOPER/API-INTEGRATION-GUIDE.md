@@ -2,27 +2,22 @@
 
 ## Overview
 
-This guide provides comprehensive documentation for integrating with the FinAegis API. Our RESTful API enables you to build applications that interact with multi-asset accounts, process payments, manage GCU holdings, and more.
+This guide describes how to integrate with the API of a FinAegis deployment you operate (multi-asset accounts, payments and the GCU demo).
 
 ## Quick Start
 
 ### 1. Get Your API Credentials
 
 ```bash
-# Request API access at https://developers.finaegis.org
-# You'll receive:
-- API Key: your_api_key_here
-- API Secret: your_api_secret_here
-- Environment URLs:
-  - Sandbox: https://sandbox-api.zelta.app
-  - Production: https://api.zelta.app
+# Use the base URL of your own FinAegis deployment, e.g. http://localhost:8000/api
+# Create API keys in your deployment's admin panel.
 ```
 
 ### 2. Make Your First Request
 
 ```bash
 # Get account information
-curl -X GET https://sandbox-api.zelta.app/v2/accounts \
+curl -X GET https://your-finaegis-host.example/v2/accounts \
   -H "Authorization: Bearer your_api_key_here" \
   -H "Content-Type: application/json"
 ```
@@ -31,7 +26,7 @@ curl -X GET https://sandbox-api.zelta.app/v2/accounts \
 
 ```bash
 # Register a webhook endpoint
-curl -X POST https://sandbox-api.zelta.app/v2/webhooks \
+curl -X POST https://your-finaegis-host.example/v2/webhooks \
   -H "Authorization: Bearer your_api_key_here" \
   -H "Content-Type: application/json" \
   -d '{
@@ -220,6 +215,8 @@ POST /v2/conversions
 
 ### GCU Operations
 
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
+
 #### Get GCU Information
 ```http
 GET /v2/gcu
@@ -245,7 +242,7 @@ GET /v2/gcu
 }
 ```
 
-#### Buy GCU
+#### GCU demo conversion (simulated)
 ```http
 POST /v2/gcu/buy
 ```
@@ -257,9 +254,9 @@ POST /v2/gcu/buy
   "source_currency": "USD",
   "amount": 1000,
   "bank_allocation": {
-    "paysera": 40,
-    "deutsche_bank": 30,
-    "santander": 30
+    "bank_a": 40,
+    "bank_b": 30,
+    "bank_c": 30
   }
 }
 ```
@@ -291,7 +288,7 @@ GET /v2/exchange-rates/{from}/{to}
 
 1. **Register Endpoint**
 ```bash
-curl -X POST https://api.zelta.app/v2/webhooks \
+curl -X POST https://your-finaegis-host.example/v2/webhooks \
   -H "Authorization: Bearer your_api_key" \
   -H "Content-Type: application/json" \
   -d '{
@@ -468,7 +465,7 @@ const transfer = await client.transfers.create({
   reference: 'Payment for services'
 });
 
-// Buy GCU
+// Simulated GCU demo conversion
 const gcuPurchase = await client.gcu.buy({
   accountId: 'acc_123456',
   sourceCurrency: 'USD',
@@ -485,7 +482,7 @@ client.webhooks.listen(3000, (event) => {
 
 ### Sandbox Environment
 
-- Base URL: `https://sandbox-api.zelta.app`
+- Base URL: `https://your-finaegis-host.example`
 - Test API keys available in dashboard
 - Simulated bank responses
 - Accelerated time for testing recurring features
@@ -595,8 +592,6 @@ describe('FinAegis API Integration', () => {
 ### Contact
 
 - **Email**: api-support@finaegis.org
-- **Slack**: finaegis-dev.slack.com
-- **Emergency**: +1-888-FINAEGIS (24/7)
 
 ## Appendix
 

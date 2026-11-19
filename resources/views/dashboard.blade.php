@@ -66,7 +66,7 @@
                         </div>
                         <div class="ml-3">
                             <h4 class="text-sm font-medium text-gray-900">Fund Your Account</h4>
-                            <p class="text-sm text-gray-500">Deposit funds to start using GCU</p>
+                            <p class="text-sm text-gray-500">Add funds to explore the platform</p>
                         </div>
                     </div>
                     
@@ -78,7 +78,7 @@
                         </div>
                         <div class="ml-3">
                             <h4 class="text-sm font-medium text-gray-900">Explore Features</h4>
-                            <p class="text-sm text-gray-500">Discover GCU voting, transfers, and more</p>
+                            <p class="text-sm text-gray-500">Discover transfers and more</p>
                         </div>
                     </div>
                 </div>
@@ -106,7 +106,7 @@
             @endif
             
             <!-- Quick Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="grid grid-cols-1 {{ config('brand.show_promo_pages') ? 'md:grid-cols-4' : 'md:grid-cols-2' }} gap-6 mb-8">
                 <!-- Total Balance -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
                     <div class="p-6">
@@ -123,18 +123,17 @@
                                 </svg>
                             </div>
                         </div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                            <span class="text-green-600">↑ 12.5%</span> from last month
-                        </p>
                     </div>
                 </div>
                 
+                {{-- GCU demo cards: finaegis.org demo only (GCU is a software demonstration; see docs/REGULATORY-CLAIMS.md) --}}
+                @if(config('brand.show_promo_pages'))
                 <!-- GCU Balance -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
                     <div class="p-6">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">GCU Balance</p>
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">GCU demo balance</p>
                                 <p class="text-2xl font-bold text-gray-900 dark:text-white">
                                     Ǥ{{ number_format(Auth::user()->accounts->count() > 0 ? Auth::user()->accounts->sum(function($account) { return $account->getBalance('GCU'); }) / 100 : 0, 2) }}
                                 </p>
@@ -144,7 +143,7 @@
                             </div>
                         </div>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                            Democratic global currency
+                            GCU demo — simulated balance
                         </p>
                     </div>
                 </div>
@@ -154,7 +153,7 @@
                     <div class="p-6">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Voting Power</p>
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Demo voting weight (simulated)</p>
                                 <p class="text-2xl font-bold text-gray-900 dark:text-white">
                                     {{ number_format(Auth::user()->accounts->count() > 0 ? Auth::user()->accounts->sum(function($account) { return $account->getBalance('GCU'); }) / 100 : 0) }}
                                 </p>
@@ -166,10 +165,11 @@
                             </div>
                         </div>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                            Next vote: {{ now()->startOfMonth()->addMonth()->format('M j') }}
+                            Simulated — demo only
                         </p>
                     </div>
                 </div>
+                @endif
                 
                 <!-- Recent Activity -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
@@ -201,7 +201,7 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg mb-8">
                 <div class="p-6">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
-                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div class="grid grid-cols-2 {{ config('brand.show_promo_pages') ? 'md:grid-cols-5' : 'md:grid-cols-4' }} gap-4">
                         <a href="{{ route('wallet.deposit') }}" class="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition group">
                             <div class="p-3 bg-indigo-100 rounded-full mb-2 group-hover:bg-indigo-200 transition">
                                 <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -238,14 +238,16 @@
                             <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Convert</span>
                         </a>
                         
+                        @if(config('brand.show_promo_pages'))
                         <a href="{{ route('gcu.voting.index') }}" class="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition group">
                             <div class="p-3 bg-orange-100 rounded-full mb-2 group-hover:bg-orange-200 transition">
                                 <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                                 </svg>
                             </div>
-                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Vote</span>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Vote (demo)</span>
                         </a>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -272,7 +274,7 @@
                                 </svg>
                             </div>
                             <span class="text-sm font-medium text-gray-700 dark:text-gray-300">DeFi</span>
-                            <span class="text-xs text-gray-500 dark:text-gray-400">Positions & Yield</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Positions</span>
                         </a>
 
                         <a href="{{ route('privacy.index') }}" class="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition group">
@@ -300,15 +302,17 @@
 
             <!-- Main Content Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- GCU Wallet Component (2 columns) -->
+                <!-- GCU Demo Wallet Component (2 columns; finaegis.org demo only) -->
+                @if(config('brand.show_promo_pages'))
                 <div class="lg:col-span-2">
                     <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
                         <x-gcu-wallet />
                     </div>
                 </div>
+                @endif
 
                 <!-- Help & Resources (1 column) -->
-                <div class="lg:col-span-1 space-y-6">
+                <div class="{{ config('brand.show_promo_pages') ? 'lg:col-span-1' : 'lg:col-span-3' }} space-y-6">
                     <!-- Getting Started -->
                     <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6">
@@ -346,7 +350,7 @@
                     <div class="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-6">
                         <h3 class="text-lg font-semibold text-indigo-900 dark:text-indigo-100 mb-2">Need Help?</h3>
                         <p class="text-sm text-indigo-700 dark:text-indigo-300 mb-4">
-                            Our support team is available 24/7 to assist you with any questions.
+                            Our support team can help with any questions.
                         </p>
                         <div class="space-y-2">
                             <a href="{{ route('support.faq') }}" class="block text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-200">

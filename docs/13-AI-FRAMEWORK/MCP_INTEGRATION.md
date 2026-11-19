@@ -2,6 +2,8 @@
 
 > **As of v7.11.0**, FinAegis ships a public Model Context Protocol server at `https://mcp.zelta.app/mcp` that any spec-compliant MCP client (Claude Desktop, Cursor, Continue.dev) can connect to.
 
+> FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
+
 ## Quick Connect
 
 ### Claude Desktop / Cursor (remote URL)
@@ -31,7 +33,7 @@ First launch opens a browser for OAuth consent. The token persists in your OS ke
 | Tool | Scope | Purpose |
 |---|---|---|
 | `account.balance` | `accounts:read` | Read balance |
-| `account.create` | `accounts:write` | Open new account |
+| `account.create` | `accounts:write` | Create a new account record |
 | `payment.status` | `payments:read` | Check payment status |
 | `payment.transfer` | `payments:write` | Send a payment (subject to spending limit) |
 | `transactions.query` | `transactions:read` | List transactions |

@@ -7,12 +7,9 @@ You've been added to our notification list for updates about the {{ company_name
 
 - We'll keep you informed as the **CGO concept develops**
 - You'll receive updates on platform milestones and releases
-- You'll be among the first to know when the CGO programme opens
 
 ## Why {{ company_name() }}?
 
-- **Democratic Banking**: Community-driven governance model
-- **Real Assets**: Backed by actual bank accounts and global currencies
 - **Open Source**: Transparent, auditable codebase you can explore today
 - **Continuous Growth**: A funding model designed for long-term alignment
 

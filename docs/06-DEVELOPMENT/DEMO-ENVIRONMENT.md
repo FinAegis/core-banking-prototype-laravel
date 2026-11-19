@@ -196,12 +196,7 @@ Simulates:
 - Balance inquiries
 - Transaction history
 
-Replaces connectors for:
-- Paysera
-- Santander
-- Deutsche Bank
-- Revolut
-- Wise
+Replaces the bank connector adapters (e.g. Paysera, Santander, Deutsche Bank APIs). Integration adapters for third-party APIs; no partnership or endorsement implied.
 
 ## Configuration
 

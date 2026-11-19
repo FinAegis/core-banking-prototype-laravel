@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "app.zelta/mcp",
   "title": "Zelta",
-  "description": "Public MCP server for Zelta — a multi-rail payments and wallet platform. Exposes 10 tools across account balances, wallet addresses and activity, payment status, transaction history and spending analysis, exchange quotes, on/offramp sessions and payment-route discovery, gated by OAuth 2.1 with per-token spending limits on ramp sessions.",
+  "description": "Zelta MCP server: account balance, wallet, payment status, transaction history, exchange quote and on/offramp tools over OAuth 2.1, with per-token spend limits on ramp sessions.",
   "version": "0.1.6",
   "websiteUrl": "https://finaegis.org/features/mcp",
   "repository": {

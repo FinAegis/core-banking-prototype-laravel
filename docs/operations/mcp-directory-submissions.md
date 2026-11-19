@@ -91,8 +91,8 @@ All of these must be true before submitting (rejection rate is high; the form do
 |---|---|
 | Server name | Zelta |
 | Server URL | `https://mcp.zelta.app/mcp` |
-| Tagline | Check balances, wallet activity and payments, get exchange quotes, and start on/offramp sessions — all from your AI assistant. |
-| Description (long) | Zelta is a multi-rail payments and wallet platform. The MCP server exposes 10 tools — account balances, wallet addresses and activity, payment status, transaction history and spending analysis, exchange quotes, on/offramp sessions, and payment-route discovery — gated by OAuth 2.1 scopes with per-token daily spending limits on ramp sessions, idempotent writes, and a full audit trail. |
+| Tagline | Connect your AI assistant to your Zelta account. |
+| Description (long) | The Zelta MCP server exposes 10 tools — account balances, wallet addresses and activity, payment status, transaction history and spending analysis, exchange quotes, on/off-ramp sessions, and payment-route discovery — gated by OAuth 2.1 scopes with per-token daily spending limits on ramp sessions, idempotent writes, and a full audit trail. Converting stablecoins to fiat, where available, will be provided by licensed third parties under their own terms. |
 | Auth type | OAuth 2.1 (with DCR, RFC 7591) |
 | Transport | streamable-http |
 | Capabilities | tools, resources |
@@ -143,7 +143,7 @@ Open-issue submission.
 
 **Procedure:**
 1. Go to `https://github.com/chatmcp/mcp-directory/issues/new` (or the form on `https://mcp.so/submit`).
-2. Title: `[New Server] Zelta — multi-rail payments MCP`.
+2. Title: `[New Server] Zelta — non-custodial wallet MCP`.
 3. Body: copy the description from `server.json` and link to:
    - Repo: `https://github.com/FinAegis/core-banking-prototype-laravel`
    - npm: `https://www.npmjs.com/package/@finaegis/mcp`

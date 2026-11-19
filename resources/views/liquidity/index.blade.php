@@ -12,8 +12,10 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">Liquidity demo module (simulated figures).</p>
+
             <!-- Market Overview -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg p-4">
                     <p class="text-sm text-gray-600 dark:text-gray-400">Total Value Locked</p>
                     <p class="text-2xl font-bold">${{ number_format($marketData['total_tvl'] / 1000000, 1) }}M</p>
@@ -31,10 +33,6 @@
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg p-4">
                     <p class="text-sm text-gray-600 dark:text-gray-400">24h Fees</p>
                     <p class="text-2xl font-bold">${{ number_format($marketData['total_fees_24h'], 0) }}</p>
-                </div>
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg p-4">
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Average APY</p>
-                    <p class="text-2xl font-bold text-green-600">{{ number_format($marketData['avg_apy'], 2) }}%</p>
                 </div>
             </div>
 
@@ -124,10 +122,6 @@
                                     <div class="flex justify-between text-sm">
                                         <span class="text-gray-600 dark:text-gray-400">24h Volume</span>
                                         <span class="font-medium">${{ number_format($pool['volume_24h'] / 1000, 0) }}k</span>
-                                    </div>
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-gray-600 dark:text-gray-400">APY</span>
-                                        <span class="font-medium text-green-600">{{ number_format($pool['apy'], 2) }}%</span>
                                     </div>
                                 </div>
                                 

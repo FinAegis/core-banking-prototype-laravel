@@ -2,6 +2,8 @@
 
 **Context:** VertexSMS asked for more details on what the bidirectional setup involves before committing.
 
+> Integration adapters for third-party APIs; no partnership or endorsement implied.
+
 ---
 
 ## What "Bidirectional" Means
@@ -17,7 +19,7 @@ Bidirectional adds the reverse:
 | Item | Description | Effort |
 |------|------------|--------|
 | **Sandbox API token** | A test-mode token for our MCP server to call your API | 0 — you already gave us one |
-| **Signed DLR callbacks** | HMAC-SHA256 on DLR webhooks (already confirmed in Q2) | 0 — already agreed |
+| **Signed DLR callbacks** | HMAC-SHA256 on DLR webhooks (already confirmed in Q2) | 0 |
 | **Rate card endpoint** | `GET /rates/?format=json` (already exists) | 0 |
 | **Logo + description** | Brand assets for the provider listing (64x64 icon, one-line tagline) | 5 minutes |
 
@@ -83,7 +85,7 @@ The agent doesn't need to know about VertexSMS directly — it discovers SMS cap
 1. **Zero integration work** — everything is already built on our side
 2. **New distribution channel** — every Zelta-connected AI agent is a potential VertexSMS customer
 3. **No API changes** — we call your existing `POST /sms` endpoint
-4. **Revenue from day one** — agents pay per-message, settlement to your account via Stripe Connect or USDC
+4. **Revenue from day one** — agents pay per message. Settlement design is under discussion; see [VERTEXSMS_X402_INTEGRATION §6](VERTEXSMS_X402_INTEGRATION.md#6-money-flow).
 
 ## Next Step
 

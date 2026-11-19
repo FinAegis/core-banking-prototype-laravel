@@ -2,14 +2,14 @@
 
 ## Overview
 
-FinAegis is evolving from a core banking platform into a comprehensive AI Agent Framework for financial institutions. Built on our robust event-sourced architecture, it provides intelligent automation for banking operations while maintaining complete audit trails and regulatory compliance.
+FinAegis is evolving from a core banking platform into a comprehensive AI Agent Framework for financial institutions. Built on our robust event-sourced architecture, it provides intelligent automation for banking operations while maintaining complete audit trails that support operators' compliance processes.
 
 ## 🎯 Vision
 
 Transform traditional banking operations through intelligent AI agents that:
 - Understand natural language queries
 - Execute complex financial operations
-- Ensure regulatory compliance
+- Support operators' compliance processes
 - Learn from patterns and improve over time
 - Maintain human oversight for critical decisions
 
@@ -64,7 +64,7 @@ Natural language interface for banking operations:
 - FAQ and knowledge base queries
 
 ### Compliance Agent
-Automated regulatory compliance:
+Compliance tooling support:
 - KYC/AML verification
 - Transaction monitoring
 - Suspicious activity detection
@@ -78,7 +78,7 @@ Intelligent risk management:
 - Real-time alerts
 
 ### Trading Agent (Advanced)
-Automated trading and investment:
+Automated trading tooling (example agent template; not investment advice):
 - Market analysis
 - Portfolio optimization
 - Automated trading strategies
@@ -182,9 +182,8 @@ Every AI decision is recorded in our event store, providing:
 - Confidence levels
 - Human override tracking
 
-### Regulatory Compliance
-- GDPR compliant data handling
-- Financial regulation adherence
+### Compliance support
+- Data-handling controls that help operators meet GDPR obligations
 - Explainable AI decisions
 - Human oversight controls
 

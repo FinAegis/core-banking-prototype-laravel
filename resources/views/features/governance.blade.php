@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Democratic Governance - ' . config('brand.name', 'Zelta'))
+@section('title', 'Governance Module Demo - ' . config('brand.name', 'Zelta'))
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Democratic Governance',
-        'description' => 'Participate in platform decisions through weighted voting. Your voice matters in shaping the future of finance.',
-        'keywords' => 'democratic governance, voting, community decisions, decentralized finance, ' . config('brand.name', 'Zelta'),
+        'title' => 'Governance Module Demo',
+        'description' => 'Governance module: weighted-voting proposals and tallying, shown with simulated votes in the GCU demo.',
+        'keywords' => 'governance module, weighted voting, proposals, GCU demo, ' . config('brand.name', 'Zelta'),
     ])
 
     {{-- Schema.org Markup --}}
@@ -14,7 +14,7 @@
     <x-schema type="breadcrumb" :data="[
         ['name' => 'Home', 'url' => url('/')],
         ['name' => 'Features', 'url' => url('/features')],
-        ['name' => 'Democratic Governance', 'url' => url('/features/governance')]
+        ['name' => 'Governance Module', 'url' => url('/features/governance')]
     ]" />
 @endsection
 
@@ -26,10 +26,14 @@
         <div class="absolute inset-0 bg-grid-pattern"></div>
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-24">
             <div class="text-center">
-                <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Democratic Governance</h1>
+                <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Governance Module</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    Your money, your rules. Participate in shaping the future of finance through transparent, democratic voting.
+                    Governance module demo: weighted-voting proposals with transparent tallying. All votes in the demo are simulated.
                 </p>
+                {{-- F4 GCU disclaimer (see docs/REGULATORY-CLAIMS.md) --}}
+                <div class="mt-8 max-w-3xl mx-auto bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 text-sm text-slate-300 text-left" role="note">
+                    The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
+                </div>
             </div>
         </div>
         <div class="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
@@ -38,39 +42,12 @@
     <!-- Overview Section -->
     <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div class="grid grid-cols-1 gap-12 max-w-3xl mx-auto text-center">
                 <div>
-                    <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-6">Power to the People</h2>
-                    <p class="text-lg text-slate-500 mb-4">
-                        {{ config('brand.name', 'Zelta') }} is the first banking platform where users have real decision-making power. Through our democratic governance system, you directly influence how the platform operates.
-                    </p>
-                    <p class="text-lg text-slate-500 mb-4">
-                        Every GCU holder can participate in votes that shape monetary policy, platform features, and strategic direction. Your voting power is proportional to your GCU holdings, ensuring those with the most at stake have a meaningful voice.
-                    </p>
+                    <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-6">Overview</h2>
                     <p class="text-lg text-slate-500">
-                        This isn't just about technology—it's about creating a financial system that truly serves its users.
+                        The governance module lets a deployment run weighted-voting proposals. In the GCU demo, all votes are simulated.
                     </p>
-                </div>
-                <div class="card-feature !p-8 rounded-2xl">
-                    <h3 class="text-2xl font-bold mb-6 text-slate-900">Governance Stats</h3>
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center p-4 bg-white rounded-lg">
-                            <span class="text-slate-500">Active Voters</span>
-                            <span class="text-2xl font-bold text-indigo-600">15,000+</span>
-                        </div>
-                        <div class="flex justify-between items-center p-4 bg-white rounded-lg">
-                            <span class="text-slate-500">Proposals Passed</span>
-                            <span class="text-2xl font-bold text-purple-600">127</span>
-                        </div>
-                        <div class="flex justify-between items-center p-4 bg-white rounded-lg">
-                            <span class="text-slate-500">Average Participation</span>
-                            <span class="text-2xl font-bold text-green-600">73%</span>
-                        </div>
-                        <div class="flex justify-between items-center p-4 bg-white rounded-lg">
-                            <span class="text-slate-500">Next Vote</span>
-                            <span class="text-lg font-bold text-pink-600">In 5 days</span>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -86,23 +63,23 @@
                     <div class="text-4xl font-bold text-indigo-600 mb-4">1</div>
                     <h3 class="text-xl font-bold mb-3">Proposal Creation</h3>
                     <p class="text-slate-500">
-                        Community members or the platform team submit proposals for consideration. Each proposal includes detailed information about the change and its impact.
+                        Proposals are created with a description, a rationale and proposed demo basket weights.
                     </p>
                 </div>
                 
                 <div class="vote-card card-feature !p-8">
                     <div class="text-4xl font-bold text-purple-600 mb-4">2</div>
-                    <h3 class="text-xl font-bold mb-3">Discussion Period</h3>
+                    <h3 class="text-xl font-bold mb-3">Preview Period</h3>
                     <p class="text-slate-500">
-                        The community discusses proposals for 7 days. Members can ask questions, share opinions, and suggest modifications before voting begins.
+                        Upcoming proposals can be previewed before voting opens.
                     </p>
                 </div>
                 
                 <div class="vote-card card-feature !p-8">
                     <div class="text-4xl font-bold text-green-600 mb-4">3</div>
-                    <h3 class="text-xl font-bold mb-3">Voting & Execution</h3>
+                    <h3 class="text-xl font-bold mb-3">Simulated Voting & Tallying</h3>
                     <p class="text-slate-500">
-                        GCU holders vote for 3 days. If the proposal passes with majority support, it's automatically executed or scheduled for implementation.
+                        Demo accounts cast simulated votes. Results are tallied against configurable participation and approval thresholds.
                     </p>
                 </div>
             </div>
@@ -112,166 +89,22 @@
     <!-- What You Vote On -->
     <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12">What You Vote On</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12">Example Proposal Types (demo)</h2>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 gap-8 max-w-3xl mx-auto">
                 <div class="card-feature !p-8">
-                    <h3 class="text-2xl font-bold mb-6 text-indigo-900">Monetary Policy</h3>
+                    <h3 class="text-2xl font-bold mb-6 text-indigo-900">Demo Basket</h3>
                     <ul class="space-y-4">
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-indigo-600 mr-3 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"></path>
                             </svg>
                             <div>
-                                <h4 class="font-semibold mb-1">GCU Basket Composition</h4>
-                                <p class="text-slate-600">Monthly votes on currency weightings and additions/removals</p>
-                            </div>
-                        </li>
-                        <li class="flex items-start">
-                            <svg class="w-6 h-6 text-indigo-600 mr-3 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"></path>
-                            </svg>
-                            <div>
-                                <h4 class="font-semibold mb-1">Interest Rates</h4>
-                                <p class="text-slate-600">Set lending and borrowing rates across the platform</p>
-                            </div>
-                        </li>
-                        <li class="flex items-start">
-                            <svg class="w-6 h-6 text-indigo-600 mr-3 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"></path>
-                            </svg>
-                            <div>
-                                <h4 class="font-semibold mb-1">Reserve Requirements</h4>
-                                <p class="text-slate-600">Determine collateral ratios and reserve policies</p>
+                                <h4 class="font-semibold mb-1">GCU Demo Basket Composition</h4>
+                                <p class="text-slate-600">Proposed currency weightings for the demo basket (simulated votes; no monetary effect)</p>
                             </div>
                         </li>
                     </ul>
-                </div>
-                
-                <div class="card-feature !p-8">
-                    <h3 class="text-2xl font-bold mb-6 text-purple-900">Platform Features</h3>
-                    <ul class="space-y-4">
-                        <li class="flex items-start">
-                            <svg class="w-6 h-6 text-purple-600 mr-3 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"></path>
-                            </svg>
-                            <div>
-                                <h4 class="font-semibold mb-1">New Product Launches</h4>
-                                <p class="text-slate-600">Decide which features and products to develop next</p>
-                            </div>
-                        </li>
-                        <li class="flex items-start">
-                            <svg class="w-6 h-6 text-purple-600 mr-3 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"></path>
-                            </svg>
-                            <div>
-                                <h4 class="font-semibold mb-1">Fee Structure</h4>
-                                <p class="text-slate-600">Set transaction fees and revenue distribution</p>
-                            </div>
-                        </li>
-                        <li class="flex items-start">
-                            <svg class="w-6 h-6 text-purple-600 mr-3 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"></path>
-                            </svg>
-                            <div>
-                                <h4 class="font-semibold mb-1">Partnership Decisions</h4>
-                                <p class="text-slate-600">Vote on strategic partnerships and integrations</p>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Voting Power -->
-    <section class="py-20 bg-gray-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12">Your Voting Power</h2>
-            
-            <div class="max-w-4xl mx-auto">
-                <div class="card-feature !p-8 rounded-2xl">
-                    <h3 class="text-2xl font-bold mb-6">Asset-Weighted Voting</h3>
-                    <p class="text-lg text-slate-500 mb-6">
-                        Your voting power is directly proportional to your GCU holdings. This ensures that those with the most at stake have appropriate influence in decisions.
-                    </p>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <div class="text-center p-4 bg-gray-50 rounded-lg">
-                            <div class="text-3xl font-bold text-indigo-600 mb-2">1 GCU</div>
-                            <p class="text-slate-500">=</p>
-                            <div class="text-xl font-semibold">1 Vote</div>
-                        </div>
-                        <div class="text-center p-4 bg-gray-50 rounded-lg">
-                            <div class="text-3xl font-bold text-purple-600 mb-2">No Minimum</div>
-                            <p class="text-slate-500">Required to vote</p>
-                        </div>
-                        <div class="text-center p-4 bg-gray-50 rounded-lg">
-                            <div class="text-3xl font-bold text-green-600 mb-2">Real-time</div>
-                            <p class="text-slate-500">Vote calculation</p>
-                        </div>
-                    </div>
-                    
-                    <div class="border-t pt-6">
-                        <h4 class="font-bold mb-4">Additional Voting Mechanisms</h4>
-                        <ul class="space-y-2 text-slate-500">
-                            <li>• Quadratic voting for certain proposals to prevent whale domination</li>
-                            <li>• Delegation options to trusted community members</li>
-                            <li>• Time-locked voting for long-term commitment rewards</li>
-                            <li>• Participation incentives through governance tokens</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Recent Votes -->
-    <section class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12">Recent Governance Decisions</h2>
-            
-            <div class="space-y-6 max-w-4xl mx-auto">
-                <div class="bg-gray-50 rounded-xl p-6">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h4 class="font-bold text-lg">Add Japanese Yen to GCU Basket</h4>
-                            <p class="text-slate-500">Proposal to include JPY at 3% weight</p>
-                        </div>
-                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">Passed</span>
-                    </div>
-                    <div class="flex justify-between text-sm text-gray-500">
-                        <span>Participation: 78%</span>
-                        <span>Yes: 84% | No: 16%</span>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-50 rounded-xl p-6">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h4 class="font-bold text-lg">Reduce Transaction Fees by 20%</h4>
-                            <p class="text-slate-500">Lower fees to increase adoption</p>
-                        </div>
-                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">Passed</span>
-                    </div>
-                    <div class="flex justify-between text-sm text-gray-500">
-                        <span>Participation: 82%</span>
-                        <span>Yes: 91% | No: 9%</span>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-50 rounded-xl p-6">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h4 class="font-bold text-lg">Launch {{ config('brand.name', 'Zelta') }} Lending Platform</h4>
-                            <p class="text-slate-500">New P2P lending feature development</p>
-                        </div>
-                        <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-semibold">Voting</span>
-                    </div>
-                    <div class="flex justify-between text-sm text-gray-500">
-                        <span>Ends in: 2 days</span>
-                        <span>Current: Yes: 67% | No: 33%</span>
-                    </div>
                 </div>
             </div>
         </div>
@@ -280,7 +113,7 @@
     <!-- Transparency -->
     <section class="py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12">Complete Transparency</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12">Transparency in the Demo</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="text-center">
@@ -299,8 +132,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">On-Chain Voting</h3>
-                    <p class="text-slate-500">All votes are recorded on-chain, ensuring complete transparency and immutability.</p>
+                    <h3 class="text-xl font-bold mb-3">Recorded Votes</h3>
+                    <p class="text-slate-500">Demo votes are stored in the application database with a hash signature; they are not recorded on a blockchain.</p>
                 </div>
                 
                 <div class="text-center">
@@ -309,8 +142,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">Automatic Execution</h3>
-                    <p class="text-slate-500">Approved proposals are automatically executed, eliminating centralized control.</p>
+                    <h3 class="text-xl font-bold mb-3">Demo Execution</h3>
+                    <p class="text-slate-500">Approved demo proposals update the simulated demo basket only.</p>
                 </div>
             </div>
         </div>
@@ -320,16 +153,13 @@
     <section class="bg-fa-navy relative overflow-hidden">
         <div class="absolute inset-0 bg-dot-pattern"></div>
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Join the Revolution</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Explore the governance demo</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                Be part of the first truly democratic financial platform. Your voice, your vote, your future.
+                Votes in the GCU demo are simulated and have no monetary effect.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">
-                    Start Voting
-                </a>
-                <a href="{{ route('gcu') }}" class="btn-outline px-8 py-4 text-lg">
-                    Get GCU
+                    Try the demo
                 </a>
             </div>
         </div>

@@ -50,7 +50,7 @@
                     <p class="text-sm text-gray-600 dark:text-gray-400">24h Fees</p>
                     <p class="text-2xl font-bold">${{ number_format($metrics['fees_24h'], 0) }}</p>
                     <p class="text-sm text-gray-600 dark:text-gray-400">
-                        {{ number_format($metrics['fee_apy'], 2) }}% APY
+                        {{ number_format($metrics['fee_apy'], 2) }}% simulated fee rate (demo)
                     </p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg p-4">

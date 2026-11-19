@@ -17,7 +17,7 @@ By using this demo platform:
    - Use test data where possible
    - Data may be periodically cleared from the demo environment
 
-3. **Exception - CGO Investment Page**: The CGO (Corporate Governance Offering) investment page processes real investment transactions. Any investments made through this page are real and binding.
+3. **CGO Pages**: CGO pages describe a concept; see the [CGO terms](/cgo/terms) for details.
 
 ## General Terms
 
@@ -34,7 +34,7 @@ This is a demo license to:
 
 This license does not include:
 - Production use of the software
-- Processing of real financial transactions (except CGO investments)
+- Processing of real financial transactions (see [CGO terms](/cgo/terms))
 - Storage of sensitive customer data
 
 ### 3. Disclaimer
@@ -70,7 +70,3 @@ These terms and conditions are governed by and construed in accordance with the 
 For questions about these Terms of Service, please contact:
 - Email: info@finaegis.org
 - Address: FinAegis Demo Platform, EU
-
-## CGO Investment Terms
-
-For specific terms related to CGO investments, please refer to the [CGO Terms and Conditions](/cgo/terms).

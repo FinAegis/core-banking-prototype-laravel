@@ -127,7 +127,9 @@ print(f"${conversion['from_amount']} = €{conversion['to_amount']}")
 client.exchange_rates.refresh()
 ```
 
-### GCU (Global Currency Unit)
+### GCU demo (Global Currency Unit)
+
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value.
 
 ```python
 # Get GCU composition
@@ -176,7 +178,7 @@ basket = client.baskets.create(
     composition={'USD': 0.5, 'EUR': 0.3, 'GBP': 0.2}
 )
 
-# Compose/decompose basket tokens
+# Compose/decompose basket units (demo)
 client.baskets.compose('account-uuid', 'GCU', 1000)
 client.baskets.decompose('account-uuid', 'GCU', 500)
 ```

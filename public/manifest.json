@@ -1,7 +1,7 @@
 {
     "name": "Zelta — Agentic Payments",
     "short_name": "Zelta",
-    "description": "Get your personal card to spend anywhere. Get your agent a card to spend anywhere. Stablecoin-powered, non-custodial.",
+    "description": "Stablecoin-powered, non-custodial wallet.",
     "start_url": "/",
     "display": "standalone",
     "theme_color": "#0a0a0a",

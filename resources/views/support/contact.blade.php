@@ -116,7 +116,7 @@
                                 <option value="account">Account Issues</option>
                                 <option value="technical">Technical Support</option>
                                 <option value="billing">Billing & Payments</option>
-                                <option value="gcu">GCU Questions</option>
+                                <option value="gcu">GCU Demo Questions</option>
                                 <option value="api">API & Integration</option>
                                 <option value="compliance">Compliance & Security</option>
                                 <option value="other">Other</option>
@@ -205,7 +205,7 @@
                     <div>
                         <h3 class="text-xl font-semibold mb-4">Contribute Code</h3>
                         <p class="text-slate-500 mb-4">
-                            Help us build the future of democratic banking. Review our code, submit pull requests, and improve the platform.
+                            Help us build the open-source platform. Review our code, submit pull requests, and improve the platform.
                         </p>
                         <a href="{{ config('brand.github_url') }}" class="text-indigo-600 font-medium hover:text-indigo-700">
                             View Repository →
@@ -240,7 +240,7 @@
                     <h4 class="text-white font-semibold mb-4">Platform</h4>
                     <ul class="space-y-2">
                         <li><a href="/platform" class="hover:text-white transition">Overview</a></li>
-                        <li><a href="/gcu" class="hover:text-white transition">GCU</a></li>
+                        <li><a href="/gcu" class="hover:text-white transition">GCU demo</a></li>
                         <li><a href="/sub-products" class="hover:text-white transition">Modules</a></li>
                         <li><a href="/pricing" class="hover:text-white transition">Pricing</a></li>
                     </ul>
@@ -259,7 +259,7 @@
                     <ul class="space-y-2">
                         <li><a href="/support" class="hover:text-white transition">Support</a></li>
                         <li><a href="/blog" class="hover:text-white transition">Blog</a></li>
-                        <li><a href="/partners" class="hover:text-white transition">Partners</a></li>
+                        <li><a href="/partners" class="hover:text-white transition">Bank Connectors</a></li>
                         <li><a href="/about" class="hover:text-white transition">About</a></li>
                     </ul>
                 </div>

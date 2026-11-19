@@ -106,7 +106,9 @@ const rate = await client.exchangeRates.get('USD', 'EUR');
 const conversion = await client.exchangeRates.convert('USD', 'EUR', 100);
 ```
 
-### GCU (Global Currency Unit)
+### GCU demo (Global Currency Unit)
+
+The GCU is a software demonstration — it is not issued, offered or sold to anyone and has no monetary value.
 
 ```typescript
 // Get GCU composition

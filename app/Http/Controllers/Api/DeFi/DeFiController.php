@@ -21,7 +21,7 @@ use Throwable;
 
 #[OA\Tag(
     name: 'DeFi',
-    description: 'Decentralized Finance: DEX aggregation, lending, staking, yield optimization'
+    description: 'DEX aggregation and DeFi protocol data (integration adapters; no yield offered)'
 )]
 class DeFiController extends Controller
 {
@@ -494,14 +494,14 @@ class DeFiController extends Controller
     /**
      * Get liquid staking info and user positions.
      *
-     * Returns staking APY and the user's staked balance for the specified chain
+     * Returns staking rate data (informational) and the user's staked balance for the specified chain
      * via the Lido liquid staking protocol.
      */
     #[OA\Post(
         path: '/api/v1/defi/staking/stake',
         operationId: 'defiStaking',
         summary: 'Get staking info and positions',
-        description: 'Returns staking APY and the user\'s staked balance for the specified chain via the Lido liquid staking protocol.',
+        description: 'Returns staking rate data (informational) and the user\'s staked balance for the specified chain via the Lido liquid staking protocol.',
         tags: ['DeFi'],
         security: [['sanctum' => []]],
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['chain', 'wallet_address'], properties: [
@@ -572,25 +572,25 @@ class DeFiController extends Controller
     }
 
     /**
-     * Get yield opportunities across chains.
+     * List DeFi protocol rate data across chains (informational).
      *
-     * Returns the best yield opportunities across all supported chains and
-     * DeFi protocols for the given wallet address.
+     * Returns DeFi protocol rate data across all supported chains and
+     * DeFi protocols for the given wallet address (informational; no yield offered).
      */
     #[OA\Get(
         path: '/api/v1/defi/yield/best',
         operationId: 'defiYieldBest',
-        summary: 'Get best yield opportunities',
-        description: 'Returns the best yield opportunities across all supported chains and DeFi protocols for the given wallet address.',
+        summary: 'List DeFi protocol rate data (informational)',
+        description: 'Returns DeFi protocol rate data across all supported chains and DeFi protocols for the given wallet address (informational; no yield offered).',
         tags: ['DeFi'],
         security: [['sanctum' => []]],
         parameters: [
-        new OA\Parameter(name: 'wallet_address', in: 'query', required: true, description: 'Wallet address to find yield opportunities for', schema: new OA\Schema(type: 'string', maxLength: 100, example: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e')),
+        new OA\Parameter(name: 'wallet_address', in: 'query', required: true, description: 'Wallet address to list protocol rate data for', schema: new OA\Schema(type: 'string', maxLength: 100, example: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e')),
         ]
     )]
     #[OA\Response(
         response: 200,
-        description: 'Yield opportunities returned',
+        description: 'Protocol rate data returned',
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'success', type: 'boolean', example: true),
         new OA\Property(property: 'data', type: 'array', items: new OA\Items(type: 'object', properties: [

@@ -140,13 +140,13 @@ FinAegis includes these security features:
 ### Data Protection
 - Encrypted sensitive fields
 - Audit logging (event sourcing)
-- PII handling compliance
+- PII handling controls
 
 ### Financial Security
 - Transaction signing
 - Double-entry validation
 - Fraud detection (configurable)
-- KYC/AML compliance features
+- KYC/AML tooling
 
 ### Infrastructure
 - Rate limiting
