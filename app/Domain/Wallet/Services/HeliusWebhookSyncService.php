@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\Wallet\Services;
 
 use App\Domain\Account\Models\BlockchainAddress;
+use App\Domain\Wallet\Constants\ReservedAddresses;
 use App\Support\SecretRedactor;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
@@ -21,6 +23,10 @@ use RuntimeException;
  * user Solana addresses to the Helius webhook via their API.
  *
  * Uses a cache lock to prevent concurrent modifications from losing addresses.
+ * Single-address adds/removes are read-modify-write against ONE snapshot of
+ * the webhook config and fail closed: if that read fails or carries no
+ * address list, nothing is written (a PUT replaces the whole list, so writing
+ * from a failed read would wipe every other user's address).
  * Helius API: PUT /v0/webhooks/{id}?api-key={key} with accountAddresses in body.
  * Max 100,000 addresses per webhook. Costs 100 credits per API call.
  */
@@ -32,7 +38,18 @@ class HeliusWebhookSyncService
 
     private const CACHE_TTL = 3600;
 
-    private const LOCK_TIMEOUT = 15;
+    /**
+     * Lock TTL. Must exceed the worst case of one GET plus one PUT at the
+     * 15s HTTP timeout, so the lock cannot expire mid-update and let two
+     * read-modify-writes drop each other's addresses.
+     */
+    private const LOCK_TIMEOUT = 45;
+
+    /**
+     * Helius caps a webhook at 100,000 addresses; past it every PUT (and so
+     * the hourly full resync) is rejected. Alert well before that.
+     */
+    private const ADDRESS_ALERT_THRESHOLD = 90_000;
 
     /**
      * Fields Helius accepts on PUT /v0/webhooks/{id}.
@@ -50,16 +67,6 @@ class HeliusWebhookSyncService
         'authHeader',
         'txnStatus',
         'encoding',
-    ];
-
-    /** @var array<string> Solana system/program addresses that must never be monitored */
-    private const RESERVED_ADDRESSES = [
-        '11111111111111111111111111111111',
-        '11111111111111111111111111111112',
-        'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-        'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL',
-        'SysvarC1ock11111111111111111111111111111111',
-        'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC mint — too noisy
     ];
 
     /**
@@ -86,16 +93,7 @@ class HeliusWebhookSyncService
 
         // Lock to prevent concurrent read-modify-write race condition
         return (bool) Cache::lock(self::LOCK_KEY, self::LOCK_TIMEOUT)->block(10, function () use ($address, $webhookId, $apiKey): bool {
-            // Read fresh (bypass cache to get latest after lock acquisition)
-            $currentAddresses = $this->fetchAddressesFromApi($webhookId, $apiKey);
-
-            if (in_array($address, $currentAddresses, true)) {
-                return true;
-            }
-
-            $currentAddresses[] = $address;
-
-            return $this->updateWebhookAddresses($webhookId, $apiKey, $currentAddresses);
+            return $this->mutateWebhookAddresses($webhookId, $apiKey, $address, add: true);
         });
     }
 
@@ -112,21 +110,19 @@ class HeliusWebhookSyncService
         }
 
         return (bool) Cache::lock(self::LOCK_KEY, self::LOCK_TIMEOUT)->block(10, function () use ($address, $webhookId, $apiKey): bool {
-            $currentAddresses = $this->fetchAddressesFromApi($webhookId, $apiKey);
-            $updated = array_values(array_diff($currentAddresses, [$address]));
-
-            if (count($updated) === count($currentAddresses)) {
-                return true;
-            }
-
-            return $this->updateWebhookAddresses($webhookId, $apiKey, $updated);
+            return $this->mutateWebhookAddresses($webhookId, $apiKey, $address, add: false);
         });
     }
 
     /**
      * Sync all Solana addresses from the database to Helius.
      *
-     * Returns the count of addresses pushed on success, 0 on failure.
+     * Holds the same lock as the single-address updates and reads the
+     * database inside it, so an address added while the sync runs is never
+     * dropped by the full-list PUT.
+     *
+     * Returns the count of addresses pushed on success, 0 on failure
+     * (including when the lock cannot be taken).
      */
     public function syncAllAddresses(): int
     {
@@ -139,46 +135,92 @@ class HeliusWebhookSyncService
             return 0;
         }
 
-        $addresses = BlockchainAddress::where('chain', 'solana')
-            ->where('is_active', true)
-            ->pluck('address')
-            ->unique()
-            ->reject(fn (string $addr): bool => $this->isReservedAddress($addr))
-            ->values()
-            ->all();
+        try {
+            return (int) Cache::lock(self::LOCK_KEY, self::LOCK_TIMEOUT)->block(10, function () use ($webhookId, $apiKey): int {
+                $addresses = BlockchainAddress::where('chain', 'solana')
+                    ->where('is_active', true)
+                    ->pluck('address')
+                    ->unique()
+                    ->reject(fn (string $addr): bool => $this->isReservedAddress($addr))
+                    ->values()
+                    ->all();
 
-        if (! $this->updateWebhookAddresses($webhookId, $apiKey, $addresses)) {
+                if (! $this->updateWebhookAddresses($webhookId, $apiKey, $addresses)) {
+                    return 0;
+                }
+
+                Log::info('Helius: Synced all Solana addresses', ['count' => count($addresses)]);
+
+                return count($addresses);
+            });
+        } catch (LockTimeoutException) {
+            Log::warning('Helius: Full address sync skipped — another webhook update holds the lock');
+
             return 0;
         }
-
-        Log::info('Helius: Synced all Solana addresses', ['count' => count($addresses)]);
-
-        return count($addresses);
     }
 
     /**
-     * Fetch addresses directly from Helius API (bypasses cache).
-     *
-     * @return array<string>
+     * Add or remove ONE address against a single fresh snapshot of the
+     * webhook config (the same GET supplies the current list and the config
+     * that is PUT back). Fails closed: a failed GET, or a config without an
+     * `accountAddresses` list, writes nothing; and a PUT that would change
+     * the list by anything other than the one address is refused.
      */
-    private function fetchAddressesFromApi(string $webhookId, string $apiKey): array
+    private function mutateWebhookAddresses(string $webhookId, string $apiKey, string $address, bool $add): bool
     {
         $response = $this->send('GET', $webhookId, $apiKey);
 
         if (! $response->successful()) {
-            Log::error('Helius: Failed to fetch webhook', [
-                'status' => $response->status(),
+            Log::error('Helius: Failed to fetch webhook, address list left unchanged', [
+                'status'    => $response->status(),
+                'operation' => $add ? 'add' : 'remove',
             ]);
 
-            return [];
+            return false;
         }
 
-        /** @var array<string> $addresses */
-        $addresses = $response->json('accountAddresses', []);
+        $config = $response->json();
 
-        Cache::put(self::CACHE_KEY, $addresses, self::CACHE_TTL);
+        if (! is_array($config) || ! isset($config['accountAddresses']) || ! is_array($config['accountAddresses'])) {
+            Log::error('Helius: Webhook config has no accountAddresses list, address list left unchanged', [
+                'operation' => $add ? 'add' : 'remove',
+            ]);
 
-        return $addresses;
+            return false;
+        }
+
+        /** @var array<int, string> $current */
+        $current = array_values(array_unique(array_filter($config['accountAddresses'], 'is_string')));
+
+        Cache::put(self::CACHE_KEY, $current, self::CACHE_TTL);
+
+        if ($add) {
+            if (in_array($address, $current, true)) {
+                return true;
+            }
+
+            $updated = [...$current, $address];
+        } else {
+            $updated = array_values(array_diff($current, [$address]));
+
+            if (count($updated) === count($current)) {
+                return true;
+            }
+        }
+
+        // Safety net: a single add/remove changes the list by exactly one.
+        if (abs(count($updated) - count($current)) !== 1) {
+            Log::error('Helius: Refusing webhook update that changes more than one address', [
+                'current_count' => count($current),
+                'updated_count' => count($updated),
+            ]);
+
+            return false;
+        }
+
+        /** @var array<string, mixed> $config */
+        return $this->putWebhookAddresses($webhookId, $apiKey, $config, $updated);
     }
 
     /**
@@ -213,6 +255,19 @@ class HeliusWebhookSyncService
         /** @var array<string, mixed> $config */
         $config = (array) $current->json();
 
+        return $this->putWebhookAddresses($webhookId, $apiKey, $config, $uniqueAddresses);
+    }
+
+    /**
+     * PUT the webhook config back with a new address list.
+     *
+     * @param array<string, mixed> $config    config as returned by GET
+     * @param array<int, string>   $addresses
+     */
+    private function putWebhookAddresses(string $webhookId, string $apiKey, array $config, array $addresses): bool
+    {
+        $uniqueAddresses = array_values(array_unique($addresses));
+
         // Helius rejects unknown/server-managed fields on PUT. Whitelist only
         // the fields documented as accepted, plus our updated address list.
         $config = array_intersect_key($config, array_flip(self::PUT_ALLOWED_FIELDS));
@@ -233,6 +288,13 @@ class HeliusWebhookSyncService
         Cache::put(self::CACHE_KEY, $uniqueAddresses, self::CACHE_TTL);
 
         Log::info('Helius: Webhook addresses updated', ['count' => count($uniqueAddresses)]);
+
+        if (count($uniqueAddresses) >= self::ADDRESS_ALERT_THRESHOLD) {
+            Log::critical('Helius: webhook address list is close to the 100,000-address cap', [
+                'count'     => count($uniqueAddresses),
+                'threshold' => self::ADDRESS_ALERT_THRESHOLD,
+            ]);
+        }
 
         return true;
     }
@@ -261,7 +323,7 @@ class HeliusWebhookSyncService
 
     private function isReservedAddress(string $address): bool
     {
-        return in_array($address, self::RESERVED_ADDRESSES, true);
+        return ReservedAddresses::isReservedSolana($address);
     }
 
     private function getWebhookId(): string

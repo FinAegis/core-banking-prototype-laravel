@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Wallet\Observers;
 
 use App\Domain\Relayer\Models\SmartAccount;
+use App\Domain\Relayer\Services\SmartAccountService;
 use App\Domain\Wallet\Services\AlchemyWebhookManager;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -26,6 +27,19 @@ class SmartAccountObserver
 
     public function created(SmartAccount $account): void
     {
+        // Every watched address costs webhook capacity: a user past the
+        // owner-address cap (a row created outside SmartAccountService) is
+        // not watched.
+        if (count(SmartAccountService::ownerAddressesOf((int) $account->user_id)) > SmartAccountService::maxOwnerAddressesPerUser()) {
+            Log::warning('EVM webhook: smart account over the owner-address cap, not watched', [
+                'address' => $account->account_address,
+                'network' => $account->network,
+                'user_id' => $account->user_id,
+            ]);
+
+            return;
+        }
+
         dispatch(function () use ($account): void {
             try {
                 $this->webhookManager->addAddress(

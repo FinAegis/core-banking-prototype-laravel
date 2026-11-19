@@ -12,6 +12,8 @@ use App\Domain\Relayer\Contracts\PaymasterInterface;
 use App\Domain\Relayer\Contracts\SmartAccountFactoryInterface;
 use App\Domain\Relayer\Contracts\UserOperationSignerInterface;
 use App\Domain\Relayer\Contracts\WalletBalanceProviderInterface;
+use App\Domain\Relayer\Events\TransactionSponsored;
+use App\Domain\Relayer\Listeners\RecordGenericSponsorshipSpend;
 use App\Domain\Relayer\Services\DemoBundlerService;
 use App\Domain\Relayer\Services\DemoPaymasterService;
 use App\Domain\Relayer\Services\DemoSmartAccountFactory;
@@ -26,6 +28,7 @@ use App\Domain\Relayer\Services\WalletBalanceService;
 use App\Http\Middleware\TransactionRateLimitMiddleware;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -119,6 +122,10 @@ class RelayerServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Generic sponsorship spends platform gas: charge it to the shared
+        // daily USD sponsorship budget (wallet.sponsorship.daily_budget_usd).
+        Event::listen(TransactionSponsored::class, RecordGenericSponsorshipSpend::class);
+
         // Per-user limit for the GraphQL sponsorTransaction mutation
         // (@throttle(name: "relayer-sponsor") in graphql/relayer.graphql):
         // the hourly and daily counts that REST POST /api/v1/relayer/sponsor

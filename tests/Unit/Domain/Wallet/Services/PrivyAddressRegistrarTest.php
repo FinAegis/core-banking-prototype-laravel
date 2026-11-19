@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Account\Models\BlockchainAddress;
+use App\Domain\Wallet\Exceptions\AddressRegistrationRejectedException;
 use App\Domain\Wallet\Services\PrivyAddressRegistrar;
 use App\Models\User;
 use Tests\TestCase;
@@ -12,7 +13,7 @@ uses(TestCase::class, CreatesSolanaTestTables::class);
 
 beforeEach(function (): void {
     $this->createSolanaTestTables();
-    $this->registrar = new PrivyAddressRegistrar();
+    $this->registrar = app(PrivyAddressRegistrar::class);
 });
 
 afterEach(function (): void {
@@ -138,6 +139,6 @@ it('refuses to take over an address already registered to a different user', fun
     $this->registrar->register(
         user: $userB,
         evm: ['address' => '0x742d35Cc6634C0532925a3b844Bc454e4438f44e'],
-        solana: ['address' => 'BPFLoaderUpgradeab1e11111111111111111111111'],
+        solana: ['address' => '9UYjpLnTu78B5kqNoKgghLTcRKsUUZNRGUfxEZiwpR7L'],
     );
-})->throws(InvalidArgumentException::class, 'already registered to a different user');
+})->throws(AddressRegistrationRejectedException::class, AddressRegistrationRejectedException::MESSAGE);

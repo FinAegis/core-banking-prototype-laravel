@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Domain\Account\Models\BlockchainAddress;
+use App\Domain\Wallet\Constants\ReservedAddresses;
 use App\Support\SecretRedactor;
 use Illuminate\Console\Command;
 use Illuminate\Http\Client\ConnectionException;
@@ -42,10 +43,14 @@ class SolanaReconcileHeliusCommand extends Command
             return self::SUCCESS;
         }
 
+        // Reserved addresses are never pushed to Helius (see
+        // HeliusWebhookSyncService::syncAllAddresses), so compare the same set
+        // — otherwise one such row keeps the drift alarm permanently red.
         $dbAddresses = BlockchainAddress::where('chain', 'solana')
             ->where('is_active', true)
             ->pluck('address')
             ->unique()
+            ->reject(fn (string $address): bool => ReservedAddresses::isReservedSolana($address))
             ->values()
             ->all();
 

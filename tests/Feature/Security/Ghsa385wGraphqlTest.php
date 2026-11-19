@@ -22,6 +22,7 @@ use App\Domain\Ledger\Services\ChartOfAccountsService;
 use App\Domain\Regulatory\Models\RegulatoryReport;
 use App\Domain\Relayer\Models\SmartAccount;
 use App\Domain\Relayer\Services\SmartAccountService;
+use App\Domain\Wallet\Exceptions\AddressRegistrationRejectedException;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -560,7 +561,7 @@ describe('C40 createSmartAccount never hands out or overwrites another user\'s s
 
         $json = g385wGraphql($this, $attacker, 'mutation ($o: String!) { createSmartAccount(input: { owner_address: $o, network: "polygon" }) { id user_id account_address nonce } }', ['o' => $owner]);
 
-        expect(g385wError($json))->toBe('This owner address is already registered to another account.')
+        expect(g385wError($json))->toBe(AddressRegistrationRejectedException::MESSAGE)
             ->and($json['data'] ?? null)->toBeNull()
             ->and((string) json_encode($json))->not->toContain((string) $account->account_address);
         expect(SmartAccount::query()->count())->toBe(1)
@@ -575,9 +576,10 @@ describe('C40 createSmartAccount never hands out or overwrites another user\'s s
         Sanctum::actingAs(g385wCustomer(), ['read', 'write', 'delete']);
         $response = $this->postJson('/api/v1/relayer/account', ['owner_address' => $owner, 'network' => 'polygon']);
 
-        $response->assertStatus(409)
+        // Same generic 422 as the wallet address registrar (review W2).
+        $response->assertStatus(422)
             ->assertJsonPath('success', false)
-            ->assertJsonPath('error.code', 'ERR_RELAYER_101');
+            ->assertJsonPath('error.code', 'INVALID_ADDRESS');
         expect($response->json('data'))->toBeNull();
         expect(SmartAccount::query()->count())->toBe(1)
             ->and((int) $account->fresh()?->user_id)->toBe($victim->id);

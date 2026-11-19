@@ -112,4 +112,46 @@ return [
         // bounded by the count caps above. See SponsorshipCostTracker.
         'daily_budget_usd' => env('WALLET_SPONSORSHIP_DAILY_BUDGET_USD'),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Wallet Address Registration (POST /api/v1/wallet/addresses)
+    |--------------------------------------------------------------------------
+    |
+    | Every registered address is watched (Helius/Alchemy) and attributes
+    | inbound transfers to its owner, so registration is bounded. Re-posting
+    | addresses a user already owns is never limited.
+    |
+    | ownership_verification: enforce | monitor | off. `enforce` requires each
+    | new address to be a wallet of the caller's Privy account (Privy server
+    | API, needs PRIVY_APP_SECRET) and fails closed when Privy cannot be
+    | asked. `monitor` runs the same check but only logs mismatches — use it
+    | to confirm real users pass, then switch to `enforce`.
+    |
+    | max_addresses_per_chain: distinct Privy addresses one user may hold per
+    | chain (the EVM address counts once for all EVM chains). A normal user
+    | has exactly one; the headroom covers wallet migrations.
+    |
+    | max_smart_account_owners: distinct owner addresses one user may create
+    | relayer smart accounts for (POST /api/v1/relayer/account and
+    | /api/v1/wallet/create-account). A normal user has one owner mirrored
+    | across the EVM networks.
+    |
+    | max_new_claims_per_hour: registrations that add an address the user
+    | does not hold yet (refused ones count too, so probing is bounded).
+    |
+    | inbound_side_effects_per_address_per_hour: above this many matched
+    | Solana webhook transactions for one address in an hour, the per-tx
+    | balance RPC pre-warm and push are skipped (the transfer is still
+    | recorded). Bounds the cost of a watched address with heavy traffic.
+    |
+    */
+
+    'address_registration' => [
+        'ownership_verification'                    => (string) env('WALLET_ADDRESS_OWNERSHIP_VERIFICATION', 'monitor'),
+        'max_addresses_per_chain'                   => (int) env('WALLET_ADDRESS_MAX_PER_CHAIN', 3),
+        'max_smart_account_owners'                  => (int) env('WALLET_SMART_ACCOUNT_MAX_OWNERS', 3),
+        'max_new_claims_per_hour'                   => (int) env('WALLET_ADDRESS_NEW_CLAIMS_PER_HOUR', 10),
+        'inbound_side_effects_per_address_per_hour' => (int) env('WALLET_INBOUND_SIDE_EFFECTS_PER_ADDRESS_PER_HOUR', 120),
+    ],
 ];

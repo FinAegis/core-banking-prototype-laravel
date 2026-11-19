@@ -126,11 +126,13 @@ class EvmTransactionProcessor
                 throw $e;
             }
 
+            // Keyed per user: each platform party to a transfer gets its own
+            // feed row, so a counterparty that registered the other side's
+            // address cannot take this user's entry.
             if ($walletSend === null) {
                 ActivityFeedItem::firstOrCreate(
-                    ['reference_type' => 'evm_tx', 'reference_id' => self::txHashToReferenceId($chain, $hash)],
+                    ['reference_type' => 'evm_tx', 'reference_id' => self::txHashToReferenceId($chain, $hash), 'user_id' => $userId],
                     [
-                        'user_id'       => $userId,
                         'activity_type' => $isIncoming ? ActivityItemType::TRANSFER_IN : ActivityItemType::TRANSFER_OUT,
                         'amount'        => $isIncoming ? $amount : '-' . $amount,
                         'asset'         => $asset,

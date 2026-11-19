@@ -433,6 +433,7 @@ class OpsVerifyEnvCommand extends Command
 
         $this->checkPrivacyProviders();
         $this->checkPimlicoBundlerUrl();
+        $this->checkWalletOwnershipVerification();
     }
 
     /**
@@ -467,6 +468,54 @@ class OpsVerifyEnvCommand extends Command
         }
 
         $this->add(self::CATEGORY_CONDITIONAL, 'relayer.pimlico.bundler_url', self::PASS, 'PIMLICO_BUNDLER_URL is pinned and at most one EVM network is enabled.');
+    }
+
+    /**
+     * POST /api/v1/wallet/addresses checks each new address against the
+     * caller's Privy wallets. `monitor` (the release default) and `off` only
+     * log a mismatch, so production WARNs until the logs show real users pass
+     * and the operator switches to `enforce`. `enforce` needs the Privy server
+     * credentials, otherwise every new registration fails closed (503).
+     */
+    private function checkWalletOwnershipVerification(): void
+    {
+        $name = 'wallet.address_registration.ownership_verification';
+        $mode = strtolower($this->configString($name));
+        $mode = in_array($mode, ['enforce', 'monitor', 'off'], true) ? $mode : 'monitor';
+
+        if ($mode === 'enforce') {
+            $missing = [];
+
+            foreach (['privy.app_id' => 'PRIVY_APP_ID', 'privy.app_secret' => 'PRIVY_APP_SECRET'] as $configKey => $envName) {
+                if ($this->configString($configKey) === '') {
+                    $missing[] = $envName;
+                }
+            }
+
+            if ($missing !== []) {
+                $this->add(self::CATEGORY_CONDITIONAL, $name, self::FAIL, sprintf(
+                    'WALLET_ADDRESS_OWNERSHIP_VERIFICATION=enforce but missing: %s. Every new wallet address registration fails closed (503 ADDRESS_VERIFICATION_UNAVAILABLE).',
+                    implode(', ', $missing),
+                ));
+
+                return;
+            }
+
+            $this->add(self::CATEGORY_CONDITIONAL, $name, self::PASS, 'WALLET_ADDRESS_OWNERSHIP_VERIFICATION=enforce.');
+
+            return;
+        }
+
+        if (! $this->laravel->environment('production')) {
+            $this->add(self::CATEGORY_CONDITIONAL, $name, self::SKIP, sprintf('WALLET_ADDRESS_OWNERSHIP_VERIFICATION=%s (checked in production only).', $mode));
+
+            return;
+        }
+
+        $this->add(self::CATEGORY_CONDITIONAL, $name, self::WARN, sprintf(
+            'WALLET_ADDRESS_OWNERSHIP_VERIFICATION=%s: POST /api/v1/wallet/addresses does not refuse an address that is not one of the caller\'s Privy wallets; mismatches are only logged ("wallet.addresses: submitted address is not a wallet of the caller\'s Privy account"). Switch to enforce once those logs show that real users pass.',
+            $mode,
+        ));
     }
 
     /**

@@ -102,7 +102,10 @@ class WalletSponsorshipSpendCommand extends Command
         }
 
         $this->info("Sponsored-send spend for {$summary['utc_day']} (UTC)");
-        $this->line("Prepared sends today (count guardrail): {$prepareCount}");
+        // The global count is taken when a send is submitted (and by generic
+        // sponsorship at admission); the `prepares_today` JSON key is kept
+        // for compatibility.
+        $this->line("Sponsored sends counted today (global guardrail): {$prepareCount}");
         $this->newLine();
 
         if ($networks === []) {

@@ -136,7 +136,9 @@ class ProcessAlchemyWebhookJob implements ShouldQueue
                         ->where('chain', $network)
                         ->first();
 
-                    if ($blockchainAddress !== null) {
+                    // Only mirror against a row the resolved user owns — never
+                    // record one user's transfer under another user's row.
+                    if ($blockchainAddress !== null && $blockchainAddress->user?->id === $userId) {
                         $evmProcessor->processActivity($address, $blockchainAddress, $userId, $network, $activity);
                     }
                 }
@@ -160,7 +162,10 @@ class ProcessAlchemyWebhookJob implements ShouldQueue
     /**
      * Resolve wallet address to user ID with caching.
      *
-     * Checks both blockchain_addresses and smart_accounts tables.
+     * Checks both blockchain_addresses and smart_accounts tables. When they
+     * name different users the EARLIEST claim wins — a later registration of
+     * someone else's address must never take over attribution (pushes,
+     * balance broadcasts, activity rows) of transfers to it.
      * Caches the mapping for 1 hour (positive) or 5 minutes (negative).
      */
     private function resolveUserId(string $address): ?int
@@ -173,14 +178,31 @@ class ProcessAlchemyWebhookJob implements ShouldQueue
             return $cached === 0 ? null : (int) $cached;
         }
 
-        // Check blockchain_addresses first (legacy EOA addresses)
-        $blockchainAddress = BlockchainAddress::where('address', $address)->first();
+        // blockchain_addresses (Privy / legacy EOA rows) — oldest claim first.
+        $blockchainAddress = BlockchainAddress::where('address', $address)->oldest()->first();
         $userId = $blockchainAddress?->user?->id;
 
-        // Check smart_accounts if not found (ERC-4337 accounts)
-        if ($userId === null) {
-            $smartAccount = SmartAccount::where('account_address', $address)->first();
-            $userId = $smartAccount?->user_id;
+        // smart_accounts (ERC-4337 relayer accounts)
+        $smartAccount = SmartAccount::where('account_address', $address)->first();
+
+        if ($smartAccount !== null && $userId !== $smartAccount->user_id) {
+            // A smart account without a creation date does not take over a
+            // dated blockchain_addresses claim.
+            $smartAccountIsOlder = $blockchainAddress === null
+                || $blockchainAddress->created_at === null
+                || ($smartAccount->created_at !== null && $smartAccount->created_at->lte($blockchainAddress->created_at));
+
+            if ($userId !== null) {
+                Log::warning('Alchemy webhook: address claimed by two users, attributing to the earliest claim', [
+                    'address'                    => $address,
+                    'blockchain_address_user_id' => $userId,
+                    'smart_account_user_id'      => $smartAccount->user_id,
+                ]);
+            }
+
+            if ($smartAccountIsOlder) {
+                $userId = $smartAccount->user_id;
+            }
         }
 
         // Positive cache: 1 hour. Negative cache: 5 min (new users get detected faster).

@@ -8,6 +8,8 @@ use App\Domain\Relayer\Contracts\SmartAccountFactoryInterface;
 use App\Domain\Relayer\Exceptions\SmartAccountException;
 use App\Domain\Relayer\Models\SmartAccount;
 use App\Models\User;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -26,10 +28,12 @@ class SmartAccountService
      * Create or retrieve a smart account for a user.
      *
      * If the user's account for this owner and network already exists,
-     * returns it. Otherwise creates a new one. An owner address registered to
-     * another user's smart account is refused without revealing that account.
+     * returns it. Otherwise creates a new one, unless the owner address is
+     * registered to another user's smart account or the user is at the
+     * owner-address cap. Both refusals are the same generic 422
+     * INVALID_ADDRESS and reveal nothing about the other account.
      *
-     * @throws SmartAccountException If network is invalid, or the owner address belongs to another user's smart account
+     * @throws SmartAccountException If network is invalid or the owner address is refused
      */
     public function getOrCreateAccount(User $user, string $ownerAddress, string $network): SmartAccount
     {
@@ -42,8 +46,8 @@ class SmartAccountService
             ->first();
 
         if ($existing) {
-            if ((int) $existing->user_id !== (int) $user->getKey()) {
-                throw SmartAccountException::ownerRegisteredToAnotherUser();
+            if ((int) $existing->user_id !== (int) $user->id) {
+                $this->refuseOwner($user, 'owner_of_other_user', $normalizedOwner, $network);
             }
 
             return $existing;
@@ -52,16 +56,39 @@ class SmartAccountService
         // Compute counterfactual address
         $accountAddress = $this->factory->computeAddress($ownerAddress, $network);
 
-        // Create the account record
-        $account = SmartAccount::create([
-            'user_id'         => $user->id,
-            'owner_address'   => $normalizedOwner,
-            'account_address' => strtolower($accountAddress),
-            'network'         => $network,
-            'deployed'        => false,
-            'nonce'           => 0,
-            'pending_ops'     => 0,
-        ]);
+        try {
+            $account = DB::transaction(function () use ($user, $normalizedOwner, $accountAddress, $network): SmartAccount {
+                // Serialise this user's creations so the owner cap cannot be
+                // raced past.
+                User::query()->whereKey($user->getKey())->lockForUpdate()->first();
+
+                $owners = self::ownerAddressesOf((int) $user->id);
+                if (! in_array($normalizedOwner, $owners, true) && count($owners) >= self::maxOwnerAddressesPerUser()) {
+                    $this->refuseOwner($user, 'owner_cap', $normalizedOwner, $network);
+                }
+
+                return SmartAccount::create([
+                    'user_id'         => $user->id,
+                    'owner_address'   => $normalizedOwner,
+                    'account_address' => strtolower($accountAddress),
+                    'network'         => $network,
+                    'deployed'        => false,
+                    'nonce'           => 0,
+                    'pending_ops'     => 0,
+                ]);
+            });
+        } catch (UniqueConstraintViolationException) {
+            // Created meanwhile by a concurrent request.
+            $existing = SmartAccount::where('owner_address', $normalizedOwner)
+                ->where('network', $network)
+                ->first();
+
+            if ($existing === null || (int) $existing->user_id !== (int) $user->id) {
+                $this->refuseOwner($user, 'owner_claimed_concurrently', $normalizedOwner, $network);
+            }
+
+            return $existing;
+        }
 
         Log::info('Smart account created', [
             'user_id'         => $user->id,
@@ -71,6 +98,47 @@ class SmartAccountService
         ]);
 
         return $account;
+    }
+
+    /**
+     * Distinct owner addresses a user may hold smart accounts for. A Zelta
+     * user has one owner mirrored across the EVM networks; every created
+     * account is watched (Alchemy), so the count is capped.
+     */
+    public static function maxOwnerAddressesPerUser(): int
+    {
+        return max(1, (int) config('wallet.address_registration.max_smart_account_owners', 3));
+    }
+
+    /**
+     * @return list<string> the user's distinct (lower-case) owner addresses
+     */
+    public static function ownerAddressesOf(int $userId): array
+    {
+        $owners = SmartAccount::query()
+            ->where('user_id', $userId)
+            ->pluck('owner_address')
+            ->map(static fn (mixed $owner): string => strtolower((string) $owner))
+            ->unique()
+            ->all();
+
+        return array_values($owners);
+    }
+
+    /**
+     * @throws SmartAccountException always (generic 422; the reason is logged)
+     */
+    private function refuseOwner(User $user, string $reason, string $ownerAddress, string $network): never
+    {
+        Log::warning('Smart account creation refused', [
+            'reason'        => $reason,
+            'user_id'       => $user->id,
+            'owner_address' => $ownerAddress,
+            'network'       => $network,
+            'limit'         => self::maxOwnerAddressesPerUser(),
+        ]);
+
+        throw SmartAccountException::ownerNotAllowed();
     }
 
     /**

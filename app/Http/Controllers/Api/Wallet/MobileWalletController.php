@@ -15,6 +15,8 @@ use App\Domain\Relayer\Enums\SupportedNetwork;
 use App\Domain\Relayer\Services\SmartAccountService;
 use App\Domain\Wallet\Constants\SolanaCacheKeys;
 use App\Domain\Wallet\Constants\SolanaTokens;
+use App\Domain\Wallet\Exceptions\AddressOwnershipUnavailableException;
+use App\Domain\Wallet\Exceptions\AddressRegistrationRateLimitedException;
 use App\Domain\Wallet\Exceptions\IdempotencyConflictException;
 use App\Domain\Wallet\Exceptions\InvalidAddressException;
 use App\Domain\Wallet\Exceptions\InvalidAmountException;
@@ -441,7 +443,9 @@ class MobileWalletController extends Controller
         ]))
     )]
     #[OA\Response(response: 201, description: 'Addresses registered')]
-    #[OA\Response(response: 422, description: 'Invalid address or address already owned by a different user')]
+    #[OA\Response(response: 422, description: 'Invalid address, or the address cannot be registered to this account (INVALID_ADDRESS; one generic message for reserved, unowned, over-cap or already-claimed addresses)')]
+    #[OA\Response(response: 429, description: 'Too many new-address registrations (ADDRESS_REGISTRATION_RATE_LIMITED); re-posting owned addresses is never limited')]
+    #[OA\Response(response: 503, description: 'Wallet ownership could not be verified while verification is enforced (ADDRESS_VERIFICATION_UNAVAILABLE)')]
     #[OA\Response(response: 401, description: 'Unauthorized')]
     public function registerAddresses(Request $request): JsonResponse
     {
@@ -470,6 +474,17 @@ class MobileWalletController extends Controller
                 'success' => false,
                 'error'   => ['code' => 'INVALID_ADDRESS', 'message' => $e->getMessage()],
             ], 422);
+        } catch (AddressRegistrationRateLimitedException $e) {
+            return response()->json([
+                'success'     => false,
+                'error'       => ['code' => 'ADDRESS_REGISTRATION_RATE_LIMITED', 'message' => $e->getMessage()],
+                'retry_after' => $e->retryAfterSeconds,
+            ], 429)->header('Retry-After', (string) $e->retryAfterSeconds);
+        } catch (AddressOwnershipUnavailableException $e) {
+            return response()->json([
+                'success' => false,
+                'error'   => ['code' => 'ADDRESS_VERIFICATION_UNAVAILABLE', 'message' => $e->getMessage()],
+            ], 503);
         }
 
         return response()->json([
@@ -678,6 +693,7 @@ class MobileWalletController extends Controller
     )]
     #[OA\Response(response: 201, description: 'Unsigned payload ready')]
     #[OA\Response(response: 409, description: 'Idempotency conflict')]
+    #[OA\Response(response: 429, description: 'Daily send limit reached (SEND_DAILY_LIMIT_REACHED) or sends paused platform-wide (SEND_TEMPORARILY_UNAVAILABLE)')]
     #[OA\Response(response: 422, description: 'Validation / address / asset / amount / network error')]
     #[OA\Response(response: 401, description: 'Unauthorized')]
     public function prepareTransaction(Request $request): JsonResponse
@@ -724,13 +740,19 @@ class MobileWalletController extends Controller
         }
 
         // Anti-abuse guardrail: bound per-user and global sponsored-send volume.
-        $rateLimited = $this->enforceSendRateLimit($user);
+        // Prepare reserves one unit of the caller's own daily allowance (given
+        // back below when the prepare fails or replays an existing intent);
+        // the shared global unit is only taken at submit.
+        $budget = new SponsorshipBudget($this->sponsorshipCostTracker);
+        $rateLimited = $this->enforceSendRateLimit($user, $budget);
         if ($rateLimited !== null) {
             return $rateLimited;
         }
 
         $sender = $this->resolveSenderAddress($user, $networkKey);
         if ($sender === null) {
+            $budget->releaseUser();
+
             return response()->json([
                 'success' => false,
                 'error'   => ['code' => 'NO_SENDER_ADDRESS', 'message' => 'No registered address for this network. POST /api/v1/wallet/addresses first.'],
@@ -761,22 +783,34 @@ class MobileWalletController extends Controller
                 );
             }
         } catch (IdempotencyConflictException $e) {
+            $budget->releaseUser();
+
             return response()->json([
                 'success' => false,
                 'error'   => ['code' => 'IDEMPOTENCY_CONFLICT', 'message' => $e->getMessage()],
             ], 409);
         } catch (NetworkDisabledException | InvalidAssetException | InvalidAddressException | InvalidAmountException $e) {
+            $budget->releaseUser();
+
             return response()->json([
                 'success' => false,
                 'error'   => ['code' => $this->errorCodeFor($e), 'message' => $e->getMessage()],
             ], 422);
         } catch (Throwable $e) {
+            $budget->releaseUser();
             Log::warning('wallet.prepare failed', ['exception' => $e::class, 'message' => SecretRedactor::message($e)]);
 
             return response()->json([
                 'success' => false,
                 'error'   => ['code' => 'PREPARE_FAILED', 'message' => 'Could not prepare the transaction.'],
             ], 422);
+        }
+
+        // An idempotent replay returns the intent the original prepare already
+        // paid for; a record that failed at prepare (e.g. paymaster refusal)
+        // will never be sent. Neither keeps the reserved unit.
+        if (! $result['record']->wasRecentlyCreated || $result['record']->status === WalletSendRecord::STATUS_FAILED) {
+            $budget->releaseUser();
         }
 
         return response()->json([
@@ -808,6 +842,7 @@ class MobileWalletController extends Controller
     #[OA\Response(response: 200, description: 'Submitted (or already submitted)')]
     #[OA\Response(response: 404, description: 'Intent not found for this user')]
     #[OA\Response(response: 422, description: 'Bad signature / state')]
+    #[OA\Response(response: 429, description: 'Platform-wide daily sponsorship ceiling reached (SEND_TEMPORARILY_UNAVAILABLE); the intent stays pending')]
     #[OA\Response(response: 401, description: 'Unauthorized')]
     public function submitTransaction(Request $request): JsonResponse
     {
@@ -839,6 +874,27 @@ class MobileWalletController extends Controller
             ], 404);
         }
 
+        // The shared global sponsorship unit is taken here, right before the
+        // platform broadcasts (and pays for) the send — not at prepare, where
+        // abandoned intents from throwaway accounts could drain it for
+        // everyone. Re-submits of an already-processed intent take nothing.
+        $budget = new SponsorshipBudget($this->sponsorshipCostTracker);
+        $tookGlobalUnit = false;
+
+        if ($record->status === WalletSendRecord::STATUS_PENDING) {
+            if ($budget->consumeGlobal('wallet.send') !== null) {
+                return response()->json([
+                    'success' => false,
+                    'error'   => [
+                        'code'    => 'SEND_TEMPORARILY_UNAVAILABLE',
+                        'message' => 'Sends are temporarily paused. Please try again later.',
+                    ],
+                ], 429);
+            }
+
+            $tookGlobalUnit = true;
+        }
+
         try {
             if ($record->network === 'solana') {
                 $record = $this->solanaSendSubmitter->submit($record, (string) $validated['signature']);
@@ -846,17 +902,29 @@ class MobileWalletController extends Controller
                 $record = $this->evmUserOpSubmitter->submit($record, (string) $validated['signature']);
             }
         } catch (InvalidSignatureException | InvalidSendStateException $e) {
+            if ($tookGlobalUnit) {
+                $budget->releaseGlobal();
+            }
+
             return response()->json([
                 'success' => false,
                 'error'   => ['code' => $this->errorCodeFor($e), 'message' => $e->getMessage()],
             ], 422);
         } catch (Throwable $e) {
+            if ($tookGlobalUnit) {
+                $budget->releaseGlobal();
+            }
             Log::warning('wallet.submit failed', ['exception' => $e::class, 'message' => SecretRedactor::message($e)]);
 
             return response()->json([
                 'success' => false,
                 'error'   => ['code' => 'SUBMIT_FAILED', 'message' => 'Could not submit the transaction.'],
             ], 422);
+        }
+
+        // Broadcast refused (bundler / RPC rejected it): nothing was spent.
+        if ($tookGlobalUnit && $record->status === WalletSendRecord::STATUS_FAILED) {
+            $budget->releaseGlobal();
         }
 
         return response()->json([
@@ -883,15 +951,15 @@ class MobileWalletController extends Controller
      * send volume per UTC day so a scripted account — or a viral spike —
      * cannot run up an unbounded paymaster bill. The counters (and the
      * optional USD budget) are the shared {@see SponsorshipBudget}, which
-     * generic relayer sponsorship draws on as well. One unit is consumed at
-     * prepare time (the entry point); abandoned prepares count too, which is
-     * deliberately conservative.
+     * generic relayer sponsorship draws on as well. Prepare reserves a unit
+     * of the caller's per-user count and checks the global count read-only;
+     * the global unit itself is taken at submit.
      *
      * Returns a 429 response when a limit is hit, or null to proceed.
      */
-    private function enforceSendRateLimit(\App\Models\User $user): ?JsonResponse
+    private function enforceSendRateLimit(\App\Models\User $user, SponsorshipBudget $budget): ?JsonResponse
     {
-        $denied = (new SponsorshipBudget($this->sponsorshipCostTracker))->consume($user->id, 'wallet.send');
+        $denied = $budget->reserveUser($user->id, 'wallet.send');
 
         if ($denied === null) {
             return null;

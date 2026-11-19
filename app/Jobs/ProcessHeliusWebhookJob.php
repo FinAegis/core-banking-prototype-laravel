@@ -210,12 +210,20 @@ class ProcessHeliusWebhookJob implements ShouldQueue
         Cache::forget(SolanaCacheKeys::balance($address));
         Cache::forget(SolanaCacheKeys::balances($address));
 
-        try {
-            $connector = BlockchainConnectorFactory::create('solana');
-            $balanceData = $connector->getBalance($address);
-            Cache::put(SolanaCacheKeys::balance($address), $balanceData->balance, 300);
-        } catch (Throwable) {
-            // Pre-warm is best-effort -- next request will query fresh
+        // A watched address with abnormal traffic (e.g. someone else's busy
+        // hot wallet registered as their own) must not cost an RPC call and
+        // a push per transaction: past the hourly budget the transfer is
+        // still recorded above, but those side effects are skipped.
+        $overBudget = $this->isOverInboundBudget($address, $user->id);
+
+        if (! $overBudget) {
+            try {
+                $connector = BlockchainConnectorFactory::create('solana');
+                $balanceData = $connector->getBalance($address);
+                Cache::put(SolanaCacheKeys::balance($address), $balanceData->balance, 300);
+            } catch (Throwable) {
+                // Pre-warm is best-effort -- next request will query fresh
+            }
         }
 
         $isIncoming = $processor->isIncoming($address, $tx);
@@ -225,8 +233,9 @@ class ProcessHeliusWebhookJob implements ShouldQueue
         $toAddr = $processor->resolveToAddress($tx);
 
         // Send FCM push notification — but never for inbound dust / address-
-        // poisoning spam, which is recorded for audit yet kept silent.
-        if (! $processor->isInboundDust($address, $tx)) {
+        // poisoning spam, which is recorded for audit yet kept silent, nor
+        // past the address's hourly side-effect budget.
+        if (! $overBudget && ! $processor->isInboundDust($address, $tx)) {
             try {
                 $counterpartyAddr = $isIncoming ? ($fromAddr ?? 'unknown') : ($toAddr ?? 'unknown');
                 $truncatedAddr = substr($counterpartyAddr, 0, 4) . '...' . substr($counterpartyAddr, -4);
@@ -249,5 +258,33 @@ class ProcessHeliusWebhookJob implements ShouldQueue
             'amount'    => $amount,
             'signature' => $signature,
         ]);
+    }
+
+    /**
+     * Count one matched transaction against the address's hourly budget and
+     * report whether it is over it. Cache::add + increment (never
+     * read-then-write); one critical log per address per hour.
+     */
+    private function isOverInboundBudget(string $address, int $userId): bool
+    {
+        $limit = max(1, (int) config('wallet.address_registration.inbound_side_effects_per_address_per_hour', 120));
+        $key = 'helius:inbound_volume:' . now()->utc()->format('YmdH') . ':' . $address;
+
+        Cache::add($key, 0, 3600);
+        $count = (int) Cache::increment($key);
+
+        if ($count <= $limit) {
+            return false;
+        }
+
+        if (Cache::add($key . ':alerted', true, 3600)) {
+            Log::critical('Helius: watched Solana address is over its hourly transaction budget, skipping balance pre-warm and push', [
+                'address' => $address,
+                'user_id' => $userId,
+                'limit'   => $limit,
+            ]);
+        }
+
+        return true;
     }
 }
