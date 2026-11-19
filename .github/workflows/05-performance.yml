@@ -12,6 +12,9 @@ on:
 env:
   PHP_VERSION: ${{ inputs.php-version }}
 
+permissions:
+  contents: read
+
 jobs:
   performance-tests:
     name: Performance Tests
@@ -291,7 +294,7 @@ jobs:
       # id made `apt-get update` fail (NO_PUBKEY C780D0BDB1A69C86). The
       # official setup action downloads a release binary instead.
       - name: Install k6
-        uses: grafana/setup-k6-action@v1
+        uses: grafana/setup-k6-action@c47136d33d365efbeb9ae7266908b5dcf98cdece # v1.3.0
           
       - name: Start Application Server
         run: |
