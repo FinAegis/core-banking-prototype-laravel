@@ -490,6 +490,11 @@ describe('stablecoin REST endpoints', function (): void {
             'account_uuid'          => $account->uuid,
             'stablecoin_code'       => 'ACHUSD',
             'collateral_asset_code' => 'USD',
+            // Fixed amounts: the factory's random ones can give a ratio above
+            // what decimal(8,4) holds, and the positions read stores the ratio.
+            'collateral_amount' => 150000,
+            'debt_amount'       => 100000,
+            'collateral_ratio'  => 1.5,
         ]);
 
         Sanctum::actingAs(User::factory()->create(), ['read', 'write', 'delete']);
