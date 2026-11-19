@@ -45,7 +45,7 @@ type KeyShardConfig {
     total_shards: Int!
 }
 
-extend type Query {
+extend type Query @module(name: "KeyManagement") {
     keyShardRecord(id: ID! @eq): KeyShardRecord
         @find
         @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userUuid")
@@ -95,7 +95,7 @@ input VerifyShardsInput {
     expected_public_key: String!
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "KeyManagement") {
     splitKey(input: SplitKeyInput! @spread): Boolean!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\KeyManagement\\SplitKeyMutation")

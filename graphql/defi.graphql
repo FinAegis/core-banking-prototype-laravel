@@ -28,7 +28,7 @@ input ClosePositionInput {
     position_id: ID!
 }
 
-extend type Query {
+extend type Query @module(name: "DeFi") {
     defiPosition(id: ID! @eq): DeFiPosition
         @find
         @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")

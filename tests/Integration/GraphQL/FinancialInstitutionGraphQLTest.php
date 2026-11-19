@@ -20,7 +20,9 @@ describe('GraphQL FinancialInstitution API', function () {
     });
 
     it('queries partner by id with authentication', function () {
+        // Partners are readable by platform operators only.
         $user = User::factory()->create();
+        $user->assignRole('admin');
         $application = FinancialInstitutionApplication::create([
             'application_number'       => 'FIA-2025-00001',
             'institution_name'         => 'Test Bank Corp',
@@ -86,6 +88,7 @@ describe('GraphQL FinancialInstitution API', function () {
 
     it('paginates partners', function () {
         $user = User::factory()->create();
+        $user->assignRole('admin');
         for ($i = 0; $i < 3; $i++) {
             $app = FinancialInstitutionApplication::create([
                 'application_number'       => "FIA-2025-1000{$i}",

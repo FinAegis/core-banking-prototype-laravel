@@ -527,7 +527,7 @@ describe('GraphQL compliance schema', function (): void {
 
     it('scopes every compliance query field with an owner or staff builder', function (): void {
         $schema = (string) file_get_contents(base_path('graphql/compliance.graphql'));
-        preg_match('/extend type Query \{(.*?)\n\}/s', $schema, $match);
+        preg_match('/extend type Query[^{\n]*\{(.*?)\n\}/s', $schema, $match);
         $fields = preg_split('/\n(?=    [a-zA-Z]+\()/', trim($match[1] ?? '')) ?: [];
 
         expect($fields)->toHaveCount(6);

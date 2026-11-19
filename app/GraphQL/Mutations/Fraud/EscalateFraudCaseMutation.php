@@ -37,8 +37,12 @@ class EscalateFraudCaseMutation
             throw new AuthorizationException('You are not authorized to manage fraud cases.');
         }
 
+        // Compliance staff work cases of every team (the BelongsToTeam scope
+        // would otherwise limit them to their own current team). FraudCase
+        // overrides allTeams() with a scope that changes nothing, so the team
+        // scope is removed by name, as the StaffOnly builder does.
         /** @var FraudCase|null $fraudCase */
-        $fraudCase = FraudCase::query()->find($args['id']);
+        $fraudCase = FraudCase::query()->withoutGlobalScope('team')->find($args['id']);
 
         if (! $fraudCase) {
             throw new ModelNotFoundException('Fraud case not found.');

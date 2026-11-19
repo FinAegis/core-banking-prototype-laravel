@@ -39,7 +39,7 @@ type AiConversationResult {
     tokens_used: Int
 }
 
-extend type Query {
+extend type Query @module(name: "AI") {
     aiPromptTemplate(id: ID! @eq): AiPromptTemplate
         @find
         @guard(with: ["sanctum"])
@@ -75,7 +75,7 @@ input SendAiMessageInput {
     context: String
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "AI") {
     sendAiMessage(input: SendAiMessageInput! @spread): AiConversationResult!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\AI\\SendAiMessageMutation")

@@ -16,7 +16,7 @@ input CreateConsentInput {
     account_ids: [String!]
 }
 
-extend type Query {
+extend type Query @module(name: "OpenBanking") {
     openBankingConsent(id: ID!): OpenBankingConsent
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Queries\\OpenBanking\\ConsentQuery")

@@ -28,8 +28,12 @@ class FreezeAccountMutation
             throw new AuthenticationException('Unauthenticated.');
         }
 
+        // Operators act on accounts of every team: the BelongsToTeam scope
+        // would otherwise limit them to their own current team.
+        $query = $this->isAdmin($user) ? Account::query()->allTeams() : Account::query();
+
         /** @var Account|null $account */
-        $account = Account::query()->find($args['id']);
+        $account = $query->find($args['id']);
 
         if (! $account) {
             throw new ModelNotFoundException('Account not found.');

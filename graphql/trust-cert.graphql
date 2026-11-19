@@ -13,7 +13,7 @@ type Certificate @model(class: "App\\Domain\\TrustCert\\Models\\Certificate") {
     updated_at: DateTime!
 }
 
-extend type Query {
+extend type Query @module(name: "TrustCert") {
     certificate(id: ID! @eq): Certificate
         @find
         @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")

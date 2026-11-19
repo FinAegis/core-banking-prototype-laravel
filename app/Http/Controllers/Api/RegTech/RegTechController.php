@@ -235,6 +235,10 @@ class RegTechController extends Controller
         response: 401,
         description: 'Unauthorized'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function reportStatus(string $reference, Request $request): JsonResponse
     {
         if (! preg_match('/^[A-Za-z0-9\-_]{1,100}$/', $reference)) {

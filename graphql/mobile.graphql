@@ -16,7 +16,7 @@ type MobileDevice @model(class: "App\\Domain\\Mobile\\Models\\MobileDevice") {
     updated_at: DateTime!
 }
 
-extend type Query {
+extend type Query @module(name: "Mobile") {
     mobileDevice(id: ID! @eq): MobileDevice
         @find
         @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")

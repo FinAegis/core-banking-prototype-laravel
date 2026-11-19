@@ -30,7 +30,7 @@ input ApproveLoanInput {
     interest_rate: Float!
 }
 
-extend type Query {
+extend type Query @module(name: "Lending") {
     loanApplication(id: ID! @eq): LoanApplication
         @find
         @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@borrower")

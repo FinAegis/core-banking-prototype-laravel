@@ -28,7 +28,7 @@ input CreatePaymentIntentInput {
     shield_enabled: Boolean
 }
 
-extend type Query {
+extend type Query @module(name: "MobilePayment") {
     paymentIntent(id: ID! @eq): PaymentIntent
         @find
         @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userId")
@@ -44,7 +44,7 @@ extend type Query {
         @guard(with: ["sanctum"])
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "MobilePayment") {
     createPaymentIntent(input: CreatePaymentIntentInput! @spread): PaymentIntent!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\MobilePayment\\CreatePaymentIntentMutation")

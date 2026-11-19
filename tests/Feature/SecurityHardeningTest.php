@@ -697,7 +697,7 @@ describe('GraphQL reads are limited to the caller', function (): void {
     it('scopes every GraphQL query on a user-owned model to the caller', function (string $file, string $field, string $method): void {
         $schema = (string) file_get_contents(base_path("graphql/{$file}"));
 
-        expect(preg_match('/extend type Query \{(.*?)\n\}/s', $schema, $query))->toBe(1);
+        expect(preg_match('/extend type Query[^{\n]*\{(.*?)\n\}/s', $schema, $query))->toBe(1);
 
         // The field's definition runs up to the next field (4-space indent).
         expect(preg_match('/\n    ' . preg_quote($field, '/') . '\s*[(:](.*?)(?=\n    [a-zA-Z_]+\s*[(:]|$)/s', $query[1] ?? '', $definition))->toBe(1);
@@ -851,7 +851,7 @@ describe('compliance, fraud and SMS records are staff-only', function (): void {
     it('limits every GraphQL query on internal records to staff', function (string $file, string $field, string $method): void {
         $schema = (string) file_get_contents(base_path("graphql/{$file}"));
 
-        expect(preg_match('/extend type Query \{(.*?)\n\}/s', $schema, $query))->toBe(1);
+        expect(preg_match('/extend type Query[^{\n]*\{(.*?)\n\}/s', $schema, $query))->toBe(1);
         expect(preg_match('/\n    ' . preg_quote($field, '/') . '\s*[(:](.*?)(?=\n    [a-zA-Z_"]|$)/s', $query[1] ?? '', $definition))->toBe(1);
 
         expect($definition[1] ?? '')->toContain('@builder(method: "App\\\\GraphQL\\\\Builders\\\\StaffOnly@' . $method . '")');

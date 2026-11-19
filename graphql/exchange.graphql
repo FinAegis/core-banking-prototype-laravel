@@ -52,7 +52,7 @@ type OrderBook @model(class: "App\\Domain\\Exchange\\Projections\\OrderBook") {
     updated_at: DateTime!
 }
 
-extend type Query {
+extend type Query @module(name: "Exchange") {
     order(id: ID! @eq): ExchangeOrder
         @find
         @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@accountId")
@@ -98,7 +98,7 @@ input PlaceOrderInput {
     price: Float
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "Exchange") {
     placeOrder(input: PlaceOrderInput! @spread): ExchangeOrder!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Exchange\\PlaceOrderMutation")

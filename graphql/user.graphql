@@ -31,13 +31,13 @@ input UpdatePreferencesInput {
     preferences: [String!]
 }
 
-extend type Query {
+extend type Query @module(name: "User") {
     userProfile: UserProfile
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Queries\\User\\UserProfileQuery")
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "User") {
     updateProfile(input: UpdateProfileInput! @spread): UserProfile!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\User\\UpdateProfileMutation")

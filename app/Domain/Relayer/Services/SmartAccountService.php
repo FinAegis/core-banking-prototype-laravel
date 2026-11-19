@@ -25,9 +25,11 @@ class SmartAccountService
     /**
      * Create or retrieve a smart account for a user.
      *
-     * If the account already exists, returns it. Otherwise creates a new one.
+     * If the user's account for this owner and network already exists,
+     * returns it. Otherwise creates a new one. An owner address registered to
+     * another user's smart account is refused without revealing that account.
      *
-     * @throws SmartAccountException If network is invalid
+     * @throws SmartAccountException If network is invalid, or the owner address belongs to another user's smart account
      */
     public function getOrCreateAccount(User $user, string $ownerAddress, string $network): SmartAccount
     {
@@ -40,6 +42,10 @@ class SmartAccountService
             ->first();
 
         if ($existing) {
+            if ((int) $existing->user_id !== (int) $user->getKey()) {
+                throw SmartAccountException::ownerRegisteredToAnotherUser();
+            }
+
             return $existing;
         }
 

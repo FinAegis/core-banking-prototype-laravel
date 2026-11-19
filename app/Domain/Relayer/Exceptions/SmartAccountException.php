@@ -38,6 +38,19 @@ class SmartAccountException extends Exception
         );
     }
 
+    /**
+     * The owner address (EOA) is already registered, on this network, to a
+     * smart account of another user. Deliberately carries no account data.
+     */
+    public static function ownerRegisteredToAnotherUser(): self
+    {
+        return new self(
+            'This owner address is already registered to another account.',
+            self::CODE_ACCOUNT_EXISTS,
+            409
+        );
+    }
+
     public static function accountNotFound(string $ownerAddress, string $network): self
     {
         return new self(

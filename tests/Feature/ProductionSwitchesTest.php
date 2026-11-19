@@ -346,7 +346,7 @@ describe('MODULES_DISABLED web/API gates', function (): void {
             'DeFi'                 => 'DeFi',
             'FinancialInstitution' => 'FinancialInstitution',
             'Governance'           => 'Governance',
-            'ISO'                  => 'ISO20022',
+            'ISO20022'             => 'ISO20022',
             'Interledger'          => 'Interledger',
             'Ledger'               => 'Ledger',
             'Lending'              => 'Lending',
@@ -362,6 +362,7 @@ describe('MODULES_DISABLED web/API gates', function (): void {
 
         $prefix = 'App\\GraphQL\\Mutations\\';
         $checked = 0;
+        $seen = [];
         foreach ($mutation->fields as $field) {
             $fieldDirective = ASTHelper::directiveDefinition($field, 'field');
             $resolver = $fieldDirective === null ? null : ASTHelper::directiveArgValue($fieldDirective, 'resolver');
@@ -377,10 +378,14 @@ describe('MODULES_DISABLED web/API gates', function (): void {
             expect($module)->not->toBeNull("{$field->name->value} has no @module directive");
             assert($module !== null);
             expect(ASTHelper::directiveArgValue($module, 'name'))->toBe($gated[$namespace]);
+            $seen[$namespace] = true;
             $checked++;
         }
 
         expect($checked)->toBeGreaterThan(30);
+        // A key that matches no resolver namespace would silently skip that
+        // domain's mutations.
+        expect(array_keys(array_diff_key($gated, $seen)))->toBe([]);
     });
 
     it('returns 404 for GCU voting pages when Governance is disabled', function (): void {

@@ -3,7 +3,7 @@ type Iso20022ValidationResult {
     errors: [String!]!
 }
 
-extend type Query {
+extend type Query @module(name: "ISO20022") {
     iso20022SupportedTypes: [String!]!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Queries\\ISO20022\\SupportedTypesQuery")

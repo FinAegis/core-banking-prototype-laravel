@@ -31,11 +31,20 @@ use Nuwave\Lighthouse\Support\Contracts\TypeManipulator;
  * (`extend type Mutation @module(name: "Ledger") { ... }`) it applies to every
  * field declared in that block only.
  *
- * Reads config only (DomainManager::isDisabledByConfig) at resolve time, so a
- * cached schema follows the current MODULES_DISABLED value.
+ * The disabled state is read at resolve time, so a cached schema follows the
+ * current value: MODULES_DISABLED (DomainManager::isDisabledByConfig), or,
+ * while runtime module management is on (modules.runtime_management_enabled),
+ * the same source the REST module route loader uses
+ * (DomainManager::isDisabled, which prefers a runtime module change stored in
+ * the domain_manager_disabled cache key).
  */
 class ModuleDirective extends BaseDirective implements FieldMiddleware, TypeManipulator, TypeExtensionManipulator
 {
+    public function __construct(
+        private readonly DomainManager $domainManager,
+    ) {
+    }
+
     public static function definition(): string
     {
         return /** @lang GraphQL */ <<<'GRAPHQL'
@@ -59,12 +68,21 @@ GRAPHQL;
         }
 
         $fieldValue->wrapResolver(fn (callable $resolver): Closure => function (mixed $root, array $args, GraphQLContext $context, ResolveInfo $resolveInfo) use ($resolver, $module) {
-            if (DomainManager::isDisabledByConfig($module)) {
+            if ($this->isDisabled($module)) {
                 throw new Error('This operation is not available.');
             }
 
             return $resolver($root, $args, $context, $resolveInfo);
         });
+    }
+
+    private function isDisabled(string $module): bool
+    {
+        if ((bool) config('modules.runtime_management_enabled', false)) {
+            return $this->domainManager->isDisabled($module);
+        }
+
+        return DomainManager::isDisabledByConfig($module);
     }
 
     public function manipulateTypeDefinition(DocumentAST &$documentAST, TypeDefinitionNode &$typeDefinition): void

@@ -20,7 +20,7 @@ input CreateBatchJobInput {
     items: [String!]!
 }
 
-extend type Query {
+extend type Query @module(name: "Batch") {
     batchJob(id: ID! @eq): BatchJob
         @find
         @builder(method: "App\\GraphQL\\Builders\\OwnedByUser@userUuid")
@@ -36,7 +36,7 @@ extend type Query {
         @guard(with: ["sanctum"])
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "Batch") {
     createBatchJob(input: CreateBatchJobInput! @spread): BatchJob!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Batch\\CreateBatchJobMutation")

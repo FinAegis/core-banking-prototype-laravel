@@ -24,11 +24,14 @@ input SubmitReportInput {
     reporting_period_end: Date
 }
 
-extend type Query {
+extend type Query @module(name: "Regulatory") {
+    "Get a regulatory report by ID (compliance staff only)."
     regulatoryReport(id: ID! @eq): RegulatoryReport
         @find
+        @builder(method: "App\\GraphQL\\Builders\\StaffOnly@compliance")
         @guard(with: ["sanctum"])
 
+    "List regulatory reports (compliance staff only)."
     regulatoryReports(
         page: Int @rules(apply: ["integer", "min:1"])
         first: Int @rules(apply: ["integer", "min:1", "max:100"])
@@ -36,10 +39,11 @@ extend type Query {
         jurisdiction: String @where(operator: "=")
     ): [RegulatoryReport!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\Regulatory\\Models\\RegulatoryReport")
+        @builder(method: "App\\GraphQL\\Builders\\StaffOnly@compliance")
         @guard(with: ["sanctum"])
 }
 
-extend type Mutation {
+extend type Mutation @module(name: "Regulatory") {
     submitReport(input: SubmitReportInput! @spread): RegulatoryReport!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Regulatory\\SubmitReportMutation")
