@@ -127,6 +127,14 @@ class AgentEscrowController extends Controller
                 ], 400);
             }
 
+            // An agent of the buyer's or the seller's owner is not a third party either.
+            if ($resolverDid !== null && $this->sharesOwner($resolverDid, [$validated['buyer_did'], $validated['seller_did']])) {
+                return response()->json([
+                    'success' => false,
+                    'error'   => 'The dispute resolver cannot have the same owner as the buyer or the seller',
+                ], 400);
+            }
+
             // Verify agents exist
             $buyer = $this->agentRegistryService->getAgentByDID($validated['buyer_did']);
             if (! $buyer) {
@@ -748,6 +756,36 @@ class AgentEscrowController extends Controller
         $agent = $request->attributes->get('agent');
 
         return $agent instanceof Agent ? $agent : null;
+    }
+
+    /**
+     * Whether the agent with $did has the same owner (agents.owner_user_id)
+     * as one of the $partyDids. Agents without an owner (platform agents)
+     * never share one.
+     *
+     * @param  list<string>  $partyDids
+     */
+    private function sharesOwner(string $did, array $partyDids): bool
+    {
+        /** @var array<string, int|string|null> $owners */
+        $owners = Agent::query()
+            ->whereIn('did', [$did, ...$partyDids])
+            ->pluck('owner_user_id', 'did')
+            ->all();
+
+        $owner = $owners[$did] ?? null;
+        if ($owner === null) {
+            return false;
+        }
+
+        foreach ($partyDids as $partyDid) {
+            $partyOwner = $owners[$partyDid] ?? null;
+            if ($partyOwner !== null && (int) $partyOwner === (int) $owner) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

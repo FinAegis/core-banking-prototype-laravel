@@ -27,8 +27,10 @@ use Illuminate\Support\Facades\RateLimiter;
  * The public MCP server calls execute() without validating the input
  * schema, so execute() applies the same rules as POST /api/v1/sms/send
  * (SmsController::send: `to` and `from` formats, message at most 1600
- * characters, which also bounds the billed parts per send) and a per-user
- * per-minute limit (`mcp.rate_limits.sms_per_minute`).
+ * characters) and a per-user per-minute limit
+ * (`mcp.rate_limits.sms_per_minute`). The daily limits and the token's
+ * spending limit count one unit per call, so a message must also fit in
+ * one billed SMS part ({@see self::billedParts()}).
  */
 class SmsSendTool implements MCPToolInterface
 {
@@ -40,6 +42,15 @@ class SmsSendTool implements MCPToolInterface
 
     /** Same rule as POST /api/v1/sms/send `message` (max:1600). */
     public const MAX_MESSAGE_LENGTH = 1600;
+
+    /** Billed SMS parts one call may send (one unit of every limit). */
+    public const MAX_PARTS = 1;
+
+    /** GSM 03.38 basic character set: one septet each. */
+    private const GSM7_BASIC = "@£\$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà";
+
+    /** GSM 03.38 extension table: two septets each (escape + character). */
+    private const GSM7_EXTENSION = "\f^{}\\[~]|€";
 
     public function __construct(
         private readonly SmsService $smsService,
@@ -64,8 +75,9 @@ class SmsSendTool implements MCPToolInterface
             . 'signed-in user. A send through this tool is not paid per message: it counts '
             . 'against the daily limits for unpaid sends shared with POST /api/v1/sms/send, '
             . 'per user and across all users, which reset at 00:00 UTC (on the public MCP '
-            . 'server it also uses the token\'s spending limit). Call sms.rates or set '
-            . 'check_price_only to see the price for the destination country.';
+            . 'server it also uses the token\'s spending limit). A message must fit in one '
+            . 'SMS part: 160 GSM characters, or 70 when it has other characters. Call '
+            . 'sms.rates or set check_price_only to see the price for the destination country.';
     }
 
     /** @return array<string, mixed> */
@@ -87,9 +99,9 @@ class SmsSendTool implements MCPToolInterface
                 ],
                 'message' => [
                     'type'        => 'string',
-                    'description' => 'SMS message text (max 1600 chars)',
+                    'description' => 'SMS message text that fits in one SMS part: up to 160 GSM characters, or 70 when it has other characters',
                     'minLength'   => 1,
-                    'maxLength'   => 1600,
+                    'maxLength'   => 160,
                 ],
                 'check_price_only' => [
                     'type'        => 'boolean',
@@ -256,7 +268,41 @@ class SmsSendTool implements MCPToolInterface
             return sprintf('Invalid message: at most %d characters', self::MAX_MESSAGE_LENGTH);
         }
 
+        if (self::billedParts($message) > self::MAX_PARTS) {
+            return 'Invalid message: it must fit in one SMS part (160 GSM characters, or 70 when it has other characters)';
+        }
+
         return null;
+    }
+
+    /**
+     * SMS parts the message is billed as: GSM-7 (160 septets in one part,
+     * 153 per part when split; extension characters take two) or, when a
+     * character is outside GSM-7, UCS-2 (70 UTF-16 units, 67 per part).
+     */
+    public static function billedParts(string $message): int
+    {
+        $septets = 0;
+
+        foreach (mb_str_split($message) as $character) {
+            if (str_contains(self::GSM7_BASIC, $character)) {
+                $septets++;
+
+                continue;
+            }
+
+            if (str_contains(self::GSM7_EXTENSION, $character)) {
+                $septets += 2;
+
+                continue;
+            }
+
+            $units = intdiv(strlen((string) mb_convert_encoding($message, 'UTF-16BE', 'UTF-8')), 2);
+
+            return $units <= 70 ? 1 : intdiv($units + 66, 67);
+        }
+
+        return $septets <= 160 ? 1 : intdiv($septets + 152, 153);
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
+use App\Domain\Account\Models\TransactionProjection;
 use App\Domain\AgentProtocol\Aggregates\EscrowAggregate;
 use App\Domain\AgentProtocol\Enums\A2ATaskState;
 use App\Domain\AgentProtocol\Events\EscrowCreated;
@@ -13,6 +14,7 @@ use App\Domain\AI\Contracts\MCPToolInterface;
 use App\Domain\AI\MCP\ToolRegistry;
 use App\Domain\AI\MCP\Tools\Account\AccountBalanceTool;
 use App\Domain\AI\MCP\Tools\Exchange\TradeTool;
+use App\Domain\AI\MCP\Tools\Payment\PaymentStatusTool;
 use App\Domain\AI\MCP\Tools\Payment\TransferTool;
 use App\Domain\AI\MCP\Tools\SMS\SmsSendTool;
 use App\Domain\AI\ValueObjects\ToolExecutionResult;
@@ -459,6 +461,47 @@ describe('C12: escrow actions are limited to the escrow parties', function (): v
             ->postJson('/api/agent-protocol/escrow', $body)
             ->assertCreated();
     });
+
+    // Review A3: a resolver owned by the buyer's or the seller's owner is not
+    // a third party either.
+    it('does not accept a dispute resolver that has the same owner as the buyer or the seller', function (string $side): void {
+        $buyerOwner = ghsaAgentsUser();
+        $sellerOwner = ghsaAgentsUser();
+        $buyer = ghsaAgentsAgent($buyerOwner);
+        $seller = ghsaAgentsAgent($sellerOwner);
+        $resolver = ghsaAgentsAgent($side === 'buyer' ? $buyerOwner : $sellerOwner);
+        $before = ghsaAgentsEventCount();
+
+        $this->withHeaders(ghsaAgentsKeyHeader($buyer, ['escrow:read', 'escrow:write']))
+            ->postJson('/api/agent-protocol/escrow', [
+                'buyer_did'              => $buyer->did,
+                'seller_did'             => $seller->did,
+                'amount'                 => 50,
+                'currency'               => 'USD',
+                'dispute_resolution_did' => $resolver->did,
+            ])
+            ->assertStatus(400)
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('error', 'The dispute resolver cannot have the same owner as the buyer or the seller');
+
+        expect(ghsaAgentsEventCount())->toBe($before);
+    })->with(['buyer', 'seller']);
+
+    it('accepts a dispute resolver owned by a third user, or a platform resolver without an owner', function (string $kind): void {
+        $buyer = ghsaAgentsAgent(ghsaAgentsUser());
+        $seller = ghsaAgentsAgent(ghsaAgentsUser());
+        $resolver = ghsaAgentsAgent($kind === 'third user' ? ghsaAgentsUser() : null);
+
+        $this->withHeaders(ghsaAgentsKeyHeader($buyer, ['escrow:read', 'escrow:write']))
+            ->postJson('/api/agent-protocol/escrow', [
+                'buyer_did'              => $buyer->did,
+                'seller_did'             => $seller->did,
+                'amount'                 => 50,
+                'currency'               => 'USD',
+                'dispute_resolution_did' => $resolver->did,
+            ])
+            ->assertCreated();
+    })->with(['third user', 'platform']);
 });
 
 describe('C12: A2A tasks belong to the owner of the sender agent', function (): void {
@@ -608,6 +651,90 @@ describe('C59: MCP account tools are owner-only', function (): void {
  *
  * @return MCPToolInterface&MockInterface
  */
+describe('Review A1: MCP payment.status answers only for the signed-in user', function (): void {
+    it('does not let a token for one user read another user\'s transaction by uuid or reference', function (string $lookup): void {
+        $victim = User::factory()->create();
+        $victimAccount = Account::factory()->create(['user_uuid' => $victim->uuid]);
+        $transaction = TransactionProjection::factory()->create([
+            'account_uuid' => $victimAccount->uuid,
+            'amount'       => 987654,
+            'status'       => 'completed',
+            'reference'    => 'VICTIM-REF-1',
+            'description'  => 'victim payment',
+        ]);
+        $this->actingAs(User::factory()->create());
+
+        $result = app(PaymentStatusTool::class)->execute([
+            'transaction_id' => $lookup === 'uuid' ? (string) $transaction->uuid : 'VICTIM-REF-1',
+            'user_uuid'      => $victim->uuid,
+        ]);
+
+        expect($result->isSuccess())->toBeTrue()
+            ->and($result->getData()['status'] ?? null)->toBe('not_found')
+            ->and(json_encode($result->getData()))->not->toContain('987654')
+            ->and(json_encode($result->getData()))->not->toContain('victim payment');
+    })->with(['uuid', 'reference']);
+
+    it('does not offer user_uuid in the tool input schema', function (): void {
+        expect((new PaymentStatusTool())->getInputSchema()['properties'])->not->toHaveKey('user_uuid');
+    });
+
+    it('does not list another user\'s grouped transactions as related', function (): void {
+        $owner = User::factory()->create();
+        $ownerAccount = Account::factory()->create(['user_uuid' => $owner->uuid]);
+        $victimAccount = Account::factory()->create(['user_uuid' => User::factory()->create()->uuid]);
+        $group = (string) Str::uuid();
+        $own = TransactionProjection::factory()->create(['account_uuid' => $ownerAccount->uuid, 'transaction_group_uuid' => $group]);
+        $ownFee = TransactionProjection::factory()->create(['account_uuid' => $ownerAccount->uuid, 'transaction_group_uuid' => $group]);
+        $theirs = TransactionProjection::factory()->create(['account_uuid' => $victimAccount->uuid, 'transaction_group_uuid' => $group]);
+        $this->actingAs($owner);
+
+        $result = app(PaymentStatusTool::class)->execute([
+            'transaction_id'  => (string) $own->uuid,
+            'include_related' => true,
+        ]);
+
+        $related = collect($result->getData()['related_transactions'] ?? [])->pluck('transaction_id')->all();
+        expect($result->isSuccess())->toBeTrue()
+            ->and($related)->toBe([(string) $ownFee->uuid])
+            ->and($related)->not->toContain((string) $theirs->uuid);
+    });
+
+    it('lets the signed-in user read its own transaction by uuid and reference, even when it names itself', function (): void {
+        $owner = User::factory()->create();
+        $account = Account::factory()->create(['user_uuid' => $owner->uuid]);
+        $transaction = TransactionProjection::factory()->create([
+            'account_uuid' => $account->uuid,
+            'amount'       => 4321,
+            'status'       => 'completed',
+            'reference'    => 'OWNER-REF-1',
+        ]);
+        $this->actingAs($owner);
+
+        $byUuid = app(PaymentStatusTool::class)->execute(['transaction_id' => (string) $transaction->uuid]);
+        $byReference = app(PaymentStatusTool::class)->execute(['transaction_id' => 'OWNER-REF-1', 'user_uuid' => $owner->uuid]);
+
+        expect($byUuid->isSuccess())->toBeTrue()
+            ->and($byUuid->getData()['transaction_id'] ?? null)->toBe((string) $transaction->uuid)
+            ->and($byUuid->getData()['status'] ?? null)->toBe('completed')
+            ->and($byReference->getData()['transaction_id'] ?? null)->toBe((string) $transaction->uuid);
+    });
+
+    it('answers not authenticated without a signed-in user, whatever user_uuid says', function (): void {
+        $victim = User::factory()->create();
+        $account = Account::factory()->create(['user_uuid' => $victim->uuid]);
+        $transaction = TransactionProjection::factory()->create(['account_uuid' => $account->uuid]);
+
+        $result = app(PaymentStatusTool::class)->execute([
+            'transaction_id' => (string) $transaction->uuid,
+            'user_uuid'      => $victim->uuid,
+        ]);
+
+        expect($result->isSuccess())->toBeFalse()
+            ->and($result->getError())->toBe('User not found or not authenticated');
+    });
+});
+
 function ghsaAgentsTradeStub(): MockInterface
 {
     /** @var MCPToolInterface&MockInterface $stub */
@@ -738,6 +865,36 @@ describe('C28: ops:verify-env names stale explicit MCP money tool values', funct
             ->and($checks['mcp.tools.payment.transfer']['detail'])->toContain('v7.16.0 and earlier');
     });
 
+    // Review A2: sms.send is billed to the platform, so in production it
+    // needs an explicit acknowledgement (same pattern as direct ledger
+    // funding: <SWITCH>_ACKNOWLEDGED=true).
+    it('blocks the deploy in production while MCP sms.send is on without the acknowledgement', function (): void {
+        ghsaAgentsSetTool('sms.send', true);
+        config(['mcp.sms_send_acknowledged' => false]);
+        app()->detectEnvironment(fn () => 'production');
+
+        $checks = ghsaAgentsOpsChecks();
+
+        expect($checks['mcp.tools.sms.send']['result'])->toBe('FAIL')
+            ->and($checks['mcp.tools.sms.send']['detail'])->toContain('MCP_TOOL_SMS_SEND is ON in production')
+            ->and($checks['mcp.tools.sms.send']['detail'])->toContain('MCP_TOOL_SMS_SEND_ACKNOWLEDGED=true');
+    });
+
+    it('only warns in production about MCP sms.send once the operator acknowledged it', function (): void {
+        ghsaAgentsSetTool('sms.send', true);
+        config(['mcp.sms_send_acknowledged' => true]);
+        app()->detectEnvironment(fn () => 'production');
+
+        $checks = ghsaAgentsOpsChecks();
+
+        expect($checks['mcp.tools.sms.send']['result'])->toBe('WARN')
+            ->and($checks['mcp.tools.sms.send']['detail'])->toContain('MCP_TOOL_SMS_SEND is ON');
+    });
+
+    it('keeps the MCP sms.send acknowledgement off by default', function (): void {
+        expect(config('mcp.sms_send_acknowledged'))->toBeFalse();
+    });
+
     it('passes the MCP money tools when they are off', function (): void {
         config(['trading.enabled' => false]);
         foreach (['account.create', 'payment.transfer', 'exchange.trade', 'sms.send'] as $tool) {
@@ -798,16 +955,69 @@ describe('C61: MCP sms.send applies the REST input rules and a per-minute limit'
         'from with symbols'            => [['to' => '+37069912345', 'from' => 'Bank<script>', 'message' => 'hi'], 'Invalid from'],
     ]);
 
-    it('sends a valid message of up to 1600 characters', function (): void {
+    // Review A2: the budget and the spending limit count one unit per call,
+    // so a call may bill at most one SMS part.
+    it('sends a message that fits in one SMS part', function (string $message): void {
         config(['sms.enabled' => true]);
         $user = User::factory()->create();
         $this->actingAs($user);
         [$tool] = ghsaAgentsSmsTool(1);
 
-        $result = $tool->execute(['to' => '+37069912345', 'from' => 'Zelta', 'message' => str_repeat('a', 1600)]);
+        $result = $tool->execute(['to' => '+37069912345', 'from' => 'Zelta', 'message' => $message]);
 
         expect($result->isSuccess())->toBeTrue()
             ->and((int) Cache::get(SmsSendBudget::userCountCacheKey($user->id)))->toBe(1);
+    })->with([
+        '160 GSM characters'               => [str_repeat('a', 160)],
+        '80 GSM extension characters'      => [str_repeat('€', 80)],
+        '70 characters outside GSM'        => [str_repeat('ą', 70)],
+        '35 emoji (two UTF-16 units each)' => [str_repeat('😀', 35)],
+    ]);
+
+    it('refuses a message that would bill more than one SMS part, before using any budget', function (string $message): void {
+        config(['sms.enabled' => true]);
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        [$tool] = ghsaAgentsSmsTool(0);
+
+        $result = $tool->execute(['to' => '+37069912345', 'message' => $message]);
+
+        expect($result->isSuccess())->toBeFalse()
+            ->and($result->getError())->toContain('Invalid message')
+            ->and($result->getError())->toContain('one SMS part')
+            ->and(Cache::get(SmsSendBudget::userCountCacheKey($user->id)))->toBeNull()
+            ->and(Cache::get(SmsSendBudget::globalCountCacheKey()))->toBeNull();
+    })->with([
+        '161 GSM characters'               => [str_repeat('a', 161)],
+        '1600 GSM characters'              => [str_repeat('a', 1600)],
+        '81 GSM extension characters'      => [str_repeat('€', 81)],
+        '71 characters outside GSM'        => [str_repeat('ą', 71)],
+        '36 emoji (two UTF-16 units each)' => [str_repeat('😀', 36)],
+        '159 GSM characters and one ą'     => [str_repeat('a', 159) . 'ą'],
+    ]);
+
+    it('counts billed parts as GSM-7 160/153 and UCS-2 70/67', function (string $message, int $parts): void {
+        expect(SmsSendTool::billedParts($message))->toBe($parts);
+    })->with([
+        [str_repeat('a', 160), 1],
+        [str_repeat('a', 161), 2],
+        [str_repeat('a', 306), 2],
+        [str_repeat('a', 307), 3],
+        [str_repeat('[', 80), 1],
+        [str_repeat('[', 81), 2],
+        [str_repeat('ą', 70), 1],
+        [str_repeat('ą', 71), 2],
+        [str_repeat('ą', 134), 2],
+        [str_repeat('ą', 135), 3],
+        [str_repeat('😀', 35), 1],
+        [str_repeat('😀', 36), 2],
+    ]);
+
+    it('advertises the one-part limit in the input schema', function (): void {
+        [$tool] = ghsaAgentsSmsTool(0);
+
+        expect($tool->getInputSchema()['properties']['message']['maxLength'])->toBe(160)
+            ->and($tool->getInputSchema()['properties']['message']['description'])->toContain('one SMS part');
     });
 
     it('applies a per-user per-minute limit', function (): void {

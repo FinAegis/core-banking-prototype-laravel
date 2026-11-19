@@ -97,6 +97,11 @@ return [
         'wallet.activity'  => ['internal' => 'wallet.activity',              'title' => 'Recent wallet activity',           'scope' => 'accounts:read',     'enabled' => env('MCP_TOOL_WALLET_ACTIVITY', true),     'is_write' => false, 'requires_user' => true],
     ],
 
+    // ops:verify-env FAILs a production deploy while sms.send is on (sends
+    // are billed to the platform), unless the operator confirms it with
+    // MCP_TOOL_SMS_SEND_ACKNOWLEDGED=true.
+    'sms_send_acknowledged' => (bool) env('MCP_TOOL_SMS_SEND_ACKNOWLEDGED', false),
+
     /*
     |--------------------------------------------------------------------------
     | Spending Limits (per-token defaults)

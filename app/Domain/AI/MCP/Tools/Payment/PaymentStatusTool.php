@@ -56,11 +56,6 @@ class PaymentStatusTool implements MCPToolInterface
                     'description' => 'Include related transactions (e.g., for grouped transfers)',
                     'default'     => false,
                 ],
-                'user_uuid' => [
-                    'type'        => 'string',
-                    'description' => 'UUID of the user (optional, defaults to current user)',
-                    'pattern'     => '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
-                ],
             ],
             'required' => ['transaction_id'],
         ];
@@ -113,10 +108,12 @@ class PaymentStatusTool implements MCPToolInterface
                 'conversation_id' => $conversationId,
             ]);
 
-            // Get the user
-            $user = $this->getUser($parameters['user_uuid'] ?? null);
+            // Always the signed-in user. A user_uuid argument (accepted by
+            // older versions of this tool) is ignored, so a token can never
+            // read another user's payments.
+            $user = Auth::user();
 
-            if (! $user) {
+            if (! $user instanceof User) {
                 return ToolExecutionResult::failure('User not found or not authenticated');
             }
 
@@ -141,7 +138,7 @@ class PaymentStatusTool implements MCPToolInterface
             }
 
             // Build response based on the result type
-            $response = $this->buildResponse($result, $includeDetails, $includeRelated);
+            $response = $this->buildResponse($result, $user, $includeDetails, $includeRelated);
 
             return ToolExecutionResult::success($response);
         } catch (Exception $e) {
@@ -152,27 +149,6 @@ class PaymentStatusTool implements MCPToolInterface
 
             return ToolExecutionResult::failure($e->getMessage());
         }
-    }
-
-    private function getUser(?string $userUuid): ?User
-    {
-        if ($userUuid) {
-            // First try to find by UUID
-            $user = User::where('uuid', $userUuid)->first();
-            if ($user) {
-                return $user;
-            }
-
-            // If it's numeric, try to find by ID
-            if (is_numeric($userUuid)) {
-                $user = User::find((int) $userUuid);
-                if ($user) {
-                    return $user;
-                }
-            }
-        }
-
-        return Auth::user();
     }
 
     private function findTransaction(string $transactionId, User $user): ?TransactionProjection
@@ -274,10 +250,10 @@ class PaymentStatusTool implements MCPToolInterface
         return false;
     }
 
-    private function buildResponse($result, bool $includeDetails, bool $includeRelated): array
+    private function buildResponse($result, User $user, bool $includeDetails, bool $includeRelated): array
     {
         if ($result instanceof TransactionProjection) {
-            return $this->buildTransactionResponse($result, $includeDetails, $includeRelated);
+            return $this->buildTransactionResponse($result, $user, $includeDetails, $includeRelated);
         }
 
         if ($result instanceof Transfer) {
@@ -289,6 +265,7 @@ class PaymentStatusTool implements MCPToolInterface
 
     private function buildTransactionResponse(
         TransactionProjection $transaction,
+        User $user,
         bool $includeDetails,
         bool $includeRelated
     ): array {
@@ -334,6 +311,10 @@ class PaymentStatusTool implements MCPToolInterface
         if ($includeRelated && $transaction->transaction_group_uuid) {
             $relatedTransactions = TransactionProjection::where('transaction_group_uuid', $transaction->transaction_group_uuid)
                 ->where('uuid', '!=', $transaction->uuid)
+                ->whereHas('account', function ($query) use ($user) {
+                    /** @phpstan-ignore-next-line */
+                    $query->where('user_uuid', $user->uuid);
+                })
                 ->get()
                 ->map(function ($tx) {
                     return [
@@ -485,14 +466,6 @@ class PaymentStatusTool implements MCPToolInterface
         // Validate type if provided
         if (isset($parameters['type'])) {
             if (! in_array($parameters['type'], ['transaction', 'transfer', 'both'])) {
-                return false;
-            }
-        }
-
-        // Validate UUID if provided
-        if (isset($parameters['user_uuid'])) {
-            $uuid = $parameters['user_uuid'];
-            if (! preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $uuid)) {
                 return false;
             }
         }

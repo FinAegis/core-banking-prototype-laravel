@@ -257,9 +257,9 @@ Returns the catalog of supported payment rails — Stripe, Tempo, Lightning, Car
 
 Send an SMS via the Zelta SMS rail. Each message settles via x402 micropayment; the cost is debited from the consenting user's daily limit.
 
-**Inputs:** `to` (E.164 phone), `message` (≤1600 chars), `dlr_url` (optional delivery-receipt webhook), `idempotency_key`.
+**Inputs:** `to` (E.164 phone), `message` (one SMS part: ≤160 GSM characters, ≤70 otherwise), `dlr_url` (optional delivery-receipt webhook), `idempotency_key`.
 
-The server applies the same input rules as `POST /api/v1/sms/send`. `to` must have 5 to 19 digits with an optional leading `+`, `from` must have 1 to 20 letters, digits or spaces, and `message` must be at most 1600 characters. Each user can send at most `mcp.rate_limits.sms_per_minute` messages per minute, and the shared daily limits for unpaid sends also apply. The tool is off by default in production (`MCP_TOOL_SMS_SEND`, `SMS_ENABLED`).
+The server applies the same input rules as `POST /api/v1/sms/send`. `to` must have 5 to 19 digits with an optional leading `+`, `from` must have 1 to 20 letters, digits or spaces, and `message` must be at most 1600 characters. Through MCP a message must also fit in one SMS part: 160 GSM characters, or 70 when it has other characters. The daily limits and the spending limit count one unit per call, so one call never bills more than one part. Each user can send at most `mcp.rate_limits.sms_per_minute` messages per minute, and the shared daily limits for unpaid sends also apply. The tool is off by default in production (`MCP_TOOL_SMS_SEND`, `SMS_ENABLED`). With `APP_ENV=production`, `MCP_TOOL_SMS_SEND=true` fails `ops:verify-env` unless `MCP_TOOL_SMS_SEND_ACKNOWLEDGED=true` confirms it.
 
 **Outputs:** `message_id`, `status`, `settlement_amount_minor`, `settlement_currency`, `submitted_at`.
 

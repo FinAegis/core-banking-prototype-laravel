@@ -30,7 +30,9 @@ use RuntimeException;
  * money and SMS tools, the trading engine) and runtime module and plugin
  * management by admins. Each WARNs in production while it is on
  * or while its env var is not set explicitly, so the operator sees the
- * effective value; none of them blocks a deploy. An explicit MCP_TOOL_*=true
+ * effective value. Only MCP sms.send (billed to the platform) blocks a
+ * production deploy while it is on, unless MCP_TOOL_SMS_SEND_ACKNOWLEDGED=true
+ * confirms it. An explicit MCP_TOOL_*=true
  * (the env templates of v7.16.0 and earlier set the money tools to true)
  * overrides the production-off default, so the WARN says so; an MCP tool
  * that is on while the switch it needs (`requires_config`, e.g.
@@ -79,6 +81,17 @@ class OpsVerifyEnvCommand extends Command
         'sms.enabled'                        => ['SMS_ENABLED', 'POST /api/v1/sms/send and MCP sms.send send SMS billed to the platform'],
         'trading.enabled'                    => ['TRADING_ENABLED', 'the demo trading engine (order book, liquidity pools, GraphQL placeOrder, MCP exchange.trade) is live'],
         'modules.runtime_management_enabled' => ['ADMIN_RUNTIME_MANAGEMENT_ENABLED', 'admins can enable or disable modules and plugins at runtime (REST /api/v2/modules and /api/v2/plugins, GraphQL plugin mutations, admin panel), and a runtime module change overrides MODULES_DISABLED'],
+    ];
+
+    /**
+     * Production switches that FAIL in production while on, unless the
+     * operator confirms them: config key => [acknowledgement config key,
+     * acknowledgement env var].
+     *
+     * @var array<string, array{0: string, 1: string}>
+     */
+    private const ACKNOWLEDGED_SWITCHES = [
+        'mcp.tools.sms.send' => ['mcp.sms_send_acknowledged', 'MCP_TOOL_SMS_SEND_ACKNOWLEDGED'],
     ];
 
     /**
@@ -631,8 +644,9 @@ class OpsVerifyEnvCommand extends Command
     // ── Category: switches ───────────────────────────────────────────────
 
     /**
-     * Production switches. WARN (never FAIL) in production while a switch is
-     * on, or while its env var is not set explicitly; SKIP elsewhere unless
+     * Production switches. WARN in production while a switch is on, or while
+     * its env var is not set explicitly (ACKNOWLEDGED_SWITCHES FAIL in
+     * production while on and not acknowledged); SKIP elsewhere unless
      * --strict is passed (demo and local run with these on).
      */
     private function checkProductionSwitches(bool $isProduction): void
@@ -689,6 +703,14 @@ class OpsVerifyEnvCommand extends Command
         }
 
         if ((bool) $value) {
+            [$ackKey, $ackEnv] = self::ACKNOWLEDGED_SWITCHES[$name] ?? [null, null];
+
+            if ($ackKey !== null && $this->laravel->environment('production') && config($ackKey) !== true) {
+                $this->add(self::CATEGORY_SWITCHES, $name, self::FAIL, sprintf('%s is ON in production: %s. Set %s=false, or set %s=true to confirm that this is intended.', $envName, $whenOn, $envName, $ackEnv));
+
+                return;
+            }
+
             $this->add(self::CATEGORY_SWITCHES, $name, self::WARN, sprintf('%s is ON: %s. Set %s=false unless this is intended.%s', $envName, $whenOn, $envName, $whenOnNote));
 
             return;
