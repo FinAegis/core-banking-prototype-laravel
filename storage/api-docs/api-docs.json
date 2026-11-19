@@ -1101,6 +1101,26 @@
                             }
                         }
                     },
+                    "403": {
+                        "description": "The account belongs to another user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Access denied to this account"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "FORBIDDEN"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
                     "404": {
                         "description": "Account not found",
                         "content": {
@@ -1134,8 +1154,8 @@
                 "tags": [
                     "Account Balances"
                 ],
-                "summary": "List all account balances",
-                "description": "Get balances across all accounts with filtering and aggregation options",
+                "summary": "List account balances",
+                "description": "Balances of the caller's own accounts with filtering and aggregation options; the totals in meta cover the same accounts. Operators (admin, super_admin, bank_admin) see every account, may filter by user_uuid and get platform-wide totals.",
                 "operationId": "listAllBalances",
                 "parameters": [
                     {
@@ -1161,7 +1181,7 @@
                     {
                         "name": "user_uuid",
                         "in": "query",
-                        "description": "Filter by account owner",
+                        "description": "Filter by account owner (operators; for other callers it only narrows their own accounts)",
                         "required": false,
                         "schema": {
                             "type": "string",
@@ -1635,6 +1655,16 @@
                             }
                         }
                     },
+                    "403": {
+                        "description": "Not the owner or staff, or the owner tried to lift a freeze placed by staff",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
                     "422": {
                         "description": "Account not frozen",
                         "content": {
@@ -2045,7 +2075,7 @@
                         }
                     },
                     "404": {
-                        "description": "Agent not found"
+                        "description": "Agent not found, or not owned by the signed-in user"
                     }
                 },
                 "security": [
@@ -2144,10 +2174,10 @@
                         }
                     },
                     "404": {
-                        "description": "Agent not found"
+                        "description": "Agent not found, or not owned by the signed-in user"
                     },
                     "422": {
-                        "description": "Validation error"
+                        "description": "Validation error (including the admin scopes and `*`, which only staff may grant)"
                     }
                 },
                 "security": [
@@ -2207,7 +2237,7 @@
                         }
                     },
                     "404": {
-                        "description": "Agent or API key not found"
+                        "description": "Agent or API key not found, or agent not owned by the signed-in user"
                     }
                 },
                 "security": [
@@ -2260,7 +2290,7 @@
                         }
                     },
                     "404": {
-                        "description": "Agent not found"
+                        "description": "Agent not found, or not owned by the signed-in user"
                     }
                 },
                 "security": [
@@ -2311,7 +2341,7 @@
                         }
                     },
                     "404": {
-                        "description": "Agent not found"
+                        "description": "Agent not found, or not owned by the signed-in user"
                     }
                 },
                 "security": [
@@ -2475,6 +2505,9 @@
                     },
                     "404": {
                         "description": "Agent not found"
+                    },
+                    "403": {
+                        "description": "The authenticated agent is neither the buyer nor the seller"
                     }
                 },
                 "security": [
@@ -2523,7 +2556,7 @@
                         }
                     },
                     "404": {
-                        "description": "Escrow not found"
+                        "description": "Escrow not found, or the authenticated agent is not its buyer, seller or dispute resolver"
                     }
                 },
                 "security": [
@@ -2579,6 +2612,9 @@
                     },
                     "404": {
                         "description": "Escrow not found"
+                    },
+                    "403": {
+                        "description": "The authenticated agent is not the buyer, or funder_did is not the authenticated agent"
                     }
                 },
                 "security": [
@@ -2636,6 +2672,9 @@
                     },
                     "404": {
                         "description": "Escrow not found"
+                    },
+                    "403": {
+                        "description": "The authenticated agent is not the buyer (or, after a resolution, the dispute resolver), or releaser_did is not the authenticated agent"
                     }
                 },
                 "security": [
@@ -2702,6 +2741,9 @@
                     },
                     "404": {
                         "description": "Escrow not found"
+                    },
+                    "403": {
+                        "description": "The authenticated agent is neither the buyer nor the seller, or disputer_did is not the authenticated agent"
                     }
                 },
                 "security": [
@@ -2776,6 +2818,9 @@
                     },
                     "404": {
                         "description": "Escrow not found"
+                    },
+                    "403": {
+                        "description": "The authenticated agent is not the dispute resolver named on the escrow, or resolver_did is not the authenticated agent"
                     }
                 },
                 "security": [
@@ -3074,7 +3119,7 @@
                         "description": "Agent not found"
                     },
                     "403": {
-                        "description": "Not authorized"
+                        "description": "Not authorized: the authenticated agent is not the agent in the path (AGENT_DID_MISMATCH) or lacks the profile_management capability"
                     }
                 },
                 "security": [
@@ -3206,6 +3251,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH)"
                     }
                 },
                 "security": [
@@ -3332,6 +3380,9 @@
                     },
                     "404": {
                         "description": "Agent not found"
+                    },
+                    "403": {
+                        "description": "The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH)"
                     }
                 },
                 "security": [
@@ -3402,6 +3453,9 @@
                     },
                     "404": {
                         "description": "Message not found"
+                    },
+                    "403": {
+                        "description": "The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH)"
                     }
                 },
                 "security": [
@@ -3460,6 +3514,9 @@
                     },
                     "404": {
                         "description": "Message not found"
+                    },
+                    "403": {
+                        "description": "The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH)"
                     }
                 },
                 "security": [
@@ -3539,6 +3596,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH)"
                     }
                 },
                 "security": [
@@ -3647,6 +3707,9 @@
                     },
                     "422": {
                         "description": "Insufficient balance"
+                    },
+                    "403": {
+                        "description": "The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH)"
                     }
                 },
                 "security": [
@@ -3705,6 +3768,9 @@
                     },
                     "404": {
                         "description": "Payment not found"
+                    },
+                    "403": {
+                        "description": "The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH), or is not a party to the payment"
                     }
                 },
                 "security": [
@@ -3750,6 +3816,9 @@
                     },
                     "404": {
                         "description": "Payment not found"
+                    },
+                    "403": {
+                        "description": "The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH), or is not the payment sender"
                     }
                 },
                 "security": [
@@ -3810,6 +3879,9 @@
                     },
                     "404": {
                         "description": "Payment not found"
+                    },
+                    "403": {
+                        "description": "The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH), or is not the payment sender"
                     }
                 },
                 "security": [
@@ -3997,6 +4069,9 @@
                     },
                     "500": {
                         "description": "Negotiation failed"
+                    },
+                    "403": {
+                        "description": "The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH)"
                     }
                 },
                 "security": [
@@ -4066,6 +4141,9 @@
                     },
                     "400": {
                         "description": "Invalid DID format"
+                    },
+                    "403": {
+                        "description": "The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH)"
                     }
                 },
                 "security": [
@@ -4123,6 +4201,9 @@
                     },
                     "400": {
                         "description": "Invalid DID format"
+                    },
+                    "403": {
+                        "description": "The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH)"
                     }
                 },
                 "security": [
@@ -4189,6 +4270,9 @@
                     },
                     "500": {
                         "description": "Refresh failed"
+                    },
+                    "403": {
+                        "description": "The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH)"
                     }
                 },
                 "security": [
@@ -4252,6 +4336,9 @@
                     },
                     "400": {
                         "description": "Invalid DID format"
+                    },
+                    "403": {
+                        "description": "The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH)"
                     }
                 },
                 "security": [
@@ -4433,6 +4520,9 @@
                     },
                     "404": {
                         "description": "Agent not found"
+                    },
+                    "403": {
+                        "description": "reviewer_did is not the authenticated agent"
                     }
                 },
                 "security": [
@@ -7850,6 +7940,9 @@
                     },
                     "401": {
                         "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Not the account owner, or an unfreeze/reactivate of a freeze placed by staff"
                     }
                 },
                 "security": [
@@ -9065,6 +9158,16 @@
                             }
                         }
                     },
+                    "403": {
+                        "description": "The account belongs to another user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
                     "404": {
                         "description": "Account not found",
                         "content": {
@@ -9182,6 +9285,16 @@
                             }
                         }
                     },
+                    "403": {
+                        "description": "The account belongs to another user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
                     "404": {
                         "description": "Account not found",
                         "content": {
@@ -9270,6 +9383,9 @@
                     },
                     "500": {
                         "description": "Health check failed"
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 },
                 "security": [
@@ -9369,6 +9485,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 },
                 "security": [
@@ -9428,6 +9547,9 @@
                     },
                     "404": {
                         "description": "Custodian not found"
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 },
                 "security": [
@@ -9502,6 +9624,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 },
                 "security": [
@@ -9592,6 +9717,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 },
                 "security": [
@@ -9654,6 +9782,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 },
                 "security": [
@@ -9748,6 +9879,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 },
                 "security": [
@@ -9833,6 +9967,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 },
                 "security": [
@@ -9913,6 +10050,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 },
                 "security": [
@@ -11873,6 +12013,9 @@
                     },
                     "404": {
                         "description": "Batch operation not found"
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 },
                 "security": [
@@ -12005,6 +12148,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 },
                 "security": [
@@ -12098,6 +12244,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin access required"
                     }
                 },
                 "security": [
@@ -17983,6 +18132,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "The custodian account is not linked to an account the caller owns (operators may read any)"
                     }
                 }
             }
@@ -18064,6 +18216,9 @@
                     },
                     "400": {
                         "description": "Invalid request or custodian error"
+                    },
+                    "403": {
+                        "description": "The custodian account is not linked to an account the caller owns (operators may read any)"
                     }
                 }
             }
@@ -18309,6 +18464,9 @@
                     },
                     "400": {
                         "description": "Invalid request or custodian error"
+                    },
+                    "403": {
+                        "description": "The custodian account is not linked to an account the caller owns (operators may read any)"
                     }
                 }
             }
@@ -18388,6 +18546,9 @@
                     },
                     "400": {
                         "description": "Invalid request or transaction not found"
+                    },
+                    "403": {
+                        "description": "The caller is not a party to the custodian transfer (operators may read any)"
                     }
                 }
             }
@@ -18660,7 +18821,7 @@
                         "description": "Unauthenticated"
                     },
                     "403": {
-                        "description": "Forbidden - Admin access required"
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 },
                 "security": [
@@ -18745,7 +18906,7 @@
                         "description": "Unauthenticated"
                     },
                     "403": {
-                        "description": "Forbidden - Admin access required"
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 },
                 "security": [
@@ -18862,7 +19023,7 @@
                         "description": "Unauthenticated"
                     },
                     "403": {
-                        "description": "Forbidden - Admin access required"
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 },
                 "security": [
@@ -18976,7 +19137,7 @@
                         "description": "Unauthenticated"
                     },
                     "403": {
-                        "description": "Forbidden - Admin access required"
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 },
                 "security": [
@@ -19110,7 +19271,7 @@
                         "description": "Unauthenticated"
                     },
                     "403": {
-                        "description": "Forbidden - Admin access required"
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 },
                 "security": [
@@ -19197,7 +19358,7 @@
                         "description": "Unauthenticated"
                     },
                     "403": {
-                        "description": "Forbidden - Admin access required"
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 },
                 "security": [
@@ -22440,7 +22601,7 @@
                     "Exchange Rates"
                 ],
                 "summary": "Refresh exchange rates",
-                "description": "Manually triggers a refresh of exchange rates for specified currency pairs or all active pairs",
+                "description": "Manually triggers a refresh of exchange rates for specified currency pairs or all active pairs (platform operators only)",
                 "operationId": "refreshExchangeRates",
                 "requestBody": {
                     "required": false,
@@ -22449,13 +22610,15 @@
                             "schema": {
                                 "properties": {
                                     "pairs": {
-                                        "description": "Optional array of currency pairs to refresh",
+                                        "description": "Optional array of up to 50 distinct currency pairs to refresh",
                                         "type": "array",
                                         "items": {
                                             "type": "string",
                                             "pattern": "^[A-Z]{3}/[A-Z]{3}$",
                                             "example": "EUR/USD"
-                                        }
+                                        },
+                                        "maxItems": 50,
+                                        "uniqueItems": true
                                     }
                                 },
                                 "type": "object"
@@ -22508,6 +22671,9 @@
                     },
                     "400": {
                         "description": "Invalid request parameters"
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 }
             }
@@ -23201,6 +23367,9 @@
                     },
                     "401": {
                         "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -23246,6 +23415,9 @@
                     },
                     "401": {
                         "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -23291,6 +23463,9 @@
                     },
                     "401": {
                         "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -23349,6 +23524,9 @@
                     },
                     "401": {
                         "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -23407,6 +23585,9 @@
                     },
                     "401": {
                         "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -23441,6 +23622,9 @@
                     },
                     "401": {
                         "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -23478,6 +23662,9 @@
                     },
                     "401": {
                         "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -23523,6 +23710,9 @@
                     },
                     "401": {
                         "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -23568,6 +23758,9 @@
                     },
                     "401": {
                         "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -23632,6 +23825,9 @@
                     },
                     "401": {
                         "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -25476,6 +25672,9 @@
                     },
                     "500": {
                         "description": "Failed to generate forecast"
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope"
                     }
                 },
                 "security": [
@@ -25560,6 +25759,9 @@
                     },
                     "500": {
                         "description": "Failed to calculate liquidity"
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope"
                     }
                 },
                 "security": [
@@ -25667,6 +25869,9 @@
                     },
                     "500": {
                         "description": "Failed to start workflow"
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope"
                     }
                 },
                 "security": [
@@ -25770,6 +25975,9 @@
                     },
                     "500": {
                         "description": "Failed to retrieve alerts"
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope"
                     }
                 },
                 "security": [
@@ -27442,7 +27650,7 @@
                     "Machine Payments"
                 ],
                 "summary": "List MPP payment history",
-                "description": "Returns paginated payment history with optional rail and status filters.",
+                "description": "Returns paginated payment history with optional rail and status filters: the payments recorded for the caller's current team (none without a team), or every payment for platform administrators (admin, super_admin). The stored credential and its hash are never returned.",
                 "operationId": "mppPayments",
                 "parameters": [
                     {
@@ -27497,7 +27705,7 @@
                     "Machine Payments"
                 ],
                 "summary": "Payment statistics",
-                "description": "Returns aggregate statistics: total payments, settled/failed counts, total volume, and breakdown by rail.",
+                "description": "Returns aggregate statistics: total payments, settled/failed counts, total volume, and breakdown by rail, over the payments recorded for the caller's current team (zero without a team), or over every payment for platform administrators (admin, super_admin).",
                 "operationId": "mppPaymentStats",
                 "responses": {
                     "200": {
@@ -27549,7 +27757,7 @@
                     "Machine Payments"
                 ],
                 "summary": "List agent spending limits",
-                "description": "Returns the agent spending limits for MPP payments stored under the caller's current team.",
+                "description": "Returns the agent spending limits for MPP payments stored under the caller's current team, or for the caller alone without a team.",
                 "operationId": "mppSpendingLimits",
                 "responses": {
                     "200": {
@@ -27567,7 +27775,7 @@
                     "Machine Payments"
                 ],
                 "summary": "Set or update a spending limit",
-                "description": "Creates or updates daily and per-transaction spending limits for an agent under the caller's current team. Agent ids are unique across teams.",
+                "description": "Creates or updates daily and per-transaction spending limits for an agent under the caller's current team, or for the caller alone without a team. Each team (or user without a team) has its own agent ids.",
                 "operationId": "mppSetSpendingLimit",
                 "requestBody": {
                     "required": true,
@@ -27605,9 +27813,6 @@
                     "201": {
                         "description": "Spending limit set"
                     },
-                    "409": {
-                        "description": "The agent id has a spending limit under another team"
-                    },
                     "422": {
                         "description": "Validation error"
                     }
@@ -27625,7 +27830,7 @@
                     "Machine Payments"
                 ],
                 "summary": "Delete a spending limit",
-                "description": "Deletes the agent's spending limit stored under the caller's current team.",
+                "description": "Deletes the agent's spending limit stored under the caller's current team, or for the caller alone without a team.",
                 "operationId": "mppDeleteSpendingLimit",
                 "parameters": [
                     {
@@ -31681,14 +31886,18 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Webhook received",
+                        "description": "Webhook received (status \"duplicate\" when the same signed body was already received)",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "status": {
                                             "type": "string",
-                                            "example": "received"
+                                            "example": "received",
+                                            "enum": [
+                                                "received",
+                                                "duplicate"
+                                            ]
                                         }
                                     },
                                     "type": "object"
@@ -31740,14 +31949,18 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Webhook received",
+                        "description": "Webhook received (status \"duplicate\" when the same signed body was already received)",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "status": {
                                             "type": "string",
-                                            "example": "received"
+                                            "example": "received",
+                                            "enum": [
+                                                "received",
+                                                "duplicate"
+                                            ]
                                         }
                                     },
                                     "type": "object"
@@ -37494,6 +37707,9 @@
                     },
                     "401": {
                         "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -38339,7 +38555,7 @@
                         "description": "Unauthenticated"
                     },
                     "403": {
-                        "description": "Forbidden - Admin access required"
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -38433,7 +38649,7 @@
                         "description": "Unauthenticated"
                     },
                     "403": {
-                        "description": "Forbidden - Admin access required"
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -38518,7 +38734,7 @@
                         "description": "Unauthenticated"
                     },
                     "403": {
-                        "description": "Forbidden - Admin access required"
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -38578,7 +38794,7 @@
                         "description": "Unauthenticated"
                     },
                     "403": {
-                        "description": "Forbidden - Admin access required"
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -38720,6 +38936,9 @@
                     },
                     "401": {
                         "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -38795,6 +39014,9 @@
                     },
                     "401": {
                         "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -38864,7 +39086,7 @@
                         "description": "Unauthenticated"
                     },
                     "403": {
-                        "description": "Forbidden - Admin access required"
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -38930,6 +39152,9 @@
                     },
                     "401": {
                         "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -39030,7 +39255,7 @@
                         "description": "Unauthenticated"
                     },
                     "403": {
-                        "description": "Forbidden - Admin access required"
+                        "description": "Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)"
                     }
                 },
                 "security": [
@@ -40354,7 +40579,7 @@
                         "description": "Unauthorized"
                     },
                     "422": {
-                        "description": "Validation error"
+                        "description": "Validation error, or INVALID_ADDRESS when the owner address cannot be used by this user (registered to another user's smart account, or the per-user owner-address cap is reached)"
                     }
                 },
                 "security": [
@@ -43157,6 +43382,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Stablecoin operators only (admin, super_admin, bank_admin, stablecoin_operator)"
                     }
                 }
             }
@@ -43224,9 +43452,11 @@
                                                     "example": 90000
                                                 },
                                                 "liquidator_uuid": {
+                                                    "description": "Always null: staff-initiated liquidations pay no liquidator reward",
                                                     "type": "string",
                                                     "format": "uuid",
-                                                    "example": "456e7890-e89b-12d3-a456-426614174001"
+                                                    "example": null,
+                                                    "nullable": true
                                                 }
                                             },
                                             "type": "object"
@@ -43248,7 +43478,7 @@
                         }
                     },
                     "404": {
-                        "description": "Position not found",
+                        "description": "Position not found, or the demo ledger flag (ledger.direct_funding_enabled) is off",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -43256,6 +43486,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Stablecoin operators only (admin, super_admin, bank_admin, stablecoin_operator)"
                     }
                 },
                 "security": [
@@ -43344,6 +43577,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Stablecoin operators only (admin, super_admin, bank_admin, stablecoin_operator)"
                     }
                 }
             }
@@ -43450,6 +43686,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Stablecoin operators only (admin, super_admin, bank_admin, stablecoin_operator)"
                     }
                 },
                 "security": [
@@ -43520,6 +43759,12 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Stablecoin operators only (admin, super_admin, bank_admin, stablecoin_operator)"
+                    },
+                    "404": {
+                        "description": "The demo ledger flag (ledger.direct_funding_enabled) is off"
                     }
                 },
                 "security": [
@@ -43630,6 +43875,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Stablecoin operators only (admin, super_admin, bank_admin, stablecoin_operator)"
                     }
                 }
             }
@@ -44313,6 +44561,16 @@
                                         }
                                     },
                                     "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "The account belongs to another user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
                                 }
                             }
                         }
@@ -45277,6 +45535,9 @@
                             }
                         }
                     },
+                    "403": {
+                        "description": "Forbidden - the reversal's account does not belong to the user"
+                    },
                     "404": {
                         "description": "Reversal not found"
                     }
@@ -45452,7 +45713,7 @@
                         "description": "Unauthorized"
                     },
                     "403": {
-                        "description": "Forbidden - insufficient treasury permissions"
+                        "description": "Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope"
                     },
                     "429": {
                         "description": "Too Many Requests"
@@ -45514,7 +45775,7 @@
                         "description": "Unauthorized"
                     },
                     "403": {
-                        "description": "Forbidden - insufficient treasury permissions"
+                        "description": "Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope"
                     },
                     "422": {
                         "description": "Unprocessable Entity - validation failed"
@@ -45579,7 +45840,7 @@
                         "description": "Unauthorized"
                     },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope"
                     },
                     "429": {
                         "description": "Too Many Requests"
@@ -45654,6 +45915,9 @@
                     },
                     "422": {
                         "description": "Validation failed"
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope"
                     }
                 },
                 "security": [
@@ -45709,6 +45973,9 @@
                     },
                     "409": {
                         "description": "Conflict - portfolio cannot be deleted"
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope"
                     }
                 },
                 "security": [
@@ -45773,6 +46040,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope"
                     }
                 },
                 "security": [
@@ -45839,6 +46109,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope"
                     }
                 },
                 "security": [
@@ -45912,6 +46185,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope"
                     }
                 },
                 "security": [
@@ -45962,6 +46238,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope"
                     }
                 },
                 "security": [
@@ -46023,6 +46302,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope"
                     }
                 },
                 "security": [
@@ -46092,6 +46374,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope"
                     }
                 },
                 "security": [
@@ -46142,6 +46427,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope"
                     }
                 },
                 "security": [
@@ -46207,6 +46495,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope"
                     }
                 },
                 "security": [
@@ -46260,6 +46551,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope"
                     }
                 },
                 "security": [
@@ -46331,6 +46625,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope"
                     }
                 },
                 "security": [
@@ -47172,6 +47469,9 @@
                     "200": {
                         "description": "Successful operation"
                     },
+                    "404": {
+                        "description": "Certificate not found or not held by the caller"
+                    },
                     "500": {
                         "description": "Server error"
                     }
@@ -47204,6 +47504,9 @@
                 "responses": {
                     "201": {
                         "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Certificate not found, not held by the caller, or PDF generation failed"
                     },
                     "500": {
                         "description": "Server error"
@@ -47748,7 +48051,7 @@
                         "description": "Invalid certificate"
                     },
                     "404": {
-                        "description": "Certificate not found"
+                        "description": "Certificate not found or not held by the caller"
                     }
                 },
                 "security": [
@@ -51232,6 +51535,10 @@
                                                     "type": "string",
                                                     "example": "FI-2024-00001"
                                                 },
+                                                "access_token": {
+                                                    "description": "Shown once. Send it as the X-Application-Token header to the application status and documents endpoints.",
+                                                    "type": "string"
+                                                },
                                                 "status": {
                                                     "type": "string",
                                                     "example": "pending_review"
@@ -51288,6 +51595,15 @@
                             "type": "string",
                             "example": "FI-2024-00001"
                         }
+                    },
+                    {
+                        "name": "X-Application-Token",
+                        "in": "header",
+                        "description": "The access_token returned when the application was submitted",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
@@ -51340,18 +51656,10 @@
                             }
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized"
-                    },
                     "404": {
-                        "description": "Application not found"
+                        "description": "Application not found, or the access token is missing or wrong"
                     }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
+                }
             }
         },
         "/api/v2/financial-institutions/application/{applicationNumber}/documents": {
@@ -51371,6 +51679,15 @@
                         "schema": {
                             "type": "string",
                             "example": "FI-2024-00001"
+                        }
+                    },
+                    {
+                        "name": "X-Application-Token",
+                        "in": "header",
+                        "description": "The access_token returned when the application was submitted",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 ],
@@ -51437,21 +51754,13 @@
                             }
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized"
-                    },
                     "404": {
-                        "description": "Application not found"
+                        "description": "Application not found, or the access token is missing or wrong"
                     },
                     "422": {
                         "description": "Application not editable or validation error"
                     }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
+                }
             }
         },
         "/api/v2/financial-institutions/api-documentation": {
@@ -52945,7 +53254,7 @@
                     "Webhooks"
                 ],
                 "summary": "List webhooks",
-                "description": "Get a list of all configured webhooks for the authenticated user",
+                "description": "List every configured platform webhook. Platform administrators only: webhooks have no owner and receive every subscribed event.",
                 "operationId": "listWebhooks",
                 "responses": {
                     "200": {
@@ -52996,6 +53305,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform administrators only (admin, super_admin)"
                     }
                 },
                 "security": [
@@ -53091,6 +53403,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform administrators only (admin, super_admin)"
                     }
                 },
                 "security": [
@@ -53178,6 +53493,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform administrators only (admin, super_admin)"
                     }
                 },
                 "security": [
@@ -53236,6 +53554,9 @@
                 "responses": {
                     "200": {
                         "description": "Webhook updated"
+                    },
+                    "403": {
+                        "description": "Platform administrators only (admin, super_admin)"
                     }
                 },
                 "security": [
@@ -53266,6 +53587,9 @@
                 "responses": {
                     "204": {
                         "description": "Webhook deleted"
+                    },
+                    "403": {
+                        "description": "Platform administrators only (admin, super_admin)"
                     }
                 },
                 "security": [
@@ -53312,6 +53636,9 @@
                 "responses": {
                     "200": {
                         "description": "Webhook deliveries"
+                    },
+                    "403": {
+                        "description": "Platform administrators only (admin, super_admin)"
                     }
                 },
                 "security": [
@@ -54495,7 +54822,13 @@
                         "description": "Addresses registered"
                     },
                     "422": {
-                        "description": "Invalid address or address already owned by a different user"
+                        "description": "Invalid address, or the address cannot be registered to this account (INVALID_ADDRESS; one generic message for reserved, unowned, over-cap or already-claimed addresses)"
+                    },
+                    "429": {
+                        "description": "Too many new-address registrations (ADDRESS_REGISTRATION_RATE_LIMITED); re-posting owned addresses is never limited"
+                    },
+                    "503": {
+                        "description": "Wallet ownership could not be verified while verification is enforced (ADDRESS_VERIFICATION_UNAVAILABLE)"
                     },
                     "401": {
                         "description": "Unauthorized"
@@ -54765,6 +55098,9 @@
                     "409": {
                         "description": "Idempotency conflict"
                     },
+                    "429": {
+                        "description": "Daily send limit reached (SEND_DAILY_LIMIT_REACHED) or sends paused platform-wide (SEND_TEMPORARILY_UNAVAILABLE)"
+                    },
                     "422": {
                         "description": "Validation / address / asset / amount / network error"
                     },
@@ -54822,6 +55158,9 @@
                     },
                     "422": {
                         "description": "Bad signature / state"
+                    },
+                    "429": {
+                        "description": "Platform-wide daily sponsorship ceiling reached (SEND_TEMPORARILY_UNAVAILABLE); the intent stays pending"
                     },
                     "401": {
                         "description": "Unauthorized"
@@ -55736,6 +56075,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 }
             }
@@ -55794,6 +56136,9 @@
                     },
                     "404": {
                         "description": "Workflow not found"
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 }
             }
@@ -55833,6 +56178,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 }
             }
@@ -55908,6 +56256,9 @@
                     },
                     "400": {
                         "description": "Invalid status"
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 }
             }
@@ -55972,6 +56323,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 }
             }
@@ -56044,6 +56398,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 }
             }
@@ -56136,6 +56493,9 @@
                     },
                     "422": {
                         "description": "Validation error"
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 }
             }
@@ -56211,6 +56571,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 }
             }
@@ -56221,7 +56584,7 @@
                     "X402 Endpoints"
                 ],
                 "summary": "List monetized endpoints",
-                "description": "List all monetized endpoints.",
+                "description": "Every monetized endpoint for platform administrators (admin, super_admin); the rows of the caller's current team otherwise (none without a team).",
                 "operationId": "5e723d43298a3d2632fe3d3f7a9b0c85",
                 "parameters": [
                     {
@@ -56345,7 +56708,7 @@
                     "X402 Endpoints"
                 ],
                 "summary": "Get monetized endpoint details",
-                "description": "Get a monetized endpoint.",
+                "description": "Any monetized endpoint for platform administrators (admin, super_admin); a row of the caller's current team otherwise; 404 for anything else.",
                 "operationId": "545148cd3d9c2c1300181049b7c2e3a3",
                 "parameters": [
                     {
@@ -56380,7 +56743,7 @@
                     "X402 Endpoints"
                 ],
                 "summary": "Update monetized endpoint pricing or status",
-                "description": "Update a monetized endpoint.",
+                "description": "Administrators only (admin, super_admin). Prices apply platform-wide, so any monetized endpoint can be updated, whichever team created it.",
                 "operationId": "04c0c3f38a9844fc9f896a8f808b16cb",
                 "parameters": [
                     {
@@ -56463,7 +56826,7 @@
                     "X402 Endpoints"
                 ],
                 "summary": "Remove monetization from an endpoint",
-                "description": "Delete a monetized endpoint.",
+                "description": "Administrators only (admin, super_admin). Prices apply platform-wide, so any monetized endpoint can be removed, whichever team created it.",
                 "operationId": "c7df3ec5ebffa16ff011d4e822f18ff5",
                 "parameters": [
                     {
@@ -56503,7 +56866,7 @@
                     "X402 Payments"
                 ],
                 "summary": "List x402 payment records",
-                "description": "List x402 payments.",
+                "description": "Payments recorded for the caller's current team (none without a team), or every payment for platform administrators (admin, super_admin).",
                 "operationId": "5a6de40f9582eb6b029941a15030a1e6",
                 "parameters": [
                     {
@@ -56570,7 +56933,7 @@
                     "X402 Payments"
                 ],
                 "summary": "Get x402 payment details",
-                "description": "Get a specific payment.",
+                "description": "A payment recorded for the caller's current team, or any payment for platform administrators (admin, super_admin); 404 otherwise.",
                 "operationId": "08dce6376fa57f2c5511398dc31b1c59",
                 "parameters": [
                     {
@@ -56607,7 +56970,7 @@
                     "X402 Payments"
                 ],
                 "summary": "Get x402 payment statistics",
-                "description": "Get payment statistics.",
+                "description": "Statistics over the payments recorded for the caller's current team (zero without a team), or over every payment for platform administrators (admin, super_admin).",
                 "operationId": "1c1c1efa3d40cf2cccafd3588d294626",
                 "parameters": [
                     {
@@ -57161,6 +57524,9 @@
                     },
                     "422": {
                         "description": "Validation error"
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope"
                     }
                 },
                 "security": [
@@ -57210,6 +57576,9 @@
                     },
                     "404": {
                         "description": "Portfolio not found"
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope"
                     }
                 },
                 "security": [
