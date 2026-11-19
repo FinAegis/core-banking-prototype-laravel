@@ -6,6 +6,9 @@ use Tests\TestCase;
 
 uses(TestCase::class);
 
+/**
+ * @return array<string, mixed>
+ */
 function loadBackupConfig(): array
 {
     return require dirname(__DIR__, 3) . '/config/backup.php';
