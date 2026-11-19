@@ -12,11 +12,14 @@ use App\Domain\Exchange\Services\EnhancedExchangeRateService;
 use App\Domain\Fraud\Models\FraudRule;
 use App\Domain\Microfinance\Models\CollectionSheet;
 use App\Domain\Microfinance\Models\FieldOfficer;
+use App\Domain\Microfinance\Services\FieldOfficerService;
 use App\Domain\Microfinance\Services\GroupLendingService;
 use App\Domain\Stablecoin\Models\Stablecoin;
 use App\Domain\Stablecoin\Models\StablecoinCollateralPosition;
+use App\Domain\Treasury\Models\AssetAllocation;
 use App\Domain\Treasury\Services\PortfolioManagementService;
 use App\Domain\Treasury\Services\RebalancingService;
+use App\Domain\Treasury\Services\YieldOptimizationService;
 use App\Domain\Wallet\Services\WalletService;
 use App\Domain\Webhook\Models\Webhook;
 use App\Domain\Webhook\Models\WebhookDelivery;
@@ -333,6 +336,53 @@ describe('C35 microfinance collection sheets', function (): void {
         expect((string) $sheet->expected_amount)->toBe('150.50')
             ->and($sheet->officer_id)->toBe($this->officer->id);
     });
+
+    it('rejects an expected amount in exponent form or with more than two decimals', function (mixed $amount): void {
+        Sanctum::actingAs(g385User('bank_admin'), ['read', 'write', 'delete']);
+
+        $this->postJson('/api/v1/microfinance/collection-sheets', [
+            'officer_id'      => $this->officer->id,
+            'group_id'        => $this->group->id,
+            'expected_amount' => $amount,
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('expected_amount')
+            ->assertDontSee('bcadd')
+            ->assertDontSee('well-formed');
+
+        expect(CollectionSheet::query()->count())->toBe(0);
+    })->with(['1e3', '150.505', '0.001']);
+
+    it('still tells the operator about an unknown field officer', function (): void {
+        Sanctum::actingAs(g385User('bank_admin'), ['read', 'write', 'delete']);
+
+        $this->postJson('/api/v1/microfinance/collection-sheets', [
+            'officer_id'      => 'no-such-officer',
+            'group_id'        => $this->group->id,
+            'expected_amount' => '10.00',
+        ])->assertUnprocessable()->assertJsonPath('error', 'Field officer not found: no-such-officer');
+
+        expect(CollectionSheet::query()->count())->toBe(0);
+    });
+
+    it('never returns an internal error message from collection-sheet generation', function (): void {
+        Sanctum::actingAs(g385User('bank_admin'), ['read', 'write', 'delete']);
+
+        $this->mock(FieldOfficerService::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('generateCollectionSheet')
+                ->andThrow(new ErrorException('SQLSTATE[HY000]: internal detail in /var/www/app/Secret.php'));
+        });
+
+        $this->postJson('/api/v1/microfinance/collection-sheets', [
+            'officer_id'      => $this->officer->id,
+            'group_id'        => $this->group->id,
+            'expected_amount' => '10.00',
+        ])->assertUnprocessable()
+            ->assertJsonPath('error', 'The collection sheet could not be created.')
+            ->assertDontSee('SQLSTATE')
+            ->assertDontSee('Secret.php');
+
+        expect(CollectionSheet::query()->count())->toBe(0);
+    });
 });
 
 describe('C26 and D01 stablecoin risk and liquidation endpoints', function (): void {
@@ -423,9 +473,12 @@ describe('C26 and D01 stablecoin risk and liquidation endpoints', function (): v
         $operator = g385User('stablecoin_operator');
         $operatorAccount = Account::factory()->create(['user_uuid' => $operator->uuid]);
 
+        // A staff liquidation pays no liquidator reward: the only deposit is
+        // the remaining collateral back to the position owner.
         /** @var WalletService&MockInterface $wallet */
         $wallet = Mockery::mock(WalletService::class);
-        $wallet->shouldReceive('deposit')->twice();
+        $wallet->shouldReceive('deposit')->once()
+            ->withArgs(fn ($account, string $asset, $amount): bool => (string) $account === $this->ownerAccount->uuid && $asset === 'USD' && (int) $amount === 990);
         app()->instance(WalletService::class, $wallet);
 
         Sanctum::actingAs($operator, ['read', 'write', 'delete']);
@@ -438,10 +491,74 @@ describe('C26 and D01 stablecoin risk and liquidation endpoints', function (): v
         $this->getJson("/api/v2/stablecoin-operations/liquidation/positions/{$uuid}/reward")
             ->assertOk()->assertJsonPath('data.eligible', true);
         $this->postJson("/api/v2/stablecoin-operations/liquidation/positions/{$uuid}")
-            ->assertOk()->assertJsonPath('data.liquidator_uuid', $operatorAccount->uuid);
+            ->assertOk()
+            ->assertJsonPath('data.liquidator_uuid', null)
+            ->assertJsonPath('data.returned_to_owner', 990)
+            ->assertDontSee($operatorAccount->uuid);
 
         expect(StablecoinCollateralPosition::query()->where('uuid', $uuid)->sole()->status)->toBe('liquidated');
     });
+
+    it('pays no liquidator reward to the operator who runs the automatic liquidation', function (): void {
+        $operator = g385User('stablecoin_operator');
+        $operatorAccount = Account::factory()->create(['user_uuid' => $operator->uuid]);
+
+        /** @var WalletService&MockInterface $wallet */
+        $wallet = Mockery::mock(WalletService::class);
+        $wallet->shouldReceive('deposit')->once()
+            ->withArgs(fn ($account, string $asset, $amount): bool => (string) $account === $this->ownerAccount->uuid && (int) $amount === 990);
+        app()->instance(WalletService::class, $wallet);
+
+        Sanctum::actingAs($operator, ['read', 'write', 'delete']);
+
+        $this->postJson('/api/v2/stablecoin-operations/liquidation/execute')
+            ->assertOk()
+            ->assertJsonPath('data.liquidated_count', 1)
+            ->assertDontSee($operatorAccount->uuid);
+
+        expect(StablecoinCollateralPosition::query()->where('uuid', $this->position->uuid)->sole()->status)->toBe('liquidated');
+    });
+});
+
+describe('GraphQL createPortfolio', function (): void {
+    beforeEach(function (): void {
+        Cache::forget('domain_manager_disabled');
+        config(['modules.disabled' => []]);
+    });
+
+    $mutation = 'mutation ($input: CreatePortfolioInput!) { createPortfolio(input: $input) { portfolio_id asset_class target_weight } }';
+    $input = ['asset_class' => 'g385_fixed_income', 'target_weight' => 40.0, 'target_amount' => 1000.0];
+
+    it('is refused to a user who is not an operator and creates nothing', function () use ($mutation, $input): void {
+        $this->mock(YieldOptimizationService::class, function (MockInterface $mock): void {
+            $mock->shouldNotReceive('optimizePortfolio');
+        });
+
+        $json = $this->actingAs(g385User(), 'sanctum')
+            ->postJson('/graphql', ['query' => $mutation, 'variables' => ['input' => $input]])
+            ->assertOk()
+            ->json();
+
+        expect($json['errors'][0]['message'] ?? null)->toBe('You are not authorized to create a portfolio.')
+            ->and($json['data'] ?? null)->toBeNull()
+            ->and(AssetAllocation::query()->where('asset_class', 'g385_fixed_income')->exists())->toBeFalse();
+    });
+
+    // The operator gets past the role check and the portfolio is optimised.
+    // (Storing the allocation row fails on its own, before and after this
+    // change: the model uses HasUuids on an integer id column.)
+    it('lets platform operators through', function (string $role) use ($mutation, $input): void {
+        $this->mock(YieldOptimizationService::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('optimizePortfolio')->once()->andReturn([]);
+        });
+
+        $json = $this->actingAs(g385User($role), 'sanctum')
+            ->postJson('/graphql', ['query' => $mutation, 'variables' => ['input' => $input]])
+            ->assertOk()
+            ->json();
+
+        expect($json['errors'][0]['message'] ?? null)->not->toBe('You are not authorized to create a portfolio.');
+    })->with(['admin', 'bank_admin']);
 });
 
 describe('D13 exchange-rate refresh', function (): void {

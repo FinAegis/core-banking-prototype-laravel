@@ -46,8 +46,8 @@ Route::prefix('v2')->group(function () {
 
         // Platform-wide risk, liquidation and simulation endpoints: stablecoin
         // operators only (StaffRoles::STABLECOIN_OPERATORS). They list every
-        // user's positions, and a liquidation pays the caller a reward out of
-        // the owner's collateral without the caller repaying any debt.
+        // user's positions, and a liquidation seizes the owner's collateral.
+        // Staff liquidations pay no liquidator reward (see the controller).
         Route::middleware(RoleMiddleware::using(StaffRoles::STABLECOIN_OPERATORS))->group(function () {
             Route::get('/positions/at-risk', [StablecoinOperationsController::class, 'getPositionsAtRisk']);
             Route::get('/liquidation/opportunities', [StablecoinOperationsController::class, 'getLiquidationOpportunities']);

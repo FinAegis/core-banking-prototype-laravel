@@ -15,7 +15,6 @@ use App\Support\StaffRoles;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(
@@ -520,7 +519,7 @@ class StablecoinOperationsController extends Controller
         new OA\Property(property: 'liquidator_reward', type: 'integer', example: 5000),
         new OA\Property(property: 'protocol_fee', type: 'integer', example: 5000),
         new OA\Property(property: 'returned_to_owner', type: 'integer', example: 90000),
-        new OA\Property(property: 'liquidator_uuid', type: 'string', format: 'uuid', example: '456e7890-e89b-12d3-a456-426614174001'),
+        new OA\Property(property: 'liquidator_uuid', type: 'string', format: 'uuid', nullable: true, example: null, description: 'Always null: staff-initiated liquidations pay no liquidator reward'),
         ]),
         ])
     )]
@@ -541,11 +540,12 @@ class StablecoinOperationsController extends Controller
     public function liquidatePosition(string $positionUuid): JsonResponse
     {
         $position = StablecoinCollateralPosition::where('uuid', $positionUuid)->firstOrFail();
-        /** @var Account|null $liquidator */
-        $liquidator = Auth::user()?->account;
 
         try {
-            $result = $this->liquidationService->liquidatePosition($position, $liquidator);
+            // Staff-initiated liquidation: no liquidator. Passing the acting
+            // staff member's account would pay them half of the penalty out
+            // of the position owner's collateral.
+            $result = $this->liquidationService->liquidatePosition($position, null);
 
             return response()->json(
                 [
@@ -710,11 +710,10 @@ class StablecoinOperationsController extends Controller
     )]
     public function executeAutoLiquidation(): JsonResponse
     {
-        /** @var Account|null $liquidator */
-        $liquidator = Auth::user()?->account;
-
         try {
-            $result = $this->liquidationService->liquidateEligiblePositions($liquidator);
+            // Staff-initiated liquidation: no liquidator reward is paid to the
+            // acting staff member (see liquidatePosition).
+            $result = $this->liquidationService->liquidateEligiblePositions(null);
 
             return response()->json(
                 [

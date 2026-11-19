@@ -109,7 +109,10 @@ describe('GraphQL Treasury API', function () {
     });
 
     it('creates a portfolio via mutation', function () {
+        // Asset allocations have no owner, so only operators create them.
+        Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         $user = User::factory()->create();
+        $user->assignRole('admin');
 
         $response = $this->actingAs($user, 'sanctum')
             ->postJson('/graphql', [
