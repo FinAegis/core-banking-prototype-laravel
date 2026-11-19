@@ -172,6 +172,7 @@ class GdprService
         'mfi_group_members'            => self::EXCL_LEGACY,
         'mfi_share_accounts'           => self::EXCL_LEGACY,
         'mfi_teller_cashiers'          => self::EXCL_LEGACY,
+        'mpp_spending_limits'          => 'Machine-payment (MPP) agent spending limits: amounts and counters per agent. user_id only scopes a limit to its owner when the caller has no team; no personal data beyond that FK, which points at the anonymized users row after erasure.',
         'multi_sig_approval_requests'  => self::EXCL_LEGACY,
         'multi_sig_signer_approvals'   => self::EXCL_LEGACY,
         'multi_sig_wallet_signers'     => self::EXCL_LEGACY,
@@ -210,6 +211,8 @@ class GdprService
         'visa_cli_enrolled_cards'      => self::EXCL_LEGACY,
         'votes'                        => self::EXCL_LEGACY,
         'websocket_subscriptions'      => self::EXCL_EPHEMERAL,
+        'x402_monetized_endpoints'     => 'Platform x402 price list (route, method, price). created_by_user_id only records which administrator created the row; no personal data beyond that FK, which points at the anonymized users row after erasure.',
+        'x402_spending_limits'         => 'x402 agent spending limits: amounts and counters per agent. user_id only scopes a limit to its owner when the caller has no team; no personal data beyond that FK, which points at the anonymized users row after erasure.',
     ];
 
     /**
