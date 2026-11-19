@@ -170,11 +170,13 @@ class HeliusTransactionProcessor
             // already owns a feed item for this outbound send — avoids a
             // duplicate row for the same transaction — or when the transfer
             // is inbound dust (recorded above, but not surfaced to the user).
+            // Keyed per user: each platform party to a transfer gets its own
+            // feed row, so a counterparty that registered the other side's
+            // address (e.g. a common sender) cannot take this user's entry.
             if ($walletSend === null && ! $isDust) {
                 ActivityFeedItem::firstOrCreate(
-                    ['reference_type' => 'solana_tx', 'reference_id' => $refId],
+                    ['reference_type' => 'solana_tx', 'reference_id' => $refId, 'user_id' => $userId],
                     [
-                        'user_id'       => $userId,
                         'activity_type' => $isIncoming ? ActivityItemType::TRANSFER_IN : ActivityItemType::TRANSFER_OUT,
                         'amount'        => $isIncoming ? $amount : '-' . $amount,
                         'asset'         => $token,

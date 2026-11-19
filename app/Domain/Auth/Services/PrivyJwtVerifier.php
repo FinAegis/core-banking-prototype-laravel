@@ -134,6 +134,30 @@ final class PrivyJwtVerifier
      */
     public function fetchUserEmail(string $privyUserId): ?string
     {
+        foreach ($this->fetchLinkedAccounts($privyUserId) ?? [] as $account) {
+            $type = $account['type'] ?? null;
+            $address = $account['address'] ?? null;
+            if ($type === 'email' && is_string($address) && $address !== '') {
+                return strtolower($address);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The user's `linked_accounts` from the Privy server-side API
+     * (GET /api/v1/users/{id}), authenticated with the app secret. Embedded
+     * wallets appear as `{type: wallet, chain_type: ethereum|solana, address}`
+     * and smart wallets as `{type: smart_wallet, address}`.
+     *
+     * Returns `null` on any failure (credentials not configured, network
+     * error, non-200, malformed body) so callers can fail closed.
+     *
+     * @return array<int, array<string, mixed>>|null
+     */
+    public function fetchLinkedAccounts(string $privyUserId): ?array
+    {
         $appId = (string) config('privy.app_id');
         $appSecret = (string) config('privy.app_secret');
         if ($appId === '' || $appSecret === '' || $privyUserId === '') {
@@ -161,17 +185,6 @@ final class PrivyJwtVerifier
             return null;
         }
 
-        foreach ($body['linked_accounts'] as $account) {
-            if (! is_array($account)) {
-                continue;
-            }
-            $type = $account['type'] ?? null;
-            $address = $account['address'] ?? null;
-            if ($type === 'email' && is_string($address) && $address !== '') {
-                return strtolower($address);
-            }
-        }
-
-        return null;
+        return array_values(array_filter($body['linked_accounts'], 'is_array'));
     }
 }

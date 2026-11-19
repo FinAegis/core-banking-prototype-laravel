@@ -192,6 +192,40 @@ class SponsorshipCostTracker
     }
 
     /**
+     * Add an already USD-denominated sponsored-gas cost to today's spend
+     * counter. Used for generic relayer sponsorship, which spends gas in the
+     * request but keeps no record the confirmation pollers reconcile: its
+     * paymaster fee estimate (gas at the current price, plus markup, floored
+     * at the configured minimum fee) is charged at submission — an upper
+     * bound of the real cost, so the budget errs on the safe side.
+     *
+     * @param string $usd USD amount as a decimal string
+     */
+    public function recordEstimatedSpendUsd(string $usd): void
+    {
+        if (! is_numeric($usd)) {
+            return;
+        }
+
+        $micro = bcmul(bcadd($usd, '0', 12), self::USD_MICRO_FACTOR, 6);
+        $whole = bcadd($micro, '0', 0);
+
+        if (bccomp($micro, $whole, 6) > 0) {
+            $whole = bcadd($whole, '1', 0);
+        }
+
+        if (bccomp($whole, '0', 0) <= 0) {
+            return;
+        }
+
+        $key = self::budgetCacheKey();
+
+        // Cache::add + increment — never read-then-write (concurrency-safe).
+        Cache::add($key, 0, now()->addDay());
+        Cache::increment($key, (int) $whole);
+    }
+
+    /**
      * Conservative micro-USD estimate for a native fee amount, rounded UP
      * to a whole micro-USD so dust-sized fees are never counted as zero.
      */

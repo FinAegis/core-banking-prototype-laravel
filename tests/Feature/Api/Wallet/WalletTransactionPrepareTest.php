@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api\Wallet;
 
+use App\Domain\Wallet\Services\SponsorshipBudget;
 use App\Domain\Wallet\Services\SponsorshipCostTracker;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
@@ -183,14 +184,19 @@ class WalletTransactionPrepareTest extends TestCase
             'quote_id' => 'q_test_ratelimit',
         ];
 
-        // First two prepares clear the guardrail — they fail later for an
-        // unrelated reason (no registered sender address), which is not a 429.
+        // Prepares that fail later (no registered sender address) clear the
+        // guardrail and give their reserved unit back, so they never use up
+        // the allowance (GHSA-385w-q6j4-5qw6 C13).
+        $this->withToken($this->token)->postJson('/api/v1/wallet/transactions/prepare', $body)
+            ->assertStatus(422)->assertJsonPath('error.code', 'NO_SENDER_ADDRESS');
         $this->withToken($this->token)->postJson('/api/v1/wallet/transactions/prepare', $body)
             ->assertStatus(422)->assertJsonPath('error.code', 'NO_SENDER_ADDRESS');
         $this->withToken($this->token)->postJson('/api/v1/wallet/transactions/prepare', $body)
             ->assertStatus(422)->assertJsonPath('error.code', 'NO_SENDER_ADDRESS');
 
-        // Third trips the per-user daily limit.
+        // Two prepared intents already used today's allowance.
+        Cache::put(SponsorshipBudget::perUserCountCacheKey($this->user->id), 2, now()->addDay());
+
         $this->withToken($this->token)->postJson('/api/v1/wallet/transactions/prepare', $body)
             ->assertStatus(429)->assertJsonPath('error.code', 'SEND_DAILY_LIMIT_REACHED');
     }
@@ -207,8 +213,13 @@ class WalletTransactionPrepareTest extends TestCase
             'quote_id' => 'q_test_global',
         ];
 
+        // Prepare never takes the shared global unit (submit does), so a
+        // failed prepare leaves the ceiling untouched.
         $this->withToken($this->token)->postJson('/api/v1/wallet/transactions/prepare', $body)
             ->assertStatus(422)->assertJsonPath('error.code', 'NO_SENDER_ADDRESS');
+
+        // One send was submitted platform-wide today: the ceiling is reached.
+        Cache::put(SponsorshipCostTracker::globalSendCountCacheKey(), 1, now()->addDay());
 
         $this->withToken($this->token)->postJson('/api/v1/wallet/transactions/prepare', $body)
             ->assertStatus(429)->assertJsonPath('error.code', 'SEND_TEMPORARILY_UNAVAILABLE');
