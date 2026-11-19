@@ -639,7 +639,8 @@ describe('C23 payment rail transaction', function (): void {
 
 function ghsaRrBankTransfer(User $owner): string
 {
-    $id = 'bt_' . Str::uuid()->toString();
+    // bank_transfers.id is a uuid column (36 characters on MySQL).
+    $id = Str::uuid()->toString();
     DB::table('bank_transfers')->insert([
         'id'              => $id,
         'user_uuid'       => $owner->uuid,

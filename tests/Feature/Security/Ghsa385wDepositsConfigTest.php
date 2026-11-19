@@ -240,7 +240,8 @@ function ghsaDcRunDepositActivity(string $activityClass, string $workflowClass, 
 
     if ($parentClass !== null) {
         $parent = StoredWorkflow::query()->whereKey(WorkflowStub::make($parentClass)->id())->firstOrFail();
-        $stored->parents()->attach($parent, ['parent_index' => 0, 'parent_now' => $now]);
+        // parent_now is a DATETIME column; MySQL refuses the ISO-8601 form the activity takes.
+        $stored->parents()->attach($parent, ['parent_index' => 0, 'parent_now' => now()->format('Y-m-d H:i:s')]);
     }
 
     $activity = new $activityClass(0, $now, $stored, ...$arguments);
