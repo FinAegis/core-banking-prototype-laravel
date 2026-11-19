@@ -294,12 +294,18 @@ class MarqetaCardIssuerAdapter implements CardIssuerInterface
         // Parse expiration date
         $expiresAt = $this->parseExpiration($data);
 
-        // Merge metadata
+        // Merge metadata. `user_token` is Marqeta's owner of the card (set to
+        // the platform user id at creation) and goes last, so card metadata
+        // can never supply it.
         $metadata = array_merge(
             $extraMetadata,
             (array) ($data['metadata'] ?? []),
             ['marqeta_token' => $token],
         );
+        unset($metadata['user_token']);
+        if (isset($data['user_token']) && is_scalar($data['user_token']) && (string) $data['user_token'] !== '') {
+            $metadata['user_token'] = (string) $data['user_token'];
+        }
 
         // Resolve label
         $resolvedLabel = $label ?? ($data['metadata']['label'] ?? null);

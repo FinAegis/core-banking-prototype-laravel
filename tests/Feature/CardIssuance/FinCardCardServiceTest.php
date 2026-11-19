@@ -134,6 +134,7 @@ class FinCardCardServiceTest extends TestCase
         ]));
 
         $user = User::factory()->create();
+        $this->account($user);
         $card = $this->card($user, 20000);
 
         $updated = $this->service()->topUp($card, 5000, 'ord-topup');

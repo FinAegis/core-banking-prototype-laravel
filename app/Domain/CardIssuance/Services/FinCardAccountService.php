@@ -5,10 +5,15 @@ declare(strict_types=1);
 namespace App\Domain\CardIssuance\Services;
 
 use App\Domain\CardIssuance\Events\Broadcast\FinCardAccountFunded;
+use App\Domain\CardIssuance\Exceptions\FinCardAccountNotReadyException;
 use App\Domain\CardIssuance\Models\FinCardAccount;
 use App\Domain\CardIssuance\Models\FinCardDepositAddress;
+use App\Infrastructure\FinCard\FinCardApiException;
 use App\Infrastructure\FinCard\FinCardClient;
 use App\Models\User;
+use Illuminate\Contracts\Cache\LockTimeoutException;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -28,40 +33,161 @@ use Illuminate\Support\Facades\Log;
  */
 final class FinCardAccountService
 {
+    /**
+     * Seconds the per-user provisioning lock is held at most. Longer than a
+     * FinCard call with its retries, so a slow /account/create cannot let a
+     * second request open another FinCard account.
+     */
+    private const PROVISION_LOCK_SECONDS = 120;
+
+    /** Seconds a request waits for another request provisioning the same user. */
+    private const PROVISION_WAIT_SECONDS = 10;
+
     public function __construct(
         private readonly FinCardClient $client,
     ) {
     }
 
+    /**
+     * The user's funding account, whatever its status (one per user,
+     * unique user_id).
+     */
     public function existingAccount(User $user): ?FinCardAccount
     {
-        return FinCardAccount::query()->where('user_id', $user->id)->first();
+        return FinCardAccount::query()->where('user_id', $user->id)->orderBy('id')->first();
     }
 
     /**
-     * The user's FinCard account, creating it on FinCard on first use.
+     * The user's funding account, when it can back a card load: status
+     * `active` and a FinCard account id set. FinCard calls run under the
+     * platform's tenant-wide credentials, so this id is what ties a card open
+     * or top-up to the user's own funds; without it nothing is sent.
+     *
+     * @throws FinCardAccountNotReadyException
+     */
+    public function requireFundingAccount(string $userId): FinCardAccount
+    {
+        $account = FinCardAccount::query()
+            ->where('user_id', $userId)
+            ->where('status', 'active')
+            ->orderBy('id')
+            ->first();
+
+        if (
+            ! $account instanceof FinCardAccount
+            || $account->status !== 'active'
+            || trim((string) $account->fincard_account_id) === ''
+        ) {
+            throw new FinCardAccountNotReadyException('No active FinCard funding account for this user.');
+        }
+
+        return $account;
+    }
+
+    /**
+     * The user's FinCard account, creating it on FinCard on first use. A
+     * legacy row saved without a FinCard account id is provisioned again.
+     * A create response without an account id throws (nothing is saved).
+     *
+     * Provisioning runs under a per-user lock (FinCard's /account/create has
+     * no idempotency key, so two concurrent first calls would open two
+     * FinCard accounts), and the row is written under a row lock in a
+     * transaction on the account's own (tenant) connection. When another
+     * request saved the user's account meanwhile, that account is returned.
      *
      * @param  array<string, mixed>  $context
+     *
+     * @throws FinCardApiException
      */
     public function getOrCreateAccount(User $user, array $context = []): FinCardAccount
     {
         $existing = $this->existingAccount($user);
-        if ($existing instanceof FinCardAccount) {
+        if ($existing instanceof FinCardAccount && trim((string) $existing->fincard_account_id) !== '') {
+            return $existing;
+        }
+
+        try {
+            /** @var FinCardAccount */
+            return Cache::lock('fincard:account:provision:' . $user->id, self::PROVISION_LOCK_SECONDS)
+                ->block(self::PROVISION_WAIT_SECONDS, fn (): FinCardAccount => $this->provisionAccount($user, $context));
+        } catch (LockTimeoutException) {
+            throw new FinCardApiException('FinCard account provisioning is already in progress for this user', path: '/account/create');
+        }
+    }
+
+    /**
+     * Create the account on FinCard and save it. Runs under the per-user
+     * provisioning lock.
+     *
+     * @param  array<string, mixed>  $context
+     *
+     * @throws FinCardApiException
+     */
+    private function provisionAccount(User $user, array $context): FinCardAccount
+    {
+        // Another request may have finished while this one waited for the lock.
+        $existing = $this->existingAccount($user);
+        if ($existing instanceof FinCardAccount && trim((string) $existing->fincard_account_id) !== '') {
             return $existing;
         }
 
         $response = $this->client->createAccount("Zelta user {$user->id}", 'USD', $context);
         $data = is_array($response['data'] ?? null) ? $response['data'] : [];
+        $accountId = trim((string) ($data['accountId'] ?? $data['id'] ?? ''));
 
-        $account = new FinCardAccount();
-        $account->user_id = (string) $user->id;
-        $account->fincard_account_id = (string) ($data['accountId'] ?? $data['id'] ?? '');
-        $account->currency = 'USD';
-        $account->balance_cents = 0;
-        $account->status = 'active';
-        $account->save();
+        if ($accountId === '') {
+            throw new FinCardApiException('FinCard /account/create returned no account id', path: '/account/create');
+        }
 
-        return $account;
+        $connection = (new FinCardAccount())->getConnectionName();
+
+        try {
+            return DB::connection($connection)->transaction(function () use ($user, $accountId): FinCardAccount {
+                $account = FinCardAccount::query()->where('user_id', $user->id)->orderBy('id')->lockForUpdate()->first();
+
+                if ($account instanceof FinCardAccount && trim((string) $account->fincard_account_id) !== '') {
+                    $this->logUnusedFinCardAccount($user, $accountId, $account);
+
+                    return $account;
+                }
+
+                if (! $account instanceof FinCardAccount) {
+                    $account = new FinCardAccount();
+                    $account->user_id = (string) $user->id;
+                    $account->currency = 'USD';
+                    $account->balance_cents = 0;
+                    $account->status = 'active';
+                }
+
+                $account->fincard_account_id = $accountId;
+                $account->save();
+
+                return $account;
+            });
+        } catch (UniqueConstraintViolationException $e) {
+            // Saved by a request that did not hold the lock (unique user_id).
+            $account = $this->existingAccount($user);
+            if (! $account instanceof FinCardAccount) {
+                throw $e;
+            }
+
+            $this->logUnusedFinCardAccount($user, $accountId, $account);
+
+            return $account;
+        }
+    }
+
+    /**
+     * A FinCard account was opened but the user already had one: log it so
+     * operations can close the unused one at FinCard.
+     */
+    private function logUnusedFinCardAccount(User $user, string $unusedAccountId, FinCardAccount $kept): void
+    {
+        Log::warning('FinCard account opened for a user who already has one; close the unused account at FinCard', [
+            'user_id'           => $user->id,
+            'unused_account_id' => $unusedAccountId,
+            'kept_account_id'   => $kept->fincard_account_id,
+        ]);
     }
 
     /**

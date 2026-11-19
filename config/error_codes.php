@@ -97,6 +97,9 @@ return [
     // ─── Card waitlist deposit switch ──────────────────────────────────────
     'ERR_CARDS_019' => ['http' => 503, 'description' => 'Card waitlist deposits are not available.'],
 
+    // ─── FinCard funding account precondition (open / top-up) ──────────────
+    'ERR_CARDS_020' => ['http' => 409, 'description' => 'Your card account is not set up. Add funds to your card account first.'],
+
     // ─── API registration switch (config/registration.php) ────────────────
     // `error.reason` carries REGISTRATION_CLOSED / INVITATION_REQUIRED.
     'ERR_REG_001' => ['http' => 403, 'description' => 'New account registration is currently closed.'],

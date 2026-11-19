@@ -18,9 +18,9 @@ namespace App\Infrastructure\FinCard;
  * sends is an open item to confirm with FinCard (design spec §14), as is
  * obtaining the public key itself.
  *
- * Fail-closed: with no public key configured we accept in non-production (so the
- * dev loop works against Playground) and hard-fail in production rather than
- * trust an unsigned webhook — the same idiom as {@see \App\Infrastructure\Bridge\BridgeWebhookVerifier}.
+ * Fail-closed: with no public key configured we accept only in local and
+ * testing (so the dev loop works against Playground) and reject everywhere
+ * else (staging, demo, production) rather than trust an unsigned webhook.
  */
 final class FinCardWebhookVerifier
 {
@@ -42,9 +42,9 @@ final class FinCardWebhookVerifier
     public function verify(string $rawBody, string $signature): bool
     {
         if ($this->publicKey === '') {
-            // No key configured: accept in non-prod (Playground dev loop),
-            // hard-fail in production rather than trust an unsigned webhook.
-            return ! app()->environment('production');
+            // No key configured: accept only in local/testing (Playground dev
+            // loop); any other environment rejects an unsigned webhook.
+            return app()->environment(['local', 'testing']);
         }
 
         if ($signature === '') {
