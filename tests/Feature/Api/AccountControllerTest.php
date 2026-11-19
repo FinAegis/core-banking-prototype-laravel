@@ -301,8 +301,11 @@ class AccountControllerTest extends ControllerTestCase
     {
         Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
+        // The owner's own freeze: a staff freeze can only be lifted by staff
+        // (GHSA-385w C20, covered in Ghsa385wDepositsConfigTest).
         $account = Account::factory()->forUser($this->user)->create([
-            'frozen' => true,
+            'frozen'          => true,
+            'frozen_by_owner' => true,
         ]);
 
         $response = $this->postJson("/api/accounts/{$account->uuid}/unfreeze", [

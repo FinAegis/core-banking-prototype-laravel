@@ -8,6 +8,7 @@ use App\Domain\Banking\Services\AccountVerificationService;
 use App\Domain\Banking\Services\BankTransferService;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 use Mockery\MockInterface;
 use Tests\TestCase;
@@ -54,8 +55,10 @@ class BankingControllerTest extends TestCase
         Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         // The status is readable by the user who initiated the transfer.
+        // bank_transfers.id is a uuid column (MariaDB rejects other values).
+        $transferId = (string) Str::uuid();
         DB::table('bank_transfers')->insert([
-            'id'              => 'bt_existing',
+            'id'              => $transferId,
             'user_uuid'       => $this->user->uuid,
             'from_bank_code'  => 'PAYSERA',
             'from_account_id' => 'acc-1',
@@ -70,12 +73,12 @@ class BankingControllerTest extends TestCase
             'updated_at'      => now(),
         ]);
 
-        $this->mock(BankTransferService::class, function (MockInterface $mock): void {
+        $this->mock(BankTransferService::class, function (MockInterface $mock) use ($transferId): void {
             $mock->shouldReceive('getStatus')
                 ->once()
-                ->with('bt_existing')
+                ->with($transferId)
                 ->andReturn([
-                    'transfer_id'    => 'bt_existing',
+                    'transfer_id'    => $transferId,
                     'status'         => 'initiated',
                     'amount'         => 500.0,
                     'currency'       => 'EUR',
@@ -87,10 +90,10 @@ class BankingControllerTest extends TestCase
                 ]);
         });
 
-        $response = $this->getJson('/api/v2/banks/transfer/bt_existing/status');
+        $response = $this->getJson("/api/v2/banks/transfer/{$transferId}/status");
 
         $response->assertOk()
-            ->assertJsonPath('data.transfer_id', 'bt_existing')
+            ->assertJsonPath('data.transfer_id', $transferId)
             ->assertJsonPath('data.status', 'initiated')
             ->assertJsonPath('data.amount', 500)
             ->assertJsonPath('data.currency', 'EUR');
