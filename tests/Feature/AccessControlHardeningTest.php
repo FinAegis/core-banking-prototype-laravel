@@ -675,7 +675,8 @@ describe('GraphQL mutations on other users\' records', function (): void {
     it('lets only the initiator or an operator cancel a bank transfer', function (): void {
         $owner = User::factory()->create();
         $insert = function () use ($owner): string {
-            $id = 'bt_' . Str::uuid()->toString();
+            // bank_transfers.id is a uuid column (36 characters on MySQL).
+            $id = Str::uuid()->toString();
             DB::table('bank_transfers')->insert([
                 'id'              => $id,
                 'user_uuid'       => $owner->uuid,
