@@ -12,6 +12,9 @@ on:
 env:
   PHP_VERSION: ${{ inputs.php-version }}
 
+permissions:
+  contents: read
+
 jobs:
   performance-tests:
     name: Performance Tests
@@ -287,13 +290,11 @@ jobs:
           php artisan event:cache
           php artisan migrate --force
 
+      # The k6 apt repository rotated its signing key, and the hard-coded key
+      # id made `apt-get update` fail (NO_PUBKEY C780D0BDB1A69C86). The
+      # official setup action downloads a release binary instead.
       - name: Install k6
-        run: |
-          sudo gpg -k
-          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
-          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-          sudo apt-get update
-          sudo apt-get install k6 -y
+        uses: grafana/setup-k6-action@c47136d33d365efbeb9ae7266908b5dcf98cdece # v1.3.0
           
       - name: Start Application Server
         run: |
