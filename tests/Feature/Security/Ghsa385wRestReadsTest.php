@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
+use App\Domain\Account\Models\TransactionProjection;
 use App\Domain\Account\Services\Cache\AccountCacheService;
 use App\Domain\Asset\Models\Asset;
 use App\Domain\Custodian\Models\CustodianAccount;
@@ -890,5 +891,247 @@ describe('C37 TrustCert holder checks', function (): void {
             ->assertOk()
             ->assertJsonPath('success', true);
         expect(Storage::disk('public')->allFiles())->toHaveCount(1);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// Review follow-ups: R1 reversal status, R2 owner lookups with the
+// BelongsToTeam scope on, R3 exact asset totals.
+// ---------------------------------------------------------------------------
+
+/**
+ * Run $callback with the BelongsToTeam global scope active, as it is for a
+ * production request (the trait skips the scope only while running the
+ * test suite).
+ *
+ * @template T
+ *
+ * @param  Closure(): T  $callback
+ * @return T
+ */
+function ghsaRrWithTeamScope(Closure $callback): mixed
+{
+    $previous = app()->environment();
+    app()->instance('env', 'local');
+
+    try {
+        return $callback();
+    } finally {
+        app()->instance('env', $previous);
+    }
+}
+
+function ghsaRrTeamUser(?string $role = null): User
+{
+    $user = User::factory()->withPersonalTeam()->create();
+
+    if ($role !== null) {
+        Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
+        $user->assignRole($role);
+    }
+
+    return $user;
+}
+
+function ghsaRrReversal(string $accountUuid): TransactionProjection
+{
+    return TransactionProjection::factory()->create([
+        'account_uuid' => $accountUuid,
+        'subtype'      => 'reversal',
+        'status'       => 'failed',
+        'metadata'     => ['reversal_reason' => 'chargeback', 'error_message' => 'G385W-REVERSAL-SECRET'],
+    ]);
+}
+
+describe('R1 reversal status', function (): void {
+    it('refuses the status of a reversal whose account no longer exists', function (): void {
+        $reversal = ghsaRrReversal((string) Str::uuid());
+
+        Sanctum::actingAs(ghsaRrUser(), ['read', 'write', 'delete']);
+
+        $response = $this->getJson("/api/transactions/reversals/rev_{$reversal->uuid}/status");
+
+        $response->assertForbidden();
+        expect($response->getContent())->not->toContain('G385W-REVERSAL-SECRET');
+    });
+
+    it('refuses another team\'s reversal status with the team scope on', function (): void {
+        $victim = ghsaRrTeamUser();
+        $account = Account::factory()->forUser($victim)->create(['team_id' => $victim->personalTeam()->id]);
+        $reversal = ghsaRrReversal($account->uuid);
+        $attacker = ghsaRrTeamUser();
+
+        $response = ghsaRrWithTeamScope(function () use ($attacker, $reversal) {
+            Sanctum::actingAs($attacker, ['read', 'write', 'delete']);
+
+            return $this->getJson("/api/transactions/reversals/rev_{$reversal->uuid}/status");
+        });
+
+        $response->assertForbidden();
+        expect($response->getContent())->not->toContain('G385W-REVERSAL-SECRET');
+    });
+
+    it('returns the reversal status to the owner from any team, and to an admin', function (): void {
+        $owner = ghsaRrTeamUser();
+        $account = Account::factory()->forUser($owner)->create(['team_id' => null]);
+        $reversal = ghsaRrReversal($account->uuid);
+
+        foreach ([$owner, ghsaRrTeamUser('admin')] as $caller) {
+            $response = ghsaRrWithTeamScope(function () use ($caller, $reversal) {
+                Sanctum::actingAs($caller, ['read', 'write', 'delete']);
+
+                return $this->getJson("/api/transactions/reversals/rev_{$reversal->uuid}/status");
+            });
+
+            $response->assertOk()
+                ->assertJsonPath('data.status', 'failed')
+                ->assertJsonPath('data.error_message', 'G385W-REVERSAL-SECRET');
+        }
+    });
+});
+
+describe('R2 owner lookups with the team scope on', function (): void {
+    it('lists the owner\'s accounts that have no team or another team in GET /api/balances', function (): void {
+        ghsaRrUsd();
+        $owner = ghsaRrTeamUser();
+        $noTeam = Account::factory()->forUser($owner)->create(['team_id' => null]);
+        $otherTeam = Account::factory()->forUser($owner)->create(['team_id' => ghsaRrTeamUser()->personalTeam()->id]);
+        AccountBalance::create(['account_uuid' => $noTeam->uuid, 'asset_code' => 'USD', 'balance' => 1000]);
+        AccountBalance::create(['account_uuid' => $otherTeam->uuid, 'asset_code' => 'USD', 'balance' => 500]);
+        $victim = ghsaRrTeamUser();
+        $theirs = Account::factory()->forUser($victim)->create(['team_id' => $owner->personalTeam()->id]);
+        AccountBalance::create(['account_uuid' => $theirs->uuid, 'asset_code' => 'USD', 'balance' => 900000]);
+
+        $response = ghsaRrWithTeamScope(function () use ($owner) {
+            Sanctum::actingAs($owner, ['read', 'write', 'delete']);
+
+            return $this->getJson('/api/balances');
+        });
+
+        $response->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->assertJsonPath('data.0.account_uuid', $noTeam->uuid)
+            ->assertJsonPath('data.0.account.user_uuid', (string) $owner->uuid)
+            ->assertJsonPath('data.1.account_uuid', $otherTeam->uuid)
+            ->assertJsonPath('data.1.account.user_uuid', (string) $owner->uuid)
+            ->assertJsonPath('meta.total_accounts', 2)
+            ->assertJsonPath('meta.asset_totals.USD', '15.00');
+        expect($response->getContent())->not->toContain($theirs->uuid)->not->toContain('9000.00');
+
+        $filtered = ghsaRrWithTeamScope(function () use ($owner) {
+            Sanctum::actingAs($owner, ['read', 'write', 'delete']);
+
+            return $this->getJson("/api/balances?user_uuid={$owner->uuid}");
+        });
+
+        $filtered->assertOk()->assertJsonCount(2, 'data');
+    });
+
+    it('returns the balances of an account outside the owner\'s current team, and refuses other users', function (): void {
+        ghsaRrUsd();
+        $owner = ghsaRrTeamUser();
+        $account = Account::factory()->forUser($owner)->create(['team_id' => null]);
+        AccountBalance::create(['account_uuid' => $account->uuid, 'asset_code' => 'USD', 'balance' => 4321]);
+        $attacker = ghsaRrTeamUser();
+
+        [$own, $foreign] = ghsaRrWithTeamScope(function () use ($owner, $attacker, $account): array {
+            Sanctum::actingAs($owner, ['read', 'write', 'delete']);
+            $own = $this->getJson("/api/accounts/{$account->uuid}/balances");
+            Sanctum::actingAs($attacker, ['read', 'write', 'delete']);
+
+            return [$own, $this->getJson("/api/accounts/{$account->uuid}/balances")];
+        });
+
+        $own->assertOk()
+            ->assertJsonPath('data.account_uuid', $account->uuid)
+            ->assertJsonPath('data.balances.0.balance', 4321);
+        $foreign->assertForbidden()->assertJsonPath('error', 'FORBIDDEN');
+        expect($foreign->getContent())->not->toContain('4321');
+    });
+
+    it('lets the owner of an account outside their current team see their transfer', function (): void {
+        $sender = ghsaRrTeamUser();
+        $from = Account::factory()->forUser($sender)->create(['team_id' => null]);
+        $to = Account::factory()->forUser(ghsaRrTeamUser())->create();
+        $transferUuid = ghsaRrMoneyTransferred($from->uuid, $to->uuid, 3141);
+
+        $response = ghsaRrWithTeamScope(function () use ($sender, $transferUuid) {
+            Sanctum::actingAs($sender, ['read', 'write', 'delete']);
+
+            return $this->getJson("/api/transfers/{$transferUuid}");
+        });
+
+        $response->assertOk()
+            ->assertJsonPath('data.from_account_uuid', $from->uuid)
+            ->assertJsonPath('data.amount', 3141);
+    });
+
+    it('finds own accounts in any team and never another user\'s account', function (): void {
+        $owner = ghsaRrTeamUser();
+        $mine = Account::factory()->forUser($owner)->create(['team_id' => null]);
+        $theirs = Account::factory()->forUser(ghsaRrTeamUser())->create(['team_id' => $owner->personalTeam()->id]);
+
+        [$found, $foreign] = ghsaRrWithTeamScope(function () use ($owner, $mine, $theirs): array {
+            Sanctum::actingAs($owner, ['read', 'write', 'delete']);
+
+            return [Account::findOwnedBy($mine->uuid, $owner), Account::findOwnedBy($theirs->uuid, $owner)];
+        });
+
+        expect($found?->uuid)->toBe($mine->uuid)
+            ->and($foreign)->toBeNull();
+    });
+
+    it('still hides another user\'s transfer and balances with the team scope on', function (): void {
+        ghsaRrUsd();
+        $attacker = ghsaRrTeamUser();
+        $victim = ghsaRrTeamUser();
+        $from = Account::factory()->forUser($victim)->create(['team_id' => $attacker->personalTeam()->id]);
+        $to = Account::factory()->forUser(ghsaRrTeamUser())->create(['team_id' => null]);
+        AccountBalance::create(['account_uuid' => $from->uuid, 'asset_code' => 'USD', 'balance' => 900000]);
+        $transferUuid = ghsaRrMoneyTransferred($from->uuid, $to->uuid, 2718);
+
+        [$transfer, $balances] = ghsaRrWithTeamScope(function () use ($attacker, $transferUuid): array {
+            Sanctum::actingAs($attacker, ['read', 'write', 'delete']);
+
+            return [$this->getJson("/api/transfers/{$transferUuid}"), $this->getJson('/api/balances')];
+        });
+
+        $transfer->assertNotFound();
+        $balances->assertOk()->assertJsonCount(0, 'data')->assertJsonPath('meta.total_accounts', 0);
+        expect($balances->getContent())->not->toContain($from->uuid);
+    });
+});
+
+describe('R3 exact balance amounts', function (): void {
+    it('formats balances and asset totals without float rounding', function (): void {
+        ghsaRrUsd();
+        $owner = ghsaRrUser();
+        $account = Account::factory()->forUser($owner)->create();
+        // 2^53 + 1 minor units: a float cannot hold this value exactly.
+        AccountBalance::create(['account_uuid' => $account->uuid, 'asset_code' => 'USD', 'balance' => 9007199254740993]);
+
+        Sanctum::actingAs($owner, ['read', 'write', 'delete']);
+
+        $this->getJson('/api/balances')
+            ->assertOk()
+            ->assertJsonPath('data.0.formatted', '90071992547409.93 USD')
+            ->assertJsonPath('meta.asset_totals.USD', '90071992547409.93');
+    });
+
+    it('keeps the usual formatting for ordinary and negative amounts', function (): void {
+        ghsaRrUsd();
+        $owner = ghsaRrUser();
+        $account = Account::factory()->forUser($owner)->create();
+        $other = Account::factory()->forUser($owner)->create();
+        AccountBalance::create(['account_uuid' => $account->uuid, 'asset_code' => 'USD', 'balance' => 5]);
+        AccountBalance::create(['account_uuid' => $other->uuid, 'asset_code' => 'USD', 'balance' => -1050]);
+
+        Sanctum::actingAs($owner, ['read', 'write', 'delete']);
+
+        $this->getJson('/api/balances')
+            ->assertOk()
+            ->assertJsonPath('data.0.formatted', '0.05 USD')
+            ->assertJsonPath('data.1.formatted', '-10.50 USD')
+            ->assertJsonPath('meta.asset_totals.USD', '-10.45');
     });
 });

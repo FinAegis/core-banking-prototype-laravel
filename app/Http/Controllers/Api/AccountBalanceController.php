@@ -76,7 +76,10 @@ class AccountBalanceController extends Controller
     )]
     public function show(Request $request, string $uuid): JsonResponse
     {
-        $account = Account::where('uuid', $uuid)->first();
+        // The lookup ignores the BelongsToTeam scope; the owner check below
+        // is what limits access (an owner's account may be in no team or
+        // another team).
+        $account = Account::query()->withoutGlobalScope('team')->where('uuid', $uuid)->first();
 
         if (! $account) {
             return response()->json(
@@ -202,12 +205,16 @@ class AccountBalanceController extends Controller
 
         // Regular users see their own accounts only; operators keep the
         // platform-wide view, the user_uuid filter and platform totals.
+        // Account lookups ignore the BelongsToTeam scope: user_uuid is the
+        // ownership check, and an owner's account may have no team or
+        // another team.
         $user = $request->user();
         $ownAccountUuids = null;
 
         if (! StaffRoles::userHasAny($user, StaffRoles::OPERATORS)) {
             $ownAccountUuids = array_values(
                 Account::query()
+                    ->withoutGlobalScope('team')
                     ->where('user_uuid', (string) ($user->uuid ?? ''))
                     ->pluck('uuid')
                     ->map(static fn ($uuid): string => (string) $uuid)
@@ -215,7 +222,10 @@ class AccountBalanceController extends Controller
             );
         }
 
-        $query = AccountBalance::with(['account', 'asset']);
+        $query = AccountBalance::with([
+            'account' => static fn ($q) => $q->withoutGlobalScope('team'),
+            'asset',
+        ]);
 
         if ($ownAccountUuids !== null) {
             $query->whereIn('account_uuid', $ownAccountUuids);
@@ -235,7 +245,7 @@ class AccountBalanceController extends Controller
                 'account',
                 function ($q) use ($request) {
                     /** @phpstan-ignore-next-line */
-                    $q->where('user_uuid', $request->string('user_uuid')->toString());
+                    $q->withoutGlobalScope('team')->where('user_uuid', $request->string('user_uuid')->toString());
                 }
             );
         }
@@ -280,14 +290,18 @@ class AccountBalanceController extends Controller
 
     private function formatAmount(int $amount, Asset $asset): string
     {
-        $formatted = number_format(
-            $amount / (10 ** $asset->precision),
-            $asset->precision,
-            '.',
-            ''
-        );
+        $formatted = $this->formatMinorUnits($amount, (int) $asset->precision);
 
         return "{$formatted} {$asset->code}";
+    }
+
+    /**
+     * Minor units as a decimal string with the given number of decimals,
+     * computed with bcmath so large amounts keep every digit.
+     */
+    private function formatMinorUnits(int|string $amount, int $precision): string
+    {
+        return bcdiv((string) $amount, bcpow('10', (string) $precision), $precision);
     }
 
     private function calculateUsdEquivalent($balances): float
@@ -351,14 +365,7 @@ class AccountBalanceController extends Controller
                 function ($item) {
                     $asset = Asset::where('code', $item->asset_code)->first();
                     if ($asset) {
-                        $formatted = number_format(
-                            $item->total / (10 ** $asset->precision),
-                            $asset->precision,
-                            '.',
-                            ''
-                        );
-
-                        return [$item->asset_code => $formatted];
+                        return [$item->asset_code => $this->formatMinorUnits((string) $item->total, (int) $asset->precision)];
                     }
 
                     return [$item->asset_code => (string) $item->total];
