@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\AgentProtocol\AgentMessageController;
 use App\Http\Controllers\Api\AgentProtocol\AgentPaymentController;
 use App\Http\Controllers\Api\AgentProtocol\AgentProtocolNegotiationController;
 use App\Http\Controllers\Api\AgentProtocol\AgentReputationController;
+use App\Http\Middleware\EnsureAgentMatchesRouteDid;
 use Illuminate\Support\Facades\Route;
 
 // AP2 well-known configuration (public)
@@ -85,16 +86,18 @@ Route::prefix('agent-protocol')->name('api.agent-protocol.')->group(function () 
         });
     });
 
-    // Agent-authenticated endpoints (agents authenticate via DID, API key, or session token)
+    // Agent-authenticated endpoints (agents authenticate via DID, API key, or session token).
+    // On /agents/{did}/... routes where {did} is the acting agent,
+    // EnsureAgentMatchesRouteDid answers 403 unless {did} is the authenticated agent.
     Route::middleware(['auth.agent', 'api.rate_limit:private'])->group(function () {
         // Agent profile management (agent updates own capabilities)
         Route::put('/agents/{did}/capabilities', [AgentIdentityController::class, 'updateCapabilities'])
-            ->middleware('agent.capability:profile_management')
+            ->middleware([EnsureAgentMatchesRouteDid::class, 'agent.capability:profile_management'])
             ->name('agents.capabilities');
 
         // Payment endpoints (require payments capability and scope)
         Route::prefix('agents/{did}/payments')->name('payments.')
-            ->middleware(['agent.capability:payments', 'agent.scope:payments:read,payments:write'])
+            ->middleware([EnsureAgentMatchesRouteDid::class, 'agent.capability:payments', 'agent.scope:payments:read,payments:write'])
             ->group(function () {
                 Route::get('/', [AgentPaymentController::class, 'listPayments'])->name('list');
                 Route::post('/', [AgentPaymentController::class, 'initiatePayment'])
@@ -127,7 +130,7 @@ Route::prefix('agent-protocol')->name('api.agent-protocol.')->group(function () 
 
         // Messaging endpoints - A2A (require messages capability and scope)
         Route::prefix('agents/{did}/messages')->name('messages.')
-            ->middleware(['agent.capability:messages', 'agent.scope:messages:read,messages:write'])
+            ->middleware([EnsureAgentMatchesRouteDid::class, 'agent.capability:messages', 'agent.scope:messages:read,messages:write'])
             ->group(function () {
                 Route::get('/', [AgentMessageController::class, 'list'])->name('list');
                 Route::post('/', [AgentMessageController::class, 'send'])
@@ -152,7 +155,7 @@ Route::prefix('agent-protocol')->name('api.agent-protocol.')->group(function () 
 
         // Protocol negotiation endpoints (require messages capability for A2A negotiation)
         Route::prefix('agents/{did}/protocol')->name('protocol.')
-            ->middleware(['agent.capability:messages', 'agent.scope:messages:read,messages:write'])
+            ->middleware([EnsureAgentMatchesRouteDid::class, 'agent.capability:messages', 'agent.scope:messages:read,messages:write'])
             ->group(function () {
                 Route::post('/negotiate', [AgentProtocolNegotiationController::class, 'negotiate'])->name('negotiate');
                 Route::get('/agreements/{otherDid}', [AgentProtocolNegotiationController::class, 'getAgreement'])

@@ -4,13 +4,24 @@ declare(strict_types=1);
 
 use App\Domain\AgentProtocol\Enums\A2ATaskState;
 use App\Domain\AgentProtocol\Models\A2ATask;
+use App\Models\Agent;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
+
+/**
+ * A2A tasks belong to the owner of the sender agent (GHSA-385w-q6j4-5qw6),
+ * so each test registers the sender agent for the acting user.
+ */
+function a2aOwnedAgent(User $owner, string $did): Agent
+{
+    return Agent::factory()->create(['did' => $did, 'status' => 'active', 'owner_user_id' => $owner->id]);
+}
 
 describe('A2A Task Endpoints', function (): void {
     it('creates a task via tasks/send', function (): void {
         $user = User::factory()->create();
         Sanctum::actingAs($user, ['read', 'write', 'delete']);
+        a2aOwnedAgent($user, 'did:finaegis:agent:sender123');
 
         $response = $this->postJson('/api/agent-protocol/tasks/send', [
             'sender_did' => 'did:finaegis:agent:sender123',
@@ -34,6 +45,7 @@ describe('A2A Task Endpoints', function (): void {
     it('retrieves a task via tasks/get', function (): void {
         $user = User::factory()->create();
         Sanctum::actingAs($user, ['read', 'write', 'delete']);
+        a2aOwnedAgent($user, 'did:finaegis:agent:retrieve-sender');
 
         $task = A2ATask::create([
             'sender_did'   => 'did:finaegis:agent:retrieve-sender',
@@ -54,6 +66,7 @@ describe('A2A Task Endpoints', function (): void {
     it('cancels a task', function (): void {
         $user = User::factory()->create();
         Sanctum::actingAs($user, ['read', 'write', 'delete']);
+        a2aOwnedAgent($user, 'did:finaegis:agent:cancel-sender');
 
         $task = A2ATask::create([
             'sender_did'   => 'did:finaegis:agent:cancel-sender',
@@ -77,6 +90,7 @@ describe('A2A Task Endpoints', function (): void {
     it('rejects cancel on terminal task', function (): void {
         $user = User::factory()->create();
         Sanctum::actingAs($user, ['read', 'write', 'delete']);
+        a2aOwnedAgent($user, 'did:finaegis:agent:terminal-sender');
 
         $task = A2ATask::create([
             'sender_did'   => 'did:finaegis:agent:terminal-sender',

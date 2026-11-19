@@ -80,7 +80,8 @@ All of these must be true before submitting (rejection rate is high; the form do
 - [ ] Privacy policy live at `https://zelta.app/legal/privacy`
 - [ ] Terms of service live at `https://zelta.app/legal/terms`
 - [ ] Every tool in `config('mcp.tools')` returns a `title` and either `readOnlyHint: true` or `destructiveHint: true` in `tools/list` (this is the #1 rejection cause)
-- [ ] Test account credentials prepared (an OAuth-grant-capable Zelta account with a small balance and permissive spending limit)
+- [ ] Test account credentials prepared (an OAuth-grant-capable Zelta account with a small balance, at least one registered wallet address, and a permissive spending limit for `ramp.start`)
+- [ ] The tool inventory below matches a live `tools/list` on `mcp.zelta.app` (production disables `account.create`, `payment.transfer`, `exchange.trade` and `sms.send`; a reviewer who calls a listed-but-disabled tool gets `-32004 TOOL_DISABLED`)
 - [ ] 3–5 PNG screenshots, ≥1000px wide, response-only (no prompt visible)
 - [ ] Server logo SVG in `resources/img/zelta-logo.svg` (or hosted equivalent)
 
@@ -90,8 +91,8 @@ All of these must be true before submitting (rejection rate is high; the form do
 |---|---|
 | Server name | Zelta |
 | Server URL | `https://mcp.zelta.app/mcp` |
-| Tagline | Send payments, manage accounts, and trade across multiple rails — all from your AI assistant. |
-| Description (long) | Zelta is a multi-rail payments and wallet platform. The MCP server exposes 14 tools — accounts, wallet, payments, transactions, exchange, on/offramp, and SMS — gated by OAuth 2.1 scopes with per-token daily spending limits on payments, ramp sessions, and SMS sends, idempotent writes, and a full audit trail. |
+| Tagline | Check balances, wallet activity and payments, get exchange quotes, and start on/offramp sessions — all from your AI assistant. |
+| Description (long) | Zelta is a multi-rail payments and wallet platform. The MCP server exposes 10 tools — account balances, wallet addresses and activity, payment status, transaction history and spending analysis, exchange quotes, on/offramp sessions, and payment-route discovery — gated by OAuth 2.1 scopes with per-token daily spending limits on ramp sessions, idempotent writes, and a full audit trail. |
 | Auth type | OAuth 2.1 (with DCR, RFC 7591) |
 | Transport | streamable-http |
 | Capabilities | tools, resources |
@@ -104,22 +105,22 @@ All of these must be true before submitting (rejection rate is high; the form do
 
 ### Tool list (paste into the form's tool inventory section)
 
+The 10 tools `mcp.zelta.app` exposes in production:
+
 | Public tool name | Title | Annotation | Scope |
 |---|---|---|---|
 | `account.balance` | Get account balance | readOnlyHint | accounts:read |
-| `account.create` | Create a new account | destructiveHint | accounts:write |
 | `payment.status` | Look up payment status | readOnlyHint | payments:read |
-| `payment.transfer` | Send a payment | destructiveHint (idempotent, spending-limited) | payments:write |
 | `transactions.query` | Query transaction history | readOnlyHint | transactions:read |
 | `spending.analysis` | Spending analysis by category | readOnlyHint | transactions:read |
 | `exchange.quote` | Get an exchange rate quote | readOnlyHint | exchange:read |
-| `exchange.trade` | Execute an exchange trade | destructiveHint (idempotent; not yet spending-limited — fiat notional unknown until the order fills) | exchange:write |
 | `ramp.start` | Start an on/offramp session | destructiveHint (idempotent, spending-limited) | ramp:write |
 | `ramp.status` | Check on/offramp session status | readOnlyHint | ramp:read |
 | `mpp.discovery` | Multi-rail payment route discovery | readOnlyHint | (none — public) |
-| `sms.send` | Send an SMS | destructiveHint (idempotent, spending-limited — flat per-message charge; daily send limits) | sms:send |
 | `wallet.addresses` | List wallet addresses | readOnlyHint | accounts:read |
 | `wallet.activity` | Recent wallet activity | readOnlyHint | accounts:read |
+
+The inventory leaves out `account.create`, `payment.transfer`, `exchange.trade` and `sms.send`. These tools depend on the deployment and are off in production (`MCP_TOOL_*=false` in `.env.zelta.example`, and `exchange.trade` also needs `TRADING_ENABLED`), so `mcp.zelta.app` does not list them in `tools/list`. If a deployment turns them on, update this inventory, `packages/finaegis-mcp-stdio/server.json` and `smithery.yaml` together.
 
 ## 3. Smithery
 

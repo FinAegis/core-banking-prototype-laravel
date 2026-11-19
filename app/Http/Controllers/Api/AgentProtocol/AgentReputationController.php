@@ -165,6 +165,10 @@ class AgentReputationController extends Controller
         response: 404,
         description: 'Agent not found'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'reviewer_did is not the authenticated agent'
+    )]
     public function submitFeedback(Request $request, string $did): JsonResponse
     {
         $validated = $request->validate([
@@ -190,6 +194,16 @@ class AgentReputationController extends Controller
                     'success' => false,
                     'error'   => 'Invalid reviewer DID format',
                 ], 400);
+            }
+
+            // The reviewer is the authenticated agent: an agent cannot submit
+            // feedback in another agent's name.
+            $actingDid = $request->attributes->get('agent_did');
+            if (! is_string($actingDid) || $actingDid === '' || ! hash_equals($actingDid, $validated['reviewer_did'])) {
+                return response()->json([
+                    'success' => false,
+                    'error'   => 'reviewer_did must be the authenticated agent',
+                ], 403);
             }
 
             // Cannot review yourself

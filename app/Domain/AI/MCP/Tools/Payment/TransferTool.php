@@ -115,8 +115,9 @@ class TransferTool implements MCPToolInterface
                 'conversation_id' => $conversationId,
             ]);
 
-            // Validate accounts exist
-            $fromAccount = Account::where('uuid', $fromAccountUuid)->first();
+            // Only the owner may move money out of the source account.
+            // Someone else's account answers like a missing one.
+            $fromAccount = Account::findOwnedBy((string) $fromAccountUuid, Auth::user());
             if (! $fromAccount) {
                 return ToolExecutionResult::failure("Source account not found: {$fromAccountUuid}");
             }
@@ -124,11 +125,6 @@ class TransferTool implements MCPToolInterface
             $toAccount = Account::where('uuid', $toAccountUuid)->first();
             if (! $toAccount) {
                 return ToolExecutionResult::failure("Destination account not found: {$toAccountUuid}");
-            }
-
-            // Check authorization for source account
-            if (! $this->canAccessAccount($fromAccount)) {
-                return ToolExecutionResult::failure('Unauthorized access to source account');
             }
 
             // Validate currency/asset exists
@@ -266,33 +262,6 @@ class TransferTool implements MCPToolInterface
 
         // Transfers require authentication
         return true;
-    }
-
-    private function canAccessAccount($account): bool
-    {
-        // Check if current user owns the account or has permission
-        $user = Auth::user();
-
-        if (! $user) {
-            return false;
-        }
-
-        // Check ownership via user_uuid - required for transfers
-        if ($account->user_uuid === $user->uuid) {
-            return true;
-        }
-
-        // Check for admin permission
-        if (method_exists($user, 'hasRole') && $user->hasRole('admin')) {
-            return true;
-        }
-
-        // Check for specific transfer permission
-        if (method_exists($user, 'can') && $user->can('transfer', $account)) {
-            return true;
-        }
-
-        return false;
     }
 
     private function formatMoney(float $amount, string $currency): string

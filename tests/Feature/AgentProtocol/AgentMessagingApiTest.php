@@ -70,6 +70,7 @@ class AgentMessagingApiTest extends TestCase
             \App\Http\Middleware\AuthenticateAgentDID::class,
             \App\Http\Middleware\CheckAgentCapability::class,
             \App\Http\Middleware\CheckAgentScope::class,
+            \App\Http\Middleware\EnsureAgentMatchesRouteDid::class,
         ]);
 
         $response = $this->postJson(
@@ -122,6 +123,7 @@ class AgentMessagingApiTest extends TestCase
             \App\Http\Middleware\AuthenticateAgentDID::class,
             \App\Http\Middleware\CheckAgentCapability::class,
             \App\Http\Middleware\CheckAgentScope::class,
+            \App\Http\Middleware\EnsureAgentMatchesRouteDid::class,
         ]);
 
         $response = $this->postJson(
@@ -141,6 +143,7 @@ class AgentMessagingApiTest extends TestCase
             \App\Http\Middleware\AuthenticateAgentDID::class,
             \App\Http\Middleware\CheckAgentCapability::class,
             \App\Http\Middleware\CheckAgentScope::class,
+            \App\Http\Middleware\EnsureAgentMatchesRouteDid::class,
         ]);
 
         $response = $this->postJson(
@@ -164,6 +167,7 @@ class AgentMessagingApiTest extends TestCase
             \App\Http\Middleware\AuthenticateAgentDID::class,
             \App\Http\Middleware\CheckAgentCapability::class,
             \App\Http\Middleware\CheckAgentScope::class,
+            \App\Http\Middleware\EnsureAgentMatchesRouteDid::class,
         ]);
 
         $response = $this->postJson(
@@ -188,6 +192,7 @@ class AgentMessagingApiTest extends TestCase
             \App\Http\Middleware\AuthenticateAgentDID::class,
             \App\Http\Middleware\CheckAgentCapability::class,
             \App\Http\Middleware\CheckAgentScope::class,
+            \App\Http\Middleware\EnsureAgentMatchesRouteDid::class,
         ]);
 
         $response = $this->postJson(
@@ -214,6 +219,7 @@ class AgentMessagingApiTest extends TestCase
             \App\Http\Middleware\AuthenticateAgentDID::class,
             \App\Http\Middleware\CheckAgentCapability::class,
             \App\Http\Middleware\CheckAgentScope::class,
+            \App\Http\Middleware\EnsureAgentMatchesRouteDid::class,
         ]);
 
         $response = $this->postJson(
@@ -240,6 +246,7 @@ class AgentMessagingApiTest extends TestCase
             \App\Http\Middleware\AuthenticateAgentDID::class,
             \App\Http\Middleware\CheckAgentCapability::class,
             \App\Http\Middleware\CheckAgentScope::class,
+            \App\Http\Middleware\EnsureAgentMatchesRouteDid::class,
         ]);
 
         $nonExistentDid = 'did:finaegis:agent:' . str_repeat('0', 32);
@@ -268,6 +275,7 @@ class AgentMessagingApiTest extends TestCase
             \App\Http\Middleware\AuthenticateAgentDID::class,
             \App\Http\Middleware\CheckAgentCapability::class,
             \App\Http\Middleware\CheckAgentScope::class,
+            \App\Http\Middleware\EnsureAgentMatchesRouteDid::class,
         ]);
 
         $nonExistentDid = 'did:finaegis:agent:' . str_repeat('1', 32);
@@ -296,6 +304,7 @@ class AgentMessagingApiTest extends TestCase
             \App\Http\Middleware\AuthenticateAgentDID::class,
             \App\Http\Middleware\CheckAgentCapability::class,
             \App\Http\Middleware\CheckAgentScope::class,
+            \App\Http\Middleware\EnsureAgentMatchesRouteDid::class,
         ]);
 
         $messageTypes = ['direct', 'broadcast', 'protocol', 'transaction', 'notification'];
@@ -328,6 +337,7 @@ class AgentMessagingApiTest extends TestCase
             \App\Http\Middleware\AuthenticateAgentDID::class,
             \App\Http\Middleware\CheckAgentCapability::class,
             \App\Http\Middleware\CheckAgentScope::class,
+            \App\Http\Middleware\EnsureAgentMatchesRouteDid::class,
         ]);
 
         $priorities = ['low', 'normal', 'high', 'critical'];
@@ -361,6 +371,7 @@ class AgentMessagingApiTest extends TestCase
             \App\Http\Middleware\AuthenticateAgentDID::class,
             \App\Http\Middleware\CheckAgentCapability::class,
             \App\Http\Middleware\CheckAgentScope::class,
+            \App\Http\Middleware\EnsureAgentMatchesRouteDid::class,
         ]);
 
         $correlationId = 'corr-' . Str::uuid()->toString();
@@ -401,6 +412,7 @@ class AgentMessagingApiTest extends TestCase
             \App\Http\Middleware\AuthenticateAgentDID::class,
             \App\Http\Middleware\CheckAgentCapability::class,
             \App\Http\Middleware\CheckAgentScope::class,
+            \App\Http\Middleware\EnsureAgentMatchesRouteDid::class,
         ]);
 
         $response = $this->getJson(
@@ -429,6 +441,7 @@ class AgentMessagingApiTest extends TestCase
             \App\Http\Middleware\AuthenticateAgentDID::class,
             \App\Http\Middleware\CheckAgentCapability::class,
             \App\Http\Middleware\CheckAgentScope::class,
+            \App\Http\Middleware\EnsureAgentMatchesRouteDid::class,
         ]);
 
         $response = $this->getJson(
@@ -449,6 +462,7 @@ class AgentMessagingApiTest extends TestCase
             \App\Http\Middleware\AuthenticateAgentDID::class,
             \App\Http\Middleware\CheckAgentCapability::class,
             \App\Http\Middleware\CheckAgentScope::class,
+            \App\Http\Middleware\EnsureAgentMatchesRouteDid::class,
         ]);
 
         $response = $this->getJson(
@@ -467,6 +481,7 @@ class AgentMessagingApiTest extends TestCase
             \App\Http\Middleware\AuthenticateAgentDID::class,
             \App\Http\Middleware\CheckAgentCapability::class,
             \App\Http\Middleware\CheckAgentScope::class,
+            \App\Http\Middleware\EnsureAgentMatchesRouteDid::class,
         ]);
 
         $response = $this->getJson('/api/agent-protocol/agents/invalid-did/messages');
@@ -495,6 +510,7 @@ class AgentMessagingApiTest extends TestCase
             \App\Http\Middleware\AuthenticateAgentDID::class,
             \App\Http\Middleware\CheckAgentCapability::class,
             \App\Http\Middleware\CheckAgentScope::class,
+            \App\Http\Middleware\EnsureAgentMatchesRouteDid::class,
         ]);
 
         $response = $this->getJson(
@@ -525,6 +541,7 @@ class AgentMessagingApiTest extends TestCase
             \App\Http\Middleware\AuthenticateAgentDID::class,
             \App\Http\Middleware\CheckAgentCapability::class,
             \App\Http\Middleware\CheckAgentScope::class,
+            \App\Http\Middleware\EnsureAgentMatchesRouteDid::class,
         ]);
 
         $response = $this->postJson('/api/agent-protocol/agents/invalid-did/messages/msg-test/ack');
@@ -544,6 +561,7 @@ class AgentMessagingApiTest extends TestCase
             \App\Http\Middleware\AuthenticateAgentDID::class,
             \App\Http\Middleware\CheckAgentCapability::class,
             \App\Http\Middleware\CheckAgentScope::class,
+            \App\Http\Middleware\EnsureAgentMatchesRouteDid::class,
         ]);
 
         $response = $this->postJson(
@@ -565,6 +583,7 @@ class AgentMessagingApiTest extends TestCase
             \App\Http\Middleware\AuthenticateAgentDID::class,
             \App\Http\Middleware\CheckAgentCapability::class,
             \App\Http\Middleware\CheckAgentScope::class,
+            \App\Http\Middleware\EnsureAgentMatchesRouteDid::class,
         ]);
 
         // Step 1: Send a message
@@ -626,6 +645,7 @@ class AgentMessagingApiTest extends TestCase
             \App\Http\Middleware\AuthenticateAgentDID::class,
             \App\Http\Middleware\CheckAgentCapability::class,
             \App\Http\Middleware\CheckAgentScope::class,
+            \App\Http\Middleware\EnsureAgentMatchesRouteDid::class,
         ]);
 
         // Send a message
@@ -661,6 +681,7 @@ class AgentMessagingApiTest extends TestCase
             \App\Http\Middleware\AuthenticateAgentDID::class,
             \App\Http\Middleware\CheckAgentCapability::class,
             \App\Http\Middleware\CheckAgentScope::class,
+            \App\Http\Middleware\EnsureAgentMatchesRouteDid::class,
         ]);
 
         // Create a third agent (32 hex chars for DID)

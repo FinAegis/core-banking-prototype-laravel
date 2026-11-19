@@ -9,6 +9,7 @@ use App\Domain\AgentProtocol\DataObjects\EscrowRequest;
 use App\Domain\AgentProtocol\Services\AgentRegistryService;
 use App\Domain\AgentProtocol\Services\DIDService;
 use App\Http\Controllers\Controller;
+use App\Models\Agent;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -68,6 +69,10 @@ class AgentEscrowController extends Controller
         response: 404,
         description: 'Agent not found'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'The authenticated agent is neither the buyer nor the seller'
+    )]
     public function create(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -104,6 +109,21 @@ class AgentEscrowController extends Controller
                 return response()->json([
                     'success' => false,
                     'error'   => 'Buyer and seller cannot be the same',
+                ], 400);
+            }
+
+            // The authenticated agent must be the buyer or the seller.
+            $actingDid = $this->actingAgent($request)?->did;
+            if ($actingDid === null || ! in_array($actingDid, [$validated['buyer_did'], $validated['seller_did']], true)) {
+                return $this->forbidden('Only the buyer or the seller can create an escrow');
+            }
+
+            // The dispute resolver decides disputes, so it must be a third party.
+            $resolverDid = $validated['dispute_resolution_did'] ?? null;
+            if ($resolverDid !== null && in_array($resolverDid, [$validated['buyer_did'], $validated['seller_did']], true)) {
+                return response()->json([
+                    'success' => false,
+                    'error'   => 'The dispute resolver cannot be the buyer or the seller',
                 ], 400);
             }
 
@@ -211,14 +231,19 @@ class AgentEscrowController extends Controller
     )]
     #[OA\Response(
         response: 404,
-        description: 'Escrow not found'
+        description: 'Escrow not found, or the authenticated agent is not its buyer, seller or dispute resolver'
     )]
-    public function show(string $escrowId): JsonResponse
+    public function show(Request $request, string $escrowId): JsonResponse
     {
         try {
             $aggregate = EscrowAggregate::retrieve($escrowId);
 
-            if (empty($aggregate->getEscrowId())) {
+            // Only the buyer, the seller and the dispute resolver see the escrow.
+            $agent = $this->actingAgent($request);
+            if (
+                empty($aggregate->getEscrowId())
+                || ! ($this->isBuyer($agent, $aggregate) || $this->isSeller($agent, $aggregate) || $this->isResolver($agent, $aggregate))
+            ) {
                 return response()->json([
                     'success' => false,
                     'error'   => 'Escrow not found',
@@ -288,6 +313,10 @@ class AgentEscrowController extends Controller
         response: 404,
         description: 'Escrow not found'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'The authenticated agent is not the buyer, or funder_did is not the authenticated agent'
+    )]
     public function fund(Request $request, string $escrowId): JsonResponse
     {
         $validated = $request->validate([
@@ -304,6 +333,13 @@ class AgentEscrowController extends Controller
                 ], 404);
             }
 
+            // Only the buyer funds the escrow, as itself.
+            $agent = $this->actingAgent($request);
+            if ($agent === null || ! $this->isBuyer($agent, $aggregate) || $validated['funder_did'] !== $agent->did) {
+                return $this->forbidden('Only the buyer can fund the escrow, and funder_did must be the authenticated agent');
+            }
+            $funderDid = $agent->did;
+
             $status = $aggregate->getStatus();
             if (! in_array($status, ['created', 'partially_funded'])) {
                 return response()->json([
@@ -318,7 +354,7 @@ class AgentEscrowController extends Controller
             // Deposit funds to escrow
             $aggregate->deposit(
                 $remainingAmount,
-                $validated['funder_did'],
+                $funderDid,
                 ['funded_at' => now()->toIso8601String()]
             );
             $aggregate->persist();
@@ -377,6 +413,10 @@ class AgentEscrowController extends Controller
         response: 404,
         description: 'Escrow not found'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'The authenticated agent is not the buyer (or, after a resolution, the dispute resolver), or releaser_did is not the authenticated agent'
+    )]
     public function release(Request $request, string $escrowId): JsonResponse
     {
         $validated = $request->validate([
@@ -395,7 +435,18 @@ class AgentEscrowController extends Controller
                 ], 404);
             }
 
+            // The buyer releases the escrow; after a dispute is resolved the
+            // dispute resolver may release it too. releaser_did, when sent,
+            // must be the authenticated agent.
+            $agent = $this->actingAgent($request);
             $status = $aggregate->getStatus();
+            $mayRelease = $this->isBuyer($agent, $aggregate)
+                || ($status === 'resolved' && $this->isResolver($agent, $aggregate));
+            $releaserDid = $validated['releaser_did'] ?? $agent?->did;
+            if (! $mayRelease || $agent === null || $releaserDid !== $agent->did) {
+                return $this->forbidden('Only the buyer (or the dispute resolver after a resolution) can release the escrow, and releaser_did must be the authenticated agent');
+            }
+
             if (! in_array($status, ['funded', 'resolved'])) {
                 return response()->json([
                     'success' => false,
@@ -405,7 +456,7 @@ class AgentEscrowController extends Controller
 
             // Release funds
             $aggregate->release(
-                $validated['releaser_did'] ?? 'system',
+                $releaserDid,
                 'conditions_met',
                 [
                     'conditions_met' => $validated['conditions_met'] ?? [],
@@ -416,7 +467,7 @@ class AgentEscrowController extends Controller
 
             Log::info('Escrow released', [
                 'escrow_id'   => $escrowId,
-                'released_by' => $validated['releaser_did'] ?? 'system',
+                'released_by' => $releaserDid,
             ]);
 
             return response()->json([
@@ -469,6 +520,10 @@ class AgentEscrowController extends Controller
         response: 404,
         description: 'Escrow not found'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'The authenticated agent is neither the buyer nor the seller, or disputer_did is not the authenticated agent'
+    )]
     public function dispute(Request $request, string $escrowId): JsonResponse
     {
         $validated = $request->validate([
@@ -496,6 +551,17 @@ class AgentEscrowController extends Controller
                 ], 404);
             }
 
+            // The buyer or the seller raises a dispute, as itself.
+            $agent = $this->actingAgent($request);
+            if (
+                $agent === null
+                || ! ($this->isBuyer($agent, $aggregate) || $this->isSeller($agent, $aggregate))
+                || $validated['disputer_did'] !== $agent->did
+            ) {
+                return $this->forbidden('Only the buyer or the seller can dispute the escrow, and disputer_did must be the authenticated agent');
+            }
+            $disputerDid = $agent->did;
+
             $status = $aggregate->getStatus();
             if ($status !== 'funded') {
                 return response()->json([
@@ -506,7 +572,7 @@ class AgentEscrowController extends Controller
 
             // Raise dispute using the dispute() method
             $aggregate->dispute(
-                $validated['disputer_did'],
+                $disputerDid,
                 $validated['reason'],
                 $validated['evidence'] ?? []
             );
@@ -572,6 +638,10 @@ class AgentEscrowController extends Controller
         response: 404,
         description: 'Escrow not found'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'The authenticated agent is not the dispute resolver named on the escrow, or resolver_did is not the authenticated agent'
+    )]
     public function resolveDispute(Request $request, string $escrowId): JsonResponse
     {
         $validated = $request->validate([
@@ -598,6 +668,14 @@ class AgentEscrowController extends Controller
                     'error'   => 'Escrow not found',
                 ], 404);
             }
+
+            // Only the dispute resolver named when the escrow was created
+            // resolves the dispute, as itself.
+            $agent = $this->actingAgent($request);
+            if ($agent === null || ! $this->isResolver($agent, $aggregate) || $validated['resolver_did'] !== $agent->did) {
+                return $this->forbidden('Only the dispute resolver named on the escrow can resolve the dispute, and resolver_did must be the authenticated agent');
+            }
+            $resolverDid = $agent->did;
 
             $status = $aggregate->getStatus();
             if ($status !== 'disputed') {
@@ -626,7 +704,7 @@ class AgentEscrowController extends Controller
 
             // Resolve dispute
             $aggregate->resolveDispute(
-                $validated['resolver_did'],
+                $resolverDid,
                 $validated['resolution_type'],
                 $resolutionAllocation,
                 $resolutionDetails
@@ -660,5 +738,56 @@ class AgentEscrowController extends Controller
                 'error'   => 'Failed to resolve dispute: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * The agent authenticated by auth.agent.
+     */
+    private function actingAgent(Request $request): ?Agent
+    {
+        $agent = $request->attributes->get('agent');
+
+        return $agent instanceof Agent ? $agent : null;
+    }
+
+    /**
+     * Whether the agent is the escrow buyer (the sending side; the REST
+     * create stores the buyer's agent_id, the payment workflow its DID).
+     */
+    private function isBuyer(?Agent $agent, EscrowAggregate $aggregate): bool
+    {
+        return $agent !== null && $this->isAgent($agent, $aggregate->getSenderAgentId());
+    }
+
+    /**
+     * Whether the agent is the escrow seller (the receiving side).
+     */
+    private function isSeller(?Agent $agent, EscrowAggregate $aggregate): bool
+    {
+        return $agent !== null && $this->isAgent($agent, $aggregate->getReceiverAgentId());
+    }
+
+    /**
+     * Whether the agent is the dispute resolver named on the escrow.
+     */
+    private function isResolver(?Agent $agent, EscrowAggregate $aggregate): bool
+    {
+        $resolverDid = $aggregate->getMetadata()['dispute_resolution_did'] ?? null;
+
+        return $agent !== null && is_string($resolverDid) && $resolverDid !== '' && hash_equals($resolverDid, (string) $agent->did);
+    }
+
+    private function isAgent(Agent $agent, string $agentIdOrDid): bool
+    {
+        return $agentIdOrDid !== ''
+            && ($agentIdOrDid === (string) $agent->agent_id || $agentIdOrDid === (string) $agent->did);
+    }
+
+    private function forbidden(string $message): JsonResponse
+    {
+        return response()->json([
+            'success' => false,
+            'error'   => $message,
+        ], 403);
     }
 }

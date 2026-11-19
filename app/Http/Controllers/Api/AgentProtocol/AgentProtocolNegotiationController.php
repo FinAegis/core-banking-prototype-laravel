@@ -135,6 +135,10 @@ class AgentProtocolNegotiationController extends Controller
         response: 500,
         description: 'Negotiation failed'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH)'
+    )]
     public function negotiate(Request $request, string $did): JsonResponse
     {
         $validated = $request->validate([
@@ -213,6 +217,10 @@ class AgentProtocolNegotiationController extends Controller
         response: 400,
         description: 'Invalid DID format'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH)'
+    )]
     public function getAgreement(Request $request, string $did, string $otherDid): JsonResponse
     {
         // Validate DIDs
@@ -265,6 +273,10 @@ class AgentProtocolNegotiationController extends Controller
     #[OA\Response(
         response: 400,
         description: 'Invalid DID format'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH)'
     )]
     public function revokeAgreement(Request $request, string $did, string $otherDid): JsonResponse
     {
@@ -319,6 +331,10 @@ class AgentProtocolNegotiationController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Refresh failed'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH)'
     )]
     public function refreshAgreement(Request $request, string $did, string $otherDid): JsonResponse
     {
@@ -384,6 +400,10 @@ class AgentProtocolNegotiationController extends Controller
     #[OA\Response(
         response: 400,
         description: 'Invalid DID format'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'The authenticated agent is not the agent in the path (AGENT_DID_MISMATCH)'
     )]
     public function checkAgreement(Request $request, string $did, string $otherDid): JsonResponse
     {

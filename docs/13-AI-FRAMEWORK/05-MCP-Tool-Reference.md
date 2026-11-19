@@ -1,6 +1,6 @@
 # MCP Tool Reference
 
-The 14 tools and 4 resources exposed at `https://mcp.zelta.app/mcp`.
+The public MCP server has 14 tools and 4 resources in its catalog. In production, `https://mcp.zelta.app/mcp` exposes 10 of these tools. The tools `account.create`, `payment.transfer`, `exchange.trade` and `sms.send` are off by default when `APP_ENV=production` (`MCP_TOOL_*`), and `exchange.trade` also needs `TRADING_ENABLED`. A disabled tool does not appear in `tools/list`, and calling it returns `-32004`.
 
 > **Canonical schemas live on the wire.** Call `tools/list` (any authenticated client) for the up-to-date `inputSchema` / `outputSchema` of every enabled tool. The summaries below are durable contract notes; field-level detail is read off the running server.
 
@@ -49,7 +49,7 @@ Response envelope:
 
 **Scope:** `accounts:read`
 
-Get the current balance of an account, optionally scoped to a single asset.
+Get the current balance of an account, optionally scoped to a single asset. Only the account owner can read it. Team membership or an admin role does not give access. For someone else's account the tool answers `Account not found`.
 
 **Inputs**
 
@@ -112,7 +112,7 @@ Full status envelope: `status`, `subtype`, `amount`, `currency`, `from_account`,
 
 **Scope:** `payments:write` · **Idempotent:** required · **Spending-limit:** yes
 
-Move money between two accounts.
+Move money between two accounts. The source account must belong to the caller. The tool is off by default in production (`MCP_TOOL_PAYMENT_TRANSFER`).
 
 **Inputs**
 
@@ -205,7 +205,7 @@ Get a tradable quote for `from_currency` → `to_currency` at `amount`.
 
 **Scope:** `exchange:write` · **Idempotent:** required
 
-Execute a quote.
+Execute a quote. The tool is off by default in production (`MCP_TOOL_EXCHANGE_TRADE`). It is also off whenever the trading engine is off (`TRADING_ENABLED=false`), whatever `MCP_TOOL_EXCHANGE_TRADE` says. It trades only on accounts the caller owns.
 
 **Inputs:** `quote_id`, `from_account_uuid`, `to_account_uuid`, `idempotency_key`.
 
@@ -258,6 +258,8 @@ Returns the catalog of supported payment rails — Stripe, Tempo, Lightning, Car
 Send an SMS via the Zelta SMS rail. Each message settles via x402 micropayment; the cost is debited from the consenting user's daily limit.
 
 **Inputs:** `to` (E.164 phone), `message` (≤1600 chars), `dlr_url` (optional delivery-receipt webhook), `idempotency_key`.
+
+The server applies the same input rules as `POST /api/v1/sms/send`. `to` must have 5 to 19 digits with an optional leading `+`, `from` must have 1 to 20 letters, digits or spaces, and `message` must be at most 1600 characters. Each user can send at most `mcp.rate_limits.sms_per_minute` messages per minute, and the shared daily limits for unpaid sends also apply. The tool is off by default in production (`MCP_TOOL_SMS_SEND`, `SMS_ENABLED`).
 
 **Outputs:** `message_id`, `status`, `settlement_amount_minor`, `settlement_currency`, `submitted_at`.
 

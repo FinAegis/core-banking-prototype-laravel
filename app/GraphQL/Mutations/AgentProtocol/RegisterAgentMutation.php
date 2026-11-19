@@ -36,6 +36,7 @@ class RegisterAgentMutation
             'name'         => $args['name'],
             'type'         => $args['type'] ?? 'standard',
             'capabilities' => $args['capabilities'] ?? [],
+            'ownerUserId'  => (int) $user->getAuthIdentifier(),
             'metadata'     => [
                 'registered_by' => (string) $user->id,
             ],

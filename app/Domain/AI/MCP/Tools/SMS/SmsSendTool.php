@@ -13,6 +13,7 @@ use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 
 /**
  * MCP tool that allows AI agents to send SMS via VertexSMS.
@@ -22,9 +23,24 @@ use Illuminate\Support\Facades\Log;
  * for, so it needs a signed-in user and counts against the same daily
  * unpaid-send limits as POST /api/v1/sms/send (per user and all users
  * together, {@see SmsSendBudget}).
+ *
+ * The public MCP server calls execute() without validating the input
+ * schema, so execute() applies the same rules as POST /api/v1/sms/send
+ * (SmsController::send: `to` and `from` formats, message at most 1600
+ * characters, which also bounds the billed parts per send) and a per-user
+ * per-minute limit (`mcp.rate_limits.sms_per_minute`).
  */
 class SmsSendTool implements MCPToolInterface
 {
+    /** Same rule as POST /api/v1/sms/send `to`. */
+    public const TO_PATTERN = '/^\+?[1-9]\d{4,18}$/';
+
+    /** Same rule as POST /api/v1/sms/send `from`. */
+    public const FROM_PATTERN = '/^[a-zA-Z0-9 ]{1,20}$/';
+
+    /** Same rule as POST /api/v1/sms/send `message` (max:1600). */
+    public const MAX_MESSAGE_LENGTH = 1600;
+
     public function __construct(
         private readonly SmsService $smsService,
         private readonly SmsPricingService $pricing,
@@ -61,11 +77,12 @@ class SmsSendTool implements MCPToolInterface
                 'to' => [
                     'type'        => 'string',
                     'description' => 'Destination phone number in E.164 format (e.g., +37069912345)',
-                    'pattern'     => '^\+?[0-9]{5,20}$',
+                    'pattern'     => '^\+?[1-9][0-9]{4,18}$',
                 ],
                 'from' => [
                     'type'        => 'string',
-                    'description' => 'Sender ID or phone number (default: Zelta)',
+                    'description' => 'Sender ID: 1-20 letters, digits or spaces (default: Zelta)',
+                    'pattern'     => '^[a-zA-Z0-9 ]{1,20}$',
                     'maxLength'   => 20,
                 ],
                 'message' => [
@@ -142,6 +159,11 @@ class SmsSendTool implements MCPToolInterface
             return ToolExecutionResult::failure('Missing required parameters: to, message');
         }
 
+        $invalid = self::invalidInput($to, $from, $message);
+        if ($invalid !== null) {
+            return ToolExecutionResult::failure($invalid);
+        }
+
         // The public MCP server executes tools without calling authorize(),
         // so the master switch is checked here as well (and in SmsService).
         if (! $this->authorize(null)) {
@@ -171,6 +193,16 @@ class SmsSendTool implements MCPToolInterface
             if ($user === null) {
                 return ToolExecutionResult::failure('SMS sending requires a signed-in user');
             }
+
+            $minuteKey = 'mcp-sms-send:' . $user->id . ':minute';
+            $perMinute = max(1, (int) config('mcp.rate_limits.sms_per_minute', 10));
+            if (RateLimiter::tooManyAttempts($minuteKey, $perMinute)) {
+                return ToolExecutionResult::failure(sprintf(
+                    'Too many SMS sends. Try again in %d seconds.',
+                    RateLimiter::availableIn($minuteKey),
+                ));
+            }
+            RateLimiter::hit($minuteKey, 60);
 
             if ($this->budget->reserve($user->id, 'mcp') !== null) {
                 return ToolExecutionResult::failure("Today's SMS sending limit has been reached. Try again after 00:00 UTC.");
@@ -205,6 +237,26 @@ class SmsSendTool implements MCPToolInterface
 
             return ToolExecutionResult::failure('SMS send failed: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Why the input breaks the POST /api/v1/sms/send rules, or null.
+     */
+    private static function invalidInput(string $to, string $from, string $message): ?string
+    {
+        if (preg_match(self::TO_PATTERN, $to) !== 1) {
+            return 'Invalid to: use a phone number in E.164 format (5-19 digits, optional leading +)';
+        }
+
+        if (preg_match(self::FROM_PATTERN, $from) !== 1) {
+            return 'Invalid from: use 1-20 letters, digits or spaces';
+        }
+
+        if (mb_strlen($message) > self::MAX_MESSAGE_LENGTH) {
+            return sprintf('Invalid message: at most %d characters', self::MAX_MESSAGE_LENGTH);
+        }
+
+        return null;
     }
 
     /**

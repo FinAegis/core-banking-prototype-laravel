@@ -2,8 +2,8 @@
 
 @php
     $brand     = config('brand.name', 'Zelta');
-    $allTools  = (array) config('mcp.tools', []);
-    $tools     = array_filter($allTools, fn ($t) => (bool) ($t['enabled'] ?? false));
+    // Same rule as tools/list (enabled flag + requires_config switch).
+    $tools     = \App\Domain\MCP\Server\McpToolCatalog::enabledTools();
     $toolCount = count($tools);
     $scopeCount = count((array) config('mcp.scopes', []));
     $mcpUrl    = 'https://' . (string) config('mcp.host', 'mcp.zelta.app') . '/mcp';

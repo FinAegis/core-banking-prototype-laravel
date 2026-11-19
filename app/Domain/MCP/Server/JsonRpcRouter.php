@@ -160,7 +160,7 @@ final class JsonRpcRouter
         $catalog = (array) config('mcp.tools');
 
         foreach ($catalog as $publicName => $entry) {
-            if (! is_array($entry) || ! ($entry['enabled'] ?? false)) {
+            if (! is_array($entry) || ! McpToolCatalog::isEnabled($entry)) {
                 continue;
             }
 
@@ -265,7 +265,7 @@ final class JsonRpcRouter
         /** @var array<string, mixed> $entry */
         $entry = $catalog[$name];
 
-        if (! ($entry['enabled'] ?? false)) {
+        if (! McpToolCatalog::isEnabled($entry)) {
             return $this->error($id, -32004, 'TOOL_DISABLED', ['name' => $name]);
         }
 
