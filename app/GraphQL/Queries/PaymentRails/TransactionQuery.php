@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\GraphQL\Queries\PaymentRails;
 
 use App\Domain\PaymentRails\Services\PaymentRailRouter;
+use Illuminate\Support\Facades\Auth;
 
 final class TransactionQuery
 {
@@ -19,6 +20,7 @@ final class TransactionQuery
      */
     public function __invoke(mixed $rootValue, array $args): ?array
     {
-        return $this->router->getTransactionStatus((string) $args['id']);
+        // Owner only: another user's transaction resolves to null like an unknown id.
+        return $this->router->getTransactionStatus((string) $args['id'], (int) Auth::id());
     }
 }

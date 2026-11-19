@@ -63,7 +63,7 @@ class PresentationController extends Controller
     )]
     #[OA\Response(
         response: 404,
-        description: 'Certificate not found'
+        description: 'Certificate not found or not held by the caller'
     )]
     public function present(Request $request, string $certificateId): JsonResponse
     {
@@ -72,6 +72,18 @@ class PresentationController extends Controller
             'requested_claims.*' => 'string',
             'validity_minutes'   => 'nullable|integer|min:1|max:60',
         ]);
+
+        // Only the holder may present a certificate; unknown ids and other
+        // holders' certificates both answer "not found".
+        if ($this->presentationService->findCertificateHeldBy($certificateId, $request->user()) === null) {
+            return response()->json([
+                'success' => false,
+                'error'   => [
+                    'code'    => 'CERTIFICATE_NOT_FOUND',
+                    'message' => 'Certificate not found.',
+                ],
+            ], 404);
+        }
 
         try {
             $presentation = $this->presentationService->generatePresentation(

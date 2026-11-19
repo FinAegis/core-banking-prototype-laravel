@@ -86,9 +86,15 @@ final class ConsentService
         return $consent->refresh();
     }
 
-    public function getConsent(string $consentId): ?Consent
+    /**
+     * A consent of the given user; another user's consent is "not found".
+     */
+    public function getConsent(string $consentId, int $userId): ?Consent
     {
-        return Consent::find($consentId);
+        return Consent::query()
+            ->whereKey($consentId)
+            ->where('user_id', $userId)
+            ->first();
     }
 
     /**

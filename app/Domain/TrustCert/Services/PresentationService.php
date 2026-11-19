@@ -7,6 +7,7 @@ namespace App\Domain\TrustCert\Services;
 use App\Domain\TrustCert\Enums\CertificateStatus;
 use App\Domain\TrustCert\ValueObjects\Certificate;
 use DateTimeImmutable;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -26,8 +27,21 @@ class PresentationService
     private const DEFAULT_VALIDITY_MINUTES = 15;
 
     // TODO: Inject VerifiableCredentialService when full W3C VC integration is needed
-    public function __construct()
+    public function __construct(
+        private readonly CertificateAuthorityService $certificateAuthority,
+    ) {
+    }
+
+    /**
+     * The certificate with this id, only when the given user holds it
+     * (Certificate::isHeldBy). Unknown ids and other holders' certificates
+     * both return null.
+     */
+    public function findCertificateHeldBy(string $certificateId, ?Authenticatable $user): ?Certificate
     {
+        $certificate = $this->getCertificate($certificateId);
+
+        return $certificate !== null && $certificate->isHeldBy($user) ? $certificate : null;
     }
 
     /**
@@ -284,33 +298,13 @@ class PresentationService
     }
 
     /**
-     * Get a certificate by ID.
-     * Demo implementation - returns mock certificate.
-     *
-     * @phpstan-ignore-next-line return.unusedType
+     * Get a certificate by ID from the certificate authority (null when it
+     * was never issued), so presentations carry the real claims and status
+     * and verification reflects revocation and suspension.
      */
     private function getCertificate(string $certificateId): ?Certificate
     {
-        // In production, this would query the database and may return null
-        // Demo: return a mock certificate
-        return new Certificate(
-            certificateId: $certificateId,
-            subjectId: 'user_' . substr($certificateId, 0, 8),
-            subject: [
-                'name' => 'Demo User',
-                'type' => 'BUSINESS_TRUST',
-            ],
-            publicKey: base64_encode(random_bytes(32)),
-            signature: base64_encode(random_bytes(64)),
-            validFrom: new DateTimeImmutable('-30 days'),
-            validUntil: new DateTimeImmutable('+335 days'),
-            status: CertificateStatus::ACTIVE,
-            parentCertificateId: null,
-            extensions: [
-                'type'        => 'BUSINESS_TRUST',
-                'trust_level' => 'verified',
-            ],
-        );
+        return $this->certificateAuthority->getCertificate($certificateId);
     }
 
     /**

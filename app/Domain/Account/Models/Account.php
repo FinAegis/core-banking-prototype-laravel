@@ -127,6 +127,8 @@ class Account extends Model
      *
      * Returns null both for unknown accounts and for accounts owned by
      * someone else, so callers can answer without revealing which one.
+     * The lookup ignores the BelongsToTeam scope: user_uuid is the ownership
+     * check, and an owner's account may have no team or another team.
      */
     public static function findOwnedBy(string $uuid, ?Authenticatable $user): ?self
     {
@@ -135,7 +137,7 @@ class Account extends Model
         }
 
         /** @var self|null $account */
-        $account = static::query()->where('uuid', $uuid)->first();
+        $account = static::query()->withoutGlobalScope('team')->where('uuid', $uuid)->first();
 
         return $account !== null && $account->isOwnedBy($user) ? $account : null;
     }

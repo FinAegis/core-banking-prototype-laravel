@@ -193,6 +193,7 @@ class FinancialInstitutionController extends Controller
         new OA\Property(property: 'data', type: 'object', properties: [
         new OA\Property(property: 'application_id', type: 'string', example: 'app_abc123'),
         new OA\Property(property: 'application_number', type: 'string', example: 'FI-2024-00001'),
+        new OA\Property(property: 'access_token', type: 'string', description: 'Shown once. Send it as the X-Application-Token header to the application status and documents endpoints.'),
         new OA\Property(property: 'status', type: 'string', example: 'pending_review'),
         new OA\Property(property: 'required_documents', type: 'array', items: new OA\Items(type: 'string', example: 'certificate_of_incorporation')),
         new OA\Property(property: 'message', type: 'string', example: 'Application submitted successfully'),
@@ -275,11 +276,16 @@ class FinancialInstitutionController extends Controller
         try {
             $application = $this->onboardingService->submitApplication($validated);
 
+            // The application number is sequential, so the status and
+            // documents endpoints take this token (returned once) instead.
+            $accessToken = $application->issueAccessToken();
+
             return response()->json(
                 [
                     'data' => [
                         'application_id'     => $application->id,
                         'application_number' => $application->application_number,
+                        'access_token'       => $accessToken,
                         'status'             => $application->status,
                         'required_documents' => $application->required_documents,
                         'message'            => 'Application submitted successfully',
@@ -314,9 +320,9 @@ class FinancialInstitutionController extends Controller
         summary: 'Get application status',
         description: 'Returns the current status, review stage, risk rating, and document verification status for a specific financial institution application.',
         tags: ['BaaS Onboarding'],
-        security: [['sanctum' => []]],
         parameters: [
         new OA\Parameter(name: 'applicationNumber', in: 'path', required: true, description: 'The application number', schema: new OA\Schema(type: 'string', example: 'FI-2024-00001')),
+        new OA\Parameter(name: 'X-Application-Token', in: 'header', required: true, description: 'The access_token returned when the application was submitted', schema: new OA\Schema(type: 'string')),
         ]
     )]
     #[OA\Response(
@@ -336,17 +342,12 @@ class FinancialInstitutionController extends Controller
         ])
     )]
     #[OA\Response(
-        response: 401,
-        description: 'Unauthorized'
-    )]
-    #[OA\Response(
         response: 404,
-        description: 'Application not found'
+        description: 'Application not found, or the access token is missing or wrong'
     )]
-    public function getApplicationStatus(string $applicationNumber): JsonResponse
+    public function getApplicationStatus(Request $request, string $applicationNumber): JsonResponse
     {
-        $application = FinancialInstitutionApplication::where('application_number', $applicationNumber)
-            ->first();
+        $application = $this->findApplicationForApplicant($request, $applicationNumber);
 
         if (! $application) {
             return response()->json(
@@ -384,9 +385,9 @@ class FinancialInstitutionController extends Controller
         summary: 'Upload application document',
         description: 'Uploads a supporting document for a financial institution application. Accepts PDF, JPG, JPEG, and PNG files up to 10MB. Application must be in an editable status.',
         tags: ['BaaS Onboarding'],
-        security: [['sanctum' => []]],
         parameters: [
         new OA\Parameter(name: 'applicationNumber', in: 'path', required: true, description: 'The application number', schema: new OA\Schema(type: 'string', example: 'FI-2024-00001')),
+        new OA\Parameter(name: 'X-Application-Token', in: 'header', required: true, description: 'The access_token returned when the application was submitted', schema: new OA\Schema(type: 'string')),
         ],
         requestBody: new OA\RequestBody(required: true, content: new OA\MediaType(mediaType: 'multipart/form-data', schema: new OA\Schema(
             required: ['document_type', 'document'],
@@ -410,12 +411,8 @@ class FinancialInstitutionController extends Controller
         ])
     )]
     #[OA\Response(
-        response: 401,
-        description: 'Unauthorized'
-    )]
-    #[OA\Response(
         response: 404,
-        description: 'Application not found'
+        description: 'Application not found, or the access token is missing or wrong'
     )]
     #[OA\Response(
         response: 422,
@@ -423,8 +420,7 @@ class FinancialInstitutionController extends Controller
     )]
     public function uploadDocument(Request $request, string $applicationNumber): JsonResponse
     {
-        $application = FinancialInstitutionApplication::where('application_number', $applicationNumber)
-            ->first();
+        $application = $this->findApplicationForApplicant($request, $applicationNumber);
 
         if (! $application) {
             return response()->json(
@@ -580,5 +576,23 @@ class FinancialInstitutionController extends Controller
                 ],
             ]
         );
+    }
+
+    /**
+     * The application with this number, only when the request carries its
+     * access token (X-Application-Token). Unknown numbers and missing or
+     * wrong tokens all return null, so callers answer the same 404.
+     */
+    private function findApplicationForApplicant(Request $request, string $applicationNumber): ?FinancialInstitutionApplication
+    {
+        /** @var FinancialInstitutionApplication|null $application */
+        $application = FinancialInstitutionApplication::where('application_number', $applicationNumber)
+            ->first();
+
+        if ($application === null || ! $application->hasAccessToken($request->header('X-Application-Token'))) {
+            return null;
+        }
+
+        return $application;
     }
 }

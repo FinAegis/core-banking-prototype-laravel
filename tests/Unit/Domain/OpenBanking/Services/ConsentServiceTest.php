@@ -124,10 +124,12 @@ class ConsentServiceTest extends TestCase
         $method = $reflection->getMethod('getConsent');
 
         $this->assertTrue($method->isPublic());
-        $this->assertCount(1, $method->getParameters());
+        // Scoped to the owner: (consentId, userId).
+        $this->assertCount(2, $method->getParameters());
 
         $params = $method->getParameters();
         $this->assertEquals('consentId', $params[0]->getName());
+        $this->assertEquals('userId', $params[1]->getName());
 
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);

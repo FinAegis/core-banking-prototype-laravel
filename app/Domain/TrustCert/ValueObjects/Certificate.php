@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Domain\TrustCert\ValueObjects;
 
 use App\Domain\TrustCert\Enums\CertificateStatus;
+use App\Models\User;
 use DateTimeImmutable;
 use DateTimeInterface;
+use Illuminate\Contracts\Auth\Authenticatable;
 
 /**
  * Represents a digital certificate in the trust hierarchy.
@@ -77,6 +79,36 @@ final readonly class Certificate
     public function isRootCertificate(): bool
     {
         return $this->parentCertificateId === null;
+    }
+
+    /**
+     * Whether the given (authenticated) user holds this certificate:
+     * subject "user:{uuid}" (issued on KYC approval), "user:{id}" (the
+     * subject the mobile current-certificate lookup uses) or
+     * "agent:{agentId}:employer:{id}" (an agent certificate, held by the
+     * employer). A missing user never matches.
+     */
+    public function isHeldBy(?Authenticatable $user): bool
+    {
+        if (! $user instanceof User) {
+            return false;
+        }
+
+        $subjectId = $this->subjectId;
+        $uuid = (string) ($user->uuid ?? '');
+        $id = (string) $user->getKey();
+
+        if ($uuid !== '' && hash_equals('user:' . $uuid, $subjectId)) {
+            return true;
+        }
+
+        if ($id !== '' && hash_equals('user:' . $id, $subjectId)) {
+            return true;
+        }
+
+        return $id !== ''
+            && preg_match('/^agent:[A-Za-z0-9_\-]+:employer:(\d+)$/', $subjectId, $matches) === 1
+            && hash_equals($id, $matches[1]);
     }
 
     /**

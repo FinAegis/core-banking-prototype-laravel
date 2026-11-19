@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\GraphQL\Queries\OpenBanking;
 
 use App\Domain\OpenBanking\Services\ConsentService;
+use Illuminate\Support\Facades\Auth;
 
 final class ConsentQuery
 {
@@ -19,7 +20,8 @@ final class ConsentQuery
      */
     public function __invoke(mixed $rootValue, array $args): ?array
     {
-        $consent = $this->consentService->getConsent($args['id']);
+        // Owner only: another user's consent resolves to null like an unknown id.
+        $consent = $this->consentService->getConsent((string) $args['id'], (int) Auth::id());
 
         return $consent?->toArray();
     }

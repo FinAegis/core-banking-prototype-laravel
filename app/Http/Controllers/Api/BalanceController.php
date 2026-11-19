@@ -11,6 +11,7 @@ use App\Domain\Account\Services\Cache\AccountCacheService;
 use App\Domain\Account\Services\Cache\TurnoverCacheService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
 class BalanceController extends Controller
@@ -40,17 +41,28 @@ class BalanceController extends Controller
         ])
     )]
     #[OA\Response(
+        response: 403,
+        description: 'The account belongs to another user',
+        content: new OA\JsonContent(ref: '#/components/schemas/Error')
+    )]
+    #[OA\Response(
         response: 404,
         description: 'Account not found',
         content: new OA\JsonContent(ref: '#/components/schemas/Error')
     )]
-    public function show(string $uuid): JsonResponse
+    public function show(Request $request, string $uuid): JsonResponse
     {
         // Get account from cache
         $account = $this->accountCache->get($uuid);
 
         if (! $account) {
             abort(404, 'Account not found');
+        }
+
+        // The account cache is keyed by uuid only, so check the owner on
+        // every read (same response as the REST account endpoints).
+        if (! $account->isOwnedBy($request->user())) {
+            return $this->forbidden();
         }
 
         $accountUuid = new AccountUuid($uuid);
@@ -115,17 +127,28 @@ class BalanceController extends Controller
         ])
     )]
     #[OA\Response(
+        response: 403,
+        description: 'The account belongs to another user',
+        content: new OA\JsonContent(ref: '#/components/schemas/Error')
+    )]
+    #[OA\Response(
         response: 404,
         description: 'Account not found',
         content: new OA\JsonContent(ref: '#/components/schemas/Error')
     )]
-    public function summary(string $uuid): JsonResponse
+    public function summary(Request $request, string $uuid): JsonResponse
     {
         // Get account from cache
         $account = $this->accountCache->get($uuid);
 
         if (! $account) {
             abort(404, 'Account not found');
+        }
+
+        // The account cache is keyed by uuid only, so check the owner on
+        // every read (same response as the REST account endpoints).
+        if (! $account->isOwnedBy($request->user())) {
+            return $this->forbidden();
         }
 
         // Get cached turnovers
@@ -159,6 +182,17 @@ class BalanceController extends Controller
                     ),
                 ],
             ]
+        );
+    }
+
+    private function forbidden(): JsonResponse
+    {
+        return response()->json(
+            [
+                'message' => 'Access denied to this account',
+                'error'   => 'FORBIDDEN',
+            ],
+            403
         );
     }
 }

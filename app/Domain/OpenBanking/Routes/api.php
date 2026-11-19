@@ -29,7 +29,7 @@ Route::prefix('v1/open-banking')->name('api.open-banking.')->middleware(['auth:s
     })->name('consents.create');
 
     Route::get('/consents/{id}', function (string $id): JsonResponse {
-        $consent = app(ConsentService::class)->getConsent($id);
+        $consent = app(ConsentService::class)->getConsent($id, (int) Auth::id());
         if ($consent === null) {
             return response()->json(['success' => false, 'error' => ['code' => 'NOT_FOUND', 'message' => 'Consent not found']], 404);
         }

@@ -303,6 +303,10 @@ class TransactionReversalController extends Controller
         ])
     )]
     #[OA\Response(
+        response: 403,
+        description: 'Forbidden - the reversal\'s account does not belong to the user'
+    )]
+    #[OA\Response(
         response: 404,
         description: 'Reversal not found'
     )]
@@ -330,9 +334,18 @@ class TransactionReversalController extends Controller
             );
         }
 
-        // Verify user has access to this reversal (check account ownership)
-        $account = Account::where('uuid', $transaction->account_uuid)->first();
-        if ($account && $account->user_uuid !== Auth::user()->uuid && ! Auth::user()->hasRole('admin')) {
+        // Only the owner of the reversal's account, or an admin, may read it.
+        // The lookup ignores the team scope (user_uuid is the ownership
+        // check), and a reversal whose account cannot be found is refused.
+        $user = Auth::user();
+        if (! $user instanceof User) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $account = Account::query()->withoutGlobalScope('team')
+            ->where('uuid', (string) $transaction->account_uuid)
+            ->first();
+        if (! $user->hasRole('admin') && ($account === null || ! $account->isOwnedBy($user))) {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 

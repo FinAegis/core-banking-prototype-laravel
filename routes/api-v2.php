@@ -85,8 +85,9 @@ Route::prefix('gcu')->group(function () {
 // Webhook event types (public information)
 Route::get('/webhooks/events', [WebhookController::class, 'events']);
 
-// Financial Institution Onboarding (public endpoints)
-Route::prefix('financial-institutions')->group(function () {
+// Financial Institution Onboarding (public endpoints; status and documents
+// take the access token returned by /apply)
+Route::prefix('financial-institutions')->middleware(['module.enabled:FinancialInstitution', 'api.rate_limit:public'])->group(function () {
     Route::get('/application-form', [FinancialInstitutionController::class, 'getApplicationForm']);
     Route::post('/apply', [FinancialInstitutionController::class, 'submitApplication']);
     Route::get('/application/{applicationNumber}/status', [FinancialInstitutionController::class, 'getApplicationStatus']);

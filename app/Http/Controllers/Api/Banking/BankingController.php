@@ -10,9 +10,11 @@ use App\Domain\Banking\Services\BankIntegrationService;
 use App\Domain\Banking\Services\BankTransferService;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\StaffRoles;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class BankingController extends Controller
@@ -236,8 +238,27 @@ class BankingController extends Controller
     /**
      * Get transfer status.
      */
-    public function transferStatus(string $id): JsonResponse
+    public function transferStatus(Request $request, string $id): JsonResponse
     {
+        /** @var User $user */
+        $user = $request->user();
+
+        // The user who initiated the transfer, or an operator (same rule as
+        // the GraphQL cancelTransfer). The ownership check reads the table:
+        // the cached status payload carries no owner. Not owned answers the
+        // same 404 as an unknown id.
+        $owned = DB::table('bank_transfers')
+            ->where('id', $id)
+            ->where('user_uuid', $user->uuid)
+            ->exists();
+
+        if (! $owned && ! StaffRoles::userHasAny($user, StaffRoles::OPERATORS)) {
+            return response()->json([
+                'error'   => 'Not found.',
+                'message' => 'Transfer not found.',
+            ], 404);
+        }
+
         $status = $this->bankTransferService->getStatus($id);
 
         if ($status['status'] === 'not_found') {

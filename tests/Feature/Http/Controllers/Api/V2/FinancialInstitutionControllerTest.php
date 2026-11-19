@@ -60,6 +60,7 @@ class FinancialInstitutionControllerTest extends ControllerTestCase
                 'data' => [
                     'application_id',
                     'application_number',
+                    'access_token',
                     'status',
                     'required_documents',
                     'message',
@@ -96,8 +97,12 @@ class FinancialInstitutionControllerTest extends ControllerTestCase
         $application = FinancialInstitutionApplication::factory()->create([
             'status' => 'pending',
         ]);
+        $token = $application->issueAccessToken();
 
-        $response = $this->getJson("/api/v2/financial-institutions/application/{$application->application_number}/status");
+        $response = $this->getJson(
+            "/api/v2/financial-institutions/application/{$application->application_number}/status",
+            ['X-Application-Token' => $token]
+        );
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -123,12 +128,14 @@ class FinancialInstitutionControllerTest extends ControllerTestCase
     #[Test]
     public function test_get_application_status_prevents_unauthorized_access(): void
     {
-        // Since the endpoint is public and doesn't check ownership, we'll just verify it returns data
+        // The application number is sequential: without the access token
+        // issued at apply time the status is "not found".
         $application = FinancialInstitutionApplication::factory()->create();
+        $application->issueAccessToken();
 
         $response = $this->getJson("/api/v2/financial-institutions/application/{$application->application_number}/status");
 
-        $response->assertStatus(200);
+        $response->assertStatus(404);
     }
 
     #[Test]
@@ -139,6 +146,7 @@ class FinancialInstitutionControllerTest extends ControllerTestCase
         $application = FinancialInstitutionApplication::factory()->create([
             'status' => 'pending',
         ]);
+        $token = $application->issueAccessToken();
 
         $file = UploadedFile::fake()->create('license.pdf', 1000);
 
@@ -146,7 +154,7 @@ class FinancialInstitutionControllerTest extends ControllerTestCase
             'document_type' => 'regulatory_license',
             'document'      => $file,
             'description'   => 'Banking license from regulatory authority',
-        ]);
+        ], ['X-Application-Token' => $token]);
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -174,13 +182,14 @@ class FinancialInstitutionControllerTest extends ControllerTestCase
         $application = FinancialInstitutionApplication::factory()->create([
             'status' => 'pending',
         ]);
+        $token = $application->issueAccessToken();
 
         $file = UploadedFile::fake()->create('malicious.exe', 1000);
 
         $response = $this->postJson("/api/v2/financial-institutions/application/{$application->application_number}/documents", [
             'document_type' => 'regulatory_license',
             'document'      => $file,
-        ]);
+        ], ['X-Application-Token' => $token]);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['document']);

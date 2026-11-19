@@ -132,9 +132,14 @@ final class PaymentRailRouter
      *     created_at: string,
      * }|null
      */
-    public function getTransactionStatus(string $transactionId): ?array
+    public function getTransactionStatus(string $transactionId, int $userId): ?array
     {
-        $transaction = PaymentRailTransaction::find($transactionId);
+        // Owner only: another user's transaction is "not found".
+        /** @var PaymentRailTransaction|null $transaction */
+        $transaction = PaymentRailTransaction::query()
+            ->whereKey($transactionId)
+            ->where('user_id', $userId)
+            ->first();
 
         if ($transaction === null) {
             return null;
