@@ -79,7 +79,7 @@
                         </div>
                         <h3 class="text-xl font-bold text-slate-900 mb-3">Frequently Asked Questions</h3>
                         <p class="text-slate-500 mb-4">
-                            Find answers to common questions about {{ config('brand.name', 'Zelta') }} and GCU
+                            Find answers to common questions about {{ config('brand.name', 'Zelta') }} and the GCU demo
                         </p>
                         <span class="text-purple-600 font-semibold">View FAQ →</span>
                     </a>

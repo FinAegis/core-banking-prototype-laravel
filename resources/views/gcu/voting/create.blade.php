@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Create Voting Proposal') }}
+            {{ __('Create Demo Voting Proposal') }}
         </h2>
     </x-slot>
 
@@ -10,8 +10,14 @@
             <!-- Back link -->
             <div class="mb-6">
                 <a href="{{ route('gcu.voting.index') }}" class="text-indigo-600 hover:text-indigo-700 font-medium">
-                    ← Back to Voting
+                    ← Back to governance demo
                 </a>
+            </div>
+
+            {{-- F4 GCU demo notice (see docs/REGULATORY-CLAIMS.md) --}}
+            <div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-200" role="note">
+                <p class="font-semibold">Simulated demo — no real value; not an offered token.</p>
+                <p class="mt-1">The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.</p>
             </div>
 
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
@@ -150,7 +156,7 @@
                                        class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                                        min="1" max="100" step="0.1"
                                        value="{{ old('minimum_participation', 10) }}">
-                                <p class="mt-1 text-xs text-gray-500">Minimum percentage of GCU holders that must vote</p>
+                                <p class="mt-1 text-xs text-gray-500">Minimum percentage of simulated demo voting weight that must vote</p>
                                 @error('minimum_participation')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
@@ -179,7 +185,7 @@
                             </a>
                             <button type="submit" 
                                     class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition">
-                                Create Proposal
+                                Create demo proposal
                             </button>
                         </div>
                     </div>

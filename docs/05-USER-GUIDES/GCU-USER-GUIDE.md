@@ -1,48 +1,42 @@
-# Global Currency Unit (GCU) User Guide
+# Global Currency Unit (GCU) Demo Guide
+
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis.
+> It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or
+> basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a
+> basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under
+> MiCA (Title III); no such authorisation is held.
+>
+> See [REGULATORY-CLAIMS.md](../REGULATORY-CLAIMS.md).
 
 ## Overview
 
-The Global Currency Unit (GCU) is a revolutionary digital currency that combines the stability of traditional banking with the innovation of user-controlled governance. Your GCU funds are held in real banks with government deposit insurance, while you maintain democratic control over the currency's composition.
+GCU demo — a reference implementation of a basket-referenced unit built with FinAegis. This guide describes the simulated demo flows. All balances, conversions and votes are simulated and have no monetary value.
 
-## Key Benefits
+## What the Demo Shows
 
-### 1. **Real Bank Security**
-- Funds distributed across 5 regulated banks
-- Government deposit insurance (€100k per bank)
-- No cryptocurrency risks
-- Full regulatory compliance
+### 1. **Simulated Governance**
+- Monthly demo polls on basket composition
+- Vote weight = simulated demo GCU balance
+- Transparent tallying
 
-### 2. **User-Controlled**
-- Monthly voting on currency composition
-- Your vote weight = your GCU holdings
-- Democratic decision-making
-- Transparent governance
-
-### 3. **Stable Value**
-- Diversified across 6 currencies + gold
-- Natural hedge against inflation
-- Reduced volatility
-- Professional rebalancing
-
-### 4. **Low Fees**
-- 0.01% conversion fee
-- No hidden charges
-- Transparent pricing
-- Better than traditional forex
+### 2. **Illustrative Basket Valuation**
+- Illustrative value calculated from 6 currencies + gold
 
 ## Getting Started
 
-### Buying Your First GCU
+### Trying a Simulated GCU Conversion
 
-1. **Navigate to GCU Wallet**
+In the demo, convert demo balances into GCU demo units; no real funds are used.
+
+1. **Open the GCU demo conversion page**
    ```
-   Dashboard → GCU Wallet → Buy GCU
+   /gcu/trading
    ```
 
 2. **Select Source Currency**
-   - Choose from your available balances
-   - View current exchange rate
-   - Check fees (0.01%)
+   - Choose from your demo balances
+   - View the illustrative rate
+   - Check the simulated fee
 
 3. **Enter Amount**
    - Minimum: 100 GCU
@@ -54,14 +48,12 @@ The Global Currency Unit (GCU) is a revolutionary digital currency that combines
    - Verify fees
    - Confirm with 2FA
 
-5. **Transaction Complete**
-   - Instant conversion
-   - GCU added to wallet
-   - Receipt available
+5. **Simulated Conversion Complete**
+   - Demo ledger balances updated
 
-### Understanding GCU Value
+### Understanding the Illustrative GCU Value
 
-GCU value is calculated based on the weighted average of its components:
+The illustrative GCU demo value is calculated based on the weighted average of its components:
 
 **Current Composition (Example)**
 ```
@@ -72,71 +64,38 @@ CHF: 10% × $1.12 = $0.112
 JPY: 3% × $0.0067 = $0.0002
 XAU: 2% × $63.50 = $1.27
 
-Total: 1 GCU = ~$2.31 USD
+Total: 1 GCU = ~$2.31 USD (illustrative only; no monetary value)
 ```
 
-## Bank Allocation
+## Custodian Allocation (simulated)
+
+> Demo only: no funds are held at any bank and no deposit insurance applies. Bank names in the demo are illustrative placeholders; no partnership or endorsement is implied.
 
 ### Setting Your Preferences
 
-1. **Access Bank Preferences**
+1. **Access the demo allocation page**
    ```
-   GCU Wallet → Bank Preferences
+   /wallet/bank-allocation
    ```
 
-2. **Allocate Your Funds**
+2. **Allocate Demo Balances**
    
-   **Available Banks:**
-   - Paysera (Lithuania) - 0-50%
-   - Deutsche Bank (Germany) - 0-40%
-   - Santander (Spain) - 0-40%
-   - Revolut (UK) - 0-30%
-   - N26 (Germany) - 0-30%
+   **Demo custodians (illustrative placeholders):**
+   - Demo Bank A - 0-50%
+   - Demo Bank B - 0-40%
+   - Demo Bank C - 0-40%
+   - Demo Bank D - 0-30%
+   - Demo Bank E - 0-30%
 
 3. **Rules for Allocation**
    - Must total exactly 100%
-   - Respect maximum limits per bank
-   - Consider deposit insurance limits
-   - Diversify for safety
+   - Respect maximum limits per demo custodian
 
-4. **Select Primary Bank**
-   - Used for quick withdrawals
+4. **Select Primary Demo Custodian**
    - Should have highest allocation
    - Can change monthly
 
-### Smart Allocation Strategies
-
-**Conservative (Maximum Protection)**
-```
-Paysera: 20%
-Deutsche Bank: 20%
-Santander: 20%
-Revolut: 20%
-N26: 20%
-```
-*Benefit: Maximum deposit insurance coverage*
-
-**Balanced (Convenience + Safety)**
-```
-Paysera: 40% (Primary)
-Deutsche Bank: 30%
-Santander: 20%
-Revolut: 10%
-N26: 0%
-```
-*Benefit: Easy access with good protection*
-
-**Efficient (Minimum Complexity)**
-```
-Paysera: 50% (Primary)
-Deutsche Bank: 30%
-Santander: 20%
-Revolut: 0%
-N26: 0%
-```
-*Benefit: Simpler management, fewer banks*
-
-## Democratic Voting
+## Simulated Governance
 
 ### How Voting Works
 
@@ -145,17 +104,13 @@ N26: 0%
    - Open for 7 days
    - Results applied on 10th
 
-2. **Voting Power**
-   - 1 GCU = 1 vote
+2. **Demo Voting Weight**
+   - 1 simulated demo GCU = 1 demo vote
    - Snapshot taken at poll creation
    - No minimum required
-   - Anonymous voting
 
-3. **What You Vote On**
-   - Currency basket composition
-   - Emergency rebalancing
-   - New currency additions
-   - Governance improvements
+3. **What the Demo Polls Cover**
+   - Demo basket composition
 
 ### Casting Your Vote
 
@@ -167,8 +122,6 @@ N26: 0%
 2. **Review Options**
    - Current composition
    - Proposed changes
-   - Community discussion
-   - Impact analysis
 
 3. **Make Your Choice**
    
@@ -200,7 +153,7 @@ N26: 0%
 
 **Weighted Average Calculation**
 ```
-Example with 3 voters:
+Example with 3 demo voters (simulated balances):
 Voter A: 1,000 GCU votes USD=40%
 Voter B: 500 GCU votes USD=35%
 Voter C: 1,500 GCU votes USD=30%
@@ -208,128 +161,25 @@ Voter C: 1,500 GCU votes USD=30%
 Result: (1000×40 + 500×35 + 1500×30) / 3000 = 34.17%
 ```
 
-## Using GCU
-
-### Daily Transactions
-
-1. **Sending GCU**
-   - To other FinAegis users: Instant
-   - Include payment reference
-   - No fees for internal transfers
-   - Track in transaction history
-
-2. **Receiving GCU**
-   - Automatic credit to wallet
-   - Instant notification
-   - No action required
-   - Full transaction details
-
-3. **Converting GCU**
-   - To any supported currency
-   - Real-time rates
-   - 0.01% fee
-   - Instant execution
-
-### Advanced Features
-
-1. **Recurring Conversions**
-   - Auto-convert to preferred currency
-   - Set thresholds and limits
-   - Useful for regular expenses
-
-2. **GCU Baskets**
-   - Create custom sub-baskets
-   - Different allocation strategies
-   - Personal or shared
-
-3. **API Access**
-   - Programmatic GCU management
-   - Automated trading strategies
-   - Webhook notifications
-
-## Risk Management
-
-### Understanding Risks
-
-1. **Currency Risk**
-   - Diversification reduces but doesn't eliminate
-   - Value can fluctuate with forex markets
-   - Protected from single currency crashes
-
-2. **Bank Risk**
-   - Mitigated by distribution
-   - Deposit insurance protection
-   - Regular bank health monitoring
-
-3. **Governance Risk**
-   - Democratic decisions may not align with your preferences
-   - Monthly changes possible
-   - Transparent process
-
-### Protection Strategies
-
-1. **Diversify Holdings**
-   - Don't put all assets in GCU
-   - Maintain other currency balances
-   - Regular portfolio review
-
-2. **Active Participation**
-   - Vote in all polls
-   - Engage in community discussions
-   - Stay informed on changes
-
-3. **Monitor Composition**
-   - Track monthly rebalancing
-   - Adjust holdings if needed
-   - Use alerts for major changes
-
-## Tax Implications
-
-### Important Considerations
-
-1. **Capital Gains**
-   - GCU conversions may trigger taxable events
-   - Track purchase and sale prices
-   - Consult tax advisor
-
-2. **Reporting Requirements**
-   - Some jurisdictions require crypto-style reporting
-   - Download annual statements
-   - Keep detailed records
-
-3. **International Considerations**
-   - Cross-border implications
-   - Withholding tax possibilities
-   - Country-specific rules
-
 ## Frequently Asked Questions
 
 ### General Questions
 
 **Q: How is GCU different from cryptocurrencies?**
-A: In this demo, GCU simulates how funds would be held in banks with deposit insurance. This is a demonstration platform.
+A: GCU is a software demonstration recorded only in the demo application's database. It is not issued, offered or sold to anyone and has no monetary value.
 
 **Q: Can I lose money with GCU?**
-A: GCU value can fluctuate with currency exchange rates, but diversification reduces volatility compared to single currencies.
-
-**Q: How does the demo simulate bank failures?**
-A: The demo shows how funds would theoretically be protected and redistributed in case of bank issues.
+A: No real money is involved. GCU has no monetary value and all balances in the demo are simulated.
 
 ### Technical Questions
 
-**Q: How often is GCU value updated?**
-A: Every 30 seconds based on real-time exchange rates.
-
-**Q: Can I automate GCU purchases?**
-A: Yes, through recurring orders or API integration.
-
-**Q: Is there a GCU debit card?**
-A: This is a demo feature showing how debit card integration could work.
+**Q: How often is the illustrative GCU value updated?**
+A: It is recalculated periodically from exchange-rate data; it remains illustrative only.
 
 ### Voting Questions
 
 **Q: What if I miss a vote?**
-A: Your voting power isn't used, but you can participate in the next month's vote.
+A: Your demo voting weight isn't used, but you can participate in the next month's demo poll.
 
 **Q: Can I delegate my votes?**
 A: Not currently, but this feature is under consideration.
@@ -362,6 +212,4 @@ This is a demonstration platform:
 
 ## Conclusion
 
-GCU represents a new paradigm in global finance - combining the security of traditional banking with the innovation of user control. By participating actively in governance and managing your allocations wisely, you can benefit from a truly global, stable, and democratic currency.
-
-Welcome to the future of money. Welcome to GCU.
+The GCU demo shows how a basket-referenced unit, its valuation and a governance module can be built with FinAegis. All balances, conversions and votes are simulated.

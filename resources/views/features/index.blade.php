@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Features - Modern Banking Platform | ' . config('brand.name', 'Zelta'),
-        'description' => 'Explore ' . config('brand.name', 'Zelta') . '\'s 61 banking modules: GCU governance, ISO 20022, PSD2 Open Banking, multi-rail payments, DeFi, ledger, microfinance, and developer tools.',
+        'description' => 'Explore ' . config('brand.name', 'Zelta') . '\'s 61 banking modules: GCU demo, ISO 20022, PSD2 Open Banking, multi-rail payments, DeFi, ledger, microfinance, and developer tools.',
         'keywords' => config('brand.name', 'Zelta') . ' features, GCU, ISO 20022, PSD2, open banking, payment rails, ACH, SEPA, Interledger, ledger, microfinance, cross-chain, DeFi, privacy, x402, RegTech, BaaS',
     ])
 
@@ -40,7 +40,7 @@
                 @include('partials.breadcrumb', ['items' => [['name' => 'Features', 'url' => url('/features')]]])
                 <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Every Banking Capability. <span class="text-gradient">One Codebase.</span></h1>
                 <p class="text-lg text-slate-400 max-w-2xl mx-auto">
-                    61 production-ready modules spanning payments, lending, compliance, DeFi, AI, and developer tools — so you ship products, not infrastructure.
+                    61 modules spanning payments, lending, compliance tooling, DeFi, AI, and developer tools — so you ship products, not infrastructure.
                 </p>
             </div>
         </div>
@@ -78,34 +78,31 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                     <div>
                         <div class="inline-flex items-center px-4 py-2 bg-indigo-100 rounded-full mb-6">
-                            <span class="text-indigo-600 font-semibold">Flagship Product</span>
+                            <span class="text-indigo-600 font-semibold">Software Demo</span>
                         </div>
                         <h2 class="font-display text-4xl font-bold text-slate-900 mb-6">Global Currency Unit (GCU)</h2>
                         <p class="text-lg text-slate-500 mb-6">
-                            A democratically governed basket currency backed by six reserve assets. Users vote on composition through stake-weighted governance with full event-sourced audit trails.
+                            GCU demo — a reference implementation of a basket-referenced unit built with FinAegis.
                         </p>
                         <ul class="space-y-3 mb-8">
                             <li class="flex items-start">
                                 <svg class="w-6 h-6 text-green-500 mr-3 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span class="text-slate-600">Backed by USD, EUR, GBP, CHF, JPY, and XAU</span>
+                                <span class="text-slate-600">Reference basket: USD, EUR, GBP, CHF, JPY, XAU (simulated)</span>
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-6 h-6 text-green-500 mr-3 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span class="text-slate-600">Monthly democratic voting on composition</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg class="w-6 h-6 text-green-500 mr-3 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                <span class="text-slate-600">Reduced volatility through diversification</span>
+                                <span class="text-slate-600">Simulated basket "votes"</span>
                             </li>
                         </ul>
-                        <a href="{{ route('features.show', 'gcu') }}" class="inline-flex items-center text-indigo-600 font-semibold hover:text-indigo-700">
-                            Learn more about GCU
+                        <p class="text-xs text-slate-500 mb-6">
+                            The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
+                        </p>
+                        <a href="{{ route('gcu') }}" class="inline-flex items-center text-indigo-600 font-semibold hover:text-indigo-700">
+                            Explore the GCU demo
                             <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                             </svg>
@@ -114,7 +111,7 @@
                     <div class="bg-fa-navy rounded-2xl p-8 text-white">
                         <div class="text-center">
                             <div class="text-8xl font-bold mb-4">Ǥ</div>
-                            <h3 class="text-2xl font-semibold mb-6">Current Composition</h3>
+                            <h3 class="text-2xl font-semibold mb-6">Demo Composition (simulated)</h3>
                             <div class="space-y-3">
                                 <div class="flex justify-between items-center">
                                     <span>USD</span>
@@ -201,9 +198,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold mb-3">MCP-native banking <span class="ml-1 text-xs font-bold text-emerald-600 align-middle">NEW</span></h3>
+                    <h3 class="text-xl font-semibold mb-3">MCP Server <span class="ml-1 text-xs font-bold text-emerald-600 align-middle">NEW</span></h3>
                     <p class="text-slate-500 mb-4">
-                        Connect Claude, Cursor, or any agent to move money, exchange, send SMS, and more — through one OAuth-protected endpoint.
+                        Connect Claude, Cursor, or any agent to the platform's payment, exchange and SMS APIs through one OAuth-protected endpoint.
                     </p>
                     <a href="{{ route('features.show', 'mcp') }}" class="text-emerald-600 font-medium hover:text-emerald-700">
                         Explore MCP →
@@ -233,12 +230,12 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold mb-3">Democratic Governance</h3>
+                    <h3 class="text-xl font-semibold mb-3">Governance Module</h3>
                     <p class="text-slate-500 mb-4">
-                        Stake-weighted voting on monetary policy and platform decisions. Monthly governance cycles with transparent tallying and event-sourced audit trails.
+                        Weighted-voting governance module with transparent tallying and event-sourced audit trails, shown with simulated votes in the GCU demo.
                     </p>
                     <a href="{{ route('features.show', 'governance') }}" class="text-yellow-600 font-medium hover:text-yellow-700">
-                        Join governance →
+                        Learn more →
                     </a>
                 </div>
 
@@ -251,7 +248,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Bank Integration Patterns</h3>
                     <p class="text-slate-500 mb-4">
-                        Open Banking-compliant API adapters including Ondato KYC, Chainalysis sanctions screening, and Marqeta card issuing. Full GraphQL API with 12 card operations, spend limit enforcement, REST API with webhooks, and account verification.
+                        Open Banking-style API adapters: card-issuing integration adapter (e.g. Marqeta API), Ondato KYC and Chainalysis sanctions-screening adapters. GraphQL card operations, spend-limit enforcement, REST API with webhooks, and account verification.
                     </p>
                     <a href="{{ route('features.show', 'bank-integration') }}" class="text-red-600 font-medium hover:text-red-700">
                         Explore patterns →
@@ -283,7 +280,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Cross-Chain & DeFi</h3>
                     <p class="text-slate-500 mb-4">
-                        Bridge assets across EVM chains and Solana. Production-ready adapters with ABI encoding and RPC integration for Wormhole, Circle CCTP, Uniswap V3, and Aave V3.
+                        Bridge assets across EVM chains and Solana. Adapters with ABI encoding and RPC integration for third-party protocols (e.g. Wormhole, Circle CCTP, Uniswap V3, Aave V3).
                     </p>
                     <a href="{{ route('features.show', 'crosschain-defi') }}" class="text-cyan-600 font-medium hover:text-cyan-700">
                         Explore DeFi →
@@ -297,9 +294,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold mb-3">Bank-Grade Security</h3>
+                    <h3 class="text-xl font-semibold mb-3">Security Tooling</h3>
                     <p class="text-slate-500 mb-4">
-                        Quantum-resistant encryption, multi-factor authentication, and comprehensive security measures protect your assets.
+                        Post-quantum encryption, multi-factor authentication, and other security controls.
                     </p>
                     <a href="{{ route('security') }}" class="text-indigo-600 font-medium hover:text-indigo-700">
                         Security details →
@@ -315,7 +312,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Privacy & Identity</h3>
                     <p class="text-slate-500 mb-4">
-                        Prove compliance without exposing data. ZK-KYC proofs, W3C verifiable credentials, soulbound tokens, Shamir key management, and production ZK proving with 5 Circom circuits and Solidity verifier contracts.
+                        Privacy-preserving identity tooling: ZK-KYC proof modules, W3C verifiable credentials, soulbound tokens, Shamir key management, and ZK proving with 5 Circom circuits and Solidity verifier contracts.
                     </p>
                     <a href="{{ route('features.show', 'privacy-identity') }}" class="text-teal-600 font-medium hover:text-teal-700">
                         Learn more →
@@ -345,12 +342,12 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold mb-3">RegTech Compliance</h3>
+                    <h3 class="text-xl font-semibold mb-3">RegTech Tooling</h3>
                     <p class="text-slate-500 mb-4">
-                        MiFID II, MiCA, and Travel Rule compliance with jurisdiction-specific adapters and automated regulatory reporting.
+                        Reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements, with jurisdiction-specific adapters; they do not by themselves make a deployment compliant.
                     </p>
                     <a href="{{ route('features.show', 'regtech-compliance') }}" class="text-amber-600 font-medium hover:text-amber-700">
-                        View compliance →
+                        View RegTech tooling →
                     </a>
                 </div>
 
@@ -499,11 +496,11 @@
                         </svg>
                     </div>
                     <div class="flex items-center gap-2 mb-3">
-                        <h3 class="text-xl font-semibold">Visa CLI</h3>
+                        <h3 class="text-xl font-semibold">Card-Payment CLI Adapter</h3>
                         <span class="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">Beta</span>
                     </div>
                     <p class="text-slate-500 mb-4">
-                        Programmatic Visa card payments for AI agents and developer billing. MCP tools, spending limits, card enrollment, and invoice collection.
+                        Adapter for visa-cli, a third-party card-payment CLI (third-party tool; not affiliated with or endorsed by Visa), for AI agents and developer billing: MCP tools, spending limits and invoice collection.
                     </p>
                     <a href="{{ route('features.show', 'visa-cli') }}" class="text-blue-600 font-medium hover:text-blue-700">
                         Learn more &rarr;
@@ -541,7 +538,7 @@
                         <span class="inline-flex items-center px-2 py-0.5 bg-violet-100 text-violet-700 text-xs rounded-full font-medium">New</span>
                     </div>
                     <p class="text-slate-500 mb-4">
-                        Give autonomous AI agents a compliant bank account. Virtuals Protocol integration with TrustCert identity, spending limits, and Pimlico enforcement.
+                        Give autonomous AI agents programmable wallets with spending limits. Virtuals Protocol integration adapter with TrustCert identity and Pimlico-based enforcement.
                     </p>
                     <a href="{{ route('features.show', 'virtuals-protocol') }}" class="text-violet-600 font-medium hover:text-violet-700">
                         Learn more &rarr;
@@ -592,7 +589,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">ISO 20022 Messaging</h3>
                     <p class="text-slate-500 mb-4">
-                        Standards-compliant financial messaging with 8 message types (pacs, pain, camt). Parse, generate, and validate ISO 20022 XML with REST + GraphQL APIs.
+                        Standards-based financial messaging with 8 message types (pacs, pain, camt). Parse, generate, and validate ISO 20022 XML with REST + GraphQL APIs.
                     </p>
                     <a href="{{ route('features.show', 'iso20022') }}" class="text-blue-600 font-medium hover:text-blue-700">
                         Learn more &rarr;
@@ -608,7 +605,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Open Banking &amp; PSD2</h3>
                     <p class="text-slate-500 mb-4">
-                        Full PSD2 consent lifecycle with AISP and PISP services. Berlin Group NextGenPSD2 and UK Open Banking adapters. TPP registration with eIDAS certificate validation.
+                        PSD2 consent-lifecycle modules modelled on AISP and PISP flows. Berlin Group NextGenPSD2 and UK Open Banking adapters. TPP eIDAS certificate validation.
                     </p>
                     <a href="{{ route('features.show', 'open-banking') }}" class="text-teal-600 font-medium hover:text-teal-700">
                         Learn more &rarr;
@@ -624,7 +621,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Payment Rails</h3>
                     <p class="text-slate-500 mb-4">
-                        Multi-rail payment processing: ACH (NACHA file generation), Fedwire, RTP, FedNow (ISO 20022 native), SEPA Direct Debit, and SCT Inst. Intelligent routing selects the optimal rail automatically.
+                        Multi-rail payment message and routing modules: ACH (NACHA file generation), Fedwire, RTP, FedNow (ISO 20022 native), SEPA Direct Debit, and SCT Inst. Intelligent routing selects the optimal rail automatically.
                     </p>
                     <a href="{{ route('features.show', 'payment-rails') }}" class="text-orange-600 font-medium hover:text-orange-700">
                         Learn more &rarr;
@@ -640,7 +637,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">ISO 8583 Card Processing</h3>
                     <p class="text-slate-500 mb-4">
-                        Full card network message processing with bitmap codec. Authorization, reversal, and settlement handlers for direct Visa/Mastercard integration.
+                        ISO 8583 message processing with bitmap codec: authorization, reversal, and settlement message handlers (card-network message format).
                     </p>
                     <a href="{{ route('features') }}" class="text-slate-600 font-medium hover:text-slate-700">
                         Learn more &rarr;
@@ -656,7 +653,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Interledger Protocol</h3>
                     <p class="text-slate-500 mb-4">
-                        Cross-network value transfer with ILP connector, Open Payments (GNAP authorization), and cross-currency quotes. Bridge fiat and crypto payment networks.
+                        Cross-network value transfer with ILP connector, Open Payments (GNAP authorization), and cross-currency quotes.
                     </p>
                     <a href="{{ route('features.show', 'interledger') }}" class="text-purple-600 font-medium hover:text-purple-700">
                         Learn more &rarr;
@@ -672,7 +669,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Double-Entry Ledger</h3>
                     <p class="text-slate-500 mb-4">
-                        Production-grade accounting engine with chart of accounts, journal entries, trial balance, and GL auto-posting. PHP-native default with optional TigerBeetle driver for extreme throughput.
+                        Accounting engine with chart of accounts, journal entries, trial balance, and GL auto-posting. PHP-native default with optional TigerBeetle driver for extreme throughput.
                     </p>
                     <a href="{{ route('features.show', 'ledger') }}" class="text-gray-600 font-medium hover:text-gray-700">
                         Learn more &rarr;
@@ -711,72 +708,8 @@
                     </a>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <!-- Feature Comparison -->
-    <section class="py-20 bg-slate-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12">
-                <h2 class="font-display text-4xl font-bold text-slate-900 mb-4">{{ config('brand.name', 'Zelta') }} vs Traditional Banking</h2>
-                <p class="text-xl text-slate-500">See how we compare to traditional financial institutions</p>
-            </div>
-            
-            <div class="bg-white rounded-2xl shadow-xl overflow-x-auto">
-                <table class="w-full min-w-[540px]">
-                    <thead class="bg-slate-50">
-                        <tr>
-                            <th class="px-6 py-4 text-left text-sm font-semibold text-slate-900">Feature</th>
-                            <th class="px-6 py-4 text-center text-sm font-semibold text-slate-900">{{ config('brand.name', 'Zelta') }}</th>
-                            <th class="px-6 py-4 text-center text-sm font-semibold text-slate-900">Traditional Banks</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        <tr>
-                            <td class="px-6 py-4 text-sm text-slate-600">Transaction Speed</td>
-                            <td class="px-6 py-4 text-center">
-                                <span class="text-green-600 font-semibold">< 1 second</span>
-                            </td>
-                            <td class="px-6 py-4 text-center text-slate-400">1-5 days</td>
-                        </tr>
-                        <tr class="bg-slate-50">
-                            <td class="px-6 py-4 text-sm text-slate-600">Multi-Currency Support</td>
-                            <td class="px-6 py-4 text-center">
-                                <span class="text-green-600 font-semibold">6+ currencies</span>
-                            </td>
-                            <td class="px-6 py-4 text-center text-slate-400">Limited</td>
-                        </tr>
-                        <tr>
-                            <td class="px-6 py-4 text-sm text-slate-600">Account Opening</td>
-                            <td class="px-6 py-4 text-center">
-                                <span class="text-green-600 font-semibold">5 minutes</span>
-                            </td>
-                            <td class="px-6 py-4 text-center text-slate-400">Days to weeks</td>
-                        </tr>
-                        <tr class="bg-slate-50">
-                            <td class="px-6 py-4 text-sm text-slate-600">API Access</td>
-                            <td class="px-6 py-4 text-center">
-                                <span class="text-green-600 font-semibold">Full REST API</span>
-                            </td>
-                            <td class="px-6 py-4 text-center text-slate-400">Limited or none</td>
-                        </tr>
-                        <tr>
-                            <td class="px-6 py-4 text-sm text-slate-600">Governance</td>
-                            <td class="px-6 py-4 text-center">
-                                <span class="text-green-600 font-semibold">Democratic voting</span>
-                            </td>
-                            <td class="px-6 py-4 text-center text-slate-400">Centralized</td>
-                        </tr>
-                        <tr class="bg-slate-50">
-                            <td class="px-6 py-4 text-sm text-slate-600">Transparency</td>
-                            <td class="px-6 py-4 text-center">
-                                <span class="text-green-600 font-semibold">Full audit trail</span>
-                            </td>
-                            <td class="px-6 py-4 text-center text-slate-400">Limited</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            {{-- F2 once per provider list (see docs/REGULATORY-CLAIMS.md) --}}
+            <p class="mt-10 text-xs text-slate-400 text-center">Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
         </div>
     </section>
 

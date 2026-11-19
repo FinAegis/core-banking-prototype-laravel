@@ -15,7 +15,7 @@ return [
     'exchange' => [
         'enabled'     => env('SUB_PRODUCT_EXCHANGE_ENABLED', true),
         'name'        => 'FinAegis Exchange',
-        'description' => 'Multi-currency and crypto trading platform',
+        'description' => 'Multi-currency and crypto trading module (software)',
         'features'    => [
             'crypto_trading'  => env('EXCHANGE_CRYPTO_ENABLED', false),
             'fiat_pairs'      => env('EXCHANGE_FIAT_ENABLED', true),
@@ -32,7 +32,7 @@ return [
     'lending' => [
         'enabled'     => env('SUB_PRODUCT_LENDING_ENABLED', false),
         'name'        => 'FinAegis Lending',
-        'description' => 'P2P lending and credit marketplace',
+        'description' => 'P2P lending and credit marketplace module (software)',
         'features'    => [
             'sme_loans'         => env('LENDING_SME_ENABLED', true),
             'invoice_financing' => env('LENDING_INVOICE_ENABLED', true),
@@ -50,7 +50,7 @@ return [
     'stablecoins' => [
         'enabled'     => env('SUB_PRODUCT_STABLECOINS_ENABLED', true),
         'name'        => 'FinAegis Stablecoins',
-        'description' => 'Regulated stablecoin issuance and management',
+        'description' => 'Stablecoin issuance and management module (software)',
         'features'    => [
             'eur_stablecoin'      => env('STABLECOIN_EUR_ENABLED', true),
             'usd_stablecoin'      => env('STABLECOIN_USD_ENABLED', false),
@@ -83,7 +83,7 @@ return [
     'treasury' => [
         'enabled'     => env('SUB_PRODUCT_TREASURY_ENABLED', true),
         'name'        => 'FinAegis Treasury',
-        'description' => 'Advanced treasury and cash management',
+        'description' => 'Treasury and cash management module (software)',
         'features'    => [
             'multi_bank'           => env('TREASURY_MULTI_BANK_ENABLED', true),
             'fx_optimization'      => env('TREASURY_FX_OPTIMIZATION_ENABLED', true),

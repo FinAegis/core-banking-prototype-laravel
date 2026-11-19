@@ -3,8 +3,8 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="Apply to become a {{ config('brand.name', 'Zelta') }} partner financial institution. Join us in building the future of democratic banking.">
-        <meta name="keywords" content="{{ config('brand.name', 'Zelta') }}, partner bank, financial institution, banking partnership, GCU">
+        <meta name="description" content="Apply to become a {{ config('brand.name', 'Zelta') }} partner financial institution.">
+        <meta name="keywords" content="{{ config('brand.name', 'Zelta') }}, partner bank, financial institution, banking partnership">
         
         <title>Partner Institution Application - {{ config('brand.name', 'Zelta') }}</title>
 
@@ -28,7 +28,7 @@
                         Partner Institution Application
                     </h1>
                     <p class="text-xl text-slate-400 max-w-3xl mx-auto">
-                        Join the {{ config('brand.name', 'Zelta') }} network and help us build the future of democratic banking
+                        Express interest in integrating your institution with the {{ config('brand.name', 'Zelta') }} open-source platform
                     </p>
                 </div>
             </div>
@@ -46,9 +46,10 @@
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="mb-12">
                     <h2 class="font-display text-3xl font-bold text-slate-900 mb-6">Partnership Requirements</h2>
-                    <p class="text-lg text-slate-500 mb-8">
-                        To ensure the security and stability of the Global Currency Unit, we have established comprehensive requirements for partner institutions.
-                    </p>
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-sm text-slate-600">
+                        <p>FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.</p>
+                        <p class="mt-2">FinAegis is a software project and does not hold any banking, e-money, payment-institution, crypto-asset service provider or token-issuer licence or authorisation. Submitting this form does not create a partnership.</p>
+                    </div>
 
                     <div class="space-y-8">
                         <!-- Technical Requirements -->

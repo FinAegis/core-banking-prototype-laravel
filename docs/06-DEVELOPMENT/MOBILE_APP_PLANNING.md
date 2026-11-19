@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-Build a production-grade mobile wallet application that connects to the FinAegis Core Banking API. The app provides standard digital wallet functionality including multi-asset balance management, top-ups, P2P transfers, and real-time notifications.
+Build a mobile wallet application that connects to the FinAegis Core Banking API. The app provides standard digital wallet functionality including multi-asset balance management, top-ups, P2P transfers, and real-time notifications.
 
 ### Key Decisions
 
@@ -839,7 +839,6 @@ export function BalanceCard({ account }: BalanceCardProps) {
 | **Transactions** | GET /api/accounts/{id}/transactions |
 | **Transfers** | POST /api/transfers |
 | **Exchange** | GET /api/exchange-rates/{from}/{to}, POST /api/exchange/convert |
-| **GCU** | POST /api/v2/gcu/buy, /sell, GET /api/v2/gcu/quote |
 | **KYC** | GET /api/compliance/kyc/status, POST /api/compliance/kyc/submit |
 
 ### New Endpoints (To Be Built)

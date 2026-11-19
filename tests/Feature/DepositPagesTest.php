@@ -65,7 +65,8 @@ class DepositPagesTest extends DomainTestCase
         $response = $this->get('/wallet/deposit/paysera');
 
         $response->assertStatus(200);
-        $response->assertSee('Paysera');
+        // The option is shown under a generic display name (no provider branding).
+        $response->assertSee('SEPA bank transfer');
     }
 
     #[Test]

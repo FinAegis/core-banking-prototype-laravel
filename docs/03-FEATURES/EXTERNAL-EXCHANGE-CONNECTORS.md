@@ -2,7 +2,7 @@
 
 ## Overview
 
-FinAegis Exchange integrates with major cryptocurrency exchanges to provide enhanced liquidity, price discovery, and arbitrage opportunities. This feature enables the platform to aggregate market data and potentially execute trades across multiple venues.
+FinAegis Exchange integrates with major cryptocurrency exchanges to provide enhanced liquidity, price discovery, and arbitrage opportunities. This feature enables the platform to aggregate market data and potentially execute trades across multiple venues. Integration adapters for third-party APIs; no partnership or endorsement implied.
 
 ## Supported Exchanges
 

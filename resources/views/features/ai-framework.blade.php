@@ -272,8 +272,8 @@
                     </h4>
                     <ul class="text-sm text-slate-500 space-y-1.5">
                         <li>SMS Send</li>
-                        <li>Visa CLI Cards</li>
-                        <li>Visa CLI Payment</li>
+                        <li>Card CLI: Cards</li>
+                        <li>Card CLI: Payment</li>
                     </ul>
                 </div>
 
@@ -483,7 +483,7 @@
                         <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                     </div>
                     <h3 class="font-bold text-slate-900 mb-2 group-hover:text-orange-700">Machine Payments (MPP)</h3>
-                    <p class="text-sm text-slate-500">Multi-rail HTTP 402 payments with Stripe, USDC, Lightning, and x402 for AI agent autonomous commerce.</p>
+                    <p class="text-sm text-slate-500">Multi-rail HTTP 402 payments with Stripe, USDC, Lightning, and x402 for AI agent autonomous commerce. Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
                 </a>
                 <a href="{{ route('features.show', 'x402-protocol') }}" class="card-feature !p-6 hover:border-emerald-300 transition-colors group">
                     <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mb-4">

@@ -42,6 +42,9 @@
                 <p class="text-lg md:text-xl text-slate-300 max-w-3xl mx-auto mb-8">
                     HTTP 402 payments with Stripe, Tempo, Lightning, and Card rails. Let AI agents pay for APIs using the best available payment method — fiat or crypto.
                 </p>
+                <p class="text-sm text-slate-400 max-w-3xl mx-auto mb-8">
+                    Integration adapters for third-party APIs; no partnership or endorsement implied.
+                </p>
                 <div class="flex flex-wrap justify-center gap-4">
                     <a href="{{ url('/api/v1/mpp/status') }}" class="btn btn-outline">View Protocol Status</a>
                     <a href="{{ url('/features/x402-protocol') }}" class="btn btn-outline">Compare with x402</a>

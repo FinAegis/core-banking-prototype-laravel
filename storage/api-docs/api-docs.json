@@ -2,7 +2,7 @@
     "openapi": "3.0.0",
     "info": {
         "title": "Zelta API",
-        "description": "Core banking API — stablecoin-powered virtual cards, non-custodial wallet, AI agent card issuance, ISO 20022, Open Banking, US Payment Rails, Interledger, and Microfinance. Built with Laravel 12, featuring 61 DDD domains, event sourcing, CQRS, and privacy-preserving architecture.",
+        "description": "Open-source core banking software API — non-custodial wallet, card-issuing integration adapters, ISO 20022, Open Banking, US Payment Rails, Interledger, and Microfinance modules. Built with Laravel 12, featuring 61 DDD domains, event sourcing, CQRS, and privacy-preserving architecture. Integration adapters for third-party APIs; no partnership or endorsement implied.",
         "contact": {
             "name": "Zelta Support",
             "email": "support@finaegis.org"
@@ -12800,7 +12800,7 @@
                     "Card Issuance"
                 ],
                 "summary": "Provision virtual card for mobile wallet",
-                "description": "Provision a new virtual card for Apple Pay / Google Pay.",
+                "description": "Provision a virtual card to a mobile wallet (planned; subject to the card-issuing partner's approval).",
                 "operationId": "27be9954610d75b4766604447538a87a",
                 "requestBody": {
                     "required": true,
@@ -19817,7 +19817,7 @@
                     "DeFi"
                 ],
                 "summary": "Get staking info and positions",
-                "description": "Returns staking APY and the user's staked balance for the specified chain via the Lido liquid staking protocol.",
+                "description": "Returns staking rate data (informational) and the user's staked balance for the specified chain via the Lido liquid staking protocol.",
                 "operationId": "defiStaking",
                 "requestBody": {
                     "required": true,
@@ -19938,14 +19938,14 @@
                 "tags": [
                     "DeFi"
                 ],
-                "summary": "Get best yield opportunities",
-                "description": "Returns the best yield opportunities across all supported chains and DeFi protocols for the given wallet address.",
+                "summary": "List DeFi protocol rate data (informational)",
+                "description": "Returns DeFi protocol rate data across all supported chains and DeFi protocols for the given wallet address (informational; no yield offered).",
                 "operationId": "defiYieldBest",
                 "parameters": [
                     {
                         "name": "wallet_address",
                         "in": "query",
-                        "description": "Wallet address to find yield opportunities for",
+                        "description": "Wallet address to list protocol rate data for",
                         "required": true,
                         "schema": {
                             "type": "string",
@@ -19956,7 +19956,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Yield opportunities returned",
+                        "description": "Protocol rate data returned",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -47628,7 +47628,7 @@
                 "tags": [
                     "User Voting"
                 ],
-                "summary": "Submit vote for GCU basket composition",
+                "summary": "Submit demo vote for GCU demo basket composition",
                 "description": "Submit weighted allocation vote for basket composition",
                 "operationId": "a4defe7c42a9273987d21053b55d078f",
                 "parameters": [
@@ -51212,7 +51212,7 @@
                     "GCU"
                 ],
                 "summary": "Get GCU information",
-                "description": "Get current information about the Global Currency Unit including composition and value",
+                "description": "Get current information about the GCU demo basket (software demonstration; no monetary value), including composition and simulated value",
                 "operationId": "getGCUInfo",
                 "responses": {
                     "200": {
@@ -51315,7 +51315,7 @@
                     "GCU"
                 ],
                 "summary": "Get GCU value history",
-                "description": "Get historical value data for the Global Currency Unit",
+                "description": "Get simulated historical value data for the GCU demo basket",
                 "operationId": "getGCUValueHistory",
                 "parameters": [
                     {
@@ -51421,8 +51421,8 @@
                 "tags": [
                     "GCU"
                 ],
-                "summary": "Get active GCU governance polls",
-                "description": "Get currently active polls related to GCU governance",
+                "summary": "Get active GCU demo governance polls",
+                "description": "Get currently active polls in the GCU governance demo (simulated votes; no monetary effect)",
                 "operationId": "getGCUActivePolls",
                 "responses": {
                     "200": {
@@ -51495,7 +51495,7 @@
                     "GCU"
                 ],
                 "summary": "Get real-time GCU composition data",
-                "description": "Get detailed real-time composition data for the Global Currency Unit including current weights, values, and recent changes",
+                "description": "Get detailed composition data for the GCU demo basket including current weights, simulated values, and recent changes",
                 "operationId": "getGCUComposition",
                 "responses": {
                     "200": {
@@ -51629,12 +51629,12 @@
                 "tags": [
                     "GCU"
                 ],
-                "summary": "Get supported banks for GCU",
-                "description": "Get list of banks that support GCU deposits and their coverage",
+                "summary": "Get illustrative bank list for the GCU demo",
+                "description": "Illustrative demo data for the GCU demo; no relationship with any bank is implied.",
                 "operationId": "getGCUSupportedBanks",
                 "responses": {
                     "200": {
-                        "description": "Supported banks",
+                        "description": "Illustrative demo bank list (GCU demo module)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -51696,8 +51696,8 @@
                 "tags": [
                     "GCU Trading"
                 ],
-                "summary": "Buy GCU tokens",
-                "description": "Purchase GCU tokens using fiat currency",
+                "summary": "Simulated GCU purchase (GCU demo module)",
+                "description": "GCU demo module (simulated): converts a balance into GCU demo units. GCU has no monetary value.",
                 "operationId": "buyGCU",
                 "requestBody": {
                     "required": true,
@@ -51734,7 +51734,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "GCU purchase successful",
+                        "description": "Simulated GCU purchase recorded (GCU demo module)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -51836,8 +51836,8 @@
                 "tags": [
                     "GCU Trading"
                 ],
-                "summary": "Sell GCU tokens",
-                "description": "Sell GCU tokens for fiat currency",
+                "summary": "Simulated GCU sale (GCU demo module)",
+                "description": "GCU demo module (simulated): converts GCU demo units back into a balance. GCU has no monetary value.",
                 "operationId": "sellGCU",
                 "requestBody": {
                     "required": true,
@@ -51874,7 +51874,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "GCU sale successful",
+                        "description": "Simulated GCU sale recorded (GCU demo module)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -51976,8 +51976,8 @@
                 "tags": [
                     "GCU Trading"
                 ],
-                "summary": "Get GCU trading quote",
-                "description": "Get a quote for buying or selling GCU",
+                "summary": "Get simulated GCU conversion quote (demo)",
+                "description": "Get an illustrative quote for a simulated GCU conversion (GCU demo module)",
                 "operationId": "getGCUQuote",
                 "parameters": [
                     {
@@ -52104,8 +52104,8 @@
                 "tags": [
                     "GCU Trading"
                 ],
-                "summary": "Get user's GCU trading limits",
-                "description": "Get the authenticated user's trading limits for GCU operations",
+                "summary": "Get user's GCU demo conversion limits",
+                "description": "Get the authenticated user's limits for simulated GCU demo conversions",
                 "operationId": "getGCUTradingLimits",
                 "responses": {
                     "200": {
@@ -52465,7 +52465,7 @@
                 "tags": [
                     "GCU Voting"
                 ],
-                "summary": "Cast a vote",
+                "summary": "Cast a demo vote (simulated)",
                 "operationId": "26e7c1223824df9748e1bc7d40edfe53",
                 "parameters": [
                     {
@@ -56727,8 +56727,8 @@
                 "tags": [
                     "Treasury"
                 ],
-                "summary": "Optimize portfolio for yield",
-                "description": "Optimize portfolio for yield.",
+                "summary": "Portfolio allocation analysis",
+                "description": "Portfolio allocation analysis.",
                 "operationId": "f71f2f14efc26d63350f1ea284aeb929",
                 "requestBody": {
                     "required": true,
@@ -58719,7 +58719,7 @@
                     },
                     "regulator": {
                         "type": "string",
-                        "example": "Bank of Lithuania"
+                        "example": "National competent authority (example)"
                     },
                     "reference_number": {
                         "type": "string",
@@ -59272,7 +59272,7 @@
                     },
                     "regulator": {
                         "type": "string",
-                        "example": "Bank of Lithuania"
+                        "example": "National competent authority (example)"
                     },
                     "deadline": {
                         "type": "string",
@@ -62077,7 +62077,7 @@
         },
         {
             "name": "DeFi",
-            "description": "Decentralized finance operations: DEX swaps, lending, staking, and yield optimization"
+            "description": "Decentralized finance protocol adapters: DEX swaps, lending, and staking"
         },
         {
             "name": "Demo AI Chat",
@@ -62314,7 +62314,7 @@
         },
         {
             "name": "User Voting",
-            "description": "User-friendly voting interface for GCU governance"
+            "description": "Voting interface for the GCU governance demo (simulated votes; no monetary effect)"
         },
         {
             "name": "GCU",
@@ -62322,7 +62322,7 @@
         },
         {
             "name": "GCU Trading",
-            "description": "Buy and sell Global Currency Unit operations"
+            "description": "GCU demo module (simulated): GCU conversion endpoints; GCU has no monetary value"
         },
         {
             "name": "Public API",

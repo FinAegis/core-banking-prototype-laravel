@@ -168,7 +168,7 @@ class SmsDemoSeeder extends Seeder
                 'provider_id'  => 'demo-vtx-006',
                 'to'           => '+37069998877',
                 'from'         => 'Zelta',
-                'message'      => 'Reminder: Your GCU staking rewards have been distributed.',
+                'message'      => 'Reminder: your demo account summary is ready.',
                 'parts'        => 1,
                 'status'       => SmsMessage::STATUS_PENDING,
                 'price_usdc'   => '48000',

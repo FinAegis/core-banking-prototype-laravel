@@ -132,7 +132,7 @@ class NavigationTest extends TestCase
         // Test main voting page
         $response = $this->actingAs($this->user)->get('/gcu/voting');
         $response->assertStatus(200);
-        $response->assertSee('GCU Composition Voting');
+        $response->assertSee('GCU governance demo');
 
         // The page should render without errors even if no proposals exist
         $response->assertViewHas('activeProposals');

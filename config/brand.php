@@ -17,7 +17,7 @@ return [
 
     'name' => env('APP_BRAND', env('APP_NAME', 'Zelta')),
 
-    'tagline' => env('BRAND_TAGLINE', 'No seed phrase. Tap to pay. Truly yours.'),
+    'tagline' => env('BRAND_TAGLINE', 'No seed phrase. Truly yours.'),
 
     'support_email' => env('BRAND_SUPPORT_EMAIL', 'support@zelta.app'),
 
@@ -25,6 +25,7 @@ return [
 
     'privacy_email' => env('BRAND_PRIVACY_EMAIL', 'privacy@zelta.app'),
 
+    // TODO(regulatory): operator legal entity details pending — see docs/REGULATORY-CLAIMS.md
     'legal_entity' => env('BRAND_LEGAL_ENTITY', 'Zelta'),
 
     'legal_jurisdiction' => env('BRAND_LEGAL_JURISDICTION', 'Vilnius, Lithuania'),

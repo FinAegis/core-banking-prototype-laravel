@@ -16,9 +16,9 @@
 ### 01-VISION - Strategic Vision & Roadmap
 - [Platform Vision](01-VISION/UNIFIED_PLATFORM_VISION.md)
 - [GCU Vision](01-VISION/GCU_VISION.md)
-- [Sub-Products Overview](01-VISION/SUB_PRODUCTS_OVERVIEW.md)
+- [Sub-Products Overview](01-VISION/SUB_PRODUCTS_OVERVIEW.md) (withdrawn — see [REGULATORY-CLAIMS.md](../REGULATORY-CLAIMS.md))
 - [Roadmap](01-VISION/ROADMAP.md)
-- [Regulatory Strategy](01-VISION/REGULATORY_STRATEGY.md)
+- [Regulatory Strategy](01-VISION/REGULATORY_STRATEGY.md) (withdrawn — see [REGULATORY-CLAIMS.md](../REGULATORY-CLAIMS.md))
 
 ### 02-ARCHITECTURE - Technical Architecture
 - [Platform Architecture](02-ARCHITECTURE/ARCHITECTURE.md) - **Updated with CQRS**
@@ -54,9 +54,9 @@
 - [CGO Documentation](05-TECHNICAL/CGO_DOCUMENTATION.md)
 
 ### 05-USER-GUIDES - Sub-Product User Guides
-- [Stablecoin Guide](05-USER-GUIDES/STABLECOIN_GUIDE.md)
-- [P2P Lending Guide](05-USER-GUIDES/P2P_LENDING_GUIDE.md)
-- [Liquidity Pools Guide](05-USER-GUIDES/LIQUIDITY_POOLS_GUIDE.md)
+- [Stablecoin Guide](05-USER-GUIDES/STABLECOIN_GUIDE.md) (withdrawn — see [REGULATORY-CLAIMS.md](../REGULATORY-CLAIMS.md))
+- [P2P Lending Guide](05-USER-GUIDES/P2P_LENDING_GUIDE.md) (withdrawn — see [REGULATORY-CLAIMS.md](../REGULATORY-CLAIMS.md))
+- [Liquidity Pools Guide](05-USER-GUIDES/LIQUIDITY_POOLS_GUIDE.md) (withdrawn — see [REGULATORY-CLAIMS.md](../REGULATORY-CLAIMS.md))
 
 ### 06-DEVELOPMENT - Development Guides
 - [Development Guide](06-DEVELOPMENT/DEVELOPMENT.md)
@@ -102,7 +102,7 @@
 - [Demo User Guide](11-USER-GUIDES/DEMO-USER-GUIDE.md)
 - [GCU User Guide](11-USER-GUIDES/GCU-USER-GUIDE.md)
 - [GCU Voting Guide](11-USER-GUIDES/GCU_VOTING_GUIDE.md)
-- [CGO Investment Guide](11-USER-GUIDES/CGO-USER-GUIDE.md)
+- [CGO User Guide](11-USER-GUIDES/CGO-USER-GUIDE.md) (withdrawn — see [REGULATORY-CLAIMS.md](../REGULATORY-CLAIMS.md))
 
 ### 08-TROUBLESHOOTING - Troubleshooting & Support
 - [Troubleshooting Guide](08-TROUBLESHOOTING/TROUBLESHOOTING.md)
@@ -137,8 +137,8 @@
 ### By Feature
 - **Banking**: Account, Transaction, Transfer → [API Reference](04-API/REST_API_REFERENCE.md)
 - **Trading**: Exchange, Liquidity → [Exchange](03-FEATURES/EXCHANGE.md)
-- **Stablecoins**: Minting, Collateral → [Stablecoin Guide](05-USER-GUIDES/STABLECOIN_GUIDE.md)
-- **Lending**: Loans, Credit → [P2P Lending Guide](05-USER-GUIDES/P2P_LENDING_GUIDE.md)
+- **Stablecoins**: Minting, Collateral → [Stablecoin Guide](05-USER-GUIDES/STABLECOIN_GUIDE.md) (withdrawn — see [REGULATORY-CLAIMS.md](../REGULATORY-CLAIMS.md))
+- **Lending**: Loans, Credit → [P2P Lending Guide](05-USER-GUIDES/P2P_LENDING_GUIDE.md) (withdrawn — see [REGULATORY-CLAIMS.md](../REGULATORY-CLAIMS.md))
 - **Demo**: Testing, Development → [Demo Mode](03-FEATURES/DEMO-MODE.md)
 
 ### By Role

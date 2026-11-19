@@ -354,9 +354,13 @@ curl -H "Authorization: Bearer your_api_key" \
 
                     <section id="gcu" class="mb-16">
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Global Currency Unit (GCU)</h2>
-                        
+
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-8 text-sm text-gray-700">
+                            The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
+                        </div>
+
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>The GCU endpoints provide access to real-time data about the Global Currency Unit, including its composition, value history, and governance information.</p>
+                            <p>The GCU endpoints provide access to real-time data about the Global Currency Unit, including its composition, value history, and governance information. The GCU is a software demonstration; values, balances and votes returned by these endpoints are simulated and have no monetary value.</p>
                         </div>
                         
                         <div class="space-y-8">
@@ -468,8 +472,8 @@ curl -H "Authorization: Bearer your_api_key" \
 
                             <!-- Voting Endpoints -->
                             <div class="mt-12 mb-6">
-                                <h3 class="text-2xl font-semibold text-gray-900">Democratic Voting System</h3>
-                                <p class="text-gray-600 mt-2">The GCU voting system allows token holders to participate in monthly governance votes to optimize the currency basket composition.</p>
+                                <h3 class="text-2xl font-semibold text-gray-900">Basket Voting (Simulated)</h3>
+                                <p class="text-gray-600 mt-2">The GCU demo voting endpoints simulate monthly basket "votes".</p>
                             </div>
 
                             <div class="border rounded-lg p-6 mb-6">
@@ -523,7 +527,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Cast your vote on a proposal. Voting power is determined by your GCU balance.</p>
+                                <p class="text-gray-600 mb-4">Cast your vote on a proposal. Voting weight is computed from simulated demo balances.</p>
                                 
                                 <h4 class="font-semibold mb-2">Request Body:</h4>
                                 <x-code-block language="json">
@@ -567,7 +571,7 @@ curl -H "Authorization: Bearer your_api_key" \
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Baskets</h2>
                         
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>Baskets are multi-asset currency units that can be composed and decomposed. The GCU is our primary basket.</p>
+                            <p>Baskets are multi-asset currency units that can be composed and decomposed. The GCU demo is the reference basket.</p>
                         </div>
                         
                         <div class="space-y-8">
@@ -743,7 +747,7 @@ curl -H "Authorization: Bearer your_api_key" \
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">CrossChain API</h2>
 
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>The CrossChain API enables multi-chain operations including bridge transfers via Wormhole, LayerZero, and Axelar protocols. Compare bridge fees, execute cross-chain swaps, and track portfolios across multiple blockchains.</p>
+                            <p>The CrossChain API enables multi-chain operations including bridge transfers via Wormhole, LayerZero, and Axelar protocols. Compare bridge fees, execute cross-chain swaps, and track portfolios across multiple blockchains. Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
                             <p class="text-sm text-gray-500">7 routes &middot; <a href="/api/documentation#/CrossChain" target="_blank" class="text-cyan-600 hover:text-cyan-800">View in Swagger UI</a></p>
                         </div>
 
@@ -834,7 +838,7 @@ curl -H "Authorization: Bearer your_api_key" \
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">DeFi API</h2>
 
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>The DeFi API provides access to decentralized finance protocols including DEX aggregation (Uniswap, Curve), lending (Aave), staking (Lido), yield optimization, and flash loan execution.</p>
+                            <p>The DeFi API provides access to decentralized finance protocols including DEX aggregation (Uniswap, Curve), lending (Aave), staking (Lido), and flash loan execution. Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
                             <p class="text-sm text-gray-500">8 routes &middot; <a href="/api/documentation#/DeFi" target="_blank" class="text-emerald-600 hover:text-emerald-800">View in Swagger UI</a></p>
                         </div>
 
@@ -886,7 +890,7 @@ curl -X POST \
                                         <span class="ml-2 font-mono text-sm">/defi/portfolio</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Retrieve all DeFi positions including lending deposits, staking, liquidity pools, and yield farming.</p>
+                                <p class="text-gray-600 mb-4">Retrieve all DeFi positions including lending, staking, and liquidity-pool positions.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
      {{ config('app.url') }}/api/v2/defi/portfolio
@@ -925,7 +929,7 @@ curl -X POST \
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">RegTech API</h2>
 
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>The RegTech API provides regulatory compliance capabilities including MiFID II transaction reporting, MiCA crypto-asset compliance, Travel Rule enforcement for cross-border transfers, and jurisdiction-specific adapter configuration.</p>
+                            <p>The RegTech API provides reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements, with jurisdiction-specific adapter configuration. They do not by themselves make a deployment compliant.</p>
                             <p class="text-sm text-gray-500">12 routes &middot; <a href="/api/documentation#/RegTech" target="_blank" class="text-amber-600 hover:text-amber-800">View in Swagger UI</a></p>
                         </div>
 
@@ -938,7 +942,7 @@ curl -X POST \
                                         <span class="ml-2 font-mono text-sm">/regtech/mifid/reports</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Submit a MiFID II transaction report to the configured National Competent Authority.</p>
+                                <p class="text-gray-600 mb-4">Generate a transaction report in a format modelled on MiFID II and send it to the configured reporting endpoint.</p>
                                 <x-code-block language="bash">
 curl -X POST \
   -H "Authorization: Bearer your_api_key" \
@@ -953,14 +957,14 @@ curl -X POST \
                             </div>
 
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">MiCA Compliance Check</h3>
+                                <h3 class="text-xl font-semibold mb-4">MiCA-Modelled Check</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
                                         <span class="ml-2 font-mono text-sm">/regtech/mica/check</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Run a MiCA compliance validation against a crypto-asset or token issuance.</p>
+                                <p class="text-gray-600 mb-4">Run checks modelled on MiCA requirements against a crypto-asset or token issuance.</p>
                                 <x-code-block language="bash">
 curl -X POST \
   -H "Authorization: Bearer your_api_key" \
@@ -982,7 +986,7 @@ curl -X POST \
                                         <span class="ml-2 font-mono text-sm">/regtech/travel-rule/transfers</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Submit originator and beneficiary information for FATF Travel Rule compliance on cross-border transfers.</p>
+                                <p class="text-gray-600 mb-4">Submit originator and beneficiary information via the data-exchange module modelled on the FATF Travel Rule.</p>
                                 <x-code-block language="bash">
 curl -X POST \
   -H "Authorization: Bearer your_api_key" \
@@ -999,14 +1003,14 @@ curl -X POST \
                             </div>
 
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">Compliance Status</h3>
+                                <h3 class="text-xl font-semibold mb-4">Module Status</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
                                         <span class="ml-2 font-mono text-sm">/regtech/status</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Get overall compliance status across all active regulatory frameworks.</p>
+                                <p class="text-gray-600 mb-4">Get the status of all configured regulatory reporting modules.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
      {{ config('app.url') }}/api/v2/regtech/status
@@ -1224,7 +1228,7 @@ curl -H "Authorization: Bearer your_api_key" \
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">SMS API</h2>
 
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>Send SMS messages globally via VertexSMS with per-message payment gating through the Machine Payment Protocol (MPP). AI agents and applications pay per-SMS using USDC, Stripe, or Lightning — no prepaid credits, no invoicing.</p>
+                            <p>Send SMS messages globally via VertexSMS with per-message payment gating through the Machine Payment Protocol (MPP). AI agents and applications pay per-SMS using USDC, Stripe, or Lightning — no prepaid credits, no invoicing. Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
                             <p class="text-sm text-gray-500">5 routes &middot; <a href="/api/documentation#/SMS" target="_blank" class="text-orange-600 hover:text-orange-800">View in Swagger UI</a></p>
                         </div>
 
@@ -1609,7 +1613,7 @@ curl -X POST \
                                     <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
                                     <span class="font-mono text-sm">/api/v1/iso20022/generate</span>
                                 </div>
-                                <p class="text-gray-600 mb-4">Generate a standards-compliant ISO 20022 XML message from a JSON payload.</p>
+                                <p class="text-gray-600 mb-4">Generate a schema-valid ISO 20022 XML message from a JSON payload.</p>
                                 <x-code-block language="bash">
 curl -X POST \
   -H "Authorization: Bearer your_api_key" \
@@ -1633,7 +1637,7 @@ curl -X POST \
                     <section id="open-banking" class="mb-16">
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Open Banking API</h2>
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>Full PSD2 consent lifecycle with AISP (Account Information Service Provider) and PISP (Payment Initiation Service Provider) services. Supports Berlin Group NextGenPSD2 and UK Open Banking adapters. TPP registration with eIDAS certificate validation.</p>
+                            <p>PSD2 consent-lifecycle modules modelled on AISP (Account Information Service Provider) and PISP (Payment Initiation Service Provider) flows. Supports Berlin Group NextGenPSD2 and UK Open Banking adapters. TPP eIDAS certificate validation.</p>
                         </div>
                         <div class="space-y-8">
                             <div class="border rounded-lg p-6">
@@ -1674,7 +1678,7 @@ curl -X POST \
                     <section id="payment-rails" class="mb-16">
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Payment Rails API</h2>
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>Multi-rail payment processing with ACH (NACHA file generation), Fedwire, RTP, FedNow (ISO 20022 native), SEPA Direct Debit, and SCT Inst. Intelligent routing automatically selects the optimal rail based on amount, currency, and counterparty.</p>
+                            <p>Message-format and routing modules for ACH (NACHA file generation), Fedwire, RTP, FedNow (ISO 20022 native), SEPA Direct Debit, and SCT Inst. Intelligent routing selects the optimal rail based on amount, currency, and counterparty (reference implementation — no live scheme settlement).</p>
                         </div>
                         <div class="space-y-8">
                             <div class="border rounded-lg p-6">
@@ -1706,7 +1710,7 @@ curl -X POST \
                                     <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
                                     <span class="font-mono text-sm">/api/v1/payment-rails/ach/files</span>
                                 </div>
-                                <p class="text-gray-600 mb-4">Generate a NACHA-compliant ACH batch file from a list of payment entries.</p>
+                                <p class="text-gray-600 mb-4">Generate a NACHA-format ACH batch file from a list of payment entries.</p>
                             </div>
                         </div>
                     </section>
@@ -1715,7 +1719,7 @@ curl -X POST \
                     <section id="interledger" class="mb-16">
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Interledger API</h2>
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>Cross-network value transfer with ILP connector, Open Payments (GNAP authorization), and cross-currency quotes. Bridge fiat and crypto payment networks seamlessly.</p>
+                            <p>Cross-network value transfer with ILP connector, Open Payments (GNAP authorization), and cross-currency quotes.</p>
                         </div>
                         <div class="space-y-8">
                             <div class="border rounded-lg p-6">
@@ -1748,7 +1752,7 @@ curl -X POST \
                     <section id="ledger" class="mb-16">
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Ledger API</h2>
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>Production-grade double-entry accounting engine. Manage chart of accounts, post journal entries, run trial balances, and configure GL auto-posting rules. Supports an optional TigerBeetle driver for extreme throughput workloads.</p>
+                            <p>Double-entry accounting engine. Manage chart of accounts, post journal entries, run trial balances, and configure GL auto-posting rules. Supports an optional TigerBeetle driver for extreme throughput workloads.</p>
                         </div>
                         <div class="space-y-8">
                             <div class="border rounded-lg p-6">

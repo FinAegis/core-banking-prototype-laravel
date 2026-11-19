@@ -206,7 +206,7 @@ Token saved to ~/.zelta/credentials.json</code></pre>
                         <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                     </div>
                     <h3 class="text-lg font-semibold mb-2">Multi-Rail Support</h3>
-                    <p class="text-slate-500 text-sm">Send payments over x402 (USDC), Stripe, Tempo, Lightning, or Visa CLI rails. The CLI auto-selects the best rail or lets you override with <code>--rail</code>.</p>
+                    <p class="text-slate-500 text-sm">Send payments over x402 (USDC), Stripe, Tempo, Lightning, or card-payment CLI rails (integration adapters for third-party APIs; no partnership or endorsement implied). The CLI auto-selects the best rail or lets you override with <code>--rail</code>.</p>
                 </div>
                 <div class="card-feature">
                     <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
@@ -252,7 +252,7 @@ Token saved to ~/.zelta/credentials.json</code></pre>
             <p class="mt-8 text-slate-500 text-sm">
                 Related: <a href="{{ url('/features/x402-protocol') }}" class="underline hover:text-white transition text-slate-400">x402 Protocol</a> &middot;
                 <a href="{{ url('/features/machine-payments') }}" class="underline hover:text-white transition text-slate-400">Machine Payments</a> &middot;
-                <a href="{{ url('/features/visa-cli') }}" class="underline hover:text-white transition text-slate-400">Visa CLI</a>
+                <a href="{{ url('/features/visa-cli') }}" class="underline hover:text-white transition text-slate-400">Card-Payment CLI</a>
             </p>
         </div>
     </section>

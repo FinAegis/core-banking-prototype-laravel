@@ -5,8 +5,8 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Cross-Chain & DeFi Integration',
-        'description' => 'Bridge assets across blockchains and access DeFi protocols with ' . config('brand.name', 'Zelta') . '. Wormhole, LayerZero, Axelar bridges with Uniswap, Aave, Curve, and Lido connectors.',
-        'keywords' => 'cross-chain, DeFi, bridge protocol, Wormhole, LayerZero, Axelar, Uniswap, Aave, Curve, Lido, DEX aggregation, yield optimization, flash loans, multi-chain portfolio',
+        'description' => 'Bridge assets across blockchains and access DeFi protocols with ' . config('brand.name', 'Zelta') . '. Wormhole, LayerZero, Axelar bridges with Uniswap, Aave, Curve, and Lido connectors. Integration adapters for third-party APIs; no partnership or endorsement implied.',
+        'keywords' => 'cross-chain, DeFi, bridge protocol, Wormhole, LayerZero, Axelar, Uniswap, Aave, Curve, Lido, DEX aggregation, flash loans, multi-chain portfolio',
     ])
 
     {{-- Schema.org Markup --}}
@@ -47,7 +47,7 @@
             <div class="text-center">
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Cross-Chain & DeFi Integration</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    Bridge assets seamlessly across blockchains and access leading DeFi protocols. Powered by Wormhole, LayerZero, and Axelar bridge providers with DEX aggregation, lending, staking, and yield optimization.
+                    Bridge adapters and DeFi protocol connectors: DEX aggregation, lending and staking adapters for third-party protocols (e.g. Wormhole, LayerZero, Axelar). Integration adapters for third-party APIs; no partnership or endorsement implied.
                 </p>
                 <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('register') }}" class="bg-white text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">
@@ -67,7 +67,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">Bridge Protocols</h2>
             <p class="text-lg text-slate-500 text-center max-w-2xl mx-auto mb-12">
-                Transfer assets between chains with confidence using production-ready adapters with ABI encoding and RPC integration. Wormhole, Circle CCTP, LayerZero, and Axelar bridges with automatic fee comparison for the best route.
+                Transfer assets between chains using adapters with ABI encoding and RPC integration for Wormhole, Circle CCTP, LayerZero, and Axelar, with automatic fee comparison.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -80,7 +80,7 @@
                     </div>
                     <h3 class="text-2xl font-bold mb-3">Wormhole</h3>
                     <p class="text-slate-500 mb-4">
-                        Production adapter with EthRpcClient integration and ABI-encoded contract calls. Generic message-passing protocol supporting 30+ chains with guardian-validated security.
+                        Adapter with EthRpcClient integration and ABI-encoded contract calls. Generic message-passing protocol supporting 30+ chains with guardian-validated security.
                     </p>
                     <ul class="space-y-2 text-sm text-gray-500">
                         <li class="flex items-center">
@@ -178,7 +178,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">DeFi Protocol Connectors</h2>
             <p class="text-lg text-slate-500 text-center max-w-2xl mx-auto mb-12">
-                Access the most trusted DeFi protocols through a unified API. Swap, lend, stake, and optimize yield without managing multiple integrations.
+                Connect to third-party DeFi protocols through a unified API. Swap, lend and stake via protocol adapters without managing multiple integrations.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -192,7 +192,7 @@
                     <h3 class="text-xl font-bold mb-2">Uniswap V3</h3>
                     <span class="inline-block bg-pink-100 text-pink-800 text-xs font-medium px-2 py-1 rounded mb-3">DEX</span>
                     <p class="text-slate-500 text-sm">
-                        Production adapter with ABI-encoded swaps and RPC price quoting. Concentrated liquidity DEX with optimal price execution and multi-hop routing with slippage protection.
+                        Adapter with ABI-encoded swaps and RPC price quoting. Concentrated liquidity DEX with optimal price execution and multi-hop routing with slippage protection.
                     </p>
                 </div>
 
@@ -206,7 +206,7 @@
                     <h3 class="text-xl font-bold mb-2">Aave V3</h3>
                     <span class="inline-block bg-cyan-100 text-cyan-800 text-xs font-medium px-2 py-1 rounded mb-3">Lending</span>
                     <p class="text-slate-500 text-sm">
-                        Production adapter with ABI-encoded supply, borrow, and repay operations via EthRpcClient. Supply assets to earn yield or borrow against collateral with flash loan support.
+                        Adapter with ABI-encoded supply, borrow, and repay operations via EthRpcClient, with flash loan support.
                     </p>
                 </div>
 
@@ -220,7 +220,7 @@
                     <h3 class="text-xl font-bold mb-2">Curve Finance</h3>
                     <span class="inline-block bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-1 rounded mb-3">Stableswap</span>
                     <p class="text-slate-500 text-sm">
-                        Optimized AMM for stablecoin and pegged asset swaps. Minimal slippage with deep liquidity pools and gauge-boosted yields.
+                        Optimized AMM adapter for stablecoin and pegged-asset swaps.
                     </p>
                 </div>
 
@@ -234,7 +234,7 @@
                     <h3 class="text-xl font-bold mb-2">Lido</h3>
                     <span class="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded mb-3">Liquid Staking</span>
                     <p class="text-slate-500 text-sm">
-                        Liquid staking for ETH and other PoS assets. Earn staking rewards while maintaining liquidity through stETH derivative tokens.
+                        Liquid-staking adapter for the Lido protocol (stETH).
                     </p>
                 </div>
             </div>
@@ -279,7 +279,7 @@
                 <!-- DeFi Endpoints -->
                 <div class="protocol-card card-feature !p-8">
                     <h3 class="text-2xl font-bold mb-4">DeFi Operations</h3>
-                    <p class="text-slate-500 mb-6">Swap tokens, track portfolios, and discover the best yield opportunities.</p>
+                    <p class="text-slate-500 mb-6">Swap tokens and track portfolios.</p>
                     <div class="space-y-3">
                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                             <div class="flex items-center">
@@ -291,12 +291,6 @@
                             <div class="flex items-center">
                                 <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">GET</span>
                                 <span class="ml-3 font-mono text-sm">/api/v1/defi/portfolio</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div class="flex items-center">
-                                <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">GET</span>
-                                <span class="ml-3 font-mono text-sm">/api/v1/defi/yield/best</span>
                             </div>
                         </div>
                     </div>
@@ -408,41 +402,6 @@ console.log('ETA:', quotes[0].estimated_time);</code></pre>
                     </ul>
                 </div>
 
-                <!-- Yield Optimization -->
-                <div class="card-feature !p-8">
-                    <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center mr-4">
-                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                            </svg>
-                        </div>
-                        <h3 class="text-2xl font-bold">Yield Optimization</h3>
-                    </div>
-                    <p class="text-slate-500 mb-4">
-                        Discover the best yield opportunities across chains and protocols. Risk-adjusted scoring compares APY, TVL, and protocol security to surface optimal strategies.
-                    </p>
-                    <ul class="space-y-2 text-sm text-gray-500">
-                        <li class="flex items-start">
-                            <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            Cross-chain yield comparison engine
-                        </li>
-                        <li class="flex items-start">
-                            <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            Risk-adjusted APY scoring with protocol audits
-                        </li>
-                        <li class="flex items-start">
-                            <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            Automated position rebalancing suggestions
-                        </li>
-                    </ul>
-                </div>
-
                 <!-- Flash Loans -->
                 <div class="card-feature !p-8">
                     <div class="flex items-center mb-4">
@@ -522,7 +481,7 @@ console.log('ETA:', quotes[0].estimated_time);</code></pre>
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Go Multi-Chain Today</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                Bridge assets, access DeFi protocols, and optimize yield across blockchains with a single API integration.
+                Bridge assets and connect to DeFi protocols across blockchains with a single API integration.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">

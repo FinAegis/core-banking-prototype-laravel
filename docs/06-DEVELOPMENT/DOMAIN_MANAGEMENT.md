@@ -115,13 +115,13 @@ All 56 domains and their dependencies:
 | Wallet | Shared, Account | Multi-chain blockchain wallets |
 | Payment | Shared, Account | Payment processing |
 | Banking | Shared, Account, Compliance | SEPA/SWIFT transfers |
-| CardIssuance | Shared, Account | Card issuance and management |
+| CardIssuance | Shared, Account | Card-issuing integration adapters |
 
 ### Blockchain & Web3 Domains
 
 | Domain | Dependencies | Description |
 |--------|--------------|-------------|
-| CrossChain | Shared, Wallet | Bridge protocols (Wormhole/LayerZero/Axelar), cross-chain swaps |
+| CrossChain | Shared, Wallet | Bridge protocol adapters (e.g. Wormhole/LayerZero/Axelar APIs; no partnership or endorsement implied), cross-chain swaps |
 | DeFi | Shared, Wallet | DEX aggregation, lending, staking, yield optimization |
 | Relayer | Shared, Wallet | ERC-4337 gas abstraction, smart accounts |
 | Commerce | Shared, Account | Soulbound tokens, merchant onboarding, attestations |
@@ -147,7 +147,7 @@ All 56 domains and their dependencies:
 
 | Domain | Dependencies | Description |
 |--------|--------------|-------------|
-| RegTech | Shared, Compliance | MiFID II, MiCA, Travel Rule, jurisdiction adapters |
+| RegTech | Shared, Compliance | Reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements |
 | Regulatory | Shared, Compliance | Regulatory reporting |
 | Fraud | Shared, Account, Compliance | Fraud detection |
 | Security | Shared | Security scanning and hardening |
@@ -166,10 +166,10 @@ All 56 domains and their dependencies:
 | Domain | Dependencies | Description |
 |--------|--------------|-------------|
 | Governance | Shared, Account | Voting, proposals |
-| Cgo | Shared, Account, Compliance | Continuous Growth Offering |
-| Basket | Shared, Account, Asset | Currency baskets (GCU) |
+| Cgo | Shared, Account, Compliance | Continuous Growth Offering (demo module; not an offer of securities) |
+| Basket | Shared, Account, Asset | Currency baskets (GCU demo) |
 | Asset | Shared, Account | Asset management |
-| Custodian | Shared, Account | Custody services |
+| Custodian | Shared, Account | Custodian integration adapters |
 | FinancialInstitution | Shared, Compliance | FI management |
 
 ### Engagement Domains

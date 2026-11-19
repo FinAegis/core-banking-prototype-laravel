@@ -28,8 +28,6 @@
                     <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Understanding the CGO Model</h3>
                     <p class="text-gray-600 dark:text-gray-400 mb-4">
                         The Continuous Growth Offering (CGO) is a conceptual funding model designed for open-source projects.
-                        Unlike traditional funding rounds with fixed valuations, a CGO creates ongoing alignment between
-                        project success and investor returns.
                     </p>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">

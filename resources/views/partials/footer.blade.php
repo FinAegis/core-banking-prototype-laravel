@@ -12,7 +12,7 @@
                     @if(app()->environment('demo') || config('brand.show_promo_pages'))
                         Open-source core banking infrastructure for the next generation of financial services. Apache-2.0 licensed.
                     @else
-                        {{ config('brand.tagline', 'No seed phrase. Tap to pay. Truly yours.') }}
+                        {{ config('brand.tagline', 'No seed phrase. Truly yours.') }}
                     @endif
                 </p>
                 <div class="flex items-center space-x-3">
@@ -73,7 +73,7 @@
         </div>
     </div>
 
-    <!-- Legal Disclaimer -->
+    <!-- Legal Disclaimer (brand-aware: F1 on finaegis.org, Z1 on zelta.app — see components/legal-disclaimer) -->
     <div class="border-t border-white/[0.04]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <x-legal-disclaimer :compact="true" />
@@ -84,6 +84,7 @@
     <div class="border-t border-white/[0.04]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
             <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                {{-- TODO(regulatory): operator legal entity details pending — see docs/REGULATORY-CLAIMS.md --}}
                 <p class="text-xs text-slate-600">&copy; {{ date('Y') }} {{ config('brand.legal_entity', config('brand.name', 'Zelta')) }}. All rights reserved.</p>
                 <div class="flex items-center gap-6">
                     @if(Route::has('legal.terms'))<a href="{{ route('legal.terms') }}" class="text-xs text-slate-600 hover:text-slate-400 transition-colors">Terms</a>@endif

@@ -23,7 +23,7 @@ use Workflow\WorkflowStub;
 
 #[OA\Tag(
     name: 'GCU Trading',
-    description: 'Buy and sell Global Currency Unit operations'
+    description: 'GCU demo module (simulated): GCU conversion endpoints; GCU has no monetary value'
 )]
 class GCUTradingController extends Controller
 {
@@ -37,8 +37,8 @@ class GCUTradingController extends Controller
             path: '/gcu/buy',
             operationId: 'buyGCU',
             tags: ['GCU Trading'],
-            summary: 'Buy GCU tokens',
-            description: 'Purchase GCU tokens using fiat currency',
+            summary: 'Simulated GCU purchase (GCU demo module)',
+            description: 'GCU demo module (simulated): converts a balance into GCU demo units. GCU has no monetary value.',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['amount', 'currency'], properties: [
             new OA\Property(property: 'amount', type: 'number', format: 'float', example: 1000.00, minimum: 100, description: 'Amount to spend in source currency'),
@@ -48,7 +48,7 @@ class GCUTradingController extends Controller
         )]
     #[OA\Response(
         response: 200,
-        description: 'GCU purchase successful',
+        description: 'Simulated GCU purchase recorded (GCU demo module)',
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'data', type: 'object', properties: [
         new OA\Property(property: 'transaction_id', type: 'string', format: 'uuid'),
@@ -211,8 +211,8 @@ class GCUTradingController extends Controller
             path: '/gcu/sell',
             operationId: 'sellGCU',
             tags: ['GCU Trading'],
-            summary: 'Sell GCU tokens',
-            description: 'Sell GCU tokens for fiat currency',
+            summary: 'Simulated GCU sale (GCU demo module)',
+            description: 'GCU demo module (simulated): converts GCU demo units back into a balance. GCU has no monetary value.',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['amount', 'currency'], properties: [
             new OA\Property(property: 'amount', type: 'number', format: 'float', example: 100.00, minimum: 10, description: 'Amount of GCU to sell'),
@@ -222,7 +222,7 @@ class GCUTradingController extends Controller
         )]
     #[OA\Response(
         response: 200,
-        description: 'GCU sale successful',
+        description: 'Simulated GCU sale recorded (GCU demo module)',
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'data', type: 'object', properties: [
         new OA\Property(property: 'transaction_id', type: 'string', format: 'uuid'),
@@ -383,8 +383,8 @@ class GCUTradingController extends Controller
             path: '/gcu/quote',
             operationId: 'getGCUQuote',
             tags: ['GCU Trading'],
-            summary: 'Get GCU trading quote',
-            description: 'Get a quote for buying or selling GCU',
+            summary: 'Get simulated GCU conversion quote (demo)',
+            description: 'Get an illustrative quote for a simulated GCU conversion (GCU demo module)',
             security: [['sanctum' => []]],
             parameters: [
             new OA\Parameter(name: 'operation', in: 'query', required: true, description: 'Operation type', schema: new OA\Schema(type: 'string', enum: ['buy', 'sell'])),
@@ -489,8 +489,8 @@ class GCUTradingController extends Controller
             path: '/gcu/trading-limits',
             operationId: 'getGCUTradingLimits',
             tags: ['GCU Trading'],
-            summary: 'Get user\'s GCU trading limits',
-            description: 'Get the authenticated user\'s trading limits for GCU operations',
+            summary: 'Get user\'s GCU demo conversion limits',
+            description: 'Get the authenticated user\'s limits for simulated GCU demo conversions',
             security: [['sanctum' => []]]
         )]
     #[OA\Response(

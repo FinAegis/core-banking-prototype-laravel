@@ -272,6 +272,19 @@
                 Want the technical details? <a href="{{ config('brand.docs_url', 'https://finaegis.org/developers/mcp-tools') }}" target="_blank" rel="noopener" class="font-semibold text-obsidian underline hover:no-underline">Developer reference →</a>
             </p>
 
+            {{-- Regulatory status (copy kit Z1 on zelta.app, F1 on finaegis.org — see docs/REGULATORY-CLAIMS.md) --}}
+            <p class="text-center text-xs text-text-muted mt-6">
+                @if(app()->environment('demo') || config('brand.show_promo_pages'))
+                    FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
+                @else
+                    Zelta is non-custodial wallet software. Zelta and its operator are not a bank, electronic money institution, payment institution or crypto-asset service provider, and do not hold, exchange or transmit users&rsquo; funds. Any card or off-ramp services will be provided by licensed third parties under their own terms.
+                @endif
+            </p>
+            <div class="flex justify-center gap-6 mt-4">
+                <a href="{{ route('legal.terms') }}" class="text-sm opacity-40 hover:opacity-100 transition-opacity">Terms</a>
+                <a href="{{ route('legal.privacy') }}" class="text-sm opacity-40 hover:opacity-100 transition-opacity">Privacy</a>
+            </div>
+
         </div>
     </main>
 

@@ -1,6 +1,6 @@
 # FinAegis API Integration Examples
 
-This document provides practical examples of integrating with the FinAegis API in various programming languages and frameworks.
+This document provides practical examples of integrating with the FinAegis API in various programming languages and frameworks. Replace `your-finaegis-host.example` with the base URL of the FinAegis deployment you operate.
 
 ## Table of Contents
 - [Quick Start](#quick-start)
@@ -17,20 +17,20 @@ This document provides practical examples of integrating with the FinAegis API i
 ### cURL Example
 ```bash
 # Get API status
-curl https://api.zelta.app/v2/status
+curl https://your-finaegis-host.example/api/v2/status
 
 # Get GCU information
-curl https://api.zelta.app/v2/gcu
+curl https://your-finaegis-host.example/api/v2/gcu
 
 # Authenticated request
 curl -H "Authorization: Bearer YOUR_TOKEN" \
-     https://api.zelta.app/v2/accounts
+     https://your-finaegis-host.example/api/v2/accounts
 ```
 
 ### JavaScript/Node.js Quick Start
 ```javascript
 // Using fetch (Node.js 18+ or browser)
-const response = await fetch('https://api.zelta.app/v2/gcu');
+const response = await fetch('https://your-finaegis-host.example/api/v2/gcu');
 const gcuInfo = await response.json();
 console.log(`Current GCU value: ${gcuInfo.data.symbol}${gcuInfo.data.current_value}`);
 ```
@@ -44,7 +44,7 @@ const axios = require('axios');
 class FinAegisClient {
   constructor(apiKey) {
     this.client = axios.create({
-      baseURL: 'https://api.zelta.app/v2',
+      baseURL: 'https://your-finaegis-host.example/api/v2',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
@@ -69,7 +69,7 @@ import os
 
 class FinAegisClient:
     def __init__(self, api_key):
-        self.base_url = 'https://api.zelta.app/v2'
+        self.base_url = 'https://your-finaegis-host.example/api/v2'
         self.headers = {
             'Authorization': f'Bearer {api_key}',
             'Content-Type': 'application/json'
@@ -96,7 +96,7 @@ class FinAegisClient {
     
     public function __construct($apiKey) {
         $this->client = new Client([
-            'base_uri' => 'https://api.zelta.app/v2/',
+            'base_uri' => 'https://your-finaegis-host.example/api/v2/',
             'headers' => [
                 'Authorization' => 'Bearer ' . $apiKey,
                 'Content-Type' => 'application/json'
@@ -121,7 +121,7 @@ $accounts = $client->getAccounts();
 async function createAndFundAccount(userEmail, initialDeposit) {
   try {
     // Step 1: Create account
-    const accountResponse = await fetch('https://api.zelta.app/v2/accounts', {
+    const accountResponse = await fetch('https://your-finaegis-host.example/api/v2/accounts', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${API_KEY}`,
@@ -142,7 +142,7 @@ async function createAndFundAccount(userEmail, initialDeposit) {
 
     // Step 2: Fund account with GCU
     const depositResponse = await fetch(
-      `https://api.zelta.app/v2/accounts/${account.data.uuid}/deposit`,
+      `https://your-finaegis-host.example/api/v2/accounts/${account.data.uuid}/deposit`,
       {
         method: 'POST',
         headers: {
@@ -180,7 +180,7 @@ class MultiCurrencyAccount:
     def __init__(self, api_key, account_uuid):
         self.api_key = api_key
         self.account_uuid = account_uuid
-        self.base_url = 'https://api.zelta.app/v2'
+        self.base_url = 'https://your-finaegis-host.example/api/v2'
     
     async def get_all_balances(self):
         async with aiohttp.ClientSession() as session:
@@ -237,7 +237,9 @@ asyncio.run(main())
 
 ## GCU Operations
 
-### GCU Basket Voting (React)
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
+
+### GCU demo basket vote (simulated) (React)
 ```jsx
 import React, { useState, useEffect } from 'react';
 
@@ -258,7 +260,7 @@ function GCUVotingComponent({ apiKey }) {
   }, []);
 
   const fetchActivePolls = async () => {
-    const response = await fetch('https://api.zelta.app/v2/gcu/governance/active-polls');
+    const response = await fetch('https://your-finaegis-host.example/api/v2/gcu/governance/active-polls');
     const data = await response.json();
     setActivePolls(data.data);
   };
@@ -271,7 +273,7 @@ function GCUVotingComponent({ apiKey }) {
       return;
     }
 
-    const response = await fetch(`https://api.zelta.app/v2/polls/${pollId}/vote`, {
+    const response = await fetch(`https://your-finaegis-host.example/api/v2/polls/${pollId}/vote`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -334,7 +336,7 @@ function GCUVotingComponent({ apiKey }) {
 }
 ```
 
-### GCU Value Tracking (Vue.js)
+### GCU demo value tracking (simulated) (Vue.js)
 ```vue
 <template>
   <div class="gcu-tracker">
@@ -392,7 +394,7 @@ export default {
   },
   methods: {
     async fetchGCUInfo() {
-      const response = await fetch('https://api.zelta.app/v2/gcu');
+      const response = await fetch('https://your-finaegis-host.example/api/v2/gcu');
       const data = await response.json();
       
       this.currentValue = data.data.current_value;
@@ -402,7 +404,7 @@ export default {
     
     async fetchAndDrawChart() {
       const response = await fetch(
-        'https://api.zelta.app/v2/gcu/value-history?period=7d&interval=hourly'
+        'https://your-finaegis-host.example/api/v2/gcu/value-history?period=7d&interval=hourly'
       );
       const data = await response.json();
       
@@ -432,6 +434,8 @@ export default {
 
 ## Multi-Bank Distribution
 
+Integration adapters for third-party APIs; no partnership or endorsement implied. In the GCU demo, distributions are simulated.
+
 ### Bank Allocation Management (TypeScript)
 ```typescript
 interface BankAllocation {
@@ -451,7 +455,7 @@ interface DistributionResult {
 class BankDistributionService {
   constructor(
     private apiKey: string,
-    private baseUrl: string = 'https://api.zelta.app/v2'
+    private baseUrl: string = 'https://your-finaegis-host.example/api/v2'
   ) {}
 
   async distributeDeposit(
@@ -566,7 +570,7 @@ class BankDistributionService {
 // Usage
 const distributionService = new BankDistributionService(API_KEY);
 
-// Distribute Ǥ10,000 across user's configured banks
+// Distribute a simulated demo amount across configured bank adapters
 const results = await distributionService.distributeDeposit(
   accountUuid,
   1000000, // Ǥ10,000 in cents
@@ -576,9 +580,9 @@ const results = await distributionService.distributeDeposit(
 console.log('Distribution results:', results);
 // Example output:
 // [
-//   { bank: 'paysera', amount: 400000, status: 'success', transaction_id: 'tx_123' },
-//   { bank: 'deutsche_bank', amount: 300000, status: 'success', transaction_id: 'tx_124' },
-//   { bank: 'santander', amount: 300000, status: 'success', transaction_id: 'tx_125' }
+//   { bank: 'bank_a', amount: 400000, status: 'success', transaction_id: 'tx_123' },
+//   { bank: 'bank_b', amount: 300000, status: 'success', transaction_id: 'tx_124' },
+//   { bank: 'bank_c', amount: 300000, status: 'success', transaction_id: 'tx_125' }
 // ]
 ```
 
@@ -902,7 +906,7 @@ const fetch = require('node-fetch');
 class FinAegisClient {
   constructor(apiKey) {
     this.apiKey = apiKey;
-    this.baseUrl = 'https://api.zelta.app/v2';
+    this.baseUrl = 'https://your-finaegis-host.example/api/v2';
     
     // Connection pooling
     this.agent = new Agent({
@@ -1070,7 +1074,7 @@ class HealthChecker {
   async checkAPI() {
     try {
       const start = Date.now();
-      const response = await fetch('https://api.zelta.app/v2/status');
+      const response = await fetch('https://your-finaegis-host.example/api/v2/status');
       const data = await response.json();
       
       return {

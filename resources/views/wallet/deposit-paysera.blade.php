@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Paysera Deposit') }}
+            {{ __('SEPA Bank Transfer') }}
         </h2>
     </x-slot>
 
@@ -36,8 +36,8 @@
                                 </svg>
                             </div>
                             <div>
-                                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Deposit via Paysera</h3>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">Instant SEPA payments</p>
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Deposit via SEPA bank transfer</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">SEPA payments</p>
                             </div>
                         </div>
                     </div>
@@ -138,10 +138,10 @@
                                     </h3>
                                     <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
                                         <ul class="list-disc pl-5 space-y-1">
-                                            <li>You will be redirected to Paysera's secure payment portal</li>
+                                            <li>You will be redirected to the payment provider's secure payment portal</li>
                                             <li>Login with your bank credentials</li>
                                             <li>Authorize the payment</li>
-                                            <li>Funds will be credited instantly upon confirmation</li>
+                                            <li>Funds will be credited once the transfer is processed</li>
                                         </ul>
                                     </div>
                                 </div>
@@ -153,7 +153,7 @@
                             <button type="submit" 
                                     id="submit-button"
                                     class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed">
-                                <span id="button-text">Continue to Paysera</span>
+                                <span id="button-text">Continue to payment</span>
                                 <svg id="spinner" class="hidden animate-spin ml-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>

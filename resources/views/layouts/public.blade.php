@@ -12,8 +12,9 @@
     @section('seo')
         @include('partials.seo', [
             'title' => config('brand.name', 'Zelta'),
-            'description' => config('brand.name', 'Zelta') . ' — Non-custodial stablecoin wallet with passkey sign-in, virtual Visa & Mastercard cards, bank-rail deposits, and an agent-callable MCP API. Six networks.',
-            'keywords' => config('brand.name', 'Zelta') . ', non-custodial wallet, stablecoin wallet, virtual card, passkey, USDC, Solana, Polygon, Base, Arbitrum, MCP server, agent-callable API',
+            {{-- null on purpose: partials.seo supplies a brand-aware default description (see docs/REGULATORY-CLAIMS.md) --}}
+            'description' => null,
+            'keywords' => config('brand.name', 'Zelta') . ', non-custodial wallet, stablecoin wallet, passkey, USDC, Solana, Polygon, Base, Arbitrum, MCP server, agent-callable API',
         ])
     @show
 
