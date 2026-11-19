@@ -30,9 +30,4 @@ class MppSettlementException extends MppException
             "Agent '{$agentId}' spending limit exceeded: requested {$requested} cents, limit {$limit} cents."
         );
     }
-
-    public static function spendingLimitUnavailable(string $agentId): self
-    {
-        return new self("Agent '{$agentId}' has no spending limit for the caller's team.");
-    }
 }

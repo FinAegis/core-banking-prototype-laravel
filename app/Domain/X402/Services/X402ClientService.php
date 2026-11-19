@@ -8,7 +8,8 @@ use App\Domain\X402\Contracts\X402SignerInterface;
 use App\Domain\X402\DataObjects\PaymentPayload;
 use App\Domain\X402\DataObjects\PaymentRequirements;
 use App\Domain\X402\Models\X402SpendingLimit;
-use App\Models\User;
+use App\Support\MachinePaymentScope;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -47,7 +48,7 @@ class X402ClientService
         }
 
         // Enforce spending limits
-        $this->enforceSpendingLimit($agentId, $selected->amount, $this->callerTeamId());
+        $this->enforceSpendingLimit($agentId, $selected->amount, Auth::user());
 
         // Create signed payment payload
         $signedPayload = $this->signer->signTransferAuthorization(
@@ -111,34 +112,17 @@ class X402ClientService
     }
 
     /**
-     * The current team of the signed-in user, the team spending limits are
-     * stored under (same lookup as the spending-limit endpoints); null
-     * without a signed-in user or team.
-     */
-    private function callerTeamId(): ?int
-    {
-        $user = Auth::user();
-
-        if (! $user instanceof User) {
-            return null;
-        }
-
-        $teamId = $user->currentTeam?->id;
-
-        return $teamId !== null ? (int) $teamId : null;
-    }
-
-    /**
      * Enforce agent spending limits before authorizing a payment.
      *
-     * The limit is the one stored for the agent under the caller's team
-     * (team_id null for a caller without a team). Uses a database
-     * transaction with row-level locking to prevent race conditions where
-     * concurrent requests could exceed limits.
+     * The limit is the one stored for the agent under the caller's team, or
+     * for the caller alone without a team (same lookup as the spending-limit
+     * endpoints, {@see MachinePaymentScope::spendingLimits()}). Uses a
+     * database transaction with row-level locking to prevent race conditions
+     * where concurrent requests could exceed limits.
      *
      * @throws RuntimeException If spending limit would be exceeded
      */
-    private function enforceSpendingLimit(string $agentId, string $amount, ?int $teamId): void
+    private function enforceSpendingLimit(string $agentId, string $amount, ?Authenticatable $user): void
     {
         /** @var numeric-string $amount */
         // Reject non-positive amounts to prevent budget manipulation
@@ -146,13 +130,8 @@ class X402ClientService
             throw new RuntimeException('Payment amount must be positive.');
         }
 
-        DB::transaction(function () use ($agentId, $amount, $teamId) {
-            $limit = X402SpendingLimit::where('agent_id', $agentId)
-                ->when(
-                    $teamId !== null,
-                    fn ($query) => $query->where('team_id', $teamId),
-                    fn ($query) => $query->whereNull('team_id'),
-                )
+        DB::transaction(function () use ($agentId, $amount, $user) {
+            $limit = MachinePaymentScope::spendingLimits(X402SpendingLimit::where('agent_id', $agentId), $user)
                 ->lockForUpdate()
                 ->first();
 

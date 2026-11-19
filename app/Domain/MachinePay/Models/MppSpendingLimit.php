@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property bool   $auto_pay
  * @property string $last_reset
  * @property int|null $team_id
+ * @property int|null $user_id
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  */
@@ -35,6 +36,7 @@ class MppSpendingLimit extends Model
         'auto_pay',
         'last_reset',
         'team_id',
+        'user_id',
     ];
 
     /**
@@ -48,6 +50,7 @@ class MppSpendingLimit extends Model
             'spent_today'  => 'integer',
             'auto_pay'     => 'boolean',
             'team_id'      => 'integer',
+            'user_id'      => 'integer',
         ];
     }
 

@@ -24,10 +24,9 @@ class DeleteX402MonetizedEndpointMutation
             throw new AuthorizationException('You are not authorized to manage monetized endpoints.');
         }
 
-        $teamId = auth()->user()?->currentTeam?->id;
-
+        // Any row, whatever team created it: the price applies to everyone.
         /** @var X402MonetizedEndpoint $endpoint */
-        $endpoint = X402MonetizedEndpoint::where('team_id', $teamId)->findOrFail($args['id']);
+        $endpoint = X402MonetizedEndpoint::query()->findOrFail($args['id']);
 
         Cache::forget("x402:route:{$endpoint->method}:{$endpoint->path}");
 

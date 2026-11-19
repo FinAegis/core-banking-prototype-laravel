@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\GraphQL\Queries\X402;
 
 use App\Domain\X402\Models\X402Payment;
+use App\Support\MachinePaymentScope;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 
 class X402PaymentsQuery
 {
@@ -16,9 +18,8 @@ class X402PaymentsQuery
      */
     public function __invoke($_, array $args): LengthAwarePaginator
     {
-        $teamId = auth()->user()?->currentTeam?->id;
-
-        $query = X402Payment::where('team_id', $teamId);
+        // The caller's team's payments (every payment for administrators).
+        $query = MachinePaymentScope::teamRecords(X402Payment::query(), Auth::user());
 
         if (isset($args['status'])) {
             $query->where('status', $args['status']);

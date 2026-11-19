@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\GraphQL\Queries\X402;
 
-use Illuminate\Support\Facades\DB;
+use App\Domain\X402\Models\X402Payment;
+use App\Support\MachinePaymentScope;
+use Illuminate\Support\Facades\Auth;
 
 class X402PaymentStatsQuery
 {
@@ -24,11 +26,10 @@ class X402PaymentStatsQuery
             default => now()->subDay(),
         };
 
-        $teamId = auth()->user()?->currentTeam?->id;
-
+        // Over the caller's team's payments (every payment for administrators).
         /** @var object{total_payments: int, total_settled: int, total_failed: int, total_volume_atomic: string, unique_payers: int} $stats */
-        $stats = DB::table('x402_payments')
-            ->where('team_id', $teamId)
+        $stats = MachinePaymentScope::teamRecords(X402Payment::query(), Auth::user())
+            ->toBase()
             ->where('created_at', '>=', $since)
             ->selectRaw('COUNT(*) as total_payments')
             ->selectRaw("SUM(CASE WHEN status = 'settled' THEN 1 ELSE 0 END) as total_settled")

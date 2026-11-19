@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property bool $auto_pay_enabled
  * @property \Carbon\Carbon $limit_resets_at
  * @property int|null $team_id
+ * @property int|null $user_id
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  */
@@ -49,6 +50,7 @@ class X402SpendingLimit extends Model
         'auto_pay_enabled',
         'limit_resets_at',
         'team_id',
+        'user_id',
     ];
 
     protected $casts = [

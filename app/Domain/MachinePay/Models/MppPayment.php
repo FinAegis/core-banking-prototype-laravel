@@ -61,6 +61,17 @@ class MppPayment extends Model
     ];
 
     /**
+     * The stored credential (with its proof of payment) and its hash are
+     * never serialized.
+     *
+     * @var list<string>
+     */
+    protected $hidden = [
+        'payment_payload',
+        'payload_hash',
+    ];
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array

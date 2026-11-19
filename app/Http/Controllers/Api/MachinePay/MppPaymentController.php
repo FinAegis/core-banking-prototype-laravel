@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\MachinePay;
 use App\Domain\MachinePay\Models\MppPayment;
 use App\Domain\MachinePay\Models\MppSpendingLimit;
 use App\Http\Controllers\Controller;
+use App\Support\MachinePaymentScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
@@ -18,7 +19,7 @@ class MppPaymentController extends Controller
         path: '/api/v1/mpp/payments',
         operationId: 'mppPayments',
         summary: 'List MPP payment history',
-        description: 'Returns paginated payment history with optional rail and status filters.',
+        description: 'Returns paginated payment history with optional rail and status filters: the payments recorded for the caller\'s current team (none without a team), or every payment for platform administrators (admin, super_admin). The stored credential and its hash are never returned.',
         security: [['sanctum' => []]],
         tags: ['Machine Payments'],
         parameters: [
@@ -38,7 +39,7 @@ class MppPaymentController extends Controller
     )]
     public function index(Request $request): JsonResponse
     {
-        $payments = MppPayment::query()
+        $payments = MachinePaymentScope::teamRecords(MppPayment::query(), $request->user())
             ->when($request->filled('rail'), fn ($q) => $q->where('rail', $request->input('rail')))
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->input('status')))
             ->orderByDesc('created_at')
@@ -54,7 +55,7 @@ class MppPaymentController extends Controller
         path: '/api/v1/mpp/payments/stats',
         operationId: 'mppPaymentStats',
         summary: 'Payment statistics',
-        description: 'Returns aggregate statistics: total payments, settled/failed counts, total volume, and breakdown by rail.',
+        description: 'Returns aggregate statistics: total payments, settled/failed counts, total volume, and breakdown by rail, over the payments recorded for the caller\'s current team (zero without a team), or over every payment for platform administrators (admin, super_admin).',
         security: [['sanctum' => []]],
         tags: ['Machine Payments'],
     )]
@@ -74,14 +75,16 @@ class MppPaymentController extends Controller
             ],
         ),
     )]
-    public function stats(): JsonResponse
+    public function stats(Request $request): JsonResponse
     {
-        $total = MppPayment::count();
-        $settled = MppPayment::where('status', 'settled')->count();
-        $failed = MppPayment::where('status', 'failed')->count();
-        $totalAmount = MppPayment::where('status', 'settled')->sum('amount_cents');
+        $payments = fn () => MachinePaymentScope::teamRecords(MppPayment::query(), $request->user());
 
-        $byRail = MppPayment::where('status', 'settled')
+        $total = $payments()->count();
+        $settled = $payments()->where('status', 'settled')->count();
+        $failed = $payments()->where('status', 'failed')->count();
+        $totalAmount = $payments()->where('status', 'settled')->sum('amount_cents');
+
+        $byRail = $payments()->where('status', 'settled')
             ->selectRaw('rail, COUNT(*) as count, SUM(amount_cents) as total_cents')
             ->groupBy('rail')
             ->get()
@@ -104,15 +107,14 @@ class MppPaymentController extends Controller
         path: '/api/v1/mpp/spending-limits',
         operationId: 'mppSpendingLimits',
         summary: 'List agent spending limits',
-        description: 'Returns the agent spending limits for MPP payments stored under the caller\'s current team.',
+        description: 'Returns the agent spending limits for MPP payments stored under the caller\'s current team, or for the caller alone without a team.',
         security: [['sanctum' => []]],
         tags: ['Machine Payments'],
     )]
     #[OA\Response(response: 200, description: 'Spending limits')]
     public function spendingLimits(Request $request): JsonResponse
     {
-        // Limits belong to the caller's current team (team_id null without one).
-        $limits = MppSpendingLimit::where('team_id', $this->callerTeamId($request))
+        $limits = MachinePaymentScope::spendingLimits(MppSpendingLimit::query(), $request->user())
             ->orderBy('agent_id')
             ->get();
 
@@ -126,7 +128,7 @@ class MppPaymentController extends Controller
         path: '/api/v1/mpp/spending-limits',
         operationId: 'mppSetSpendingLimit',
         summary: 'Set or update a spending limit',
-        description: 'Creates or updates daily and per-transaction spending limits for an agent under the caller\'s current team. Agent ids are unique across teams.',
+        description: 'Creates or updates daily and per-transaction spending limits for an agent under the caller\'s current team, or for the caller alone without a team. Each team (or user without a team) has its own agent ids.',
         security: [['sanctum' => []]],
         tags: ['Machine Payments'],
     )]
@@ -143,7 +145,6 @@ class MppPaymentController extends Controller
         ),
     )]
     #[OA\Response(response: 201, description: 'Spending limit set')]
-    #[OA\Response(response: 409, description: 'The agent id has a spending limit under another team')]
     #[OA\Response(response: 422, description: 'Validation error')]
     public function setSpendingLimit(Request $request): JsonResponse
     {
@@ -154,19 +155,8 @@ class MppPaymentController extends Controller
             'auto_pay'     => ['sometimes', 'boolean'],
         ]);
 
-        $teamId = $this->callerTeamId($request);
-
-        // agent_id is unique across teams: never update another team's row.
-        $existing = MppSpendingLimit::where('agent_id', $validated['agent_id'])->first();
-        if ($existing !== null && $existing->team_id !== $teamId) {
-            return response()->json([
-                'success' => false,
-                'error'   => 'This agent id has a spending limit under another team.',
-            ], 409);
-        }
-
         $limit = MppSpendingLimit::updateOrCreate(
-            ['agent_id' => $validated['agent_id'], 'team_id' => $teamId],
+            ['agent_id' => $validated['agent_id'], ...MachinePaymentScope::limitOwner($request->user())],
             $validated,
         );
 
@@ -180,7 +170,7 @@ class MppPaymentController extends Controller
         path: '/api/v1/mpp/spending-limits/{agentId}',
         operationId: 'mppDeleteSpendingLimit',
         summary: 'Delete a spending limit',
-        description: 'Deletes the agent\'s spending limit stored under the caller\'s current team.',
+        description: 'Deletes the agent\'s spending limit stored under the caller\'s current team, or for the caller alone without a team.',
         security: [['sanctum' => []]],
         tags: ['Machine Payments'],
         parameters: [
@@ -190,24 +180,12 @@ class MppPaymentController extends Controller
     #[OA\Response(response: 200, description: 'Spending limit deleted')]
     public function deleteSpendingLimit(Request $request, string $agentId): JsonResponse
     {
-        MppSpendingLimit::where('agent_id', $agentId)
-            ->where('team_id', $this->callerTeamId($request))
+        MachinePaymentScope::spendingLimits(MppSpendingLimit::where('agent_id', $agentId), $request->user())
             ->delete();
 
         return response()->json([
             'success' => true,
             'message' => 'Spending limit deleted.',
         ]);
-    }
-
-    /**
-     * The caller's current team, the team MPP spending limits are stored
-     * under (MppClientService looks them up the same way); null without one.
-     */
-    private function callerTeamId(Request $request): ?int
-    {
-        $teamId = $request->user()?->currentTeam?->id;
-
-        return $teamId !== null ? (int) $teamId : null;
     }
 }

@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property bool $is_active
  * @property array<string, mixed>|null $extra
  * @property int|null $team_id
+ * @property int|null $created_by_user_id administrator who created the price (null: written before GHSA-385w, or by a seeder)
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  */
@@ -34,6 +35,9 @@ class X402MonetizedEndpoint extends Model
     use HasUuids;
 
     protected $table = 'x402_monetized_endpoints';
+
+    /** Refusal when a route would get a second active price. */
+    public const DUPLICATE_ROUTE_MESSAGE = 'This method and path already has an active price. Update that price, or deactivate it first.';
 
     protected $fillable = [
         'method',
@@ -77,6 +81,33 @@ class X402MonetizedEndpoint extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * Rows an administrator created first (rows without a creator were
+     * written before prices became admin-only), then the oldest.
+     *
+     * @param Builder<X402MonetizedEndpoint> $query
+     * @return Builder<X402MonetizedEndpoint>
+     */
+    public function scopeAdminCreatedFirst(Builder $query): Builder
+    {
+        return $query->orderByRaw('CASE WHEN created_by_user_id IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('created_at')
+            ->orderBy('id');
+    }
+
+    /**
+     * Whether an active row other than $exceptId prices this method and
+     * path, whatever its team (the gate looks prices up by route only).
+     */
+    public static function activeRouteExists(string $method, string $path, ?string $exceptId = null): bool
+    {
+        return self::query()
+            ->active()
+            ->forRoute($method, $path)
+            ->when($exceptId !== null, fn (Builder $query) => $query->whereKeyNot($exceptId))
+            ->exists();
     }
 
     /**
@@ -143,6 +174,7 @@ class X402MonetizedEndpoint extends Model
             'mimeType'    => $this->mime_type,
             'isActive'    => $this->is_active,
             'extra'       => $this->extra,
+            'teamId'      => $this->team_id,
             'createdAt'   => $this->created_at->toIso8601String(),
             'updatedAt'   => $this->updated_at->toIso8601String(),
         ];

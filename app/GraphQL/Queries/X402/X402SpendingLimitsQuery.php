@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\GraphQL\Queries\X402;
 
 use App\Domain\X402\Models\X402SpendingLimit;
+use App\Support\MachinePaymentScope;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 
 class X402SpendingLimitsQuery
 {
@@ -18,18 +20,16 @@ class X402SpendingLimitsQuery
      */
     public function __invoke($_, array $args): X402SpendingLimit|LengthAwarePaginator|null
     {
-        $teamId = auth()->user()?->currentTeam?->id;
+        // The caller's team's limits, or the caller's own without a team.
+        $query = MachinePaymentScope::spendingLimits(X402SpendingLimit::query(), Auth::user());
 
         // Single limit lookup by agent_id
         if (isset($args['agent_id'])) {
-            return X402SpendingLimit::where('team_id', $teamId)
-                ->where('agent_id', $args['agent_id'])
-                ->first();
+            return $query->where('agent_id', $args['agent_id'])->first();
         }
 
         // Paginated list
-        return X402SpendingLimit::where('team_id', $teamId)
-            ->orderBy('agent_id')
+        return $query->orderBy('agent_id')
             ->paginate($args['first'] ?? 20, ['*'], 'page', $args['page'] ?? 1);
     }
 }
