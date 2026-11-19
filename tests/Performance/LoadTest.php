@@ -218,6 +218,10 @@ class LoadTest extends DomainTestCase
         // Create token with write scope for webhook creation
         $token = $user->createToken('test-token', ['read', 'write', 'delete'])->plainTextToken;
 
+        // The complete suite runs this after other requests in the same test;
+        // drop the cached guard user so the admin token is resolved.
+        $this->app['auth']->forgetGuards();
+
         // Create a webhook
         $response = $this->withToken($token)->postJson('/api/v2/webhooks', [
             'url'         => 'https://httpbin.org/post',

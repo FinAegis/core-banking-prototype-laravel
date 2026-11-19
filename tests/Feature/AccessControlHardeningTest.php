@@ -490,6 +490,11 @@ describe('stablecoin REST endpoints', function (): void {
             'account_uuid'          => $account->uuid,
             'stablecoin_code'       => 'ACHUSD',
             'collateral_asset_code' => 'USD',
+            // Fixed amounts: the factory's random ones can give a ratio above
+            // what decimal(8,4) holds, and the positions read stores the ratio.
+            'collateral_amount' => 150000,
+            'debt_amount'       => 100000,
+            'collateral_ratio'  => 1.5,
         ]);
 
         Sanctum::actingAs(User::factory()->create(), ['read', 'write', 'delete']);
@@ -670,7 +675,8 @@ describe('GraphQL mutations on other users\' records', function (): void {
     it('lets only the initiator or an operator cancel a bank transfer', function (): void {
         $owner = User::factory()->create();
         $insert = function () use ($owner): string {
-            $id = 'bt_' . Str::uuid()->toString();
+            // bank_transfers.id is a uuid column (36 characters on MySQL).
+            $id = Str::uuid()->toString();
             DB::table('bank_transfers')->insert([
                 'id'              => $id,
                 'user_uuid'       => $owner->uuid,
