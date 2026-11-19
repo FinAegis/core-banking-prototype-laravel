@@ -189,9 +189,10 @@ class DemoPayseraDepositService implements PayseraDepositServiceInterface
                 ];
             }
 
-            try {
-                $reference = 'DEMO-DEP-' . strtoupper(uniqid());
+            $reference = 'DEMO-DEP-' . strtoupper(uniqid());
 
+            // Only a failure to start the credit gives the claim back.
+            try {
                 // Process the deposit through payment service (amount and
                 // currency always come from the stored order)
                 $this->paymentService->processStripeDeposit([
@@ -209,23 +210,6 @@ class DemoPayseraDepositService implements PayseraDepositServiceInterface
                         'demo_mode'           => true,
                     ],
                 ]);
-
-                // Update order status
-                $orderData['status'] = 'completed';
-                $orderData['updated_at'] = now()->toIso8601String();
-                self::$demoOrders[$orderId] = $orderData;
-                Cache::put("paysera_order:{$orderId}", $orderData, now()->addHours(24));
-
-                Log::info('Demo Paysera deposit completed successfully', [
-                    'order_id'  => $orderId,
-                    'reference' => $reference,
-                ]);
-
-                return [
-                    'success'   => true,
-                    'message'   => 'Demo deposit processed successfully',
-                    'reference' => $reference,
-                ];
             } catch (Exception $e) {
                 $this->replayGuard->release(DepositReplayGuard::SOURCE_PAYSERA, $orderId);
 
@@ -239,6 +223,32 @@ class DemoPayseraDepositService implements PayseraDepositServiceInterface
                     'message' => 'Demo deposit processing failed: ' . $e->getMessage(),
                 ];
             }
+
+            // The cached status is informational; the replay claim stops a
+            // second credit, so a failed cache write is only logged.
+            $orderData['status'] = 'completed';
+            $orderData['updated_at'] = now()->toIso8601String();
+            self::$demoOrders[$orderId] = $orderData;
+
+            try {
+                Cache::put("paysera_order:{$orderId}", $orderData, now()->addHours(24));
+            } catch (Exception $e) {
+                Log::warning('Demo Paysera order status could not be cached', [
+                    'order_id' => $orderId,
+                    'error'    => $e->getMessage(),
+                ]);
+            }
+
+            Log::info('Demo Paysera deposit completed successfully', [
+                'order_id'  => $orderId,
+                'reference' => $reference,
+            ]);
+
+            return [
+                'success'   => true,
+                'message'   => 'Demo deposit processed successfully',
+                'reference' => $reference,
+            ];
         }
 
         // Handle cancelled/failed status

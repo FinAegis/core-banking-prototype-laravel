@@ -216,14 +216,17 @@ class SmsSendTool implements MCPToolInterface
             }
             RateLimiter::hit($minuteKey, 60);
 
-            if ($this->budget->reserve($user->id, 'mcp') !== null) {
+            // Release against the day the unit was reserved from.
+            $day = SmsSendBudget::today();
+
+            if ($this->budget->reserve($user->id, 'mcp', $day) !== null) {
                 return ToolExecutionResult::failure("Today's SMS sending limit has been reached. Try again after 00:00 UTC.");
             }
 
             try {
                 $result = $this->smsService->send($to, $from, $message);
             } catch (Exception $e) {
-                $this->budget->release($user->id);
+                $this->budget->release($user->id, $day);
 
                 throw $e;
             }

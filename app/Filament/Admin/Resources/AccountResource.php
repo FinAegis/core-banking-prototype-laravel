@@ -241,7 +241,9 @@ class AccountResource extends Resource
                                 }
                             }
                         )
-                        ->visible(fn (Account $record): bool => ! $record->frozen),
+                        // A manual credit is direct ledger funding: the deposit
+                        // activity refuses it while the switch is off.
+                        ->visible(fn (Account $record): bool => ! $record->frozen && (bool) config('ledger.direct_funding_enabled')),
                     Tables\Actions\Action::make('withdraw')
                         ->label('Withdraw')
                         ->icon('heroicon-o-minus-circle')

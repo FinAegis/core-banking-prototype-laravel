@@ -9,11 +9,12 @@ use App\Models\User;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Shared rules for crediting a Paysera order from the return callback:
- * the order must belong to the authenticated user and target an account
- * they own, the amount and currency come from the stored order (a callback
- * value that differs is refused), and a completed order is not credited
- * again (the DepositReplayGuard claim then makes this race-free).
+ * Shared rules for crediting a Paysera order: the order must belong to the
+ * user in user_id (the signed-in user on the browser return, the user stored
+ * with the order on Paysera's server notification) and target an account
+ * that user owns, the amount and currency come from the stored order (a
+ * callback value that differs is refused), and a completed order is not
+ * credited again (the DepositReplayGuard claim then makes this race-free).
  */
 trait GuardsPayseraCallback
 {

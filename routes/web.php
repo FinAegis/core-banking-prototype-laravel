@@ -358,11 +358,16 @@ Route::middleware('module.enabled:Cgo')->group(function () {
 
 // Subscriber routes. Sign-ups are double opt-in: POST stores a pending
 // subscriber and emails a signed confirmation link (per-IP and per-email
-// limits in SubscriberEmailService); the confirm route activates it.
+// limits in SubscriberEmailService). Opening the link (GET) only shows a
+// confirm button, because mail scanners open links; the button's POST to
+// the same signed URL activates the subscriber.
 Route::get('/subscriber/unsubscribe/{email}', [App\Http\Controllers\SubscriberController::class, 'unsubscribe'])->name('subscriber.unsubscribe');
-Route::get('/subscriber/confirm/{subscriber}', [App\Http\Controllers\SubscriberController::class, 'confirm'])
+Route::get('/subscriber/confirm/{subscriber}', [App\Http\Controllers\SubscriberController::class, 'showConfirm'])
     ->middleware('throttle:30,1')
     ->name('subscriber.confirm');
+Route::post('/subscriber/confirm/{subscriber}', [App\Http\Controllers\SubscriberController::class, 'confirm'])
+    ->middleware('throttle:30,1')
+    ->name('subscriber.confirm.submit');
 Route::post('/subscriber/{source}', [App\Http\Controllers\SubscriberController::class, 'subscribe'])
     ->middleware('throttle:10,1')
     ->name('subscriber.subscribe');
@@ -812,16 +817,26 @@ Route::middleware([
             Route::post('/{custodianCode}/synchronize', [App\Http\Controllers\CustodianIntegrationController::class, 'synchronize'])->name('synchronize');
         });
 
-        // Deposit routes (demo fiat rails — ledger.direct_funding_enabled).
+        // Payment-backed deposits do not depend on the direct-funding flag:
+        // card deposits (Stripe / HyperSwitch) use
+        // ledger.web_card_deposits_enabled, Paysera uses PAYSERA_ENABLED
+        // (PayseraDepositController::ensureAvailable). Their simulated demo
+        // gateways still need ledger.direct_funding_enabled.
+        Route::prefix('deposit')->name('deposit.')->group(function () {
+            Route::middleware('feature:ledger.web_card_deposits_enabled')->group(function () {
+                Route::get('/card', [App\Http\Controllers\DepositController::class, 'create'])->name('create');
+                Route::post('/card', [App\Http\Controllers\DepositController::class, 'store'])->name('store');
+                Route::get('/confirm', [App\Http\Controllers\DepositController::class, 'confirm'])->name('confirm');
+                Route::post('/payment-method', [App\Http\Controllers\DepositController::class, 'addPaymentMethod'])->name('payment-method.add');
+                Route::delete('/payment-method/{id}', [App\Http\Controllers\DepositController::class, 'removePaymentMethod'])->name('payment-method.remove');
+            });
+            Route::post('/paysera/initiate', [App\Http\Controllers\PayseraDepositController::class, 'initiate'])->name('paysera.initiate');
+            Route::get('/paysera/callback', [App\Http\Controllers\PayseraDepositController::class, 'callback'])->name('paysera.callback');
+        });
+
+        // Simulated deposit routes (demo fiat rails — ledger.direct_funding_enabled).
         // GET /wallet/deposit above stays available.
         Route::prefix('deposit')->name('deposit.')->middleware('feature:ledger.direct_funding_enabled')->group(function () {
-            // Card deposits (Stripe integration)
-            Route::get('/card', [App\Http\Controllers\DepositController::class, 'create'])->name('create');
-            Route::post('/card', [App\Http\Controllers\DepositController::class, 'store'])->name('store');
-            Route::get('/confirm', [App\Http\Controllers\DepositController::class, 'confirm'])->name('confirm');
-            Route::post('/payment-method', [App\Http\Controllers\DepositController::class, 'addPaymentMethod'])->name('payment-method.add');
-            Route::delete('/payment-method/{id}', [App\Http\Controllers\DepositController::class, 'removePaymentMethod'])->name('payment-method.remove');
-
             // Demo/Simulated deposits (only in demo mode)
             Route::post('/simulate', [App\Http\Controllers\DepositController::class, 'simulateDeposit'])->name('simulate');
 
@@ -838,8 +853,6 @@ Route::middleware([
 
                 return view('wallet.deposit-paysera', compact('account'));
             })->name('paysera');
-            Route::post('/paysera/initiate', [App\Http\Controllers\PayseraDepositController::class, 'initiate'])->name('paysera.initiate');
-            Route::get('/paysera/callback', [App\Http\Controllers\PayseraDepositController::class, 'callback'])->name('paysera.callback');
 
             // Open Banking deposits
             Route::get('/openbanking', function () {
@@ -868,7 +881,8 @@ Route::middleware([
             })->name('crypto');
         });
 
-        // Bank withdrawal routes (demo fiat rails — ledger.direct_funding_enabled).
+        // Bank withdrawal routes (ledger.direct_funding_enabled): the bank
+        // payout activity is a stub, so these only debit the ledger.
         // GET /wallet/withdraw above stays available.
         Route::prefix('withdraw')->name('withdraw.')->middleware('feature:ledger.direct_funding_enabled')->group(function () {
             Route::get('/bank', [App\Http\Controllers\WithdrawalController::class, 'create'])->name('create');

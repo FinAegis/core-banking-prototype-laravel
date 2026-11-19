@@ -35,12 +35,12 @@ return [
     | endpoints answer 404, the GraphQL mutations return "This operation is
     | not available." and the admin panel actions only show a notice; reads
     | (module and plugin lists, health) stay available.
-    | Secure by default: off when APP_ENV=production (or unset), on for every
-    | other environment. An explicit ADMIN_RUNTIME_MANAGEMENT_ENABLED value
-    | always wins.
+    | Secure by default: on only for APP_ENV=local, testing or demo, off for
+    | every other value (production, staging, unset). An explicit
+    | ADMIN_RUNTIME_MANAGEMENT_ENABLED value always wins.
     |
     */
 
-    'runtime_management_enabled' => (bool) env('ADMIN_RUNTIME_MANAGEMENT_ENABLED', env('APP_ENV', 'production') !== 'production'),
+    'runtime_management_enabled' => (bool) env('ADMIN_RUNTIME_MANAGEMENT_ENABLED', in_array(env('APP_ENV', 'production'), ['local', 'testing', 'demo'], true)),
 
 ];

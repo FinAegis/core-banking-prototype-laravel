@@ -211,10 +211,11 @@ class OndatoService
     public function validateWebhookSignature(string $payload, string $signature): bool
     {
         if ($this->webhookSecret === '') {
-            // Sandbox mode without a secret accepts unsigned webhooks outside
-            // production only. In production a webhook can approve KYC, so
-            // ONDATO_WEBHOOK_SECRET is required there.
-            if ($this->sandbox && ! app()->environment('production')) {
+            // Sandbox mode without a secret accepts unsigned webhooks in local
+            // and testing only. A webhook can approve KYC, so every other
+            // environment (production, staging, demo) needs
+            // ONDATO_WEBHOOK_SECRET.
+            if ($this->sandbox && app()->environment(['local', 'testing'])) {
                 return true;
             }
 

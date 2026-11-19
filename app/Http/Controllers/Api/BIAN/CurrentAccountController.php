@@ -14,6 +14,7 @@ use App\Domain\Account\Workflows\FreezeAccountWorkflow;
 use App\Domain\Account\Workflows\UnfreezeAccountWorkflow;
 use App\Domain\Account\Workflows\WithdrawAccountWorkflow;
 use App\Http\Controllers\Controller;
+use App\Support\StaffRoles;
 use DB;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
@@ -360,6 +361,10 @@ class CurrentAccountController extends Controller
         response: 401,
         description: 'Unauthenticated'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Not the account owner, or an unfreeze/reactivate of a freeze placed by staff'
+    )]
     public function control(Request $request, string $crReferenceId): JsonResponse
     {
         $account = $this->findOwnedAccount($crReferenceId);
@@ -372,10 +377,17 @@ class CurrentAccountController extends Controller
         );
 
         $accountUuid = new AccountUuid($crReferenceId);
+        $user = Auth::user();
+
+        // The owner may lift only a freeze they placed themselves.
+        if (in_array($validated['controlAction'], ['unfreeze', 'reactivate'], true) && ! $account->mayBeUnfrozenBy($user)) {
+            return $this->forbidden();
+        }
 
         switch ($validated['controlAction']) {
             case 'freeze':
             case 'suspend':
+                $account->recordFreeze(byStaff: StaffRoles::userHasAny($user, StaffRoles::OPERATORS));
                 $workflow = WorkflowStub::make(FreezeAccountWorkflow::class);
                 $workflow->start($accountUuid, $validated['controlReason'], auth()->user()->name ?? 'System');
                 $status = 'frozen';

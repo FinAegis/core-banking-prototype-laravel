@@ -528,9 +528,11 @@ class AccountControllerTest extends ControllerTestCase
     {
         Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
+        // The owner may lift a freeze they placed themselves.
         $account = Account::factory()->create([
-            'user_uuid' => $this->user->uuid,
-            'frozen'    => true,
+            'user_uuid'       => $this->user->uuid,
+            'frozen'          => true,
+            'frozen_by_owner' => true,
         ]);
 
         $response = $this->postJson("/api/accounts/{$account->uuid}/unfreeze", [

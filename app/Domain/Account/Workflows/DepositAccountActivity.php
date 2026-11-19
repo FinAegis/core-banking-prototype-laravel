@@ -11,6 +11,8 @@ class DepositAccountActivity extends Activity
 {
     public function execute(AccountUuid $uuid, Money $money, TransactionAggregate $transaction): bool
     {
+        DirectFundingGuard::assertAllowed($this->storedWorkflow, DepositAccountWorkflow::class);
+
         $transaction->retrieve($uuid->getUuid())
             ->credit($money)
             ->persist();

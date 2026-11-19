@@ -204,10 +204,12 @@ return [
     | Demo Mode Settings
     |--------------------------------------------------------------------------
     */
+    // The mocks default to on only for APP_ENV=local and testing (an unset
+    // APP_ENV counts as production); set them explicitly anywhere else.
     'demo' => [
         'enabled'         => env('AGENT_DEMO_MODE', env('APP_ENV_MODE') === 'demo'),
-        'mock_signatures' => env('AGENT_MOCK_SIGNATURES', env('APP_ENV') !== 'production'),
-        'mock_webhooks'   => env('AGENT_MOCK_WEBHOOKS', env('APP_ENV') !== 'production'),
+        'mock_signatures' => env('AGENT_MOCK_SIGNATURES', in_array(env('APP_ENV', 'production'), ['local', 'testing'], true)),
+        'mock_webhooks'   => env('AGENT_MOCK_WEBHOOKS', in_array(env('APP_ENV', 'production'), ['local', 'testing'], true)),
         'test_agent_dids' => [
             'did:agent:test:alice',
             'did:agent:test:bob',

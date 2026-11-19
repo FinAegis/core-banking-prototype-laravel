@@ -6,6 +6,7 @@ use App\Domain\Asset\Models\Asset;
 use App\Domain\Custodian\Models\CustodianAccount;
 use App\Domain\Shared\Traits\UsesTenantConnection;
 use App\Models\User;
+use App\Support\StaffRoles;
 use App\Traits\BelongsToTeam;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -21,6 +22,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $user_uuid
  * @property int $balance
  * @property bool $frozen
+ * @property bool $frozen_by_owner true when the owner placed the current freeze
  * @property string|null $team_uuid
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
@@ -72,8 +74,66 @@ class Account extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'frozen' => 'boolean',
+        'frozen'          => 'boolean',
+        'frozen_by_owner' => 'boolean',
     ];
+
+    protected static function booted(): void
+    {
+        // Any change of `frozen` that does not say who made it (the event
+        // projector, the admin panel, compliance monitoring, an unfreeze)
+        // clears the owner marker, so an unknown freeze is a staff freeze.
+        static::updating(function (self $account): void {
+            if ($account->isDirty('frozen') && ! $account->isDirty('frozen_by_owner')) {
+                $account->frozen_by_owner = false;
+            }
+        });
+    }
+
+    /**
+     * Freeze the account and record who placed the freeze. A staff freeze
+     * always takes over, so the owner cannot lift it. An owner freeze never
+     * replaces an existing freeze.
+     */
+    public function recordFreeze(bool $byStaff): void
+    {
+        if ($byStaff) {
+            $this->forceFill(['frozen' => true, 'frozen_by_owner' => false])->save();
+
+            return;
+        }
+
+        if ($this->frozen) {
+            return;
+        }
+
+        // Conditional update: a staff or compliance freeze that landed after
+        // this model was loaded keeps its staff marker.
+        static::query()
+            ->withoutGlobalScopes()
+            ->whereKey($this->getKey())
+            ->where('frozen', false)
+            ->update(['frozen' => true, 'frozen_by_owner' => true]);
+
+        $this->refresh();
+    }
+
+    /**
+     * Whether the user may lift the current freeze: staff
+     * (StaffRoles::OPERATORS) always, the owner only a freeze they placed.
+     */
+    public function mayBeUnfrozenBy(?Authenticatable $user): bool
+    {
+        if (StaffRoles::userHasAny($user, StaffRoles::OPERATORS)) {
+            return true;
+        }
+
+        if (! $this->isOwnedBy($user)) {
+            return false;
+        }
+
+        return ! $this->frozen || $this->frozen_by_owner;
+    }
 
     /**
      * The accessors to append to the model's array form.

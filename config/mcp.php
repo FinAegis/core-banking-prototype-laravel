@@ -46,10 +46,11 @@ return [
     | Disabled tools are omitted from tools/list AND return -32004 if invoked.
     |
     | account.create, payment.transfer and exchange.trade move internal ledger
-    | balances and default to off when APP_ENV=production (or unset), on
-    | elsewhere; an explicit MCP_TOOL_* value always wins (env templates from
-    | v7.16.0 and earlier set them to true explicitly — set them to false in
-    | an existing production .env). Every other tool keeps its default.
+    | balances and default to on only for APP_ENV=local, testing or demo
+    | (off for production, staging or unset); an explicit MCP_TOOL_* value
+    | always wins (env templates from v7.16.0 and earlier set them to true
+    | explicitly — set them to false in an existing production .env). Every
+    | other tool keeps its default.
     |
     | `requires_config` names a config switch the tool also needs: while it is
     | off the tool is disabled like `enabled` => false (exchange.trade follows
@@ -64,9 +65,9 @@ return [
         // `title` is the human-readable display label exposed via tools/list
         // annotations — required by the Anthropic Connectors Directory.
         'account.balance'    => ['internal' => 'account.balance',                'title' => 'Get account balance',              'scope' => 'accounts:read',     'enabled' => env('MCP_TOOL_ACCOUNT_BALANCE', true),     'is_write' => false, 'requires_user' => true],
-        'account.create'     => ['internal' => 'account.create',                 'title' => 'Create a new account',             'scope' => 'accounts:write',    'enabled' => env('MCP_TOOL_ACCOUNT_CREATE', env('APP_ENV', 'production') !== 'production'), 'is_write' => true,  'requires_user' => true],
+        'account.create'     => ['internal' => 'account.create',                 'title' => 'Create a new account',             'scope' => 'accounts:write',    'enabled' => env('MCP_TOOL_ACCOUNT_CREATE', in_array(env('APP_ENV', 'production'), ['local', 'testing', 'demo'], true)), 'is_write' => true,  'requires_user' => true],
         'payment.status'     => ['internal' => 'payment.status',                 'title' => 'Look up payment status',           'scope' => 'payments:read',     'enabled' => env('MCP_TOOL_PAYMENT_STATUS', true),      'is_write' => false, 'requires_user' => true],
-        'payment.transfer'   => ['internal' => 'payment.transfer',               'title' => 'Send a payment',                   'scope' => 'payments:write',    'enabled' => env('MCP_TOOL_PAYMENT_TRANSFER', env('APP_ENV', 'production') !== 'production'), 'is_write' => true,  'requires_user' => true, 'is_payment' => true,  'amount_arg' => 'amount',  'currency_arg' => 'currency',  'amount_decimals' => 2],
+        'payment.transfer'   => ['internal' => 'payment.transfer',               'title' => 'Send a payment',                   'scope' => 'payments:write',    'enabled' => env('MCP_TOOL_PAYMENT_TRANSFER', in_array(env('APP_ENV', 'production'), ['local', 'testing', 'demo'], true)), 'is_write' => true,  'requires_user' => true, 'is_payment' => true,  'amount_arg' => 'amount',  'currency_arg' => 'currency',  'amount_decimals' => 2],
         'transactions.query' => ['internal' => 'transactions.query',             'title' => 'Query transaction history',        'scope' => 'transactions:read', 'enabled' => env('MCP_TOOL_TRANSACTIONS_QUERY', true),  'is_write' => false, 'requires_user' => true],
         'spending.analysis'  => ['internal' => 'transactions.spending_analysis', 'title' => 'Spending analysis by category',    'scope' => 'transactions:read', 'enabled' => env('MCP_TOOL_SPENDING_ANALYSIS', true),   'is_write' => false, 'requires_user' => true],
         'exchange.quote'     => ['internal' => 'exchange.quote',                 'title' => 'Get an exchange rate quote',       'scope' => 'exchange:read',     'enabled' => env('MCP_TOOL_EXCHANGE_QUOTE', true),      'is_write' => false, 'requires_user' => true],
@@ -80,7 +81,7 @@ return [
         // in its result. Until then, all public copy must say exchange.trade
         // is NOT counted against the daily spending limit. It is also off
         // whenever the trading engine is (TRADING_ENABLED, `requires_config`).
-        'exchange.trade' => ['internal' => 'exchange.trade',                 'title' => 'Execute an exchange trade',        'scope' => 'exchange:write',    'enabled' => env('MCP_TOOL_EXCHANGE_TRADE', env('APP_ENV', 'production') !== 'production'), 'is_write' => true,  'requires_user' => true, 'requires_config' => 'trading.enabled'],
+        'exchange.trade' => ['internal' => 'exchange.trade',                 'title' => 'Execute an exchange trade',        'scope' => 'exchange:write',    'enabled' => env('MCP_TOOL_EXCHANGE_TRADE', in_array(env('APP_ENV', 'production'), ['local', 'testing', 'demo'], true)), 'is_write' => true,  'requires_user' => true, 'requires_config' => 'trading.enabled'],
         'ramp.start'     => ['internal' => 'ramp.start',                     'title' => 'Start an on/offramp session',      'scope' => 'ramp:write',        'enabled' => env('MCP_TOOL_RAMP_START', true),          'is_write' => true,  'requires_user' => true, 'is_payment' => true,  'amount_arg' => 'fiat_amount', 'currency_arg' => 'fiat_currency', 'amount_decimals' => 2],
         'ramp.status'    => ['internal' => 'ramp.status',                    'title' => 'Check on/offramp session status',  'scope' => 'ramp:read',         'enabled' => env('MCP_TOOL_RAMP_STATUS', true),         'is_write' => false, 'requires_user' => true],
         'mpp.discovery'  => ['internal' => 'mpp.discovery',                  'title' => 'Discover multi-rail payment routes', 'scope' => null,              'enabled' => env('MCP_TOOL_MPP_DISCOVERY', true),       'is_write' => false],
@@ -88,7 +89,7 @@ return [
         // against the daily limit (no amount in the tool arguments). Sends
         // are billed to the platform and count against the unpaid SMS
         // limits (SmsSendBudget); off by default in production.
-        'sms.send' => ['internal' => 'sms.send',                       'title' => 'Send an SMS',                      'scope' => 'sms:send',          'enabled' => env('MCP_TOOL_SMS_SEND', env('APP_ENV', 'production') !== 'production'),            'is_write' => true,  'requires_user' => true, 'is_payment' => true,  'fixed_cost_minor' => (int) env('MCP_SMS_PRICE_MINOR', 10), 'fixed_cost_currency' => 'USD'],
+        'sms.send' => ['internal' => 'sms.send',                       'title' => 'Send an SMS',                      'scope' => 'sms:send',          'enabled' => env('MCP_TOOL_SMS_SEND', in_array(env('APP_ENV', 'production'), ['local', 'testing', 'demo'], true)),            'is_write' => true,  'requires_user' => true, 'is_payment' => true,  'fixed_cost_minor' => (int) env('MCP_SMS_PRICE_MINOR', 10), 'fixed_cost_currency' => 'USD'],
         // Wallet read tools: registered blockchain addresses + the mobile
         // activity feed. Both reuse the existing accounts:read scope — the
         // scope list has no wallet:read, and these are same-trust-tier reads

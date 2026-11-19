@@ -154,6 +154,8 @@ describe('ledger.direct_funding_enabled', function (): void {
         $user = User::factory()->withPersonalTeam()->create();
         $this->actingAs($user);
 
+        // Card deposits have their own switch (ledger.web_card_deposits_enabled).
+        config(['ledger.web_card_deposits_enabled' => false]);
         $this->get('/wallet/deposit/card')->assertNotFound();
         $this->get('/wallet/deposit/bank')->assertNotFound();
         $this->post('/wallet/deposit/paysera/initiate', [])->assertNotFound();
@@ -682,9 +684,12 @@ describe('secure defaults', function (): void {
     })->with([
         'production'                                      => ['production'],
         'APP_ENV unset (Laravel treats it as production)' => [null],
+        // Any value outside local/testing/demo is treated as production.
+        'staging' => ['staging'],
+        'a typo'  => ['prod'],
     ]);
 
-    it('keeps every demo-only flag on for other environments', function (string $appEnv, bool $mockDefault): void {
+    it('keeps every demo-only flag on for local, testing and demo', function (string $appEnv, bool $mockDefault): void {
         $flags = switchesResolvedFlags(switchesFlagEnv($appEnv));
 
         expect($flags['ledger.direct_funding_enabled'])->toBeTrue()
@@ -699,7 +704,6 @@ describe('secure defaults', function (): void {
         'demo'    => ['demo', false],
         'local'   => ['local', true],
         'testing' => ['testing', true],
-        'staging' => ['staging', false],
     ]);
 
     it('lets an explicit env value win over the environment default', function (): void {

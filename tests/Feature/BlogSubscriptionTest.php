@@ -91,7 +91,7 @@ class BlogSubscriptionTest extends TestCase
             'Almost done! Check your inbox and confirm your email address to subscribe.'
         );
 
-        $this->get($url)->assertOk()->assertSee('Subscription confirmed');
+        $this->post($url)->assertOk()->assertSee('Subscription confirmed');
 
         // The confirmed address is added to Mailchimp as subscribed.
         Http::assertSentCount(1);
@@ -128,7 +128,7 @@ class BlogSubscriptionTest extends TestCase
         );
 
         // An address Mailchimp already holds counts as synced.
-        $this->get($url)->assertOk()->assertSee('Subscription confirmed');
+        $this->post($url)->assertOk()->assertSee('Subscription confirmed');
 
         Http::assertSentCount(1);
         $this->assertSame(Subscriber::STATUS_ACTIVE, Subscriber::where('email', 'test@example.com')->value('status'));
@@ -162,7 +162,7 @@ class BlogSubscriptionTest extends TestCase
             'Almost done! Check your inbox and confirm your email address to subscribe.'
         );
 
-        $this->get($url)->assertOk()->assertSee('Subscription confirmed');
+        $this->post($url)->assertOk()->assertSee('Subscription confirmed');
 
         Http::assertNothingSent();
         $this->assertSame(Subscriber::STATUS_ACTIVE, Subscriber::where('email', 'test@example.com')->value('status'));
@@ -192,7 +192,7 @@ class BlogSubscriptionTest extends TestCase
 
         // Rejected credentials are logged as an error; the local
         // confirmation stands.
-        $this->get($url)->assertOk()->assertSee('Subscription confirmed');
+        $this->post($url)->assertOk()->assertSee('Subscription confirmed');
 
         Http::assertSentCount(1);
         $this->assertSame(Subscriber::STATUS_ACTIVE, Subscriber::where('email', 'test@example.com')->value('status'));
@@ -218,7 +218,7 @@ class BlogSubscriptionTest extends TestCase
         });
         $this->assertIsString($url);
 
-        $this->get($url)->assertOk()->assertSee('Subscription confirmed');
+        $this->post($url)->assertOk()->assertSee('Subscription confirmed');
 
         Http::assertNothingSent();
     }

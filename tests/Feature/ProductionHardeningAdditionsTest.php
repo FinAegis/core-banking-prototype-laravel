@@ -166,15 +166,17 @@ describe('secure defaults for the new flags', function (): void {
     })->with([
         'production'    => ['production'],
         'APP_ENV unset' => [null],
+        // Any value outside local/testing/demo is treated as production.
+        'staging' => ['staging'],
     ]);
 
-    it('keeps them on for other environments', function (string $appEnv): void {
+    it('keeps them on for local, testing and demo', function (string $appEnv): void {
         $env = ['APP_ENV' => $appEnv];
 
         expect(phaConfigUnderEnv('sms', $env)['enabled'])->toBeTrue()
             ->and(phaConfigUnderEnv('relayer', $env)['generic_sponsor_enabled'])->toBeTrue()
             ->and(phaConfigUnderEnv('registration', $env)['api_enabled'])->toBeTrue();
-    })->with(['local', 'testing', 'demo', 'staging']);
+    })->with(['local', 'testing', 'demo']);
 
     it('lets an explicit env value win', function (): void {
         $production = [
@@ -543,7 +545,11 @@ describe('double opt-in subscriptions', function (): void {
         $this->postJson('/subscriber/landing', ['email' => 'confirm@example.com'])->assertOk();
         $url = phaConfirmationUrl('confirm@example.com');
 
-        $this->get($url)
+        // Opening the link only shows the confirm button.
+        $this->get($url)->assertOk()->assertViewHas('title', 'Confirm your subscription');
+        expect(Subscriber::where('email', 'confirm@example.com')->firstOrFail()->status)->toBe(Subscriber::STATUS_PENDING);
+
+        $this->post($url)
             ->assertOk()
             ->assertViewIs('subscriber.confirmed')
             ->assertViewHas('title', 'Subscription confirmed');
@@ -555,8 +561,10 @@ describe('double opt-in subscriptions', function (): void {
 
         Mail::assertQueued(SubscriberWelcome::class, fn (SubscriberWelcome $mail): bool => $mail->hasTo('confirm@example.com'));
 
-        // Re-opening the link does not send another welcome email.
+        // Re-opening the link or confirming again does not send another
+        // welcome email.
         $this->get($url)->assertOk()->assertViewHas('title', 'Already confirmed');
+        $this->post($url)->assertOk()->assertViewHas('title', 'Already confirmed');
         Mail::assertQueued(SubscriberWelcome::class, 1);
     });
 
@@ -570,15 +578,18 @@ describe('double opt-in subscriptions', function (): void {
             'token'      => Str::random(64),
         ]);
         $this->get($wrongToken)->assertOk()->assertViewHas('title', 'Link expired or invalid');
+        $this->post($wrongToken)->assertOk()->assertViewHas('title', 'Link expired or invalid');
 
         // Real token, signature removed.
         $real = phaConfirmationUrl('tamper@example.com');
         $unsigned = preg_replace('/&?(expires|signature)=[^&]*/', '', $real);
         $this->get((string) $unsigned)->assertOk()->assertViewHas('title', 'Link expired or invalid');
+        $this->post((string) $unsigned)->assertOk()->assertViewHas('title', 'Link expired or invalid');
 
         // Real link after it expired.
         $this->travel(SubscriberEmailService::CONFIRMATION_TTL_HOURS + 1)->hours();
         $this->get($real)->assertOk()->assertViewHas('title', 'Link expired or invalid');
+        $this->post($real)->assertOk()->assertViewHas('title', 'Link expired or invalid');
 
         expect($subscriber->fresh()?->status)->toBe(Subscriber::STATUS_PENDING);
         Mail::assertNotQueued(SubscriberWelcome::class);
@@ -652,7 +663,8 @@ describe('double opt-in subscriptions', function (): void {
         Mail::assertNotSent(CgoNotificationReceived::class);
         Mail::assertNotQueued(CgoNotificationReceived::class);
 
-        $this->get(phaConfirmationUrl('cgo@example.com'))->assertOk();
+        // The confirm button posts to the signed link.
+        $this->post(phaConfirmationUrl('cgo@example.com'))->assertOk();
 
         Mail::assertSent(CgoNotificationReceived::class, fn (CgoNotificationReceived $mail): bool => $mail->hasTo('cgo@example.com'));
     });

@@ -45,15 +45,17 @@ class FreezeAccountMutation
             throw new AuthorizationException('You are not authorized to freeze this account.');
         }
 
+        // Update the model directly for immediate API response consistency,
+        // recording who froze the account (the owner may lift only their own
+        // freeze), before the workflow projects it.
+        $account->recordFreeze(byStaff: $this->isAdmin($user));
+
         $accountUuid = AccountUuid::fromString($account->uuid);
         $reason = $args['reason'] ?? 'Frozen via GraphQL';
         $authorizedBy = $user->name ?? (string) $user->id;
 
         $workflow = WorkflowStub::make(FreezeAccountWorkflow::class);
         $workflow->start($accountUuid, $reason, $authorizedBy);
-
-        // Update model directly for immediate API response consistency
-        $account->update(['frozen' => true]);
 
         return $account->fresh() ?? $account;
     }

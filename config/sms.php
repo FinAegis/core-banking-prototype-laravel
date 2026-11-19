@@ -15,11 +15,12 @@ return [
 
     /*
     | Master switch for outbound SMS (POST /api/v1/sms/send and the MCP
-    | sms.send tool). Secure by default: off when APP_ENV=production (or
-    | unset), on for every other environment (local/testing use the mock
-    | provider). An explicit SMS_ENABLED value always wins.
+    | sms.send tool). Secure by default: on only for APP_ENV=local, testing
+    | or demo; every other value (production, staging, unset, a typo) is
+    | treated as production and turns it off. An explicit SMS_ENABLED value
+    | always wins.
     */
-    'enabled' => (bool) env('SMS_ENABLED', env('APP_ENV', 'production') !== 'production'),
+    'enabled' => (bool) env('SMS_ENABLED', in_array(env('APP_ENV', 'production'), ['local', 'testing', 'demo'], true)),
 
     /*
     | Per-user limits for unpaid POST /api/v1/sms/send requests (named rate

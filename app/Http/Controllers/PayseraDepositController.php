@@ -7,10 +7,12 @@ namespace App\Http\Controllers;
 use App\Domain\Account\Models\Account;
 use App\Domain\Payment\Contracts\PayseraDepositServiceInterface;
 use App\Domain\Payment\Services\DemoPayseraDepositService;
+use App\Domain\Payment\Services\PayseraDepositService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -330,14 +332,82 @@ class PayseraDepositController extends Controller
         ]);
     }
 
+    #[OA\Get(
+        path: '/api/webhooks/paysera/deposit',
+        operationId: 'payseraDepositsNotify',
+        tags: ['Paysera Deposits'],
+        summary: 'Paysera server-to-server deposit notification',
+        description: 'The callbackurl Paysera calls when a deposit payment changes state. No session: Paysera\'s ss1 signature over data is the only authentication, and the order is credited to the user and account stored with it. Answers the plain text OK that Paysera expects. Also accepts POST.',
+        parameters: [
+            new OA\Parameter(name: 'data', in: 'query', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'ss1', in: 'query', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'ss2', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
+        ]
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'OK: the notification was handled (credited, already credited, or payment not completed yet)'
+    )]
+    #[OA\Response(
+        response: 400,
+        description: 'Missing or invalid signature, or the signed payment does not match a stored order'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Paysera deposits are not enabled'
+    )]
+    #[OA\Response(
+        response: 500,
+        description: 'The credit could not be started; Paysera retries'
+    )]
+    public function notify(Request $request): Response
+    {
+        $service = $this->payseraDepositService;
+
+        // Only the real Paysera service verifies signatures; the demo
+        // service has no server notification.
+        if (! $service instanceof PayseraDepositService) {
+            abort(404);
+        }
+
+        $this->ensureAvailable();
+
+        $data = $request->input('data');
+        $ss1 = $request->input('ss1');
+
+        if (! is_string($data) || $data === '' || ! is_string($ss1) || $ss1 === '') {
+            return response('Error: missing signed data', 400, ['Content-Type' => 'text/plain']);
+        }
+
+        $result = $service->handleServerCallback($data, $ss1);
+
+        if (
+            $result['success']
+            || in_array($result['message'], [PayseraDepositService::MESSAGE_NOT_COMPLETED, PayseraDepositService::MESSAGE_ALREADY_PROCESSED], true)
+        ) {
+            return response('OK', 200, ['Content-Type' => 'text/plain']);
+        }
+
+        // A credit that could not be started answers 500 so Paysera retries.
+        if (str_starts_with($result['message'], PayseraDepositService::MESSAGE_PROCESSING_FAILED)) {
+            return response('Error: ' . PayseraDepositService::MESSAGE_PROCESSING_FAILED, 500, ['Content-Type' => 'text/plain']);
+        }
+
+        return response('Error: ' . $result['message'], 400, ['Content-Type' => 'text/plain']);
+    }
+
     /**
-     * The Paysera deposit flow (initiate + return callback) is served only
-     * while the Paysera connector is enabled (PAYSERA_ENABLED), or with the
-     * demo service (APP_ENV=demo); otherwise it answers 404.
+     * The Paysera deposit flow (initiate, return callback, server
+     * notification) is served only while the Paysera connector is enabled
+     * (PAYSERA_ENABLED). The demo service (APP_ENV=demo) simulates the
+     * payment, so it credits without one and needs the direct-funding flag
+     * instead. Otherwise it answers 404.
      */
     private function ensureAvailable(): void
     {
         if ($this->payseraDepositService instanceof DemoPayseraDepositService) {
+            abort_unless((bool) config('ledger.direct_funding_enabled', false), 404);
+
             return;
         }
 

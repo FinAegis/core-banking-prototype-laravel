@@ -42,7 +42,8 @@ it('cannot freeze an already frozen account', function () {
 });
 
 it('can unfreeze an account', function () {
-    $account = Account::factory()->forUser($this->user)->create(['frozen' => true]);
+    // The owner may lift a freeze they placed themselves.
+    $account = Account::factory()->forUser($this->user)->create(['frozen' => true, 'frozen_by_owner' => true]);
 
     $response = $this->postJson("/api/accounts/{$account->uuid}/unfreeze", [
         'reason'        => 'Investigation completed',
