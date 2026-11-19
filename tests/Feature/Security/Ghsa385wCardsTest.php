@@ -596,3 +596,129 @@ describe('D10 unsigned FinCard webhooks are accepted only in local and testing',
         expect((int) $account->fresh()?->balance_cents)->toBe(10000000);
     });
 });
+
+describe('Review K1/K2 FinCard order numbers and one funding account per user', function (): void {
+    beforeEach(function (): void {
+        config(['cache.default' => 'array']);
+        Cache::flush();
+
+        $this->app->instance(FinCardClient::class, new FinCardClient(
+            baseUrl: GHSA385W_FINCARD_BASE,
+            tenantId: 't',
+            orgId: 'o',
+            userId: 'u',
+            username: 'x',
+            password: 'y',
+        ));
+        ghsa385wCardsFakeFinCard();
+    });
+
+    // K1: FinCard calls share the platform credential, so a raw client key
+    // would put every user's orders in one namespace.
+    it('sends FinCard an order number derived from the user and the Idempotency-Key, not the raw key', function (): void {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user, ['read', 'write', 'delete']);
+        ghsa385wCardsCardholder($user);
+        ghsa385wCardsAccount($user, accountId: 'acc-1');
+        $key = 'Shared-Key-000000001';
+        $expected = substr(hash('sha256', $user->id . '|' . $key), 0, 32);
+
+        $this->withHeader('Idempotency-Key', $key)
+            ->postJson('/api/v1/cards/fincard/open', ['card_type_id' => 111001, 'amount_cents' => 20000])
+            ->assertCreated();
+
+        Http::assertSent(fn (HttpRequest $r): bool => str_ends_with((string) parse_url($r->url(), PHP_URL_PATH), '/card/v2/openCard')
+            && $r['merchantOrderNo'] === $expected);
+        expect(Card::query()->where('issuer_card_token', 'card-new')->value('merchant_order_no'))->toBe($expected);
+    });
+
+    it('gives two users different FinCard order numbers for the same Idempotency-Key', function (): void {
+        $alice = User::factory()->create();
+        $bob = User::factory()->create();
+        ghsa385wCardsAccount($alice, accountId: 'acc-a');
+        ghsa385wCardsAccount($bob, accountId: 'acc-b');
+        $bobCard = ghsa385wCardsCard($bob, ghsa385wCardsCardholder($bob), accountId: 'acc-b');
+        $bobCard->issuer_card_token = 'card-2';
+        $bobCard->save();
+        ghsa385wCardsCard($alice, ghsa385wCardsCardholder($alice), accountId: 'acc-a');
+        $key = (string) Str::uuid();
+
+        Sanctum::actingAs($alice, ['read', 'write', 'delete']);
+        $this->withHeader('Idempotency-Key', $key)
+            ->postJson('/api/v1/cards/fincard/card-1/topup', ['amount_cents' => 1000])
+            ->assertOk();
+        Sanctum::actingAs($bob, ['read', 'write', 'delete']);
+        $this->withHeader('Idempotency-Key', $key)
+            ->postJson('/api/v1/cards/fincard/card-2/topup', ['amount_cents' => 1000])
+            ->assertOk();
+
+        $orderNos = Http::recorded(fn (HttpRequest $r): bool => str_ends_with((string) parse_url($r->url(), PHP_URL_PATH), '/card/deposit'))
+            ->map(fn (array $pair): string => (string) $pair[0]['merchantOrderNo'])
+            ->values()
+            ->all();
+
+        expect($orderNos)->toBe([
+            substr(hash('sha256', $alice->id . '|' . $key), 0, 32),
+            substr(hash('sha256', $bob->id . '|' . $key), 0, 32),
+        ]);
+    });
+
+    // K2: one funding account per user, also under concurrent provisioning.
+    it('refuses a second funding account row for the same user', function (): void {
+        $user = User::factory()->create();
+        ghsa385wCardsAccount($user, accountId: 'acc-1');
+
+        expect(fn () => ghsa385wCardsAccount($user, accountId: 'acc-2'))
+            ->toThrow(Illuminate\Database\UniqueConstraintViolationException::class);
+    });
+
+    it('returns the account a concurrent request saved instead of creating a second one', function (): void {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user, ['read', 'write', 'delete']);
+        ghsa385wCardsFakeFinCard([
+            'sandbox.finhub.cloud/api/v2.1/fincard/virtual/account/create' => function () use ($user) {
+                // Another request for the same user finishes provisioning
+                // while this one waits for FinCard.
+                ghsa385wCardsAccount($user, accountId: 'acc-concurrent', balanceCents: 0);
+
+                return Http::response(['success' => true, 'data' => ['accountId' => 'acc-created']]);
+            },
+        ]);
+
+        $this->withHeader('Idempotency-Key', ghsa385wCardsIdem())
+            ->postJson('/api/v1/cards/account/deposit-address', ['coin_key' => 'USDT_TRC20'])
+            ->assertCreated();
+
+        expect(FinCardAccount::query()->where('user_id', $user->id)->pluck('fincard_account_id')->all())->toBe(['acc-concurrent']);
+    });
+
+    it('does not call FinCard while another request is provisioning the same user\'s account', function (): void {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user, ['read', 'write', 'delete']);
+        $held = Cache::lock('fincard:account:provision:' . $user->id, 60);
+        expect($held->get())->toBeTrue();
+
+        try {
+            $this->withHeader('Idempotency-Key', ghsa385wCardsIdem())
+                ->postJson('/api/v1/cards/account/deposit-address', ['coin_key' => 'USDT_TRC20'])
+                ->assertStatus(502)
+                ->assertJsonPath('error.code', 'ERR_CARDS_013');
+        } finally {
+            $held->release();
+        }
+
+        expect(ghsa385wCardsSentTo('/account/create'))->toBeFalse()
+            ->and(FinCardAccount::query()->where('user_id', $user->id)->exists())->toBeFalse();
+    });
+
+    it('refuses to add the unique index while a user has more than one funding account row', function (): void {
+        $user = User::factory()->create();
+        Schema::table('fincard_accounts', fn (Blueprint $table) => $table->dropUnique(['user_id']));
+        ghsa385wCardsAccount($user, accountId: 'acc-1');
+        ghsa385wCardsAccount($user, accountId: 'acc-2');
+
+        $migration = require base_path('database/migrations/2026_11_19_000001_add_unique_user_id_to_fincard_accounts_table.php');
+
+        expect(fn () => $migration->up())->toThrow(RuntimeException::class, 'more than one fincard_accounts row');
+    });
+});

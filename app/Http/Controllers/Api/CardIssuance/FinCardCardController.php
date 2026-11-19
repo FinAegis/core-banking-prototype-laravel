@@ -235,14 +235,18 @@ class FinCardCardController extends Controller
     }
 
     /**
-     * FinCard merchantOrderNo derived from the Idempotency-Key so a client retry
-     * reuses the same order number (aligning our idempotency with FinCard's).
+     * FinCard merchantOrderNo derived from the user and the Idempotency-Key, so
+     * a client retry reuses the same order number (aligning our idempotency
+     * with FinCard's). Every user's orders share the platform's FinCard
+     * credential, so the raw client key would let two users' orders collide.
      */
     private function orderNo(Request $request): string
     {
         $key = (string) $request->header('Idempotency-Key', '');
+        $user = $request->user();
+        $userId = $user instanceof User ? (string) $user->id : '';
 
-        return $key !== '' ? substr(preg_replace('/[^A-Za-z0-9]/', '', $key) ?? '', 0, 32) : (string) Str::uuid();
+        return $key !== '' ? substr(hash('sha256', $userId . '|' . $key), 0, 32) : (string) Str::uuid();
     }
 
     /**
