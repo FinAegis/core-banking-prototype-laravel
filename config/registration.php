@@ -21,9 +21,12 @@ declare(strict_types=1);
 | (TeamMemberController) and operator CLI commands (user:create,
 | account:provision-reviewer).
 |
-| api_enabled: secure by default — OFF when APP_ENV=production (or unset),
-| ON for every other environment; an explicit REGISTRATION_API_ENABLED value
-| always wins. When off, new-account requests answer 403 ERR_REG_001.
+| api_enabled: secure by default — ON only for APP_ENV=local, testing or
+| demo (the same allow-list as fortify.registration_enabled), OFF for every
+| other value (production, staging, unset); an explicit
+| REGISTRATION_API_ENABLED value always wins, and ops:verify-env fails a
+| production deploy that does not set it. When off, new-account requests
+| answer 403 ERR_REG_001.
 |
 | api_invite_only: only applies while api_enabled is on. A new account then
 | needs a pending, unexpired invitation (user_invitations, created by an
@@ -38,7 +41,7 @@ declare(strict_types=1);
 */
 
 return [
-    'api_enabled' => (bool) env('REGISTRATION_API_ENABLED', env('APP_ENV', 'production') !== 'production'),
+    'api_enabled' => (bool) env('REGISTRATION_API_ENABLED', in_array(env('APP_ENV', 'production'), ['local', 'testing', 'demo'], true)),
 
     'api_invite_only' => (bool) env('REGISTRATION_API_INVITE_ONLY', false),
 ];

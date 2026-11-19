@@ -344,6 +344,18 @@ class AccountController extends Controller
         }
 
         if ($account->frozen) {
+            // Staff take over a freeze the owner placed, so the owner can no
+            // longer lift it.
+            if ($isAdmin && $account->frozen_by_owner) {
+                $account->recordFreeze(byStaff: true);
+
+                return response()->json(
+                    [
+                        'message' => 'Account frozen successfully',
+                    ]
+                );
+            }
+
             return response()->json(
                 [
                     'message' => 'Account is already frozen',
@@ -352,6 +364,9 @@ class AccountController extends Controller
                 422
             );
         }
+
+        // Record who froze the account before the workflow projects it.
+        $account->recordFreeze(byStaff: $isAdmin);
 
         $accountUuid = new AccountUuid($uuid);
 
@@ -392,6 +407,11 @@ class AccountController extends Controller
         ])
     )]
     #[OA\Response(
+        response: 403,
+        description: 'Not the owner or staff, or the owner tried to lift a freeze placed by staff',
+        content: new OA\JsonContent(ref: '#/components/schemas/Error')
+    )]
+    #[OA\Response(
         response: 422,
         description: 'Account not frozen',
         content: new OA\JsonContent(ref: '#/components/schemas/Error')
@@ -420,6 +440,18 @@ class AccountController extends Controller
                     'error'   => 'ACCOUNT_NOT_FROZEN',
                 ],
                 422
+            );
+        }
+
+        // The owner may lift only a freeze they placed; a staff or
+        // compliance freeze needs staff.
+        if (! $account->mayBeUnfrozenBy($request->user())) {
+            return response()->json(
+                [
+                    'message' => 'This account was frozen by staff and can only be unfrozen by staff.',
+                    'error'   => 'FORBIDDEN',
+                ],
+                403
             );
         }
 

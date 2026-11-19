@@ -176,7 +176,11 @@ class SmsSendGateMiddleware
         $userId = $user->getAuthIdentifier();
         $userId = is_int($userId) || is_string($userId) ? $userId : (string) json_encode($userId);
 
-        if ($this->budget->reserve($userId, 'rest') !== null) {
+        // Release against the day the unit was reserved from, even after
+        // midnight.
+        $day = SmsSendBudget::today();
+
+        if ($this->budget->reserve($userId, 'rest', $day) !== null) {
             return ErrorResponse::make('ERR_SMS_001')
                 ->withHeaders(['Retry-After' => (string) SmsSendBudget::secondsUntilReset()]);
         }
@@ -184,13 +188,13 @@ class SmsSendGateMiddleware
         try {
             $response = $next($request);
         } catch (Throwable $e) {
-            $this->budget->release($userId);
+            $this->budget->release($userId, $day);
 
             throw $e;
         }
 
         if (! $response->isSuccessful()) {
-            $this->budget->release($userId);
+            $this->budget->release($userId, $day);
         }
 
         return $response;

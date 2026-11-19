@@ -287,9 +287,12 @@ describe('blog subscribers and Mailchimp', function (): void {
         });
         expect($url)->toBeString();
 
-        $this->get((string) $url)->assertOk()->assertSee('Subscription confirmed');
-        // Opening the link again does not push the address again.
-        $this->get((string) $url)->assertOk();
+        // Opening the link only shows the confirm button; the POST confirms.
+        $this->get((string) $url)->assertOk()->assertSee('Confirm subscription');
+        Http::assertNothingSent();
+        $this->post((string) $url)->assertOk()->assertSee('Subscription confirmed');
+        // Confirming again does not push the address again.
+        $this->post((string) $url)->assertOk();
 
         Http::assertSentCount(1);
         Http::assertSent(fn (HttpRequest $request): bool => $request->url() === 'https://us7.api.mailchimp.com/3.0/lists/ach-list/members'
@@ -308,6 +311,7 @@ describe('blog subscribers and Mailchimp', function (): void {
         );
 
         $this->get($forged)->assertOk()->assertSee('Link expired or invalid');
+        $this->post($forged)->assertOk()->assertSee('Link expired or invalid');
         $this->get('/subscriber/confirm/' . $subscriber->id . '?token=abc')->assertOk()->assertSee('Link expired or invalid');
 
         Http::assertNothingSent();
@@ -327,7 +331,7 @@ describe('blog subscribers and Mailchimp', function (): void {
             return $mail->hasTo('both@example.com');
         });
 
-        $this->get((string) $url)->assertOk();
+        $this->post((string) $url)->assertOk();
 
         Http::assertSentCount(1);
     });

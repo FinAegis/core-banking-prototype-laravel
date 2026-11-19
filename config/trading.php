@@ -10,11 +10,12 @@ return [
     |
     | `enabled` gates the demo trading engine (exchange order book, liquidity
     | pools, GraphQL placeOrder and the trading scheduler jobs). Secure by
-    | default: off when APP_ENV=production (or unset), on for every other
-    | environment. An explicit TRADING_ENABLED value always wins.
+    | default: on only for APP_ENV=local, testing or demo, off for every other
+    | value (production, staging, unset). An explicit TRADING_ENABLED value
+    | always wins.
     |
     */
-    'enabled' => (bool) env('TRADING_ENABLED', env('APP_ENV', 'production') !== 'production'),
+    'enabled' => (bool) env('TRADING_ENABLED', in_array(env('APP_ENV', 'production'), ['local', 'testing', 'demo'], true)),
 
     /*
     |--------------------------------------------------------------------------

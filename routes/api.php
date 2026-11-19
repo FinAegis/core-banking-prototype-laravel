@@ -182,6 +182,10 @@ Route::prefix('webhooks/custodian')->middleware(['api.rate_limit:webhook'])->gro
 Route::prefix('webhooks')->middleware(['api.rate_limit:webhook'])->group(function () {
     Route::post('/coinbase-commerce', [App\Http\Controllers\CoinbaseWebhookController::class, 'handleWebhook'])
         ->middleware('webhook.signature:coinbase');
+    // Paysera deposit notification (callbackurl): no session, Paysera's ss1
+    // signature is the only authentication (PAYSERA_ENABLED, else 404).
+    Route::match(['get', 'post'], '/paysera/deposit', [App\Http\Controllers\PayseraDepositController::class, 'notify'])
+        ->name('api.webhooks.paysera.deposit');
 });
 
 // Ondato KYC webhook endpoints

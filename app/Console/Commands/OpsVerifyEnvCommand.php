@@ -26,11 +26,15 @@ use RuntimeException;
  *
  * The `switches` category lists the production switches for demo-only or
  * platform-billed surfaces (direct ledger funding, mock custodian, card
- * waitlist deposits, generic gas sponsorship, API sign-ups, SMS, the MCP
- * money and SMS tools, the trading engine) and runtime module and plugin
- * management by admins. Each WARNs in production while it is on
- * or while its env var is not set explicitly, so the operator sees the
- * effective value; none of them blocks a deploy.
+ * waitlist deposits, the investor page, generic gas sponsorship, SMS, the
+ * MCP money and SMS tools, the trading engine) and runtime module and plugin
+ * management by admins. Each WARNs while it is on or while its env var is
+ * not set explicitly, so the operator sees the effective value; none of them
+ * blocks a deploy. API sign-ups (REGISTRATION_API_ENABLED) are a product
+ * decision instead: either value passes, but leaving it unset FAILs,
+ * because unset silently closes new sign-ups. The switches are checked
+ * whenever APP_ENV is not local, testing or demo (the environments where
+ * they default to on), or with --strict.
  */
 class OpsVerifyEnvCommand extends Command
 {
@@ -70,10 +74,24 @@ class OpsVerifyEnvCommand extends Command
         'custodians.connectors.mock.enabled' => ['CUSTODIAN_MOCK_ENABLED', 'the Mock Bank custodian connector is enabled in config (MockBankConnector::isPermitted() still never registers it in production)'],
         'cards.waitlist_deposit_enabled'     => ['CARDS_WAITLIST_DEPOSIT_ENABLED', 'POST /api/v1/cards/waitlist/deposit accepts card waitlist deposits'],
         'relayer.generic_sponsor_enabled'    => ['RELAYER_GENERIC_SPONSOR_ENABLED', 'REST /api/v1/relayer/sponsor and GraphQL sponsorTransaction spend platform gas'],
-        'registration.api_enabled'           => ['REGISTRATION_API_ENABLED', 'new accounts can be created through API, Privy and social sign-up'],
+        'investor.page_enabled'              => ['INVESTOR_PAGE_ENABLED', 'the public /invest investor page and its lead form are served'],
         'sms.enabled'                        => ['SMS_ENABLED', 'POST /api/v1/sms/send and MCP sms.send send SMS billed to the platform'],
         'trading.enabled'                    => ['TRADING_ENABLED', 'the demo trading engine (order book, liquidity pools, GraphQL placeOrder) is live'],
         'modules.runtime_management_enabled' => ['ADMIN_RUNTIME_MANAGEMENT_ENABLED', 'admins can enable or disable modules and plugins at runtime (REST /api/v2/modules and /api/v2/plugins, GraphQL plugin mutations, admin panel), and a runtime module change overrides MODULES_DISABLED'],
+    ];
+
+    /**
+     * Product switches: an explicit operator decision. Either value passes;
+     * unset FAILs. Config key => [env var, effect while on, effect while off].
+     *
+     * @var array<string, array{0: string, 1: string, 2: string}>
+     */
+    private const PRODUCT_SWITCHES = [
+        'registration.api_enabled' => [
+            'REGISTRATION_API_ENABLED',
+            'new accounts can be created through the API, Privy and social sign-up',
+            'new accounts cannot be created through the API, Privy or social sign-up (403 ERR_REG_001)',
+        ],
     ];
 
     /**
@@ -102,7 +120,7 @@ class OpsVerifyEnvCommand extends Command
         $this->checkBypasses();
         $this->checkConditional($solanaSponsor);
         $this->checkFiles();
-        $this->checkProductionSwitches($isProduction);
+        $this->checkProductionSwitches();
 
         $failed = array_values(array_filter(
             $this->checks,
@@ -626,22 +644,36 @@ class OpsVerifyEnvCommand extends Command
     // ── Category: switches ───────────────────────────────────────────────
 
     /**
-     * Production switches. WARN (never FAIL) in production while a switch is
-     * on, or while its env var is not set explicitly; SKIP elsewhere unless
-     * --strict is passed (demo and local run with these on).
+     * Production switches. WARN (never FAIL) while a switch is on, or while
+     * its env var is not set explicitly; product switches FAIL only while
+     * unset. Checked for every APP_ENV except local, testing and demo (which
+     * run with these on), or with --strict; SKIP otherwise.
      */
-    private function checkProductionSwitches(bool $isProduction): void
+    private function checkProductionSwitches(): void
     {
-        $applies = $isProduction || (bool) $this->option('strict');
+        // The switches default to on only in local, testing and demo; every
+        // other environment gets the production defaults, so it is checked.
+        $applies = (bool) $this->option('strict') || ! $this->laravel->environment(['local', 'testing', 'demo']);
+        $skipped = 'Not checked for APP_ENV=local, testing or demo (pass --strict to check).';
 
         foreach (self::PRODUCTION_SWITCHES as $configKey => [$envName, $whenOn]) {
             if (! $applies) {
-                $this->add(self::CATEGORY_SWITCHES, $configKey, self::SKIP, 'Checked in production only.');
+                $this->add(self::CATEGORY_SWITCHES, $configKey, self::SKIP, $skipped);
 
                 continue;
             }
 
             $this->checkSwitch($configKey, $envName, config($configKey), $whenOn);
+        }
+
+        foreach (self::PRODUCT_SWITCHES as $configKey => [$envName, $whenOn, $whenOff]) {
+            if (! $applies) {
+                $this->add(self::CATEGORY_SWITCHES, $configKey, self::SKIP, $skipped);
+
+                continue;
+            }
+
+            $this->checkProductSwitch($configKey, $envName, (bool) config($configKey), $whenOn, $whenOff);
         }
 
         $tools = config('mcp.tools');
@@ -651,7 +683,7 @@ class OpsVerifyEnvCommand extends Command
             $name = 'mcp.tools.' . $tool;
 
             if (! $applies) {
-                $this->add(self::CATEGORY_SWITCHES, $name, self::SKIP, 'Checked in production only.');
+                $this->add(self::CATEGORY_SWITCHES, $name, self::SKIP, $skipped);
 
                 continue;
             }
@@ -688,6 +720,30 @@ class OpsVerifyEnvCommand extends Command
         $this->add(self::CATEGORY_SWITCHES, $name, self::PASS, $explicit === null
             ? sprintf('%s resolves to off (config is cached; explicit setting not checked).', $envName)
             : sprintf('%s=false.', $envName));
+    }
+
+    /**
+     * A product switch must be set explicitly: either value passes, unset
+     * FAILs (it would silently resolve to the secure default, off).
+     */
+    private function checkProductSwitch(string $name, string $envName, bool $value, string $whenOn, string $whenOff): void
+    {
+        $explicit = $this->envIsSet($envName);
+        $effect = ucfirst($value ? $whenOn : $whenOff) . '.';
+
+        if ($explicit === false) {
+            $this->add(self::CATEGORY_SWITCHES, $name, self::FAIL, sprintf('%s is not set, so it resolves to off: %s. Set %s=true or %s=false explicitly.', $envName, $whenOff, $envName, $envName));
+
+            return;
+        }
+
+        if ($explicit === null) {
+            $this->add(self::CATEGORY_SWITCHES, $name, self::WARN, sprintf('%s resolves to %s (config is cached; explicit setting not checked). %s', $envName, $value ? 'on' : 'off', $effect));
+
+            return;
+        }
+
+        $this->add(self::CATEGORY_SWITCHES, $name, self::PASS, sprintf('%s=%s. %s', $envName, $value ? 'true' : 'false', $effect));
     }
 
     /**

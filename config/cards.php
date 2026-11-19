@@ -31,10 +31,11 @@ return [
      * entry and the Stripe webhook keep working so existing deposits can
      * still be refunded and reconciled.
      *
-     * Secure by default: off when APP_ENV=production (or unset), on
-     * elsewhere; an explicit CARDS_WAITLIST_DEPOSIT_ENABLED value wins.
+     * Secure by default: on only for APP_ENV=local, testing or demo, off
+     * for every other value (production, staging, unset); an explicit
+     * CARDS_WAITLIST_DEPOSIT_ENABLED value wins.
      */
-    'waitlist_deposit_enabled' => (bool) env('CARDS_WAITLIST_DEPOSIT_ENABLED', env('APP_ENV', 'production') !== 'production'),
+    'waitlist_deposit_enabled' => (bool) env('CARDS_WAITLIST_DEPOSIT_ENABLED', in_array(env('APP_ENV', 'production'), ['local', 'testing', 'demo'], true)),
 
     /*
      * Time window the user has to complete the Stripe Checkout session.

@@ -28,7 +28,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Operator-paid gas for client-built UserOperations. Secure by default:
-    | off when APP_ENV=production (or unset), on for every other environment;
+    | on only for APP_ENV=local, testing or demo, off for every other value;
     | an explicit RELAYER_GENERIC_SPONSOR_ENABLED value always wins. When off,
     | the REST route answers 404 and the mutation returns an error. When on,
     | SponsorshipRequestValidator binds the sender to the caller and only
@@ -37,7 +37,7 @@ return [
     |
     */
 
-    'generic_sponsor_enabled' => (bool) env('RELAYER_GENERIC_SPONSOR_ENABLED', env('APP_ENV', 'production') !== 'production'),
+    'generic_sponsor_enabled' => (bool) env('RELAYER_GENERIC_SPONSOR_ENABLED', in_array(env('APP_ENV', 'production'), ['local', 'testing', 'demo'], true)),
 
     // Cache TTL for read-only RPC calls (blockNumber, gasPrice) in seconds.
     // Reduces Alchemy/Infura usage by serving cached results for repeated queries.

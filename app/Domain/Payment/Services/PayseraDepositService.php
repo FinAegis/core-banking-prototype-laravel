@@ -28,6 +28,12 @@ class PayseraDepositService implements PayseraDepositServiceInterface
     /** Paysera response status for a completed payment. */
     private const STATUS_PAID = '1';
 
+    public const MESSAGE_NOT_COMPLETED = 'Payment not completed';
+
+    public const MESSAGE_ALREADY_PROCESSED = 'Deposit already processed';
+
+    public const MESSAGE_PROCESSING_FAILED = 'Deposit processing failed';
+
     private readonly DepositReplayGuard $replayGuard;
 
     public function __construct(
@@ -74,7 +80,11 @@ class PayseraDepositService implements PayseraDepositServiceInterface
         ]);
 
         // Paysera appends its signed response (data, ss1, ss2) to these URLs.
+        // The payer's browser returns to the session route; Paysera's
+        // server-to-server notification goes to the unauthenticated route,
+        // which trusts only the ss1 signature.
         $callbackUrl = route('wallet.deposit.paysera.callback', ['order_id' => $orderId]);
+        $notifyUrl = route('api.webhooks.paysera.deposit');
 
         $payseraData = [
             'projectid'   => $projectId,
@@ -83,7 +93,7 @@ class PayseraDepositService implements PayseraDepositServiceInterface
             'currency'    => $data['currency'],
             'accepturl'   => $data['return_url'] ?? $callbackUrl,
             'cancelurl'   => $data['cancel_url'] ?? route('wallet.deposit.paysera.callback', ['order_id' => $orderId, 'cancelled' => 1]),
-            'callbackurl' => $callbackUrl,
+            'callbackurl' => $notifyUrl,
             'version'     => self::PROTOCOL_VERSION,
             'payment'     => 'card,bank',
             'country'     => 'LT',
@@ -147,7 +157,50 @@ class PayseraDepositService implements PayseraDepositServiceInterface
      */
     public function handleCallback(array $callbackData): array
     {
-        $orderId = $callbackData['order_id'];
+        return $this->processSignedCallback($callbackData, (int) $callbackData['user_id']);
+    }
+
+    /**
+     * Handle Paysera's server-to-server notification (the callbackurl).
+     *
+     * It carries no session, so Paysera's ss1 signature over `data` is its
+     * only authentication. The order is credited to the user and account
+     * stored with it at initiate time (that user must still own the
+     * account), with the same signature, amount, status and replay checks
+     * as the browser return.
+     *
+     * @return array{
+     *     success: bool,
+     *     message: string,
+     *     reference?: string
+     * }
+     */
+    public function handleServerCallback(string $data, string $ss1): array
+    {
+        return $this->processSignedCallback([
+            'order_id'     => '',
+            'status'       => '',
+            'paysera_data' => $data,
+            'paysera_ss1'  => $ss1,
+        ], null);
+    }
+
+    /**
+     * Credit an order from Paysera's signed response.
+     *
+     * @param  array<string, mixed>  $callbackData
+     * @param  int|null  $callerUserId  the signed-in user (browser return), or
+     *                                  null for the server notification, which
+     *                                  credits the user stored with the order
+     * @return array{
+     *     success: bool,
+     *     message: string,
+     *     reference?: string
+     * }
+     */
+    private function processSignedCallback(array $callbackData, ?int $callerUserId): array
+    {
+        $orderId = (string) ($callbackData['order_id'] ?? '');
 
         Log::info('Processing Paysera callback', [
             'order_id' => $orderId,
@@ -214,7 +267,7 @@ class PayseraDepositService implements PayseraDepositServiceInterface
         if ((string) ($response['status'] ?? '') !== self::STATUS_PAID) {
             return [
                 'success' => false,
-                'message' => 'Payment not completed',
+                'message' => self::MESSAGE_NOT_COMPLETED,
             ];
         }
 
@@ -223,6 +276,7 @@ class PayseraDepositService implements PayseraDepositServiceInterface
         $guardData = $callbackData;
         $guardData['amount'] = (int) $response['amount'];
         $guardData['currency'] = (string) $response['currency'];
+        $guardData['user_id'] = $callerUserId ?? (int) ($orderData['user_id'] ?? 0);
 
         $rejection = $this->payseraCallbackRejection($orderId, $orderData, $guardData);
         if ($rejection !== null) {
@@ -235,16 +289,17 @@ class PayseraDepositService implements PayseraDepositServiceInterface
         if (! $this->replayGuard->claim(DepositReplayGuard::SOURCE_PAYSERA, $orderId)) {
             return [
                 'success' => false,
-                'message' => 'Deposit already processed',
+                'message' => self::MESSAGE_ALREADY_PROCESSED,
             ];
         }
 
         $payseraReference = isset($response['requestid']) ? (string) $response['requestid'] : null;
         $paymentType = isset($response['payment']) ? (string) $response['payment'] : null;
+        $reference = 'DEP-' . strtoupper(uniqid());
 
+        // Only a failure to start the credit gives the claim back. Once the
+        // credit is dispatched, the claim stays, whatever happens next.
         try {
-            $reference = 'DEP-' . strtoupper(uniqid());
-
             // Process the deposit through payment service (amount and
             // currency always come from the stored order)
             $this->paymentService->processStripeDeposit([
@@ -261,17 +316,6 @@ class PayseraDepositService implements PayseraDepositServiceInterface
                     'payment_type'        => $paymentType,
                 ],
             ]);
-
-            // Update order status
-            $orderData['status'] = 'completed';
-            $orderData['updated_at'] = now()->toIso8601String();
-            Cache::put("paysera_order:{$orderId}", $orderData, now()->addHours(24));
-
-            return [
-                'success'   => true,
-                'message'   => 'Deposit processed successfully',
-                'reference' => $reference,
-            ];
         } catch (Exception $e) {
             $this->replayGuard->release(DepositReplayGuard::SOURCE_PAYSERA, $orderId);
 
@@ -282,9 +326,28 @@ class PayseraDepositService implements PayseraDepositServiceInterface
 
             return [
                 'success' => false,
-                'message' => 'Deposit processing failed: ' . $e->getMessage(),
+                'message' => self::MESSAGE_PROCESSING_FAILED . ': ' . $e->getMessage(),
             ];
         }
+
+        // The cached status is informational: the replay claim above is what
+        // stops a second credit, so a failed cache write is only logged.
+        try {
+            $orderData['status'] = 'completed';
+            $orderData['updated_at'] = now()->toIso8601String();
+            Cache::put("paysera_order:{$orderId}", $orderData, now()->addHours(24));
+        } catch (Exception $e) {
+            Log::warning('Paysera order status could not be cached after the credit was started', [
+                'order_id' => $orderId,
+                'error'    => $e->getMessage(),
+            ]);
+        }
+
+        return [
+            'success'   => true,
+            'message'   => 'Deposit processed successfully',
+            'reference' => $reference,
+        ];
     }
 
     /**

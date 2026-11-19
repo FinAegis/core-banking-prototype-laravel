@@ -130,43 +130,56 @@ class SubscriberController extends Controller
     }
 
     /**
-     * Confirm a subscription from the signed link in the confirmation email
-     * (double opt-in). Only a valid, unexpired link activates the subscriber;
-     * the welcome email is sent at that point.
+     * Show the page behind the signed link in the confirmation email (double
+     * opt-in). Opening the link changes nothing, because mail security
+     * scanners open links on their own. The page's button (a CSRF-protected
+     * POST to the same signed URL) confirms.
      */
-    public function confirm(Request $request, string $subscriber): View
+    public function showConfirm(Request $request, string $subscriber): View
     {
-        $invalid = view(
-            'subscriber.confirmed',
-            [
-                'title'   => 'Link expired or invalid',
-                'message' => 'This confirmation link is no longer valid. Subscribe again to get a new confirmation link.',
-            ]
-        );
-
-        if (! $request->hasValidSignature()) {
-            return $invalid;
-        }
-
-        /** @var Subscriber|null $record */
-        $record = Subscriber::query()->find($subscriber);
+        $record = $this->subscriberForSignedLink($request, $subscriber);
 
         if ($record === null) {
-            return $invalid;
+            return $this->invalidConfirmationView();
         }
 
         if ($record->isActive() && $record->confirmation_token_hash === null) {
-            return view(
-                'subscriber.confirmed',
-                [
-                    'title'   => 'Already confirmed',
-                    'message' => 'Your email address is already confirmed. Thanks for subscribing!',
-                ]
-            );
+            return $this->alreadyConfirmedView();
+        }
+
+        if (! $this->emailService->confirmationTokenMatches($record, (string) $request->query('token', ''))) {
+            return $this->invalidConfirmationView();
+        }
+
+        return view(
+            'subscriber.confirmed',
+            [
+                'title'      => 'Confirm your subscription',
+                'message'    => 'Press the button below to confirm your email address. You will then receive our updates.',
+                'confirmUrl' => $request->getRequestUri(),
+            ]
+        );
+    }
+
+    /**
+     * Confirm a subscription (POST from the page above, same signed URL).
+     * Only a valid, unexpired link activates the subscriber; the welcome
+     * email is sent at that point.
+     */
+    public function confirm(Request $request, string $subscriber): View
+    {
+        $record = $this->subscriberForSignedLink($request, $subscriber);
+
+        if ($record === null) {
+            return $this->invalidConfirmationView();
+        }
+
+        if ($record->isActive() && $record->confirmation_token_hash === null) {
+            return $this->alreadyConfirmedView();
         }
 
         if (! $this->emailService->confirm($record, (string) $request->query('token', ''))) {
-            return $invalid;
+            return $this->invalidConfirmationView();
         }
 
         // Blog subscribers reach the Mailchimp audience only once confirmed.
@@ -177,6 +190,43 @@ class SubscriberController extends Controller
             [
                 'title'   => 'Subscription confirmed',
                 'message' => 'Thanks for confirming your email address. You are now subscribed.',
+            ]
+        );
+    }
+
+    /**
+     * The subscriber named by a correctly signed, unexpired link, or null.
+     */
+    private function subscriberForSignedLink(Request $request, string $subscriber): ?Subscriber
+    {
+        if (! $request->hasValidSignature()) {
+            return null;
+        }
+
+        /** @var Subscriber|null $record */
+        $record = Subscriber::query()->find($subscriber);
+
+        return $record;
+    }
+
+    private function invalidConfirmationView(): View
+    {
+        return view(
+            'subscriber.confirmed',
+            [
+                'title'   => 'Link expired or invalid',
+                'message' => 'This confirmation link is no longer valid. Subscribe again to get a new confirmation link.',
+            ]
+        );
+    }
+
+    private function alreadyConfirmedView(): View
+    {
+        return view(
+            'subscriber.confirmed',
+            [
+                'title'   => 'Already confirmed',
+                'message' => 'Your email address is already confirmed. Thanks for subscribing!',
             ]
         );
     }

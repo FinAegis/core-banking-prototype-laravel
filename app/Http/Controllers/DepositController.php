@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Domain\Payment\Contracts\PaymentServiceInterface;
 use App\Domain\Payment\Exceptions\DepositAlreadyProcessedException;
 use App\Domain\Payment\Exceptions\DepositNotAllowedException;
+use App\Domain\Payment\Services\DemoPaymentGatewayService;
 use App\Domain\Payment\Services\HyperSwitch\HyperSwitchPaymentService;
 use App\Domain\Payment\Services\PaymentGatewayService;
 use App\Models\User;
@@ -48,6 +49,8 @@ class DepositController extends Controller
     )]
     public function create()
     {
+        $this->ensureCardDepositsAvailable();
+
         $user = Auth::user();
         /** @var User $user */
         $account = $user->accounts()->first();
@@ -88,6 +91,8 @@ class DepositController extends Controller
     )]
     public function store(Request $request)
     {
+        $this->ensureCardDepositsAvailable();
+
         $request->validate(
             [
                 'amount'   => 'required|numeric|min:1|max:10000',
@@ -162,6 +167,8 @@ class DepositController extends Controller
     )]
     public function confirm(Request $request)
     {
+        $this->ensureCardDepositsAvailable();
+
         $request->validate(
             [
                 'payment_intent_id' => 'required|string',
@@ -336,6 +343,18 @@ class DepositController extends Controller
         } catch (Exception $e) {
             return redirect()->back()
                 ->with('error', 'Failed to remove payment method.');
+        }
+    }
+
+    /**
+     * Card deposits are gated by ledger.web_card_deposits_enabled on the
+     * route. The demo gateway (APP_ENV=demo) only simulates the card payment,
+     * so it credits without one: it also needs the direct-funding flag.
+     */
+    private function ensureCardDepositsAvailable(): void
+    {
+        if ($this->paymentGateway instanceof DemoPaymentGatewayService) {
+            abort_unless((bool) config('ledger.direct_funding_enabled', false), 404);
         }
     }
 }

@@ -283,11 +283,10 @@ class SubscriberEmailService
     }
 
     /**
-     * Confirm a pending subscription from the emailed link. Activates the
-     * subscriber and only then sends the welcome email. Returns false for an
-     * unknown, already-used or replaced token.
+     * Whether the token is the subscriber's current confirmation token.
+     * Changes nothing.
      */
-    public function confirm(Subscriber $subscriber, string $token): bool
+    public function confirmationTokenMatches(Subscriber $subscriber, string $token): bool
     {
         $storedHash = $subscriber->confirmation_token_hash;
 
@@ -295,7 +294,17 @@ class SubscriberEmailService
             return false;
         }
 
-        if (! hash_equals($storedHash, hash('sha256', $token))) {
+        return hash_equals($storedHash, hash('sha256', $token));
+    }
+
+    /**
+     * Confirm a pending subscription from the emailed link. Activates the
+     * subscriber and only then sends the welcome email. Returns false for an
+     * unknown, already-used or replaced token.
+     */
+    public function confirm(Subscriber $subscriber, string $token): bool
+    {
+        if (! $this->confirmationTokenMatches($subscriber, $token)) {
             return false;
         }
 

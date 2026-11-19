@@ -36,9 +36,14 @@ class UnfreezeAccountMutation
         }
 
         // Same rule as REST AccountController::unfreeze(): the account owner or
-        // an admin role.
+        // an admin role, and a staff freeze needs staff.
         if (! $account->isOwnedBy($user) && ! $this->isAdmin($user)) {
             throw new AuthorizationException('You are not authorized to unfreeze this account.');
+        }
+
+        // The owner may lift only a freeze they placed themselves.
+        if (! $account->mayBeUnfrozenBy($user)) {
+            throw new AuthorizationException('This account was frozen by staff and can only be unfrozen by staff.');
         }
 
         $accountUuid = AccountUuid::fromString($account->uuid);

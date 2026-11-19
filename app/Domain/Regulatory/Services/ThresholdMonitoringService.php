@@ -547,7 +547,8 @@ class ThresholdMonitoringService
         if ($entity instanceof User) {
             $entity->update(['risk_rating' => 'high']);
         } elseif ($entity instanceof Account) {
-            $entity->update(['frozen' => true]);
+            // A compliance freeze: only staff may lift it.
+            $entity->recordFreeze(byStaff: true);
         }
     }
 

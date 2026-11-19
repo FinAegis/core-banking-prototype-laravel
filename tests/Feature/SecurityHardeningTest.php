@@ -1005,7 +1005,7 @@ describe('Paysera callback verification', function (): void {
             ->and($result['message'])->toBe('Payment details do not match the order');
     });
 
-    it('builds a signed Paysera request pointing back to the callback route', function (): void {
+    it('builds a signed Paysera request pointing back to the callback routes', function (): void {
         $user = User::factory()->withPersonalTeam()->create();
         $account = Account::factory()->create(['user_uuid' => $user->uuid]);
 
@@ -1029,7 +1029,9 @@ describe('Paysera callback verification', function (): void {
         expect($request['orderid'] ?? null)->toBe($orderId)
             ->and($request['projectid'] ?? null)->toBe('12345')
             ->and($request['version'] ?? null)->toBe('1.6')
-            ->and($request['callbackurl'] ?? null)->toBe(route('wallet.deposit.paysera.callback', ['order_id' => $orderId]));
+            ->and($request['accepturl'] ?? null)->toBe(route('wallet.deposit.paysera.callback', ['order_id' => $orderId]))
+            // Paysera's server notification goes to the signature-only route.
+            ->and($request['callbackurl'] ?? null)->toBe(route('api.webhooks.paysera.deposit'));
 
         expect(Cache::get("paysera_order:{$orderId}"))->toMatchArray([
             'account_uuid' => $account->uuid,
@@ -1169,7 +1171,7 @@ describe('demo bank connector', function (): void {
 });
 
 describe('trading default', function (): void {
-    it('is off under APP_ENV=production or unset and on elsewhere when TRADING_ENABLED is unset', function (?string $appEnv, bool $enabled): void {
+    it('is on only under APP_ENV=local, testing or demo when TRADING_ENABLED is unset', function (?string $appEnv, bool $enabled): void {
         $config = hardeningConfigUnderEnv('trading', ['APP_ENV' => $appEnv, 'TRADING_ENABLED' => null]);
 
         expect($config['enabled'])->toBe($enabled);
@@ -1179,7 +1181,7 @@ describe('trading default', function (): void {
         'demo'       => ['demo', true],
         'local'      => ['local', true],
         'testing'    => ['testing', true],
-        'staging'    => ['staging', true],
+        'staging'    => ['staging', false],
     ]);
 
     it('lets an explicit TRADING_ENABLED win', function (): void {

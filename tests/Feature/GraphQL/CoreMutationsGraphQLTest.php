@@ -39,7 +39,8 @@ describe('GraphQL Core Domain Mutations', function () {
 
     it('unfreezes an account via mutation', function () {
         $user = User::factory()->create();
-        $account = Account::factory()->create(['frozen' => true, 'user_uuid' => $user->uuid]);
+        // The owner may lift a freeze they placed themselves.
+        $account = Account::factory()->create(['frozen' => true, 'frozen_by_owner' => true, 'user_uuid' => $user->uuid]);
 
         $response = $this->actingAs($user, 'sanctum')
             ->postJson('/graphql', [

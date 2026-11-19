@@ -284,7 +284,9 @@ class GdprController extends Controller
 
     /**
      * An export can be read by the user who requested it and by compliance
-     * staff. Entries without a recorded owner are readable by staff only.
+     * staff. An entry without a recorded owner (written before exports
+     * recorded user_id) is readable by its owner only once completed, when
+     * the encrypted export file names that user; otherwise staff only.
      *
      * @param  array<mixed>  $status
      */
@@ -296,11 +298,44 @@ class GdprController extends Controller
             return false;
         }
 
-        if (isset($status['user_id']) && (string) $status['user_id'] === (string) $user->id) {
+        if (isset($status['user_id'])) {
+            if ((string) $status['user_id'] === (string) $user->id) {
+                return true;
+            }
+        } elseif ($this->legacyExportBelongsTo($status, $user)) {
             return true;
         }
 
         return StaffRoles::userHasAny($user, StaffRoles::COMPLIANCE);
+    }
+
+    /**
+     * Whether a completed export entry without user_id holds this user's
+     * data: the export file's user.uuid must equal the caller's uuid.
+     *
+     * @param  array<mixed>  $status
+     */
+    private function legacyExportBelongsTo(array $status, User $user): bool
+    {
+        $filePath = $status['file_path'] ?? null;
+
+        if (($status['status'] ?? null) !== 'completed' || ! is_string($filePath) || $filePath === '' || (string) $user->uuid === '') {
+            return false;
+        }
+
+        try {
+            if (! Storage::disk('local')->exists($filePath)) {
+                return false;
+            }
+
+            $decoded = json_decode((string) decrypt((string) Storage::disk('local')->get($filePath)), true);
+        } catch (Throwable) {
+            return false;
+        }
+
+        $ownerUuid = is_array($decoded) && is_array($decoded['user'] ?? null) ? ($decoded['user']['uuid'] ?? null) : null;
+
+        return is_string($ownerUuid) && $ownerUuid !== '' && hash_equals($ownerUuid, (string) $user->uuid);
     }
 
         #[OA\Post(

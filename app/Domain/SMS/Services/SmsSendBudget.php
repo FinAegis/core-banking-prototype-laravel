@@ -21,7 +21,9 @@ use Illuminate\Support\Facades\Log;
  * reserve() takes one unit of both before the send and release() hands it
  * back when no SMS went out, so only sends that happen are counted. The
  * per-user count is checked first: a request refused for the per-user limit
- * never uses a unit of the global count.
+ * never uses a unit of the global count. Callers pass the same UTC day
+ * (today()) to both, so a send reserved before midnight and released after
+ * it gives the unit back to the day it was taken from.
  */
 final class SmsSendBudget
 {
@@ -33,16 +35,18 @@ final class SmsSendBudget
      * Reserve one unpaid send for the user.
      *
      * @param  string  $source  entry point, recorded in the log context
+     * @param  string|null  $day  UTC day (Y-m-d) to count against; today when null
      * @return self::DENIED_*|null null when the send may proceed
      */
-    public function reserve(int|string $userId, string $source): ?string
+    public function reserve(int|string $userId, string $source, ?string $day = null): ?string
     {
         $userLimit = max(1, (int) config('sms.rate_limit.per_user_per_day', 50));
         $globalLimit = max(0, (int) config('sms.global_daily_limit', 500));
 
+        $day ??= self::today();
         $expiry = now()->addDays(2);
-        $userKey = self::userCountCacheKey($userId);
-        $globalKey = self::globalCountCacheKey();
+        $userKey = self::userCountCacheKey($userId, $day);
+        $globalKey = self::globalCountCacheKey($day);
 
         // Cache::add + increment — never read-then-write (concurrency-safe).
         Cache::add($userKey, 0, $expiry);
@@ -82,11 +86,27 @@ final class SmsSendBudget
 
     /**
      * Hand back a unit taken by reserve() when no SMS was sent.
+     *
+     * Pass the day given to reserve(). Only existing counts are decremented,
+     * so a release never creates a negative count without an expiry.
      */
-    public function release(int|string $userId): void
+    public function release(int|string $userId, ?string $day = null): void
     {
-        Cache::decrement(self::userCountCacheKey($userId));
-        Cache::decrement(self::globalCountCacheKey());
+        $day ??= self::today();
+
+        foreach ([self::userCountCacheKey($userId, $day), self::globalCountCacheKey($day)] as $key) {
+            if (Cache::has($key)) {
+                Cache::decrement($key);
+            }
+        }
+    }
+
+    /**
+     * Today's UTC day (Y-m-d), the period the counts cover.
+     */
+    public static function today(): string
+    {
+        return now()->utc()->format('Y-m-d');
     }
 
     /**
@@ -98,18 +118,20 @@ final class SmsSendBudget
     }
 
     /**
-     * Cache key of today's (UTC) count of unpaid sends, all users together.
+     * Cache key of a UTC day's count of unpaid sends, all users together
+     * (today when no day is given).
      */
-    public static function globalCountCacheKey(): string
+    public static function globalCountCacheKey(?string $day = null): string
     {
-        return 'sms:send:unpaid:global:' . now()->utc()->format('Y-m-d');
+        return 'sms:send:unpaid:global:' . ($day ?? self::today());
     }
 
     /**
-     * Cache key of today's (UTC) count of unpaid sends for one user.
+     * Cache key of a UTC day's count of unpaid sends for one user (today
+     * when no day is given).
      */
-    public static function userCountCacheKey(int|string $userId): string
+    public static function userCountCacheKey(int|string $userId, ?string $day = null): string
     {
-        return "sms:send:unpaid:user:{$userId}:" . now()->utc()->format('Y-m-d');
+        return "sms:send:unpaid:user:{$userId}:" . ($day ?? self::today());
     }
 }

@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\Subscription\Models\ProcessedWebhookEvent;
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessOndatoWebhook;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
+use Throwable;
 
 #[OA\Tag(
     name: 'Ondato Webhooks',
@@ -35,9 +37,9 @@ class OndatoWebhookController extends Controller
     )]
     #[OA\Response(
         response: 200,
-        description: 'Webhook received',
+        description: 'Webhook received (status "duplicate" when the same signed body was already received)',
         content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'status', type: 'string', example: 'received'),
+        new OA\Property(property: 'status', type: 'string', enum: ['received', 'duplicate'], example: 'received'),
         ])
     )]
     #[OA\Response(
@@ -70,9 +72,9 @@ class OndatoWebhookController extends Controller
     )]
     #[OA\Response(
         response: 200,
-        description: 'Webhook received',
+        description: 'Webhook received (status "duplicate" when the same signed body was already received)',
         content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'status', type: 'string', example: 'received'),
+        new OA\Property(property: 'status', type: 'string', enum: ['received', 'duplicate'], example: 'received'),
         ])
     )]
     #[OA\Response(
@@ -127,8 +129,35 @@ class OndatoWebhookController extends Controller
             'payload_id' => $data['id'] ?? null,
         ]);
 
+        // Each signed delivery is processed once. The HMAC covers the body
+        // only, so a replayed body (for example an old PROCESSED after a
+        // later REJECTED) is dropped here. Keyed on the body hash, because
+        // the payload `id` can be the verification id shared by every
+        // status change.
+        $eventId = $webhookType . ':' . hash('sha256', $rawPayload);
+        $claim = ProcessedWebhookEvent::query()->createOrFirst(
+            ['provider' => 'ondato', 'event_id' => $eventId],
+            ['event_type' => mb_substr(is_scalar($eventType) ? (string) $eventType : 'UNKNOWN', 0, 128), 'processed_at' => now()],
+        );
+
+        if (! $claim->wasRecentlyCreated) {
+            Log::info('Ondato webhook: duplicate delivery ignored', [
+                'type'       => $webhookType,
+                'event_type' => $eventType,
+            ]);
+
+            return response()->json(['status' => 'duplicate'], 200);
+        }
+
         // Dispatch async job for processing
-        ProcessOndatoWebhook::dispatch($eventType, $data, $webhookType);
+        try {
+            ProcessOndatoWebhook::dispatch($eventType, $data, $webhookType);
+        } catch (Throwable $e) {
+            // Not queued: give the claim back so Ondato's retry is processed.
+            $claim->delete();
+
+            throw $e;
+        }
 
         return response()->json(['status' => 'received'], 200);
     }
