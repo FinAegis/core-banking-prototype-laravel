@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Api\AssetController;
 use App\Http\Controllers\Api\ExchangeRateController;
+use App\Support\StaffRoles;
 use Illuminate\Support\Facades\Route;
+use Spatie\Permission\Middleware\RoleMiddleware;
 
 // Public asset and exchange rate endpoints
 Route::middleware('api.rate_limit:public')->group(function () {
@@ -102,7 +104,10 @@ Route::prefix('v1')->middleware('api.rate_limit:public')->group(function () {
         Route::get('/{provider}/rate', [App\Http\Controllers\Api\ExchangeRateProviderController::class, 'getRate']);
         Route::get('/compare', [App\Http\Controllers\Api\ExchangeRateProviderController::class, 'compareRates']);
         Route::get('/aggregated', [App\Http\Controllers\Api\ExchangeRateProviderController::class, 'getAggregatedRate']);
-        Route::post('/refresh', [App\Http\Controllers\Api\ExchangeRateProviderController::class, 'refresh'])->middleware('auth:sanctum');
+        // Manual refresh: platform operators only (RefreshExchangeRatesJob
+        // covers routine refreshes).
+        Route::post('/refresh', [App\Http\Controllers\Api\ExchangeRateProviderController::class, 'refresh'])
+            ->middleware(['auth:sanctum', RoleMiddleware::using(StaffRoles::OPERATORS)]);
         Route::get('/historical', [App\Http\Controllers\Api\ExchangeRateProviderController::class, 'historical']);
         Route::post('/validate', [App\Http\Controllers\Api\ExchangeRateProviderController::class, 'validateRate']);
     });

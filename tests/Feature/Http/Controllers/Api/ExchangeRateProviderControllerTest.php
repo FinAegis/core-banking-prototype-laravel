@@ -226,6 +226,8 @@ class ExchangeRateProviderControllerTest extends ControllerTestCase
     #[Test]
     public function test_refresh_rates_successfully(): void
     {
+        // Manual refresh is limited to platform operators.
+        $this->user->assignRole('admin');
         Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         // Accept 400 status as the controller wraps all exceptions
@@ -234,6 +236,14 @@ class ExchangeRateProviderControllerTest extends ControllerTestCase
         ]);
 
         $response->assertStatus(400);
+    }
+
+    #[Test]
+    public function test_refresh_rates_refuses_users_without_an_operator_role(): void
+    {
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+
+        $this->postJson('/api/v1/exchange-providers/refresh', ['pairs' => ['USD/EUR']])->assertForbidden();
     }
 
     #[Test]

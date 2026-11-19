@@ -42,10 +42,12 @@ extend type Query @module(name: "Treasury") {
 }
 
 extend type Mutation @module(name: "Treasury") {
+    "Create an asset allocation (operators only; asset allocations have no owner link)."
     createPortfolio(input: CreatePortfolioInput! @spread): AssetAllocation!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Treasury\\CreatePortfolioMutation")
 
+    "Rebalance an asset allocation (operators only)."
     rebalancePortfolio(input: RebalancePortfolioInput! @spread): AssetAllocation!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\Treasury\\RebalancePortfolioMutation")

@@ -5,6 +5,7 @@ namespace Tests\Feature\Http\Controllers\Api;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\Test;
+use Spatie\Permission\Models\Role;
 use Tests\ControllerTestCase;
 
 class FraudDetectionControllerTest extends ControllerTestCase
@@ -15,7 +16,19 @@ class FraudDetectionControllerTest extends ControllerTestCase
     {
         parent::setUp();
 
+        // The fraud API is limited to compliance staff.
+        Role::firstOrCreate(['name' => 'compliance_officer', 'guard_name' => 'web']);
         $this->user = User::factory()->create();
+        $this->user->assignRole('compliance_officer');
+    }
+
+    #[Test]
+    public function test_fraud_endpoints_refuse_users_without_a_compliance_role(): void
+    {
+        Sanctum::actingAs(User::factory()->create(), ['read', 'write', 'delete']);
+
+        $this->getJson('/api/fraud/dashboard')->assertForbidden();
+        $this->getJson('/api/fraud/alerts')->assertForbidden();
     }
 
     #[Test]

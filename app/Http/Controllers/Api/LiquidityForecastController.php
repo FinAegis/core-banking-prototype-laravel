@@ -73,6 +73,10 @@ class LiquidityForecastController extends Controller
         response: 500,
         description: 'Failed to generate forecast'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope'
+    )]
     public function generateForecast(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -143,6 +147,10 @@ class LiquidityForecastController extends Controller
         response: 500,
         description: 'Failed to calculate liquidity'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope'
+    )]
     public function getCurrentLiquidity(string $treasuryId): JsonResponse
     {
         try {
@@ -199,6 +207,10 @@ class LiquidityForecastController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Failed to start workflow'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope'
     )]
     public function startForecastingWorkflow(Request $request): JsonResponse
     {
@@ -281,6 +293,10 @@ class LiquidityForecastController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Failed to retrieve alerts'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin); bearer tokens also need the treasury scope'
     )]
     public function getAlerts(Request $request, string $treasuryId): JsonResponse
     {

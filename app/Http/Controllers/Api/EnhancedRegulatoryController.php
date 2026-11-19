@@ -8,11 +8,13 @@ use App\Domain\Regulatory\Models\RegulatoryThreshold;
 use App\Domain\Regulatory\Services\EnhancedRegulatoryReportingService;
 use App\Domain\Regulatory\Services\RegulatoryFilingService;
 use App\Http\Controllers\Controller;
+use App\Support\StaffRoles;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
+use Spatie\Permission\Middleware\RoleMiddleware;
 
 class EnhancedRegulatoryController extends Controller
 {
@@ -21,7 +23,8 @@ class EnhancedRegulatoryController extends Controller
         private readonly RegulatoryFilingService $filingService
     ) {
         $this->middleware('auth:sanctum');
-        $this->middleware('admin')->except(['show', 'index', 'download']);
+        // Compliance staff only (the regulatory reports cover every user).
+        $this->middleware(RoleMiddleware::using(StaffRoles::COMPLIANCE));
     }
 
     /**

@@ -7,11 +7,13 @@ namespace App\Http\Controllers\Api;
 use App\Domain\Custodian\Services\BankAlertingService;
 use App\Domain\Custodian\Services\CustodianHealthMonitor;
 use App\Http\Controllers\Controller;
+use App\Support\StaffRoles;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
+use Spatie\Permission\Middleware\RoleMiddleware;
 
 #[OA\Tag(
     name: 'Bank Alerting',
@@ -24,7 +26,8 @@ class BankAlertingController extends Controller
         private readonly CustodianHealthMonitor $healthMonitor
     ) {
         $this->middleware('auth:sanctum');
-        $this->middleware('admin');
+        // Platform operators only (the route group applies the same check).
+        $this->middleware(RoleMiddleware::using(StaffRoles::OPERATORS));
     }
 
     /**
@@ -60,6 +63,10 @@ class BankAlertingController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Health check failed'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
     )]
     public function triggerHealthCheck(): JsonResponse
     {
@@ -152,6 +159,10 @@ class BankAlertingController extends Controller
         ]),
         ])
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
+    )]
     public function getHealthStatus(): JsonResponse
     {
         try {
@@ -232,6 +243,10 @@ class BankAlertingController extends Controller
         response: 404,
         description: 'Custodian not found'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
+    )]
     public function getCustodianHealth(string $custodian): JsonResponse
     {
         try {
@@ -293,6 +308,10 @@ class BankAlertingController extends Controller
         new OA\Property(property: 'retrieved_at', type: 'string', format: 'date-time'),
         ]),
         ])
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
     )]
     public function getAlertHistory(Request $request, string $custodian): JsonResponse
     {
@@ -361,6 +380,10 @@ class BankAlertingController extends Controller
         new OA\Property(property: 'calculated_at', type: 'string', format: 'date-time'),
         ]),
         ])
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
     )]
     public function getAlertingStats(Request $request): JsonResponse
     {
@@ -457,6 +480,10 @@ class BankAlertingController extends Controller
         new OA\Property(property: 'message', type: 'string'),
         ])
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
+    )]
     public function configureAlerts(Request $request): JsonResponse
     {
         $request->validate(
@@ -538,6 +565,10 @@ class BankAlertingController extends Controller
         ]),
         ])
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
+    )]
     public function getAlertConfiguration(): JsonResponse
     {
         try {
@@ -607,6 +638,10 @@ class BankAlertingController extends Controller
         ]),
         new OA\Property(property: 'message', type: 'string'),
         ])
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
     )]
     public function testAlert(Request $request): JsonResponse
     {
@@ -688,6 +723,10 @@ class BankAlertingController extends Controller
         ]),
         new OA\Property(property: 'message', type: 'string'),
         ])
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
     )]
     public function acknowledgeAlert(Request $request, string $alertId): JsonResponse
     {

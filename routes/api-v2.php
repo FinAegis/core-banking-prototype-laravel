@@ -123,8 +123,10 @@ Route::middleware(['auth.api_or_sanctum:read'])->group(function () {
             ],
         ]);
     });
-    // Webhook management
-    Route::prefix('webhooks')->group(function () {
+    // Webhook management: platform administrators only. Webhooks have no
+    // owner and the dispatcher sends every subscribed event to every active
+    // webhook, so they are platform configuration (GHSA-385w-q6j4-5qw6).
+    Route::prefix('webhooks')->middleware('is_admin')->group(function () {
         Route::get('/', [WebhookController::class, 'index']);
         Route::post('/', [WebhookController::class, 'store'])->middleware('auth.api_or_sanctum:write');
         Route::get('/{id}', [WebhookController::class, 'show']);

@@ -31,6 +31,10 @@ class FraudRuleController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function index(Request $request): JsonResponse
     {
         $request->validate(
@@ -98,6 +102,10 @@ class FraudRuleController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function show(string $ruleId): JsonResponse
     {
         $rule = FraudRule::findOrFail($ruleId);
@@ -125,6 +133,10 @@ class FraudRuleController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function store(Request $request): JsonResponse
     {
@@ -184,6 +196,10 @@ class FraudRuleController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function update(Request $request, string $ruleId): JsonResponse
     {
         $request->validate(
@@ -242,6 +258,10 @@ class FraudRuleController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function destroy(string $ruleId): JsonResponse
     {
         $rule = FraudRule::findOrFail($ruleId);
@@ -279,6 +299,10 @@ class FraudRuleController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function toggleStatus(string $ruleId): JsonResponse
     {
@@ -318,6 +342,10 @@ class FraudRuleController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function test(Request $request, string $ruleId): JsonResponse
     {
@@ -365,6 +393,10 @@ class FraudRuleController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function statistics(Request $request): JsonResponse
     {
@@ -422,6 +454,10 @@ class FraudRuleController extends Controller
         response: 500,
         description: 'Server error'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
+    )]
     public function createDefaults(): JsonResponse
     {
         // Ensure user can create fraud rules
@@ -456,6 +492,10 @@ class FraudRuleController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function export(): JsonResponse
     {
@@ -506,6 +546,10 @@ class FraudRuleController extends Controller
     #[OA\Response(
         response: 500,
         description: 'Server error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Compliance staff only (admin, super_admin, bank_admin, compliance_officer, risk_manager)'
     )]
     public function import(Request $request): JsonResponse
     {

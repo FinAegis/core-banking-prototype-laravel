@@ -44,9 +44,6 @@ class BankAlertingControllerTest extends ControllerTestCase
     {
         parent::setUp();
 
-        // Skip the admin middleware as it doesn't exist in test environment
-        $this->withoutMiddleware(['admin']);
-
         $this->adminUser = User::factory()->create();
         $this->adminUser->assignRole('admin');
 
@@ -133,7 +130,7 @@ class BankAlertingControllerTest extends ControllerTestCase
             ]);
     }
 
-    // Note: Admin role check is skipped in tests as the admin middleware doesn't exist in test environment    #[Test]
+    #[Test]
     public function test_trigger_health_check_requires_authentication(): void
     {
         $response = $this->postJson('/api/bank-health/check');
@@ -551,5 +548,14 @@ class BankAlertingControllerTest extends ControllerTestCase
         }
     }
 
-    // Admin role test removed - admin middleware doesn't exist in test environment
+    #[Test]
+    public function test_endpoints_refuse_users_without_an_operator_role(): void
+    {
+        Sanctum::actingAs($this->regularUser, ['read', 'write', 'delete']);
+
+        $this->mockAlertingService->shouldNotReceive('performHealthCheck');
+
+        $this->postJson('/api/bank-health/check')->assertForbidden();
+        $this->getJson('/api/bank-health/alerts/config')->assertForbidden();
+    }
 }

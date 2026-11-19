@@ -14,6 +14,7 @@ use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use RuntimeException;
 use Throwable;
 
 class MicrofinanceController extends Controller
@@ -276,24 +277,46 @@ class MicrofinanceController extends Controller
 
     public function generateCollectionSheet(Request $request): JsonResponse
     {
+        // Field-officer / operator work (the scheduled
+        // mfi:generate-collection-sheets command is the other producer).
+        if (! MicrofinanceAccess::isOperator($request->user())) {
+            return $this->forbidden('You are not authorized to generate collection sheets.');
+        }
+
         $validated = $request->validate([
             'officer_id'      => ['required', 'string'],
             'group_id'        => ['required', 'string'],
             'collection_date' => ['sometimes', 'date'],
-            'expected_amount' => ['required', 'numeric', 'min:0'],
+            // Plain decimal with at most two decimals: rejects exponent
+            // forms such as 1e3 and silently truncated amounts.
+            'expected_amount' => ['required', 'decimal:0,2', 'min:0'],
         ]);
+
+        $expectedAmount = (string) $validated['expected_amount'];
+        if (! is_numeric($expectedAmount)) {
+            return response()->json(['error' => 'The expected amount must be a number.'], 422);
+        }
 
         try {
             $sheet = $this->fieldOfficerService->generateCollectionSheet(
                 officerId: $validated['officer_id'],
                 groupId: $validated['group_id'],
                 collectionDate: $validated['collection_date'] ?? Carbon::today()->toDateString(),
-                expectedAmount: number_format((float) $validated['expected_amount'], 2, '.', ''),
+                expectedAmount: bcadd($expectedAmount, '0', 2),
             );
 
             return response()->json(['data' => $sheet], 201);
         } catch (Throwable $e) {
-            return response()->json(['error' => $e->getMessage()], 422);
+            // FieldOfficerService reports its own errors (an unknown officer)
+            // as a plain RuntimeException. Anything else (database, bcmath or
+            // PHP errors) is logged, and the caller gets a generic message.
+            if ($e::class === RuntimeException::class) {
+                return response()->json(['error' => $e->getMessage()], 422);
+            }
+
+            report($e);
+
+            return response()->json(['error' => 'The collection sheet could not be created.'], 422);
         }
     }
 

@@ -15,7 +15,6 @@ use App\Support\StaffRoles;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(
@@ -474,6 +473,10 @@ class StablecoinOperationsController extends Controller
         ])),
         ])
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Stablecoin operators only (admin, super_admin, bank_admin, stablecoin_operator)'
+    )]
     public function getLiquidationOpportunities(Request $request): JsonResponse
     {
         $limit = $request->integer('limit', 50);
@@ -516,7 +519,7 @@ class StablecoinOperationsController extends Controller
         new OA\Property(property: 'liquidator_reward', type: 'integer', example: 5000),
         new OA\Property(property: 'protocol_fee', type: 'integer', example: 5000),
         new OA\Property(property: 'returned_to_owner', type: 'integer', example: 90000),
-        new OA\Property(property: 'liquidator_uuid', type: 'string', format: 'uuid', example: '456e7890-e89b-12d3-a456-426614174001'),
+        new OA\Property(property: 'liquidator_uuid', type: 'string', format: 'uuid', nullable: true, example: null, description: 'Always null: staff-initiated liquidations pay no liquidator reward'),
         ]),
         ])
     )]
@@ -527,17 +530,22 @@ class StablecoinOperationsController extends Controller
     )]
     #[OA\Response(
         response: 404,
-        description: 'Position not found',
+        description: 'Position not found, or the demo ledger flag (ledger.direct_funding_enabled) is off',
         content: new OA\JsonContent(ref: '#/components/schemas/Error')
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Stablecoin operators only (admin, super_admin, bank_admin, stablecoin_operator)'
     )]
     public function liquidatePosition(string $positionUuid): JsonResponse
     {
         $position = StablecoinCollateralPosition::where('uuid', $positionUuid)->firstOrFail();
-        /** @var Account|null $liquidator */
-        $liquidator = Auth::user()?->account;
 
         try {
-            $result = $this->liquidationService->liquidatePosition($position, $liquidator);
+            // Staff-initiated liquidation: no liquidator. Passing the acting
+            // staff member's account would pay them half of the penalty out
+            // of the position owner's collateral.
+            $result = $this->liquidationService->liquidatePosition($position, null);
 
             return response()->json(
                 [
@@ -585,6 +593,10 @@ class StablecoinOperationsController extends Controller
         response: 404,
         description: 'Position not found',
         content: new OA\JsonContent(ref: '#/components/schemas/Error')
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Stablecoin operators only (admin, super_admin, bank_admin, stablecoin_operator)'
     )]
     public function calculateLiquidationReward(string $positionUuid): JsonResponse
     {
@@ -637,6 +649,10 @@ class StablecoinOperationsController extends Controller
         description: 'Validation error',
         content: new OA\JsonContent(ref: '#/components/schemas/ValidationError')
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Stablecoin operators only (admin, super_admin, bank_admin, stablecoin_operator)'
+    )]
     public function simulateMassLiquidation(Request $request, string $stablecoinCode): JsonResponse
     {
         $validated = $request->validate(
@@ -684,13 +700,20 @@ class StablecoinOperationsController extends Controller
         description: 'Bad request',
         content: new OA\JsonContent(ref: '#/components/schemas/Error')
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Stablecoin operators only (admin, super_admin, bank_admin, stablecoin_operator)'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'The demo ledger flag (ledger.direct_funding_enabled) is off'
+    )]
     public function executeAutoLiquidation(): JsonResponse
     {
-        /** @var Account|null $liquidator */
-        $liquidator = Auth::user()?->account;
-
         try {
-            $result = $this->liquidationService->liquidateEligiblePositions($liquidator);
+            // Staff-initiated liquidation: no liquidator reward is paid to the
+            // acting staff member (see liquidatePosition).
+            $result = $this->liquidationService->liquidateEligiblePositions(null);
 
             return response()->json(
                 [
@@ -737,6 +760,10 @@ class StablecoinOperationsController extends Controller
         ])),
         ])),
         ])
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Stablecoin operators only (admin, super_admin, bank_admin, stablecoin_operator)'
     )]
     public function getPositionsAtRisk(Request $request): JsonResponse
     {

@@ -7,9 +7,11 @@ namespace App\GraphQL\Mutations\Treasury;
 use App\Domain\Treasury\Models\AssetAllocation;
 use App\Domain\Treasury\Services\YieldOptimizationService;
 use App\Domain\Treasury\ValueObjects\RiskProfile;
+use App\Support\StaffRoles;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 
 class CreatePortfolioMutation
 {
@@ -27,6 +29,11 @@ class CreatePortfolioMutation
 
         if (! $user) {
             throw new AuthenticationException('Unauthenticated.');
+        }
+
+        // Asset allocations carry no owner, so only operators create them.
+        if (! StaffRoles::userHasAny($user, StaffRoles::OPERATORS)) {
+            throw new AuthorizationException('You are not authorized to create a portfolio.');
         }
 
         $riskProfile = new RiskProfile(

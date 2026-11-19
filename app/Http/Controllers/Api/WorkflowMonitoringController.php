@@ -50,6 +50,10 @@ class WorkflowMonitoringController extends Controller
         new OA\Property(property: 'stats', type: 'object', description: 'Workflow statistics'),
         ])
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
+    )]
     public function index(Request $request): JsonResponse
     {
         $request->validate(
@@ -147,6 +151,10 @@ class WorkflowMonitoringController extends Controller
         response: 404,
         description: 'Workflow not found'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
+    )]
     public function show(string $id): JsonResponse
     {
         $workflow = StoredWorkflow::with(
@@ -192,6 +200,10 @@ class WorkflowMonitoringController extends Controller
         new OA\Property(property: 'avg_execution_time', type: 'number'),
         ])
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
+    )]
     public function stats(): JsonResponse
     {
         return response()->json($this->getWorkflowStats());
@@ -228,6 +240,10 @@ class WorkflowMonitoringController extends Controller
     #[OA\Response(
         response: 400,
         description: 'Invalid status'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
     )]
     public function byStatus(string $status): JsonResponse
     {
@@ -284,6 +300,10 @@ class WorkflowMonitoringController extends Controller
         new OA\Property(property: 'recent_exceptions', type: 'integer'),
         ]),
         ])
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
     )]
     public function failed(): JsonResponse
     {
@@ -351,6 +371,10 @@ class WorkflowMonitoringController extends Controller
         new OA\Property(property: 'performance_metrics', type: 'object'),
         ])
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
+    )]
     public function metrics(): JsonResponse
     {
         $now = now();
@@ -411,6 +435,10 @@ class WorkflowMonitoringController extends Controller
     #[OA\Response(
         response: 422,
         description: 'Validation error'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
     )]
     public function search(Request $request): JsonResponse
     {
@@ -491,6 +519,10 @@ class WorkflowMonitoringController extends Controller
         new OA\Property(property: 'compensations_triggered', type: 'integer'),
         ]),
         ])
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
     )]
     public function compensations(): JsonResponse
     {

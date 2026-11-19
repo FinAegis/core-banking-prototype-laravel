@@ -138,6 +138,9 @@ class XssTest extends DomainTestCase
     #[DataProvider('xssPayloads')]
     public function test_webhook_configuration_is_protected_against_xss($payload)
     {
+        // Webhook management is limited to platform administrators.
+        $this->user->assignRole('admin');
+
         $response = $this->withToken($this->token)
             ->postJson('/api/v2/webhooks', [
                 'url'         => 'https://example.com/webhook',

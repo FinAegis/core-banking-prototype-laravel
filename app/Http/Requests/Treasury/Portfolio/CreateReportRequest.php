@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Treasury\Portfolio;
 
+use App\Support\StaffRoles;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -11,10 +12,9 @@ class CreateReportRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Check if user has treasury permissions or treasury API scope
-        return $this->user()->can('view-treasury-reports') ||
-               $this->user()->hasRole(['admin', 'treasury-manager', 'treasury-analyst', 'compliance-officer']) ||
-               $this->user()->tokenCan('treasury');
+        // Platform operators only. The old `tokenCan('treasury')` fallback
+        // passed for every session login (Sanctum TransientToken).
+        return StaffRoles::userHasAny($this->user(), StaffRoles::OPERATORS);
     }
 
     public function rules(): array

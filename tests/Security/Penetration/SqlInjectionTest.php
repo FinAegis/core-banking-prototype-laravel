@@ -189,6 +189,9 @@ class SqlInjectionTest extends DomainTestCase
     #[DataProvider('sqlInjectionPayloads')]
     public function test_webhook_endpoints_are_protected_against_sql_injection($payload)
     {
+        // Webhook management is limited to platform administrators.
+        $this->user->assignRole('admin');
+
         $response = $this->withToken($this->token)
             ->postJson('/api/v2/webhooks', [
                 'url'         => "https://example.com/webhook?param={$payload}",

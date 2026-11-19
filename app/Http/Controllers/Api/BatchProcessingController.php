@@ -218,6 +218,10 @@ class BatchProcessingController extends Controller
         response: 404,
         description: 'Batch operation not found'
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
+    )]
     public function getBatchStatus(string $batchId): JsonResponse
     {
         $batch = BatchJob::where('uuid', $batchId)->with('items')->first();
@@ -301,6 +305,10 @@ class BatchProcessingController extends Controller
         new OA\Property(property: 'offset', type: 'integer', example: 0),
         ]),
         ])
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
     )]
     public function getBatchHistory(Request $request): JsonResponse
     {
@@ -398,6 +406,10 @@ class BatchProcessingController extends Controller
         new OA\Property(property: 'compensation_required', type: 'boolean', example: true),
         ]),
         ])
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Forbidden - Admin access required'
     )]
     public function cancelBatch(Request $request, string $batchId): JsonResponse
     {

@@ -4,9 +4,13 @@ use App\Http\Controllers\API\Fraud\FraudCaseController;
 use App\Http\Controllers\API\Fraud\FraudDetectionController as FraudDetectionAPIController;
 use App\Http\Controllers\API\Fraud\FraudRuleController;
 use App\Http\Controllers\Api\FraudDetectionController;
+use App\Support\StaffRoles;
 use Illuminate\Support\Facades\Route;
+use Spatie\Permission\Middleware\RoleMiddleware;
 
-Route::middleware(['auth:sanctum'])->prefix('fraud')->group(function () {
+// Compliance staff only (StaffRoles::COMPLIANCE): fraud rules (conditions,
+// thresholds, blocking flags), scores, cases and statistics cover every user.
+Route::middleware(['auth:sanctum', RoleMiddleware::using(StaffRoles::COMPLIANCE)])->prefix('fraud')->group(function () {
     // Main fraud detection endpoints for tests - these come first to take precedence
     Route::get('dashboard', [FraudDetectionController::class, 'dashboard'])
         ->name('fraud.dashboard');
