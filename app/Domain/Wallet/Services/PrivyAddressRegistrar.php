@@ -12,6 +12,7 @@ use App\Domain\Wallet\Exceptions\AddressRegistrationRateLimitedException;
 use App\Domain\Wallet\Exceptions\AddressRegistrationRejectedException;
 use App\Domain\Wallet\Helpers\Crypto\Base58;
 use App\Models\User;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
@@ -196,16 +197,27 @@ class PrivyAddressRegistrar
             return $existing;
         }
 
-        return BlockchainAddress::create([
-            'user_uuid'       => $user->uuid,
-            'chain'           => $chain,
-            'address'         => $address,
-            'public_key'      => $address,
-            'is_active'       => true,
-            'label'           => $chain === 'solana' ? 'Privy Solana' : 'Privy Smart Account',
-            'derivation_path' => null,
-            'metadata'        => $metadata,
-        ]);
+        try {
+            return BlockchainAddress::create([
+                'user_uuid'       => $user->uuid,
+                'chain'           => $chain,
+                'address'         => $address,
+                'public_key'      => $address,
+                'is_active'       => true,
+                'label'           => $chain === 'solana' ? 'Privy Solana' : 'Privy Smart Account',
+                'derivation_path' => null,
+                'metadata'        => $metadata,
+            ]);
+        } catch (UniqueConstraintViolationException) {
+            // Another user's concurrent registration claimed the address
+            // between the look-up above and this insert (the per-user lock
+            // does not serialise different users). Same generic refusal.
+            $this->reject($user, 'claimed_concurrently', [
+                'chain'          => $chain,
+                'address'        => $address,
+                'privy_verified' => $privyVerified,
+            ]);
+        }
     }
 
     /**

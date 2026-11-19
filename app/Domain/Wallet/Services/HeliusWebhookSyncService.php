@@ -7,6 +7,7 @@ namespace App\Domain\Wallet\Services;
 use App\Domain\Account\Models\BlockchainAddress;
 use App\Domain\Wallet\Constants\ReservedAddresses;
 use App\Support\SecretRedactor;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
@@ -116,7 +117,12 @@ class HeliusWebhookSyncService
     /**
      * Sync all Solana addresses from the database to Helius.
      *
-     * Returns the count of addresses pushed on success, 0 on failure.
+     * Holds the same lock as the single-address updates and reads the
+     * database inside it, so an address added while the sync runs is never
+     * dropped by the full-list PUT.
+     *
+     * Returns the count of addresses pushed on success, 0 on failure
+     * (including when the lock cannot be taken).
      */
     public function syncAllAddresses(): int
     {
@@ -129,21 +135,29 @@ class HeliusWebhookSyncService
             return 0;
         }
 
-        $addresses = BlockchainAddress::where('chain', 'solana')
-            ->where('is_active', true)
-            ->pluck('address')
-            ->unique()
-            ->reject(fn (string $addr): bool => $this->isReservedAddress($addr))
-            ->values()
-            ->all();
+        try {
+            return (int) Cache::lock(self::LOCK_KEY, self::LOCK_TIMEOUT)->block(10, function () use ($webhookId, $apiKey): int {
+                $addresses = BlockchainAddress::where('chain', 'solana')
+                    ->where('is_active', true)
+                    ->pluck('address')
+                    ->unique()
+                    ->reject(fn (string $addr): bool => $this->isReservedAddress($addr))
+                    ->values()
+                    ->all();
 
-        if (! $this->updateWebhookAddresses($webhookId, $apiKey, $addresses)) {
+                if (! $this->updateWebhookAddresses($webhookId, $apiKey, $addresses)) {
+                    return 0;
+                }
+
+                Log::info('Helius: Synced all Solana addresses', ['count' => count($addresses)]);
+
+                return count($addresses);
+            });
+        } catch (LockTimeoutException) {
+            Log::warning('Helius: Full address sync skipped — another webhook update holds the lock');
+
             return 0;
         }
-
-        Log::info('Helius: Synced all Solana addresses', ['count' => count($addresses)]);
-
-        return count($addresses);
     }
 
     /**

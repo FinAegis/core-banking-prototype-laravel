@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Relayer\Exceptions;
 
+use App\Domain\Wallet\Exceptions\AddressRegistrationRejectedException;
 use Exception;
 
 /**
@@ -27,6 +28,17 @@ class SmartAccountException extends Exception
         public readonly int $httpStatusCode = 400,
     ) {
         parent::__construct($message);
+    }
+
+    /**
+     * The owner address cannot be used by this user: it belongs to another
+     * user's smart account, or the user is at the per-user owner-address cap.
+     * Same generic 422 INVALID_ADDRESS as POST /api/v1/wallet/addresses, so
+     * the endpoint is not an "is this owner a customer" oracle.
+     */
+    public static function ownerNotAllowed(): self
+    {
+        return new self(AddressRegistrationRejectedException::MESSAGE, 'INVALID_ADDRESS', 422);
     }
 
     public static function accountExists(string $ownerAddress, string $network): self

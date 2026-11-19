@@ -186,9 +186,11 @@ class ProcessAlchemyWebhookJob implements ShouldQueue
         $smartAccount = SmartAccount::where('account_address', $address)->first();
 
         if ($smartAccount !== null && $userId !== $smartAccount->user_id) {
+            // A smart account without a creation date does not take over a
+            // dated blockchain_addresses claim.
             $smartAccountIsOlder = $blockchainAddress === null
                 || $blockchainAddress->created_at === null
-                || $smartAccount->created_at->lte($blockchainAddress->created_at);
+                || ($smartAccount->created_at !== null && $smartAccount->created_at->lte($blockchainAddress->created_at));
 
             if ($userId !== null) {
                 Log::warning('Alchemy webhook: address claimed by two users, attributing to the earliest claim', [

@@ -132,6 +132,11 @@ return [
     | chain (the EVM address counts once for all EVM chains). A normal user
     | has exactly one; the headroom covers wallet migrations.
     |
+    | max_smart_account_owners: distinct owner addresses one user may create
+    | relayer smart accounts for (POST /api/v1/relayer/account and
+    | /api/v1/wallet/create-account). A normal user has one owner mirrored
+    | across the EVM networks.
+    |
     | max_new_claims_per_hour: registrations that add an address the user
     | does not hold yet (refused ones count too, so probing is bounded).
     |
@@ -145,6 +150,7 @@ return [
     'address_registration' => [
         'ownership_verification'                    => (string) env('WALLET_ADDRESS_OWNERSHIP_VERIFICATION', 'monitor'),
         'max_addresses_per_chain'                   => (int) env('WALLET_ADDRESS_MAX_PER_CHAIN', 3),
+        'max_smart_account_owners'                  => (int) env('WALLET_SMART_ACCOUNT_MAX_OWNERS', 3),
         'max_new_claims_per_hour'                   => (int) env('WALLET_ADDRESS_NEW_CLAIMS_PER_HOUR', 10),
         'inbound_side_effects_per_address_per_hour' => (int) env('WALLET_INBOUND_SIDE_EFFECTS_PER_ADDRESS_PER_HOUR', 120),
     ],

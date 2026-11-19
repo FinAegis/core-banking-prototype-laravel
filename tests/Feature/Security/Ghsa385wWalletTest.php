@@ -30,6 +30,7 @@ use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use Illuminate\Http\Client\Request as HttpRequest;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -223,6 +224,41 @@ function ghsa385wGlobalCount(): int
 function ghsa385wUserCount(User $user): int
 {
     return (int) Cache::get(SponsorshipBudget::perUserCountCacheKey($user->id), 0);
+}
+
+/**
+ * Run ops:verify-env --json and return one check by name.
+ *
+ * @return array{name: string, category: string, result: string, detail: string}
+ */
+function ghsa385wOpsCheck(string $name): array
+{
+    Artisan::call('ops:verify-env', ['--json' => true]);
+
+    /** @var array{checks: list<array{name: string, category: string, result: string, detail: string}>} $decoded */
+    $decoded = json_decode(Artisan::output(), true);
+
+    return collect($decoded['checks'])->keyBy('name')->get($name) ?? ['name' => $name, 'category' => '', 'result' => 'MISSING', 'detail' => ''];
+}
+
+/**
+ * Spy on the log to count Alchemy watch-list additions: with no notify
+ * token configured, AlchemyWebhookManager::addAddress() logs one debug line
+ * per address it is asked to watch. (The observer queues a closure, so the
+ * manager itself cannot be replaced with a mock.).
+ */
+function ghsa385wWatchSpy(): MockInterface
+{
+    config(['services.alchemy.notify_token' => '']);
+
+    return Log::spy();
+}
+
+function ghsa385wWatchAttempts(MockInterface $logSpy, int $times): void
+{
+    $logSpy->shouldHaveReceived('debug')
+        ->withArgs(fn (string $message): bool => str_contains($message, 'AlchemyWebhookManager: Skipped'))
+        ->times($times);
 }
 
 // ─── Mobile contract: a normal user is unaffected ───────────────────────────
@@ -1097,5 +1133,246 @@ describe('C63 wallet:reassign-address', function (): void {
             ]))->toBe(1);
 
         expect(BlockchainAddress::where('address', $solana)->value('user_uuid'))->toBe($squatter->uuid);
+    });
+});
+
+// ─── Review follow-ups (W1–W3) ───────────────────────────────────────────────
+
+describe('review W1 ownership verification rollout', function (): void {
+    it('warns in production while ownership verification does not enforce', function (string $mode): void {
+        config(['wallet.address_registration.ownership_verification' => $mode]);
+        app()->detectEnvironment(fn (): string => 'production');
+
+        $check = ghsa385wOpsCheck('wallet.address_registration.ownership_verification');
+
+        expect($check['result'])->toBe('WARN')
+            ->and($check['detail'])->toContain("WALLET_ADDRESS_OWNERSHIP_VERIFICATION={$mode}");
+    })->with(['monitor', 'off']);
+
+    it('passes enforce with the Privy server credentials and fails it without them', function (): void {
+        config([
+            'wallet.address_registration.ownership_verification' => 'enforce',
+            'privy.app_id'                                       => 'privy-app',
+            'privy.app_secret'                                   => 'privy-secret',
+        ]);
+        app()->detectEnvironment(fn (): string => 'production');
+
+        expect(ghsa385wOpsCheck('wallet.address_registration.ownership_verification')['result'])->toBe('PASS');
+
+        config(['privy.app_secret' => '']);
+        $check = ghsa385wOpsCheck('wallet.address_registration.ownership_verification');
+
+        expect($check['result'])->toBe('FAIL')
+            ->and($check['detail'])->toContain('PRIVY_APP_SECRET');
+    });
+
+    it('logs a monitor mismatch with the Privy wallets it was compared against', function (): void {
+        config(['wallet.address_registration.ownership_verification' => 'monitor']);
+        $user = User::factory()->create(['privy_user_id' => 'did:privy:monitored']);
+        $evm = ghsa385wEvm();
+        $solana = ghsa385wSolana();
+        $linkedEvm = ghsa385wEvm();
+        ghsa385wFakePrivy([ghsa385wPrivyUser([
+            ['type' => 'email', 'address' => 'm@example.com'],
+            ['type' => 'wallet', 'chain_type' => 'ethereum', 'address' => $linkedEvm, 'wallet_client_type' => 'privy'],
+            ['type' => 'wallet', 'chain_type' => 'solana', 'address' => $solana, 'wallet_client_type' => 'privy'],
+        ])]);
+        $logSpy = Log::spy();
+
+        ghsa385wRegister($this, $user, $evm, $solana)->assertStatus(201);
+
+        $logSpy->shouldHaveReceived('warning')
+            ->withArgs(function (string $message, array $context = []) use ($evm, $linkedEvm, $solana): bool {
+                return str_contains($message, 'is not a wallet of the caller')
+                    && ($context['privy_user_id'] ?? null) === 'did:privy:monitored'
+                    && ($context['claimed'] ?? null) === ['evm' => strtolower($evm), 'solana' => $solana]
+                    && ($context['unlinked'] ?? null) === ['evm' => strtolower($evm)]
+                    && ($context['linked_wallets'] ?? null) === [
+                        ['type' => 'wallet', 'chain_type' => 'ethereum', 'address' => $linkedEvm, 'wallet_client_type' => 'privy'],
+                        ['type' => 'wallet', 'chain_type' => 'solana', 'address' => $solana, 'wallet_client_type' => 'privy'],
+                    ]
+                    && ($context['linked_types'] ?? null) === ['email' => 1, 'wallet' => 2];
+            })
+            ->once();
+    });
+});
+
+describe('review W2 smart account owner cap', function (): void {
+    beforeEach(function (): void {
+        config(['wallet.address_registration.max_smart_account_owners' => 3]);
+    });
+
+    it('refuses a fourth distinct owner address with the registrar\'s generic 422 and never watches it', function (string $path): void {
+        $user = User::factory()->create();
+        $logSpy = ghsa385wWatchSpy();
+        Sanctum::actingAs($user, ['read', 'write', 'delete']);
+
+        foreach (range(1, 3) as $ignored) {
+            $this->postJson($path, ['owner_address' => ghsa385wEvm(), 'network' => 'polygon'])
+                ->assertOk()
+                ->assertJsonPath('success', true);
+        }
+
+        $this->postJson($path, ['owner_address' => ghsa385wEvm(), 'network' => 'polygon'])
+            ->assertStatus(422)
+            ->assertExactJson([
+                'success' => false,
+                'error'   => ['code' => 'INVALID_ADDRESS', 'message' => AddressRegistrationRejectedException::MESSAGE],
+            ]);
+
+        expect(SmartAccount::where('user_id', $user->id)->count())->toBe(3);
+        ghsa385wWatchAttempts($logSpy, 3);
+    })->with(['relayer' => ['/api/v1/relayer/account'], 'wallet alias' => ['/api/v1/wallet/create-account']]);
+
+    it('keeps serving an owner address the user already has, on any network', function (): void {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user, ['read', 'write', 'delete']);
+        $owners = [ghsa385wEvm(), ghsa385wEvm(), ghsa385wEvm()];
+
+        foreach ($owners as $owner) {
+            $this->postJson('/api/v1/relayer/account', ['owner_address' => $owner, 'network' => 'polygon'])->assertOk();
+        }
+
+        $this->postJson('/api/v1/relayer/account', ['owner_address' => $owners[0], 'network' => 'polygon'])
+            ->assertOk()
+            ->assertJsonPath('data.owner_address', strtolower($owners[0]));
+        $this->postJson('/api/v1/relayer/account', ['owner_address' => $owners[0], 'network' => 'base'])
+            ->assertOk()
+            ->assertJsonPath('data.owner_address', strtolower($owners[0]))
+            ->assertJsonPath('data.network', 'base');
+
+        expect(SmartAccount::where('user_id', $user->id)->count())->toBe(4);
+    });
+
+    it('does not hand out another user\'s smart account for their owner address', function (): void {
+        $owner = User::factory()->create();
+        $other = User::factory()->create();
+        $ownerAddress = ghsa385wEvm();
+
+        Sanctum::actingAs($owner, ['read', 'write', 'delete']);
+        $this->postJson('/api/v1/relayer/account', ['owner_address' => $ownerAddress, 'network' => 'polygon'])->assertOk();
+
+        Sanctum::actingAs($other, ['read', 'write', 'delete']);
+        $this->postJson('/api/v1/relayer/account', ['owner_address' => $ownerAddress, 'network' => 'polygon'])
+            ->assertStatus(422)
+            ->assertExactJson([
+                'success' => false,
+                'error'   => ['code' => 'INVALID_ADDRESS', 'message' => AddressRegistrationRejectedException::MESSAGE],
+            ]);
+
+        expect(SmartAccount::where('owner_address', strtolower($ownerAddress))->pluck('user_id')->all())->toBe([$owner->id]);
+    });
+
+    it('does not watch a smart account created past the cap by another path', function (): void {
+        $user = User::factory()->create();
+        $logSpy = ghsa385wWatchSpy();
+
+        $last = null;
+        foreach (range(1, 4) as $ignored) {
+            $last = SmartAccount::create([
+                'user_id'         => $user->id,
+                'owner_address'   => ghsa385wEvm(),
+                'account_address' => ghsa385wEvm(),
+                'network'         => 'polygon',
+            ]);
+        }
+
+        ghsa385wWatchAttempts($logSpy, 3);
+        $logSpy->shouldHaveReceived('warning')
+            ->withArgs(fn (string $message, array $context = []): bool => str_contains($message, 'over the owner-address cap')
+                && ($context['address'] ?? null) === $last?->account_address)
+            ->once();
+    });
+});
+
+describe('review W3 concurrency and null dates', function (): void {
+    it('answers a claim that loses the race to another user with the generic 422, not a 500', function (): void {
+        $winner = User::factory()->create();
+        $loser = User::factory()->create();
+        $solana = ghsa385wSolana();
+
+        // The other user's row lands between the loser's existence check and its insert.
+        BlockchainAddress::creating(function (BlockchainAddress $row) use ($loser, $winner, $solana): void {
+            if ($row->user_uuid === $loser->uuid && $row->address === $solana && ! BlockchainAddress::where('address', $solana)->exists()) {
+                DB::table('blockchain_addresses')->insert([
+                    'uuid'       => (string) Str::uuid(),
+                    'user_uuid'  => $winner->uuid,
+                    'chain'      => 'solana',
+                    'address'    => $solana,
+                    'public_key' => $solana,
+                    'is_active'  => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        });
+
+        ghsa385wRegister($this, $loser, ghsa385wEvm(), $solana)
+            ->assertStatus(422)
+            ->assertExactJson([
+                'success' => false,
+                'error'   => ['code' => 'INVALID_ADDRESS', 'message' => AddressRegistrationRejectedException::MESSAGE],
+            ]);
+
+        // The simulated winner row is written inside the loser's transaction
+        // here, so it is rolled back with it; the loser must end with nothing.
+        expect(ghsa385wRowCount($loser))->toBe(0);
+    });
+
+    it('does not run the full Helius sync while a single-address update holds the lock', function (): void {
+        // Created before Helius is configured, so the row's own watch-list add is skipped.
+        ghsa385wSolanaRow(User::factory()->create(), ghsa385wSolana());
+        config(['services.helius.webhook_id' => 'test-webhook-id', 'services.helius.api_key' => 'test-api-key']);
+        Http::fake(['https://api.helius.xyz/*' => Http::response(ghsa385wHeliusConfig([]), 200)]);
+
+        $lock = Cache::lock('helius_webhook_update_lock', 45);
+        expect($lock->get())->toBeTrue();
+
+        try {
+            expect(app(HeliusWebhookSyncService::class)->syncAllAddresses())->toBe(0);
+        } finally {
+            $lock->release();
+        }
+
+        Http::assertNothingSent();
+    });
+
+    it('still runs the full Helius sync with the current database list once the lock is free', function (): void {
+        $address = ghsa385wSolana();
+        ghsa385wSolanaRow(User::factory()->create(), $address);
+        config(['services.helius.webhook_id' => 'test-webhook-id', 'services.helius.api_key' => 'test-api-key']);
+        Http::fake(['https://api.helius.xyz/*' => Http::response(ghsa385wHeliusConfig([]), 200)]);
+
+        expect(app(HeliusWebhookSyncService::class)->syncAllAddresses())->toBe(1);
+
+        Http::assertSentCount(2);
+        Http::assertSent(fn (HttpRequest $r): bool => $r->method() === 'PUT'
+            && ($r->data()['accountAddresses'] ?? null) === [$address]);
+    });
+
+    it('attributes an address to the blockchain_addresses claim when the smart account has no creation date', function (): void {
+        $holder = User::factory()->create();
+        $other = User::factory()->create();
+        $smart = ghsa385wEvm();
+
+        $account = SmartAccount::create([
+            'user_id'         => $other->id,
+            'owner_address'   => ghsa385wEvm(),
+            'account_address' => $smart,
+            'network'         => 'polygon',
+        ]);
+        SmartAccount::query()->whereKey($account->getKey())->update(['created_at' => null]);
+
+        BlockchainAddress::create([
+            'user_uuid'  => $holder->uuid,
+            'chain'      => 'polygon',
+            'address'    => $smart,
+            'public_key' => $smart,
+            'is_active'  => true,
+        ]);
+
+        $resolve = new ReflectionMethod(ProcessAlchemyWebhookJob::class, 'resolveUserId');
+
+        expect($resolve->invoke(new ProcessAlchemyWebhookJob([]), $smart))->toBe($holder->id);
     });
 });

@@ -117,13 +117,24 @@ class PrivyWalletOwnershipVerifier
         }
 
         if ($unlinked === []) {
+            Log::info('wallet.addresses: wallet ownership verified against Privy', [
+                'user_uuid' => $user->uuid,
+                'mode'      => $mode,
+            ]);
+
             return true;
         }
 
+        // Enough context to tell a real mismatch from a Privy response shape
+        // this check does not understand yet, before switching to enforce.
         Log::warning('wallet.addresses: submitted address is not a wallet of the caller\'s Privy account', [
-            'user_uuid' => $user->uuid,
-            'mode'      => $mode,
-            'unlinked'  => $unlinked,
+            'user_uuid'      => $user->uuid,
+            'privy_user_id'  => $privyUserId,
+            'mode'           => $mode,
+            'unlinked'       => $unlinked,
+            'claimed'        => ['evm' => $evmAddress, 'solana' => $solanaAddress],
+            'linked_wallets' => $this->walletSummary($linkedAccounts),
+            'linked_types'   => $this->typeCounts($linkedAccounts),
         ]);
 
         if ($enforce) {
@@ -131,6 +142,57 @@ class PrivyWalletOwnershipVerifier
         }
 
         return false;
+    }
+
+    /**
+     * The wallet-like linked accounts (public addresses and their kind) for
+     * the mismatch log; at most 10 entries.
+     *
+     * @param  array<int, array<string, mixed>> $linkedAccounts
+     * @return list<array<string, string>>
+     */
+    private function walletSummary(array $linkedAccounts): array
+    {
+        $summary = [];
+
+        foreach ($linkedAccounts as $account) {
+            $type = $account['type'] ?? null;
+
+            if (! is_string($type) || ! str_contains($type, 'wallet')) {
+                continue;
+            }
+
+            $entry = [];
+            foreach (['type', 'chain_type', 'address', 'wallet_client_type', 'connector_type', 'smart_wallet_type'] as $field) {
+                if (is_string($account[$field] ?? null)) {
+                    $entry[$field] = $account[$field];
+                }
+            }
+
+            $summary[] = $entry;
+
+            if (count($summary) >= 10) {
+                break;
+            }
+        }
+
+        return $summary;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>> $linkedAccounts
+     * @return array<string, int>
+     */
+    private function typeCounts(array $linkedAccounts): array
+    {
+        $counts = [];
+
+        foreach ($linkedAccounts as $account) {
+            $type = is_string($account['type'] ?? null) ? $account['type'] : 'unknown';
+            $counts[$type] = ($counts[$type] ?? 0) + 1;
+        }
+
+        return $counts;
     }
 
     /**
