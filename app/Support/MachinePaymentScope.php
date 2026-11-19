@@ -40,7 +40,11 @@ final class MachinePaymentScope
             return $query->whereRaw('1 = 0');
         }
 
-        return $query->where($query->getModel()->getTable() . '.team_id', $teamId);
+        // Table-qualified columns go to the base query builder (Eloquent's
+        // where() forwards a string column to it unchanged).
+        $query->getQuery()->where($query->getModel()->getTable() . '.team_id', $teamId);
+
+        return $query;
     }
 
     /**
@@ -60,14 +64,20 @@ final class MachinePaymentScope
         $table = $query->getModel()->getTable();
 
         if ($owner['team_id'] !== null) {
-            return $query->where("{$table}.team_id", $owner['team_id']);
+            $query->getQuery()->where("{$table}.team_id", $owner['team_id']);
+
+            return $query;
         }
 
         $query->whereNull("{$table}.team_id");
 
-        return $owner['user_id'] !== null
-            ? $query->where("{$table}.user_id", $owner['user_id'])
-            : $query->whereNull("{$table}.user_id");
+        if ($owner['user_id'] !== null) {
+            $query->getQuery()->where("{$table}.user_id", $owner['user_id']);
+
+            return $query;
+        }
+
+        return $query->whereNull("{$table}.user_id");
     }
 
     /**

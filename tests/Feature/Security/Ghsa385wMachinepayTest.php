@@ -118,7 +118,8 @@ function ghsaMpX402Payment(?int $teamId, string $amount = '1000000'): X402Paymen
  */
 function ghsaMpEndpoint(?int $teamId, array $overrides = []): X402MonetizedEndpoint
 {
-    return X402MonetizedEndpoint::create(array_merge([
+    $model = new X402MonetizedEndpoint();
+    $model->fill(array_merge([
         'method'    => 'GET',
         'path'      => '/api/v1/premium/' . Str::random(6),
         'price'     => '0.01',
@@ -126,6 +127,9 @@ function ghsaMpEndpoint(?int $teamId, array $overrides = []): X402MonetizedEndpo
         'is_active' => true,
         'team_id'   => $teamId,
     ], $overrides));
+    $model->save();
+
+    return $model;
 }
 
 /**
@@ -133,7 +137,8 @@ function ghsaMpEndpoint(?int $teamId, array $overrides = []): X402MonetizedEndpo
  */
 function ghsaMpX402Limit(string $agentId, ?int $teamId, ?int $userId, array $overrides = []): X402SpendingLimit
 {
-    return X402SpendingLimit::create(array_merge([
+    $model = new X402SpendingLimit();
+    $model->fill(array_merge([
         'agent_id'              => $agentId,
         'agent_type'            => 'ai',
         'daily_limit'           => '1000',
@@ -144,6 +149,9 @@ function ghsaMpX402Limit(string $agentId, ?int $teamId, ?int $userId, array $ove
         'team_id'               => $teamId,
         'user_id'               => $userId,
     ], $overrides));
+    $model->save();
+
+    return $model;
 }
 
 /**
@@ -151,7 +159,8 @@ function ghsaMpX402Limit(string $agentId, ?int $teamId, ?int $userId, array $ove
  */
 function ghsaMpMppLimit(string $agentId, ?int $teamId, ?int $userId, array $overrides = []): MppSpendingLimit
 {
-    return MppSpendingLimit::create(array_merge([
+    $model = new MppSpendingLimit();
+    $model->fill(array_merge([
         'agent_id'     => $agentId,
         'daily_limit'  => 5000,
         'per_tx_limit' => 100,
@@ -161,6 +170,9 @@ function ghsaMpMppLimit(string $agentId, ?int $teamId, ?int $userId, array $over
         'team_id'      => $teamId,
         'user_id'      => $userId,
     ], $overrides));
+    $model->save();
+
+    return $model;
 }
 
 /**
@@ -480,8 +492,8 @@ describe('Review M1 monetized endpoint prices belong to administrators', functio
         ');
 
         expect($json)->not->toHaveKey('errors')
-            ->and(X402MonetizedEndpoint::query()->find($id)?->created_by_user_id)->toBe($admin->id)
-            ->and(X402MonetizedEndpoint::query()->find($json['data']['createX402MonetizedEndpoint']['id'])?->created_by_user_id)->toBe($admin->id);
+            ->and(X402MonetizedEndpoint::query()->whereKey($id)->first()?->created_by_user_id)->toBe($admin->id)
+            ->and(X402MonetizedEndpoint::query()->whereKey($json['data']['createX402MonetizedEndpoint']['id'])->first()?->created_by_user_id)->toBe($admin->id);
     });
 
     it('refuses a second active price for the same method and path, whatever the team', function (): void {
@@ -517,7 +529,7 @@ describe('Review M1 monetized endpoint prices belong to administrators', functio
         ', ['id' => $id]);
 
         expect($json['errors'][0]['message'] ?? null)->toBe(GHSA_MP_DUPLICATE_ROUTE)
-            ->and(X402MonetizedEndpoint::query()->find($id)?->is_active)->toBeFalse();
+            ->and(X402MonetizedEndpoint::query()->whereKey($id)->first()?->is_active)->toBeFalse();
     });
 
     it('prices a route from an administrator\'s row before an older row without a creator', function (): void {

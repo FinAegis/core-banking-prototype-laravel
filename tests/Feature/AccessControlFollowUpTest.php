@@ -916,7 +916,8 @@ describe('MPP client spending limits', function (): void {
      */
     function acfMppLimit(string $agentId, ?int $teamId, array $attributes = []): MppSpendingLimit
     {
-        return MppSpendingLimit::create(array_merge([
+        $model = new MppSpendingLimit();
+        $model->fill(array_merge([
             'agent_id'     => $agentId,
             'daily_limit'  => 5000,
             'per_tx_limit' => 100,
@@ -925,6 +926,9 @@ describe('MPP client spending limits', function (): void {
             'last_reset'   => gmdate('Y-m-d'),
             'team_id'      => $teamId,
         ], $attributes));
+        $model->save();
+
+        return $model;
     }
 
     it('applies and charges the limit stored under the caller\'s team', function (): void {

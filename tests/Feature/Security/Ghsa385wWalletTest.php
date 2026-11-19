@@ -1280,7 +1280,7 @@ describe('review W2 smart account owner cap', function (): void {
         ghsa385wWatchAttempts($logSpy, 3);
         $logSpy->shouldHaveReceived('warning')
             ->withArgs(fn (string $message, array $context = []): bool => str_contains($message, 'over the owner-address cap')
-                && ($context['address'] ?? null) === $last?->account_address)
+                && ($context['address'] ?? null) === $last->account_address)
             ->once();
     });
 });

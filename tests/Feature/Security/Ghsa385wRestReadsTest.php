@@ -904,10 +904,7 @@ describe('C37 TrustCert holder checks', function (): void {
  * production request (the trait skips the scope only while running the
  * test suite).
  *
- * @template T
- *
- * @param  Closure(): T  $callback
- * @return T
+ * @param  Closure(): mixed  $callback
  */
 function ghsaRrWithTeamScope(Closure $callback): mixed
 {

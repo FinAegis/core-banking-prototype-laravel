@@ -735,7 +735,7 @@ describe('Review A1: MCP payment.status answers only for the signed-in user', fu
     });
 });
 
-function ghsaAgentsTradeStub(): MockInterface
+function ghsaAgentsTradeStub(): MCPToolInterface&MockInterface
 {
     /** @var MCPToolInterface&MockInterface $stub */
     $stub = Mockery::mock(MCPToolInterface::class);

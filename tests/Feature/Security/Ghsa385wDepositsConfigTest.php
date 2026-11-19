@@ -236,10 +236,10 @@ function ghsaDcStoredWorkflows(): int
 function ghsaDcRunDepositActivity(string $activityClass, string $workflowClass, array $arguments, ?string $parentClass = null): mixed
 {
     $now = now()->format('Y-m-d\TH:i:s.u\Z');
-    $stored = StoredWorkflow::query()->findOrFail(WorkflowStub::make($workflowClass)->id());
+    $stored = StoredWorkflow::query()->whereKey(WorkflowStub::make($workflowClass)->id())->firstOrFail();
 
     if ($parentClass !== null) {
-        $parent = StoredWorkflow::query()->findOrFail(WorkflowStub::make($parentClass)->id());
+        $parent = StoredWorkflow::query()->whereKey(WorkflowStub::make($parentClass)->id())->firstOrFail();
         $stored->parents()->attach($parent, ['parent_index' => 0, 'parent_now' => $now]);
     }
 

@@ -152,8 +152,10 @@ final class OwnedByUser
             ->where('is_active', true);
 
         return $builder->where(function (Builder $query) use ($userId, $table, $signedWallets): void {
-            $query->where("{$table}.user_id", $userId)
-                ->orWhereIn("{$table}.id", $signedWallets);
+            // Table-qualified columns go to the base query builder (Eloquent's
+            // where() forwards a string column to it unchanged).
+            $query->getQuery()->where("{$table}.user_id", $userId);
+            $query->orWhereIn("{$table}.id", $signedWallets);
         });
     }
 

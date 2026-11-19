@@ -469,7 +469,7 @@ describe('team invitation throttling', function (): void {
 
         $invite->invite($second, $secondTeam, 'target@example.com', 'admin');
         Mail::assertSent(TeamInvitation::class, 3);
-        expect($secondTeam->teamInvitations()->where('email', 'target@example.com')->exists())->toBeTrue();
+        expect(TeamInvitationModel::query()->where('team_id', $secondTeam->id)->where('email', 'target@example.com')->exists())->toBeTrue();
     });
 
     it('renders Markdown link syntax in the team name as plain text', function (): void {

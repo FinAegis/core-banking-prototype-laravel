@@ -367,10 +367,11 @@ describe('C35 microfinance collection sheets', function (): void {
     it('never returns an internal error message from collection-sheet generation', function (): void {
         Sanctum::actingAs(g385User('bank_admin'), ['read', 'write', 'delete']);
 
-        $this->mock(FieldOfficerService::class, function (MockInterface $mock): void {
-            $mock->shouldReceive('generateCollectionSheet')
-                ->andThrow(new ErrorException('SQLSTATE[HY000]: internal detail in /var/www/app/Secret.php'));
-        });
+        /** @var FieldOfficerService&MockInterface $officers */
+        $officers = Mockery::mock(FieldOfficerService::class);
+        $officers->shouldReceive('generateCollectionSheet')
+            ->andThrow(new ErrorException('SQLSTATE[HY000]: internal detail in /var/www/app/Secret.php'));
+        app()->instance(FieldOfficerService::class, $officers);
 
         $this->postJson('/api/v1/microfinance/collection-sheets', [
             'officer_id'      => $this->officer->id,
@@ -530,9 +531,10 @@ describe('GraphQL createPortfolio', function (): void {
     $input = ['asset_class' => 'g385_fixed_income', 'target_weight' => 40.0, 'target_amount' => 1000.0];
 
     it('is refused to a user who is not an operator and creates nothing', function () use ($mutation, $input): void {
-        $this->mock(YieldOptimizationService::class, function (MockInterface $mock): void {
-            $mock->shouldNotReceive('optimizePortfolio');
-        });
+        /** @var YieldOptimizationService&MockInterface $yield */
+        $yield = Mockery::mock(YieldOptimizationService::class);
+        $yield->shouldNotReceive('optimizePortfolio');
+        app()->instance(YieldOptimizationService::class, $yield);
 
         $json = $this->actingAs(g385User(), 'sanctum')
             ->postJson('/graphql', ['query' => $mutation, 'variables' => ['input' => $input]])
@@ -548,9 +550,10 @@ describe('GraphQL createPortfolio', function (): void {
     // (Storing the allocation row fails on its own, before and after this
     // change: the model uses HasUuids on an integer id column.)
     it('lets platform operators through', function (string $role) use ($mutation, $input): void {
-        $this->mock(YieldOptimizationService::class, function (MockInterface $mock): void {
-            $mock->shouldReceive('optimizePortfolio')->once()->andReturn([]);
-        });
+        /** @var YieldOptimizationService&MockInterface $yield */
+        $yield = Mockery::mock(YieldOptimizationService::class);
+        $yield->shouldReceive('optimizePortfolio')->once()->andReturn([]);
+        app()->instance(YieldOptimizationService::class, $yield);
 
         $json = $this->actingAs(g385User($role), 'sanctum')
             ->postJson('/graphql', ['query' => $mutation, 'variables' => ['input' => $input]])

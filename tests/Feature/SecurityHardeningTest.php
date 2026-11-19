@@ -1092,13 +1092,15 @@ describe('REST custodian transfer', function (): void {
         $owner = User::factory()->create();
         $account = Account::factory()->create(['user_uuid' => $owner->uuid]);
         if ($link !== null) {
-            CustodianAccount::create(array_merge([
+            $custodianAccount = new CustodianAccount();
+            $custodianAccount->fill(array_merge([
                 'account_uuid'         => $account->uuid,
                 'custodian_name'       => 'mock',
                 'custodian_account_id' => 'mock-account-1',
                 'status'               => 'active',
                 'is_primary'           => true,
             ], $link));
+            $custodianAccount->save();
         }
         Sanctum::actingAs($owner, ['read', 'write', 'delete']);
 

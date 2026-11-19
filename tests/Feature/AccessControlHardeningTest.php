@@ -1100,7 +1100,8 @@ describe('GraphQL mutations on platform records', function (): void {
  */
 function achPoll(User $creator, array $overrides = []): Poll
 {
-    return Poll::create(array_merge([
+    $model = new Poll();
+    $model->fill(array_merge([
         'uuid'        => Str::uuid()->toString(),
         'title'       => 'Access poll',
         'description' => 'x',
@@ -1116,4 +1117,7 @@ function achPoll(User $creator, array $overrides = []): Poll
         'required_participation' => 0,
         'voting_power_strategy'  => 'one_user_one_vote',
     ], $overrides));
+    $model->save();
+
+    return $model;
 }
