@@ -461,6 +461,114 @@ describe('C24/C25 monetized endpoints', function (): void {
 });
 
 // ---------------------------------------------------------------------------
+// Review M1: prices are the administrators' (creator recorded, one active row
+// per route, legacy rows without a creator deactivated on upgrade)
+// ---------------------------------------------------------------------------
+
+const GHSA_MP_DUPLICATE_ROUTE = 'This method and path already has an active price. Update that price, or deactivate it first.';
+
+describe('Review M1 monetized endpoint prices belong to administrators', function (): void {
+    it('records the administrator who creates a price over REST and GraphQL', function (): void {
+        $admin = ghsaMpAdmin();
+        ghsaMpActAs($admin);
+
+        $id = $this->postJson('/api/v1/x402/endpoints', ['method' => 'GET', 'path' => '/api/v1/m1/rest', 'price' => '0.01'])
+            ->assertCreated()
+            ->json('data.id');
+        $json = ghsaMpGraphql($this, $admin, '
+            mutation { createX402MonetizedEndpoint(input: {method: "GET", path: "/api/v1/m1/graphql", price: "0.02"}) { id } }
+        ');
+
+        expect($json)->not->toHaveKey('errors')
+            ->and(X402MonetizedEndpoint::query()->find($id)?->created_by_user_id)->toBe($admin->id)
+            ->and(X402MonetizedEndpoint::query()->find($json['data']['createX402MonetizedEndpoint']['id'])?->created_by_user_id)->toBe($admin->id);
+    });
+
+    it('refuses a second active price for the same method and path, whatever the team', function (): void {
+        $legacy = ghsaMpEndpoint(ghsaMpTeamId(ghsaMpTeamUser()), ['method' => 'POST', 'path' => '/api/v1/sms/send', 'price' => '0.000001']);
+        $admin = ghsaMpAdmin();
+        ghsaMpActAs($admin);
+
+        $this->postJson('/api/v1/x402/endpoints', ['method' => 'POST', 'path' => '/api/v1/sms/send', 'price' => '0.05'])
+            ->assertStatus(422)
+            ->assertJsonPath('errors.path.0', GHSA_MP_DUPLICATE_ROUTE);
+        $json = ghsaMpGraphql($this, $admin, '
+            mutation { createX402MonetizedEndpoint(input: {method: "POST", path: "/api/v1/sms/send", price: "0.05"}) { id } }
+        ');
+
+        expect($json['errors'][0]['message'] ?? null)->toBe(GHSA_MP_DUPLICATE_ROUTE)
+            ->and(X402MonetizedEndpoint::query()->forRoute('POST', '/api/v1/sms/send')->pluck('id')->all())->toBe([$legacy->id]);
+    });
+
+    it('lets an administrator add an inactive price for a priced route, but not activate it while another is active', function (): void {
+        ghsaMpEndpoint(null, ['method' => 'GET', 'path' => '/api/v1/m1/dup', 'price' => '0.10']);
+        $admin = ghsaMpAdmin();
+        ghsaMpActAs($admin);
+
+        $id = $this->postJson('/api/v1/x402/endpoints', ['method' => 'GET', 'path' => '/api/v1/m1/dup', 'price' => '0.20', 'is_active' => false])
+            ->assertCreated()
+            ->json('data.id');
+
+        $this->putJson("/api/v1/x402/endpoints/{$id}", ['is_active' => true])
+            ->assertStatus(422)
+            ->assertJsonPath('errors.is_active.0', GHSA_MP_DUPLICATE_ROUTE);
+        $json = ghsaMpGraphql($this, $admin, '
+            mutation($id: ID!) { updateX402MonetizedEndpoint(id: $id, input: {is_active: true}) { id } }
+        ', ['id' => $id]);
+
+        expect($json['errors'][0]['message'] ?? null)->toBe(GHSA_MP_DUPLICATE_ROUTE)
+            ->and(X402MonetizedEndpoint::query()->find($id)?->is_active)->toBeFalse();
+    });
+
+    it('prices a route from an administrator\'s row before an older row without a creator', function (): void {
+        config(['x402.enabled' => true]);
+        $admin = ghsaMpAdmin();
+        $legacy = ghsaMpEndpoint(null, ['method' => 'GET', 'path' => '/api/v1/m1/priced', 'price' => '0.000001']);
+        $legacy->forceFill(['created_at' => now()->subDay()])->save();
+        $adminRow = ghsaMpEndpoint(ghsaMpTeamId($admin), ['method' => 'GET', 'path' => '/api/v1/m1/priced', 'price' => '0.25']);
+        $adminRow->forceFill(['created_by_user_id' => $admin->id])->save();
+
+        $config = app(X402PricingService::class)->getRouteConfig(Request::create('/api/v1/m1/priced', 'GET'));
+
+        expect($config?->price)->toBe('0.25');
+    });
+
+    it('records the administrator who updates a price that has no creator', function (string $via): void {
+        config(['x402.enabled' => true]);
+        $legacy = ghsaMpEndpoint(null, ['method' => 'GET', 'path' => '/api/v1/m1/legacy', 'price' => '0.30', 'is_active' => false]);
+        $admin = ghsaMpAdmin();
+
+        if ($via === 'REST') {
+            ghsaMpActAs($admin);
+            $this->putJson("/api/v1/x402/endpoints/{$legacy->id}", ['is_active' => true])->assertOk();
+        } else {
+            $json = ghsaMpGraphql($this, $admin, '
+                mutation($id: ID!) { updateX402MonetizedEndpoint(id: $id, input: {is_active: true}) { id } }
+            ', ['id' => $legacy->id]);
+            expect($json)->not->toHaveKey('errors');
+        }
+
+        expect($legacy->fresh()?->created_by_user_id)->toBe($admin->id)
+            ->and(app(X402PricingService::class)->getRouteConfig(Request::create('/api/v1/m1/legacy', 'GET'))?->price)->toBe('0.30');
+    })->with(['REST', 'GraphQL']);
+
+    it('deactivates the price rows without a creator on upgrade and keeps the administrators\' rows', function (): void {
+        $admin = ghsaMpAdmin();
+        $legacy = ghsaMpEndpoint(ghsaMpTeamId(ghsaMpTeamUser()), ['method' => 'POST', 'path' => '/api/v1/sms/send', 'price' => '0.000001']);
+        $platform = ghsaMpEndpoint(null, ['path' => '/api/v1/m1/platform']);
+        $adminRow = ghsaMpEndpoint(ghsaMpTeamId($admin), ['path' => '/api/v1/m1/admin']);
+        $adminRow->forceFill(['created_by_user_id' => $admin->id])->save();
+
+        $migration = require base_path('database/migrations/2026_11_19_000001_add_created_by_user_id_to_x402_monetized_endpoints_table.php');
+        $migration->up();
+
+        expect($legacy->fresh()?->is_active)->toBeFalse()
+            ->and($platform->fresh()?->is_active)->toBeFalse()
+            ->and($adminRow->fresh()?->is_active)->toBeTrue();
+    });
+});
+
+// ---------------------------------------------------------------------------
 // C36: spending limits of callers without a team
 // ---------------------------------------------------------------------------
 

@@ -6,6 +6,7 @@ namespace App\GraphQL\Mutations\X402;
 
 use App\Domain\X402\Models\X402MonetizedEndpoint;
 use App\Support\StaffRoles;
+use GraphQL\Error\Error;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Nuwave\Lighthouse\Exceptions\AuthorizationException;
@@ -37,7 +38,17 @@ class UpdateX402MonetizedEndpointMutation
             }
         }
 
-        $endpoint->update($updateData);
+        // Activating a price is refused while another row prices the route.
+        $activates = array_key_exists('is_active', $updateData) && (bool) $updateData['is_active'] && ! $endpoint->is_active;
+        if ($activates && X402MonetizedEndpoint::activeRouteExists($endpoint->method, $endpoint->path, $endpoint->id)) {
+            throw new Error(X402MonetizedEndpoint::DUPLICATE_ROUTE_MESSAGE);
+        }
+
+        $endpoint->fill($updateData);
+        // An administrator's update vouches for a row written before prices
+        // became admin-only.
+        $endpoint->created_by_user_id ??= Auth::id() === null ? null : (int) Auth::id();
+        $endpoint->save();
 
         Cache::forget($oldCacheKey);
         Cache::forget("x402:route:{$endpoint->method}:{$endpoint->path}");

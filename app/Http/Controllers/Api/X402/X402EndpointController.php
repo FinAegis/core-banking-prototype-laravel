@@ -126,15 +126,24 @@ class X402EndpointController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $endpoint = X402MonetizedEndpoint::create([
+        // One active price per method and path: the gate looks prices up by
+        // route, whatever the team.
+        $isActive = $request->boolean('is_active', true);
+        if ($isActive && X402MonetizedEndpoint::activeRouteExists((string) $request->input('method'), (string) $request->input('path'))) {
+            return response()->json(['errors' => ['path' => [X402MonetizedEndpoint::DUPLICATE_ROUTE_MESSAGE]]], 422);
+        }
+
+        $endpoint = new X402MonetizedEndpoint([
             'method'      => $request->input('method'),
             'path'        => $request->input('path'),
             'price'       => $request->input('price'),
             'network'     => $request->input('network', config('x402.server.default_network')),
             'description' => $request->input('description'),
-            'is_active'   => $request->boolean('is_active', true),
+            'is_active'   => $isActive,
             'team_id'     => $request->user()?->currentTeam?->id,
         ]);
+        $endpoint->created_by_user_id = $request->user()?->id;
+        $endpoint->save();
 
         Cache::forget("x402:route:{$endpoint->method}:{$endpoint->path}");
 
@@ -241,9 +250,22 @@ class X402EndpointController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        /** @var array<string, mixed> $validated */
+        $validated = $validator->validated();
+
+        // Activating a price is refused while another row prices the route.
+        $activates = array_key_exists('is_active', $validated) && (bool) $validated['is_active'] && ! $endpoint->is_active;
+        if ($activates && X402MonetizedEndpoint::activeRouteExists($endpoint->method, $endpoint->path, $endpoint->id)) {
+            return response()->json(['errors' => ['is_active' => [X402MonetizedEndpoint::DUPLICATE_ROUTE_MESSAGE]]], 422);
+        }
+
         $oldCacheKey = "x402:route:{$endpoint->method}:{$endpoint->path}";
 
-        $endpoint->update($validator->validated());
+        $endpoint->fill($validated);
+        // An administrator's update vouches for a row written before prices
+        // became admin-only.
+        $endpoint->created_by_user_id ??= $request->user()?->id;
+        $endpoint->save();
         $endpoint->refresh();
 
         Cache::forget($oldCacheKey);
