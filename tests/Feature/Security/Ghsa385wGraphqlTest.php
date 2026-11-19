@@ -2,17 +2,21 @@
 
 declare(strict_types=1);
 
+use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Models\Account;
+use App\Domain\Asset\Models\Asset;
 use App\Domain\CardIssuance\Enums\CardNetwork;
 use App\Domain\CardIssuance\Enums\CardStatus;
 use App\Domain\CardIssuance\Services\CardProvisioningService;
 use App\Domain\CardIssuance\ValueObjects\VirtualCard;
 use App\Domain\Custodian\Models\CustodianAccount;
+use App\Domain\Custodian\Models\CustodianTransfer;
 use App\Domain\Custodian\Models\CustodianWebhook;
 use App\Domain\Custodian\Services\CustodianAccountService;
 use App\Domain\FinancialInstitution\Models\FinancialInstitutionApplication;
 use App\Domain\FinancialInstitution\Models\FinancialInstitutionPartner;
 use App\Domain\Fraud\Models\FraudCase;
+use App\Domain\Fraud\Services\FraudCaseService;
 use App\Domain\Ledger\Enums\AccountType;
 use App\Domain\Ledger\Services\ChartOfAccountsService;
 use App\Domain\Regulatory\Models\RegulatoryReport;
@@ -125,6 +129,38 @@ function g385wWithTeamScope(Closure $callback): mixed
     } finally {
         app()->instance('env', $previous);
     }
+}
+
+/**
+ * Query and Mutation type blocks of a GraphQL SDL file, plain (`type Query`)
+ * or extensions, with the directives on one line or several.
+ *
+ * Returns one [type, header] pair per block, where header is everything
+ * between the type name and the opening brace (the block's directives),
+ * and the number of Query / Mutation type declarations in the file, so a
+ * block the pattern cannot read fails the check instead of being skipped.
+ *
+ * @return array{0: list<array{0: string, 1: string}>, 1: int}
+ */
+function g385wSchemaBlocks(string $sdl): array
+{
+    // Descriptions and comments are not declarations.
+    $sdl = (string) preg_replace(['/"""[\s\S]*?"""/', '/#[^\n]*/'], '', $sdl);
+
+    preg_match_all(
+        '/^[ \t]*(?:extend[ \t]+)?type[ \t]+(Query|Mutation)\b((?:(?!\b(?:type|input|enum|interface|union|scalar|extend)\b)[^{}])*)\{/m',
+        $sdl,
+        $matches,
+        PREG_SET_ORDER
+    );
+    $blocks = array_map(static fn (array $match): array => [$match[1], $match[2]], $matches);
+
+    return [$blocks, (int) preg_match_all('/(?<![\w"])type\s+(?:Query|Mutation)\b/', $sdl)];
+}
+
+function g385wDeclaresModule(string $header, string $domain): bool
+{
+    return preg_match('/@module\(\s*name:\s*"' . preg_quote($domain, '/') . '"\s*\)/', $header) === 1;
 }
 
 function g385wRegulatoryReport(string $type = 'SAR'): RegulatoryReport
@@ -406,13 +442,14 @@ describe('C22 / C31 MODULES_DISABLED covers every GraphQL query and mutation of 
             }
             $domain = $domains[$key];
 
-            preg_match_all('/^extend type (Query|Mutation)\b([^{\n]*)\{/m', (string) file_get_contents($path), $blocks, PREG_SET_ORDER);
-            expect($blocks)->not->toBeEmpty(basename($path) . ' declares no Query or Mutation block');
+            [$blocks, $declared] = g385wSchemaBlocks((string) file_get_contents($path));
+            expect($blocks)->not->toBeEmpty(basename($path) . ' declares no Query or Mutation block')
+                ->and(count($blocks))->toBe($declared, basename($path) . ' has a Query or Mutation block the check cannot read');
 
-            foreach ($blocks as $block) {
-                expect(str_contains($block[2], '@module(name: "' . $domain . '")'))
-                    ->toBeTrue(basename($path) . " extend type {$block[1]} has no @module(name: \"{$domain}\")");
-                $checked[$domain][] = $block[1];
+            foreach ($blocks as [$type, $header]) {
+                expect(g385wDeclaresModule($header, $domain))
+                    ->toBeTrue(basename($path) . " type {$type} has no @module(name: \"{$domain}\")");
+                $checked[$domain][] = $type;
             }
         }
 
@@ -428,6 +465,42 @@ describe('C22 / C31 MODULES_DISABLED covers every GraphQL query and mutation of 
             expect($checked)->toHaveKey($domain);
         }
         expect(count($checked))->toBeGreaterThanOrEqual(40);
+    });
+
+    it('reads multi-line and plain Query and Mutation blocks in the structural check', function (): void {
+        $sdl = <<<'SDL'
+            """
+            Not a declaration: type Query { x: Int }
+            """
+            extend type Query
+                @guard
+            {
+                a: Int
+            }
+
+            # type Mutation { commented: Int }
+            type Mutation {
+                b: Int
+            }
+
+            extend type Query @module(name: "Ledger") {
+                c: Int
+            }
+
+            extend type Mutation
+                @module(name: "Ledger")
+                @guard(with: ["sanctum"])
+            {
+                d(input: QueryInput!): Int
+            }
+            SDL;
+
+        [$blocks, $declared] = g385wSchemaBlocks($sdl);
+
+        expect($declared)->toBe(4)
+            ->and(array_column($blocks, 0))->toBe(['Query', 'Mutation', 'Query', 'Mutation'])
+            ->and(array_map(static fn (array $block): bool => g385wDeclaresModule($block[1], 'Ledger'), $blocks))
+            ->toBe([false, false, true, true]);
     });
 
     it('answers "This operation is not available." for the queries and mutations of a disabled domain', function (string $module, string $query): void {
@@ -699,6 +772,17 @@ describe('C54 staff paths reach customer records with the BelongsToTeam scope on
         $analyst = g385wStaff('risk_manager', withTeam: true);
         $customer = g385wCustomer(withTeam: true);
 
+        // FraudCaseService::escalateCase uses priority constants, columns and
+        // a note method that FraudCase does not have (it fails for every
+        // caller, a separate bug), so the service is replaced here and the
+        // test checks that the analyst's escalation reaches it for this case.
+        g385wMock(FraudCaseService::class, function (MockInterface $mock) use ($fraudCase): void {
+            $mock->shouldReceive('escalateCase')
+                ->once()
+                ->withArgs(fn (FraudCase $case, string $reason): bool => $case->is($fraudCase) && $reason === 'G385W-ESCALATION')
+                ->andReturnUsing(fn (FraudCase $case): FraudCase => $case);
+        });
+
         g385wWithTeamScope(function () use ($analyst, $customer, $fraudCase): void {
             $json = g385wGraphql($this, $customer, '{ fraudCases(first: 20) { data { description } } }');
             expect($json['data']['fraudCases']['data'])->toBe([]);
@@ -709,8 +793,9 @@ describe('C54 staff paths reach customer records with the BelongsToTeam scope on
             $json = g385wGraphql($this, $analyst, '{ fraudCases(first: 20) { data { description } } }');
             expect(array_column($json['data']['fraudCases']['data'], 'description'))->toBe(['G385W-FRAUD-CASE']);
 
-            $json = g385wGraphql($this, $analyst, 'mutation ($i: EscalateFraudCaseInput!) { escalateFraudCase(input: $i) { id } }', ['i' => ['id' => (string) $fraudCase->id, 'severity' => 'high']]);
-            expect(g385wError($json))->not->toBe('Fraud case not found.');
+            $json = g385wGraphql($this, $analyst, 'mutation ($i: EscalateFraudCaseInput!) { escalateFraudCase(input: $i) { id } }', ['i' => ['id' => (string) $fraudCase->id, 'severity' => 'high', 'notes' => 'G385W-ESCALATION']]);
+            expect($json)->not->toHaveKey('errors')
+                ->and($json['data']['escalateFraudCase']['id'] ?? null)->toBe((string) $fraudCase->id);
         });
     });
 });
@@ -726,6 +811,24 @@ describe('D06 GraphQL initiateCustodianTransfer requires active links on one cus
         $to = Account::factory()->create(['user_uuid' => $owner->uuid]);
 
         return [$owner, $from, $to];
+    }
+
+    function g385wRecordCustodianTransfer(CustodianAccount $fromLink, CustodianAccount $toLink, Money $amount, string $assetCode): string
+    {
+        Asset::query()->firstOrCreate(['code' => $assetCode], ['name' => $assetCode, 'type' => 'fiat', 'precision' => 2, 'is_active' => true]);
+        CustodianTransfer::query()->create([
+            'id'                        => 'g385w-custodian-transfer',
+            'from_account_uuid'         => $fromLink->account_uuid,
+            'to_account_uuid'           => $toLink->account_uuid,
+            'from_custodian_account_id' => $fromLink->id,
+            'to_custodian_account_id'   => $toLink->id,
+            'amount'                    => $amount->getAmount(),
+            'asset_code'                => $assetCode,
+            'status'                    => 'pending',
+            'transfer_type'             => 'internal',
+        ]);
+
+        return 'g385w-custodian-transfer';
     }
 
     /**
@@ -768,21 +871,30 @@ describe('D06 GraphQL initiateCustodianTransfer requires active links on one cus
         expect(g385wError($json))->toBe('The destination account has no active link with this custodian.');
     });
 
-    it('passes active links on the same custodian to the custodian service', function (): void {
+    it('passes active links on the same custodian to the custodian service and returns the transfer', function (): void {
         [$owner, $from, $to] = g385wTransferAccounts();
         CustodianAccount::query()->create(['account_uuid' => $from->uuid, 'custodian_name' => 'mock', 'custodian_account_id' => 'mock-account-1', 'status' => 'active', 'is_primary' => true]);
         CustodianAccount::query()->create(['account_uuid' => $to->uuid, 'custodian_name' => 'otherbank', 'custodian_account_id' => 'other-1', 'status' => 'active', 'is_primary' => true]);
         CustodianAccount::query()->create(['account_uuid' => $to->uuid, 'custodian_name' => 'mock', 'custodian_account_id' => 'mock-account-2', 'status' => 'active', 'is_primary' => false]);
+        // The stand-in service records the transfer it was asked to make, so
+        // the mutation can return it (the connector receipt id).
         g385wMock(CustodianAccountService::class, function (MockInterface $mock): void {
             $mock->shouldReceive('initiateTransfer')
                 ->once()
-                ->withArgs(fn (CustodianAccount $fromLink, CustodianAccount $toLink): bool => $fromLink->custodian_account_id === 'mock-account-1' && $toLink->custodian_account_id === 'mock-account-2')
-                ->andReturn('missing-transfer-id');
+                ->withArgs(fn (CustodianAccount $fromLink, CustodianAccount $toLink, Money $amount, string $assetCode): bool => $fromLink->custodian_account_id === 'mock-account-1'
+                    && $toLink->custodian_account_id === 'mock-account-2'
+                    && $amount->getAmount() === 5000
+                    && $assetCode === 'EUR')
+                ->andReturnUsing(fn (CustodianAccount $fromLink, CustodianAccount $toLink, Money $amount, string $assetCode): string => g385wRecordCustodianTransfer($fromLink, $toLink, $amount, $assetCode));
         });
 
         $json = g385wInitiateTransfer($this, $owner, $from, $to);
 
-        expect(g385wError($json))->not->toBe('Custodian account is not linked to this account.')
-            ->and(g385wError($json))->not->toBe('The destination account has no active link with this custodian.');
+        expect($json)->not->toHaveKey('errors')
+            ->and($json['data']['initiateCustodianTransfer']['id'] ?? null)->toBe('g385w-custodian-transfer');
+        $transfer = CustodianTransfer::query()->findOrFail('g385w-custodian-transfer');
+        expect($transfer->from_account_uuid)->toBe($from->uuid)
+            ->and($transfer->to_account_uuid)->toBe($to->uuid)
+            ->and($transfer->amount)->toBe(5000);
     });
 });
