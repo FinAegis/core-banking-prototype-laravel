@@ -41,4 +41,18 @@ return [
 
     'force_https' => env('FORCE_HTTPS', env('APP_ENV') === 'production'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Staff Role Allowlist
+    |--------------------------------------------------------------------------
+    |
+    | Comma-separated emails of operators whose staff roles were granted by
+    | an operator. `php artisan user:audit-staff-roles` flags every other
+    | holder of a staff role (and of the roles business team management
+    | used to grant) for review.
+    |
+    */
+
+    'staff_role_allowlist' => env('STAFF_ROLE_ALLOWLIST', ''),
+
 ];

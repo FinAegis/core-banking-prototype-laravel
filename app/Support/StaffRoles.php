@@ -44,4 +44,10 @@ final class StaffRoles
     {
         return $user instanceof User && $user->hasRole($roles);
     }
+
+    /**
+     * Every staff role name in the groups above. Customer-controlled flows
+     * (business team roles) never grant or accept these names.
+     */
+    public const ALL = [...self::OPERATORS, ...self::ADMINS, ...self::STABLECOIN_OPERATORS, ...self::COMPLIANCE];
 }

@@ -4,6 +4,7 @@ namespace App\Actions\Jetstream;
 
 use App\Models\Team;
 use App\Models\User;
+use App\Rules\TeamName;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Jetstream\Contracts\UpdatesTeamNames;
@@ -22,7 +23,7 @@ class UpdateTeamName implements UpdatesTeamNames
         Validator::make(
             $input,
             [
-                'name' => ['required', 'string', 'max:255'],
+                'name' => ['required', 'string', 'max:255', new TeamName()],
             ]
         )->validateWithBag('updateTeamName');
 
