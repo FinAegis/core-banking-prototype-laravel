@@ -205,7 +205,7 @@ Mobile needs these values for production builds:
 |----------|--------------|------|
 | `EXPO_PUBLIC_API_URL` | `http://finaegis.local` | Production HTTPS URL |
 | `EXPO_PUBLIC_PUSHER_APP_KEY` | `9f58e8fb6a9be1aeed0e` | Production Pusher/Soketi key |
-| `EXPO_PUBLIC_PIMLICO_API_KEY` | `pim_MMAzf2QoTy8qKAosp1XbT9` | Production Pimlico key |
+| `EXPO_PUBLIC_PIMLICO_API_KEY` | *(redacted)* | Production Pimlico key |
 | `EXPO_PUBLIC_WALLETCONNECT_PROJECT_ID` | `fafaedbb1813e29ce55181630e83b8cc` | Production WalletConnect ID |
 
 ---
