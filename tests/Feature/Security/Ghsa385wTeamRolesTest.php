@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use App\Actions\Fortify\CreateNewUser;
+use App\Actions\Jetstream\CreateTeam;
 use App\Actions\Jetstream\InviteTeamMember;
+use App\Actions\Jetstream\UpdateTeamName;
 use App\Domain\Compliance\Models\AuditLog;
 use App\Domain\Compliance\Models\KycDocument;
 use App\Models\Team;
@@ -302,10 +304,17 @@ describe('KYC document download', function (): void {
         ]);
         $path = "/api/compliance/kyc/documents/{$document->id}/download";
 
-        [, $team] = g385BusinessTeam();
-        Sanctum::actingAs(g385Member($team, 'compliance_officer'), ['read', 'write', 'delete']);
+        // The business owner gives a member the compliance_officer team role
+        // through team management, the path that used to copy it onto the
+        // member's global roles.
+        [$teamOwner, $team] = g385BusinessTeam();
+        $member = g385Member($team, 'accountant');
+        $this->actingAs($teamOwner)->put(route('teams.members.update', [$team, $member]), ['role' => 'compliance_officer']);
+
+        Sanctum::actingAs($member->fresh() ?? $member, ['read', 'write', 'delete']);
         $this->getJson($path)->assertNotFound();
-        expect(AuditLog::query()->where('action', 'kyc.document_downloaded')->count())->toBe(0);
+        expect(AuditLog::query()->where('action', 'kyc.document_downloaded')->count())->toBe(0)
+            ->and(g385Roles($member))->toBe(['customer_business']);
 
         Sanctum::actingAs($owner, ['read', 'write', 'delete']);
         expect($this->get($path)->assertOk()->streamedContent())->toBe('PDF-BYTES');
@@ -432,7 +441,7 @@ describe('team invitation throttling', function (): void {
         Mail::assertSent(TeamInvitation::class, 4);
     });
 
-    it('caps invitations per recipient address across inviters, and cancelling does not reset the count', function (): void {
+    it('caps invitations per recipient address per team, and cancelling does not reset the count', function (): void {
         Mail::fake();
         config(['jetstream.invitation_limits.per_recipient_daily' => 2]);
         $invite = app(InviteTeamMember::class);
@@ -444,20 +453,23 @@ describe('team invitation throttling', function (): void {
         $invite->invite($first, $firstTeam, 'target@example.com', 'admin');
         $firstTeam->teamInvitations()->delete(); // cancelTeamInvitation
         $invite->invite($first, $firstTeam, 'Target@Example.com', 'admin');
+        $firstTeam->teamInvitations()->delete();
 
+        expect(fn () => $invite->invite($first, $firstTeam, 'target@example.com', 'admin'))
+            ->toThrow(ValidationException::class);
+
+        Mail::assertSent(TeamInvitation::class, 2);
+        expect($firstTeam->teamInvitations()->count())->toBe(0);
+
+        // Another team's invitations to the same address do not use up this
+        // team's allowance, so nobody can block an address for other teams.
         $second = User::factory()->withPersonalTeam()->create();
         /** @var Team $secondTeam */
         $secondTeam = $second->ownedTeams()->firstOrFail();
 
-        expect(fn () => $invite->invite($second, $secondTeam, 'target@example.com', 'admin'))
-            ->toThrow(ValidationException::class);
-
-        Mail::assertSent(TeamInvitation::class, 2);
-        expect($secondTeam->teamInvitations()->count())->toBe(0);
-
-        // A different address from the same inviter still goes out.
-        $invite->invite($second, $secondTeam, 'someone-else@example.com', 'admin');
+        $invite->invite($second, $secondTeam, 'target@example.com', 'admin');
         Mail::assertSent(TeamInvitation::class, 3);
+        expect($secondTeam->teamInvitations()->where('email', 'target@example.com')->exists())->toBeTrue();
     });
 
     it('renders Markdown link syntax in the team name as plain text', function (): void {
@@ -473,45 +485,168 @@ describe('team invitation throttling', function (): void {
         expect($html)->not->toContain('href="https://evil.example/login"')
             ->and($html)->toContain('[Unlock your wallet](https://evil.example/login)');
     });
+
+    // Names stored before the team name rule, or personal team names built
+    // from a user's name, still reach the email.
+    it('never turns a stored team name into Markdown in the invitation email', function (string $name): void {
+        $owner = User::factory()->withPersonalTeam()->create();
+        /** @var Team $team */
+        $team = $owner->ownedTeams()->firstOrFail();
+        $team->forceFill(['name' => $name])->save();
+
+        $invitation = TeamInvitationModel::create(['team_id' => $team->id, 'email' => 'victim@example.com', 'role' => 'admin']);
+
+        $html = (new TeamInvitation($invitation))->render();
+
+        expect($html)->not->toMatch('/<a\b[^>]*evil\.example/i')
+            ->and($html)->not->toMatch('/<img\b[^>]*evil\.example/i')
+            ->and($html)->not->toMatch('/<(h[1-6]|code|pre|em|strong|blockquote|li)\b[^>]*>[^<]*(Unlock|evil)/i')
+            ->and($html)->toContain('Unlock your wallet');
+    })->with([
+        'backslash before the brackets' => ['\\[Unlock your wallet\\](https://evil.example/login)'],
+        'double backslash'              => ['\\\\[Unlock your wallet\\\\](https://evil.example/login)'],
+        'image'                         => ['![Unlock your wallet](https://evil.example/login.png)'],
+        'autolink'                      => ['Unlock your wallet <https://evil.example/login>'],
+        'reference link'                => ["[Unlock your wallet][x]\n\n[x]: https://evil.example/login"],
+        'emphasis and code'             => ['**Unlock your wallet** `https://evil.example/login`'],
+        'heading on a new line'         => ["x\n# Unlock your wallet https://evil.example/login"],
+    ]);
+
+    it('only accepts letters, numbers, spaces and basic punctuation in team names', function (): void {
+        $owner = User::factory()->withPersonalTeam()->create();
+        /** @var Team $team */
+        $team = $owner->ownedTeams()->firstOrFail();
+        $originalName = $team->name;
+        $teamCount = Team::query()->count();
+
+        foreach (['[Unlock](https://evil.example)', 'Acme (EU)', 'Back\\slash', '<b>Acme</b>', "Acme\nCorp", 'Acme_*Corp*', 'Acme `x`', 'Acme | x'] as $bad) {
+            expect(fn () => app(CreateTeam::class)->create($owner, ['name' => $bad]))
+                ->toThrow(ValidationException::class);
+            expect(fn () => app(UpdateTeamName::class)->update($owner, $team, ['name' => $bad]))
+                ->toThrow(ValidationException::class);
+        }
+
+        expect(Team::query()->count())->toBe($teamCount)
+            ->and($team->fresh()?->name)->toBe($originalName);
+
+        foreach (["O'Brien & Sons", 'Zelta-Pay, Inc.', 'Łukasz Žemaitis Team 2', 'Acme Ltd.'] as $good) {
+            $created = app(CreateTeam::class)->create($owner, ['name' => $good]);
+            expect($created->name)->toBe($good);
+
+            app(UpdateTeamName::class)->update($owner, $team, ['name' => $good]);
+            expect($team->fresh()?->name)->toBe($good);
+        }
+    });
 });
 
 describe('user:audit-staff-roles', function (): void {
-    it('lists staff role holders and flags non-owner members of a business team', function (): void {
+    it('flags every holder of a staff or legacy team role who is not on the operator allowlist', function (): void {
+        config(['security.staff_role_allowlist' => 'Config-Operator@Example.com']);
         [$owner, $team] = g385BusinessTeam();
-        $owner->assignRole('bank_admin'); // owner of the team: listed, not flagged
+        $owner->assignRole('bank_admin'); // owns a business team
 
-        $granted = g385Member($team, 'compliance_officer');
-        $granted->assignRole('compliance_officer'); // what team management used to do
+        // An outside account the old update path granted a role to: it owns
+        // only its personal team and is in no business team.
+        $outside = User::factory()->withPersonalTeam()->create();
+        $outside->syncRoles(['compliance_officer']);
 
+        // A member who got the global role and was later removed from the team.
+        $removed = g385Member($team, 'compliance_officer');
+        $removed->assignRole('risk_manager');
+        $this->actingAs($owner)
+            ->delete(route('teams.members.destroy', [$team, $removed]))
+            ->assertRedirect(route('teams.members.index', $team));
+        expect($team->users()->whereKey($removed->id)->exists())->toBeFalse();
+
+        // A current member holding a legacy role.
         $legacy = g385Member($team, 'operations_manager');
         $legacy->assignRole('operations_manager');
 
-        $staff = g385Staff('risk_manager');
+        // An account with a staff role and no team at all.
+        $teamless = g385Staff('super_admin');
+
+        // Operators on the allowlist (option and config).
+        $operator = g385Staff('admin');
+        $configOperator = User::factory()->create(['email' => 'config-operator@example.com']);
+        $configOperator->assignRole('compliance_officer');
+
         $plain = g385Member($team, 'accountant');
 
-        $this->artisan('user:audit-staff-roles')
-            ->expectsOutputToContain($granted->email)
+        $this->artisan('user:audit-staff-roles', ['--allow' => [strtoupper($operator->email)]])
+            ->expectsOutputToContain($outside->email)
+            ->expectsOutputToContain($removed->email)
             ->expectsOutputToContain($legacy->email)
-            ->expectsOutputToContain($staff->email)
+            ->expectsOutputToContain($teamless->email)
             ->expectsOutputToContain($owner->email)
+            ->expectsOutputToContain($operator->email)
+            ->expectsOutputToContain($configOperator->email)
             ->doesntExpectOutputToContain($plain->email)
-            ->expectsOutputToContain('4 user(s) hold staff roles; 2 flagged for review.')
+            ->expectsOutputToContain('7 user(s) hold audited roles; 5 flagged for review, 2 on the operator allowlist.')
             ->assertExitCode(1);
 
-        // Read-only.
-        expect(g385Roles($granted))->toContain('compliance_officer')
+        $this->artisan('user:audit-staff-roles', ['--flagged' => true, '--allow' => [$operator->email]])
+            ->expectsOutputToContain($outside->email)
+            ->expectsOutputToContain($removed->email)
+            ->doesntExpectOutputToContain($operator->email)
+            ->doesntExpectOutputToContain($configOperator->email)
+            ->assertExitCode(1);
+
+        // Read-only without --revoke.
+        expect(g385Roles($outside))->toBe(['compliance_officer'])
+            ->and(g385Roles($removed))->toBe(['customer_business', 'risk_manager'])
             ->and(g385Roles($legacy))->toContain('operations_manager');
     });
 
-    it('exits 0 when no staff role holder is a non-owner member of a business team', function (): void {
-        [$owner, $team] = g385BusinessTeam();
+    it('exits 0 when every holder is on the operator allowlist', function (): void {
+        [, $team] = g385BusinessTeam();
         g385Member($team, 'accountant');
         $staff = g385Staff('compliance_officer');
+        config(['security.staff_role_allowlist' => [$staff->email]]);
 
         $this->artisan('user:audit-staff-roles')
             ->expectsOutputToContain($staff->email)
-            ->expectsOutputToContain('1 user(s) hold staff roles; 0 flagged for review.')
+            ->expectsOutputToContain('1 user(s) hold audited roles; 0 flagged for review, 1 on the operator allowlist.')
             ->assertExitCode(0);
+    });
+
+    it('revokes the audited roles of a flagged user only after confirmation', function (): void {
+        $operator = g385Staff('admin');
+        $outside = User::factory()->withPersonalTeam()->create();
+        $outside->syncRoles(['compliance_officer', 'customer_private']);
+        $kept = g385Staff('risk_manager');
+
+        // Without an interactive confirmation nothing changes.
+        $this->artisan('user:audit-staff-roles', ['--revoke' => true, '--allow' => [$operator->email], '--no-interaction' => true])
+            ->assertExitCode(1);
+        expect(g385Roles($outside))->toBe(['compliance_officer', 'customer_private'])
+            ->and(g385Roles($kept))->toBe(['risk_manager']);
+
+        $this->artisan('user:audit-staff-roles', ['--revoke' => true, '--allow' => [$operator->email]])
+            ->expectsConfirmation("Remove compliance_officer from {$outside->email} (ID {$outside->id})?", 'yes')
+            ->expectsConfirmation("Remove risk_manager from {$kept->email} (ID {$kept->id})?", 'no')
+            ->expectsOutputToContain('1 flagged user(s) still hold audited roles.')
+            ->assertExitCode(1);
+
+        expect(g385Roles($outside))->toBe(['customer_private'])
+            ->and(g385Roles($kept))->toBe(['risk_manager'])
+            ->and(g385Roles($operator))->toBe(['admin']);
+
+        $this->artisan('user:audit-staff-roles', ['--revoke' => true, '--allow' => [$operator->email]])
+            ->expectsConfirmation("Remove risk_manager from {$kept->email} (ID {$kept->id})?", 'yes')
+            ->assertExitCode(0);
+        expect(g385Roles($kept))->toBe([]);
+    });
+
+    it('never revokes the last admin', function (): void {
+        $admin = g385Staff('admin');
+        $admin->assignRole('compliance_officer');
+
+        $this->artisan('user:audit-staff-roles', ['--revoke' => true])
+            ->expectsConfirmation("Remove admin, compliance_officer from {$admin->email} (ID {$admin->id})?", 'yes')
+            ->expectsOutputToContain('Kept the admin role')
+            ->assertExitCode(1);
+
+        expect(g385Roles($admin))->toBe(['admin']);
     });
 
     it('lets user:demote revoke a staff role it flagged', function (): void {

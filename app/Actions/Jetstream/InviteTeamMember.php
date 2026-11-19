@@ -29,7 +29,7 @@ class InviteTeamMember implements InvitesTeamMembers
 
         $this->validate($team, $email, $role);
 
-        $this->throttle($user, $email);
+        $this->throttle($user, $team, $email);
 
         InvitingTeamMember::dispatch($team, $email, $role);
 
@@ -47,22 +47,25 @@ class InviteTeamMember implements InvitesTeamMembers
     /**
      * Every invitation is an email from the platform's own domain to an
      * address the inviter chooses: cap them per inviter (across all of the
-     * inviter's teams), per recipient address and platform-wide
-     * (config jetstream.invitation_limits). Counted when the mail is about
+     * inviter's teams), per recipient address within a team and
+     * platform-wide (config jetstream.invitation_limits). The recipient
+     * count is per team, so invitations from one team never block another
+     * team from inviting the same address. Counted when the mail is about
      * to go out, so cancelling and re-inviting counts again.
      *
      * @throws ValidationException
      */
-    protected function throttle(User $user, string $email): void
+    protected function throttle(User $user, Team $team, string $email): void
     {
         $limits = (array) config('jetstream.invitation_limits', []);
         $inviter = (string) $user->getKey();
+        $teamKey = (string) $team->getKey();
         $recipient = hash('sha256', mb_strtolower(trim($email)));
 
         $buckets = [
             ["team_invitations:inviter:{$inviter}:hour", (int) ($limits['per_inviter_hourly'] ?? 10), 3600],
             ["team_invitations:inviter:{$inviter}:day", (int) ($limits['per_inviter_daily'] ?? 50), 86400],
-            ["team_invitations:recipient:{$recipient}:day", (int) ($limits['per_recipient_daily'] ?? 3), 86400],
+            ["team_invitations:team:{$teamKey}:recipient:{$recipient}:day", (int) ($limits['per_recipient_daily'] ?? 3), 86400],
             ['team_invitations:global:day', (int) ($limits['global_daily'] ?? 1000), 86400],
         ];
 

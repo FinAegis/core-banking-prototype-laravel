@@ -85,7 +85,8 @@ return [
     |
     | Every team invitation sends an email from the platform's domain to an
     | address the inviter chooses. These caps bound that mail: per inviter
-    | (across all of their teams), per recipient address and platform-wide.
+    | (across all of their teams), per recipient address within one team,
+    | and platform-wide.
     |
     */
 

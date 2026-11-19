@@ -1,6 +1,6 @@
 @component('mail::message')
-{{-- The team name is free text chosen by the inviter: escape Markdown link syntax so it renders as plain text. --}}
-{{ __('You have been invited to join the :team team!', ['team' => str_replace(['[', ']'], ['\\[', '\\]'], $invitation->team->name)]) }}
+{{-- The team name is free text chosen by the inviter: MarkdownText::literal() escapes every Markdown character so it renders as plain text. --}}
+{{ __('You have been invited to join the :team team!', ['team' => \App\Support\MarkdownText::literal($invitation->team->name)]) }}
 
 @if (Laravel\Fortify\Features::enabled(Laravel\Fortify\Features::registration()))
 {{ __('If you do not have an account, you may create one by clicking the button below. After creating an account, you may click the invitation acceptance button in this email to accept the team invitation:') }}
