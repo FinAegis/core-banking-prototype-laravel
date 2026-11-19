@@ -2,7 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Domain\Account\DataObjects\AccountUuid;
+use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Models\Account;
+use App\Domain\Account\Models\Transaction;
+use App\Domain\Account\Workflows\DepositAccountActivity;
+use App\Domain\Account\Workflows\DepositAccountWorkflow;
+use App\Domain\Asset\Workflows\Activities\DepositAssetActivity;
+use App\Domain\Asset\Workflows\AssetDepositWorkflow;
 use App\Domain\Compliance\Services\OndatoService;
 use App\Domain\Custodian\Contracts\ICustodianConnector;
 use App\Domain\Custodian\Models\CustodianAccount;
@@ -17,6 +24,7 @@ use App\Domain\Payment\Services\DemoPayseraDepositService;
 use App\Domain\Payment\Services\HyperSwitch\HyperSwitchPaymentService;
 use App\Domain\Payment\Services\PaymentGatewayService;
 use App\Domain\Payment\Services\PayseraDepositService;
+use App\Domain\Payment\Workflows\TransferWorkflow;
 use App\Domain\Shared\Models\Plugin;
 use App\Domain\SMS\Services\SmsSendBudget;
 use App\Domain\Subscription\Models\ProcessedWebhookEvent;
@@ -36,8 +44,11 @@ use Illuminate\Support\Str;
 use Laravel\Pennant\Feature;
 use Laravel\Sanctum\Sanctum;
 use Mockery\MockInterface;
+use Spatie\EventSourcing\StoredEvents\Models\EloquentStoredEvent;
 use Spatie\Permission\Models\Role;
+use Workflow\Exceptions\NonRetryableException;
 use Workflow\Models\StoredWorkflow;
+use Workflow\WorkflowStub;
 
 /*
 | GHSA-385w cluster "deposits-config": payment-backed web deposits outside the
@@ -211,6 +222,40 @@ function ghsaDcMock(string $abstract, Closure $expectations): MockInterface
 function ghsaDcStoredWorkflows(): int
 {
     return StoredWorkflow::query()->count();
+}
+
+/**
+ * Run a deposit activity the way the queue worker does for a stored workflow
+ * of the given class, optionally started as a child of another workflow.
+ *
+ * @param  class-string<Workflow\Activity>  $activityClass
+ * @param  class-string<Workflow\Workflow>  $workflowClass
+ * @param  list<mixed>  $arguments
+ * @param  class-string<Workflow\Workflow>|null  $parentClass
+ */
+function ghsaDcRunDepositActivity(string $activityClass, string $workflowClass, array $arguments, ?string $parentClass = null): mixed
+{
+    $now = now()->format('Y-m-d\TH:i:s.u\Z');
+    $stored = StoredWorkflow::query()->findOrFail(WorkflowStub::make($workflowClass)->id());
+
+    if ($parentClass !== null) {
+        $parent = StoredWorkflow::query()->findOrFail(WorkflowStub::make($parentClass)->id());
+        $stored->parents()->attach($parent, ['parent_index' => 0, 'parent_now' => $now]);
+    }
+
+    $activity = new $activityClass(0, $now, $stored, ...$arguments);
+
+    return $activity->handle();
+}
+
+/**
+ * Stored ledger events: legacy account transactions and the shared event store.
+ *
+ * @return array{0: int, 1: int}
+ */
+function ghsaDcLedgerEvents(): array
+{
+    return [Transaction::query()->count(), EloquentStoredEvent::query()->count()];
 }
 
 function ghsaDcConfirmationUrl(string $email): string
@@ -1001,5 +1046,135 @@ describe('secure defaults outside local, testing and demo (D11)', function (): v
             expect((bool) $staging[$tool]['enabled'])->toBeFalse()
                 ->and((bool) $demo[$tool]['enabled'])->toBeTrue();
         }
+    });
+});
+
+// ── Review follow-ups: deposit activities, HyperSwitch, freezes, agent mocks
+
+describe('queued direct-funding deposits after the switch is off (review D3)', function (): void {
+    it('refuses to credit a queued deposit workflow once direct funding is off', function (): void {
+        $account = Account::factory()->withBalance(5000)->create(['frozen' => false]);
+        config(['ledger.direct_funding_enabled' => false]);
+        $events = ghsaDcLedgerEvents();
+
+        expect(fn () => ghsaDcRunDepositActivity(DepositAccountActivity::class, DepositAccountWorkflow::class, [new AccountUuid($account->uuid), new Money(1000)]))
+            ->toThrow(NonRetryableException::class);
+
+        expect(ghsaDcLedgerEvents())->toBe($events)
+            ->and($account->fresh()?->getBalance('USD'))->toBe(5000);
+    });
+
+    it('refuses to credit a queued asset deposit workflow once direct funding is off', function (): void {
+        $account = Account::factory()->create(['frozen' => false]);
+        config(['ledger.direct_funding_enabled' => false]);
+        $events = ghsaDcLedgerEvents();
+
+        expect(fn () => ghsaDcRunDepositActivity(DepositAssetActivity::class, AssetDepositWorkflow::class, [new AccountUuid($account->uuid), 'EUR', new Money(1000), null]))
+            ->toThrow(NonRetryableException::class);
+
+        expect(ghsaDcLedgerEvents())->toBe($events)
+            ->and($account->fresh()?->getBalance('EUR'))->toBe(0);
+    });
+
+    it('credits both deposit workflows while direct funding is on', function (): void {
+        $account = Account::factory()->create(['frozen' => false]);
+        config(['ledger.direct_funding_enabled' => true]);
+
+        $credited = ghsaDcRunDepositActivity(DepositAccountActivity::class, DepositAccountWorkflow::class, [new AccountUuid($account->uuid), new Money(1000)]);
+        $transactionId = ghsaDcRunDepositActivity(DepositAssetActivity::class, AssetDepositWorkflow::class, [new AccountUuid($account->uuid), 'EUR', new Money(700), null]);
+
+        expect($credited)->toBeTrue()
+            ->and(Transaction::query()->where('aggregate_uuid', $account->uuid)->count())->toBe(1)
+            ->and(EloquentStoredEvent::query()->where('aggregate_uuid', $transactionId)->count())->toBe(1);
+    });
+
+    it('still credits the receiving side of an internal transfer while direct funding is off', function (): void {
+        $account = Account::factory()->create(['frozen' => false]);
+        config(['ledger.direct_funding_enabled' => false]);
+
+        $credited = ghsaDcRunDepositActivity(DepositAccountActivity::class, DepositAccountWorkflow::class, [new AccountUuid($account->uuid), new Money(1000)], TransferWorkflow::class);
+
+        expect($credited)->toBeTrue()
+            ->and(Transaction::query()->where('aggregate_uuid', $account->uuid)->count())->toBe(1);
+    });
+});
+
+describe('HyperSwitch webhooks without a webhook secret (review D4)', function (): void {
+    beforeEach(function (): void {
+        config(['hyperswitch.webhook_secret' => '']);
+    });
+
+    $payload = ['event_type' => 'payment_succeeded', 'event_id' => 'evt_unsigned', 'content' => ['object' => ['payment_id' => 'pay_unsigned', 'amount' => 10000, 'currency' => 'USD']]];
+
+    it('refuses an unsigned webhook outside local and testing', function (string $env) use ($payload): void {
+        $this->app->detectEnvironment(fn (): string => $env);
+
+        $this->postJson('/api/webhooks/hyperswitch', $payload)->assertUnauthorized();
+
+        expect(ProcessedWebhookEvent::query()->where('event_id', 'evt_unsigned')->exists())->toBeFalse();
+    })->with(['demo', 'staging', 'production']);
+
+    it('keeps the unsigned passthrough for local and testing', function (string $env) use ($payload): void {
+        $this->app->detectEnvironment(fn (): string => $env);
+
+        $this->postJson('/api/webhooks/hyperswitch', $payload)->assertOk()->assertJsonPath('received', true);
+    })->with(['local', 'testing']);
+});
+
+describe('owner freeze racing a staff freeze (review D5)', function (): void {
+    it('keeps the staff marker when a compliance freeze lands while the owner freeze is in flight', function (): void {
+        $owner = User::factory()->create();
+        $account = Account::factory()->create(['user_uuid' => $owner->uuid, 'frozen' => false]);
+        // The owner request loaded the account before the compliance freeze.
+        $ownerView = Account::query()->whereKey($account->getKey())->firstOrFail();
+
+        $account->recordFreeze(byStaff: true);
+        $ownerView->recordFreeze(byStaff: false);
+
+        $fresh = $account->fresh();
+        expect($fresh?->frozen)->toBeTrue()
+            ->and($fresh?->frozen_by_owner)->toBeFalse()
+            ->and($fresh?->mayBeUnfrozenBy($owner))->toBeFalse()
+            ->and($ownerView->frozen_by_owner)->toBeFalse();
+    });
+
+    it('still records an owner freeze on an unfrozen account', function (): void {
+        $owner = User::factory()->create();
+        $account = Account::factory()->create(['user_uuid' => $owner->uuid, 'frozen' => false]);
+
+        $account->recordFreeze(byStaff: false);
+
+        $fresh = $account->fresh();
+        expect($fresh?->frozen)->toBeTrue()
+            ->and($fresh?->frozen_by_owner)->toBeTrue()
+            ->and($account->frozen_by_owner)->toBeTrue()
+            ->and($fresh?->mayBeUnfrozenBy($owner))->toBeTrue();
+    });
+});
+
+describe('agent protocol mock defaults (review D6)', function (): void {
+    it('turns mock signatures and webhooks off for production, staging, demo and an unset APP_ENV', function (): void {
+        foreach (['production', 'staging', 'demo', null] as $appEnv) {
+            /** @var array<string, mixed> $demo */
+            $demo = ghsaDcConfigUnderEnv('agent_protocol', ['APP_ENV' => $appEnv, 'AGENT_MOCK_SIGNATURES' => null, 'AGENT_MOCK_WEBHOOKS' => null])['demo'];
+
+            expect((bool) $demo['mock_signatures'])->toBeFalse()
+                ->and((bool) $demo['mock_webhooks'])->toBeFalse();
+        }
+    });
+
+    it('keeps them on for local and testing, and an explicit value wins', function (): void {
+        foreach (['local', 'testing'] as $appEnv) {
+            /** @var array<string, mixed> $demo */
+            $demo = ghsaDcConfigUnderEnv('agent_protocol', ['APP_ENV' => $appEnv, 'AGENT_MOCK_SIGNATURES' => null, 'AGENT_MOCK_WEBHOOKS' => null])['demo'];
+
+            expect((bool) $demo['mock_signatures'])->toBeTrue()
+                ->and((bool) $demo['mock_webhooks'])->toBeTrue();
+        }
+
+        /** @var array<string, mixed> $explicit */
+        $explicit = ghsaDcConfigUnderEnv('agent_protocol', ['APP_ENV' => null, 'AGENT_MOCK_SIGNATURES' => 'true', 'AGENT_MOCK_WEBHOOKS' => 'true'])['demo'];
+        expect((bool) $explicit['mock_signatures'])->toBeTrue()
+            ->and((bool) $explicit['mock_webhooks'])->toBeTrue();
     });
 });

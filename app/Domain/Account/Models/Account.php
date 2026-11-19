@@ -107,7 +107,15 @@ class Account extends Model
             return;
         }
 
-        $this->forceFill(['frozen' => true, 'frozen_by_owner' => true])->save();
+        // Conditional update: a staff or compliance freeze that landed after
+        // this model was loaded keeps its staff marker.
+        static::query()
+            ->withoutGlobalScopes()
+            ->whereKey($this->getKey())
+            ->where('frozen', false)
+            ->update(['frozen' => true, 'frozen_by_owner' => true]);
+
+        $this->refresh();
     }
 
     /**

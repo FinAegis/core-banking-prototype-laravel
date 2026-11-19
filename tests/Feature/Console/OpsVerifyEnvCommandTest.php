@@ -207,6 +207,32 @@ function opsVerifyEnvRestoreEnv(array $previous): void
     }
 }
 
+/**
+ * Evaluate a config file with the given variables set (null = unset) in the
+ * process environment, as `config:cache` would, and restore it afterwards.
+ *
+ * @param  array<string, string|null>  $env
+ * @return array<string, mixed>
+ */
+function opsVerifyEnvWithConfigFile(string $file, array $env): array
+{
+    $previous = [];
+    foreach ($env as $key => $value) {
+        $previous[] = opsVerifyEnvPutEnv($key, $value);
+    }
+
+    try {
+        /** @var array<string, mixed> $config */
+        $config = require base_path("config/{$file}.php");
+
+        return $config;
+    } finally {
+        foreach (array_reverse($previous) as $saved) {
+            opsVerifyEnvRestoreEnv($saved);
+        }
+    }
+}
+
 // API sign-ups are a product decision that must be set explicitly in
 // production (an unset value FAILs), so the happy path sets it.
 beforeEach(function (): void {
@@ -499,7 +525,8 @@ it('blocks railgun in production even with a bridge secret (custodial path forbi
 
 it('warns (never blocks) in production about each switch that is on', function (string $configKey, string $envName): void {
     opsVerifyEnvAllGoodConfig();
-    config([$configKey => true]);
+    // Direct ledger funding FAILs without the acknowledgement (tested below).
+    config([$configKey => true, 'ledger.direct_funding_acknowledged' => true]);
     app()->detectEnvironment(fn () => 'production');
 
     [$exitCode, $checks] = opsVerifyEnvRun();
@@ -639,9 +666,84 @@ it('passes REGISTRATION_API_ENABLED in production when it is set explicitly to e
     'sign-ups closed'           => ['false', false],
 ]);
 
+// GHSA-385w review D1: with `php artisan config:cache` the .env file is not
+// loaded, so whether REGISTRATION_API_ENABLED was set is read from the
+// cached config (registration.api_enabled_explicit).
+it('blocks the deploy in production when REGISTRATION_API_ENABLED was unset when the config was cached', function (bool $configValue): void {
+    opsVerifyEnvAllGoodConfig();
+    config(['registration.api_enabled' => $configValue, 'registration.api_enabled_explicit' => false]);
+    app()->detectEnvironment(fn () => 'production');
+    app()->instance('config_loaded_from_cache', true);
+
+    [$exitCode, $checks] = opsVerifyEnvRun();
+
+    expect($exitCode)->toBe(1)
+        ->and($checks['registration.api_enabled']['result'])->toBe('FAIL')
+        ->and($checks['registration.api_enabled']['detail'])->toContain('REGISTRATION_API_ENABLED is not set');
+})->with(['resolved off' => [false], 'resolved on' => [true]]);
+
+it('passes REGISTRATION_API_ENABLED with a cached config when it was set explicitly', function (bool $configValue): void {
+    opsVerifyEnvAllGoodConfig();
+    config(['registration.api_enabled' => $configValue, 'registration.api_enabled_explicit' => true]);
+    app()->detectEnvironment(fn () => 'production');
+    app()->instance('config_loaded_from_cache', true);
+    $previous = opsVerifyEnvPutEnv('REGISTRATION_API_ENABLED', null);
+
+    try {
+        [$exitCode, $checks] = opsVerifyEnvRun();
+    } finally {
+        opsVerifyEnvRestoreEnv($previous);
+    }
+
+    $value = $configValue ? 'true' : 'false';
+    expect($exitCode)->toBe(0)
+        ->and($checks['registration.api_enabled']['result'])->toBe('PASS')
+        ->and($checks['registration.api_enabled']['detail'])->toContain("REGISTRATION_API_ENABLED={$value}");
+})->with(['sign-ups open' => [true], 'sign-ups closed' => [false]]);
+
+it('reads the explicit REGISTRATION_API_ENABLED setting into the config', function (): void {
+    $config = fn (?string $value): array => opsVerifyEnvWithConfigFile('registration', ['REGISTRATION_API_ENABLED' => $value]);
+
+    expect($config(null)['api_enabled_explicit'])->toBeFalse()
+        ->and($config('true')['api_enabled_explicit'])->toBeTrue()
+        ->and($config('false')['api_enabled_explicit'])->toBeTrue();
+});
+
+// GHSA-385w review D2: direct ledger funding moves balances without a payment
+// rail, so in production it needs an explicit acknowledgement.
+it('blocks the deploy in production while direct ledger funding is on without the acknowledgement', function (): void {
+    opsVerifyEnvAllGoodConfig();
+    config(['ledger.direct_funding_enabled' => true, 'ledger.direct_funding_acknowledged' => false]);
+    app()->detectEnvironment(fn () => 'production');
+
+    [$exitCode, $checks] = opsVerifyEnvRun();
+
+    expect($exitCode)->toBe(1)
+        ->and($checks['ledger.direct_funding_enabled']['result'])->toBe('FAIL')
+        ->and($checks['ledger.direct_funding_enabled']['detail'])->toContain('LEDGER_DIRECT_FUNDING_ACKNOWLEDGED=true');
+});
+
+it('only warns in production about direct ledger funding once the operator acknowledged it', function (): void {
+    opsVerifyEnvAllGoodConfig();
+    config(['ledger.direct_funding_enabled' => true, 'ledger.direct_funding_acknowledged' => true]);
+    app()->detectEnvironment(fn () => 'production');
+
+    [$exitCode, $checks] = opsVerifyEnvRun();
+
+    expect($exitCode)->toBe(0)
+        ->and($checks['ledger.direct_funding_enabled']['result'])->toBe('WARN')
+        ->and($checks['ledger.direct_funding_enabled']['detail'])->toContain('LEDGER_DIRECT_FUNDING_ENABLED is ON');
+});
+
+it('reads the direct ledger funding acknowledgement into the config, off by default', function (): void {
+    expect(opsVerifyEnvWithConfigFile('ledger', ['LEDGER_DIRECT_FUNDING_ACKNOWLEDGED' => null])['direct_funding_acknowledged'])->toBeFalse()
+        ->and(opsVerifyEnvWithConfigFile('ledger', ['LEDGER_DIRECT_FUNDING_ACKNOWLEDGED' => 'true'])['direct_funding_acknowledged'])->toBeTrue();
+});
+
 it('still exits 0 in production with every switch on', function (): void {
     opsVerifyEnvAllGoodConfig();
     config(array_fill_keys(array_keys(OPS_VERIFY_ENV_SWITCHES), true));
+    config(['ledger.direct_funding_acknowledged' => true]);
     opsVerifyEnvMcpMoneyTools(true);
     app()->detectEnvironment(fn () => 'production');
 

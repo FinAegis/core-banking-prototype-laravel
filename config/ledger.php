@@ -35,6 +35,12 @@ return [
     */
     'direct_funding_enabled' => (bool) env('LEDGER_DIRECT_FUNDING_ENABLED', in_array(env('APP_ENV', 'production'), ['local', 'testing', 'demo'], true)),
 
+    // ops:verify-env FAILs a production deploy while direct funding is on,
+    // unless the operator confirms it with LEDGER_DIRECT_FUNDING_ACKNOWLEDGED=true
+    // (a production-mode demo). The deposit activities also re-check
+    // direct_funding_enabled, so queued deposits stop once it is off.
+    'direct_funding_acknowledged' => (bool) env('LEDGER_DIRECT_FUNDING_ACKNOWLEDGED', false),
+
     /*
     |--------------------------------------------------------------------------
     | Web wallet card deposits (Stripe / HyperSwitch)

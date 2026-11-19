@@ -29,10 +29,13 @@ use RuntimeException;
  * waitlist deposits, the investor page, generic gas sponsorship, SMS, the
  * MCP money and SMS tools, the trading engine) and runtime module and plugin
  * management by admins. Each WARNs while it is on or while its env var is
- * not set explicitly, so the operator sees the effective value; none of them
- * blocks a deploy. API sign-ups (REGISTRATION_API_ENABLED) are a product
- * decision instead: either value passes, but leaving it unset FAILs,
- * because unset silently closes new sign-ups. The switches are checked
+ * not set explicitly, so the operator sees the effective value. Only direct
+ * ledger funding blocks a production deploy while it is on, unless
+ * LEDGER_DIRECT_FUNDING_ACKNOWLEDGED=true confirms it. API sign-ups
+ * (REGISTRATION_API_ENABLED) are a product decision instead: either value
+ * passes, but leaving it unset FAILs, because unset silently closes new
+ * sign-ups; with a cached config the check reads
+ * registration.api_enabled_explicit. The switches are checked
  * whenever APP_ENV is not local, testing or demo (the environments where
  * they default to on), or with --strict.
  */
@@ -81,16 +84,30 @@ class OpsVerifyEnvCommand extends Command
     ];
 
     /**
-     * Product switches: an explicit operator decision. Either value passes;
-     * unset FAILs. Config key => [env var, effect while on, effect while off].
+     * Production switches that FAIL in production while on, unless the
+     * operator confirms them: config key => [acknowledgement config key,
+     * acknowledgement env var].
      *
-     * @var array<string, array{0: string, 1: string, 2: string}>
+     * @var array<string, array{0: string, 1: string}>
+     */
+    private const ACKNOWLEDGED_SWITCHES = [
+        'ledger.direct_funding_enabled' => ['ledger.direct_funding_acknowledged', 'LEDGER_DIRECT_FUNDING_ACKNOWLEDGED'],
+    ];
+
+    /**
+     * Product switches: an explicit operator decision. Either value passes;
+     * unset FAILs. Config key => [env var, effect while on, effect while off,
+     * config key that records whether the env var was set (read when the
+     * config is cached)].
+     *
+     * @var array<string, array{0: string, 1: string, 2: string, 3: string}>
      */
     private const PRODUCT_SWITCHES = [
         'registration.api_enabled' => [
             'REGISTRATION_API_ENABLED',
             'new accounts can be created through the API, Privy and social sign-up',
             'new accounts cannot be created through the API, Privy or social sign-up (403 ERR_REG_001)',
+            'registration.api_enabled_explicit',
         ],
     ];
 
@@ -644,9 +661,9 @@ class OpsVerifyEnvCommand extends Command
     // ── Category: switches ───────────────────────────────────────────────
 
     /**
-     * Production switches. WARN (never FAIL) while a switch is on, or while
-     * its env var is not set explicitly; product switches FAIL only while
-     * unset. Checked for every APP_ENV except local, testing and demo (which
+     * Production switches. WARN while a switch is on, or while its env var
+     * is not set explicitly (ACKNOWLEDGED_SWITCHES FAIL in production while
+     * on and not acknowledged); product switches FAIL only while unset. Checked for every APP_ENV except local, testing and demo (which
      * run with these on), or with --strict; SKIP otherwise.
      */
     private function checkProductionSwitches(): void
@@ -666,14 +683,16 @@ class OpsVerifyEnvCommand extends Command
             $this->checkSwitch($configKey, $envName, config($configKey), $whenOn);
         }
 
-        foreach (self::PRODUCT_SWITCHES as $configKey => [$envName, $whenOn, $whenOff]) {
+        foreach (self::PRODUCT_SWITCHES as $configKey => [$envName, $whenOn, $whenOff, $explicitKey]) {
             if (! $applies) {
                 $this->add(self::CATEGORY_SWITCHES, $configKey, self::SKIP, $skipped);
 
                 continue;
             }
 
-            $this->checkProductSwitch($configKey, $envName, (bool) config($configKey), $whenOn, $whenOff);
+            $explicit = $this->envIsSet($envName) ?? (bool) config($explicitKey, false);
+
+            $this->checkProductSwitch($configKey, $envName, (bool) config($configKey), $explicit, $whenOn, $whenOff);
         }
 
         $tools = config('mcp.tools');
@@ -704,6 +723,14 @@ class OpsVerifyEnvCommand extends Command
         }
 
         if ((bool) $value) {
+            [$ackKey, $ackEnv] = self::ACKNOWLEDGED_SWITCHES[$name] ?? [null, null];
+
+            if ($ackKey !== null && $this->laravel->environment('production') && config($ackKey) !== true) {
+                $this->add(self::CATEGORY_SWITCHES, $name, self::FAIL, sprintf('%s is ON in production: %s. Set %s=false, or set %s=true to confirm that this is intended.', $envName, $whenOn, $envName, $ackEnv));
+
+                return;
+            }
+
             $this->add(self::CATEGORY_SWITCHES, $name, self::WARN, sprintf('%s is ON: %s. Set %s=false unless this is intended.', $envName, $whenOn, $envName));
 
             return;
@@ -724,24 +751,18 @@ class OpsVerifyEnvCommand extends Command
 
     /**
      * A product switch must be set explicitly: either value passes, unset
-     * FAILs (it would silently resolve to the secure default, off).
+     * FAILs (it would silently resolve to the secure default, off). With a
+     * cached config, whether it was set comes from the config itself.
      */
-    private function checkProductSwitch(string $name, string $envName, bool $value, string $whenOn, string $whenOff): void
+    private function checkProductSwitch(string $name, string $envName, bool $value, bool $explicit, string $whenOn, string $whenOff): void
     {
-        $explicit = $this->envIsSet($envName);
-        $effect = ucfirst($value ? $whenOn : $whenOff) . '.';
-
-        if ($explicit === false) {
+        if (! $explicit) {
             $this->add(self::CATEGORY_SWITCHES, $name, self::FAIL, sprintf('%s is not set, so it resolves to off: %s. Set %s=true or %s=false explicitly.', $envName, $whenOff, $envName, $envName));
 
             return;
         }
 
-        if ($explicit === null) {
-            $this->add(self::CATEGORY_SWITCHES, $name, self::WARN, sprintf('%s resolves to %s (config is cached; explicit setting not checked). %s', $envName, $value ? 'on' : 'off', $effect));
-
-            return;
-        }
+        $effect = ucfirst($value ? $whenOn : $whenOff) . '.';
 
         $this->add(self::CATEGORY_SWITCHES, $name, self::PASS, sprintf('%s=%s. %s', $envName, $value ? 'true' : 'false', $effect));
     }

@@ -267,13 +267,15 @@ class HyperSwitchWebhookController extends Controller
         $secret = (string) config('hyperswitch.webhook_secret', '');
 
         if ($secret === '') {
-            if (app()->environment('production')) {
-                Log::error('HyperSwitch: HYPERSWITCH_WEBHOOK_SECRET not set in production');
-
-                return false;
+            // Unsigned webhooks are accepted only in local and testing; every
+            // other environment (staging, demo, production) needs the secret.
+            if (app()->environment(['local', 'testing'])) {
+                return true;
             }
 
-            return true;
+            Log::error('HyperSwitch: HYPERSWITCH_WEBHOOK_SECRET is not set; webhook refused');
+
+            return false;
         }
 
         $signature = $request->header('x-webhook-signature-512', '');

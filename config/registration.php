@@ -43,5 +43,10 @@ declare(strict_types=1);
 return [
     'api_enabled' => (bool) env('REGISTRATION_API_ENABLED', in_array(env('APP_ENV', 'production'), ['local', 'testing', 'demo'], true)),
 
+    // Whether REGISTRATION_API_ENABLED was set at all. ops:verify-env reads
+    // it, because after `php artisan config:cache` the .env file is no
+    // longer loaded and an unset value would go unnoticed.
+    'api_enabled_explicit' => env('REGISTRATION_API_ENABLED') !== null,
+
     'api_invite_only' => (bool) env('REGISTRATION_API_INVITE_ONLY', false),
 ];
