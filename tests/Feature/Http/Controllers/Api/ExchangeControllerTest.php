@@ -58,7 +58,7 @@ class ExchangeControllerTest extends ControllerTestCase
             )
             ->andReturn([
                 'success'  => true,
-                'order_id' => 'order-123',
+                'order_id' => 'd0000000-0000-4000-8000-000000000006',
                 'message'  => 'Order placed successfully',
             ]);
 
@@ -73,7 +73,7 @@ class ExchangeControllerTest extends ControllerTestCase
         $response->assertStatus(200)
             ->assertJson([
                 'success'  => true,
-                'order_id' => 'order-123',
+                'order_id' => 'd0000000-0000-4000-8000-000000000006',
                 'message'  => 'Order placed successfully',
             ]);
     }
@@ -98,7 +98,7 @@ class ExchangeControllerTest extends ControllerTestCase
             )
             ->andReturn([
                 'success'  => true,
-                'order_id' => 'order-456',
+                'order_id' => 'd0000000-0000-4000-8000-000000000007',
                 'message'  => 'Limit order placed successfully',
             ]);
 
@@ -114,7 +114,7 @@ class ExchangeControllerTest extends ControllerTestCase
         $response->assertStatus(200)
             ->assertJson([
                 'success'  => true,
-                'order_id' => 'order-456',
+                'order_id' => 'd0000000-0000-4000-8000-000000000007',
             ]);
     }
 
@@ -136,7 +136,7 @@ class ExchangeControllerTest extends ControllerTestCase
                 49000,
                 Mockery::any()
             )
-            ->andReturn(['success' => true, 'order_id' => 'order-789']);
+            ->andReturn(['success' => true, 'order_id' => 'd0000000-0000-4000-8000-000000000008']);
 
         $response = $this->postJson('/api/exchange/orders', [
             'type'           => 'sell',
@@ -265,7 +265,7 @@ class ExchangeControllerTest extends ControllerTestCase
 
         // Create an order for the user
         $order = Order::create([
-            'order_id'       => 'order-123',
+            'order_id'       => 'd0000000-0000-4000-8000-000000000006',
             'account_id'     => $this->account->id,
             'type'           => 'buy',
             'order_type'     => 'limit',
@@ -279,13 +279,13 @@ class ExchangeControllerTest extends ControllerTestCase
 
         $this->exchangeService->shouldReceive('cancelOrder')
             ->once()
-            ->with('order-123')
+            ->with('d0000000-0000-4000-8000-000000000006')
             ->andReturn([
                 'success' => true,
                 'message' => 'Order cancelled successfully',
             ]);
 
-        $response = $this->deleteJson('/api/exchange/orders/order-123');
+        $response = $this->deleteJson('/api/exchange/orders/d0000000-0000-4000-8000-000000000006');
 
         $response->assertStatus(200)
             ->assertJson([
@@ -316,7 +316,7 @@ class ExchangeControllerTest extends ControllerTestCase
         // Create an order for another user
         $otherAccount = Account::factory()->create();
         Order::create([
-            'order_id'       => 'other-user-order',
+            'order_id'       => 'd0000000-0000-4000-8000-000000000001',
             'account_id'     => $otherAccount->id,
             'type'           => 'buy',
             'order_type'     => 'market',
@@ -327,7 +327,7 @@ class ExchangeControllerTest extends ControllerTestCase
             'filled_amount'  => 0,
         ]);
 
-        $response = $this->deleteJson('/api/exchange/orders/other-user-order');
+        $response = $this->deleteJson('/api/exchange/orders/d0000000-0000-4000-8000-000000000001');
 
         $response->assertStatus(404)
             ->assertJson([
@@ -339,7 +339,7 @@ class ExchangeControllerTest extends ControllerTestCase
     #[Test]
     public function test_cancel_order_requires_authentication(): void
     {
-        $response = $this->deleteJson('/api/exchange/orders/order-123');
+        $response = $this->deleteJson('/api/exchange/orders/d0000000-0000-4000-8000-000000000006');
 
         $response->assertStatus(401);
     }
@@ -351,7 +351,7 @@ class ExchangeControllerTest extends ControllerTestCase
 
         // Create some orders
         Order::create([
-            'order_id'       => 'order-1',
+            'order_id'       => 'd0000000-0000-4000-8000-000000000012',
             'account_id'     => $this->account->id,
             'type'           => 'buy',
             'order_type'     => 'market',
@@ -364,7 +364,7 @@ class ExchangeControllerTest extends ControllerTestCase
         ]);
 
         Order::create([
-            'order_id'       => 'order-2',
+            'order_id'       => 'd0000000-0000-4000-8000-000000000013',
             'account_id'     => $this->account->id,
             'type'           => 'sell',
             'order_type'     => 'limit',
@@ -407,7 +407,7 @@ class ExchangeControllerTest extends ControllerTestCase
 
         // Create orders with different statuses
         Order::create([
-            'order_id'       => 'open-order',
+            'order_id'       => 'd0000000-0000-4000-8000-000000000005',
             'account_id'     => $this->account->id,
             'type'           => 'buy',
             'order_type'     => 'limit',
@@ -420,7 +420,7 @@ class ExchangeControllerTest extends ControllerTestCase
         ]);
 
         Order::create([
-            'order_id'       => 'filled-order',
+            'order_id'       => 'd0000000-0000-4000-8000-000000000004',
             'account_id'     => $this->account->id,
             'type'           => 'sell',
             'order_type'     => 'market',
@@ -446,7 +446,7 @@ class ExchangeControllerTest extends ControllerTestCase
         Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         Order::create([
-            'order_id'       => 'btc-eur-order',
+            'order_id'       => 'd0000000-0000-4000-8000-000000000002',
             'account_id'     => $this->account->id,
             'type'           => 'buy',
             'order_type'     => 'limit',
@@ -459,7 +459,7 @@ class ExchangeControllerTest extends ControllerTestCase
         ]);
 
         Order::create([
-            'order_id'       => 'eth-eur-order',
+            'order_id'       => 'd0000000-0000-4000-8000-000000000003',
             'account_id'     => $this->account->id,
             'type'           => 'buy',
             'order_type'     => 'limit',
@@ -495,9 +495,9 @@ class ExchangeControllerTest extends ControllerTestCase
 
         // Create some trades
         Trade::create([
-            'trade_id'          => 'trade-1',
-            'buy_order_id'      => 'order-1',
-            'sell_order_id'     => 'order-2',
+            'trade_id'          => 'd0000000-0000-4000-8000-000000000011',
+            'buy_order_id'      => 'd0000000-0000-4000-8000-000000000012',
+            'sell_order_id'     => 'd0000000-0000-4000-8000-000000000013',
             'buyer_account_id'  => $this->account->id,
             'seller_account_id' => 999, // Different account
             'base_currency'     => 'BTC',
@@ -540,9 +540,9 @@ class ExchangeControllerTest extends ControllerTestCase
         Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         Trade::create([
-            'trade_id'          => 'btc-trade',
-            'buy_order_id'      => 'order-1',
-            'sell_order_id'     => 'order-2',
+            'trade_id'          => 'd0000000-0000-4000-8000-000000000009',
+            'buy_order_id'      => 'd0000000-0000-4000-8000-000000000012',
+            'sell_order_id'     => 'd0000000-0000-4000-8000-000000000013',
             'buyer_account_id'  => $this->account->id,
             'seller_account_id' => 999,
             'base_currency'     => 'BTC',
@@ -556,9 +556,9 @@ class ExchangeControllerTest extends ControllerTestCase
         ]);
 
         Trade::create([
-            'trade_id'          => 'eth-trade',
-            'buy_order_id'      => 'order-3',
-            'sell_order_id'     => 'order-4',
+            'trade_id'          => 'd0000000-0000-4000-8000-000000000010',
+            'buy_order_id'      => 'd0000000-0000-4000-8000-000000000014',
+            'sell_order_id'     => 'd0000000-0000-4000-8000-000000000015',
             'buyer_account_id'  => $this->account->id,
             'seller_account_id' => 999,
             'base_currency'     => 'ETH',
