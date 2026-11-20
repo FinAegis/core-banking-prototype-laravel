@@ -40,6 +40,12 @@ class UnfreezeCardMutation
             throw new AuthorizationException('You are not authorized to manage this card.');
         }
 
+        // The owner may lift only a freeze they placed; a staff or issuer
+        // freeze needs an operator.
+        if (! $this->cardProvisioningService->mayUnfreeze($cardToken, $user)) {
+            throw new AuthorizationException('This card was frozen by our support team. Only they can unfreeze it.');
+        }
+
         $this->cardProvisioningService->unfreezeCard($cardToken);
 
         $card = $this->cardProvisioningService->getCard($cardToken);

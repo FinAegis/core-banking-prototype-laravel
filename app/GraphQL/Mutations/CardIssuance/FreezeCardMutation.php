@@ -40,7 +40,7 @@ class FreezeCardMutation
             throw new AuthorizationException('You are not authorized to manage this card.');
         }
 
-        $this->cardProvisioningService->freezeCard($cardToken);
+        $this->cardProvisioningService->freezeCard($cardToken, $user);
 
         $card = $this->cardProvisioningService->getCard($cardToken);
 

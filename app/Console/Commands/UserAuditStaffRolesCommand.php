@@ -26,8 +26,9 @@ use Symfony\Component\Console\Formatter\OutputFormatter;
  *
  * The command therefore flags every holder of an audited role who is not on
  * the operator allowlist (config security.staff_role_allowlist and the
- * --allow option). It changes nothing unless --revoke is given, and then
- * only after a confirmation for each flagged user.
+ * --allow option). A listed address counts only when it is verified. It
+ * changes nothing unless --revoke is given, and then only after a
+ * confirmation for each flagged user.
  */
 class UserAuditStaffRolesCommand extends Command
 {
@@ -69,7 +70,12 @@ class UserAuditStaffRolesCommand extends Command
         foreach ($holders as $user) {
             /** @var User $user */
             $roles = $this->heldRoles($user, $auditedRoles);
-            $isAllowlisted = in_array(mb_strtolower((string) $user->email), $allowlist, true);
+            // A listed address counts only once it is verified. An email
+            // change takes effect only after the new address is confirmed,
+            // so a role holder cannot pose as a listed operator by switching
+            // to an address they do not control.
+            $isListed = in_array(mb_strtolower((string) $user->email), $allowlist, true);
+            $isAllowlisted = $isListed && $user->email_verified_at !== null;
             $ownedTeams = Team::query()->where('user_id', $user->id)->orderBy('id')->get();
             $memberships = $this->businessMemberships($user);
 
@@ -87,7 +93,7 @@ class UserAuditStaffRolesCommand extends Command
                 implode(', ', $roles),
                 $ownedTeams->isEmpty() ? 'none' : $ownedTeams->map(fn (Team $team): string => $this->describeTeam($team))->implode('; '),
                 $memberships === [] ? '-' : implode('; ', $memberships),
-                $isAllowlisted ? 'allowlisted' : 'REVIEW: ' . $this->reason($ownedTeams, $memberships),
+                $isAllowlisted ? 'allowlisted' : 'REVIEW: ' . ($isListed ? 'allowlisted address is not verified' : $this->reason($ownedTeams, $memberships)),
             ];
         }
 

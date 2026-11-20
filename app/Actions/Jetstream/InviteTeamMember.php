@@ -53,6 +53,10 @@ class InviteTeamMember implements InvitesTeamMembers
      * team from inviting the same address. Counted when the mail is about
      * to go out, so cancelling and re-inviting counts again.
      *
+     * New inviters (a young account or an unverified email address) get a
+     * smaller daily share and draw on their own platform-wide pool, so
+     * throwaway accounts cannot use up the pool established users rely on.
+     *
      * @throws ValidationException
      */
     protected function throttle(User $user, Team $team, string $email): void
@@ -61,12 +65,20 @@ class InviteTeamMember implements InvitesTeamMembers
         $inviter = (string) $user->getKey();
         $teamKey = (string) $team->getKey();
         $recipient = hash('sha256', mb_strtolower(trim($email)));
+        $perInviterDaily = (int) ($limits['per_inviter_daily'] ?? 50);
+
+        if ($this->isNewInviter($user, (int) ($limits['new_inviter_days'] ?? 7))) {
+            $perInviterDaily = min($perInviterDaily, (int) ($limits['per_new_inviter_daily'] ?? 20));
+            $globalBucket = ['team_invitations:global:new_inviters:day', (int) ($limits['new_inviters_global_daily'] ?? 200), 86400];
+        } else {
+            $globalBucket = ['team_invitations:global:day', (int) ($limits['global_daily'] ?? 1000), 86400];
+        }
 
         $buckets = [
             ["team_invitations:inviter:{$inviter}:hour", (int) ($limits['per_inviter_hourly'] ?? 10), 3600],
-            ["team_invitations:inviter:{$inviter}:day", (int) ($limits['per_inviter_daily'] ?? 50), 86400],
+            ["team_invitations:inviter:{$inviter}:day", $perInviterDaily, 86400],
             ["team_invitations:team:{$teamKey}:recipient:{$recipient}:day", (int) ($limits['per_recipient_daily'] ?? 3), 86400],
-            ['team_invitations:global:day', (int) ($limits['global_daily'] ?? 1000), 86400],
+            $globalBucket,
         ];
 
         foreach ($buckets as [$key, $limit, $ttl]) {
@@ -78,6 +90,19 @@ class InviteTeamMember implements InvitesTeamMembers
                 )->errorBag('addTeamMember');
             }
         }
+    }
+
+    /**
+     * An inviter whose account is younger than the given number of days, or
+     * whose email address is not verified.
+     */
+    protected function isNewInviter(User $user, int $days): bool
+    {
+        if ($user->email_verified_at === null || $user->created_at === null) {
+            return true;
+        }
+
+        return $user->created_at->gt(now()->subDays(max(0, $days)));
     }
 
     /**

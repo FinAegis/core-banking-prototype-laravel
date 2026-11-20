@@ -17,6 +17,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\Support\Timebox;
 
 /**
  * Web-facing Privy email-OTP login (and signup) flow.
@@ -41,6 +42,7 @@ final class PrivyWebAuthController extends Controller
         private readonly RateLimiter $rateLimiter,
         private readonly ApiRegistrationGate $registrationGate,
         private readonly Application $app,
+        private readonly Timebox $timebox,
     ) {
     }
 
@@ -120,6 +122,19 @@ final class PrivyWebAuthController extends Controller
         }
         $this->rateLimiter->hit($throttleKey, 600);
 
+        // A refused code takes at least the configured time, whether or not
+        // Privy was asked, so the response time does not show which
+        // addresses may sign in. A correct code returns at once.
+        $minimum = max(0, (int) config('privy.web_verify_min_duration_ms', 1500)) * 1000;
+
+        return $this->timebox->call(
+            fn (Timebox $timebox): RedirectResponse => $this->completeVerification($request, $timebox, $email, $code, $throttleKey),
+            $minimum,
+        );
+    }
+
+    private function completeVerification(Request $request, Timebox $timebox, string $email, string $code, string $throttleKey): RedirectResponse
+    {
         // No code was sent to such an address (see sendCode()), so the
         // answer is the usual invalid-code error, without a call to Privy.
         if (! $this->maySignIn($email)) {
@@ -133,6 +148,9 @@ final class PrivyWebAuthController extends Controller
 
             return $this->invalidCode($email);
         }
+
+        // The code was correct: nothing left to hide.
+        $timebox->returnEarly();
 
         try {
             $user = $this->resolveOrCreateUser($resolved['id'], $resolved['email']);

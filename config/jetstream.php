@@ -86,15 +86,21 @@ return [
     | Every team invitation sends an email from the platform's domain to an
     | address the inviter chooses. These caps bound that mail: per inviter
     | (across all of their teams), per recipient address within one team,
-    | and platform-wide.
+    | and platform-wide. A new inviter (an account younger than
+    | new_inviter_days, or with an unverified email address) gets a smaller
+    | daily share and draws on its own platform-wide pool, so throwaway
+    | accounts cannot use up the pool that established users rely on.
     |
     */
 
     'invitation_limits' => [
-        'per_inviter_hourly'  => (int) env('TEAM_INVITATIONS_PER_INVITER_HOURLY', 10),
-        'per_inviter_daily'   => (int) env('TEAM_INVITATIONS_PER_INVITER_DAILY', 50),
-        'per_recipient_daily' => (int) env('TEAM_INVITATIONS_PER_RECIPIENT_DAILY', 3),
-        'global_daily'        => (int) env('TEAM_INVITATIONS_GLOBAL_DAILY', 1000),
+        'per_inviter_hourly'        => (int) env('TEAM_INVITATIONS_PER_INVITER_HOURLY', 10),
+        'per_inviter_daily'         => (int) env('TEAM_INVITATIONS_PER_INVITER_DAILY', 50),
+        'per_recipient_daily'       => (int) env('TEAM_INVITATIONS_PER_RECIPIENT_DAILY', 3),
+        'global_daily'              => (int) env('TEAM_INVITATIONS_GLOBAL_DAILY', 1000),
+        'new_inviter_days'          => (int) env('TEAM_INVITATIONS_NEW_INVITER_DAYS', 7),
+        'per_new_inviter_daily'     => (int) env('TEAM_INVITATIONS_PER_NEW_INVITER_DAILY', 20),
+        'new_inviters_global_daily' => (int) env('TEAM_INVITATIONS_NEW_INVITERS_GLOBAL_DAILY', 200),
     ],
 
 ];

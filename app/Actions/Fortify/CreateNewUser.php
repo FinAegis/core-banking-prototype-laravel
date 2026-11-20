@@ -5,6 +5,7 @@ namespace App\Actions\Fortify;
 use App\Domain\User\Services\ApiRegistrationGate;
 use App\Models\Team;
 use App\Models\User;
+use App\Rules\TeamName;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -121,7 +122,7 @@ class CreateNewUser implements CreatesNewUsers
             Team::forceCreate(
                 [
                     'user_id'       => $user->id,
-                    'name'          => explode(' ', $user->name, 2)[0] . "'s Team",
+                    'name'          => TeamName::personalTeamName((string) $user->name),
                     'personal_team' => true,
                 ]
             )

@@ -118,4 +118,8 @@ return [
 
     // ─── SMS (POST /api/v1/sms/send) ───────────────────────────────────────
     'ERR_SMS_001' => ['http' => 429, 'description' => 'The daily SMS sending limit has been reached. Please try again after 00:00 UTC.'],
+
+    // ─── Card freeze placed by staff or the issuer (owner cannot lift it) ──
+    // POST /api/v1/cards/fincard/{cardId}/unfreeze.
+    'ERR_CARDS_021' => ['http' => 403, 'description' => 'This card was frozen by our support team. Only they can unfreeze it.'],
 ];

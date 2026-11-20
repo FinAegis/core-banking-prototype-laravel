@@ -395,6 +395,41 @@ class TransactionRateLimitMiddleware
     }
 
     /**
+     * Count one call of a transaction type against the user's hourly and
+     * daily limits, on the same counters this middleware keeps. A GraphQL
+     * field that does the work of a rate-limited REST route calls this, so
+     * both share one counter. Returns false when a limit is already
+     * reached. Follows the same enabled and testing switches as handle().
+     */
+    public static function consume(int $userId, string $transactionType): bool
+    {
+        if (! config('rate_limiting.enabled', true)) {
+            return true;
+        }
+
+        if (app()->environment('testing') && ! config('rate_limiting.force_in_tests', false)) {
+            return true;
+        }
+
+        $config = self::TRANSACTION_LIMITS[$transactionType] ?? self::TRANSACTION_LIMITS['transfer'];
+        $periods = [
+            'hourly' => [$config['limit'], $config['window']],
+            'daily'  => [$config['daily_limit'], $config['daily_window']],
+        ];
+
+        foreach ($periods as $period => [$limit, $window]) {
+            $key = "tx_rate_limit:{$userId}:{$transactionType}:{$period}";
+            Cache::add($key, 0, $window);
+
+            if ((int) Cache::increment($key) > $limit) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Get transaction rate limit configuration.
      */
     public static function getTransactionLimits(): array

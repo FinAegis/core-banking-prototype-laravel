@@ -9,6 +9,7 @@ use App\Domain\CardIssuance\Http\Requests\FinCardAmountRequest;
 use App\Domain\CardIssuance\Http\Requests\OpenFinCardCardRequest;
 use App\Domain\CardIssuance\Models\Card;
 use App\Domain\CardIssuance\Models\Cardholder;
+use App\Domain\CardIssuance\Models\CardStaffFreeze;
 use App\Domain\CardIssuance\Services\FinCardCardholderService;
 use App\Domain\CardIssuance\Services\FinCardCardService;
 use App\Http\Controllers\Controller;
@@ -130,6 +131,15 @@ class FinCardCardController extends Controller
 
     public function unfreeze(Request $request, string $cardId): JsonResponse
     {
+        // The owner may lift only a freeze they placed. A freeze recorded by
+        // staff or the issuer needs staff.
+        /** @var User $user */
+        $user = $request->user();
+        $card = $this->cards->findForUser($user, $cardId);
+        if ($card instanceof Card && CardStaffFreeze::isHeld($card->issuer_card_token)) {
+            return ErrorResponse::make('ERR_CARDS_021');
+        }
+
         return $this->mutate($request, $cardId, fn (Card $card): Card => $this->cards->unfreeze($card, $this->orderNo($request), $this->context($request)));
     }
 

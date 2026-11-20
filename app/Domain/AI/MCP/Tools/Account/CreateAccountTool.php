@@ -44,7 +44,7 @@ class CreateAccountTool implements MCPToolInterface
             'properties' => [
                 'user_uuid' => [
                     'type'        => 'string',
-                    'description' => 'UUID of the user (optional, defaults to current user)',
+                    'description' => 'Your own user UUID (optional). Accounts are only created for the signed-in user.',
                     'pattern'     => '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
                 ],
                 'name' => [
@@ -132,8 +132,21 @@ class CreateAccountTool implements MCPToolInterface
                 return ToolExecutionResult::failure('An initial deposit is not accepted. Create the account without one.');
             }
 
+            // Accounts are opened only for the signed-in caller, whatever
+            // their roles: no operator flow creates accounts for other users
+            // over MCP. Another user's uuid is refused before any lookup.
+            $requestedUuid = $parameters['user_uuid'] ?? null;
+            $caller = Auth::user();
+            if (
+                $caller instanceof User
+                && is_string($requestedUuid) && $requestedUuid !== ''
+                && ! hash_equals(strtolower((string) $caller->uuid), strtolower($requestedUuid))
+            ) {
+                return ToolExecutionResult::failure('Unauthorized to create account for this user');
+            }
+
             // Get the user
-            $user = $this->getUser($parameters['user_uuid'] ?? null);
+            $user = $this->getUser();
 
             Log::debug('CreateAccountTool user found', ['user' => $user ? $user->toArray() : null]);
 
@@ -214,29 +227,14 @@ class CreateAccountTool implements MCPToolInterface
         }
     }
 
-    private function getUser(?string $userUuid): ?User
+    /**
+     * The signed-in caller, the only user account.create opens accounts for.
+     */
+    private function getUser(): ?User
     {
-        if ($userUuid) {
-            // First try to find by UUID
-            $user = User::where('uuid', $userUuid)->first();
-            if ($user) {
-                return $user;
-            }
+        $user = Auth::user();
 
-            // If it's numeric, try to find by ID
-            if (is_numeric($userUuid)) {
-                $user = User::find((int) $userUuid);
-                if ($user) {
-                    return $user;
-                }
-            }
-
-            // If we have a UUID but no user found, return null
-            return null;
-        }
-
-        // Only fall back to Auth::user() if no UUID was provided at all
-        return Auth::user();
+        return $user instanceof User ? $user : null;
     }
 
     private function canCreateAccount($user): bool
@@ -282,16 +280,8 @@ class CreateAccountTool implements MCPToolInterface
             return true;
         }
 
-        // Check for admin/banker role
-        if (method_exists($currentUser, 'hasRole') && $currentUser->hasRole(['admin', 'banker'])) {
-            return true;
-        }
-
-        // Check for specific permission
-        if (method_exists($currentUser, 'can') && $currentUser->can('create-account', $user)) {
-            return true;
-        }
-
+        // No admin, banker or permission path opens an account for someone
+        // else.
         return false;
     }
 

@@ -8,13 +8,9 @@ use App\Domain\CardIssuance\Adapters\DemoCardIssuerAdapter;
 use App\Domain\CardIssuance\Adapters\FinCardCardIssuerAdapter;
 use App\Domain\CardIssuance\Adapters\MarqetaCardIssuerAdapter;
 use App\Domain\CardIssuance\Contracts\CardIssuerInterface;
-use App\Http\Middleware\TransactionRateLimitMiddleware;
 use App\Infrastructure\FinCard\FinCardClient;
 use App\Infrastructure\FinCard\FinCardWebhookVerifier;
-use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -56,30 +52,9 @@ class CardIssuanceServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Per-user limit for the GraphQL provisionCard and createCard mutations
-        // (@throttle(name: "card-provision") in graphql/card-issuance.graphql):
-        // the hourly and daily counts that REST POST /api/v1/cards and
-        // /api/v1/cards/provision get from transaction.rate_limit:card_provision,
-        // with the same switches. Lighthouse counts every resolved field, so
-        // aliased and batched calls are each counted.
-        RateLimiter::for('card-provision', function (Request $request): Limit|array {
-            if (
-                ! (bool) config('rate_limiting.enabled', true)
-                || ($this->app->environment('testing') && ! (bool) config('rate_limiting.force_in_tests', false))
-            ) {
-                return Limit::none();
-            }
-
-            $all = TransactionRateLimitMiddleware::getTransactionLimits();
-            /** @var array{limit: int, daily_limit: int} $limits */
-            $limits = $all['card_provision'] ?? $all['transfer'];
-            $key = 'card-provision:' . ($request->user()?->getAuthIdentifier() ?? $request->ip());
-
-            return [
-                Limit::perHour($limits['limit'])->by($key . ':hour'),
-                Limit::perDay($limits['daily_limit'])->by($key . ':day'),
-            ];
-        });
+        // GraphQL provisionCard and createCard count on the same per-user
+        // card_provision counter as the REST routes
+        // (TransactionRateLimitMiddleware::consume() in their resolvers).
 
         // Finding #15: Warn in production when the Marqeta HMAC secret is absent.
         // Without this secret, incoming webhook payloads cannot be signature-verified,

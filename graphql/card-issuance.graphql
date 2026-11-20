@@ -89,12 +89,10 @@ extend type Query @module(name: "CardIssuance") {
 extend type Mutation @module(name: "CardIssuance") {
     provisionCard(input: ProvisionCardInput! @spread): VirtualCard!
         @guard(with: ["sanctum"])
-        @throttle(name: "card-provision")
         @field(resolver: "App\\GraphQL\\Mutations\\CardIssuance\\ProvisionCardMutation")
 
     createCard(input: CreateCardInput! @spread): VirtualCard!
         @guard(with: ["sanctum"])
-        @throttle(name: "card-provision")
         @field(resolver: "App\\GraphQL\\Mutations\\CardIssuance\\CreateCardMutation")
 
     freezeCard(id: ID!): VirtualCard!
