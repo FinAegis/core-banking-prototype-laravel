@@ -45217,18 +45217,6 @@ parameters:
 			path: tests/Unit/Domain/Wallet/Services/KeyManagementServiceTest.php
 
 		-
-			message: '#^Method class@anonymous/tests/Unit/Filament/Exports/TransactionExporterTest\.php\:63\:\:getDirection\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: tests/Unit/Filament/Exports/TransactionExporterTest.php
-
-		-
-			message: '#^Method class@anonymous/tests/Unit/Filament/Exports/TransactionExporterTest\.php\:69\:\:getDirection\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: tests/Unit/Filament/Exports/TransactionExporterTest.php
-
-		-
 			message: '#^Method Tests\\Unit\\Http\\Middleware\\EnsureSubProductEnabledTest\:\:it_allows_request_when_feature_is_enabled\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1

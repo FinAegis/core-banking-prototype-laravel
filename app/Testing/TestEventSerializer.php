@@ -20,8 +20,6 @@ class TestEventSerializer implements EventSerializer
         $reflection = new ReflectionClass($event);
 
         foreach ($reflection->getProperties() as $property) {
-            $property->setAccessible(true);
-
             // Skip uninitialized properties
             if (! $property->isInitialized($event)) {
                 continue;
@@ -60,7 +58,6 @@ class TestEventSerializer implements EventSerializer
         foreach ($data as $property => $value) {
             if (property_exists($event, $property)) {
                 $reflection = new ReflectionProperty($event, $property);
-                $reflection->setAccessible(true);
 
                 // Handle type hints
                 $type = $reflection->getType();
@@ -109,7 +106,6 @@ class TestEventSerializer implements EventSerializer
         foreach ($data as $property => $value) {
             if ($reflection->hasProperty($property)) {
                 $prop = $reflection->getProperty($property);
-                $prop->setAccessible(true);
                 $prop->setValue($instance, $value);
             }
         }

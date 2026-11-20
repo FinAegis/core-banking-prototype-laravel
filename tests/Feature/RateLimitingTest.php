@@ -164,7 +164,6 @@ describe('Transaction Rate Limiting', function () {
         $middleware = new TransactionRateLimitMiddleware();
         $reflection = new ReflectionClass($middleware);
         $method = $reflection->getMethod('extractAmount');
-        $method->setAccessible(true);
 
         // Test with amount field
         $request1 = Request::create('/test', 'POST', ['amount' => 100.50]);
@@ -217,7 +216,6 @@ describe('Dynamic Rate Limiting Service', function () {
         // Mock business hours (higher limits)
         $reflection = new ReflectionClass($service);
         $method = $reflection->getMethod('getTimeOfDayMultiplier');
-        $method->setAccessible(true);
 
         // This would need to be tested with time mocking in a real scenario
         $multiplier = $method->invoke($service);

@@ -73,7 +73,6 @@ class TestEventSerializerTest extends DomainTestCase
         $event = new EventWithPrivateProperties();
         $reflection = new ReflectionClass($event);
         $privateProperty = $reflection->getProperty('privateData');
-        $privateProperty->setAccessible(true);
         $privateProperty->setValue($event, 'secret');
 
         $event->publicData = 'visible';

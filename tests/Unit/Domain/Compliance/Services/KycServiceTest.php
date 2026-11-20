@@ -189,7 +189,6 @@ class KycServiceTest extends ServiceTestCase
         // Use reflection to test protected method
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('storeDocument');
-        $method->setAccessible(true);
 
         $kycDocument = $method->invoke($this->service, $user, $document);
 

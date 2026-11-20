@@ -211,15 +211,12 @@ describe('TransactionAggregate', function () {
             $reflection = new ReflectionClass($aggregate);
 
             $currentHashProperty = $reflection->getProperty('currentHash');
-            $currentHashProperty->setAccessible(true);
             $currentHashProperty->setValue($aggregate, '');
 
             $generateMethod = $reflection->getMethod('generateHash');
-            $generateMethod->setAccessible(true);
             $hash = $generateMethod->invoke($aggregate, $money);
 
             $storeMethod = $reflection->getMethod('storeHash');
-            $storeMethod->setAccessible(true);
             $storeMethod->invoke($aggregate, $hash);
 
             expect(fn () => $reflection->getMethod('validateHash')

@@ -33,7 +33,6 @@ it('exposes a private dispatchTierChange that fires SubscriptionTierChanged for 
     // onRefundDeclined all call inline.
     $controller = app(AppleNotificationsWebhookController::class);
     $method = (new ReflectionClass($controller))->getMethod('dispatchTierChange');
-    $method->setAccessible(true);
     $method->invoke($controller, $sub, 'apple_iap.test.source');
 
     Event::assertDispatched(
@@ -52,7 +51,6 @@ it('dispatches with the source string verbatim so listeners can see which Apple 
 
     $controller = app(AppleNotificationsWebhookController::class);
     $method = (new ReflectionClass($controller))->getMethod('dispatchTierChange');
-    $method->setAccessible(true);
     $method->invoke($controller, $sub, 'apple_iap.refund');
 
     Event::assertDispatched(

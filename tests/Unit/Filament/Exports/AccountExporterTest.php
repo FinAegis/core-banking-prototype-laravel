@@ -34,7 +34,6 @@ it('formats balance correctly from cents to dollars', function () {
     // Test the format state using method
     $reflection = new ReflectionClass($balanceColumn);
     $property = $reflection->getProperty('formatStateUsing');
-    $property->setAccessible(true);
     $formatState = $property->getValue($balanceColumn);
 
     expect($formatState(10050))->toBe('100.50')
@@ -50,7 +49,6 @@ it('formats frozen status to human readable text', function () {
     // Test the format state using method
     $reflection = new ReflectionClass($statusColumn);
     $property = $reflection->getProperty('formatStateUsing');
-    $property->setAccessible(true);
     $formatState = $property->getValue($statusColumn);
 
     expect($formatState(true))->toBe('Frozen')

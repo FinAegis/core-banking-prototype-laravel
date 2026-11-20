@@ -194,7 +194,6 @@ class BlockchainWalletServiceTest extends TestCase
         // Use reflection to test protected method
         $reflection = new ReflectionClass($this->blockchainWalletService);
         $method = $reflection->getMethod('formatBalance');
-        $method->setAccessible(true);
 
         // Test ETH formatting
         $formatted = $method->invoke($this->blockchainWalletService, '1000000000000000000', 'ethereum');
@@ -215,7 +214,6 @@ class BlockchainWalletServiceTest extends TestCase
         // Use reflection to test protected method
         $reflection = new ReflectionClass($this->blockchainWalletService);
         $method = $reflection->getMethod('getConnector');
-        $method->setAccessible(true);
 
         $ethereumConnector = $method->invoke($this->blockchainWalletService, 'ethereum');
         $this->assertNotNull($ethereumConnector);
@@ -233,7 +231,6 @@ class BlockchainWalletServiceTest extends TestCase
         // Use reflection to test protected method
         $reflection = new ReflectionClass($this->blockchainWalletService);
         $method = $reflection->getMethod('getConnector');
-        $method->setAccessible(true);
 
         $this->expectException(WalletException::class);
         $this->expectExceptionMessage('Unsupported blockchain: unsupported');

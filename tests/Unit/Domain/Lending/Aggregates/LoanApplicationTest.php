@@ -210,18 +210,15 @@ class LoanApplicationTest extends DomainTestCase
 
         // Use reflection to call the protected method
         $reflection = new ReflectionMethod($loanApp, 'applyLoanApplicationSubmitted');
-        $reflection->setAccessible(true);
         $reflection->invoke($loanApp, $submittedEvent);
 
         // Use reflection to check private properties
         $reflection = new ReflectionClass($loanApp);
 
         $statusProperty = $reflection->getProperty('status');
-        $statusProperty->setAccessible(true);
         $this->assertEquals('pending', $statusProperty->getValue($loanApp));
 
         $amountProperty = $reflection->getProperty('requestedAmount');
-        $amountProperty->setAccessible(true);
         $this->assertEquals('35000', $amountProperty->getValue($loanApp));
     }
 }

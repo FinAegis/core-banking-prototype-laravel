@@ -36,7 +36,6 @@ describe('ReceiveAddressService QR Value', function (): void {
         $service = new ReceiveAddressService();
         $reflection = new ReflectionClass($service);
         $method = $reflection->getMethod('buildQrValue');
-        $method->setAccessible(true);
 
         $qr = $method->invoke($service, 'testAddr123', PaymentNetwork::SOLANA, PaymentAsset::USDC);
 
@@ -47,7 +46,6 @@ describe('ReceiveAddressService QR Value', function (): void {
         $service = new ReceiveAddressService();
         $reflection = new ReflectionClass($service);
         $method = $reflection->getMethod('buildQrValue');
-        $method->setAccessible(true);
 
         $qr = $method->invoke($service, 'testAddr123', PaymentNetwork::SOLANA, PaymentAsset::USDT);
 
@@ -58,7 +56,6 @@ describe('ReceiveAddressService QR Value', function (): void {
         $service = new ReceiveAddressService();
         $reflection = new ReflectionClass($service);
         $method = $reflection->getMethod('buildQrValue');
-        $method->setAccessible(true);
 
         $qr = $method->invoke($service, 'TABCDEF1234567890123456789012345', PaymentNetwork::TRON, PaymentAsset::USDC);
 
@@ -74,7 +71,6 @@ describe('ReceiveAddressService Demo Address Generation', function (): void {
         $service = new ReceiveAddressService();
         $reflection = new ReflectionClass($service);
         $method = $reflection->getMethod('generateDemoAddress');
-        $method->setAccessible(true);
 
         $address = $method->invoke($service, 1, PaymentNetwork::SOLANA);
 
@@ -86,7 +82,6 @@ describe('ReceiveAddressService Demo Address Generation', function (): void {
         $service = new ReceiveAddressService();
         $reflection = new ReflectionClass($service);
         $method = $reflection->getMethod('generateDemoAddress');
-        $method->setAccessible(true);
 
         $address = $method->invoke($service, 1, PaymentNetwork::TRON);
 
@@ -98,7 +93,6 @@ describe('ReceiveAddressService Demo Address Generation', function (): void {
         $service = new ReceiveAddressService();
         $reflection = new ReflectionClass($service);
         $method = $reflection->getMethod('generateDemoAddress');
-        $method->setAccessible(true);
 
         $addr1 = $method->invoke($service, 42, PaymentNetwork::SOLANA);
         $addr2 = $method->invoke($service, 42, PaymentNetwork::SOLANA);
@@ -110,7 +104,6 @@ describe('ReceiveAddressService Demo Address Generation', function (): void {
         $service = new ReceiveAddressService();
         $reflection = new ReflectionClass($service);
         $method = $reflection->getMethod('generateDemoAddress');
-        $method->setAccessible(true);
 
         $addr1 = $method->invoke($service, 1, PaymentNetwork::SOLANA);
         $addr2 = $method->invoke($service, 2, PaymentNetwork::SOLANA);
@@ -122,7 +115,6 @@ describe('ReceiveAddressService Demo Address Generation', function (): void {
         $service = new ReceiveAddressService();
         $reflection = new ReflectionClass($service);
         $method = $reflection->getMethod('generateDemoAddress');
-        $method->setAccessible(true);
 
         $addr1 = $method->invoke($service, 1, PaymentNetwork::SOLANA);
         $addr2 = $method->invoke($service, 1, PaymentNetwork::TRON);

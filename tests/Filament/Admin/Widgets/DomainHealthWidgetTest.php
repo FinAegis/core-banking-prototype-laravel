@@ -14,7 +14,6 @@ describe('DomainHealthWidget', function () {
     it('has 60s polling interval', function () {
         $reflection = new ReflectionClass(DomainHealthWidget::class);
         $property = $reflection->getProperty('pollingInterval');
-        $property->setAccessible(true);
         expect($property->getValue())->toBe('60s');
     });
 
@@ -25,7 +24,6 @@ describe('DomainHealthWidget', function () {
     it('has sort order 5', function () {
         $reflection = new ReflectionClass(DomainHealthWidget::class);
         $property = $reflection->getProperty('sort');
-        $property->setAccessible(true);
         expect($property->getValue())->toBe(5);
     });
 

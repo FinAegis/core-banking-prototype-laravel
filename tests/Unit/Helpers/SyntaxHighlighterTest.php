@@ -72,7 +72,6 @@ class SyntaxHighlighterTest extends TestCase
     {
         $reflection = new ReflectionClass(SyntaxHighlighter::class);
         $highlighterProperty = $reflection->getProperty('highlighter');
-        $highlighterProperty->setAccessible(true);
 
         // Reset the highlighter
         $highlighterProperty->setValue(null, null);
@@ -230,7 +229,6 @@ class SyntaxHighlighterTest extends TestCase
         // Reset the static highlighter property
         $reflection = new ReflectionClass(SyntaxHighlighter::class);
         $highlighterProperty = $reflection->getProperty('highlighter');
-        $highlighterProperty->setAccessible(true);
         $highlighterProperty->setValue(null, null);
 
         parent::tearDown();

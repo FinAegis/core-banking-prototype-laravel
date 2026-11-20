@@ -36,7 +36,6 @@ class ExchangeServiceTest extends ServiceTestCase
         // Inject mocked fee calculator
         $reflection = new ReflectionClass($this->service);
         $property = $reflection->getProperty('feeCalculator');
-        $property->setAccessible(true);
         $property->setValue($this->service, $this->feeCalculator);
     }
 

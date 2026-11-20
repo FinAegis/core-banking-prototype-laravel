@@ -28,7 +28,6 @@ it('points each wallet relation manager at a real User relation', function (): v
 
     foreach ($managers as $manager) {
         $property = (new ReflectionClass($manager))->getProperty('relationship');
-        $property->setAccessible(true);
         $relationship = (string) $property->getValue();
 
         // The configured relationship resolves to a genuine Eloquent relation.

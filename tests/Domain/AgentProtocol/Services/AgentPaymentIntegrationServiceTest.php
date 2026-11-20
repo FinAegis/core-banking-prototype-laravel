@@ -51,7 +51,6 @@ class AgentPaymentIntegrationServiceTest extends TestCase
         // Use reflection to test private method
         $reflection = new ReflectionClass($service);
         $method = $reflection->getMethod('calculateIntegrationFee');
-        $method->setAccessible(true);
 
         $result = $method->invoke($service, 0.50, 'funding');
 
@@ -71,7 +70,6 @@ class AgentPaymentIntegrationServiceTest extends TestCase
 
         $reflection = new ReflectionClass($service);
         $method = $reflection->getMethod('calculateIntegrationFee');
-        $method->setAccessible(true);
 
         $result = $method->invoke($service, 100.00, 'withdrawal');
 
@@ -93,7 +91,6 @@ class AgentPaymentIntegrationServiceTest extends TestCase
 
         $reflection = new ReflectionClass($service);
         $method = $reflection->getMethod('calculateIntegrationFee');
-        $method->setAccessible(true);
 
         // 10 * 0.01 = 0.10, but minimum is 1.00
         $result = $method->invoke($service, 10.00, 'funding');
@@ -116,7 +113,6 @@ class AgentPaymentIntegrationServiceTest extends TestCase
 
         $reflection = new ReflectionClass($service);
         $method = $reflection->getMethod('calculateIntegrationFee');
-        $method->setAccessible(true);
 
         // 10000 * 0.10 = 1000, but maximum is 50.00
         $result = $method->invoke($service, 10000.00, 'withdrawal');
@@ -139,7 +135,6 @@ class AgentPaymentIntegrationServiceTest extends TestCase
 
         $reflection = new ReflectionClass($service);
         $method = $reflection->getMethod('calculateIntegrationFee');
-        $method->setAccessible(true);
 
         // 200 * 0.025 = 5.00
         $result = $method->invoke($service, 200.00, 'funding');

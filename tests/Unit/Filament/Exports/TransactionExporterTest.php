@@ -40,7 +40,6 @@ it('formats transaction type correctly', function () {
     // Test the format state using method
     $reflection = new ReflectionClass($typeColumn);
     $property = $reflection->getProperty('formatStateUsing');
-    $property->setAccessible(true);
     $formatState = $property->getValue($typeColumn);
 
     expect($formatState('deposit'))->toBe('Deposit')
@@ -56,18 +55,17 @@ it('formats amount correctly with sign', function () {
     // Test the format state using method
     $reflection = new ReflectionClass($amountColumn);
     $property = $reflection->getProperty('formatStateUsing');
-    $property->setAccessible(true);
     $formatState = $property->getValue($amountColumn);
 
     // Create mock records for testing
     $creditRecord = new class () {
-        public function getDirection()
+        public function getDirection(): string
         {
             return 'credit';
         }
     };
     $debitRecord = new class () {
-        public function getDirection()
+        public function getDirection(): string
         {
             return 'debit';
         }
@@ -85,7 +83,6 @@ it('formats status correctly', function () {
     // Test the format state using method
     $reflection = new ReflectionClass($statusColumn);
     $property = $reflection->getProperty('formatStateUsing');
-    $property->setAccessible(true);
     $formatState = $property->getValue($statusColumn);
 
     expect($formatState('completed'))->toBe('Completed')

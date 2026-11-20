@@ -21,7 +21,6 @@ describe('PostingRuleEngine', function (): void {
         $engine = new PostingRuleEngine();
         $reflection = new ReflectionClass(PostingRuleEngine::class);
         $method = $reflection->getMethod('resolveAmount');
-        $method->setAccessible(true);
 
         $result = $method->invoke($engine, 'event.amount', ['amount' => '250.50']);
 
@@ -32,7 +31,6 @@ describe('PostingRuleEngine', function (): void {
         $engine = new PostingRuleEngine();
         $reflection = new ReflectionClass(PostingRuleEngine::class);
         $method = $reflection->getMethod('resolveAmount');
-        $method->setAccessible(true);
 
         $result = $method->invoke($engine, 'event.fee', ['fee' => '5.00', 'amount' => '100.00']);
 
@@ -43,7 +41,6 @@ describe('PostingRuleEngine', function (): void {
         $engine = new PostingRuleEngine();
         $reflection = new ReflectionClass(PostingRuleEngine::class);
         $method = $reflection->getMethod('resolveAmount');
-        $method->setAccessible(true);
 
         $result = $method->invoke($engine, 'event.interest', ['interest' => '12.75']);
 
@@ -54,7 +51,6 @@ describe('PostingRuleEngine', function (): void {
         $engine = new PostingRuleEngine();
         $reflection = new ReflectionClass(PostingRuleEngine::class);
         $method = $reflection->getMethod('resolveAmount');
-        $method->setAccessible(true);
 
         $result = $method->invoke($engine, '99.99', []);
 
@@ -65,7 +61,6 @@ describe('PostingRuleEngine', function (): void {
         $engine = new PostingRuleEngine();
         $reflection = new ReflectionClass(PostingRuleEngine::class);
         $method = $reflection->getMethod('resolveAmount');
-        $method->setAccessible(true);
 
         $result = $method->invoke($engine, 'some_unknown_expression', []);
 
@@ -76,7 +71,6 @@ describe('PostingRuleEngine', function (): void {
         $engine = new PostingRuleEngine();
         $reflection = new ReflectionClass(PostingRuleEngine::class);
         $method = $reflection->getMethod('resolveAmount');
-        $method->setAccessible(true);
 
         $result = $method->invoke($engine, 'event.missing_key', ['amount' => '100.00']);
 

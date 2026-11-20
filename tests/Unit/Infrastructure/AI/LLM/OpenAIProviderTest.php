@@ -42,7 +42,6 @@ class OpenAIProviderTest extends TestCase
         // Use reflection to inject mock client
         $reflection = new ReflectionClass($this->provider);
         $property = $reflection->getProperty('client');
-        $property->setAccessible(true);
         $property->setValue($this->provider, $client);
     }
 

@@ -14,28 +14,24 @@ describe('EventStoreDashboard', function () {
     it('has correct navigation icon', function () {
         $reflection = new ReflectionClass(EventStoreDashboard::class);
         $property = $reflection->getProperty('navigationIcon');
-        $property->setAccessible(true);
         expect($property->getValue())->toBe('heroicon-o-circle-stack');
     });
 
     it('has correct navigation group', function () {
         $reflection = new ReflectionClass(EventStoreDashboard::class);
         $property = $reflection->getProperty('navigationGroup');
-        $property->setAccessible(true);
         expect($property->getValue())->toBe('System');
     });
 
     it('has correct navigation sort', function () {
         $reflection = new ReflectionClass(EventStoreDashboard::class);
         $property = $reflection->getProperty('navigationSort');
-        $property->setAccessible(true);
         expect($property->getValue())->toBe(11);
     });
 
     it('has correct view', function () {
         $reflection = new ReflectionClass(EventStoreDashboard::class);
         $property = $reflection->getProperty('view');
-        $property->setAccessible(true);
         expect($property->getValue())->toBe('filament.admin.pages.event-store-dashboard');
     });
 

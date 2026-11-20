@@ -19,11 +19,9 @@ describe('Observability Dashboard Integration', function () {
         expect($reflection->hasMethod('getHeaderWidgets'))->toBeTrue();
 
         $navIcon = $reflection->getProperty('navigationIcon');
-        $navIcon->setAccessible(true);
         expect($navIcon->getValue())->toBe('heroicon-o-circle-stack');
 
         $navGroup = $reflection->getProperty('navigationGroup');
-        $navGroup->setAccessible(true);
         expect($navGroup->getValue())->toBe('System');
     });
 

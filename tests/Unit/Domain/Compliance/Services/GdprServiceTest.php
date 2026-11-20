@@ -157,7 +157,6 @@ class GdprServiceTest extends ServiceTestCase
 
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('getUserData');
-        $method->setAccessible(true);
 
         $userData = $method->invoke($this->service, $user);
 
@@ -207,7 +206,6 @@ class GdprServiceTest extends ServiceTestCase
 
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('anonymizeUser');
-        $method->setAccessible(true);
 
         $method->invoke($this->service, $user);
 

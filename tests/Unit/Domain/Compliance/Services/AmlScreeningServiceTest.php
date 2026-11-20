@@ -80,7 +80,6 @@ class AmlScreeningServiceTest extends ServiceTestCase
 
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('calculateOverallRisk');
-        $method->setAccessible(true);
 
         $risk = $method->invoke($this->service, $sanctionsResults, $pepResults, $adverseMediaResults);
 
@@ -96,7 +95,6 @@ class AmlScreeningServiceTest extends ServiceTestCase
 
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('calculateOverallRisk');
-        $method->setAccessible(true);
 
         $risk = $method->invoke($this->service, $sanctionsResults, $pepResults, $adverseMediaResults);
 
@@ -112,7 +110,6 @@ class AmlScreeningServiceTest extends ServiceTestCase
 
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('calculateOverallRisk');
-        $method->setAccessible(true);
 
         $risk = $method->invoke($this->service, $sanctionsResults, $pepResults, $adverseMediaResults);
 
@@ -128,7 +125,6 @@ class AmlScreeningServiceTest extends ServiceTestCase
 
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('calculateOverallRisk');
-        $method->setAccessible(true);
 
         $risk = $method->invoke($this->service, $sanctionsResults, $pepResults, $adverseMediaResults);
 
@@ -144,7 +140,6 @@ class AmlScreeningServiceTest extends ServiceTestCase
 
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('calculateOverallRisk');
-        $method->setAccessible(true);
 
         $risk = $method->invoke($this->service, $sanctionsResults, $pepResults, $adverseMediaResults);
 
@@ -160,7 +155,6 @@ class AmlScreeningServiceTest extends ServiceTestCase
 
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('countTotalMatches');
-        $method->setAccessible(true);
 
         $total = $method->invoke($this->service, $sanctionsResults, $pepResults, $adverseMediaResults);
 
@@ -172,7 +166,6 @@ class AmlScreeningServiceTest extends ServiceTestCase
     {
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('generateUniqueScreeningNumber');
-        $method->setAccessible(true);
 
         $screeningNumber = $method->invoke($this->service);
 
@@ -193,7 +186,6 @@ class AmlScreeningServiceTest extends ServiceTestCase
 
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('buildSearchParameters');
-        $method->setAccessible(true);
 
         $params = $method->invoke($this->service, $user);
 
@@ -212,7 +204,6 @@ class AmlScreeningServiceTest extends ServiceTestCase
 
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('buildSearchParameters');
-        $method->setAccessible(true);
 
         $params = $method->invoke($this->service, $user, $additionalParams);
 
@@ -226,7 +217,6 @@ class AmlScreeningServiceTest extends ServiceTestCase
     {
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('checkOFACList');
-        $method->setAccessible(true);
 
         $matches = $method->invoke($this->service, ['name' => 'John Smith']);
 
@@ -239,7 +229,6 @@ class AmlScreeningServiceTest extends ServiceTestCase
     {
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('checkOFACList');
-        $method->setAccessible(true);
 
         // The service has test logic that matches on 'test' or 'sanctioned'
         $matches = $method->invoke($this->service, ['name' => 'Test Person']);
@@ -255,7 +244,6 @@ class AmlScreeningServiceTest extends ServiceTestCase
     {
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('checkPEPDatabase');
-        $method->setAccessible(true);
 
         $result = $method->invoke($this->service, 'John Smith', 'US');
 
@@ -267,7 +255,6 @@ class AmlScreeningServiceTest extends ServiceTestCase
     {
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('checkPEPDatabase');
-        $method->setAccessible(true);
 
         // The service has test logic that matches on certain keywords
         $result = $method->invoke($this->service, 'Senator Smith', 'US');
@@ -280,7 +267,6 @@ class AmlScreeningServiceTest extends ServiceTestCase
     {
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('searchAdverseMedia');
-        $method->setAccessible(true);
 
         $results = $method->invoke($this->service, 'John Smith');
 
@@ -293,7 +279,6 @@ class AmlScreeningServiceTest extends ServiceTestCase
     {
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('searchAdverseMedia');
-        $method->setAccessible(true);
 
         // The service has test logic that matches on 'fraud' or 'scandal'
         $results = $method->invoke($this->service, 'Fraud Person');
