@@ -110,7 +110,7 @@ class PasswordResetController extends Controller
         operationId: 'resetPassword',
         tags: ['Authentication'],
         summary: 'Reset password',
-        description: 'Reset user password using token received via email',
+        description: 'Reset user password using token received via email. Every existing sign-in ends: API tokens, OAuth grants, stored sessions, registered mobile devices with their passkey and biometric keys, and API keys.',
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['email', 'password', 'password_confirmation', 'token'], properties: [
         new OA\Property(property: 'email', type: 'string', format: 'email', example: 'user@example.com'),
         new OA\Property(property: 'password', type: 'string', format: 'password', example: 'newpassword123'),
@@ -166,9 +166,9 @@ class PasswordResetController extends Controller
 
                 $user->save();
 
-                // End every other sign-in: API tokens, OAuth grants and
-                // stored sessions.
-                UserSignIns::endAllExcept($user);
+                // End every other sign-in (API tokens, OAuth grants,
+                // stored sessions, mobile devices) and the API keys.
+                UserSignIns::endAll($user);
 
                 event(new PasswordReset($user));
 

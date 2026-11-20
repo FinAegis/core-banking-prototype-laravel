@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Auth\Services;
 
 use App\Domain\Compliance\Models\AuditLog;
-use App\Domain\Mobile\Services\MobileDeviceService;
 use App\Domain\User\Exceptions\RegistrationNotAllowedException;
 use App\Domain\User\Services\ApiRegistrationGate;
-use App\Models\ApiKey;
 use App\Models\User;
 use App\Support\UserSignIns;
 use Illuminate\Database\Eloquent\Collection;
@@ -48,7 +46,6 @@ final class PrivyAccountLinker
 
     public function __construct(
         private readonly ApiRegistrationGate $registrationGate,
-        private readonly MobileDeviceService $devices,
     ) {
     }
 
@@ -240,21 +237,14 @@ final class PrivyAccountLinker
     }
 
     /**
-     * End every sign-in that existed before the link: API tokens, OAuth
-     * grants, the "remember me" token and stored sessions (the same helper
-     * a password reset uses), plus mobile devices with their passkey,
-     * biometric keys and push tokens, and API keys.
+     * End every sign-in that existed before the link, the same way a
+     * password reset does: API tokens, OAuth grants, the "remember me"
+     * token, stored sessions, mobile devices with their passkey and
+     * biometric keys, and API keys.
      */
     private function endEarlierAccess(User $user): void
     {
-        UserSignIns::endAllExcept($user);
-
-        $this->devices->removeAllDevices($user);
-
-        ApiKey::query()
-            ->where('user_uuid', $user->uuid)
-            ->where('is_active', true)
-            ->update(['is_active' => false]);
+        UserSignIns::endAll($user);
     }
 
     /**

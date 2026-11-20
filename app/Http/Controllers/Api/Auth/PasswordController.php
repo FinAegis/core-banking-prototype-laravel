@@ -23,7 +23,7 @@ class PasswordController extends Controller
     #[OA\Post(
         path: '/api/v2/auth/change-password',
         summary: 'Change user password',
-        description: 'Change the authenticated user\'s password and invalidate all existing tokens',
+        description: 'Change the authenticated user\'s password. All existing API tokens, OAuth grants and stored sessions end, and registered mobile devices are removed with their passkey and biometric keys; API keys stay. The response carries a new token.',
         operationId: 'changePassword',
         tags: ['Authentication'],
         security: [['sanctum' => []]],
@@ -77,7 +77,8 @@ class PasswordController extends Controller
         ]);
 
         // End every other sign-in (API tokens, OAuth grants, stored
-        // sessions); the caller gets a new token below.
+        // sessions, mobile devices); API keys stay. The caller gets a new
+        // token below.
         UserSignIns::endAllExcept($user);
 
         // Create a new token with proper expiration

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use App\Domain\Mobile\Models\MobileDeviceSession;
+use App\Domain\Mobile\Services\MobileDeviceService;
+use App\Models\ApiKey;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -11,14 +14,39 @@ use Laravel\Passport\Passport;
 
 /**
  * Ends the ways a user is signed in. Used after a password reset or change,
- * so someone who knew the old password, or held a session or token from
- * before, loses access.
+ * and when a Privy sign-in links an account whose email nobody had proved,
+ * so someone who knew the old password, or held a session, token or device
+ * from before, loses access.
  */
 final class UserSignIns
 {
     /**
-     * Revoke every API token and OAuth grant, replace the "remember me"
-     * token and delete the stored sessions, except the session to keep.
+     * After a password reset, or a link of an account nobody had proved:
+     * whoever did it controls the account now, so every earlier way in ends,
+     * API keys included.
+     */
+    public static function endAll(User $user): void
+    {
+        self::endAllExcept($user);
+
+        ApiKey::query()
+            ->where('user_uuid', $user->uuid)
+            ->where('is_active', true)
+            ->update(['is_active' => false]);
+    }
+
+    /**
+     * After a password change: revoke every API token and OAuth grant,
+     * replace the "remember me" token, delete the stored sessions except the
+     * session to keep, and remove the mobile devices with their passkey and
+     * biometric keys, device sessions and push tokens. API keys stay: the
+     * account holder proved the current password and the keys do not
+     * depend on it.
+     *
+     * No request can be tied to a device row (the X-Device-ID header is
+     * only a client claim), so no device is kept. The app registers its
+     * device again after the next sign-in.
+     *
      * Sessions in a store that cannot be listed by user (Redis, files,
      * cookies) end on their next request through the AuthenticateSession
      * middleware in the web group, because they carry the old password hash.
@@ -40,6 +68,19 @@ final class UserSignIns
                 ->when($keepSessionId !== null, fn ($query) => $query->where('id', '!=', $keepSessionId))
                 ->delete();
         }
+
+        self::removeDevices($user);
+    }
+
+    /**
+     * Mobile devices hold passkey and biometric keys that sign in on their
+     * own, and push tokens that receive the account's notifications.
+     */
+    private static function removeDevices(User $user): void
+    {
+        MobileDeviceSession::query()->where('user_id', $user->getKey())->delete();
+
+        app(MobileDeviceService::class)->removeAllDevices($user);
     }
 
     /**
