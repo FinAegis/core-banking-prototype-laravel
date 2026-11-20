@@ -1,0 +1,190 @@
+name: MariaDB Compatibility
+
+# Production runs MariaDB 11.4 through Laravel's `mariadb` driver, so every
+# `$table->uuid()` column there is a native UUID column that rejects values
+# such as 'TXN-001', 'bt_<uuid>' or bigint ids. The required feature jobs run
+# on MySQL 8 (CHAR(36) uuid columns) and SQLite, where those values pass.
+#
+# This workflow runs the feature suite on MariaDB 11.4 with the `mariadb`
+# driver, does not stop at the first failure, and lists every failing test in
+# the job summary. It is non-blocking (continue-on-error, separate workflow)
+# until the list is empty; then it can replace the MySQL service.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mariadb-compat-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  feature-tests-mariadb:
+    name: Feature Tests on MariaDB 11.4 (${{ matrix.shard }}, non-blocking)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [api, core, extended]
+
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DB_CONNECTION: mariadb
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: testing
+      DB_USERNAME: root
+      DB_PASSWORD: root
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, imagick, bcmath, intl, zip, soap, gmp
+          tools: composer:v2
+          coverage: none
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Dependencies
+        uses: actions/cache@v5
+        with:
+          path: |
+            ${{ steps.composer-cache.outputs.dir }}
+            node_modules
+            ~/.npm
+          key: ${{ runner.os }}-feature-deps-${{ hashFiles('**/composer.lock', '**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-feature-deps-
+
+      - name: Setup Environment
+        run: |
+          cp .env.testing .env
+          {
+            echo "DB_CONNECTION=mariadb"
+            echo "DB_HOST=127.0.0.1"
+            echo "DB_PORT=3306"
+            echo "DB_DATABASE=testing"
+            echo "DB_USERNAME=root"
+            echo "DB_PASSWORD=root"
+          } >> .env
+
+      - name: Install Dependencies
+        run: |
+          composer install --prefer-dist --no-progress --optimize-autoloader --no-interaction
+          npm ci --prefer-offline --no-audit
+          npm run build
+
+      - name: Migrate
+        run: |
+          php artisan config:clear
+          php artisan migrate --force
+
+      - name: Run Feature Tests
+        env:
+          CI: true
+          PEST_NO_SORT: true
+          MEMORY_LIMIT: 2G
+          PEST_PARALLEL: false
+          PEST_STOP_ON_FAILURE: 'false'
+          SHARD: ${{ matrix.shard }}
+        run: |
+          chmod +x ./bin/pest-batch ./bin/pest-rest
+          mkdir -p junit
+          status=0
+          batch() {
+            PEST_JUNIT_FILE="junit/${SHARD}-$1.xml" "${@:2}" || status=1
+          }
+          case "$SHARD" in
+            api)
+              batch 1 ./bin/pest-batch tests/Feature/Api
+              ;;
+            core)
+              batch 1 ./bin/pest-batch tests/Feature/Http tests/Feature/Domain tests/Feature/Models
+              batch 2 ./bin/pest-batch tests/Feature/Cache tests/Feature/Exchange tests/Feature/Basket
+              batch 3 ./bin/pest-batch tests/Feature/Console tests/Feature/Subscription
+              ;;
+            extended)
+              batch 1 ./bin/pest-rest tests/Feature \
+                tests/Feature/Api \
+                tests/Feature/Http tests/Feature/Domain tests/Feature/Models \
+                tests/Feature/Cache tests/Feature/Exchange tests/Feature/Basket \
+                tests/Feature/Console tests/Feature/Subscription
+              ;;
+          esac
+          exit "$status"
+
+      - name: List MariaDB failures
+        if: always()
+        run: |
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import glob, re, xml.etree.ElementTree as ET
+          rows = []
+          for path in sorted(glob.glob("junit/*.xml")):
+              try:
+                  root = ET.parse(path).getroot()
+              except ET.ParseError:
+                  continue
+              for case in root.iter("testcase"):
+                  for kind in ("failure", "error"):
+                      node = case.find(kind)
+                      if node is None:
+                          continue
+                      text = (node.get("message") or node.text or "").strip()
+                      first = next((l.strip() for l in text.splitlines() if l.strip()), "")
+                      sqlstate = re.search(r"SQLSTATE\[[0-9A-Z]+\][^(]*", text)
+                      rows.append((case.get("file") or case.get("classname") or "?", case.get("name") or "?", (sqlstate.group(0) if sqlstate else first)[:220]))
+          print("## Feature tests on MariaDB 11.4")
+          print()
+          print(f"Failing tests: {len(rows)}")
+          if rows:
+              print()
+              print("| File | Test | Error |")
+              print("|---|---|---|")
+              for f, n, e in rows[:200]:
+                  f = re.sub(r"^.*?/tests/", "tests/", f)
+                  print(f"| {f} | {n.replace('|', '/')} | {e.replace('|', '/')} |")
+          PY
+          cat "$GITHUB_STEP_SUMMARY"
