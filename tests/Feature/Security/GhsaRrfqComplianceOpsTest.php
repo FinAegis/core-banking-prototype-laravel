@@ -65,6 +65,15 @@ use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 /**
  * @return array{name: string, category: string, result: string, detail: string}
  */
+beforeEach(function (): void {
+    // Keep counters, rate limiters and IP blocks out of the Redis cache that
+    // CI's parallel processes share.
+    Tests\Support\SharedCacheIsolation::isolate();
+});
+
+/**
+ * @return array{name: string, category: string, result: string, detail: string}
+ */
 function rrfqCoOpsCheck(string $name): array
 {
     Artisan::call('ops:verify-env', ['--json' => true]);

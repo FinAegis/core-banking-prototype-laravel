@@ -30,6 +30,9 @@ const RRFQ_GQL_QUERY = '{ bankTransfers(first: 10) { id status } }';
 const RRFQ_GQL_MUTATION = 'mutation ($id: String!) { cancelTransfer(transfer_id: $id) { transfer_id status message } }';
 
 beforeEach(function (): void {
+    // Keep counters, rate limiters and IP blocks out of the Redis cache that
+    // CI's parallel processes share.
+    Tests\Support\SharedCacheIsolation::isolate();
     Cache::forget('domain_manager_disabled');
     config(['modules.disabled' => []]);
 });
