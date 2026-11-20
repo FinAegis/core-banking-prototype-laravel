@@ -571,12 +571,6 @@ parameters:
 			path: app/Domain/Banking/Services/BankIntegrationService.php
 
 		-
-			message: '#^Cannot access property \$value on Illuminate\\Database\\Eloquent\\Model\|null\.$#'
-			identifier: property.nonObject
-			count: 2
-			path: app/Domain/Basket/Services/BasketPerformanceService.php
-
-		-
 			message: '#^Cannot access property \$is_active on App\\Domain\\Basket\\Models\\BasketAsset\|null\.$#'
 			identifier: property.nonObject
 			count: 2

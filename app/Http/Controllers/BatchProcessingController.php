@@ -222,6 +222,7 @@ class BatchProcessingController extends Controller
             'avg_processing_time' => $batchJob->items()
                 ->whereNotNull('processed_at')
                 ->selectRaw('AVG(TIMESTAMPDIFF(SECOND, created_at, processed_at)) as avg_time')
+                ->toBase()
                 ->value('avg_time') ?? 0,
         ];
 

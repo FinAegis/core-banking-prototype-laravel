@@ -69,10 +69,10 @@ class BlockchainWithdrawalActivities
             throw new Exception('Two-factor authentication code required');
         }
 
-        // Verify 2FA code (placeholder - would integrate with actual 2FA service)
-        /** @var User|null $$user */
-        $$user = User::find($userId);
-        // Verification logic here
+        // There is no 2FA service behind this custodial withdrawal path yet, so
+        // refuse instead of accepting any code. (Until the variable typo fix,
+        // the lookup below threw on every call, which hid the missing check.)
+        throw new Exception('Two-factor verification is not available for blockchain withdrawals');
     }
 
     public function checkDailyLimit(string $walletId, string $amount): void
@@ -271,8 +271,8 @@ class BlockchainWithdrawalActivities
         array $fees
     ): void {
         // Debit user's fiat account
-        /** @var Account|null $$account */
-        $$account = Account::find($accountId);
+        /** @var Account|null $account */
+        $account = Account::find($accountId);
         if ($account) {
             $totalAmount = BigDecimal::of($amount)->plus($fees['total_fee']);
 

@@ -278,8 +278,7 @@ class BankConnectorAdapter implements IBankConnector
         $transactions = $this->getTransactions($accountId, $from, $to, 1000);
 
         // Calculate opening and closing balances
-        /** @var \Illuminate\Database\Eloquent\Model|null $$firstTx */
-        $$firstTx = $transactions->first();
+        $firstTx = $transactions->first();
         $lastTx = $transactions->last();
 
         $openingBalance = $firstTx ? ($firstTx->balanceAfter - $firstTx->amount) : 0;

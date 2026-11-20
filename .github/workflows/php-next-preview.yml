@@ -1,0 +1,111 @@
+name: PHP 8.5 Preview
+
+# Non-blocking preview of the next PHP version. The production servers and the
+# required CI jobs run PHP 8.4; this job runs the unit suite on PHP 8.5 and
+# lists every deprecation it triggers, so they can be fixed before an upgrade.
+# It is a separate workflow, so a failure here never changes the CI Pipeline
+# status.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: php-next-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit-tests-php85:
+    name: Unit Tests (PHP 8.5, non-blocking)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    continue-on-error: true
+
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, imagick, bcmath, intl, zip, soap, gmp
+          tools: composer:v2
+          coverage: none
+          ini-values: |
+            memory_limit=1G
+            max_execution_time=360
+            error_reporting=E_ALL
+
+      - name: Setup Environment
+        run: |
+          cp .env.testing .env
+          # Laravel's handler turns PHP deprecations into log entries (only
+          # while testing when LOG_DEPRECATIONS_WHILE_TESTING is set); write
+          # them to storage/logs so the next step can list them.
+          {
+            echo "LOG_DEPRECATIONS_CHANNEL=single"
+            echo "LOG_DEPRECATIONS_TRACE=false"
+            echo "LOG_DEPRECATIONS_WHILE_TESTING=true"
+          } >> .env
+
+      # After .env: package:discover boots the app and needs APP_KEY.
+      - name: Install PHP Dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Run Unit Tests
+        env:
+          LOG_DEPRECATIONS_CHANNEL: single
+          LOG_DEPRECATIONS_WHILE_TESTING: 'true'
+        run: |
+          vendor/bin/pest tests/Unit --parallel --processes=2 2>&1 | tee pest-php85.log
+          exit "${PIPESTATUS[0]}"
+
+      - name: List PHP 8.5 deprecations
+        if: always()
+        run: |
+          {
+            cat storage/logs/*.log 2>/dev/null || true
+            cat pest-php85.log 2>/dev/null || true
+          } | grep -iE 'deprecated' \
+            | sed -E "s#${GITHUB_WORKSPACE}/##g" \
+            | grep -oE '[^]]*(deprecated|Deprecated)[^]]* in [^ ]+ on line [0-9]+' \
+            | sed -E 's/^.*(WARNING|INFO|DEBUG|NOTICE): //' \
+            | sort | uniq -c | sort -rn > deprecations.txt || true
+
+          first_party=$(grep -cE ' in (app|config|bootstrap|routes|database)/' deprecations.txt || true)
+          total=$(wc -l < deprecations.txt)
+
+          {
+            echo "## PHP 8.5 deprecations"
+            echo ""
+            echo "Distinct deprecations: ${total}. In this repository's code: ${first_party}."
+            echo ""
+            if [ "${total}" -gt 0 ]; then
+              echo '```'
+              head -100 deprecations.txt
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          cat deprecations.txt
+          if [ "${first_party}" -gt 0 ]; then
+            echo "::warning::${first_party} PHP 8.5 deprecation(s) in first-party code"
+            exit 1
+          fi

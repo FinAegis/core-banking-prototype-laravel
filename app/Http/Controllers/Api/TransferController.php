@@ -233,9 +233,11 @@ class TransferController extends Controller
             ->where('event_class', 'App\Domain\Account\Events\MoneyTransferred')
             ->where(
                 function ($query) use ($accountUuid) {
+                    // Laravel's JSON path syntax compiles per driver; the raw
+                    // `->>` operator is MySQL-only and failed on MariaDB (prod).
                     $query->where('aggregate_uuid', $accountUuid)
-                        ->orWhereRaw("event_properties->>'$.to_uuid' = ?", [$accountUuid])
-                        ->orWhereRaw("event_properties->>'$.from_uuid' = ?", [$accountUuid]);
+                        ->orWhere('event_properties->to_uuid', $accountUuid)
+                        ->orWhere('event_properties->from_uuid', $accountUuid);
                 }
             )
             ->orderBy('created_at', 'desc')

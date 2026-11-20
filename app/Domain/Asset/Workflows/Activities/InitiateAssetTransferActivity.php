@@ -26,10 +26,8 @@ class InitiateAssetTransferActivity extends Activity
         ?string $description = null
     ): string {
         // Validate accounts exist
-        /** @var \Illuminate\Database\Eloquent\Model|null $$fromAccount */
-        $$fromAccount = Account::where('uuid', $fromAccountUuid->toString())->first();
-        /** @var \Illuminate\Database\Eloquent\Model|null $$toAccount */
-        $$toAccount = Account::where('uuid', $toAccountUuid->toString())->first();
+        $fromAccount = Account::where('uuid', $fromAccountUuid->toString())->first();
+        $toAccount = Account::where('uuid', $toAccountUuid->toString())->first();
 
         if (! $fromAccount) {
             throw new Exception("Source account not found: {$fromAccountUuid->toString()}");

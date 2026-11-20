@@ -18,8 +18,7 @@ class BalanceInquiryActivity extends Activity
         $account = null;
         $aggregate = $transaction->retrieve($uuid->getUuid());
 
-        /** @var \Illuminate\Database\Eloquent\Model|null $$account */
-        $$account = Account::where('uuid', $uuid->getUuid())->first();
+        $account = Account::where('uuid', $uuid->getUuid())->first();
 
         // Log the inquiry for audit purposes
         $this->logInquiry($uuid, $requestedBy);

@@ -17,8 +17,7 @@ class AccountValidationActivity extends Activity
     ): array {
         /** @var Account|null $account */
         $account = null;
-        /** @var \Illuminate\Database\Eloquent\Model|null $$account */
-        $$account = Account::where('uuid', $uuid->getUuid())->first();
+        $account = Account::where('uuid', $uuid->getUuid())->first();
 
         if (! $account) {
             throw new RuntimeException("Account not found: {$uuid->getUuid()}");

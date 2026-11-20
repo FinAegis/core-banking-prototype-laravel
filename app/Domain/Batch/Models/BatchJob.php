@@ -96,6 +96,8 @@ class BatchJob extends Model
 
     /**
      * Get the items for this batch job.
+     *
+     * @return HasMany<BatchJobItem, $this>
      */
     public function items(): HasMany
     {

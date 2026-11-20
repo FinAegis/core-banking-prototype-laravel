@@ -8,6 +8,8 @@
 #   CONFIG_FILE       - PHPUnit config file (default: phpunit.ci-optimized.xml)
 #   PEST_PARALLEL     - Enable parallel execution (default: false)
 #   PARALLEL_PROCS    - Number of parallel processes (default: 2)
+#   PEST_STOP_ON_FAILURE - Stop at the first failure (default: true)
+#   PEST_JUNIT_FILE   - Write a JUnit report to this path (default: none)
 
 set -euo pipefail
 
@@ -16,6 +18,14 @@ MEMORY_LIMIT=${MEMORY_LIMIT:-1G}
 CONFIG_FILE=${CONFIG_FILE:-phpunit.ci-optimized.xml}
 PEST_PARALLEL_ENABLED=${PEST_PARALLEL:-false}
 PARALLEL_PROCS=${PARALLEL_PROCS:-2}
+STOP_FLAG="--stop-on-failure"
+if [ "${PEST_STOP_ON_FAILURE:-true}" = "false" ]; then
+    STOP_FLAG=""
+fi
+JUNIT_FLAG=""
+if [ -n "${PEST_JUNIT_FILE:-}" ]; then
+    JUNIT_FLAG="--log-junit=$PEST_JUNIT_FILE"
+fi
 
 # Export CI environment variables
 export CI=true
@@ -85,7 +95,8 @@ set +e
 php -d memory_limit=$MEMORY_LIMIT -d max_execution_time=0 ./vendor/bin/pest "${VALID_PATHS[@]}" \
     --configuration=$CONFIG_FILE \
     --no-coverage \
-    --stop-on-failure \
+    $STOP_FLAG \
+    $JUNIT_FLAG \
     $PARALLEL_FLAGS
 EXIT_CODE=$?
 set -e
