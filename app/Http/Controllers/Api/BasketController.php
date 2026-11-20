@@ -393,20 +393,7 @@ class BasketController extends Controller
         );
     }
 
-        #[OA\Get(
-            path: '/api/v2/baskets/{code}/performance',
-            operationId: 'getBasketPerformanceMetrics',
-            tags: ['Baskets'],
-            summary: 'Get basket performance metrics',
-            parameters: [
-            new OA\Parameter(name: 'code', in: 'path', description: 'Basket code', required: true, schema: new OA\Schema(type: 'string')),
-            new OA\Parameter(name: 'period', in: 'query', description: 'Performance period', required: false, schema: new OA\Schema(type: 'string', enum: ['1d', '7d', '30d', '90d', '1y'], default: '30d')),
-            ]
-        )]
-    #[OA\Response(
-        response: 200,
-        description: 'Basket performance metrics'
-    )]
+    // Not routed: GET /api/v2/baskets/{code}/performance is served and documented by BasketPerformanceController::show().
     public function getPerformance(Request $request, string $code): JsonResponse
     {
         $basket = BasketAsset::where('code', $code)->firstOrFail();

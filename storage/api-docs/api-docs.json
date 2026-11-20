@@ -5959,7 +5959,7 @@
                     "Authentication"
                 ],
                 "summary": "Exchange a Privy session JWT for a Sanctum token",
-                "description": "Verifies the Privy-issued session JWT against Privy's JWKS, extracts the linked email (or fetches it from the Privy users API as fallback), finds or creates the backing user with the real email, and returns a Sanctum bearer token with read/write/delete abilities.",
+                "description": "Verifies the Privy-issued session JWT against Privy's JWKS and extracts the linked email (or fetches it from the Privy users API as fallback). A returning Privy identity signs in to its user. Otherwise an existing account with the same email (letter case ignored) is linked to the Privy identity and signs in like a returning user, unless it has confirmed two-factor authentication; if that account's email was never verified, its password, second factor, social sign-in, API tokens, OAuth grants, sessions, mobile devices and API keys are revoked first. Only when no account matches is a new user created, subject to the registration switch. Returns a Sanctum bearer token with read/write/delete abilities.",
                 "operationId": "privyLogin",
                 "requestBody": {
                     "required": true,
@@ -6026,7 +6026,7 @@
                                                     "example": "Bearer"
                                                 },
                                                 "is_new_user": {
-                                                    "description": "True on first login (user record was just created); false on returning logins.",
+                                                    "description": "True on first login (user record was just created); false on returning logins, including the first Privy login that links an existing account.",
                                                     "type": "boolean",
                                                     "example": true
                                                 }
@@ -6069,7 +6069,7 @@
                         }
                     },
                     "403": {
-                        "description": "First login of a new Privy identity while API registration is closed (ERR_REG_001) or invite-only without an invitation for the Privy email (ERR_REG_002). Existing users are not affected.",
+                        "description": "First login of a new Privy identity, with no existing account for its email, while API registration is closed (ERR_REG_001) or invite-only without an invitation for the Privy email (ERR_REG_002). Existing users, including accounts linked on this login, are not affected.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -6102,7 +6102,7 @@
                         }
                     },
                     "409": {
-                        "description": "Email already in use by a non-Privy user",
+                        "description": "The account with this email cannot be linked automatically (EMAIL_ALREADY_EXISTS): it is linked to a different Privy identity, or it has confirmed two-factor authentication. Any other account without a Privy identity is linked instead of refused.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -6119,7 +6119,7 @@
                                                 },
                                                 "message": {
                                                     "type": "string",
-                                                    "example": "An account with this email already exists. Use a different Privy email or sign in with the existing credentials."
+                                                    "example": "An account with this email exists and cannot be linked automatically. Contact support."
                                                 }
                                             },
                                             "type": "object"
@@ -6717,7 +6717,7 @@
                     "Authentication"
                 ],
                 "summary": "Change user password",
-                "description": "Change the authenticated user's password and invalidate all existing tokens",
+                "description": "Change the authenticated user's password. All existing API tokens, OAuth grants and stored sessions end, and registered mobile devices are removed with their passkey and biometric keys; API keys stay. The response carries a new token.",
                 "operationId": "changePassword",
                 "requestBody": {
                     "required": true,
@@ -6873,7 +6873,7 @@
                     "Authentication"
                 ],
                 "summary": "Reset password",
-                "description": "Reset user password using token received via email",
+                "description": "Reset user password using token received via email. Every existing sign-in ends: API tokens, OAuth grants, stored sessions, registered mobile devices with their passkey and biometric keys, and API keys.",
                 "operationId": "resetPassword",
                 "requestBody": {
                     "required": true,
@@ -7266,6 +7266,9 @@
                     },
                     "403": {
                         "description": "First social login of a new user while API registration is closed (ERR_REG_001) or invite-only without an invitation (ERR_REG_002)"
+                    },
+                    "409": {
+                        "description": "An account with this email exists and the provider did not report the email as verified (EMAIL_ALREADY_EXISTS); sign in with the existing method"
                     }
                 }
             }
@@ -11216,48 +11219,6 @@
         "/api/v2/baskets/{code}/performance": {
             "get": {
                 "tags": [
-                    "Baskets"
-                ],
-                "summary": "Get basket performance metrics",
-                "operationId": "getBasketPerformanceMetrics",
-                "parameters": [
-                    {
-                        "name": "code",
-                        "in": "path",
-                        "description": "Basket code",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "period",
-                        "in": "query",
-                        "description": "Performance period",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "default": "30d",
-                            "enum": [
-                                "1d",
-                                "7d",
-                                "30d",
-                                "90d",
-                                "1y"
-                            ]
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Basket performance metrics"
-                    }
-                }
-            }
-        },
-        "/api/baskets/{code}/performance": {
-            "get": {
-                "tags": [
                     "Basket Performance"
                 ],
                 "summary": "Get performance metrics for a basket",
@@ -11337,7 +11298,7 @@
                 ]
             }
         },
-        "/api/baskets/{code}/performance/history": {
+        "/api/v2/baskets/{code}/performance/history": {
             "get": {
                 "tags": [
                     "Basket Performance"
@@ -11410,7 +11371,7 @@
                 ]
             }
         },
-        "/api/baskets/{code}/performance/summary": {
+        "/api/v2/baskets/{code}/performance/summary": {
             "get": {
                 "tags": [
                     "Basket Performance"
@@ -11481,7 +11442,7 @@
                 ]
             }
         },
-        "/api/baskets/{code}/performance/components": {
+        "/api/v2/baskets/{code}/performance/components": {
             "get": {
                 "tags": [
                     "Basket Performance"
@@ -11545,7 +11506,7 @@
                 ]
             }
         },
-        "/api/baskets/{code}/performance/top-performers": {
+        "/api/v2/baskets/{code}/performance/top-performers": {
             "get": {
                 "tags": [
                     "Basket Performance"
@@ -11596,7 +11557,7 @@
                 ]
             }
         },
-        "/api/baskets/{code}/performance/worst-performers": {
+        "/api/v2/baskets/{code}/performance/worst-performers": {
             "get": {
                 "tags": [
                     "Basket Performance"
@@ -11647,7 +11608,7 @@
                 ]
             }
         },
-        "/api/baskets/{code}/performance/calculate": {
+        "/api/v2/baskets/{code}/performance/calculate": {
             "post": {
                 "tags": [
                     "Basket Performance"
@@ -11711,6 +11672,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Platform operators only (admin, super_admin, bank_admin)"
                     }
                 },
                 "security": [
@@ -11720,7 +11684,7 @@
                 ]
             }
         },
-        "/api/baskets/{code}/performance/compare": {
+        "/api/v2/baskets/{code}/performance/compare": {
             "get": {
                 "tags": [
                     "Basket Performance"
@@ -13623,6 +13587,9 @@
                 "responses": {
                     "200": {
                         "description": "Card unfrozen"
+                    },
+                    "403": {
+                        "description": "The card was frozen by staff; only staff can unfreeze it (ERR_CARD_007)"
                     },
                     "404": {
                         "description": "Card not found"
@@ -40579,7 +40546,7 @@
                         "description": "Unauthorized"
                     },
                     "422": {
-                        "description": "Validation error, or INVALID_ADDRESS when the owner address cannot be used by this user (registered to another user's smart account, or the per-user owner-address cap is reached)"
+                        "description": "Validation error, or INVALID_ADDRESS when the owner address cannot be used by this user (registered to another user's smart account, the per-user owner-address cap is reached, or, with wallet ownership verification enforced, it is not one of the caller's wallets)"
                     }
                 },
                 "security": [
@@ -47510,6 +47477,53 @@
                     },
                     "500": {
                         "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/trustcert/{certId}/export-pdf/{file}": {
+            "get": {
+                "tags": [
+                    "TrustCert Certificates"
+                ],
+                "summary": "Download an exported certificate PDF",
+                "description": "Downloads a PDF made by the export endpoint. Use the pdfUrl it returned: the link is signed, expires at expiresAt, and works only for the certificate holder.",
+                "operationId": "trustCertCertificatesDownloadPdf",
+                "parameters": [
+                    {
+                        "name": "certId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "file",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The PDF file",
+                        "content": {
+                            "application/pdf": {}
+                        }
+                    },
+                    "403": {
+                        "description": "Invalid or expired download link"
+                    },
+                    "404": {
+                        "description": "Export not found, expired, or the certificate is not held by the caller"
                     }
                 },
                 "security": [
