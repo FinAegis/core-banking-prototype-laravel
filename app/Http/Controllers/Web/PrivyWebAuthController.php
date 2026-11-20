@@ -172,8 +172,9 @@ final class PrivyWebAuthController extends Controller
 
         // Returning a 409 Conflict from a redirect form is awkward; instead we
         // surface a flash error and bounce back to /login. This is the rare
-        // case where the account with this email is already linked to a
-        // different Privy identity. The mobile flow returns 409 +
+        // case where the account with this email cannot be linked
+        // automatically: it is linked to a different Privy identity or has
+        // confirmed two-factor authentication. The mobile flow returns 409 +
         // {error.code: EMAIL_ALREADY_EXISTS}; we mirror the same error.code in
         // the flash session so support can diagnose tickets across both
         // transports without copy-pasting flash strings.
@@ -181,7 +182,7 @@ final class PrivyWebAuthController extends Controller
             return redirect()
                 ->route('login')
                 ->withErrors([
-                    'email' => __('This email address is already linked to another sign-in. Please contact support so we can move it.'),
+                    'email' => __('This email address belongs to an account that we cannot link automatically. Please contact support.'),
                 ])
                 ->with('error_code', 'EMAIL_ALREADY_EXISTS');
         }

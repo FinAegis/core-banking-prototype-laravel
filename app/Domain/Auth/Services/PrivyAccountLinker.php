@@ -28,7 +28,8 @@ use Throwable;
  * email address, is linked to the Privy identity instead of being refused.
  * If that account's email was never verified, someone else may have
  * registered the address first, so every earlier way into the account ends
- * when it is linked.
+ * when it is linked. An account with confirmed two-factor authentication is
+ * never linked: the email code alone must not replace its second factor.
  */
 final class PrivyAccountLinker
 {
@@ -37,6 +38,8 @@ final class PrivyAccountLinker
     public const FLOW_WEB = 'web';
 
     public const AUDIT_ACTION = 'auth.privy_identity_linked';
+
+    public const AUDIT_ACTION_REFUSED_TWO_FACTOR = 'auth.privy_link_refused_two_factor';
 
     /**
      * Erased accounts get `deleted-<uuid>@anonymized.local` addresses.
@@ -50,10 +53,11 @@ final class PrivyAccountLinker
     }
 
     /**
-     * Returns the user for this Privy identity, or null when an account with
-     * this email address is already linked to a different Privy identity
-     * (or the address is one given to an erased account). Only a brand-new
-     * account goes through the registration switch.
+     * Returns the user for this Privy identity, or null when the account with
+     * this email address cannot be linked: it is linked to a different Privy
+     * identity, it has confirmed two-factor authentication, or the address
+     * is one given to an erased account. Only a brand-new account goes
+     * through the registration switch.
      *
      * @throws RegistrationNotAllowedException when a new account is not admitted
      */
@@ -147,7 +151,7 @@ final class PrivyAccountLinker
      */
     private function link(User $existing, string $privyUserId, string $email, string $flow): ?User
     {
-        /** @var array{user: User|null, linked: bool, wasEmailVerified: bool} $result */
+        /** @var array{user: User|null, linked: bool, wasEmailVerified: bool, refusedTwoFactor?: true} $result */
         $result = DB::transaction(function () use ($existing, $privyUserId, $email): array {
             $user = User::query()->whereKey($existing->getKey())->lockForUpdate()->first();
 
@@ -170,6 +174,12 @@ final class PrivyAccountLinker
 
             $wasEmailVerified = $user->email_verified_at !== null;
 
+            // Confirmed two-factor authentication (Fortify enforces only a
+            // confirmed secret): the email code alone must not get in.
+            if ($user->two_factor_confirmed_at !== null) {
+                return ['user' => null, 'linked' => false, 'wasEmailVerified' => $wasEmailVerified, 'refusedTwoFactor' => true];
+            }
+
             $user->forceFill([
                 'privy_user_id'   => $privyUserId,
                 'privy_linked_at' => now(),
@@ -190,10 +200,22 @@ final class PrivyAccountLinker
 
         $user = $result['user'];
 
+        // AuditLog lives on the tenant connection, so it is written after the
+        // default-connection transaction has committed.
         if ($result['linked'] && $user instanceof User) {
-            // AuditLog lives on the tenant connection, so it is written after
-            // the default-connection transaction has committed.
-            $this->audit($user, $result['wasEmailVerified'], $flow);
+            $this->audit($user, self::AUDIT_ACTION, ['privy_user_id' => $user->privy_user_id], [
+                'was_email_verified'   => $result['wasEmailVerified'],
+                'flow'                 => $flow,
+                'earlier_access_ended' => ! $result['wasEmailVerified'],
+            ]);
+        }
+
+        if (isset($result['refusedTwoFactor'])) {
+            $this->audit($existing, self::AUDIT_ACTION_REFUSED_TWO_FACTOR, null, [
+                'attempted_privy_user_id' => $privyUserId,
+                'was_email_verified'      => $result['wasEmailVerified'],
+                'flow'                    => $flow,
+            ]);
         }
 
         return $user;
@@ -235,33 +257,33 @@ final class PrivyAccountLinker
             ->update(['is_active' => false]);
     }
 
-    private function audit(User $user, bool $wasEmailVerified, string $flow): void
+    /**
+     * @param array<string, mixed>|null $newValues
+     * @param array<string, mixed>      $metadata
+     */
+    private function audit(User $user, string $action, ?array $newValues, array $metadata): void
     {
         $request = request();
 
         try {
             $log = new AuditLog();
             $log->user_uuid = $user->uuid;
-            $log->action = self::AUDIT_ACTION;
+            $log->action = $action;
             $log->auditable_type = $user::class;
             $log->auditable_id = (string) $user->getKey();
-            $log->new_values = ['privy_user_id' => $user->privy_user_id];
-            $log->metadata = [
-                'was_email_verified'   => $wasEmailVerified,
-                'flow'                 => $flow,
-                'earlier_access_ended' => ! $wasEmailVerified,
-            ];
+            $log->new_values = $newValues;
+            $log->metadata = $metadata;
             $log->ip_address = $request->ip();
             $log->user_agent = Str::limit((string) $request->userAgent(), 255, '');
             $log->tags = 'auth,privy,account-link';
             $log->save();
         } catch (Throwable $e) {
-            // The link has committed; a lost audit row must not fail the
-            // sign-in. Keep the facts in the application log instead.
+            // The decision has committed; a lost audit row must not fail the
+            // request. Keep the facts in the application log instead.
             Log::error('Privy account link audit row could not be written', [
-                'user_id'            => $user->getKey(),
-                'was_email_verified' => $wasEmailVerified,
-                'flow'               => $flow,
+                'action'  => $action,
+                'user_id' => $user->getKey(),
+                ...$metadata,
             ]);
             report($e);
         }

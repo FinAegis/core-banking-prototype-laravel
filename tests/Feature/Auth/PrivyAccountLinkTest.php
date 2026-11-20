@@ -227,6 +227,56 @@ function palLinkAudits(User $user): int
         ->count();
 }
 
+/**
+ * @param  array<string, mixed>  $attributes
+ */
+function palTwoFactorUser(array $attributes): User
+{
+    return palLegacyUser(array_merge([
+        'two_factor_secret'         => encrypt('pal-totp-secret'),
+        'two_factor_recovery_codes' => encrypt('[]'),
+        'two_factor_confirmed_at'   => now()->subMonth(),
+    ], $attributes));
+}
+
+/**
+ * The account is exactly as it was before the refused sign-in.
+ *
+ * @param  array{token_id: int|string, device_id: string, api_key_id: int|string}  $access
+ * @param  array<string, mixed>  $stored
+ */
+function palUntouched(User $user, array $access, array $stored): bool
+{
+    $now = (array) DB::table('users')->where('id', $user->id)->first();
+
+    return array_intersect_key($now, $stored) == $stored
+        && palEarlierAccessKept($user, $access)
+        && DB::table('personal_access_tokens')->where('tokenable_id', $user->id)->count() === 1
+        && DB::table((string) config('session.table', 'sessions'))->where('user_id', $user->id)->count() === 1
+        && palLinkAudits($user) === 0;
+}
+
+/**
+ * @return array<string, mixed>
+ */
+function palStoredRow(User $user): array
+{
+    $row = (array) DB::table('users')->where('id', $user->id)->first();
+
+    return array_intersect_key($row, array_flip([
+        'privy_user_id', 'privy_linked_at', 'password', 'remember_token', 'email_verified_at',
+        'two_factor_secret', 'two_factor_confirmed_at', 'oauth_provider', 'oauth_id', 'updated_at',
+    ]));
+}
+
+function palTwoFactorRefusal(User $user): ?AuditLog
+{
+    return AuditLog::query()
+        ->where('action', PrivyAccountLinker::AUDIT_ACTION_REFUSED_TWO_FACTOR)
+        ->where('user_uuid', $user->uuid)
+        ->first();
+}
+
 beforeEach(function (): void {
     config(['cache.default' => 'array', 'session.driver' => 'database']);
     Cache::store('array')->flush();
@@ -274,13 +324,15 @@ describe('mobile Privy login links an existing account', function (): void {
             ->and($returning['data']['is_new_user'])->toBeFalse();
     });
 
-    it('links an unverified account and ends every earlier way into it', function (): void {
+    it('links an unverified account with an unconfirmed two-factor secret and ends every earlier way into it', function (): void {
+        // A secret that was never confirmed is not enforced at sign-in
+        // (Fortify confirm => true), so the normal rules apply.
         $user = palLegacyUser([
             'email'                     => 'unverified@example.com',
             'email_verified_at'         => null,
             'two_factor_secret'         => encrypt('pal-totp-secret'),
             'two_factor_recovery_codes' => encrypt('[]'),
-            'two_factor_confirmed_at'   => now(),
+            'two_factor_confirmed_at'   => null,
             'oauth_provider'            => 'github',
             'oauth_id'                  => 'pal-github-id',
         ]);
@@ -305,6 +357,51 @@ describe('mobile Privy login links an existing account', function (): void {
             // Only the token issued by this sign-in is left.
             ->and($fresh?->tokens()->count())->toBe(1)
             ->and($fresh?->tokens()->value('name'))->toBe('privy');
+    });
+
+    it('refuses an account with confirmed two-factor authentication and changes nothing', function (?string $verifiedAt): void {
+        $user = palTwoFactorUser(['email' => 'two-factor@example.com', 'email_verified_at' => $verifiedAt]);
+        $access = palEarlierAccess($user);
+        $stored = palStoredRow($user);
+
+        $this->postJson('/api/v1/auth/privy-login', ['privy_token' => palToken('did:privy:paltwofactor', 'two-factor@example.com')])
+            ->assertStatus(409)
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('error.code', 'EMAIL_ALREADY_EXISTS')
+            ->assertJsonMissingPath('data.token');
+
+        expect(palUntouched($user, $access, $stored))->toBeTrue()
+            ->and(User::query()->where('privy_user_id', 'did:privy:paltwofactor')->exists())->toBeFalse();
+
+        $refusal = palTwoFactorRefusal($user);
+        expect($refusal)->not->toBeNull()
+            ->and($refusal?->metadata)->toMatchArray([
+                'attempted_privy_user_id' => 'did:privy:paltwofactor',
+                'was_email_verified'      => $verifiedAt !== null,
+                'flow'                    => 'mobile',
+            ]);
+    })->with([
+        'verified email'   => ['2025-01-01 00:00:00'],
+        'unverified email' => [null],
+    ]);
+
+    it('links a verified account whose two-factor secret was never confirmed', function (): void {
+        $user = palTwoFactorUser([
+            'email'                   => 'unconfirmed-2fa@example.com',
+            'two_factor_confirmed_at' => null,
+        ]);
+        $access = palEarlierAccess($user);
+
+        $this->postJson('/api/v1/auth/privy-login', ['privy_token' => palToken('did:privy:palunconfirmed', 'unconfirmed-2fa@example.com')])
+            ->assertOk()
+            ->assertJsonPath('data.user.id', $user->id)
+            ->assertJsonPath('data.is_new_user', false);
+
+        expect($user->fresh()?->privy_user_id)->toBe('did:privy:palunconfirmed')
+            ->and(Hash::check('legacy-password', (string) $user->fresh()?->password))->toBeTrue()
+            ->and(palEarlierAccessKept($user, $access))->toBeTrue()
+            ->and(palLinkAudits($user))->toBe(1)
+            ->and(palTwoFactorRefusal($user))->toBeNull();
     });
 
     it('matches the email address whatever its letter case', function (): void {
@@ -556,6 +653,45 @@ describe('web email-code login links an existing account', function (): void {
             ->and($fresh?->email_verified_at)->not->toBeNull()
             ->and(Hash::check('legacy-password', (string) $fresh?->password))->toBeFalse()
             ->and(palEarlierAccessEnded($user, $access))->toBeTrue();
+    });
+
+    it('refuses an account with confirmed two-factor authentication and changes nothing', function (): void {
+        $user = palTwoFactorUser(['email' => 'web-two-factor@example.com']);
+        $access = palEarlierAccess($user);
+        $stored = palStoredRow($user);
+        palWebCode('did:privy:palwebtwofactor', 'web-two-factor@example.com');
+
+        $this->post(route('login.privy.verify'), ['email' => 'web-two-factor@example.com', 'code' => '123456'])
+            ->assertRedirect(route('login'))
+            ->assertSessionHasErrors('email')
+            ->assertSessionHas('error_code', 'EMAIL_ALREADY_EXISTS');
+
+        $this->assertGuest();
+        expect(palUntouched($user, $access, $stored))->toBeTrue()
+            ->and(palTwoFactorRefusal($user)?->metadata)->toMatchArray([
+                'attempted_privy_user_id' => 'did:privy:palwebtwofactor',
+                'flow'                    => 'web',
+            ]);
+    });
+
+    it('links an unverified account whose two-factor secret was never confirmed', function (): void {
+        $user = palTwoFactorUser([
+            'email'                   => 'web-unconfirmed-2fa@example.com',
+            'email_verified_at'       => null,
+            'two_factor_confirmed_at' => null,
+        ]);
+        $access = palEarlierAccess($user);
+        palWebCode('did:privy:palwebunconfirmed', 'web-unconfirmed-2fa@example.com');
+
+        $this->post(route('login.privy.verify'), ['email' => 'web-unconfirmed-2fa@example.com', 'code' => '123456'])
+            ->assertRedirect(route('dashboard'));
+
+        $this->assertAuthenticatedAs($user);
+        $fresh = $user->fresh();
+        expect($fresh?->privy_user_id)->toBe('did:privy:palwebunconfirmed')
+            ->and($fresh?->two_factor_secret)->toBeNull()
+            ->and(palEarlierAccessEnded($user, $access))->toBeTrue()
+            ->and(palTwoFactorRefusal($user))->toBeNull();
     });
 
     it('matches the email address whatever its letter case', function (): void {

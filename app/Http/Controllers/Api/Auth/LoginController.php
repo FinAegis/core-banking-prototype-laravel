@@ -166,7 +166,7 @@ class LoginController extends Controller
     #[OA\Post(
         path: '/api/v1/auth/privy-login',
         summary: 'Exchange a Privy session JWT for a Sanctum token',
-        description: 'Verifies the Privy-issued session JWT against Privy\'s JWKS and extracts the linked email (or fetches it from the Privy users API as fallback). A returning Privy identity signs in to its user. Otherwise an existing account with the same email (letter case ignored) is linked to the Privy identity and signs in like a returning user; if that account\'s email was never verified, its password, second factor, social sign-in, API tokens, OAuth grants, sessions, mobile devices and API keys are revoked first. Only when no account matches is a new user created, subject to the registration switch. Returns a Sanctum bearer token with read/write/delete abilities.',
+        description: 'Verifies the Privy-issued session JWT against Privy\'s JWKS and extracts the linked email (or fetches it from the Privy users API as fallback). A returning Privy identity signs in to its user. Otherwise an existing account with the same email (letter case ignored) is linked to the Privy identity and signs in like a returning user, unless it has confirmed two-factor authentication; if that account\'s email was never verified, its password, second factor, social sign-in, API tokens, OAuth grants, sessions, mobile devices and API keys are revoked first. Only when no account matches is a new user created, subject to the registration switch. Returns a Sanctum bearer token with read/write/delete abilities.',
         operationId: 'privyLogin',
         tags: ['Authentication'],
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['privy_token'], properties: [
@@ -216,12 +216,12 @@ class LoginController extends Controller
     )]
     #[OA\Response(
         response: 409,
-        description: 'The account with this email is already linked to a different Privy identity (EMAIL_ALREADY_EXISTS). An account without a Privy identity is linked instead of refused.',
+        description: 'The account with this email cannot be linked automatically (EMAIL_ALREADY_EXISTS): it is linked to a different Privy identity, or it has confirmed two-factor authentication. Any other account without a Privy identity is linked instead of refused.',
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'success', type: 'boolean', example: false),
         new OA\Property(property: 'error', type: 'object', properties: [
         new OA\Property(property: 'code', type: 'string', example: 'EMAIL_ALREADY_EXISTS'),
-        new OA\Property(property: 'message', type: 'string', example: 'An account with this email is already linked to a different Privy identity. Contact support to move it.'),
+        new OA\Property(property: 'message', type: 'string', example: 'An account with this email exists and cannot be linked automatically. Contact support.'),
         ]),
         ])
     )]
@@ -283,13 +283,15 @@ class LoginController extends Controller
         }
 
         if (! $user instanceof User) {
-            // The account with this email is linked to a different Privy
-            // identity. Surface a clear conflict so mobile can prompt the user.
+            // The account with this email cannot be linked automatically: it
+            // is linked to a different Privy identity or has confirmed
+            // two-factor authentication. Surface a clear conflict so mobile
+            // can prompt the user.
             return response()->json([
                 'success' => false,
                 'error'   => [
                     'code'    => 'EMAIL_ALREADY_EXISTS',
-                    'message' => 'An account with this email is already linked to a different Privy identity. Contact support to move it.',
+                    'message' => 'An account with this email exists and cannot be linked automatically. Contact support.',
                 ],
             ], 409);
         }
