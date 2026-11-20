@@ -141,6 +141,7 @@ class GdprService
         'blockchain_wallets'           => self::EXCL_LEGACY,
         'blockchain_withdrawals'       => self::EXCL_LEGACY,
         'bridge_transactions'          => self::EXCL_LEGACY, // legacy cross-chain bridge demo — unrelated to Bridge.xyz
+        'card_staff_freezes'           => 'Card freeze source: which staff member or the card issuer froze a card. placed_by_user_id identifies the operator who acted, not the cardholder; no personal data of the cardholder.',
         'card_transactions'            => self::EXCL_LEGACY,
         'card_waitlist'                => self::EXCL_LEGACY,
         'card_waitlist_deposits'       => self::EXCL_LEGACY,
