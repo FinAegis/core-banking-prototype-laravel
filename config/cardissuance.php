@@ -37,7 +37,9 @@ return [
     |
     */
     'providers' => [
-        'enabled'               => env('CARD_PROVIDERS_ENABLED', 'lepo'),
+        // Opt-in: an enabled provider without credentials would break cards
+        // (and fails ops:verify-env in production). Zelta: CARD_PROVIDERS_ENABLED=lepo.
+        'enabled'               => env('CARD_PROVIDERS_ENABLED', ''),
         'default'               => env('CARD_PROVIDER_DEFAULT', 'lepo'),
         'selection'             => env('CARD_PROVIDER_SELECTION', 'default'),
         'lepo_pilot_only'       => (bool) env('CARD_PROVIDER_LEPO_PILOT_ONLY', true),

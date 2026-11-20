@@ -848,3 +848,39 @@ describe('Lepo card provider', function (): void {
             ->and($checks['cards.lepo']['detail'])->toContain('LEPO_CARD_TYPE_ID_VIRTUAL');
     });
 });
+
+describe('Card providers', function (): void {
+    it('treats lepo in the enabled providers as in use', function (): void {
+        opsVerifyEnvAllGoodConfig();
+        config([
+            'cardissuance.providers.enabled'           => 'lepo',
+            'cardissuance.issuers.lepo.api_key'        => '',
+            'cardissuance.issuers.lepo.webhook_secret' => '',
+        ]);
+        app()->detectEnvironment(fn () => 'production');
+
+        [$exitCode, $checks] = opsVerifyEnvRun();
+
+        expect($exitCode)->toBe(1)
+            ->and($checks['cards.lepo']['result'])->toBe('FAIL');
+    });
+
+    it('warns about an empty pilot allowlist', function (): void {
+        opsVerifyEnvAllGoodConfig();
+        config([
+            'cardissuance.providers.enabled'                 => 'lepo',
+            'cardissuance.providers.lepo_pilot_only'         => true,
+            'cardissuance.providers.lepo_pilot_users'        => '',
+            'cardissuance.issuers.lepo.api_key'              => 'test-key',
+            'cardissuance.issuers.lepo.webhook_secret'       => 'whsec_test',
+            'cardissuance.issuers.lepo.card_type_id_virtual' => '999',
+        ]);
+        app()->detectEnvironment(fn () => 'production');
+
+        [$exitCode, $checks] = opsVerifyEnvRun();
+
+        expect($exitCode)->toBe(0)
+            ->and($checks['cards.lepo']['result'])->toBe('WARN')
+            ->and($checks['cards.lepo']['detail'])->toContain('CARD_PROVIDER_LEPO_PILOT_USERS');
+    });
+});
