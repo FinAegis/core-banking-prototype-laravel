@@ -98,8 +98,8 @@ class ValidateLiquidityActivity extends Activity
         /** @var \App\Domain\Liquidity\Models\LiquidityPool|null $pool */
         $pool = null;
         // Validate pool exists
-        /** @var \Illuminate\Database\Eloquent\Model|null $$pool */
-        $$pool = PoolProjection::where('pool_id', $input->poolId)->first();
+        /** @var \Illuminate\Database\Eloquent\Model|null $pool */
+        $pool = PoolProjection::where('pool_id', $input->poolId)->first();
 
         if (! $pool) {
             throw new DomainException('Liquidity pool not found');

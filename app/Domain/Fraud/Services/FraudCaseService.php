@@ -54,7 +54,7 @@ class FraudCaseService
 
                 // Calculate loss amount if transaction
                 if ($fraudScore->entity_type === Transaction::class) {
-                    /** @var Transaction|null $$transaction */
+                    /** @var Transaction|null $transaction */
                     $transaction = Transaction::find($fraudScore->entity_id);
                     if ($transaction) {
                         $case->update(['loss_amount' => $transaction->amount]);
@@ -451,7 +451,7 @@ class FraudCaseService
         $relatedEntities = [];
 
         if ($fraudScore->entity_type === Transaction::class) {
-            /** @var Transaction|null $$transaction */
+            /** @var Transaction|null $transaction */
             $transaction = Transaction::find($fraudScore->entity_id);
             if ($transaction) {
                 $relatedEntities[] = [
@@ -477,8 +477,8 @@ class FraudCaseService
             }
         } elseif ($fraudScore->entity_type === User::class) {
             // Add user's accounts
-            /** @var User|null $$user */
-            $$user = User::find($fraudScore->entity_id);
+            /** @var User|null $user */
+            $user = User::find($fraudScore->entity_id);
             if ($user) {
                 foreach ($user->accounts as $account) {
                     $relatedEntities[] = [
@@ -551,8 +551,8 @@ class FraudCaseService
             // If fraud confirmed, take protective actions
             foreach ($case->related_entities ?? [] as $entity) {
                 if ($entity['type'] === 'user') {
-                    /** @var User|null $$user */
-                    $$user = User::find($entity['id']);
+                    /** @var User|null $user */
+                    $user = User::find($entity['id']);
                     if ($user) {
                         $user->update(['risk_rating' => 'high']);
                     }

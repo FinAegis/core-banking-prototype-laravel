@@ -23,8 +23,8 @@ class AssetTransactionProjector extends Projector
         $account = null;
         try {
             // Find the account
-            /** @var \Illuminate\Database\Eloquent\Model|null $$account */
-            $$account = Account::where('uuid', (string) $event->accountUuid)->first();
+            /** @var \Illuminate\Database\Eloquent\Model|null $account */
+            $account = Account::where('uuid', (string) $event->accountUuid)->first();
 
             if (! $account) {
                 Log::error(

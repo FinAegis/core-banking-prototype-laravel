@@ -43,8 +43,8 @@ class BasketPerformanceService
             return null;
         }
 
-        /** @var \Illuminate\Database\Eloquent\Model|null $$startValue */
-        $$startValue = $values->first();
+        /** @var \Illuminate\Database\Eloquent\Model|null $startValue */
+        $startValue = $values->first();
         $endValue = $values->last();
 
         // Calculate basic metrics
@@ -143,8 +143,8 @@ class BasketPerformanceService
         }
 
         // Calculate all-time performance
-        /** @var \Illuminate\Database\Eloquent\Model|null $$firstValue */
-        $$firstValue = $basket->values()->orderBy('calculated_at')->first();
+        /** @var \Illuminate\Database\Eloquent\Model|null $firstValue */
+        $firstValue = $basket->values()->orderBy('calculated_at')->first();
         if ($firstValue && $firstValue->calculated_at->lt($now->copy()->subDay())) {
             $allTimePerformance = $this->calculatePerformance(
                 $basket,
@@ -354,8 +354,8 @@ class BasketPerformanceService
         ];
 
         foreach ($benchmarkCodes as $benchmarkCode) {
-            /** @var \Illuminate\Database\Eloquent\Model|null $$benchmark */
-            $$benchmark = BasketAsset::where('code', $benchmarkCode)->first();
+            /** @var \Illuminate\Database\Eloquent\Model|null $benchmark */
+            $benchmark = BasketAsset::where('code', $benchmarkCode)->first();
             if ($benchmark) {
                 $comparison['benchmarks'][$benchmarkCode] = $this->getPerformanceSummary($benchmark);
             }

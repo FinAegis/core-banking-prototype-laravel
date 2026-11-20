@@ -35,8 +35,8 @@ class BasketService
         $account = Account::where('uuid', (string) $accountUuidObj)->firstOrFail();
 
         // Validate basket exists and is active
-        /** @var BasketAsset $$basket */
-        $$basket = BasketAsset::where('code', $basketCode)->firstOrFail();
+        /** @var BasketAsset $basket */
+        $basket = BasketAsset::where('code', $basketCode)->firstOrFail();
         if (! $basket->is_active) {
             throw new Exception("Basket {$basketCode} is not active");
         }
@@ -78,8 +78,8 @@ class BasketService
         $account = Account::where('uuid', (string) $accountUuidObj)->firstOrFail();
 
         // Validate basket exists and is active
-        /** @var BasketAsset $$basket */
-        $$basket = BasketAsset::where('code', $basketCode)->firstOrFail();
+        /** @var BasketAsset $basket */
+        $basket = BasketAsset::where('code', $basketCode)->firstOrFail();
         if (! $basket->is_active) {
             throw new Exception("Basket {$basketCode} is not active");
         }
@@ -124,8 +124,8 @@ class BasketService
             throw new InvalidArgumentException('Amount must be positive');
         }
 
-        /** @var BasketAsset $$basket */
-        $$basket = BasketAsset::where('code', $basketCode)->firstOrFail();
+        /** @var BasketAsset $basket */
+        $basket = BasketAsset::where('code', $basketCode)->firstOrFail();
 
         return $this->calculateComponentAmounts($basket, $amount);
     }

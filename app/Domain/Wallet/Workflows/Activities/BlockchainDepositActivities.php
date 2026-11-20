@@ -212,8 +212,8 @@ class BlockchainDepositActivities
         /** @var mixed|null $user */
         $user = null;
         // Send notification to user
-        /** @var User|null $$user */
-        $$user = User::find($userId);
+        /** @var User|null $user */
+        $user = User::find($userId);
         if ($user) {
             DB::table('notifications')->insert(
                 [

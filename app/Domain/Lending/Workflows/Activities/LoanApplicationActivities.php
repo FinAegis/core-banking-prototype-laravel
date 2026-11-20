@@ -41,8 +41,8 @@ class LoanApplicationActivities
     {
         /** @var mixed|null $user */
         $user = null;
-        /** @var User|null $$user */
-        $$user = User::find($borrowerId);
+        /** @var User|null $user */
+        $user = User::find($borrowerId);
         if (! $user) {
             return [
                 'passed' => false,
@@ -101,8 +101,8 @@ class LoanApplicationActivities
         int $termMonths,
         array $creditScore
     ): array {
-        /** @var User|null $$user */
-        $$user = User::find($borrowerId);
+        /** @var User|null $user */
+        $user = User::find($borrowerId);
         $applicantData = [
             'user_id'          => $borrowerId,
             'account_age_days' => $user->created_at->diffInDays(now()),
@@ -390,8 +390,8 @@ class LoanApplicationActivities
     {
         /** @var mixed|null $user */
         $user = null;
-        /** @var User|null $$user */
-        $$user = User::find($userId);
+        /** @var User|null $user */
+        $user = User::find($userId);
         if (! $user) {
             throw new Exception('User not found');
         }

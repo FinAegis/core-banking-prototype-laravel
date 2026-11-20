@@ -143,8 +143,8 @@ class SubscriberEmailService
     {
         /** @var mixed|null $subscriber */
         $subscriber = null;
-        /** @var \Illuminate\Database\Eloquent\Model|null $$subscriber */
-        $$subscriber = Subscriber::where('email', $email)->first();
+        /** @var \Illuminate\Database\Eloquent\Model|null $subscriber */
+        $subscriber = Subscriber::where('email', $email)->first();
 
         if ($subscriber) {
             $subscriber->update(

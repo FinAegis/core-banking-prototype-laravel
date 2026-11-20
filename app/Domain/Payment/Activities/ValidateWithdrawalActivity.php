@@ -12,8 +12,8 @@ class ValidateWithdrawalActivity extends Activity
     {
         /** @var Account|null $account */
         $account = null;
-        /** @var \Illuminate\Database\Eloquent\Model|null $$account */
-        $$account = Account::where('uuid', $withdrawal->getAccountUuid())->first();
+        /** @var \Illuminate\Database\Eloquent\Model|null $account */
+        $account = Account::where('uuid', $withdrawal->getAccountUuid())->first();
 
         if (! $account) {
             return [
