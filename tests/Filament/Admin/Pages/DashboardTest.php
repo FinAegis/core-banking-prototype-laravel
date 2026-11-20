@@ -13,7 +13,6 @@ it('has navigation icon property', function () {
     expect($reflection->hasProperty('navigationIcon'))->toBeTrue();
 
     $property = $reflection->getProperty('navigationIcon');
-    $property->setAccessible(true);
     expect($property->getValue())->toBe('heroicon-o-home');
 });
 
@@ -22,7 +21,6 @@ it('has view property', function () {
     expect($reflection->hasProperty('view'))->toBeTrue();
 
     $property = $reflection->getProperty('view');
-    $property->setAccessible(true);
     expect($property->getValue())->toBe('filament.admin.pages.dashboard');
 });
 

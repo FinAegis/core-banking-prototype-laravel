@@ -12,7 +12,6 @@ describe('EventStreamMonitorCommand', function () {
     it('has the expected command name constant', function () {
         $reflection = new ReflectionClass(EventStreamMonitorCommand::class);
         $signature = $reflection->getProperty('signature');
-        $signature->setAccessible(true);
 
         // Get default value from property
         $defaultValue = $reflection->getDefaultProperties()['signature'] ?? '';

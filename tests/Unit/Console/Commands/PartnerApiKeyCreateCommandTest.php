@@ -23,7 +23,6 @@ it('signature definition contains partner:api-key:create {partner}', function ()
     $command = new PartnerApiKeyCreateCommand();
     $ref = new ReflectionClass($command);
     $prop = $ref->getProperty('signature');
-    $prop->setAccessible(true);
     $signature = (string) $prop->getValue($command);
 
     expect($signature)->toContain('partner:api-key:create {partner}');

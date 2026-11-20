@@ -22,7 +22,6 @@ it('uses PaymentDeposit model by default', function () {
     // Use reflection to access the protected property
     $reflection = new ReflectionClass($repository);
     $property = $reflection->getProperty('storedEventModel');
-    $property->setAccessible(true);
 
     expect($property->getValue($repository))->toBe(PaymentDeposit::class);
 });

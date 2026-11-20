@@ -70,7 +70,6 @@ class TenantBroadcastEventTest extends TestCase
 
         $reflection = new ReflectionClass($event);
         $method = $reflection->getMethod('tenantChannelSuffix');
-        $method->setAccessible(true);
 
         $this->assertEquals('', $method->invoke($event));
     }

@@ -188,12 +188,10 @@ class ComplianceAggregateTest extends DomainTestCase
         // Use reflection to call protected method
         $reflection = new ReflectionClass($aggregate);
         $method = $reflection->getMethod('applyKycSubmissionReceived');
-        $method->setAccessible(true);
         $method->invoke($aggregate, $event);
 
         // Use reflection to check private properties
         $statusProperty = $reflection->getProperty('kycStatus');
-        $statusProperty->setAccessible(true);
 
         $this->assertEquals('pending', $statusProperty->getValue($aggregate));
     }
@@ -210,15 +208,12 @@ class ComplianceAggregateTest extends DomainTestCase
         // Use reflection to call protected method
         $reflection = new ReflectionClass($aggregate);
         $method = $reflection->getMethod('applyKycVerificationCompleted');
-        $method->setAccessible(true);
         $method->invoke($aggregate, $event);
 
         $statusProperty = $reflection->getProperty('kycStatus');
-        $statusProperty->setAccessible(true);
         $this->assertEquals('approved', $statusProperty->getValue($aggregate));
 
         $levelProperty = $reflection->getProperty('kycLevel');
-        $levelProperty->setAccessible(true);
         $this->assertEquals('full', $levelProperty->getValue($aggregate));
     }
 
@@ -234,10 +229,8 @@ class ComplianceAggregateTest extends DomainTestCase
         // Use reflection to call protected method
         $reflection = new ReflectionClass($aggregate);
         $method = $reflection->getMethod('applyKycVerificationRejected');
-        $method->setAccessible(true);
         $method->invoke($aggregate, $event);
         $statusProperty = $reflection->getProperty('kycStatus');
-        $statusProperty->setAccessible(true);
 
         $this->assertEquals('rejected', $statusProperty->getValue($aggregate));
     }

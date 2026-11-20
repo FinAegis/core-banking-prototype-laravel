@@ -103,7 +103,6 @@ class MobileJobsTest extends TestCase
 
         $reflection = new ReflectionClass($job);
         $property = $reflection->getProperty('batchSize');
-        $property->setAccessible(true);
 
         $this->assertEquals(50, $property->getValue($job));
     }
@@ -182,7 +181,6 @@ class MobileJobsTest extends TestCase
 
         $reflection = new ReflectionClass($job);
         $property = $reflection->getProperty('staleDays');
-        $property->setAccessible(true);
 
         $this->assertEquals(30, $property->getValue($job));
     }

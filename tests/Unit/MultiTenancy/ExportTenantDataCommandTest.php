@@ -47,7 +47,6 @@ class ExportTenantDataCommandTest extends TestCase
 
         // Get the signature value
         $command = $reflection->newInstanceWithoutConstructor();
-        $property->setAccessible(true);
         $signature = $property->getValue($command);
 
         $this->assertStringContainsString('tenants:export-data', $signature);
@@ -67,7 +66,6 @@ class ExportTenantDataCommandTest extends TestCase
         $this->assertTrue($property->isProtected());
 
         $command = $reflection->newInstanceWithoutConstructor();
-        $property->setAccessible(true);
         $description = $property->getValue($command);
 
         $this->assertNotEmpty($description);
@@ -83,7 +81,6 @@ class ExportTenantDataCommandTest extends TestCase
         $this->assertTrue($property->isProtected());
 
         $command = $reflection->newInstanceWithoutConstructor();
-        $property->setAccessible(true);
         $tables = $property->getValue($command);
 
         $this->assertIsArray($tables);

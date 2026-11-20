@@ -47,7 +47,6 @@ class MigrateTenantDataCommandTest extends TestCase
 
         // Get the signature value
         $command = $reflection->newInstanceWithoutConstructor();
-        $property->setAccessible(true);
         $signature = $property->getValue($command);
 
         $this->assertStringContainsString('tenants:migrate-data', $signature);
@@ -67,7 +66,6 @@ class MigrateTenantDataCommandTest extends TestCase
         $this->assertTrue($property->isProtected());
 
         $command = $reflection->newInstanceWithoutConstructor();
-        $property->setAccessible(true);
         $description = $property->getValue($command);
 
         $this->assertNotEmpty($description);

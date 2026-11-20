@@ -26,7 +26,6 @@ describe('ActivityFeedService', function (): void {
         // Use reflection to test private decodeCursor
         $reflection = new ReflectionClass($service);
         $method = $reflection->getMethod('decodeCursor');
-        $method->setAccessible(true);
 
         // Invalid base64
         expect($method->invoke($service, 'not-valid-base64!!!'))->toBeNull();
@@ -41,10 +40,8 @@ describe('ActivityFeedService', function (): void {
         $reflection = new ReflectionClass($service);
 
         $encodeMethod = $reflection->getMethod('encodeCursor');
-        $encodeMethod->setAccessible(true);
 
         $decodeMethod = $reflection->getMethod('decodeCursor');
-        $decodeMethod->setAccessible(true);
 
         $item = new ActivityFeedItem();
         $item->id = 'test-uuid-123';

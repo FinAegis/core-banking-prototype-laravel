@@ -25,8 +25,6 @@ class ArrayEventSerializer
                 continue;
             }
 
-            $property->setAccessible(true);
-
             // Skip uninitialized properties
             if (! $property->isInitialized($event)) {
                 continue;
@@ -63,7 +61,6 @@ class ArrayEventSerializer
         foreach ($data as $property => $value) {
             if (property_exists($event, $property)) {
                 $reflection = new ReflectionProperty($event, $property);
-                $reflection->setAccessible(true);
 
                 // Handle type hints
                 $type = $reflection->getType();
@@ -109,7 +106,6 @@ class ArrayEventSerializer
         foreach ($data as $property => $value) {
             if ($reflection->hasProperty($property)) {
                 $prop = $reflection->getProperty($property);
-                $prop->setAccessible(true);
 
                 // Handle type hints
                 $type = $prop->getType();

@@ -119,7 +119,6 @@ class WorkflowTestService
 
         if ($reflectionClass->hasProperty('conversationId')) {
             $property = $reflectionClass->getProperty('conversationId');
-            $property->setAccessible(true);
             $conversationIdInitialized = $property->isInitialized($aggregate);
         }
 

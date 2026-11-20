@@ -10,7 +10,6 @@ uses(UnitTestCase::class);
 it('has correct model', function () {
     $reflection = new ReflectionClass(AccountExporter::class);
     $property = $reflection->getProperty('model');
-    $property->setAccessible(true);
 
     expect($property->getValue())->toBe(Account::class);
 });
@@ -68,7 +67,6 @@ it('formats balance from cents to dollars', function () {
     // Get the format callback
     $reflection = new ReflectionObject($balanceColumn);
     $property = $reflection->getProperty('formatStateUsing');
-    $property->setAccessible(true);
     $formatCallback = $property->getValue($balanceColumn);
 
     // Test formatting
@@ -93,7 +91,6 @@ it('formats frozen status to text', function () {
     // Get the format callback
     $reflection = new ReflectionObject($frozenColumn);
     $property = $reflection->getProperty('formatStateUsing');
-    $property->setAccessible(true);
     $formatCallback = $property->getValue($frozenColumn);
 
     // Test formatting

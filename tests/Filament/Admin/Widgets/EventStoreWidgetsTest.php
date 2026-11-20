@@ -21,7 +21,6 @@ describe('EventStoreStatsWidget', function () {
     it('has 30s polling interval', function () {
         $reflection = new ReflectionClass(EventStoreStatsWidget::class);
         $property = $reflection->getProperty('pollingInterval');
-        $property->setAccessible(true);
         expect($property->getValue())->toBe('30s');
     });
 
@@ -32,7 +31,6 @@ describe('EventStoreStatsWidget', function () {
     it('has sort order 1', function () {
         $reflection = new ReflectionClass(EventStoreStatsWidget::class);
         $property = $reflection->getProperty('sort');
-        $property->setAccessible(true);
         expect($property->getValue())->toBe(1);
     });
 });
@@ -46,14 +44,12 @@ describe('EventStoreThroughputWidget', function () {
     it('has 10s polling interval', function () {
         $reflection = new ReflectionClass(EventStoreThroughputWidget::class);
         $property = $reflection->getProperty('pollingInterval');
-        $property->setAccessible(true);
         expect($property->getValue())->toBe('10s');
     });
 
     it('has correct heading', function () {
         $reflection = new ReflectionClass(EventStoreThroughputWidget::class);
         $property = $reflection->getProperty('heading');
-        $property->setAccessible(true);
         expect($property->getValue())->toBe('Event Throughput (Events/Minute)');
     });
 
@@ -75,7 +71,6 @@ describe('AggregateHealthWidget', function () {
     it('has 60s polling interval', function () {
         $reflection = new ReflectionClass(AggregateHealthWidget::class);
         $property = $reflection->getProperty('pollingInterval');
-        $property->setAccessible(true);
         expect($property->getValue())->toBe('60s');
     });
 
@@ -93,7 +88,6 @@ describe('SystemMetricsWidget', function () {
     it('has 10s polling interval', function () {
         $reflection = new ReflectionClass(SystemMetricsWidget::class);
         $property = $reflection->getProperty('pollingInterval');
-        $property->setAccessible(true);
         expect($property->getValue())->toBe('10s');
     });
 

@@ -24,7 +24,6 @@ function widgetStats(): array
     $widget = new SubscriptionRevenueStatsWidget();
 
     $method = new ReflectionMethod(SubscriptionRevenueStatsWidget::class, 'getStats');
-    $method->setAccessible(true);
 
     /** @var array<Stat> $stats */
     $stats = $method->invoke($widget);
@@ -83,7 +82,6 @@ it('reports zero revenue when no events exist this month', function (): void {
 
 it('declares the Subscriptions admin module', function (): void {
     $property = new ReflectionProperty(SubscriptionRevenueStatsWidget::class, 'adminModule');
-    $property->setAccessible(true);
 
     expect($property->getValue())->toBe('Subscriptions');
 });

@@ -54,7 +54,6 @@ class TenantAwareJobTest extends TestCase
         // Use reflection to test the protected method
         $reflection = new ReflectionClass($job);
         $method = $reflection->getMethod('getCurrentTenantId');
-        $method->setAccessible(true);
 
         $this->assertNull($method->invoke($job));
     }
@@ -66,7 +65,6 @@ class TenantAwareJobTest extends TestCase
 
         $reflection = new ReflectionClass($job);
         $method = $reflection->getMethod('verifyTenantContext');
-        $method->setAccessible(true);
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Job requires tenant context but none is initialized');

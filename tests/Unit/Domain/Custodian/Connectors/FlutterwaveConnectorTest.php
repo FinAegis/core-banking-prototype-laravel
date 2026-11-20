@@ -60,7 +60,6 @@ describe('FlutterwaveConnector', function () {
     it('has bearer token authorization in headers', function () {
         $reflection = new ReflectionClass($this->connector);
         $method = $reflection->getMethod('getHeaders');
-        $method->setAccessible(true);
         $headers = $method->invoke($this->connector);
 
         expect($headers['Authorization'])->toBe('Bearer FLWSECK_TEST-sandbox');

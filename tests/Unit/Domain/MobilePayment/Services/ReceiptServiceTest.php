@@ -55,7 +55,6 @@ describe('ReceiptService', function (): void {
         $service = new ReceiptService();
         $reflection = new ReflectionClass($service);
         $method = $reflection->getMethod('formatNetworkFee');
-        $method->setAccessible(true);
 
         // Create a mock intent with no fees_estimate
         $intent = new App\Domain\MobilePayment\Models\PaymentIntent();
@@ -70,7 +69,6 @@ describe('ReceiptService', function (): void {
         $service = new ReceiptService();
         $reflection = new ReflectionClass($service);
         $method = $reflection->getMethod('formatNetworkFee');
-        $method->setAccessible(true);
 
         $intent = new App\Domain\MobilePayment\Models\PaymentIntent();
         $intent->fees_estimate = ['usdApprox' => '0.50'];
@@ -84,7 +82,6 @@ describe('ReceiptService', function (): void {
         $service = new ReceiptService();
         $reflection = new ReflectionClass($service);
         $method = $reflection->getMethod('formatNetworkFee');
-        $method->setAccessible(true);
 
         $intent = new App\Domain\MobilePayment\Models\PaymentIntent();
         $intent->fees_estimate = ['total' => '0.01'];

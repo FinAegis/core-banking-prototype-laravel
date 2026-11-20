@@ -45,7 +45,6 @@ trait InvokesPrivateMethods
     {
         $reflection = new ReflectionClass($object);
         $method = $reflection->getMethod($methodName);
-        $method->setAccessible(true);
 
         return $method->invokeArgs($object, $arguments);
     }
@@ -63,7 +62,6 @@ trait InvokesPrivateMethods
     {
         $reflection = new ReflectionClass($object);
         $property = $reflection->getProperty($propertyName);
-        $property->setAccessible(true);
 
         return $property->getValue($object);
     }
@@ -81,7 +79,6 @@ trait InvokesPrivateMethods
     {
         $reflection = new ReflectionClass($object);
         $property = $reflection->getProperty($propertyName);
-        $property->setAccessible(true);
         $property->setValue($object, $value);
     }
 }

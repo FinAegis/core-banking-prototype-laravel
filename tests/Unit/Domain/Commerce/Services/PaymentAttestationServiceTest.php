@@ -131,7 +131,6 @@ describe('PaymentAttestationService', function (): void {
 
             // Copy properties but alter claims
             foreach ($reflection->getProperties() as $property) {
-                $property->setAccessible(true);
                 if ($property->getName() === 'claims') {
                     $property->setValue($tamperedAttestation, ['amount' => '999999.00']);
                 } else {

@@ -11,7 +11,6 @@ it('extends EditRecord', function () {
 it('has correct resource', function () {
     $reflection = new ReflectionClass(EditAccount::class);
     $property = $reflection->getProperty('resource');
-    $property->setAccessible(true);
 
     expect($property->getValue())->toBe(App\Filament\Admin\Resources\AccountResource::class);
 });

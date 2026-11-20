@@ -20,7 +20,6 @@ it('extends EloquentStoredEventRepository', function () {
 it('uses Transfer model by default', function () {
     $reflection = new ReflectionClass($this->repository);
     $property = $reflection->getProperty('storedEventModel');
-    $property->setAccessible(true);
 
     expect($property->getValue($this->repository))->toBe(Transfer::class);
 });

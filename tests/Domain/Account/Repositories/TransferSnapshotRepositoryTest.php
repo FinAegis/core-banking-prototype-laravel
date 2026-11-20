@@ -13,7 +13,6 @@ it('can be instantiated with default snapshot model', function () {
 
     $reflection = new ReflectionClass($repository);
     $property = $reflection->getProperty('snapshotModel');
-    $property->setAccessible(true);
 
     expect($property->getValue($repository))->toBe(TransferSnapshot::class);
 });
@@ -23,7 +22,6 @@ it('can be instantiated with custom snapshot model', function () {
 
     $reflection = new ReflectionClass($repository);
     $property = $reflection->getProperty('snapshotModel');
-    $property->setAccessible(true);
 
     expect($property->getValue($repository))->toBe(TransferSnapshot::class);
 });

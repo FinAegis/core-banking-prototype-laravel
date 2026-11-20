@@ -861,19 +861,14 @@ class RegulatoryReportingController extends Controller
             $reflection = new ReflectionClass($this->regulatoryReportingService);
 
             $kycMetrics = $reflection->getMethod('getKycMetrics');
-            $kycMetrics->setAccessible(true);
 
             $transactionMetrics = $reflection->getMethod('getTransactionMetrics');
-            $transactionMetrics->setAccessible(true);
 
             $userMetrics = $reflection->getMethod('getUserMetrics');
-            $userMetrics->setAccessible(true);
 
             $riskMetrics = $reflection->getMethod('getRiskMetrics');
-            $riskMetrics->setAccessible(true);
 
             $gdprMetrics = $reflection->getMethod('getGdprMetrics');
-            $gdprMetrics->setAccessible(true);
 
             return response()->json(
                 [

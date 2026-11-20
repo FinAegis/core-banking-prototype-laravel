@@ -11,7 +11,6 @@ it('extends CreateRecord', function () {
 it('has correct resource', function () {
     $reflection = new ReflectionClass(CreateUser::class);
     $property = $reflection->getProperty('resource');
-    $property->setAccessible(true);
 
     expect($property->getValue())->toBe(App\Filament\Admin\Resources\UserResource::class);
 });
