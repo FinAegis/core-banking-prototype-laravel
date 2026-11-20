@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Asset\Workflows;
 
 use App\Domain\Account\DataObjects\AccountUuid;
+use App\Domain\Account\DataObjects\Money;
 use App\Domain\Asset\Workflows\Activities\DepositAssetActivity;
 use Generator;
 use Workflow\ActivityStub;
@@ -14,6 +15,9 @@ class AssetDepositWorkflow extends Workflow
 {
     /**
      * Execute asset deposit workflow.
+     *
+     * The amount arrives in the asset's minor units; the activity takes it as
+     * Money, like the legacy account workflows.
      */
     public function execute(
         AccountUuid $accountUuid,
@@ -25,7 +29,7 @@ class AssetDepositWorkflow extends Workflow
             DepositAssetActivity::class,
             $accountUuid,
             $assetCode,
-            $amount,
+            new Money($amount),
             $description
         );
     }

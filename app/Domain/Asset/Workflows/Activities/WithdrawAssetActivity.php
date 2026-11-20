@@ -23,7 +23,7 @@ class WithdrawAssetActivity extends Activity
         ?string $description = null
     ): string {
         // Check if account has sufficient balance
-        $accountBalance = AccountBalance::where('account_uuid', $accountUuid->toString())
+        $accountBalance = AccountBalance::where('account_uuid', (string) $accountUuid)
             ->where('asset_code', $assetCode)
             ->first();
 
