@@ -31,8 +31,7 @@ class WebhookEventListener extends Projector
             return;
         }
 
-        /** @var \Illuminate\Database\Eloquent\Model|null $$account */
-        $$account = Account::where('uuid', $event->aggregateRootUuid())->first();
+        $account = Account::where('uuid', $event->aggregateRootUuid())->first();
 
         if (! $account) {
             return;
@@ -90,8 +89,7 @@ class WebhookEventListener extends Projector
             return;
         }
 
-        /** @var \Illuminate\Database\Eloquent\Model|null $$account */
-        $$account = Account::where('uuid', $event->aggregateRootUuid())->first();
+        $account = Account::where('uuid', $event->aggregateRootUuid())->first();
 
         if (! $account) {
             return;
@@ -130,8 +128,7 @@ class WebhookEventListener extends Projector
             return;
         }
 
-        /** @var \Illuminate\Database\Eloquent\Model|null $$account */
-        $$account = Account::where('uuid', $event->aggregateRootUuid())->first();
+        $account = Account::where('uuid', $event->aggregateRootUuid())->first();
 
         if (! $account) {
             return;
@@ -171,10 +168,8 @@ class WebhookEventListener extends Projector
             return;
         }
 
-        /** @var \Illuminate\Database\Eloquent\Model|null $$fromAccount */
-        $$fromAccount = Account::where('uuid', $event->aggregateRootUuid())->first();
-        /** @var \Illuminate\Database\Eloquent\Model|null $$toAccount */
-        $$toAccount = Account::where('uuid', $event->toAccountUuid->toString())->first();
+        $fromAccount = Account::where('uuid', $event->aggregateRootUuid())->first();
+        $toAccount = Account::where('uuid', $event->toAccountUuid->toString())->first();
 
         if (! $fromAccount || ! $toAccount) {
             return;

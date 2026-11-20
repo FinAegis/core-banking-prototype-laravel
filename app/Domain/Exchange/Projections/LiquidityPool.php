@@ -63,6 +63,9 @@ class LiquidityPool extends Model
         'metadata'  => 'array',
     ];
 
+    /**
+     * @return HasMany<LiquidityProvider, $this>
+     */
     public function providers(): HasMany
     {
         return $this->hasMany(LiquidityProvider::class, 'pool_id', 'pool_id');

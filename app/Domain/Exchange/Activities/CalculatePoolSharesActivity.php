@@ -32,8 +32,8 @@ class CalculatePoolSharesActivity extends Activity
         /**
          * @var PoolProjection $pool
          */
-        /** @var PoolProjection $$pool */
-        $$pool = PoolProjection::where()->firstOrFail();
+        /** @var PoolProjection $pool */
+        $pool = PoolProjection::where('pool_id', $input['pool_id'])->firstOrFail();
 
         if ($input['operation'] === 'removal') {
             return $this->calculateAmountsForRemoval($pool, $input['shares'] ?? '0');
@@ -58,8 +58,8 @@ class CalculatePoolSharesActivity extends Activity
         /**
          * @var PoolProjection $pool
          */
-        /** @var PoolProjection $$pool */
-        $$pool = PoolProjection::where()->firstOrFail();
+        /** @var PoolProjection $pool */
+        $pool = PoolProjection::where('pool_id', $input->poolId)->firstOrFail();
 
         $baseReserve = BigDecimal::of($pool->base_reserve);
         $quoteReserve = BigDecimal::of($pool->quote_reserve);

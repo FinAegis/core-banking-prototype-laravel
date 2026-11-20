@@ -311,14 +311,13 @@ class CustomerRiskService
         $profile = null;
         /** @var Account|null $account */
         $account = null;
-        /** @var Account|null $$account */
-        $$account = Account::find($accountId);
+        /** @var Account|null $account */
+        $account = Account::find($accountId);
         if (! $account || ! $account->user_id) {
             return;
         }
 
-        /** @var \Illuminate\Database\Eloquent\Model|null $$profile */
-        $$profile = CustomerRiskProfile::where('user_id', $account->user_id)->first();
+        $profile = CustomerRiskProfile::where('user_id', $account->user_id)->first();
         if (! $profile) {
             return;
         }
@@ -400,8 +399,7 @@ class CustomerRiskService
     {
         /** @var mixed|null $profile */
         $profile = null;
-        /** @var \Illuminate\Database\Eloquent\Model|null $$profile */
-        $$profile = CustomerRiskProfile::where('user_id', $user->id)->first();
+        $profile = CustomerRiskProfile::where('user_id', $user->id)->first();
 
         if (! $profile) {
             return [

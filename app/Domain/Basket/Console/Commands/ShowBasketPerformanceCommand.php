@@ -37,8 +37,7 @@ class ShowBasketPerformanceCommand extends Command
         $detailed = $this->option('detailed');
 
         // Find the basket
-        /** @var \Illuminate\Database\Eloquent\Model|null $$basket */
-        $$basket = BasketAsset::where('code', $basketCode)->first();
+        $basket = BasketAsset::where('code', $basketCode)->first();
 
         if (! $basket) {
             $this->error("Basket '{$basketCode}' not found.");
