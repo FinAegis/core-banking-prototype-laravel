@@ -122,4 +122,9 @@ return [
     // ─── Card freeze placed by staff or the issuer (owner cannot lift it) ──
     // POST /api/v1/cards/fincard/{cardId}/unfreeze.
     'ERR_CARDS_021' => ['http' => 403, 'description' => 'This card was frozen by our support team. Only they can unfreeze it.'],
+
+    // ─── Provider-neutral card onboarding (/api/v1/cards/*) ─────────────────
+    'ERR_CARDS_022' => ['http' => 403, 'description' => 'Cards are not available for your account yet.'],
+    'ERR_CARDS_023' => ['http' => 422, 'description' => 'Cards are not available for this nationality or country yet.'],
+    'ERR_CARDS_024' => ['http' => 409, 'description' => 'Finish the identity check first.'],
 ];

@@ -8,6 +8,7 @@ use App\Domain\CardIssuance\Http\Controllers\WaitlistDepositController;
 use App\Domain\CardIssuance\Webhooks\CardWaitlistWebhookController;
 use App\Http\Controllers\Api\CardIssuance\CardController;
 use App\Http\Controllers\Api\CardIssuance\CardholderController;
+use App\Http\Controllers\Api\CardIssuance\CardOnboardingController;
 use App\Http\Controllers\Api\CardIssuance\CardTransactionWebhookController;
 use App\Http\Controllers\Api\CardIssuance\FinCardAccountController;
 use App\Http\Controllers\Api\CardIssuance\FinCardCardController;
@@ -42,18 +43,23 @@ Route::prefix('v1/cards/waitlist')->name('api.cards.waitlist.')
 Route::prefix('v1/cards')->name('api.cards.fincard.')
     ->middleware(['auth:sanctum'])
     ->group(function (): void {
-        Route::get('/onboarding', [FinCardOnboardingController::class, 'onboarding'])->name('onboarding');
+        // Provider-neutral: Lepo is served by CardOnboardingController, FinCard
+        // users are handed on to the FinCard controllers.
+        Route::get('/onboarding', [CardOnboardingController::class, 'onboarding'])->name('onboarding');
         Route::get('/reference/card-types', [FinCardOnboardingController::class, 'cardTypes'])->name('reference.card-types');
-        Route::get('/cardholder', [FinCardOnboardingController::class, 'status'])->name('cardholder.status');
+        Route::get('/cardholder', [CardOnboardingController::class, 'status'])->name('cardholder.status');
         Route::post('/kyc/documents', [FinCardOnboardingController::class, 'uploadDocument'])
             ->middleware('api.rate_limit:mutation')
             ->name('kyc.documents');
-        Route::post('/cardholder', [FinCardOnboardingController::class, 'createCardholder'])
+        Route::post('/cardholder', [CardOnboardingController::class, 'createCardholder'])
             ->middleware(['idempotency.required', 'api.rate_limit:mutation'])
             ->name('cardholder.create');
 
         // Funding (Phase 3) — account balance, deposit coins, crypto address.
-        Route::get('/account', [FinCardAccountController::class, 'account'])->name('account');
+        Route::post('/kyc/session', [CardOnboardingController::class, 'startKyc'])
+            ->middleware('api.rate_limit:mutation')
+            ->name('kyc.session');
+        Route::get('/account', [CardOnboardingController::class, 'account'])->name('account');
         Route::get('/account/coins', [FinCardAccountController::class, 'coins'])->name('account.coins');
         Route::post('/account/deposit-address', [FinCardAccountController::class, 'depositAddress'])
             ->middleware(['idempotency.required', 'api.rate_limit:mutation'])

@@ -13623,6 +13623,113 @@
                 ]
             }
         },
+        "/api/v1/cards/onboarding": {
+            "get": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Card onboarding state for the current user",
+                "description": "Whether cards are available, the provider, the next step (cardholder, kyc, kyc_review, kyc_action_required, kyc_rejected, funding_pending, ready), the identity-check method and the deposit networks.",
+                "operationId": "v1CardsOnboarding",
+                "responses": {
+                    "200": {
+                        "description": "Onboarding state"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/cards/cardholder": {
+            "get": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Cardholder and identity-check status",
+                "operationId": "v1CardsCardholderStatus",
+                "responses": {
+                    "200": {
+                        "description": "Cardholder status"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Become a cardholder with the card provider",
+                "operationId": "v1CardsCreateCardholder",
+                "responses": {
+                    "201": {
+                        "description": "Cardholder created"
+                    },
+                    "403": {
+                        "description": "ERR_CARDS_022: cards not available for this account"
+                    },
+                    "422": {
+                        "description": "Validation error, or ERR_CARDS_023: nationality or country not supported"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/cards/kyc/session": {
+            "post": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Start the identity check",
+                "description": "Returns how the app starts the identity check: method sumsub_sdk with a token for the SumSub mobile SDK.",
+                "operationId": "v1CardsKycSession",
+                "responses": {
+                    "200": {
+                        "description": "Identity-check session"
+                    },
+                    "409": {
+                        "description": "ERR_CARDS_024: no cardholder yet"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/cards/account": {
+            "get": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Card funding account and deposit addresses",
+                "operationId": "v1CardsFundingAccount",
+                "responses": {
+                    "200": {
+                        "description": "Funding account"
+                    },
+                    "409": {
+                        "description": "ERR_CARDS_024: identity check not finished"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/webhooks/card-issuer/transaction": {
             "post": {
                 "tags": [
@@ -63138,6 +63245,10 @@
         {
             "name": "AI Agents",
             "description": "AI Agents"
+        },
+        {
+            "name": "Cards",
+            "description": "Cards"
         },
         {
             "name": "Compliance Alerts",
