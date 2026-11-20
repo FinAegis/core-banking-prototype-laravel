@@ -4,6 +4,7 @@ namespace App\Domain\Governance\Policies;
 
 use App\Domain\Governance\Models\GcuVotingProposal;
 use App\Models\User;
+use App\Support\StaffRoles;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class GcuVotingProposalPolicy
@@ -32,7 +33,7 @@ class GcuVotingProposalPolicy
     public function create(User $user): bool
     {
         // Only admins can create proposals
-        return $user->hasRole('admin') || $user->hasRole('super-admin');
+        return StaffRoles::userHasAny($user, StaffRoles::ADMINS);
     }
 
     /**
@@ -41,7 +42,7 @@ class GcuVotingProposalPolicy
     public function update(User $user, GcuVotingProposal $proposal): bool
     {
         // Only admins can update proposals
-        return $user->hasRole('admin') || $user->hasRole('super-admin');
+        return StaffRoles::userHasAny($user, StaffRoles::ADMINS);
     }
 
     /**
@@ -50,7 +51,7 @@ class GcuVotingProposalPolicy
     public function delete(User $user, GcuVotingProposal $proposal): bool
     {
         // Only admins can delete proposals
-        return $user->hasRole('admin') || $user->hasRole('super-admin');
+        return StaffRoles::userHasAny($user, StaffRoles::ADMINS);
     }
 
     /**
