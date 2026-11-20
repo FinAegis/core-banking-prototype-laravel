@@ -74,7 +74,7 @@ jobs:
           LOG_DEPRECATIONS_CHANNEL: single
           LOG_DEPRECATIONS_WHILE_TESTING: 'true'
         run: |
-          vendor/bin/pest tests/Unit --parallel --processes=2 --default-time-limit=300 2>&1 | tee pest-php85.log
+          vendor/bin/pest tests/Unit --parallel --processes=2 2>&1 | tee pest-php85.log
           exit "${PIPESTATUS[0]}"
 
       - name: List PHP 8.5 deprecations
