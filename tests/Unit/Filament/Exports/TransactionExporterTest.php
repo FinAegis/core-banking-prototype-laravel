@@ -59,13 +59,13 @@ it('formats amount correctly with sign', function () {
 
     // Create mock records for testing
     $creditRecord = new class () {
-        public function getDirection()
+        public function getDirection(): string
         {
             return 'credit';
         }
     };
     $debitRecord = new class () {
-        public function getDirection()
+        public function getDirection(): string
         {
             return 'debit';
         }
