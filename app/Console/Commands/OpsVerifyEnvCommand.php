@@ -374,8 +374,11 @@ class OpsVerifyEnvCommand extends Command
             return;
         }
 
-        if ($enabled && (bool) config('cardissuance.providers.lepo_pilot_only', true)
-            && CardProviderSelector::listFromConfig('cardissuance.providers.lepo_pilot_users') === []) {
+        $emptyPilot = $enabled
+            && (bool) config('cardissuance.providers.lepo_pilot_only', true)
+            && CardProviderSelector::listFromConfig('cardissuance.providers.lepo_pilot_users') === [];
+
+        if ($emptyPilot) {
             $this->add(self::CATEGORY_CONDITIONAL, 'cards.lepo', self::WARN, 'Lepo cards are on in pilot mode but CARD_PROVIDER_LEPO_PILOT_USERS is empty, so nobody can get a card. Add the pilot users or set CARD_PROVIDER_LEPO_PILOT_ONLY=false.');
 
             return;
