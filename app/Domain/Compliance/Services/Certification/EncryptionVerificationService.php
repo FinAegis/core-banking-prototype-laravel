@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Compliance\Services\Certification;
 
 use Illuminate\Support\Facades\Config;
-use PDO;
+use Pdo\Mysql as PdoMysql;
 
 class EncryptionVerificationService
 {
@@ -76,7 +76,7 @@ class EncryptionVerificationService
         // Check database encryption (connection uses SSL)
         $dbConnection = Config::get('database.default');
         $dbConfig = Config::get("database.connections.{$dbConnection}", []);
-        $sslEnabled = ! empty($dbConfig['options'][PDO::MYSQL_ATTR_SSL_CA] ?? null)
+        $sslEnabled = ! empty($dbConfig['options'][PdoMysql::ATTR_SSL_CA] ?? null)
             || ! empty($dbConfig['sslmode'] ?? null);
         $checks[] = [
             'name'     => 'Database connection encryption',
