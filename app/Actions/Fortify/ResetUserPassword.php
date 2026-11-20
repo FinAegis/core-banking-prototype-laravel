@@ -33,7 +33,8 @@ class ResetUserPassword implements ResetsUserPasswords
         )->save();
 
         // Whoever reset the password controls the account now: end every
-        // other sign-in (API tokens, OAuth grants, remember-me, sessions).
-        UserSignIns::endAllExcept($user);
+        // other sign-in (API tokens, OAuth grants, remember-me, sessions,
+        // mobile devices) and the API keys.
+        UserSignIns::endAll($user);
     }
 }

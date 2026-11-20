@@ -220,10 +220,35 @@ it('returns 422 NO_EMAIL_LINKED when neither the JWT nor Privy API yield an emai
     expect(User::where('privy_user_id', 'did:privy:noemail')->count())->toBe(0);
 });
 
-it('returns 409 EMAIL_ALREADY_EXISTS when a non-Privy user already owns the email', function (): void {
-    User::factory()->create([
+it('links a non-Privy user that already owns the email and signs it in as a returning user', function (): void {
+    // Privy proved inbox control, so the account created before Privy is
+    // linked instead of refused (tests/Feature/Auth/PrivyAccountLinkTest.php
+    // covers the unverified-email case).
+    $existing = User::factory()->create([
         'email'         => 'taken@example.com',
         'privy_user_id' => null,
+    ]);
+
+    $token = privy_login_jwt([
+        'sub'             => 'did:privy:legacyowner',
+        'linked_accounts' => [['type' => 'email', 'address' => 'taken@example.com']],
+    ], $this);
+
+    $response = $this->postJson('/api/v1/auth/privy-login', ['privy_token' => $token]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.user.id', $existing->id)
+        ->assertJsonPath('data.is_new_user', false);
+
+    expect(User::where('privy_user_id', 'did:privy:legacyowner')->count())->toBe(1)
+        ->and(User::where('email', 'taken@example.com')->count())->toBe(1);
+});
+
+it('returns 409 EMAIL_ALREADY_EXISTS when the email belongs to a user linked to a different Privy identity', function (): void {
+    User::factory()->create([
+        'email'           => 'taken@example.com',
+        'privy_user_id'   => 'did:privy:firstowner',
+        'privy_linked_at' => now(),
     ]);
 
     $token = privy_login_jwt([
@@ -237,7 +262,8 @@ it('returns 409 EMAIL_ALREADY_EXISTS when a non-Privy user already owns the emai
         ->assertJsonPath('success', false)
         ->assertJsonPath('error.code', 'EMAIL_ALREADY_EXISTS');
 
-    expect(User::where('privy_user_id', 'did:privy:tryingtotakeover')->count())->toBe(0);
+    expect(User::where('privy_user_id', 'did:privy:tryingtotakeover')->count())->toBe(0)
+        ->and(User::where('email', 'taken@example.com')->value('privy_user_id'))->toBe('did:privy:firstowner');
 });
 
 it('returns is_new_user=false and the existing user on a returning login', function (): void {

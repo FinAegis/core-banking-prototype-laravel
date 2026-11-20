@@ -182,10 +182,36 @@ it('signs in an existing Privy user without creating a duplicate row', function 
     expect(auth()->id())->toBe($existing->id);
 });
 
-it('refuses verifyCode when the email is already owned by a non-Privy account', function (): void {
-    User::factory()->create([
-        'email'         => 'taken@example.com',
+it('links a non-Privy account that already owns the email and signs it in', function (): void {
+    // Privy proved inbox control, so the account created before Privy is
+    // linked instead of refused (tests/Feature/Auth/PrivyAccountLinkTest.php
+    // covers the unverified-email case).
+    $existing = User::factory()->create([
+        'email'         => 'legacy@example.com',
         'privy_user_id' => null,
+    ]);
+
+    mock_privy_otp_client(function (MockInterface $m): void {
+        $m->shouldReceive('loginWithCode')
+            ->once()
+            ->andReturn(['id' => 'did:privy:legacyowner', 'email' => 'legacy@example.com']);
+    });
+
+    $this->post(route('login.privy.verify'), [
+        'email' => 'legacy@example.com',
+        'code'  => '654321',
+    ])->assertRedirect();
+
+    $this->assertAuthenticatedAs($existing);
+    expect($existing->fresh()?->privy_user_id)->toBe('did:privy:legacyowner')
+        ->and(User::where('email', 'legacy@example.com')->count())->toBe(1);
+});
+
+it('refuses verifyCode when the email belongs to an account linked to a different Privy identity', function (): void {
+    User::factory()->create([
+        'email'           => 'taken@example.com',
+        'privy_user_id'   => 'did:privy:firstowner',
+        'privy_linked_at' => now(),
     ]);
 
     mock_privy_otp_client(function (MockInterface $m): void {
@@ -204,7 +230,8 @@ it('refuses verifyCode when the email is already owned by a non-Privy account', 
         // Mirror the mobile transport: error.code is parseable for support diagnosis.
         ->assertSessionHas('error_code', 'EMAIL_ALREADY_EXISTS');
     $this->assertGuest();
-    expect(User::where('privy_user_id', 'did:privy:tryingtotakeover')->count())->toBe(0);
+    expect(User::where('privy_user_id', 'did:privy:tryingtotakeover')->count())->toBe(0)
+        ->and(User::where('email', 'taken@example.com')->value('privy_user_id'))->toBe('did:privy:firstowner');
 });
 
 it('returns to verify step with an error when the OTP code is wrong', function (): void {

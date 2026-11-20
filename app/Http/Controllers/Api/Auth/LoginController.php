@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Domain\Auth\Exceptions\PrivyJwtException;
+use App\Domain\Auth\Services\PrivyAccountLinker;
 use App\Domain\Auth\Services\PrivyJwtVerifier;
 use App\Domain\Mobile\Services\BiometricJWTService;
 use App\Domain\User\Exceptions\RegistrationNotAllowedException;
-use App\Domain\User\Services\ApiRegistrationGate;
 use App\Http\Controllers\Concerns\ProvisionsPersonalTeam;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -17,7 +17,6 @@ use DateTimeZone;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\PersonalAccessToken;
 use OpenApi\Attributes as OA;
@@ -159,14 +158,15 @@ class LoginController extends Controller
      *
      * The mobile app authenticates with Privy (non-custodial wallet provider)
      * and forwards the resulting JWT here. We verify the signature against
-     * Privy's JWKS, look up or create a backing User keyed on the Privy user
-     * id, and issue a standard Sanctum token so the rest of the API stack
-     * works unchanged.
+     * Privy's JWKS, then PrivyAccountLinker finds the user by Privy user id,
+     * links an existing account with the same email, or creates a new one.
+     * We issue a standard Sanctum token so the rest of the API stack works
+     * unchanged.
      */
     #[OA\Post(
         path: '/api/v1/auth/privy-login',
         summary: 'Exchange a Privy session JWT for a Sanctum token',
-        description: 'Verifies the Privy-issued session JWT against Privy\'s JWKS, extracts the linked email (or fetches it from the Privy users API as fallback), finds or creates the backing user with the real email, and returns a Sanctum bearer token with read/write/delete abilities.',
+        description: 'Verifies the Privy-issued session JWT against Privy\'s JWKS and extracts the linked email (or fetches it from the Privy users API as fallback). A returning Privy identity signs in to its user. Otherwise an existing account with the same email (letter case ignored) is linked to the Privy identity and signs in like a returning user, unless it has confirmed two-factor authentication; if that account\'s email was never verified, its password, second factor, social sign-in, API tokens, OAuth grants, sessions, mobile devices and API keys are revoked first. Only when no account matches is a new user created, subject to the registration switch. Returns a Sanctum bearer token with read/write/delete abilities.',
         operationId: 'privyLogin',
         tags: ['Authentication'],
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['privy_token'], properties: [
@@ -187,7 +187,7 @@ class LoginController extends Controller
         ]),
         new OA\Property(property: 'token', type: 'string', example: '7|VVGVrIVokPBXkWLOi2yK...'),
         new OA\Property(property: 'token_type', type: 'string', example: 'Bearer'),
-        new OA\Property(property: 'is_new_user', type: 'boolean', example: true, description: 'True on first login (user record was just created); false on returning logins.'),
+        new OA\Property(property: 'is_new_user', type: 'boolean', example: true, description: 'True on first login (user record was just created); false on returning logins, including the first Privy login that links an existing account.'),
         ]),
         ])
     )]
@@ -204,7 +204,7 @@ class LoginController extends Controller
     )]
     #[OA\Response(
         response: 403,
-        description: 'First login of a new Privy identity while API registration is closed (ERR_REG_001) or invite-only without an invitation for the Privy email (ERR_REG_002). Existing users are not affected.',
+        description: 'First login of a new Privy identity, with no existing account for its email, while API registration is closed (ERR_REG_001) or invite-only without an invitation for the Privy email (ERR_REG_002). Existing users, including accounts linked on this login, are not affected.',
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'success', type: 'boolean', example: false),
         new OA\Property(property: 'error', type: 'object', properties: [
@@ -216,12 +216,12 @@ class LoginController extends Controller
     )]
     #[OA\Response(
         response: 409,
-        description: 'Email already in use by a non-Privy user',
+        description: 'The account with this email cannot be linked automatically (EMAIL_ALREADY_EXISTS): it is linked to a different Privy identity, or it has confirmed two-factor authentication. Any other account without a Privy identity is linked instead of refused.',
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'success', type: 'boolean', example: false),
         new OA\Property(property: 'error', type: 'object', properties: [
         new OA\Property(property: 'code', type: 'string', example: 'EMAIL_ALREADY_EXISTS'),
-        new OA\Property(property: 'message', type: 'string', example: 'An account with this email already exists. Use a different Privy email or sign in with the existing credentials.'),
+        new OA\Property(property: 'message', type: 'string', example: 'An account with this email exists and cannot be linked automatically. Contact support.'),
         ]),
         ])
     )]
@@ -233,7 +233,7 @@ class LoginController extends Controller
         new OA\Property(property: 'errors', type: 'object'),
         ])
     )]
-    public function privyLogin(Request $request, PrivyJwtVerifier $verifier, ApiRegistrationGate $registrationGate): JsonResponse
+    public function privyLogin(Request $request, PrivyJwtVerifier $verifier, PrivyAccountLinker $linker): JsonResponse
     {
         $validated = $request->validate([
             'privy_token' => ['required', 'string'],
@@ -271,45 +271,32 @@ class LoginController extends Controller
 
         $timezone = $this->resolveTimezone($validated['timezone'] ?? null);
 
-        $user = User::where('privy_user_id', $claims->privyUserId)->first();
+        $name = is_string($validated['name'] ?? null) ? (string) $validated['name'] : null;
+
+        // Returning identity, then an existing account with this email
+        // (linked), then a new account. Only a new account goes through
+        // REGISTRATION_API_ENABLED / REGISTRATION_API_INVITE_ONLY.
+        try {
+            $user = $linker->resolve($claims->privyUserId, $email, PrivyAccountLinker::FLOW_MOBILE, $name, $timezone);
+        } catch (RegistrationNotAllowedException $e) {
+            return $e->toResponse();
+        }
 
         if (! $user instanceof User) {
-            // A non-Privy user may already own this email. Refuse to silently
-            // attach the Privy identity to that account — that's account-takeover-
-            // shaped. Surface a clear conflict so mobile can prompt the user.
-            $existing = User::where('email', $email)->first();
-            if ($existing instanceof User) {
-                return response()->json([
-                    'success' => false,
-                    'error'   => [
-                        'code'    => 'EMAIL_ALREADY_EXISTS',
-                        'message' => 'An account with this email already exists. Use a different Privy email or sign in with the existing credentials.',
-                    ],
-                ], 409);
-            }
+            // The account with this email cannot be linked automatically: it
+            // is linked to a different Privy identity or has confirmed
+            // two-factor authentication. Surface a clear conflict so mobile
+            // can prompt the user.
+            return response()->json([
+                'success' => false,
+                'error'   => [
+                    'code'    => 'EMAIL_ALREADY_EXISTS',
+                    'message' => 'An account with this email exists and cannot be linked automatically. Contact support.',
+                ],
+            ], 409);
+        }
 
-            // New account: REGISTRATION_API_ENABLED / REGISTRATION_API_INVITE_ONLY
-            // (invitation matched against the Privy-verified email).
-            try {
-                $invitation = $registrationGate->admit($email);
-            } catch (RegistrationNotAllowedException $e) {
-                return $e->toResponse();
-            }
-
-            $name = is_string($validated['name'] ?? null) ? trim((string) $validated['name']) : '';
-
-            $user = User::create([
-                'name'              => $name !== '' ? $name : 'New User',
-                'email'             => $email,
-                'password'          => Str::random(64),  // unusable; auth gated by Privy
-                'email_verified_at' => now(),  // Privy already verified
-                'privy_user_id'     => $claims->privyUserId,
-                'privy_linked_at'   => now(),
-                'timezone'          => $timezone,
-            ]);
-
-            $registrationGate->accepted($invitation, $user);
-        } elseif ($timezone !== null && $user->timezone !== $timezone) {
+        if (! $user->wasRecentlyCreated && $timezone !== null && $user->timezone !== $timezone) {
             // Returning user with a new device tz — update silently. The user
             // explicitly setting tz from the profile screen takes precedence
             // until they sign in from a device with a different tz.

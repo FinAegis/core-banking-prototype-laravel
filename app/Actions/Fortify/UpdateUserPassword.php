@@ -37,8 +37,9 @@ class UpdateUserPassword implements UpdatesUserPasswords
             ]
         )->save();
 
-        // End every other sign-in, but keep the browser that changed the
-        // password signed in: AuthenticateSession compares this hash.
+        // End every other sign-in (mobile devices included; API keys stay),
+        // but keep the browser that changed the password signed in:
+        // AuthenticateSession compares this hash.
         $session = request()->hasSession() ? request()->session() : null;
 
         UserSignIns::endAllExcept($user, $session?->getId());

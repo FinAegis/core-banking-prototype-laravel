@@ -259,7 +259,7 @@
 
 ## 7. Non-Custodial Wallet Send (Privy Bridge + Prepare/Submit) (v7.12.0+)
 
-**Flow**: Privy issues a session JWT -> `POST /api/v1/auth/privy-login` -> `PrivyJwtVerifier` validates the ES256 signature against cached JWKS + `iss`/`aud`/expiry -> `firstOrCreate(privy_user_id)` -> Sanctum token. Send: `POST /api/v1/wallet/transactions/prepare` builds the unsigned Solana message / ERC-4337 UserOp hash (Pimlico-sponsored) and writes a `pending` `wallet_send_record` -> device signs -> `POST /api/v1/wallet/transactions/submit` -> backend co-signs (Solana fee payer at account index 0) and broadcasts.
+**Flow**: Privy issues a session JWT -> `POST /api/v1/auth/privy-login` -> `PrivyJwtVerifier` validates the ES256 signature against cached JWKS + `iss`/`aud`/expiry -> `PrivyAccountLinker` (by `privy_user_id`, else link the account with the same email, else create) -> Sanctum token. Send: `POST /api/v1/wallet/transactions/prepare` builds the unsigned Solana message / ERC-4337 UserOp hash (Pimlico-sponsored) and writes a `pending` `wallet_send_record` -> device signs -> `POST /api/v1/wallet/transactions/submit` -> backend co-signs (Solana fee payer at account index 0) and broadcasts.
 
 **Entry points**: `/api/v1/auth/privy-login`, `/api/v1/wallet/addresses`, `/api/v1/wallet/transactions/{prepare,submit}`.
 
@@ -289,9 +289,9 @@
 - **Gap**: Counters live in cache — a `cache:clear`/Redis flush resets the day's counts and reopens the window. Only a count ceiling, no hard global value ceiling.
 
 ### Elevation of Privilege
-- **Risk**: Registering another user's address, or steering `firstOrCreate(privy_user_id)` into a victim account.
-- **Mitigation**: `POST /api/v1/wallet/addresses` writes against the authenticated user's `uuid` (EVM lowercased, Solana case-sensitive).
-- **Gap**: Verify `privy_user_id` is an immutable identity key (no path lets a second Privy identity claim an existing row) and that address registration cannot overwrite another user's active row.
+- **Risk**: Registering another user's address, or steering the Privy account lookup into a victim account. Pre-account hijacking: someone registers a victim's address with a password before the victim signs in with Privy, and keeps a way in after the link.
+- **Mitigation**: `POST /api/v1/wallet/addresses` writes against the authenticated user's `uuid` (EVM lowercased, Solana case-sensitive). `PrivyAccountLinker` links an existing account only by the Privy-verified email and only when it has no `privy_user_id` and no confirmed two-factor authentication (otherwise 409 `EMAIL_ALREADY_EXISTS`; a two-factor refusal writes `auth.privy_link_refused_two_factor`), under `lockForUpdate`, with the unique `privy_user_id` index as backstop. If the account's email was never verified, the link replaces the password, clears 2FA and the social link, and ends API tokens, OAuth grants, sessions, remember-me, mobile devices (passkey/biometric keys, push tokens) and API keys. Every link writes an `auth.privy_identity_linked` audit row.
+- **Gap**: An account already linked to Privy that later turns on two-factor authentication can still sign in with the email code alone, on mobile and on the web (the Privy flows have no TOTP step). Verify that address registration cannot overwrite another user's active row.
 
 ---
 
