@@ -68,7 +68,7 @@ use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 beforeEach(function (): void {
     // Keep counters, rate limiters and IP blocks out of the Redis cache that
     // CI's parallel processes share.
-    Tests\Support\SharedCacheIsolation::isolate();
+    Tests\Traits\SharedCacheIsolation::isolate();
 });
 
 /**

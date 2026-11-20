@@ -46,7 +46,7 @@ use Spatie\Permission\Models\Role;
 beforeEach(function (): void {
     // Keep counters, rate limiters and IP blocks out of the Redis cache that
     // CI's parallel processes share.
-    Tests\Support\SharedCacheIsolation::isolate();
+    Tests\Traits\SharedCacheIsolation::isolate();
     Cache::flush();
     Cache::forget('domain_manager_disabled');
     config([

@@ -280,7 +280,7 @@ function palTwoFactorRefusal(User $user): ?AuditLog
 beforeEach(function (): void {
     // Keep counters, rate limiters and IP blocks out of the Redis cache that
     // CI's parallel processes share.
-    Tests\Support\SharedCacheIsolation::isolate();
+    Tests\Traits\SharedCacheIsolation::isolate();
     config(['cache.default' => 'array', 'session.driver' => 'database']);
     Cache::store('array')->flush();
     Cache::flush();

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Support;
+namespace Tests\Traits;
 
 use Illuminate\Cache\RateLimiter;
 use Illuminate\Support\Facades\Cache;
