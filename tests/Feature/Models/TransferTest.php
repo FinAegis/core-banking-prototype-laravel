@@ -29,7 +29,7 @@ class TransferTest extends TestCase
     {
         // Transfer is an event store model, so we create it as an event
         $transfer = Transfer::create([
-            'aggregate_uuid'    => 'transfer-uuid-' . uniqid(),
+            'aggregate_uuid'    => (string) \Illuminate\Support\Str::uuid(),
             'aggregate_version' => 1,
             'event_version'     => 1,
             'event_class'       => 'App\\Domain\\Account\\Events\\MoneyTransferred',
@@ -55,7 +55,7 @@ class TransferTest extends TestCase
     public function it_stores_account_relationships_in_event_properties()
     {
         $transfer = Transfer::create([
-            'aggregate_uuid'    => 'transfer-' . uniqid(),
+            'aggregate_uuid'    => (string) \Illuminate\Support\Str::uuid(),
             'aggregate_version' => 1,
             'event_version'     => 1,
             'event_class'       => 'App\\Domain\\Account\\Events\\MoneyTransferred',
@@ -86,7 +86,7 @@ class TransferTest extends TestCase
         ];
 
         $transfer = Transfer::create([
-            'aggregate_uuid'    => 'transfer-' . uniqid(),
+            'aggregate_uuid'    => (string) \Illuminate\Support\Str::uuid(),
             'aggregate_version' => 1,
             'event_version'     => 1,
             'event_class'       => 'App\\Domain\\Account\\Events\\MoneyTransferred',
@@ -104,7 +104,7 @@ class TransferTest extends TestCase
     {
         // Create different types of events
         Transfer::create([
-            'aggregate_uuid'    => 'transfer-1-' . uniqid(),
+            'aggregate_uuid'    => (string) \Illuminate\Support\Str::uuid(),
             'aggregate_version' => 1,
             'event_version'     => 1,
             'event_class'       => 'App\\Domain\\Account\\Events\\MoneyTransferred',
@@ -114,7 +114,7 @@ class TransferTest extends TestCase
         ]);
 
         Transfer::create([
-            'aggregate_uuid'    => 'transfer-2-' . uniqid(),
+            'aggregate_uuid'    => (string) \Illuminate\Support\Str::uuid(),
             'aggregate_version' => 1,
             'event_version'     => 1,
             'event_class'       => 'App\\Domain\\Account\\Events\\AssetTransferred',
@@ -124,7 +124,7 @@ class TransferTest extends TestCase
         ]);
 
         Transfer::create([
-            'aggregate_uuid'    => 'transfer-3-' . uniqid(),
+            'aggregate_uuid'    => (string) \Illuminate\Support\Str::uuid(),
             'aggregate_version' => 1,
             'event_version'     => 1,
             'event_class'       => 'App\\Domain\\Account\\Events\\MoneyTransferred',
@@ -144,7 +144,7 @@ class TransferTest extends TestCase
     #[Test]
     public function it_can_query_by_aggregate_uuid()
     {
-        $aggregateUuid = 'transfer-aggregate-' . uniqid();
+        $aggregateUuid = (string) \Illuminate\Support\Str::uuid();
 
         // Create multiple events for the same aggregate
         Transfer::create([
@@ -169,7 +169,7 @@ class TransferTest extends TestCase
 
         // Different aggregate
         Transfer::create([
-            'aggregate_uuid'    => 'other-aggregate',
+            'aggregate_uuid'    => (string) \Illuminate\Support\Str::uuid(),
             'aggregate_version' => 1,
             'event_version'     => 1,
             'event_class'       => 'App\\Domain\\Account\\Events\\MoneyTransferred',
@@ -197,7 +197,7 @@ class TransferTest extends TestCase
         ];
 
         $transfer = Transfer::create([
-            'aggregate_uuid'    => 'transfer-meta-' . uniqid(),
+            'aggregate_uuid'    => (string) \Illuminate\Support\Str::uuid(),
             'aggregate_version' => 1,
             'event_version'     => 1,
             'event_class'       => 'App\\Domain\\Account\\Events\\MoneyTransferred',
@@ -223,7 +223,7 @@ class TransferTest extends TestCase
     #[Test]
     public function it_handles_event_versioning()
     {
-        $aggregateUuid = 'versioned-transfer-' . uniqid();
+        $aggregateUuid = (string) \Illuminate\Support\Str::uuid();
 
         // Create events with different versions
         $v1 = Transfer::create([
@@ -265,7 +265,7 @@ class TransferTest extends TestCase
     #[Test]
     public function it_maintains_unique_constraint_on_aggregate_version()
     {
-        $aggregateUuid = 'unique-test-' . uniqid();
+        $aggregateUuid = (string) \Illuminate\Support\Str::uuid();
 
         // Create first event
         Transfer::create([
@@ -295,7 +295,7 @@ class TransferTest extends TestCase
     #[Test]
     public function it_stores_events_in_chronological_order()
     {
-        $aggregateUuid = 'chronological-' . uniqid();
+        $aggregateUuid = (string) \Illuminate\Support\Str::uuid();
         $now = now();
 
         // Create events with specific timestamps

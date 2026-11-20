@@ -47,7 +47,7 @@ class KycVerificationActivityTest extends TestCase
         $this->expectExceptionMessage('Action must be either "approve" or "reject"');
 
         $activity->execute([
-            'user_uuid'   => 'test-uuid',
+            'user_uuid'   => 'c1b2c3d4-0000-4000-8000-000000000001',
             'action'      => 'invalid',
             'verified_by' => 'admin',
         ]);
@@ -60,13 +60,13 @@ class KycVerificationActivityTest extends TestCase
         $this->expectExceptionMessage('Reason is required for rejection');
 
         // Create a user to avoid ModelNotFoundException
-        $user = User::factory()->create(['uuid' => 'test-uuid']);
+        $user = User::factory()->create(['uuid' => 'c1b2c3d4-0000-4000-8000-000000000001']);
 
         $kycService = Mockery::mock(KycService::class);
         $activity = new KycVerificationActivity($kycService);
 
         $activity->execute([
-            'user_uuid'   => 'test-uuid',
+            'user_uuid'   => 'c1b2c3d4-0000-4000-8000-000000000001',
             'action'      => 'reject',
             'verified_by' => 'admin',
         ]);

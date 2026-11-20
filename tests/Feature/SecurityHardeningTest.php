@@ -586,13 +586,13 @@ describe('GraphQL reads are limited to the caller', function (): void {
             'price'          => 50000,
             'status'         => 'open',
         ]);
-        $victimOrder = $order($victimAccount, 'ORD-VICTIM');
-        $order($own, 'ORD-OWN');
+        $victimOrder = $order($victimAccount, 'b1b2c3d4-0000-4000-8000-000000000001');
+        $order($own, 'b1b2c3d4-0000-4000-8000-000000000002');
 
         $trade = fn (string $tradeId, Account $buyer, Account $seller): Trade => Trade::create([
             'trade_id'          => $tradeId,
-            'buy_order_id'      => 'B-' . $tradeId,
-            'sell_order_id'     => 'S-' . $tradeId,
+            'buy_order_id'      => (string) Str::uuid(),
+            'sell_order_id'     => (string) Str::uuid(),
             'buyer_account_id'  => (string) $buyer->id,
             'seller_account_id' => (string) $seller->id,
             'base_currency'     => 'BTC',
@@ -605,20 +605,20 @@ describe('GraphQL reads are limited to the caller', function (): void {
             'maker_side'        => 'buy',
         ]);
         $other = Account::factory()->create(['user_uuid' => User::factory()->create()->uuid]);
-        $trade('TRD-VICTIM', $victimAccount, $other);
-        $trade('TRD-OWN-BUY', $own, $victimAccount);
-        $trade('TRD-OWN-SELL', $other, $own);
+        $trade('b1b2c3d4-0000-4000-8000-000000000101', $victimAccount, $other);
+        $trade('b1b2c3d4-0000-4000-8000-000000000102', $own, $victimAccount);
+        $trade('b1b2c3d4-0000-4000-8000-000000000103', $other, $own);
 
         $json = hardeningGraphql($this, $caller, 'query ($id: ID!) { order(id: $id) { order_id } }', ['id' => $victimOrder->id]);
         expect($json['data']['order'])->toBeNull();
 
         $json = hardeningGraphql($this, $caller, '{ orders(first: 20) { data { order_id } } }');
-        expect(array_column($json['data']['orders']['data'], 'order_id'))->toBe(['ORD-OWN']);
+        expect(array_column($json['data']['orders']['data'], 'order_id'))->toBe(['b1b2c3d4-0000-4000-8000-000000000002']);
 
         $json = hardeningGraphql($this, $caller, '{ trades(first: 20) { data { trade_id } } }');
         $tradeIds = array_column($json['data']['trades']['data'], 'trade_id');
         sort($tradeIds);
-        expect($tradeIds)->toBe(['TRD-OWN-BUY', 'TRD-OWN-SELL']);
+        expect($tradeIds)->toBe(['b1b2c3d4-0000-4000-8000-000000000102', 'b1b2c3d4-0000-4000-8000-000000000103']);
     });
 
     it('returns custodian links of the caller\'s accounts only and guards custodianBalance', function (): void {

@@ -58,7 +58,7 @@ class KycSubmissionActivityTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         $activity->execute([
-            'user_uuid' => 'test-uuid',
+            'user_uuid' => 'c1b2c3d4-0000-4000-8000-000000000001',
             'documents' => [],
         ]);
     }
