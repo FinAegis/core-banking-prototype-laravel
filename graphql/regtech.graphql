@@ -43,10 +43,13 @@ type ComplianceSummary {
 }
 
 extend type Query @module(name: "RegTech") {
+    "Get a regulator connection by ID (compliance staff only)."
     regulatoryEndpoint(id: ID! @eq): RegulatoryEndpoint
         @find
+        @builder(method: "App\\GraphQL\\Builders\\StaffOnly@compliance")
         @guard(with: ["sanctum"])
 
+    "List regulator connections (compliance staff only)."
     regulatoryEndpoints(
         page: Int @rules(apply: ["integer", "min:1"])
         first: Int @rules(apply: ["integer", "min:1", "max:100"])
@@ -54,12 +57,16 @@ extend type Query @module(name: "RegTech") {
         is_active: Boolean @where(operator: "=")
     ): [RegulatoryEndpoint!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\RegTech\\Models\\RegulatoryEndpoint")
+        @builder(method: "App\\GraphQL\\Builders\\StaffOnly@compliance")
         @guard(with: ["sanctum"])
 
+    "Get a filing schedule by ID (compliance staff only)."
     filingSchedule(id: ID! @eq): FilingSchedule
         @find
+        @builder(method: "App\\GraphQL\\Builders\\StaffOnly@compliance")
         @guard(with: ["sanctum"])
 
+    "List filing schedules (compliance staff only)."
     filingSchedules(
         page: Int @rules(apply: ["integer", "min:1"])
         first: Int @rules(apply: ["integer", "min:1", "max:100"])
@@ -67,12 +74,14 @@ extend type Query @module(name: "RegTech") {
         is_active: Boolean @where(operator: "=")
     ): [FilingSchedule!]!
         @paginate(defaultCount: 15, model: "App\\Domain\\RegTech\\Models\\FilingSchedule")
+        @builder(method: "App\\GraphQL\\Builders\\StaffOnly@compliance")
         @guard(with: ["sanctum"])
 
     complianceSummary(jurisdiction: String!): ComplianceSummary
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Queries\\RegTech\\ComplianceSummaryQuery")
 
+    "Health of the active regulator connections (compliance staff only; empty for others)."
     endpointHealth: [RegulatoryEndpoint!]!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Queries\\RegTech\\EndpointHealthQuery")

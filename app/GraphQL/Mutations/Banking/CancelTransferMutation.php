@@ -10,7 +10,6 @@ use App\Support\StaffRoles;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 
 final class CancelTransferMutation
 {
@@ -36,25 +35,22 @@ final class CancelTransferMutation
 
         $transferId = (string) $args['transfer_id'];
 
-        // Unknown transfers answer not_found.
-        $status = $this->bankTransferService->getStatus($transferId);
-
-        if ($status['status'] === 'not_found') {
-            return [
-                'transfer_id' => $transferId,
-                'status'      => 'not_found',
-                'message'     => 'Transfer not found.',
-            ];
-        }
-
-        // The user who initiated the transfer, or an operator.
+        // The user who initiated the transfer, or an operator. Another user's
+        // transfer gets the same answer as an unknown id, so the response does
+        // not reveal whether the id exists.
         $owned = DB::table('bank_transfers')
             ->where('id', $transferId)
             ->where('user_uuid', $user->uuid)
             ->exists();
 
         if (! $owned && ! StaffRoles::userHasAny($user, StaffRoles::OPERATORS)) {
-            throw new AuthorizationException('You are not authorized to cancel this transfer.');
+            return $this->notFound($transferId);
+        }
+
+        $status = $this->bankTransferService->getStatus($transferId);
+
+        if ($status['status'] === 'not_found') {
+            return $this->notFound($transferId);
         }
 
         $cancelled = $this->bankTransferService->cancel($transferId, 'Cancelled by user via GraphQL');
@@ -71,6 +67,18 @@ final class CancelTransferMutation
             'transfer_id' => $transferId,
             'status'      => $status['status'],
             'message'     => 'Transfer cannot be cancelled in its current state.',
+        ];
+    }
+
+    /**
+     * @return array{transfer_id: string, status: string, message: string}
+     */
+    private function notFound(string $transferId): array
+    {
+        return [
+            'transfer_id' => $transferId,
+            'status'      => 'not_found',
+            'message'     => 'Transfer not found.',
         ];
     }
 }
