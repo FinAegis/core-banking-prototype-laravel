@@ -53,9 +53,6 @@ jobs:
             max_execution_time=360
             error_reporting=E_ALL
 
-      - name: Install PHP Dependencies
-        run: composer install --prefer-dist --no-progress --no-interaction
-
       - name: Setup Environment
         run: |
           cp .env.testing .env
@@ -67,6 +64,10 @@ jobs:
             echo "LOG_DEPRECATIONS_TRACE=false"
             echo "LOG_DEPRECATIONS_WHILE_TESTING=true"
           } >> .env
+
+      # After .env: package:discover boots the app and needs APP_KEY.
+      - name: Install PHP Dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
 
       - name: Run Unit Tests
         env:
