@@ -9,6 +9,7 @@ use App\Domain\Relayer\Exceptions\UserOpSigningException;
 use App\Domain\Relayer\Services\UserOperationSigningService;
 use App\Models\User;
 use DateTimeInterface;
+use Illuminate\Cache\RateLimiter as CacheRateLimiter;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use Tests\TestCase;
@@ -26,6 +27,14 @@ class UserOperationSigningServiceTest extends TestCase
         // fast enough that the decay window can't expire mid-loop (the 11th-call
         // block was intermittently not triggered).
         config(['cache.default' => 'array']);
+
+        // The RateLimiter singleton is built at boot from the default store,
+        // which in CI is the Redis shared by the parallel workers
+        // (phpunit.ci-optimized.xml), so the config change above does not
+        // reach it. Each worker numbers its users from 1, so another worker's
+        // RateLimiter::clear() could reset this test's counter mid-loop and
+        // let the 11th call through. Give the tests their own in-memory limiter.
+        RateLimiter::swap(new CacheRateLimiter(Cache::store('array')));
 
         // Create a fresh user per test to avoid parallel CI rate limiter collisions
         $this->user = User::factory()->create();
