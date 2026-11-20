@@ -147,7 +147,7 @@ class SmartAccountController extends Controller
     )]
     #[OA\Response(
         response: 422,
-        description: 'Validation error, or INVALID_ADDRESS when the owner address cannot be used by this user (registered to another user\'s smart account, or the per-user owner-address cap is reached)'
+        description: 'Validation error, or INVALID_ADDRESS when the owner address cannot be used by this user (registered to another user\'s smart account, the per-user owner-address cap is reached, or, with wallet ownership verification enforced, it is not one of the caller\'s wallets)'
     )]
     public function createAccount(Request $request): JsonResponse
     {
@@ -162,7 +162,7 @@ class SmartAccountController extends Controller
 
             // Derive owner address from user if not provided (onboarding flow)
             $ownerAddress = $validated['owner_address']
-                ?? $this->deriveOwnerAddress($user);
+                ?? $this->smartAccountService->derivedOwnerAddress($user);
 
             $account = $this->smartAccountService->getOrCreateAccount(
                 $user,
@@ -387,20 +387,5 @@ class SmartAccountController extends Controller
             'success' => true,
             'data'    => $accounts->map(fn ($account) => $account->toApiResponse()),
         ]);
-    }
-
-    /**
-     * Derive a deterministic EOA-like address from a user's identity.
-     *
-     * Used during onboarding when the user has no external wallet.
-     * The address is computed as keccak256(user_id + app_key)[12:] to produce
-     * a valid 20-byte Ethereum address deterministically.
-     */
-    private function deriveOwnerAddress(User $user): string
-    {
-        $seed = $user->id . ':' . config('app.key');
-        $hash = hash('sha3-256', $seed);
-
-        return '0x' . substr($hash, 24); // Last 20 bytes (40 hex chars)
     }
 }

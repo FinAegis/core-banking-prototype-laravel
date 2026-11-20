@@ -19,6 +19,20 @@ class OndatoService
 {
     private const CACHE_TOKEN_KEY = 'ondato:access_token';
 
+    /**
+     * Statuses a webhook may still move a verification out of. Completed,
+     * failed and expired are final: a later webhook never moves a
+     * verification back (for example from approved to pending), and a failed
+     * or expired verification is never approved by a later delivery.
+     */
+    private const OPEN_STATUSES = [
+        KycVerification::STATUS_PENDING,
+        KycVerification::STATUS_IN_PROGRESS,
+    ];
+
+    /** Ondato API statuses that confirm an approval (compared upper-case). */
+    private const API_APPROVED_STATUSES = ['APPROVED', 'PROCESSED', 'CROSS_CHECKED'];
+
     private const DOCUMENT_TYPE_MAP = [
         'Passport'        => 'passport',
         'IdCard'          => 'national_id',
@@ -254,24 +268,36 @@ class OndatoService
     /**
      * Handle an approved/cross-checked verification.
      *
+     * The webhook only says that something changed. The result and the
+     * identity fields are read from the Ondato API by the reference stored
+     * when the session was created, never taken from the webhook body.
+     *
      * @param  array<string, mixed>  $payload
      */
     private function handleVerificationApproved(array $payload): void
     {
         $verification = $this->findVerificationByPayload($payload);
-        if (! $verification) {
+        if (! $verification || ! $this->isOpen($verification, 'approve')) {
             return;
         }
 
-        // Extract document and identity data from the payload
-        $extractedData = $this->extractDocumentData($payload);
+        $record = $this->confirmedApprovalRecord($verification);
+        if ($record === null) {
+            return;
+        }
 
-        $verification->markAsCompleted([
+        if (! $this->transition($verification, self::OPEN_STATUSES, KycVerification::STATUS_COMPLETED, ['completed_at' => now()], 'approve')) {
+            return;
+        }
+
+        $extractedData = $this->extractDocumentData($record);
+
+        $verification->update([
             'confidence_score'  => 95.0,
             'extracted_data'    => $extractedData,
             'verification_data' => array_merge(
                 $verification->verification_data ?? [],
-                ['ondato_result' => $payload]
+                ['ondato_result' => $record]
             ),
             'document_type'    => $extractedData['document_type'] ?? null,
             'document_number'  => $extractedData['document_number'] ?? null,
@@ -281,6 +307,11 @@ class OndatoService
             'date_of_birth'    => $extractedData['date_of_birth'] ?? null,
             'nationality'      => $extractedData['nationality'] ?? null,
         ]);
+
+        // A rejection processed meanwhile wins: no approval for the user.
+        if ($verification->fresh()?->status !== KycVerification::STATUS_COMPLETED) {
+            return;
+        }
 
         // Update user KYC status
         /** @var User|null $user */
@@ -306,6 +337,50 @@ class OndatoService
     }
 
     /**
+     * The Ondato API record of the verification when it confirms the
+     * approval, or null (logged) when it does not.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function confirmedApprovalRecord(KycVerification $verification): ?array
+    {
+        $idvId = (string) $verification->provider_reference;
+        if ($idvId === '') {
+            Log::warning('Ondato approval not applied: verification has no Ondato reference', [
+                'verification_id' => $verification->id,
+            ]);
+
+            return null;
+        }
+
+        $record = $this->getIdentityVerificationStatus($idvId);
+        $status = strtoupper(is_string($record['status'] ?? null) ? $record['status'] : '');
+
+        if (! in_array($status, self::API_APPROVED_STATUSES, true)) {
+            Log::warning('Ondato approval not applied: the Ondato API does not confirm it', [
+                'verification_id' => $verification->id,
+                'api_status'      => $status,
+            ]);
+
+            return null;
+        }
+
+        // The session was created with our user's uuid as its external
+        // reference; a record that names someone else is not this user's.
+        $reference = $record['externalReferenceId'] ?? null;
+        $userUuid = (string) ($verification->user->uuid ?? '');
+        if (is_string($reference) && $reference !== '' && $reference !== $userUuid) {
+            Log::warning('Ondato approval not applied: the Ondato record names another external reference', [
+                'verification_id' => $verification->id,
+            ]);
+
+            return null;
+        }
+
+        return $record;
+    }
+
+    /**
      * Handle a rejected verification.
      *
      * @param  array<string, mixed>  $payload
@@ -319,7 +394,12 @@ class OndatoService
 
         $reason = $this->extractRejectionReason($payload);
 
-        $verification->markAsFailed($reason);
+        // A rejection may follow an approval (it only takes access away), but
+        // a failed or expired verification is final.
+        $from = [...self::OPEN_STATUSES, KycVerification::STATUS_COMPLETED];
+        if (! $this->transition($verification, $from, KycVerification::STATUS_FAILED, ['failure_reason' => $reason, 'completed_at' => now()], 'reject')) {
+            return;
+        }
 
         // Update verification_data with rejection details
         $verification->update([
@@ -361,7 +441,9 @@ class OndatoService
             return;
         }
 
-        $verification->markAsExpired();
+        if (! $this->transition($verification, self::OPEN_STATUSES, KycVerification::STATUS_EXPIRED, [], 'expire')) {
+            return;
+        }
 
         /** @var User|null $user */
         $user = $verification->user;
@@ -386,11 +468,12 @@ class OndatoService
             return;
         }
 
-        if ($verification->status === KycVerification::STATUS_PENDING) {
-            $verification->update([
-                'status' => KycVerification::STATUS_IN_PROGRESS,
-            ]);
-        }
+        // Conditional update: a STARTED processed after a final status must
+        // not move the verification back.
+        KycVerification::query()
+            ->whereKey($verification->getKey())
+            ->where('status', KycVerification::STATUS_PENDING)
+            ->update(['status' => KycVerification::STATUS_IN_PROGRESS]);
 
         Log::info('Ondato verification started by user', [
             'verification_id' => $verification->id,
@@ -494,6 +577,55 @@ class OndatoService
     }
 
     /**
+     * Whether a webhook may still change the verification (logged when not).
+     */
+    private function isOpen(KycVerification $verification, string $action): bool
+    {
+        if (in_array($verification->status, self::OPEN_STATUSES, true)) {
+            return true;
+        }
+
+        Log::warning('Ondato webhook ignored: the verification is already final', [
+            'verification_id' => $verification->id,
+            'status'          => $verification->status,
+            'action'          => $action,
+        ]);
+
+        return false;
+    }
+
+    /**
+     * Move the verification to $to only while its status is one of $from, in
+     * one conditional update, so two webhooks processed at the same time
+     * cannot both apply and a final status is never moved back.
+     *
+     * @param  list<string>  $from
+     * @param  array<model-property<KycVerification>, mixed>  $attributes
+     */
+    private function transition(KycVerification $verification, array $from, string $to, array $attributes, string $action): bool
+    {
+        $moved = KycVerification::query()
+            ->whereKey($verification->getKey())
+            ->whereIn('status', $from)
+            ->update(['status' => $to] + $attributes) === 1;
+
+        if (! $moved) {
+            Log::warning('Ondato webhook ignored: status change not allowed', [
+                'verification_id' => $verification->id,
+                'status'          => $verification->fresh()?->status,
+                'to'              => $to,
+                'action'          => $action,
+            ]);
+
+            return false;
+        }
+
+        $verification->refresh();
+
+        return true;
+    }
+
+    /**
      * Find the KycVerification record from the webhook payload.
      *
      * @param  array<string, mixed>  $payload
@@ -527,15 +659,15 @@ class OndatoService
     }
 
     /**
-     * Extract document data from the Ondato webhook payload.
+     * Extract document and identity data from an Ondato API record.
      *
-     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $record
      * @return array<string, mixed>
      */
-    private function extractDocumentData(array $payload): array
+    private function extractDocumentData(array $record): array
     {
-        $document = $payload['document'] ?? [];
-        $person = $payload['person'] ?? [];
+        $document = is_array($record['document'] ?? null) ? $record['document'] : [];
+        $person = is_array($record['person'] ?? null) ? $record['person'] : [];
 
         $ondatoDocType = $document['type'] ?? '';
         $documentType = self::DOCUMENT_TYPE_MAP[$ondatoDocType] ?? 'other';

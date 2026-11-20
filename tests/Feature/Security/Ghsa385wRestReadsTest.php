@@ -880,6 +880,7 @@ describe('C37 TrustCert holder checks', function (): void {
 
     it('still returns certificate details and the PDF export to the holder', function (): void {
         Storage::fake('public');
+        Storage::fake('local');
         $holder = ghsaRrUser();
         $certificate = ghsaRrIssueCertificate("user:{$holder->uuid}");
 
@@ -891,7 +892,9 @@ describe('C37 TrustCert holder checks', function (): void {
         $this->postJson("/api/v1/trustcert/{$certificate->certificateId}/export-pdf")
             ->assertOk()
             ->assertJsonPath('success', true);
-        expect(Storage::disk('public')->allFiles())->toHaveCount(1);
+        // Since GHSA-rrfq the PDF is kept on the private disk.
+        expect(Storage::disk('public')->allFiles())->toBe([])
+            ->and(Storage::disk('local')->allFiles())->toHaveCount(1);
     });
 });
 

@@ -46,12 +46,6 @@ class SmsSendTool implements MCPToolInterface
     /** Billed SMS parts one call may send (one unit of every limit). */
     public const MAX_PARTS = 1;
 
-    /** GSM 03.38 basic character set: one septet each. */
-    private const GSM7_BASIC = "@£\$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà";
-
-    /** GSM 03.38 extension table: two septets each (escape + character). */
-    private const GSM7_EXTENSION = "\f^{}\\[~]|€";
-
     public function __construct(
         private readonly SmsService $smsService,
         private readonly SmsPricingService $pricing,
@@ -279,33 +273,11 @@ class SmsSendTool implements MCPToolInterface
     }
 
     /**
-     * SMS parts the message is billed as: GSM-7 (160 septets in one part,
-     * 153 per part when split; extension characters take two) or, when a
-     * character is outside GSM-7, UCS-2 (70 UTF-16 units, 67 per part).
+     * SMS parts the message is billed as ({@see SmsSendBudget::billedParts()}).
      */
     public static function billedParts(string $message): int
     {
-        $septets = 0;
-
-        foreach (mb_str_split($message) as $character) {
-            if (str_contains(self::GSM7_BASIC, $character)) {
-                $septets++;
-
-                continue;
-            }
-
-            if (str_contains(self::GSM7_EXTENSION, $character)) {
-                $septets += 2;
-
-                continue;
-            }
-
-            $units = intdiv(strlen((string) mb_convert_encoding($message, 'UTF-16BE', 'UTF-8')), 2);
-
-            return $units <= 70 ? 1 : intdiv($units + 66, 67);
-        }
-
-        return $septets <= 160 ? 1 : intdiv($septets + 152, 153);
+        return SmsSendBudget::billedParts($message);
     }
 
     /**

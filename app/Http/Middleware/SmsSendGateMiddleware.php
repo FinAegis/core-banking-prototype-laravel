@@ -37,12 +37,18 @@ use Throwable;
  *   paid price (`sms.min_paid_price_usdc`, SMS_MIN_PAID_PRICE_USDC, atomic
  *   USDC). A smaller payment gets the unpaid rules below; an MPP resource
  *   priced below the minimum is not offered (no payment is taken).
+ * - A paid send is still bounded: a daily ceiling of billed parts per user,
+ *   or per payer (x402 payer address, otherwise client IP) when the paid
+ *   request has no Sanctum user (SMS_PAID_SEND_PER_USER_PER_DAY; 429
+ *   ERR_SMS_001). An MPP request at the ceiling is refused before its
+ *   payment is settled.
  * - Unpaid path (MPP off, a valid Sanctum bearer token, or a payment below
  *   the minimum paid price): Sanctum authentication (401 without it), the
  *   per-user `sms-send` rate limiter and the daily unpaid-send limits shared
  *   with the MCP sms.send tool ({@see SmsSendBudget}: per user and all
- *   users together, SMS_SEND_PER_USER_PER_DAY / SMS_SEND_GLOBAL_PER_DAY;
- *   429 ERR_SMS_001 once reached). Only sends that succeed are counted.
+ *   users together, SMS_SEND_PER_USER_PER_DAY / SMS_SEND_GLOBAL_PER_DAY,
+ *   counted in billed SMS parts; 429 ERR_SMS_001 once reached).
+ * Only sends that succeed are counted.
  */
 class SmsSendGateMiddleware
 {
@@ -50,6 +56,9 @@ class SmsSendGateMiddleware
      * Atomic USDC units per US cent (USDC has 6 decimals).
      */
     private const ATOMIC_USDC_PER_CENT = '10000';
+
+    /** Same rule as the SmsController `message` validation (max:1600). */
+    private const MAX_MESSAGE_LENGTH = 1600;
 
     public function __construct(
         private readonly Container $container,
@@ -73,12 +82,18 @@ class SmsSendGateMiddleware
         // unpaid rules apply.
         if ($request->attributes->has('mpp_payment') || $request->attributes->has('x402_payment')) {
             return $this->meetsMinimumPaidPrice($request)
-                ? $next($request)
+                ? $this->withinPaidCeiling($request, $next)
                 : $this->unpaid($request, $next);
         }
 
         if ($this->mppGateApplies($request)) {
             $hasPaymentCredential = str_starts_with((string) $request->header('Authorization', ''), 'Payment ');
+
+            // A payer already at today's paid ceiling is refused before the
+            // payment is settled, so it is not charged for a refused send.
+            if ($hasPaymentCredential && $this->budget->paidCeilingReached($this->payerKey($request), $this->billedParts($request))) {
+                return $this->limitReached();
+            }
 
             if ($hasPaymentCredential || Auth::guard('sanctum')->user() === null) {
                 return $this->paid($request, $next);
@@ -134,10 +149,86 @@ class SmsSendGateMiddleware
             ->send($request)
             ->through([MppPaymentGateMiddleware::class])
             ->then(fn (Request $request): Response => $this->meetsMinimumPaidPrice($request)
-                ? $next($request)
+                ? $this->withinPaidCeiling($request, $next)
                 : $this->unpaid($request, $next));
 
         return $response;
+    }
+
+    /**
+     * Reserve the message's billed parts against the payer's daily paid
+     * ceiling, and release them again unless the send succeeded.
+     *
+     * @param Closure(Request): (Response) $next
+     */
+    private function withinPaidCeiling(Request $request, Closure $next): Response
+    {
+        $payer = $this->payerKey($request);
+        $parts = $this->billedParts($request);
+        $day = SmsSendBudget::today();
+
+        if (! $this->budget->reservePaid($payer, $parts, $day)) {
+            return $this->limitReached();
+        }
+
+        try {
+            $response = $next($request);
+        } catch (Throwable $e) {
+            $this->budget->releasePaid($payer, $parts, $day);
+
+            throw $e;
+        }
+
+        if (! $response->isSuccessful()) {
+            $this->budget->releasePaid($payer, $parts, $day);
+        }
+
+        return $response;
+    }
+
+    /**
+     * Who a paid send is counted against: the Sanctum user, else the payer
+     * address the x402 facilitator settled for, else the client IP (an MPP
+     * credential names no verified payer).
+     */
+    private function payerKey(Request $request): string
+    {
+        $user = Auth::guard('sanctum')->user();
+
+        if ($user !== null) {
+            $id = $user->getAuthIdentifier();
+
+            return 'user:' . (is_int($id) || is_string($id) ? $id : (string) json_encode($id));
+        }
+
+        $x402 = $request->attributes->get('x402_payment');
+
+        if (is_array($x402) && is_string($x402['payer'] ?? null) && $x402['payer'] !== '') {
+            return 'payer:' . strtolower($x402['payer']);
+        }
+
+        return 'ip:' . (string) $request->ip();
+    }
+
+    /**
+     * Billed SMS parts of the request's message (1 when it is missing or
+     * longer than validation allows; the send is then refused anyway).
+     */
+    private function billedParts(Request $request): int
+    {
+        $message = $request->input('message');
+
+        if (! is_string($message) || $message === '' || mb_strlen($message) > self::MAX_MESSAGE_LENGTH) {
+            return 1;
+        }
+
+        return SmsSendBudget::billedParts($message);
+    }
+
+    private function limitReached(): Response
+    {
+        return ErrorResponse::make('ERR_SMS_001')
+            ->withHeaders(['Retry-After' => (string) SmsSendBudget::secondsUntilReset()]);
     }
 
     /**
@@ -158,9 +249,9 @@ class SmsSendGateMiddleware
     }
 
     /**
-     * Reserve one unit of the daily unpaid-send limits, and release it again
-     * unless the send succeeded (validation errors and provider failures do
-     * not count).
+     * Reserve the message's billed parts from the daily unpaid-send limits,
+     * and release them again unless the send succeeded (validation errors
+     * and provider failures do not count).
      *
      * @param Closure(Request): (Response) $next
      */
@@ -179,22 +270,22 @@ class SmsSendGateMiddleware
         // Release against the day the unit was reserved from, even after
         // midnight.
         $day = SmsSendBudget::today();
+        $parts = $this->billedParts($request);
 
-        if ($this->budget->reserve($userId, 'rest', $day) !== null) {
-            return ErrorResponse::make('ERR_SMS_001')
-                ->withHeaders(['Retry-After' => (string) SmsSendBudget::secondsUntilReset()]);
+        if ($this->budget->reserve($userId, 'rest', $day, $parts) !== null) {
+            return $this->limitReached();
         }
 
         try {
             $response = $next($request);
         } catch (Throwable $e) {
-            $this->budget->release($userId, $day);
+            $this->budget->release($userId, $day, $parts);
 
             throw $e;
         }
 
         if (! $response->isSuccessful()) {
-            $this->budget->release($userId, $day);
+            $this->budget->release($userId, $day, $parts);
         }
 
         return $response;

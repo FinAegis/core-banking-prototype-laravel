@@ -7,6 +7,7 @@ namespace App\Domain\TrustCert\Services;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -18,6 +19,19 @@ use Throwable;
  */
 class CertificateExportService
 {
+    /**
+     * Exported PDFs live on the private local disk (not web-served) and are
+     * downloaded through a signed, holder-only route until they expire.
+     */
+    public const EXPORT_DISK = 'local';
+
+    public const EXPORT_DIRECTORY = 'trustcert-exports';
+
+    public const EXPORT_TTL_MINUTES = 60;
+
+    /** Where releases before the fix wrote exports (public disk). */
+    private const LEGACY_PUBLIC_DIRECTORY = 'certs';
+
     public function __construct(
         private readonly CertificateAuthorityService $caService,
         private readonly PresentationService $presentationService,
@@ -95,14 +109,21 @@ class CertificateExportService
 
             $pdfContent = $pdf->output();
 
-            // Store PDF and return URL
-            $filename = 'certs/' . Str::random(32) . '.pdf';
-            Storage::disk('public')->put($filename, $pdfContent);
+            $this->pruneExpiredExports();
 
-            $expiresAt = now()->addHour();
+            // Store the PDF privately; the URL is a signed link to the
+            // holder-only download route, valid until expiresAt.
+            $file = Str::random(40);
+            Storage::disk(self::EXPORT_DISK)->put(self::exportPath($file), $pdfContent);
+
+            $expiresAt = now()->addMinutes(self::EXPORT_TTL_MINUTES);
 
             return [
-                'pdfUrl'    => Storage::disk('public')->url($filename),
+                'pdfUrl' => URL::temporarySignedRoute(
+                    'api.trustcert.certificate.download',
+                    $expiresAt,
+                    ['certId' => $certificateId, 'file' => $file],
+                ),
                 'expiresAt' => $expiresAt->toIso8601String(),
             ];
         } catch (Throwable $e) {
@@ -112,6 +133,40 @@ class CertificateExportService
             ]);
 
             return null;
+        }
+    }
+
+    /**
+     * Path of an exported PDF on the export disk.
+     */
+    public static function exportPath(string $file): string
+    {
+        return self::EXPORT_DIRECTORY . '/' . $file . '.pdf';
+    }
+
+    /**
+     * Delete exports older than their link, including PDFs that releases
+     * before the fix left on the public disk. Never fails an export.
+     */
+    private function pruneExpiredExports(): void
+    {
+        $cutoff = now()->subMinutes(self::EXPORT_TTL_MINUTES)->getTimestamp();
+
+        foreach ([[self::EXPORT_DISK, self::EXPORT_DIRECTORY], ['public', self::LEGACY_PUBLIC_DIRECTORY]] as [$diskName, $directory]) {
+            try {
+                $disk = Storage::disk($diskName);
+
+                foreach ($disk->files($directory) as $path) {
+                    if (str_ends_with($path, '.pdf') && $disk->lastModified($path) < $cutoff) {
+                        $disk->delete($path);
+                    }
+                }
+            } catch (Throwable $e) {
+                Log::warning('TrustCert export cleanup failed', [
+                    'disk'  => $diskName,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
     }
 }

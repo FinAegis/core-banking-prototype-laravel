@@ -351,7 +351,7 @@ class CustodianController extends Controller
             return response()->json(
                 [
                     'error'   => 'Transfer failed',
-                    'message' => $e->getMessage(),
+                    'message' => $this->readFailureMessage($e, $custodian, 'transfer'),
                 ],
                 400
             );
@@ -583,16 +583,17 @@ class CustodianController extends Controller
 
     /**
      * Registry errors (unknown or unavailable custodian) are ours and are
-     * returned as is; connector errors can carry upstream response bodies,
-     * so they are logged (redacted) and answered with a generic message.
+     * returned as is; connector and workflow errors can carry upstream
+     * response bodies, so they are logged (redacted) and answered with a
+     * generic message.
      */
-    private function readFailureMessage(Exception $e, string $custodian): string
+    private function readFailureMessage(Exception $e, string $custodian, string $operation = 'read'): string
     {
         if ($e instanceof CustodianNotFoundException || $e instanceof CustodianNotAvailableException) {
             return $e->getMessage();
         }
 
-        Log::warning('Custodian read failed', [
+        Log::warning("Custodian {$operation} failed", [
             'custodian' => $custodian,
             'exception' => $e::class,
             'error'     => SecretRedactor::redact($e->getMessage()),

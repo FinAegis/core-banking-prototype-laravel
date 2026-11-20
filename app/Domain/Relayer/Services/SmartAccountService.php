@@ -7,6 +7,9 @@ namespace App\Domain\Relayer\Services;
 use App\Domain\Relayer\Contracts\SmartAccountFactoryInterface;
 use App\Domain\Relayer\Exceptions\SmartAccountException;
 use App\Domain\Relayer\Models\SmartAccount;
+use App\Domain\Wallet\Exceptions\AddressOwnershipUnavailableException;
+use App\Domain\Wallet\Exceptions\AddressRegistrationRejectedException;
+use App\Domain\Wallet\Services\PrivyWalletOwnershipVerifier;
 use App\Models\User;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +24,7 @@ class SmartAccountService
 {
     public function __construct(
         private readonly SmartAccountFactoryInterface $factory,
+        private readonly ?PrivyWalletOwnershipVerifier $ownershipVerifier = null,
     ) {
     }
 
@@ -30,8 +34,12 @@ class SmartAccountService
      * If the user's account for this owner and network already exists,
      * returns it. Otherwise creates a new one, unless the owner address is
      * registered to another user's smart account or the user is at the
-     * owner-address cap. Both refusals are the same generic 422
-     * INVALID_ADDRESS and reveal nothing about the other account.
+     * owner-address cap. A caller-supplied owner the user does not hold yet
+     * is checked against the caller's Privy wallets, like a wallet address
+     * registration (`wallet.address_registration.ownership_verification`:
+     * `monitor` logs a mismatch, `enforce` refuses it). Every refusal is the
+     * same generic 422 INVALID_ADDRESS and reveals nothing about another
+     * account.
      *
      * @throws SmartAccountException If network is invalid or the owner address is refused
      */
@@ -52,6 +60,9 @@ class SmartAccountService
 
             return $existing;
         }
+
+        // Outside the DB transaction: the ownership check may call Privy.
+        $this->verifyNewOwner($user, $normalizedOwner, $network);
 
         // Compute counterfactual address
         $accountAddress = $this->factory->computeAddress($ownerAddress, $network);
@@ -98,6 +109,60 @@ class SmartAccountService
         ]);
 
         return $account;
+    }
+
+    /**
+     * The owner address the server assigns a user who creates an account
+     * without naming one (the mobile onboarding flow). It derives from the
+     * app key, so only this server can compute it.
+     */
+    public function derivedOwnerAddress(User $user): string
+    {
+        $seed = $user->id . ':' . config('app.key');
+        $hash = hash('sha3-256', $seed);
+
+        return '0x' . substr($hash, 24); // Last 20 bytes (40 hex chars)
+    }
+
+    /**
+     * Proof of control for an owner address the user is claiming for the
+     * first time: it must be one of the caller's Privy wallets. Owners the
+     * user already holds and the server-derived owner are not checked. In
+     * `monitor` mode a mismatch is only logged; in `enforce` mode it is
+     * refused, and so is a check that cannot be made (fail closed).
+     *
+     * @throws SmartAccountException generic 422 INVALID_ADDRESS (enforce mode)
+     */
+    private function verifyNewOwner(User $user, string $normalizedOwner, string $network): void
+    {
+        $owners = self::ownerAddressesOf((int) $user->id);
+
+        if (in_array($normalizedOwner, $owners, true) || $normalizedOwner === strtolower($this->derivedOwnerAddress($user))) {
+            return;
+        }
+
+        // Over the cap the transaction refuses anyway; refuse before asking Privy.
+        if (count($owners) >= self::maxOwnerAddressesPerUser()) {
+            $this->refuseOwner($user, 'owner_cap', $normalizedOwner, $network);
+        }
+
+        $verifier = $this->ownershipVerifier ?? app(PrivyWalletOwnershipVerifier::class);
+
+        try {
+            $verified = $verifier->verify($user, $normalizedOwner, null);
+        } catch (AddressRegistrationRejectedException) {
+            $this->refuseOwner($user, 'owner_not_verified', $normalizedOwner, $network);
+        } catch (AddressOwnershipUnavailableException) {
+            $this->refuseOwner($user, 'owner_verification_unavailable', $normalizedOwner, $network);
+        }
+
+        if ($verified === false) {
+            Log::warning('Smart account owner is not a wallet of the caller\'s Privy account (monitor mode, created anyway)', [
+                'user_id'       => $user->id,
+                'owner_address' => $normalizedOwner,
+                'network'       => $network,
+            ]);
+        }
     }
 
     /**
