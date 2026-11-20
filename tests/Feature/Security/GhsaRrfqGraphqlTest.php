@@ -30,6 +30,9 @@ const RRFQ_GQL_QUERY = '{ bankTransfers(first: 10) { id status } }';
 const RRFQ_GQL_MUTATION = 'mutation ($id: String!) { cancelTransfer(transfer_id: $id) { transfer_id status message } }';
 
 beforeEach(function (): void {
+    // Keep counters, rate limiters and IP blocks out of the Redis cache that
+    // CI's parallel processes share.
+    Tests\Traits\SharedCacheIsolation::isolate();
     Cache::forget('domain_manager_disabled');
     config(['modules.disabled' => []]);
 });
@@ -94,7 +97,8 @@ function rrfqGqlError(array $json): ?string
 
 function rrfqGqlTransfer(User $owner): string
 {
-    $id = 'bt_' . Str::uuid()->toString();
+    // bank_transfers.id is a uuid column (36 characters on MySQL).
+    $id = Str::uuid()->toString();
     DB::table('bank_transfers')->insert([
         'id'              => $id,
         'user_uuid'       => $owner->uuid,
@@ -460,7 +464,7 @@ describe('cancelTransfer does not reveal whether a transfer id exists', function
         Sanctum::actingAs(rrfqGqlUser(), ['read', 'write', 'delete']);
 
         $foreignJson = rrfqGql($this, RRFQ_GQL_MUTATION, ['id' => $foreign]);
-        $unknownJson = rrfqGql($this, RRFQ_GQL_MUTATION, ['id' => 'bt_does-not-exist']);
+        $unknownJson = rrfqGql($this, RRFQ_GQL_MUTATION, ['id' => '00000000-0000-4000-8000-0000000000aa']);
 
         expect($foreignJson)->not->toHaveKey('errors')
             ->and($foreignJson['data']['cancelTransfer'])->toBe([
@@ -469,7 +473,7 @@ describe('cancelTransfer does not reveal whether a transfer id exists', function
                 'message'     => 'Transfer not found.',
             ])
             ->and($unknownJson['data']['cancelTransfer'])->toBe([
-                'transfer_id' => 'bt_does-not-exist',
+                'transfer_id' => '00000000-0000-4000-8000-0000000000aa',
                 'status'      => 'not_found',
                 'message'     => 'Transfer not found.',
             ])
@@ -489,7 +493,7 @@ describe('cancelTransfer does not reveal whether a transfer id exists', function
             ->and(rrfqGqlTransferStatus($second))->toBe('cancelled');
 
         Sanctum::actingAs(rrfqGqlUser('bank_admin'), ['read', 'write', 'delete']);
-        expect(rrfqGql($this, RRFQ_GQL_MUTATION, ['id' => 'bt_does-not-exist'])['data']['cancelTransfer']['status'])->toBe('not_found');
+        expect(rrfqGql($this, RRFQ_GQL_MUTATION, ['id' => '00000000-0000-4000-8000-0000000000aa'])['data']['cancelTransfer']['status'])->toBe('not_found');
     });
 });
 
