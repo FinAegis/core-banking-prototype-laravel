@@ -65,6 +65,14 @@
             <x-input id="email" type="email" class="mt-1 block w-full" wire:model="state.email" required autocomplete="username" />
             <x-input-error for="email" class="mt-2" />
 
+            <p class="text-sm mt-2 text-gray-600 dark:text-gray-400">
+                @if ($this->user->privy_user_id !== null)
+                    {{ __('You sign in with this email address, so it cannot be changed here.') }}
+                @else
+                    {{ __('When you change your email address, we send a confirmation link to the new address. The change takes effect after you open that link.') }}
+                @endif
+            </p>
+
             @if (Laravel\Fortify\Features::enabled(Laravel\Fortify\Features::emailVerification()) && ! $this->user->hasVerifiedEmail())
                 <p class="text-sm mt-2 dark:text-white">
                     {{ __('Your email address is unverified.') }}

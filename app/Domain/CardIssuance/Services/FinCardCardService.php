@@ -8,6 +8,7 @@ use App\Domain\CardIssuance\Events\Broadcast\CardStateChanged;
 use App\Domain\CardIssuance\Exceptions\FinCardAccountNotReadyException;
 use App\Domain\CardIssuance\Models\Card;
 use App\Domain\CardIssuance\Models\Cardholder;
+use App\Domain\CardIssuance\Models\CardStaffFreeze;
 use App\Infrastructure\FinCard\FinCardClient;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -112,6 +113,9 @@ final class FinCardCardService
         }
         if (isset($data['status'])) {
             $card->status = $this->mapStatus((string) $data['status']);
+            if (strtolower((string) $data['status']) === 'blocked') {
+                CardStaffFreeze::place($card->issuer_card_token, null, CardStaffFreeze::SOURCE_ISSUER);
+            }
         }
         if (isset($data['balance']) && is_numeric((string) $data['balance'])) {
             $card->balance_cents = $this->toCents((string) $data['balance']);
@@ -249,6 +253,14 @@ final class FinCardCardService
             } elseif ($status === 'cancelled') {
                 $card->cancelled_at = now();
             }
+        }
+
+        // An issuer block is not the owner's freeze, so the owner cannot
+        // lift it. Once the issuer unfreezes the card, no freeze is left.
+        if ($eventType === 'blocked') {
+            CardStaffFreeze::place($card->issuer_card_token, null, CardStaffFreeze::SOURCE_ISSUER);
+        } elseif ($eventType === 'UnFreeze') {
+            CardStaffFreeze::lift($card->issuer_card_token);
         }
         if (isset($data['balance']) && is_numeric((string) $data['balance'])) {
             $card->balance_cents = $this->toCents((string) $data['balance']);

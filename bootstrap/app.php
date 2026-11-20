@@ -198,6 +198,9 @@ return Application::configure(basePath: is_string($_appBasePath) ? $_appBasePath
             App\Http\Middleware\VerifyCsrfToken::class,
             Illuminate\Routing\Middleware\SubstituteBindings::class,
             App\Http\Middleware\SecurityHeaders::class,
+            // Ends a session whose password hash is stale (after a reset or
+            // change elsewhere), whatever the session store.
+            Laravel\Jetstream\Http\Middleware\AuthenticateSession::class,
         ]);
 
         // Apply demo middleware to web routes in demo environment

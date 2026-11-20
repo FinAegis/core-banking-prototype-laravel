@@ -190,6 +190,7 @@ Card endpoints use the `ERR_CARDS_*` family (registered in `config/error_codes.p
 | `ERR_CARDS_017` | 422 | Insufficient card balance for the withdraw |
 | `ERR_CARDS_018` | 422 | No `card_type_id` sent and no tenant default configured |
 | `ERR_CARDS_020` | 409 | Open/top-up without an active card account (or the card is not linked to the user's current account) → route to funding (§4.2) |
+| `ERR_CARDS_021` | 403 | Unfreeze refused: support or the card issuer froze the card, so only support can unfreeze it → show the message (a freeze the user placed is unaffected) |
 | `ERR_VALIDATION_001/003` | 422 | Missing/invalid `Idempotency-Key` or body |
 | `ERR_IDEMPOTENCY_409` | 409 | Same key, different body |
 | (rate limit) | 429 | Too many card operations → back off |

@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\GraphQL\Mutations\CardIssuance;
 
 use App\Domain\CardIssuance\Services\CardProvisioningService;
+use App\Http\Middleware\TransactionRateLimitMiddleware;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
+use Nuwave\Lighthouse\Exceptions\RateLimitException;
 
 class ProvisionCardMutation
 {
@@ -25,6 +27,12 @@ class ProvisionCardMutation
 
         if (! $user) {
             throw new AuthenticationException('Unauthenticated.');
+        }
+
+        // One per-user counter with REST POST /api/v1/cards and
+        // /api/v1/cards/provision (transaction.rate_limit:card_provision).
+        if (! TransactionRateLimitMiddleware::consume((int) $user->id, 'card_provision')) {
+            throw new RateLimitException('Mutation.provisionCard');
         }
 
         $card = $this->cardProvisioningService->createCard(

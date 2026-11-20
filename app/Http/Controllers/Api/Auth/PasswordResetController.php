@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\UserSignIns;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -156,7 +157,7 @@ class PasswordResetController extends Controller
 
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
+            function (User $user, string $password) {
                 $user->forceFill(
                     [
                         'password' => Hash::make($password),
@@ -165,8 +166,9 @@ class PasswordResetController extends Controller
 
                 $user->save();
 
-                // Revoke all existing tokens for security
-                $user->tokens()->delete();
+                // End every other sign-in: API tokens, OAuth grants and
+                // stored sessions.
+                UserSignIns::endAllExcept($user);
 
                 event(new PasswordReset($user));
 

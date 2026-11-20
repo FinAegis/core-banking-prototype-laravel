@@ -468,7 +468,7 @@ class CardController extends Controller
                 return $this->cardNotFound();
             }
 
-            $result = $this->provisioningService->freezeCard($cardId);
+            $result = $this->provisioningService->freezeCard($cardId, $request->user());
 
             return response()->json([
                 'success' => $result,
@@ -502,6 +502,10 @@ class CardController extends Controller
         description: 'Card unfrozen'
     )]
     #[OA\Response(
+        response: 403,
+        description: 'The card was frozen by staff; only staff can unfreeze it (ERR_CARD_007)'
+    )]
+    #[OA\Response(
         response: 404,
         description: 'Card not found'
     )]
@@ -510,6 +514,18 @@ class CardController extends Controller
         try {
             if ($this->accessibleCard($request, $cardId) === null) {
                 return $this->cardNotFound();
+            }
+
+            // The owner may lift only a freeze they placed; a staff or
+            // issuer freeze needs staff.
+            if (! $this->provisioningService->mayUnfreeze($cardId, $request->user())) {
+                return response()->json([
+                    'success' => false,
+                    'error'   => [
+                        'code'    => 'ERR_CARD_007',
+                        'message' => 'This card was frozen by our support team. Only they can unfreeze it.',
+                    ],
+                ], 403);
             }
 
             $result = $this->provisioningService->unfreezeCard($cardId);

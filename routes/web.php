@@ -55,6 +55,11 @@ Route::middleware('feature:privy.web_login_enabled')->group(function () {
         ->name('login.privy.verify');
 });
 
+// Applies a profile email change from the signed link sent to the new address.
+Route::get('/user/confirm-email', App\Http\Controllers\Web\ConfirmEmailChangeController::class)
+    ->middleware(['auth:sanctum', config('jetstream.auth_session'), 'signed', 'throttle:6,1'])
+    ->name('user.email-change.confirm');
+
 // WebSocket endpoint with origin validation
 Route::get('/ws', function (Request $request) {
     $origin = $request->header('Origin');

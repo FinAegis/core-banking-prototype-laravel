@@ -6,11 +6,15 @@ namespace App\Domain\CardIssuance\Services;
 
 use App\Domain\CardIssuance\Contracts\CardIssuerInterface;
 use App\Domain\CardIssuance\Enums\CardNetwork;
+use App\Domain\CardIssuance\Enums\CardStatus;
 use App\Domain\CardIssuance\Enums\WalletType;
 use App\Domain\CardIssuance\Events\CardProvisioned;
 use App\Domain\CardIssuance\Models\Card;
+use App\Domain\CardIssuance\Models\CardStaffFreeze;
 use App\Domain\CardIssuance\ValueObjects\ProvisioningData;
 use App\Domain\CardIssuance\ValueObjects\VirtualCard;
+use App\Support\StaffRoles;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -179,19 +183,62 @@ class CardProvisioningService
     }
 
     /**
-     * Freeze a card.
+     * Freeze a card. When staff (StaffRoles::OPERATORS) freeze it, the
+     * freeze is recorded, so the owner cannot lift it; staff also take over
+     * a freeze the owner placed earlier.
      */
-    public function freezeCard(string $cardToken): bool
+    public function freezeCard(string $cardToken, ?Authenticatable $actor = null): bool
     {
-        return $this->cardIssuer->freezeCard($cardToken);
+        if (! StaffRoles::userHasAny($actor, StaffRoles::OPERATORS)) {
+            return $this->cardIssuer->freezeCard($cardToken);
+        }
+
+        // Recorded before the issuer call, so the owner cannot lift the
+        // freeze in between.
+        $alreadyHeld = CardStaffFreeze::isHeld($cardToken);
+        $actorId = $actor?->getAuthIdentifier();
+        CardStaffFreeze::place($cardToken, is_numeric($actorId) ? (int) $actorId : null);
+
+        if ($this->cardIssuer->getCard($cardToken)?->status === CardStatus::FROZEN) {
+            return true;
+        }
+
+        $frozen = false;
+
+        try {
+            $frozen = $this->cardIssuer->freezeCard($cardToken);
+        } finally {
+            if (! $frozen && ! $alreadyHeld) {
+                CardStaffFreeze::lift($cardToken);
+            }
+        }
+
+        return $frozen;
     }
 
     /**
-     * Unfreeze a card.
+     * Whether the user may lift the card's current freeze: staff
+     * (StaffRoles::OPERATORS) always, anyone else only when no staff or
+     * issuer freeze is recorded. Card ownership is checked by the caller.
+     */
+    public function mayUnfreeze(string $cardToken, ?Authenticatable $actor): bool
+    {
+        return StaffRoles::userHasAny($actor, StaffRoles::OPERATORS)
+            || ! CardStaffFreeze::isHeld($cardToken);
+    }
+
+    /**
+     * Unfreeze a card. Check {@see mayUnfreeze()} first.
      */
     public function unfreezeCard(string $cardToken): bool
     {
-        return $this->cardIssuer->unfreezeCard($cardToken);
+        $unfrozen = $this->cardIssuer->unfreezeCard($cardToken);
+
+        if ($unfrozen) {
+            CardStaffFreeze::lift($cardToken);
+        }
+
+        return $unfrozen;
     }
 
     /**

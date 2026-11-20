@@ -482,12 +482,15 @@ describe('team invitation throttling', function (): void {
 
         $html = (new TeamInvitation($invitation))->render();
 
+        // GHSA-rrfq: a name that fails the team name rule is not shown at all,
+        // so its web address cannot be turned into a link by the mail client.
         expect($html)->not->toContain('href="https://evil.example/login"')
-            ->and($html)->toContain('[Unlock your wallet](https://evil.example/login)');
+            ->and($html)->not->toContain('evil.example')
+            ->and($html)->toContain('You have been invited to join a team.');
     });
 
     // Names stored before the team name rule, or personal team names built
-    // from a user's name, still reach the email.
+    // from a user's name before GHSA-rrfq, are replaced by a neutral sentence.
     it('never turns a stored team name into Markdown in the invitation email', function (string $name): void {
         $owner = User::factory()->withPersonalTeam()->create();
         /** @var Team $team */
@@ -501,7 +504,8 @@ describe('team invitation throttling', function (): void {
         expect($html)->not->toMatch('/<a\b[^>]*evil\.example/i')
             ->and($html)->not->toMatch('/<img\b[^>]*evil\.example/i')
             ->and($html)->not->toMatch('/<(h[1-6]|code|pre|em|strong|blockquote|li)\b[^>]*>[^<]*(Unlock|evil)/i')
-            ->and($html)->toContain('Unlock your wallet');
+            ->and($html)->not->toContain('evil.example')
+            ->and($html)->toContain('You have been invited to join a team.');
     })->with([
         'backslash before the brackets' => ['\\[Unlock your wallet\\](https://evil.example/login)'],
         'double backslash'              => ['\\\\[Unlock your wallet\\\\](https://evil.example/login)'],

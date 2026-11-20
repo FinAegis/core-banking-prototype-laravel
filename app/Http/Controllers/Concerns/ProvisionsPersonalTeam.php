@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Concerns;
 
 use App\Models\Team;
 use App\Models\User;
+use App\Rules\TeamName;
 
 /**
  * Provisions a Jetstream personal team for users created outside the
@@ -58,7 +59,7 @@ trait ProvisionsPersonalTeam
         $team = $user->ownedTeams()->save(
             Team::forceCreate([
                 'user_id'       => $user->id,
-                'name'          => explode(' ', $user->name, 2)[0] . "'s Team",
+                'name'          => TeamName::personalTeamName((string) $user->name),
                 'personal_team' => true,
             ])
         );

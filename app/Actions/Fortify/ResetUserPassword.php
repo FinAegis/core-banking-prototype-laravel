@@ -3,6 +3,7 @@
 namespace App\Actions\Fortify;
 
 use App\Models\User;
+use App\Support\UserSignIns;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\ResetsUserPasswords;
@@ -30,5 +31,9 @@ class ResetUserPassword implements ResetsUserPasswords
                 'password' => Hash::make($input['password']),
             ]
         )->save();
+
+        // Whoever reset the password controls the account now: end every
+        // other sign-in (API tokens, OAuth grants, remember-me, sessions).
+        UserSignIns::endAllExcept($user);
     }
 }

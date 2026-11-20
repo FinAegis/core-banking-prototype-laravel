@@ -94,4 +94,19 @@ return [
     */
 
     'web_login_enabled' => (bool) env('MCP_WEB_PRIVY_LOGIN', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Web code check minimum duration
+    |--------------------------------------------------------------------------
+    |
+    | A refused code on POST /login/privy/verify takes at least this long. An
+    | address that may not sign in is refused without a call to Privy, so
+    | without this floor the response time would show which addresses have
+    | an account or an invitation. Keep it above Privy's usual response time.
+    | A correct code is answered at once.
+    |
+    */
+
+    'web_verify_min_duration_ms' => (int) env('PRIVY_WEB_VERIFY_MIN_MS', 1500),
 ];
