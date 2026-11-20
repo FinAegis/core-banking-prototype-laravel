@@ -126,7 +126,9 @@ return [
     | new address to be a wallet of the caller's Privy account (Privy server
     | API, needs PRIVY_APP_SECRET) and fails closed when Privy cannot be
     | asked. `monitor` runs the same check but only logs mismatches — use it
-    | to confirm real users pass, then switch to `enforce`.
+    | to confirm real users pass, then switch to `enforce`. The same check
+    | covers a caller-supplied relayer smart-account owner address the user
+    | does not hold yet (not the server-derived onboarding owner).
     |
     | max_addresses_per_chain: distinct Privy addresses one user may hold per
     | chain (the EVM address counts once for all EVM chains). A normal user

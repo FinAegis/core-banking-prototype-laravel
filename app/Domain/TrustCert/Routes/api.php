@@ -20,6 +20,10 @@ Route::prefix('v1/trustcert')->name('api.trustcert.')->group(function () {
         // Certificate details and PDF export
         Route::get('/{certId}/certificate', [CertificateController::class, 'show'])->name('certificate.show');
         Route::post('/{certId}/export-pdf', [CertificateController::class, 'exportPdf'])->name('certificate.export');
+        // Signed link returned by export-pdf (holder only, private disk).
+        Route::get('/{certId}/export-pdf/{file}', [CertificateController::class, 'downloadPdf'])
+            ->where('file', '[A-Za-z0-9]{40}')
+            ->name('certificate.download');
     });
 });
 

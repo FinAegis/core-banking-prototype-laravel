@@ -230,6 +230,7 @@ class OpsVerifyEnvCommand extends Command
         }
 
         $this->checkBridgeWebhookCredentials();
+        $this->checkOndatoWebhookSecret();
 
         $this->requireFalse(self::CATEGORY_BYPASSES, 'demo.mode', 'demo.mode is true — the DemoMode middleware treats the whole app as a demo (blocked webhooks, demo banner). Must be off in production.');
         $this->requireFalse(self::CATEGORY_BYPASSES, 'demo.sandbox.enabled', 'SANDBOX_MODE=true routes payments through SandboxPaymentService instead of the production rail. Must be false in production.');
@@ -275,6 +276,29 @@ class OpsVerifyEnvCommand extends Command
         }
 
         $this->add(self::CATEGORY_BYPASSES, 'kyc.providers.bridge', self::PASS);
+    }
+
+    /**
+     * Outside local and testing, OndatoService refuses every webhook without
+     * a valid signature, so a configured Ondato needs its webhook secret or
+     * no KYC result ever lands.
+     */
+    private function checkOndatoWebhookSecret(): void
+    {
+        $configured = $this->configString('services.ondato.application_id') !== ''
+            || $this->configString('services.ondato.secret') !== '';
+
+        if (! $configured) {
+            $this->add(self::CATEGORY_BYPASSES, 'services.ondato.webhook_secret', self::SKIP, 'Ondato is not configured (ONDATO_APPLICATION_ID and ONDATO_SECRET are empty).');
+
+            return;
+        }
+
+        $this->requireNonEmpty(
+            self::CATEGORY_BYPASSES,
+            'services.ondato.webhook_secret',
+            'Ondato is configured but ONDATO_WEBHOOK_SECRET is empty. Outside local and testing every Ondato webhook is refused (401), so KYC and TrustCert results never arrive. Set it to the webhook secret from the Ondato dashboard.',
+        );
     }
 
     private function checkDemoFeatureToggles(): void

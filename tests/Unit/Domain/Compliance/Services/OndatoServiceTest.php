@@ -29,6 +29,27 @@ beforeEach(function () {
     $this->service = new OndatoService();
 });
 
+/**
+ * Fake the Ondato API that approvals are confirmed against: every identity
+ * verification reads as Approved unless $records gives its record.
+ *
+ * @param  array<string, array<string, mixed>>  $records  keyed by identity verification id
+ */
+function ondatoServiceTestFakeApi(array $records = []): void
+{
+    Http::fake(function (Illuminate\Http\Client\Request $request) use ($records) {
+        if (str_contains($request->url(), '/v3/oauth/token')) {
+            return Http::response(['access_token' => 'test-token', 'expires_in' => 3600]);
+        }
+
+        if (preg_match('#/v1/identity-verifications/([^/?]+)$#', $request->url(), $match) === 1) {
+            return Http::response($records[$match[1]] ?? ['id' => $match[1], 'status' => 'Approved']);
+        }
+
+        return Http::response([], 404);
+    });
+}
+
 // ──────────────────────────────────────────────────────────────
 // OAuth2 Token
 // ──────────────────────────────────────────────────────────────
@@ -306,6 +327,17 @@ describe('validateWebhookSignature', function () {
 // ──────────────────────────────────────────────────────────────
 
 describe('processWebhook', function () {
+    beforeEach(function () {
+        ondatoServiceTestFakeApi([
+            'idv-doctype-555' => [
+                'id'       => 'idv-doctype-555',
+                'status'   => 'Approved',
+                'document' => ['type' => 'DriverLicense', 'number' => 'DL123'],
+                'person'   => ['firstName' => 'Driver', 'lastName' => 'Test'],
+            ],
+        ]);
+    });
+
     it('handles PROCESSED event and approves verification', function () {
         $user = User::factory()->create(['kyc_status' => 'pending']);
         $verification = KycVerification::create([
@@ -562,6 +594,10 @@ describe('processWebhook', function () {
 // ──────────────────────────────────────────────────────────────
 
 describe('TrustCert linkage', function () {
+    beforeEach(function () {
+        ondatoServiceTestFakeApi();
+    });
+
     it('updates TrustCertApplication to approved and issues certificate on PROCESSED', function () {
         $user = User::factory()->create([
             'kyc_status' => 'pending',

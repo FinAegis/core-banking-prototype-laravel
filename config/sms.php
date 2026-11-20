@@ -24,19 +24,26 @@ return [
 
     /*
     | Per-user limits for unpaid POST /api/v1/sms/send requests (named rate
-    | limiter `sms-send`, keyed by the authenticated user). The route also
+    | limiter `sms-send`, keyed by the authenticated user, counts requests).
+    | The daily limits count billed SMS parts (GSM-7: 160 characters in one
+    | part, 153 per part when split; otherwise 70 and 67). The route also
     | keeps its 60/minute throttle.
+    |
+    | paid_per_user_per_day: billed parts a paid send may use per UTC day,
+    | per user, or per payer (x402 payer address, otherwise client IP) when
+    | the paid request has no signed-in user. 429 ERR_SMS_001 over it.
     */
     'rate_limit' => [
-        'per_user_per_minute' => (int) env('SMS_SEND_PER_USER_PER_MINUTE', 5),
-        'per_user_per_day'    => (int) env('SMS_SEND_PER_USER_PER_DAY', 50),
+        'per_user_per_minute'   => (int) env('SMS_SEND_PER_USER_PER_MINUTE', 5),
+        'per_user_per_day'      => (int) env('SMS_SEND_PER_USER_PER_DAY', 50),
+        'paid_per_user_per_day' => (int) env('SMS_PAID_SEND_PER_USER_PER_DAY', 500),
     ],
 
     /*
-    | Global cap on unpaid sends per UTC day (all users together, REST and
-    | the MCP sms.send tool; sends paid through the MPP or x402 gate do not
-    | count). Over the cap POST /api/v1/sms/send answers 429 ERR_SMS_001 and
-    | MCP sms.send is refused until 00:00 UTC. 0 allows no unpaid sends.
+    | Global cap on unpaid billed parts per UTC day (all users together, REST
+    | and the MCP sms.send tool; sends paid through the MPP or x402 gate do
+    | not count). Over the cap POST /api/v1/sms/send answers 429 ERR_SMS_001
+    | and MCP sms.send is refused until 00:00 UTC. 0 allows no unpaid sends.
     | SMS_SEND_PER_USER_PER_DAY above is also counted across REST and MCP.
     */
     'global_daily_limit' => (int) env('SMS_SEND_GLOBAL_PER_DAY', 500),
@@ -45,7 +52,8 @@ return [
     | Smallest payment (atomic USDC, 6 decimals; 10000 = $0.01) that counts
     | as a paid send on POST /api/v1/sms/send. A smaller settled payment gets
     | the unpaid rules (token, per-user limits, global cap), and an MPP
-    | resource priced below it is not offered.
+    | resource priced below it is not offered. Paid sends still count against
+    | SMS_PAID_SEND_PER_USER_PER_DAY.
     */
     'min_paid_price_usdc' => (int) env('SMS_MIN_PAID_PRICE_USDC', 10000),
 

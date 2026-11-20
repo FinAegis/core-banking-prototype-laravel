@@ -9,7 +9,9 @@ use App\Domain\TrustCert\Services\CertificateExportService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use OpenApi\Attributes as OA;
+use Symfony\Component\HttpFoundation\Response;
 
 #[OA\Tag(
     name: 'TrustCert Certificates',
@@ -114,6 +116,60 @@ class CertificateController extends Controller
             'success' => true,
             'data'    => $result,
         ]);
+    }
+
+        #[OA\Get(
+            path: '/api/v1/trustcert/{certId}/export-pdf/{file}',
+            operationId: 'trustCertCertificatesDownloadPdf',
+            tags: ['TrustCert Certificates'],
+            summary: 'Download an exported certificate PDF',
+            description: 'Downloads a PDF made by the export endpoint. Use the pdfUrl it returned: the link is signed, expires at expiresAt, and works only for the certificate holder.',
+            security: [['sanctum' => []]],
+            parameters: [
+            new OA\Parameter(name: 'certId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'file', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
+        )]
+    #[OA\Response(
+        response: 200,
+        description: 'The PDF file',
+        content: new OA\MediaType(mediaType: 'application/pdf')
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Invalid or expired download link'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Export not found, expired, or the certificate is not held by the caller'
+    )]
+    public function downloadPdf(Request $request, string $certId, string $file): Response
+    {
+        if (! $request->hasValidSignature()) {
+            return response()->json([
+                'success' => false,
+                'error'   => [
+                    'code'    => 'INVALID_DOWNLOAD_LINK',
+                    'message' => 'Invalid or expired download link.',
+                ],
+            ], 403);
+        }
+
+        $disk = Storage::disk(CertificateExportService::EXPORT_DISK);
+        $path = CertificateExportService::exportPath($file);
+
+        // Holder only: another holder's certificate answers like a missing file.
+        if (! $this->isHeldByCaller($request, $certId) || ! $disk->exists($path)) {
+            return response()->json([
+                'success' => false,
+                'error'   => [
+                    'code'    => 'EXPORT_NOT_FOUND',
+                    'message' => 'Export not found or expired.',
+                ],
+            ], 404);
+        }
+
+        return $disk->download($path, 'trustcert-certificate.pdf', ['Content-Type' => 'application/pdf']);
     }
 
     private function isHeldByCaller(Request $request, string $certId): bool
