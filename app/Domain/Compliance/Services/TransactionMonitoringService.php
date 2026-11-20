@@ -134,7 +134,7 @@ class TransactionMonitoringService
     public function flagTransaction(string $transactionId, string $reason, string $severity = 'medium'): void
     {
         DB::transaction(function () use ($transactionId, $reason, $severity) {
-            $aggregate = TransactionMonitoringAggregate::retrieve($transactionId);
+            $aggregate = TransactionMonitoringAggregate::forTransaction($transactionId);
             $aggregate->flagTransaction($reason, $severity, (string) (auth()->id() ?? 'system'));
             $aggregate->persist();
         });
@@ -146,7 +146,7 @@ class TransactionMonitoringService
     public function clearTransaction(string $transactionId, string $reason, ?string $notes = null): void
     {
         DB::transaction(function () use ($transactionId, $reason, $notes) {
-            $aggregate = TransactionMonitoringAggregate::retrieve($transactionId);
+            $aggregate = TransactionMonitoringAggregate::forTransaction($transactionId);
             $aggregate->clearTransaction($reason, (string) (auth()->id() ?? 'system'), $notes);
             $aggregate->persist();
         });

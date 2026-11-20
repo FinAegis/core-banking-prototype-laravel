@@ -20,7 +20,7 @@ class TransactionMonitoringRepository
     public function find(string $transactionId): ?TransactionMonitoringAggregate
     {
         // Use Spatie's retrieve method to get the aggregate with all its events
-        $aggregate = TransactionMonitoringAggregate::retrieve($transactionId);
+        $aggregate = TransactionMonitoringAggregate::retrieve(TransactionMonitoringAggregate::aggregateUuidFor($transactionId));
 
         // Check if the aggregate actually exists (has events)
         try {
