@@ -37,6 +37,11 @@ final class LepoApiException extends RuntimeException
         return new self("Lepo rejected {$path}{$label} (HTTP {$status}).", $status, $code);
     }
 
+    public static function unexpectedResponse(string $path, int $status): self
+    {
+        return new self("Lepo answered {$path} with a body that is not JSON (HTTP {$status}).", $status, null);
+    }
+
     public static function notConfigured(): self
     {
         return new self('Lepo is not configured (LEPO_API_KEY is empty).', 0, null);

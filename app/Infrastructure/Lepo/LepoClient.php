@@ -21,10 +21,6 @@ use Illuminate\Support\Facades\Http;
  */
 final class LepoClient
 {
-    private const SECRET_CARD_KEYS = ['cvv', 'cvc', 'cvv2', 'pin'];
-
-    private const MASKED_CARD_KEYS = ['cardNo', 'cardNumber', 'pan'];
-
     public function __construct(
         private readonly string $baseUrl,
         private readonly string $apiKey,
@@ -211,9 +207,11 @@ final class LepoClient
     }
 
     /**
+     * Pages start at 0 (Lepo documentation).
+     *
      * @return array<string, mixed>
      */
-    public function getCardTransactions(string $cardId, string $userId, int $page = 1, int $limit = 20): array
+    public function getCardTransactions(string $cardId, string $userId, int $page = 0, int $limit = 20): array
     {
         return $this->read('/cards/{id}/transactions', ['id' => $cardId], [
             'userId' => $userId,
@@ -296,6 +294,12 @@ final class LepoClient
         $json = $response->json();
         $data = is_array($json) ? $json : [];
 
+        if ($status < 400 && ! is_array($json) && trim($response->body()) !== '') {
+            // A proxy or error page answering 200 must never read as success,
+            // least of all for conversions and card loads.
+            throw LepoApiException::unexpectedResponse($template, $status);
+        }
+
         if ($status >= 500) {
             throw LepoApiException::transport($template, $status);
         }
@@ -328,19 +332,10 @@ final class LepoClient
      */
     private function redactCard(array $card): array
     {
-        foreach (array_keys($card) as $key) {
-            if (in_array(strtolower((string) $key), self::SECRET_CARD_KEYS, true)) {
-                unset($card[$key]);
-            }
-        }
+        /** @var array<string, mixed> $redacted */
+        $redacted = LepoRedactor::cardSecrets($card);
 
-        foreach (self::MASKED_CARD_KEYS as $key) {
-            if (isset($card[$key]) && is_string($card[$key]) && strlen($card[$key]) > 4) {
-                $card[$key] = str_repeat('*', strlen($card[$key]) - 4) . substr($card[$key], -4);
-            }
-        }
-
-        return $card;
+        return $redacted;
     }
 
     private function http(): PendingRequest

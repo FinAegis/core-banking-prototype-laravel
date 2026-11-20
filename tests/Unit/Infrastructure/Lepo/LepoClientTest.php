@@ -115,3 +115,39 @@ it('refuses to call out without an api key', function (): void {
     expect(fn () => LepoClient::fromConfig()->getUser('u1'))->toThrow(LepoApiException::class);
     Http::assertNothingSent();
 });
+
+it('raises when a successful response is not json', function (): void {
+    Http::fake(['lepo.test/*' => Http::response('<html>proxy page</html>', 200, ['Content-Type' => 'text/html'])]);
+
+    expect(fn () => LepoClient::fromConfig()->topUpCard('c1', '10.00'))->toThrow(LepoApiException::class);
+});
+
+it('accepts an empty successful response', function (): void {
+    Http::fake(['lepo.test/*' => Http::response('', 204)]);
+
+    expect(LepoClient::fromConfig()->deleteCard('c1', 'u1'))->toBe([]);
+});
+
+it('masks card numbers whatever their type, case or depth', function (): void {
+    Http::fake(['lepo.test/*' => Http::response([
+        'id'         => 'c1',
+        'CardNumber' => 4111111111111111,
+        'CVV'        => '123',
+        'details'    => ['pan' => '5555444433332222', 'cvv2' => '999'],
+    ])]);
+
+    $card = LepoClient::fromConfig()->getCard('c1', 'u1');
+
+    expect($card)->not->toHaveKey('CVV')
+        ->and($card['CardNumber'])->toBe('************1111')
+        ->and($card['details'])->not->toHaveKey('cvv2')
+        ->and($card['details']['pan'])->toBe('************2222');
+});
+
+it('asks for the first page of card transactions as page zero', function (): void {
+    Http::fake(['lepo.test/*' => Http::response(['items' => []])]);
+
+    LepoClient::fromConfig()->getCardTransactions('c1', 'u1');
+
+    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), 'page=0'));
+});

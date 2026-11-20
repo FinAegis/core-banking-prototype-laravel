@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\CardIssuance\Webhooks;
 
+use App\Infrastructure\Lepo\LepoRedactor;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -27,19 +28,25 @@ final class LepoWebhookRouter
     }
 
     /**
-     * Removes one-time codes from 3-D Secure events before the payload is
-     * queued, stored or logged. Other events are returned unchanged.
+     * Prepares a payload for the queue: card secrets are removed from every
+     * event type, and one-time codes from 3-D Secure events.
      *
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
     public static function redact(string $type, array $data): array
     {
+        /** @var array<string, mixed> $data */
+        $data = LepoRedactor::cardSecrets($data);
+
         if (! in_array($type, self::SECURE_CODE_TYPES, true)) {
             return $data;
         }
 
-        return self::withoutCodes($data);
+        /** @var array<string, mixed> $withoutCodes */
+        $withoutCodes = self::withoutCodes($data);
+
+        return $withoutCodes;
     }
 
     /**

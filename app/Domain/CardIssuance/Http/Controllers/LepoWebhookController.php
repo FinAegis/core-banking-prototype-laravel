@@ -9,9 +9,12 @@ use App\Domain\CardIssuance\Webhooks\LepoWebhookRouter;
 use App\Domain\Subscription\Models\ProcessedWebhookEvent;
 use App\Http\Controllers\Controller;
 use App\Infrastructure\Lepo\LepoWebhookVerifier;
+use Illuminate\Contracts\Bus\Dispatcher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
+use Throwable;
 
 /**
  * Lepo Finance platform webhooks.
@@ -37,18 +40,27 @@ final class LepoWebhookController extends Controller
     {
         $rawBody = $request->getContent();
 
+        // Lepo treats 4xx as a permanent failure and stops retrying, so every
+        // rejection is logged (without the payload): a rotated secret that was
+        // not updated here would otherwise drop events silently.
         if (! LepoWebhookVerifier::fromConfig()->verify($rawBody, (string) $request->header('X-LepoFinance-Signature', ''))) {
+            Log::warning('Lepo webhook rejected: invalid signature', $this->deliveryContext($request));
+
             return response()->json(['success' => false, 'error' => 'Invalid signature'], 401);
         }
 
         $payload = json_decode($rawBody, true);
         if (! is_array($payload)) {
+            Log::warning('Lepo webhook rejected: body is not JSON', $this->deliveryContext($request));
+
             return response()->json(['success' => false, 'error' => 'Invalid payload'], 400);
         }
 
         $eventId = $payload['id'] ?? null;
         $type = $payload['type'] ?? null;
         if (! is_string($eventId) || $eventId === '' || ! is_string($type) || $type === '') {
+            Log::warning('Lepo webhook rejected: missing event id or type', $this->deliveryContext($request));
+
             return response()->json(['success' => false, 'error' => 'Missing event id or type'], 400);
         }
 
@@ -60,9 +72,28 @@ final class LepoWebhookController extends Controller
         if ($row->wasRecentlyCreated) {
             $data = is_array($payload['data'] ?? null) ? $payload['data'] : [];
 
-            ProcessLepoWebhook::dispatch($eventId, $type, LepoWebhookRouter::redact($type, $data));
+            try {
+                app(Dispatcher::class)->dispatch(new ProcessLepoWebhook($eventId, $type, LepoWebhookRouter::redact($type, $data)));
+            } catch (Throwable $e) {
+                // Without the job the event would be acknowledged but never
+                // processed; forget it so Lepo's retry gets another chance.
+                $row->delete();
+
+                throw $e;
+            }
         }
 
         return response()->json(['success' => true], 200);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function deliveryContext(Request $request): array
+    {
+        return [
+            'webhook_id' => (string) $request->header('X-LepoFinance-Webhook-Id', ''),
+            'attempt'    => (string) $request->header('X-LepoFinance-Delivery-Attempt', ''),
+        ];
     }
 }

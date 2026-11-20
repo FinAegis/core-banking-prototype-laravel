@@ -95,3 +95,42 @@ it('never writes the 3-D Secure code to the log or the job payload', function ()
     $log->shouldNotHaveReceived('warning', fn (string $message, array $context = []): bool => str_contains((string) json_encode($context), '654321'));
     expect(str_contains((string) json_encode(ProcessedWebhookEvent::query()->where('event_id', 'evt_otp')->first()?->toArray()), '654321'))->toBeFalse();
 });
+
+it('forgets the event when it cannot be queued, so the retry is processed', function (): void {
+    $dispatcher = Mockery::mock(Illuminate\Contracts\Bus\Dispatcher::class);
+    $dispatcher->shouldReceive('dispatch')->andThrow(new RuntimeException('queue down'));
+    app()->instance(Illuminate\Contracts\Bus\Dispatcher::class, $dispatcher);
+
+    postLepoWebhook($this, lepoEvent('evt_lost', 'wallet.topped_up', ['amount' => '10']))->assertStatus(500);
+
+    expect(ProcessedWebhookEvent::query()->where('provider', 'lepo')->where('event_id', 'evt_lost')->count())->toBe(0);
+});
+
+it('logs rejected deliveries without their payload', function (): void {
+    $log = Log::spy();
+
+    postLepoWebhook($this, lepoEvent('evt_sig', 'kyc.verified', ['email' => 'person@example.com']), str_repeat('0', 64))->assertStatus(401);
+
+    $log->shouldHaveReceived('warning')->withArgs(fn (string $message, array $context = []): bool => str_contains($message, 'Lepo webhook')
+        && ! str_contains((string) json_encode($context), 'person@example.com'))->once();
+});
+
+it('removes card secrets from every event type before queueing', function (): void {
+    postLepoWebhook($this, lepoEvent('evt_card', 'card.created', ['card' => ['cardNumber' => '4111111111111111', 'cvv' => '321']]))->assertOk();
+
+    Queue::assertPushed(ProcessLepoWebhook::class, function (ProcessLepoWebhook $job): bool {
+        $payload = serialize($job);
+
+        return ! str_contains($payload, '4111111111111111') && ! str_contains($payload, '321');
+    });
+});
+
+it('removes a nested 3-D Secure code from an auth request', function (): void {
+    postLepoWebhook($this, lepoEvent('evt_auth', 'card.3ds_auth_request', ['challenge' => ['passcode' => '778899']]))->assertOk();
+
+    Queue::assertPushed(ProcessLepoWebhook::class, fn (ProcessLepoWebhook $job): bool => ! str_contains(serialize($job), '778899'));
+});
+
+it('keeps lepo webhooks out of telescope', function (): void {
+    expect(config('telescope.ignore_paths'))->toContain('api/v1/webhooks/lepo');
+});
