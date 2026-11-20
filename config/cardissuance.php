@@ -84,6 +84,22 @@ return [
             // Never set in production.
             'dev_simulate_enabled' => (bool) env('FINCARD_DEV_SIMULATE_ENABLED', false),
         ],
+
+        // Lepo Finance — virtual cards issued by Interlace, identity checks by
+        // SumSub, funding from USDC/USDT deposits. A company API key in the
+        // `x-api-key` header; every user-scoped call names the Lepo user id.
+        // Inbound webhooks carry a lowercase hex HMAC-SHA256 of the raw body
+        // (header X-LepoFinance-Signature) keyed by `webhook_secret`.
+        // Tier and card-type ids are partner data: env only, never in code.
+        'lepo' => [
+            'driver'               => 'lepo',
+            'base_url'             => env('LEPO_BASE_URL', 'https://api.lepofinance.com/api/v2'),
+            'api_key'              => env('LEPO_API_KEY'),
+            'webhook_secret'       => env('LEPO_WEBHOOK_SECRET', ''),
+            'card_type_id_virtual' => env('LEPO_CARD_TYPE_ID_VIRTUAL'),
+            'tier_id'              => env('LEPO_TIER_ID'),
+            'timeout_seconds'      => (int) env('LEPO_TIMEOUT_SECONDS', 15),
+        ],
     ],
 
     /*
