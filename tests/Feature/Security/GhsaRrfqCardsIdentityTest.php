@@ -52,6 +52,9 @@ beforeEach(function (): void {
     ]);
 });
 
+/**
+ * @param  array<string, mixed>  $attributes
+ */
 function grrfqCustomer(array $attributes = []): User
 {
     return User::factory()->create($attributes);
@@ -385,7 +388,7 @@ describe('C65 email changes need confirmation of the new address', function (): 
         $user->refresh();
         expect($user->email)->toBe('old@example.com')
             ->and($user->name)->toBe('New Name')
-            ->and($user->email_verified_at?->equalTo($verifiedAt))->toBeTrue()
+            ->and(Carbon::parse((string) $user->email_verified_at)->equalTo($verifiedAt))->toBeTrue()
             ->and(User::query()->where('email', 'invitee@corp.example')->exists())->toBeFalse();
 
         $url = null;
@@ -400,7 +403,7 @@ describe('C65 email changes need confirmation of the new address', function (): 
         $user->refresh();
         expect($user->email)->toBe('invitee@corp.example')
             ->and($user->email_verified_at)->not->toBeNull()
-            ->and($user->email_verified_at?->equalTo($verifiedAt))->toBeFalse();
+            ->and(Carbon::parse((string) $user->email_verified_at)->equalTo($verifiedAt))->toBeFalse();
     });
 
     it('refuses a confirmation link opened by another account or with a changed address', function (): void {
@@ -658,8 +661,11 @@ describe('C19 team invitation residuals', function (): void {
         $invite = app(InviteTeamMember::class);
 
         $newInviters = [User::factory()->withPersonalTeam()->create(), User::factory()->withPersonalTeam()->create()];
-        $invite->invite($newInviters[0], $newInviters[0]->ownedTeams()->firstOrFail(), 'a@example.com', 'admin');
-        $invite->invite($newInviters[1], $newInviters[1]->ownedTeams()->firstOrFail(), 'b@example.com', 'admin');
+        foreach ($newInviters as $i => $inviter) {
+            /** @var Team $inviterTeam */
+            $inviterTeam = $inviter->ownedTeams()->firstOrFail();
+            $invite->invite($inviter, $inviterTeam, ['a@example.com', 'b@example.com'][$i], 'admin');
+        }
 
         $throwaway = User::factory()->withPersonalTeam()->create();
         /** @var Team $throwawayTeam */
@@ -669,7 +675,9 @@ describe('C19 team invitation residuals', function (): void {
         expect($throwawayTeam->teamInvitations()->count())->toBe(0);
 
         $established = User::factory()->withPersonalTeam()->create(['created_at' => now()->subDays(30)]);
-        $invite->invite($established, $established->ownedTeams()->firstOrFail(), 'd@example.com', 'admin');
+        /** @var Team $establishedTeam */
+        $establishedTeam = $established->ownedTeams()->firstOrFail();
+        $invite->invite($established, $establishedTeam, 'd@example.com', 'admin');
 
         Mail::assertSent(TeamInvitation::class, 3);
     });

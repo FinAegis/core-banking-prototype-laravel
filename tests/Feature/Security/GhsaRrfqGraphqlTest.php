@@ -50,6 +50,8 @@ function rrfqGqlUser(?string $role = null): User
  * or with the given bearer token.
  *
  * @param  array<int|string, mixed>  $payload
+ *
+ * @return TestResponse<Symfony\Component\HttpFoundation\Response>
  */
 function rrfqGqlPost(PHPUnit\Framework\TestCase $test, array $payload, ?string $bearer = null): TestResponse
 {
