@@ -8,9 +8,12 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Traits\HasApiScopes;
 use Exception;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Laravel\Socialite\AbstractUser;
+use Laravel\Socialite\Contracts\User as SocialiteUserContract;
 use Laravel\Socialite\Facades\Socialite;
 use OpenApi\Attributes as OA;
 
@@ -96,6 +99,10 @@ class SocialAuthController extends Controller
         response: 403,
         description: 'First social login of a new user while API registration is closed (ERR_REG_001) or invite-only without an invitation (ERR_REG_002)'
     )]
+    #[OA\Response(
+        response: 409,
+        description: 'An account with this email exists and the provider did not report the email as verified (EMAIL_ALREADY_EXISTS); sign in with the existing method'
+    )]
     public function callback(Request $request, $provider, ApiRegistrationGate $registrationGate)
     {
         $validProviders = ['google', 'facebook', 'github'];
@@ -108,42 +115,58 @@ class SocialAuthController extends Controller
 
         try {
             $socialUser = Socialite::driver($provider)->stateless()->user();
+            $providerId = (string) $socialUser->getId();
+            $email = (string) $socialUser->getEmail();
+            $emailVerified = $this->providerVerifiedEmail($socialUser);
 
-            // Check if user exists with this provider
-            $user = User::where('email', $socialUser->getEmail())
-                ->orWhere(
-                    function ($query) use ($provider, $socialUser) {
-                        $query->where('oauth_provider', $provider)
-                            ->where('oauth_id', $socialUser->getId());
+            // A social identity linked earlier signs in directly.
+            $user = $providerId === ''
+                ? null
+                : User::query()->where('oauth_provider', $provider)->where('oauth_id', $providerId)->first();
+
+            // An existing account is reached by email only when the provider
+            // says it verified that email. Anyone can put any address on a
+            // social account, so an unverified match must not sign in.
+            if (! $user instanceof User && $email !== '') {
+                $existing = User::query()->where('email', $email)->first();
+
+                if ($existing instanceof User) {
+                    if (! $emailVerified) {
+                        return $this->existingAccountResponse();
                     }
-                )
-                ->first();
 
-            if ($user) {
-                // Update OAuth info if email matched but OAuth info is different
-                if (! $user->oauth_provider) {
-                    $user->update(
-                        [
-                            'oauth_provider' => $provider,
-                            'oauth_id'       => $socialUser->getId(),
-                            'avatar'         => $socialUser->getAvatar(),
-                        ]
-                    );
+                    if (! $existing->oauth_provider) {
+                        $existing->update(
+                            [
+                                'oauth_provider' => $provider,
+                                'oauth_id'       => $providerId,
+                                'avatar'         => $socialUser->getAvatar(),
+                            ]
+                        );
+                    }
+
+                    $user = $existing;
                 }
-            } else {
+            }
+
+            if (! $user instanceof User) {
+                if ($email === '') {
+                    return response()->json(['message' => 'Authentication failed', 'error' => null], 400);
+                }
+
                 // New account: REGISTRATION_API_ENABLED / REGISTRATION_API_INVITE_ONLY.
-                $invitation = $registrationGate->admit((string) $socialUser->getEmail());
+                $invitation = $registrationGate->admit($email);
 
                 // Create new user
                 $user = User::create(
                     [
                         'name'              => $socialUser->getName(),
-                        'email'             => $socialUser->getEmail(),
+                        'email'             => $email,
                         'password'          => Hash::make(Str::random(32)), // Random password for OAuth users
                         'oauth_provider'    => $provider,
-                        'oauth_id'          => $socialUser->getId(),
+                        'oauth_id'          => $providerId,
                         'avatar'            => $socialUser->getAvatar(),
-                        'email_verified_at' => now(), // Auto-verify OAuth users
+                        'email_verified_at' => $emailVerified ? now() : null,
                     ]
                 );
 
@@ -171,5 +194,29 @@ class SocialAuthController extends Controller
                 400
             );
         }
+    }
+
+    /**
+     * Whether the provider reports the email as verified. Google sends
+     * `email_verified`; GitHub and Facebook send no such flag, so their
+     * email never reaches an existing account.
+     */
+    private function providerVerifiedEmail(SocialiteUserContract $socialUser): bool
+    {
+        $raw = $socialUser instanceof AbstractUser ? $socialUser->getRaw() : [];
+        $flag = $raw['email_verified'] ?? $raw['verified_email'] ?? null;
+
+        return $flag === true || $flag === 'true' || $flag === 1 || $flag === '1';
+    }
+
+    private function existingAccountResponse(): JsonResponse
+    {
+        return response()->json(
+            [
+                'message' => 'An account with this email address already exists. Sign in with the method you used before.',
+                'error'   => 'EMAIL_ALREADY_EXISTS',
+            ],
+            409
+        );
     }
 }

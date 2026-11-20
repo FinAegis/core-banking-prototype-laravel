@@ -3,6 +3,8 @@
 namespace App\Actions\Fortify;
 
 use App\Models\User;
+use App\Support\UserSignIns;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\UpdatesUserPasswords;
@@ -34,5 +36,13 @@ class UpdateUserPassword implements UpdatesUserPasswords
                 'password' => Hash::make($input['password']),
             ]
         )->save();
+
+        // End every other sign-in, but keep the browser that changed the
+        // password signed in: AuthenticateSession compares this hash.
+        $session = request()->hasSession() ? request()->session() : null;
+
+        UserSignIns::endAllExcept($user, $session?->getId());
+
+        $session?->put('password_hash_' . Auth::getDefaultDriver(), $user->getAuthPassword());
     }
 }

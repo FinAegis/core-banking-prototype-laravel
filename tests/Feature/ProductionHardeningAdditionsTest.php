@@ -1355,7 +1355,9 @@ describe('API registration switch: social and web Privy sign-up', function (): v
     it('keeps existing social users logging in while closed', function (): void {
         config(['registration.api_enabled' => false]);
 
-        User::factory()->create(['email' => 'socialold@example.com']);
+        // An existing social user signs in through their linked identity;
+        // a bare email match no longer signs in (GHSA-rrfq).
+        User::factory()->create(['email' => 'socialold@example.com', 'oauth_provider' => 'google', 'oauth_id' => 'g-old']);
         phaFakeSocialUser('socialold@example.com', 'g-old');
         $this->postJson('/api/auth/social/google/callback', ['code' => 'abc'])->assertOk();
     });

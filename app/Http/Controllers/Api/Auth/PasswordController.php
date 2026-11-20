@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\UserSignIns;
 use App\Traits\HasApiScopes;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -75,8 +76,9 @@ class PasswordController extends Controller
             'password' => Hash::make($validated['new_password']),
         ]);
 
-        // Revoke all existing tokens for this user
-        $user->tokens()->delete();
+        // End every other sign-in (API tokens, OAuth grants, stored
+        // sessions); the caller gets a new token below.
+        UserSignIns::endAllExcept($user);
 
         // Create a new token with proper expiration
         $newToken = $this->createTokenWithScopes($user, $request->header('User-Agent', 'Unknown Device'));
