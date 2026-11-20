@@ -28,7 +28,7 @@ it('initiates a SEPA instant transfer', function (): void {
         'description'     => 'Rent payment',
     ]);
 
-    expect($result['transfer_id'])->toStartWith('bt_');
+    expect(Illuminate\Support\Str::isUuid($result['transfer_id']))->toBeTrue();
     expect($result['status'])->toBe('initiated');
     expect($result['reference'])->toBeString()->not->toBeEmpty();
     expect($result['estimated_completion'])->toBeString();
@@ -45,7 +45,7 @@ it('initiates a SWIFT transfer for non-EUR', function (): void {
         'currency'        => 'USD',
     ]);
 
-    expect($result['transfer_id'])->toStartWith('bt_');
+    expect(Illuminate\Support\Str::isUuid($result['transfer_id']))->toBeTrue();
     expect($result['status'])->toBe('initiated');
 });
 
@@ -168,4 +168,14 @@ it('lists transfers for a user', function (): void {
     $amounts = array_map(fn ($t) => (float) $t['amount'], $transfers);
     sort($amounts);
     expect($amounts)->toBe([100.0, 200.0]);
+});
+
+it('refuses to initiate a transfer without a valid owner uuid', function (): void {
+    expect(fn () => $this->service->initiate([
+        'from_bank_code'  => 'REVOLT',
+        'from_account_id' => 'acc-001',
+        'to_account_id'   => 'acc-002',
+        'amount'          => 10.00,
+        'currency'        => 'EUR',
+    ]))->toThrow(InvalidArgumentException::class);
 });

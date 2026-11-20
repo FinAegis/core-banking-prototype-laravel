@@ -100,7 +100,7 @@ describe('GraphQL Banking API', function () {
     it('returns transfers for user with existing transfers', function () {
         $user = User::factory()->create();
 
-        $transferId = 'bt_' . Illuminate\Support\Str::uuid()->toString();
+        $transferId = Illuminate\Support\Str::uuid()->toString();
 
         DB::table('bank_transfers')->insert([
             'id'              => $transferId,
@@ -185,7 +185,7 @@ describe('GraphQL Banking API', function () {
     it('cancels an initiated transfer successfully', function () {
         $user = User::factory()->create();
 
-        $transferId = 'bt_' . Illuminate\Support\Str::uuid()->toString();
+        $transferId = Illuminate\Support\Str::uuid()->toString();
 
         DB::table('bank_transfers')->insert([
             'id'              => $transferId,
@@ -238,7 +238,7 @@ describe('GraphQL Banking API', function () {
     it('cannot cancel a completed transfer', function () {
         $user = User::factory()->create();
 
-        $transferId = 'bt_' . Illuminate\Support\Str::uuid()->toString();
+        $transferId = Illuminate\Support\Str::uuid()->toString();
 
         DB::table('bank_transfers')->insert([
             'id'              => $transferId,

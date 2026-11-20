@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 /**
  * Complete inter-bank transfer workflow with status tracking.
@@ -41,7 +42,14 @@ class BankTransferService
      */
     public function initiate(array $params): array
     {
-        $transferId = 'bt_' . Str::uuid()->toString();
+        // bank_transfers.id and user_uuid are uuid columns (native UUID on
+        // MariaDB), so the id carries no prefix and the owner must be a uuid.
+        $userUuid = (string) ($params['user_uuid'] ?? '');
+        if (! Str::isUuid($userUuid)) {
+            throw new InvalidArgumentException('A valid user_uuid is required to initiate a bank transfer.');
+        }
+
+        $transferId = Str::uuid()->toString();
         $reference = $params['reference'] ?? strtoupper(Str::random(12));
 
         $transfer = [
@@ -65,7 +73,7 @@ class BankTransferService
 
         DB::table('bank_transfers')->insert([
             'id'              => $transferId,
-            'user_uuid'       => $params['user_uuid'] ?? '',
+            'user_uuid'       => $userUuid,
             'from_bank_code'  => $params['from_bank_code'] ?? '',
             'from_account_id' => $transfer['from_account_id'],
             'to_bank_code'    => $transfer['to_bank_code'],
