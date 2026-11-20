@@ -62,9 +62,6 @@ use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
-/**
- * @return array{name: string, category: string, result: string, detail: string}
- */
 beforeEach(function (): void {
     // Keep counters, rate limiters and IP blocks out of the Redis cache that
     // CI's parallel processes share.
