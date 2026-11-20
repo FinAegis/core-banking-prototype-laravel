@@ -92,6 +92,9 @@ class BasketAsset extends Model
     /**
      * Get the value history of this basket.
      */
+    /**
+     * @return HasMany<BasketValue, $this>
+     */
     public function values(): HasMany
     {
         return $this->hasMany(BasketValue::class, 'basket_asset_code', 'code');

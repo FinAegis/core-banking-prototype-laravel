@@ -47,9 +47,7 @@ class ProcessBatchItemActivity extends Activity
         /** @var Account|null $fromAccount */
         $fromAccount = null;
         // Validate accounts
-        /** @var \Illuminate\Database\Eloquent\Model|null $fromAccount */
         $fromAccount = Account::where('uuid', $item['from_account'])->first();
-        /** @var \Illuminate\Database\Eloquent\Model|null $toAccount */
         $toAccount = Account::where('uuid', $item['to_account'])->first();
 
         if (! $fromAccount || ! $toAccount) {
@@ -95,7 +93,6 @@ class ProcessBatchItemActivity extends Activity
         /** @var Account|null $account */
         $account = null;
         // Get account
-        /** @var \Illuminate\Database\Eloquent\Model|null $account */
         $account = Account::where('uuid', $item['from_account'])->first();
 
         if (! $account) {

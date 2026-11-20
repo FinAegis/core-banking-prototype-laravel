@@ -20,7 +20,6 @@ class ValidateOrderActivity extends Activity
         $orderProjection = null;
         /** @var Account|null $account */
         $account = null;
-        /** @var \Illuminate\Database\Eloquent\Model|null $orderProjection */
         $orderProjection = OrderProjection::where('order_id', $orderId)->first();
 
         if (! $orderProjection) {
@@ -49,9 +48,7 @@ class ValidateOrderActivity extends Activity
         }
 
         // Validate currencies exist
-        /** @var \Illuminate\Database\Eloquent\Model|null $baseCurrency */
         $baseCurrency = Asset::where('code', $orderProjection->base_currency)->first();
-        /** @var \Illuminate\Database\Eloquent\Model|null $quoteCurrency */
         $quoteCurrency = Asset::where('code', $orderProjection->quote_currency)->first();
 
         if (! $baseCurrency || ! $quoteCurrency) {
@@ -70,7 +67,8 @@ class ValidateOrderActivity extends Activity
         }
 
         // Validate order amounts
-        if (bccomp($orderProjection->remaining_amount, '0', 18) <= 0) {
+        $remainingAmount = (string) $orderProjection->remaining_amount;
+        if (! is_numeric($remainingAmount) || bccomp($remainingAmount, '0', 18) <= 0) {
             return (object) [
                 'isValid' => false,
                 'message' => 'Invalid order amount',
@@ -78,7 +76,8 @@ class ValidateOrderActivity extends Activity
         }
 
         // For limit orders, validate price
-        if ($orderProjection->order_type === 'limit' && bccomp($orderProjection->price ?? '0', '0', 18) <= 0) {
+        $price = (string) ($orderProjection->price ?? '0');
+        if ($orderProjection->order_type === 'limit' && (! is_numeric($price) || bccomp($price, '0', 18) <= 0)) {
             return (object) [
                 'isValid' => false,
                 'message' => 'Invalid limit price',

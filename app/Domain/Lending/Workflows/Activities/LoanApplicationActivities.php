@@ -103,9 +103,13 @@ class LoanApplicationActivities
     ): array {
         /** @var User|null $user */
         $user = User::find($borrowerId);
+        if (! $user) {
+            throw new Exception('User not found');
+        }
+
         $applicantData = [
             'user_id'          => $borrowerId,
-            'account_age_days' => $user->created_at->diffInDays(now()),
+            'account_age_days' => $user->created_at?->diffInDays(now()) ?? 0,
             'total_deposits'   => DB::table('transactions')
                 ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
                 ->where('accounts.user_id', $borrowerId)
@@ -400,7 +404,7 @@ class LoanApplicationActivities
         return [
             'user_id'          => $userId,
             'kyc_verified'     => $user->kyc_verified_at !== null,
-            'account_age_days' => $user->created_at->diffInDays(now()),
+            'account_age_days' => $user->created_at?->diffInDays(now()) ?? 0,
             'total_deposits'   => DB::table('transactions')
                 ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
                 ->where('accounts.user_id', $userId)

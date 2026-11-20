@@ -317,7 +317,6 @@ class CustomerRiskService
             return;
         }
 
-        /** @var \Illuminate\Database\Eloquent\Model|null $profile */
         $profile = CustomerRiskProfile::where('user_id', $account->user_id)->first();
         if (! $profile) {
             return;
@@ -400,7 +399,6 @@ class CustomerRiskService
     {
         /** @var mixed|null $profile */
         $profile = null;
-        /** @var \Illuminate\Database\Eloquent\Model|null $profile */
         $profile = CustomerRiskProfile::where('user_id', $user->id)->first();
 
         if (! $profile) {
