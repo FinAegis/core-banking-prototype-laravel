@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Traits;
 
 use App\Models\User;
+use App\Support\StaffRoles;
 use Carbon\Carbon;
 
 trait HasApiScopes
@@ -18,7 +19,7 @@ trait HasApiScopes
     protected function getDefaultScopesForUser(User $user): array
     {
         // Admin users get all scopes
-        if ($user->hasRole('admin') || $user->hasRole('super-admin')) {
+        if (StaffRoles::userHasAny($user, StaffRoles::ADMINS)) {
             return ['read', 'write', 'delete', 'admin'];
         }
 

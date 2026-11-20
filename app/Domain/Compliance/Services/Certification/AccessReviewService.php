@@ -52,7 +52,7 @@ class AccessReviewService
     {
         $privilegedRoles = config('compliance-certification.soc2.privileged_roles', [
             'admin',
-            'super-admin',
+            'super_admin',
             'compliance_officer',
             'compliance_manager',
         ]);

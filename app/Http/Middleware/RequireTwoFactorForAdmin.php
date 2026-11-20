@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
-use App\Domain\User\Values\UserRoles;
+use App\Support\StaffRoles;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,16 +26,8 @@ class RequireTwoFactorForAdmin
             return $next($request);
         }
 
-        // Check if user has admin role - support both methods
-        $isAdmin = false;
-
-        // Check using UserRoles enum if available
-        if (class_exists(UserRoles::class)) {
-            $isAdmin = $user->hasRole(UserRoles::ADMIN->value);
-        } else {
-            // Fallback to string checks
-            $isAdmin = $user->hasRole('admin') || $user->hasRole('super-admin');
-        }
+        // Administrators are `admin` and `super_admin` (StaffRoles::ADMINS).
+        $isAdmin = StaffRoles::userHasAny($user, StaffRoles::ADMINS);
 
         if ($isAdmin) {
             // Check if 2FA is enabled and confirmed

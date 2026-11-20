@@ -26,7 +26,7 @@ class BasketPerformanceController extends Controller
     }
 
         #[OA\Get(
-            path: '/api/baskets/{code}/performance',
+            path: '/api/v2/baskets/{code}/performance',
             operationId: 'getBasketPerformance',
             tags: ['Basket Performance'],
             summary: 'Get performance metrics for a basket',
@@ -108,7 +108,7 @@ class BasketPerformanceController extends Controller
     }
 
         #[OA\Get(
-            path: '/api/baskets/{code}/performance/history',
+            path: '/api/v2/baskets/{code}/performance/history',
             operationId: 'getBasketPerformanceHistory',
             tags: ['Basket Performance'],
             summary: 'Get historical performance data for a basket',
@@ -154,7 +154,7 @@ class BasketPerformanceController extends Controller
     }
 
         #[OA\Get(
-            path: '/api/baskets/{code}/performance/summary',
+            path: '/api/v2/baskets/{code}/performance/summary',
             operationId: 'getBasketPerformanceSummary',
             tags: ['Basket Performance'],
             summary: 'Get performance summary across multiple periods',
@@ -193,7 +193,7 @@ class BasketPerformanceController extends Controller
     }
 
         #[OA\Get(
-            path: '/api/baskets/{code}/performance/components',
+            path: '/api/v2/baskets/{code}/performance/components',
             operationId: 'getBasketComponentPerformance',
             tags: ['Basket Performance'],
             summary: 'Get component-level performance breakdown',
@@ -238,7 +238,7 @@ class BasketPerformanceController extends Controller
     }
 
         #[OA\Get(
-            path: '/api/baskets/{code}/performance/top-performers',
+            path: '/api/v2/baskets/{code}/performance/top-performers',
             operationId: 'getBasketTopPerformers',
             tags: ['Basket Performance'],
             summary: 'Get top performing components',
@@ -273,7 +273,7 @@ class BasketPerformanceController extends Controller
     }
 
         #[OA\Get(
-            path: '/api/baskets/{code}/performance/worst-performers',
+            path: '/api/v2/baskets/{code}/performance/worst-performers',
             operationId: 'getBasketWorstPerformers',
             tags: ['Basket Performance'],
             summary: 'Get worst performing components',
@@ -308,7 +308,7 @@ class BasketPerformanceController extends Controller
     }
 
         #[OA\Post(
-            path: '/api/baskets/{code}/performance/calculate',
+            path: '/api/v2/baskets/{code}/performance/calculate',
             operationId: 'calculateBasketPerformance',
             tags: ['Basket Performance'],
             summary: 'Trigger performance calculation for a basket',
@@ -382,7 +382,7 @@ class BasketPerformanceController extends Controller
     }
 
         #[OA\Get(
-            path: '/api/baskets/{code}/performance/compare',
+            path: '/api/v2/baskets/{code}/performance/compare',
             operationId: 'compareBasketPerformance',
             tags: ['Basket Performance'],
             summary: 'Compare basket performance against benchmarks',
