@@ -143,6 +143,7 @@ class OpsVerifyEnvCommand extends Command
         $this->checkSecrets();
         $this->checkBypasses();
         $this->checkConditional($solanaSponsor);
+        $this->checkLepoCardProvider();
         $this->checkFiles();
         $this->checkProductionSwitches();
 
@@ -327,6 +328,51 @@ class OpsVerifyEnvCommand extends Command
     }
 
     // ── Category: conditional ────────────────────────────────────────────
+
+    /**
+     * Lepo Finance (virtual cards). In use when it is the default card issuer
+     * or an API key is set. Without the key every card call fails; without the
+     * webhook secret every Lepo webhook is refused outside local and testing,
+     * so identity, card and funding updates never arrive.
+     */
+    private function checkLepoCardProvider(): void
+    {
+        $inUse = $this->configString('cardissuance.default_issuer') === 'lepo'
+            || $this->configString('cardissuance.issuers.lepo.api_key') !== '';
+
+        if (! $inUse) {
+            $this->add(self::CATEGORY_CONDITIONAL, 'cards.lepo', self::SKIP, 'Lepo is not the card issuer (CARD_ISSUER) and LEPO_API_KEY is empty.');
+
+            return;
+        }
+
+        $missing = [];
+        if ($this->configString('cardissuance.issuers.lepo.api_key') === '') {
+            $missing[] = 'LEPO_API_KEY';
+        }
+
+        if ($this->configString('cardissuance.issuers.lepo.webhook_secret') === '') {
+            $missing[] = 'LEPO_WEBHOOK_SECRET';
+        }
+
+        if ($missing !== []) {
+            $this->add(self::CATEGORY_CONDITIONAL, 'cards.lepo', self::FAIL, sprintf(
+                'Lepo is in use but %s %s empty. Card calls fail without the API key, and every Lepo webhook is refused (401) without the webhook secret. Set them from the Lepo partner portal (API keys, Endpoints).',
+                implode(' and ', $missing),
+                count($missing) === 1 ? 'is' : 'are',
+            ));
+
+            return;
+        }
+
+        if ($this->configString('cardissuance.issuers.lepo.card_type_id_virtual') === '') {
+            $this->add(self::CATEGORY_CONDITIONAL, 'cards.lepo', self::WARN, 'LEPO_CARD_TYPE_ID_VIRTUAL is empty, so virtual cards cannot be opened. Set it to the consumer virtual card type of the Lepo tier.');
+
+            return;
+        }
+
+        $this->add(self::CATEGORY_CONDITIONAL, 'cards.lepo', self::PASS);
+    }
 
     private function checkConditional(SolanaSponsorSigner $solanaSponsor): void
     {

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\CardIssuance\Http\Controllers\FinCardWebhookController;
+use App\Domain\CardIssuance\Http\Controllers\LepoWebhookController;
 use App\Domain\CardIssuance\Http\Controllers\WaitlistDepositController;
 use App\Domain\CardIssuance\Webhooks\CardWaitlistWebhookController;
 use App\Http\Controllers\Api\CardIssuance\CardController;
@@ -130,6 +131,13 @@ Route::prefix('v1/cardholders')->name('api.cardholders.')->middleware(['auth:san
 Route::post('v1/webhooks/fincard', [FinCardWebhookController::class, 'handle'])
     ->middleware('api.rate_limit:webhook')
     ->name('api.v1.webhooks.fincard');
+
+// Lepo Finance webhook — public (Lepo signs with HMAC-SHA256 over the raw
+// body), deduplicated on processed_webhook_events (provider='lepo') and
+// processed in a queued job.
+Route::post('v1/webhooks/lepo', [LepoWebhookController::class, 'handle'])
+    ->middleware('api.rate_limit:webhook')
+    ->name('api.webhooks.lepo');
 
 // Card issuer webhook endpoints (CRITICAL: <2000ms latency budget)
 Route::prefix('webhooks/card-issuer')->name('api.webhooks.card.')

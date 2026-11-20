@@ -784,3 +784,67 @@ it('passes PIMLICO_BUNDLER_URL when it is empty or only one EVM network is enabl
     'empty, three networks' => ['', ['polygon', 'base', 'arbitrum']],
     'pinned, one network'   => ['https://api.pimlico.io/v2/137/rpc', ['polygon']],
 ]);
+
+describe('Lepo card provider', function (): void {
+    it('fails in production when lepo is the issuer without a key or webhook secret', function (): void {
+        opsVerifyEnvAllGoodConfig();
+        config([
+            'cardissuance.default_issuer'                    => 'lepo',
+            'cardissuance.issuers.lepo.api_key'              => '',
+            'cardissuance.issuers.lepo.webhook_secret'       => '',
+            'cardissuance.issuers.lepo.card_type_id_virtual' => '999',
+        ]);
+        app()->detectEnvironment(fn () => 'production');
+
+        [$exitCode, $checks] = opsVerifyEnvRun();
+
+        expect($exitCode)->toBe(1)
+            ->and($checks['cards.lepo']['result'])->toBe('FAIL')
+            ->and($checks['cards.lepo']['detail'])->toContain('LEPO_API_KEY')
+            ->and($checks['cards.lepo']['detail'])->toContain('LEPO_WEBHOOK_SECRET');
+    });
+
+    it('fails in production when a lepo key is set without a webhook secret', function (): void {
+        opsVerifyEnvAllGoodConfig();
+        config([
+            'cardissuance.issuers.lepo.api_key'              => 'test-key',
+            'cardissuance.issuers.lepo.webhook_secret'       => '',
+            'cardissuance.issuers.lepo.card_type_id_virtual' => '999',
+        ]);
+        app()->detectEnvironment(fn () => 'production');
+
+        [, $checks] = opsVerifyEnvRun();
+
+        expect($checks['cards.lepo']['result'])->toBe('FAIL')
+            ->and($checks['cards.lepo']['detail'])->toContain('LEPO_WEBHOOK_SECRET')
+            ->and($checks['cards.lepo']['detail'])->not->toContain('LEPO_API_KEY');
+    });
+
+    it('passes when lepo is not in use', function (): void {
+        opsVerifyEnvAllGoodConfig();
+        config(['cardissuance.default_issuer' => 'demo', 'cardissuance.issuers.lepo.api_key' => '']);
+        app()->detectEnvironment(fn () => 'production');
+
+        [$exitCode, $checks] = opsVerifyEnvRun();
+
+        expect($exitCode)->toBe(0)
+            ->and($checks['cards.lepo']['result'])->toBe('SKIP');
+    });
+
+    it('warns without a virtual card type id', function (): void {
+        opsVerifyEnvAllGoodConfig();
+        config([
+            'cardissuance.default_issuer'                    => 'lepo',
+            'cardissuance.issuers.lepo.api_key'              => 'test-key',
+            'cardissuance.issuers.lepo.webhook_secret'       => 'whsec_test',
+            'cardissuance.issuers.lepo.card_type_id_virtual' => '',
+        ]);
+        app()->detectEnvironment(fn () => 'production');
+
+        [$exitCode, $checks] = opsVerifyEnvRun();
+
+        expect($exitCode)->toBe(0)
+            ->and($checks['cards.lepo']['result'])->toBe('WARN')
+            ->and($checks['cards.lepo']['detail'])->toContain('LEPO_CARD_TYPE_ID_VIRTUAL');
+    });
+});

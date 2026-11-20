@@ -115,6 +115,9 @@ return [
         'livewire*',
         'nova-api*',
         'pulse*',
+        // Lepo webhooks can carry one-time 3-D Secure codes and personal data;
+        // Telescope keeps the full payload of any failed request.
+        'api/v1/webhooks/lepo',
     ],
 
     'ignore_commands' => [

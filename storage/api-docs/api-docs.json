@@ -45,6 +45,27 @@
                 }
             }
         },
+        "/api/v1/webhooks/lepo": {
+            "post": {
+                "tags": [
+                    "Lepo Webhooks"
+                ],
+                "summary": "Lepo Finance platform event webhook",
+                "description": "Verified with the X-LepoFinance-Signature header: lowercase hex HMAC-SHA256 of the raw body keyed by the webhook secret. Idempotent via processed_webhook_events; processed asynchronously.",
+                "operationId": "v1LepoWebhook",
+                "responses": {
+                    "200": {
+                        "description": "Event accepted (or ignored as duplicate)"
+                    },
+                    "401": {
+                        "description": "Invalid signature"
+                    },
+                    "400": {
+                        "description": "Invalid payload"
+                    }
+                }
+            }
+        },
         "/api/v1/subscription/iap/verify": {
             "post": {
                 "tags": [
@@ -63105,6 +63126,10 @@
         {
             "name": "FinCard Webhooks",
             "description": "FinCard Webhooks"
+        },
+        {
+            "name": "Lepo Webhooks",
+            "description": "Lepo Webhooks"
         },
         {
             "name": "Subscription",
