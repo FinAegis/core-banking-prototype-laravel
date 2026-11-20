@@ -7,6 +7,7 @@ use App\Domain\Basket\Services\BasketPerformanceService;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BasketPerformanceResource;
 use App\Http\Resources\ComponentPerformanceResource;
+use App\Support\StaffRoles;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -327,8 +328,18 @@ class BasketPerformanceController extends Controller
         new OA\Property(property: 'calculated_periods', type: 'array', items: new OA\Items(type: 'string')),
         ])
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Platform operators only (admin, super_admin, bank_admin)'
+    )]
     public function calculate(Request $request, string $code): JsonResponse
     {
+        // Stored performance figures are platform data: operators only, as
+        // for basket creation and rebalancing.
+        if (! StaffRoles::userHasAny($request->user(), StaffRoles::OPERATORS)) {
+            return response()->json(['message' => 'You are not authorized to calculate basket performance.'], 403);
+        }
+
         $request->validate(
             [
                 'period' => ['sometimes', Rule::in(['all', 'hour', 'day', 'week', 'month', 'quarter', 'year'])],

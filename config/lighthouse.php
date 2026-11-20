@@ -30,6 +30,9 @@ return [
          * make sure to return spec-compliant responses in case an error is thrown.
          */
         'middleware' => [
+            // Refuses blocked IP addresses, as in the `api` route group.
+            App\Http\Middleware\IpBlocking::class,
+
             // Ensures the request is not vulnerable to cross-site request forgery.
             // Nuwave\Lighthouse\Http\Middleware\EnsureXHR::class,
 
@@ -352,6 +355,9 @@ return [
     */
 
     'field_middleware' => [
+        // Token abilities on root fields (queries and subscriptions need `read`,
+        // mutations `write`), the GraphQL counterpart of EnforceMethodScope.
+        App\GraphQL\Directives\TokenAbilitiesDirective::class,
         Nuwave\Lighthouse\Schema\Directives\TrimDirective::class,
         Nuwave\Lighthouse\Schema\Directives\ConvertEmptyStringsToNullDirective::class,
         Nuwave\Lighthouse\Schema\Directives\SanitizeDirective::class,

@@ -253,15 +253,27 @@ class MicrofinanceController extends Controller
     // Provisioning
     // -----------------------------------------------------------------------
 
-    public function getProvisionSummary(): JsonResponse
+    /**
+     * Loan loss provisions cover every loan of the institution, so both
+     * provisioning reads are for operators only.
+     */
+    public function getProvisionSummary(Request $request): JsonResponse
     {
+        if (! MicrofinanceAccess::isOperator($request->user())) {
+            return $this->forbidden('You are not authorized to view loan provisions.');
+        }
+
         $totals = $this->loanProvisioningService->getTotalProvisions();
 
         return response()->json(['data' => $totals]);
     }
 
-    public function getProvisionsByCategory(string $category): JsonResponse
+    public function getProvisionsByCategory(Request $request, string $category): JsonResponse
     {
+        if (! MicrofinanceAccess::isOperator($request->user())) {
+            return $this->forbidden('You are not authorized to view loan provisions.');
+        }
+
         try {
             $provisions = $this->loanProvisioningService->getProvisionsByCategory($category);
 

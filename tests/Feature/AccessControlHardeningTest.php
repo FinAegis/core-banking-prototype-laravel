@@ -698,8 +698,9 @@ describe('GraphQL mutations on other users\' records', function (): void {
         $query = 'mutation ($id: String!) { cancelTransfer(transfer_id: $id) { status } }';
 
         $first = $insert();
+        // Another user's transfer answers like an unknown id (GHSA-rrfq).
         $json = achGraphql($this, User::factory()->create(), $query, ['id' => $first]);
-        expect(achGraphqlError($json))->toBe('You are not authorized to cancel this transfer.')
+        expect($json['data']['cancelTransfer']['status'] ?? null)->toBe('not_found')
             ->and(DB::table('bank_transfers')->where('id', $first)->value('status'))->toBe('initiated');
 
         $json = achGraphql($this, $owner, $query, ['id' => $first]);
