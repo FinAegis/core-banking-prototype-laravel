@@ -369,28 +369,16 @@ class ExchangeRateController extends Controller
         }
 
         try {
-            // For USD, use legacy workflows
-            if ($validated['from_currency'] === 'USD') {
-                $accountUuid = new \App\Domain\Account\DataObjects\AccountUuid($validated['account_uuid']);
-                $money = new \App\Domain\Account\DataObjects\Money($fromAmountInMinorUnits);
-
-                // Withdraw USD using legacy workflow
-                $withdrawWorkflow = \Workflow\WorkflowStub::make(\App\Domain\Account\Workflows\WithdrawAccountWorkflow::class);
-                $withdrawWorkflow->start($accountUuid, $money);
-
-                // Deposit target asset using asset workflow
-                $depositWorkflow = \Workflow\WorkflowStub::make(\App\Domain\Asset\Workflows\AssetDepositWorkflow::class);
-                $depositWorkflow->start($accountUuid, $validated['to_currency'], $toAmountInMinorUnits);
-            } else {
-                // Use asset workflows for both sides
-                $accountUuid = new \App\Domain\Account\DataObjects\AccountUuid($validated['account_uuid']);
-
-                $withdrawWorkflow = \Workflow\WorkflowStub::make(\App\Domain\Asset\Workflows\AssetWithdrawWorkflow::class);
-                $withdrawWorkflow->start($accountUuid, $validated['from_currency'], $fromAmountInMinorUnits);
-
-                $depositWorkflow = \Workflow\WorkflowStub::make(\App\Domain\Asset\Workflows\AssetDepositWorkflow::class);
-                $depositWorkflow->start($accountUuid, $validated['to_currency'], $toAmountInMinorUnits);
-            }
+            // One workflow debits the source asset first and credits the target
+            // asset only after the debit succeeded (refunding on a failed credit).
+            $conversionWorkflow = \Workflow\WorkflowStub::make(\App\Domain\Asset\Workflows\CurrencyConversionWorkflow::class);
+            $conversionWorkflow->start(
+                new \App\Domain\Account\DataObjects\AccountUuid($validated['account_uuid']),
+                $validated['from_currency'],
+                $fromAmountInMinorUnits,
+                $validated['to_currency'],
+                $toAmountInMinorUnits,
+            );
 
             return response()->json(
                 [

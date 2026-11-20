@@ -12,13 +12,13 @@ use Workflow\Models\StoredWorkflow;
  * Re-checks ledger.direct_funding_enabled when a deposit activity runs.
  *
  * DepositAccountWorkflow and AssetDepositWorkflow started on their own credit
- * an account without a payment rail (v1/v2 deposit, BIAN, currency
- * conversion, admin and MCP deposits). The routes check the flag when the
- * workflow starts, but a queued or retried workflow can run much later, so
- * the activity checks it again and fails the workflow for good while the
- * flag is off. A deposit that runs as a step of another workflow (the
- * receiving side of an internal transfer, an exchange settlement) is not
- * direct funding and is not affected.
+ * an account without a payment rail (v1/v2 deposit, BIAN, admin and MCP
+ * deposits). The routes check the flag when the workflow starts, but a queued
+ * or retried workflow can run much later, so the activity checks it again and
+ * fails the workflow for good while the flag is off. A deposit that runs as a
+ * step of another workflow (the receiving side of an internal transfer, an
+ * exchange settlement, the credit side of a currency conversion after its
+ * debit) is not direct funding and is not affected.
  */
 final class DirectFundingGuard
 {

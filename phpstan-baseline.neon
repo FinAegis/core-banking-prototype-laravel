@@ -379,12 +379,6 @@ parameters:
 			path: app/Domain/Asset/Workflows/Activities/ValidateExchangeRateActivity.php
 
 		-
-			message: '#^Call to an undefined method App\\Domain\\Account\\DataObjects\\AccountUuid\:\:toString\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Domain/Asset/Workflows/Activities/WithdrawAssetActivity.php
-
-		-
 			message: '#^PHPDoc tag @return with type array is incompatible with native type Generator\.$#'
 			identifier: return.phpDocType
 			count: 1
