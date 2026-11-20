@@ -57,6 +57,26 @@ final class LepoClient
     }
 
     /**
+     * The Lepo user created with our external id, or null.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function findUserByExternalId(string $externalUserId): ?array
+    {
+        $list = $this->read('/users', [], ['externalUserId' => $externalUserId, 'pageSize' => 1]);
+        $users = $list['users'] ?? [];
+
+        if (! is_array($users) || ! isset($users[0]) || ! is_array($users[0])) {
+            return null;
+        }
+
+        /** @var array<string, mixed> $user */
+        $user = $users[0];
+
+        return ($user['externalUserId'] ?? null) === $externalUserId ? $user : null;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function getKycDetailedStatus(string $userId): array

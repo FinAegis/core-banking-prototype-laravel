@@ -10,6 +10,7 @@ use App\Domain\CardIssuance\Adapters\MarqetaCardIssuerAdapter;
 use App\Domain\CardIssuance\Contracts\CardIssuerInterface;
 use App\Infrastructure\FinCard\FinCardClient;
 use App\Infrastructure\FinCard\FinCardWebhookVerifier;
+use App\Infrastructure\Lepo\LepoClient;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 
@@ -26,6 +27,10 @@ class CardIssuanceServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Lepo's client reads its URL, key and timeout from config on demand,
+        // so a missing key fails at the first call, not at boot.
+        $this->app->bind(LepoClient::class, static fn (): LepoClient => LepoClient::fromConfig());
+
         $this->app->bind(CardIssuerInterface::class, function ($app) {
             $issuer = config('cardissuance.default_issuer', 'demo');
 
