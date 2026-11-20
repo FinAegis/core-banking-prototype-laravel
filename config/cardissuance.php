@@ -27,6 +27,26 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Card providers (provider-neutral card programme)
+    |--------------------------------------------------------------------------
+    |
+    | Which providers new cardholders may get. The provider is stored on the
+    | cardholder and read from there afterwards, so changing the default never
+    | moves an existing user. While the Lepo pilot is on, only the listed users
+    | (uuids or e-mails, comma-separated) are offered Lepo cards.
+    |
+    */
+    'providers' => [
+        'enabled'               => env('CARD_PROVIDERS_ENABLED', 'lepo'),
+        'default'               => env('CARD_PROVIDER_DEFAULT', 'lepo'),
+        'selection'             => env('CARD_PROVIDER_SELECTION', 'default'),
+        'lepo_pilot_only'       => (bool) env('CARD_PROVIDER_LEPO_PILOT_ONLY', true),
+        'lepo_pilot_users'      => env('CARD_PROVIDER_LEPO_PILOT_USERS', ''),
+        'lepo_deposit_networks' => env('LEPO_DEPOSIT_NETWORKS', 'arbitrum,polygon'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Issuer Configurations
     |--------------------------------------------------------------------------
     */
