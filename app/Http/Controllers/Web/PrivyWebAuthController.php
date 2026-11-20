@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Domain\Auth\Exceptions\PrivyEmailOtpException;
+use App\Domain\Auth\Services\PrivyAccountLinker;
 use App\Domain\Auth\Services\PrivyEmailOtpClient;
 use App\Domain\User\Exceptions\RegistrationNotAllowedException;
 use App\Domain\User\Services\ApiRegistrationGate;
@@ -16,7 +17,6 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Illuminate\Support\Timebox;
 
 /**
@@ -41,6 +41,7 @@ final class PrivyWebAuthController extends Controller
         private readonly PrivyEmailOtpClient $privy,
         private readonly RateLimiter $rateLimiter,
         private readonly ApiRegistrationGate $registrationGate,
+        private readonly PrivyAccountLinker $linker,
         private readonly Application $app,
         private readonly Timebox $timebox,
     ) {
@@ -153,7 +154,9 @@ final class PrivyWebAuthController extends Controller
         $timebox->returnEarly();
 
         try {
-            $user = $this->resolveOrCreateUser($resolved['id'], $resolved['email']);
+            // Returning identity, then an existing account with this email
+            // (linked), then a new account under the registration switch.
+            $user = $this->linker->resolve($resolved['id'], $resolved['email'], PrivyAccountLinker::FLOW_WEB);
         } catch (RegistrationNotAllowedException $e) {
             // Same switch as the mobile Privy login: an account created here
             // could otherwise sign in on mobile while sign-ups are closed.
@@ -169,16 +172,16 @@ final class PrivyWebAuthController extends Controller
 
         // Returning a 409 Conflict from a redirect form is awkward; instead we
         // surface a flash error and bounce back to /login. This is the rare
-        // case where a Privy email collides with an existing non-Privy account.
-        // The mobile flow returns 409 + {error.code: EMAIL_ALREADY_EXISTS}; we
-        // mirror the same error.code in the flash session so support can
-        // diagnose tickets across both transports without copy-pasting flash
-        // strings. Mirrors the alignment ask from the mobile dev review.
+        // case where the account with this email is already linked to a
+        // different Privy identity. The mobile flow returns 409 +
+        // {error.code: EMAIL_ALREADY_EXISTS}; we mirror the same error.code in
+        // the flash session so support can diagnose tickets across both
+        // transports without copy-pasting flash strings.
         if ($user === null) {
             return redirect()
                 ->route('login')
                 ->withErrors([
-                    'email' => __('An account with this email already exists. Sign in with your existing credentials.'),
+                    'email' => __('This email address is already linked to another sign-in. Please contact support so we can move it.'),
                 ])
                 ->with('error_code', 'EMAIL_ALREADY_EXISTS');
         }
@@ -222,42 +225,5 @@ final class PrivyWebAuthController extends Controller
         return redirect()
             ->route('login', ['email' => $email, 'step' => 'verify'])
             ->withErrors(['code' => __('That code did not work. Try again or request a new one.')]);
-    }
-
-    /**
-     * Match the mobile flow: lookup by privy_user_id; if not found and an
-     * unrelated user already owns the email, refuse (account-takeover-shaped);
-     * otherwise create, subject to the API registration switch
-     * (config/registration.php; throws RegistrationNotAllowedException). Web signup is intentionally one-step — there's no
-     * separate /register surface, the first OTP success either signs you in
-     * or signs you up depending on whether the Privy DID is known.
-     */
-    private function resolveOrCreateUser(string $privyUserId, string $email): ?User
-    {
-        $user = User::where('privy_user_id', $privyUserId)->first();
-        if ($user instanceof User) {
-            return $user;
-        }
-
-        $existing = User::where('email', $email)->first();
-        if ($existing instanceof User) {
-            return null;
-        }
-
-        // New account: REGISTRATION_API_ENABLED / REGISTRATION_API_INVITE_ONLY.
-        $invitation = $this->registrationGate->admit($email);
-
-        $user = User::create([
-            'name'              => 'New User',
-            'email'             => $email,
-            'password'          => Str::random(64),
-            'email_verified_at' => now(),
-            'privy_user_id'     => $privyUserId,
-            'privy_linked_at'   => now(),
-        ]);
-
-        $this->registrationGate->accepted($invitation, $user);
-
-        return $user;
     }
 }
