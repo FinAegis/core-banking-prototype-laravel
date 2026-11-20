@@ -15,7 +15,7 @@ describe('GraphQL Exchange API', function () {
         $user = User::factory()->create();
         $account = Account::factory()->create(['user_uuid' => $user->uuid]);
         Order::create([
-            'order_id'       => 'ORD-001',
+            'order_id'       => 'a1b2c3d4-0000-4000-8000-000000000001',
             'account_id'     => (string) $account->id,
             'type'           => 'buy',
             'order_type'     => 'limit',
@@ -58,9 +58,9 @@ describe('GraphQL Exchange API', function () {
         $user = User::factory()->create();
         $account = Account::factory()->create(['user_uuid' => $user->uuid]);
         Trade::create([
-            'trade_id'          => 'TRD-001',
-            'buy_order_id'      => 'ORD-001',
-            'sell_order_id'     => 'ORD-002',
+            'trade_id'          => 'a1b2c3d4-0000-4000-8000-000000000101',
+            'buy_order_id'      => 'a1b2c3d4-0000-4000-8000-000000000001',
+            'sell_order_id'     => 'a1b2c3d4-0000-4000-8000-000000000002',
             'buyer_account_id'  => (string) $account->id,
             'seller_account_id' => 'ACC-002',
             'base_currency'     => 'BTC',
@@ -101,7 +101,7 @@ describe('GraphQL Exchange API', function () {
     it('queries order books', function () {
         $user = User::factory()->create();
         OrderBook::create([
-            'order_book_id'  => 'OB-BTC-USD',
+            'order_book_id'  => 'a1b2c3d4-0000-4000-8000-000000000201',
             'base_currency'  => 'BTC',
             'quote_currency' => 'USD',
             'buy_orders'     => [],

@@ -16,6 +16,7 @@ use App\Domain\Compliance\Repositories\ComplianceSnapshotRepository;
 use DateTimeImmutable;
 use DomainException;
 use Illuminate\Support\Str;
+use Ramsey\Uuid\Uuid;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 use Spatie\EventSourcing\Snapshots\SnapshotRepository;
 use Spatie\EventSourcing\StoredEvents\Repositories\StoredEventRepository;
@@ -38,6 +39,30 @@ class TransactionMonitoringAggregate extends AggregateRoot
 
     private ?string $clearReason = null;
 
+    /**
+     * The aggregate for a transaction. compliance_events.aggregate_uuid is a
+     * uuid column (native UUID on MariaDB), but ledger transactions are keyed
+     * by a bigint id, so a non-uuid id is mapped to a stable name-based uuid
+     * (v5). A uuid is used as it is. The original id stays the transaction id
+     * that the events carry, so the projections keep their keys.
+     */
+    public static function forTransaction(string $transactionId): self
+    {
+        $aggregate = self::retrieve(self::aggregateUuidFor($transactionId));
+        $aggregate->transactionId = $transactionId;
+
+        return $aggregate;
+    }
+
+    public static function aggregateUuidFor(string $transactionId): string
+    {
+        if (Str::isUuid($transactionId)) {
+            return $transactionId;
+        }
+
+        return Uuid::uuid5(Uuid::NAMESPACE_URL, 'finaegis:transaction-monitoring:' . $transactionId)->toString();
+    }
+
     public static function analyzeTransaction(
         string $transactionId,
         float $amount,
@@ -45,7 +70,7 @@ class TransactionMonitoringAggregate extends AggregateRoot
         string $toAccount,
         array $metadata = []
     ): self {
-        $monitoring = self::retrieve($transactionId);
+        $monitoring = self::forTransaction($transactionId);
         $monitoring->transactionId = $transactionId;
 
         // Initial risk calculation would happen here

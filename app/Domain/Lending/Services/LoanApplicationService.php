@@ -8,6 +8,7 @@ use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class LoanApplicationService
 {
@@ -104,7 +105,8 @@ class LoanApplicationService
                 $application->persist();
 
                 // Create loan
-                $loanId = 'loan_' . uniqid();
+                // loans.id is a uuid column (native UUID on MariaDB).
+                $loanId = (string) Str::uuid();
                 $loan = Loan::createFromApplication(
                     $loanId,
                     $applicationId,
@@ -244,7 +246,7 @@ class LoanApplicationService
     public function submitApplication(array $applicationData): array
     {
         return $this->processApplication(
-            'app_' . uniqid(),
+            (string) Str::uuid(),
             $applicationData['borrower_id'],
             $applicationData['requested_amount'],
             $applicationData['term_months'],

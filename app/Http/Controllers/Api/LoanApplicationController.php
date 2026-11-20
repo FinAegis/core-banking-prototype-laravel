@@ -152,7 +152,8 @@ class LoanApplicationController extends Controller
             ]
         );
 
-        $applicationId = 'app_' . Str::uuid()->toString();
+        // loan_applications.id is a uuid column (native UUID on MariaDB).
+        $applicationId = Str::uuid()->toString();
         $borrowerId = $request->user()->id;
 
         $borrowerInfo = [
