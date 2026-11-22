@@ -41,7 +41,7 @@ final class LepoCardOnboarding implements CardOnboardingProvider
     public const NAME_MAX_LENGTH = 50;
 
     /** Lepo network or chain spellings → our network names. */
-    private const NETWORKS = [
+    public const NETWORKS = [
         'arbitrum' => 'arbitrum', 'arb' => 'arbitrum', '42161' => 'arbitrum', 'arbitrum one' => 'arbitrum',
         'polygon'  => 'polygon', 'matic' => 'polygon', '137' => 'polygon', 'polygon pos' => 'polygon',
         'base'     => 'base', '8453' => 'base',

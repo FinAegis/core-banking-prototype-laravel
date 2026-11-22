@@ -56,6 +56,12 @@ return [
         // Cards a user may hold at once (cancelled, expired and failed cards
         // do not count); one card keeps "Add to card" unambiguous.
         'lepo_max_cards' => (int) env('CARD_LEPO_MAX_CARDS', 1),
+        // "Add to card": off until Lepo confirms the money path. Limits are
+        // USDC decimal strings; a top-up link waits this long for a deposit.
+        'lepo_topups_enabled'    => (bool) env('CARD_TOPUPS_ENABLED', false),
+        'lepo_topup_min'         => (string) env('CARD_TOPUP_MIN', '10.00'),
+        'lepo_topup_max'         => (string) env('CARD_TOPUP_MAX', '1000.00'),
+        'lepo_topup_ttl_minutes' => (int) env('CARD_TOPUP_TTL_MINUTES', 60),
     ],
 
     /*

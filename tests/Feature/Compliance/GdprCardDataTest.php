@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\CardIssuance\Models\Card;
 use App\Domain\CardIssuance\Models\CardFundingAccount;
 use App\Domain\CardIssuance\Models\Cardholder;
+use App\Domain\CardIssuance\Models\CardTopUp;
 use App\Domain\Compliance\Services\GdprService;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
@@ -39,6 +40,12 @@ function gdprCardholder(User $user): Cardholder
         'last4'   => '1234', 'network' => 'visa', 'currency' => 'USD', 'label' => 'Travel', 'metadata' => ['note' => 'x'],
     ]);
 
+    CardTopUp::create([
+        'user_id' => $user->id, 'card_id' => Card::query()->where('user_id', $user->id)->value('id'), 'provider' => 'lepo', 'source' => 'app',
+        'asset'   => 'USDC', 'network' => 'arbitrum', 'amount' => '25.000000', 'deposit_address' => '0xarb', 'status' => 'completed',
+        'tx_hash' => '0x' . str_repeat('c', 64), 'credited_cents' => 2400, 'fee_cents' => 100, 'expires_at' => now(), 'completed_at' => now(),
+    ]);
+
     return $cardholder;
 }
 
@@ -68,7 +75,9 @@ it('exports the card data a user gave the card provider', function (): void {
         ->and($cards['funding_accounts'][0])->toMatchArray(['provider' => 'lepo', 'status' => 'active', 'balance_cents' => 2500])
         ->and($cards['funding_accounts'][0]['deposit_addresses'][0])->toBe(['network' => 'arbitrum', 'asset' => 'USDC', 'address' => '0xarb'])
         ->and($cards['cards'][0])->toMatchArray(['provider' => 'lepo', 'provider_card_id' => '555', 'label' => 'Travel', 'status' => 'active', 'last4' => '1234', 'currency' => 'USD'])
-        ->and($cards['cards'][0])->not->toHaveKey('metadata');
+        ->and($cards['cards'][0])->not->toHaveKey('metadata')
+        ->and($cards['topups'][0])->toMatchArray(['status' => 'completed', 'amount' => '25.000000', 'asset' => 'USDC', 'network' => 'arbitrum', 'credited_cents' => 2400, 'fee_cents' => 100])
+        ->and($cards['topups'][0])->not->toHaveKey('deposit_address');
 });
 
 it('erases the personal data of a cardholder and keeps the provider record', function (): void {

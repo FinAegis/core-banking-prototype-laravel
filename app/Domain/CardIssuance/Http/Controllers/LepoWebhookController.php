@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\CardIssuance\Http\Controllers;
 
 use App\Domain\CardIssuance\Jobs\ProcessLepoWebhook;
+use App\Domain\CardIssuance\Providers\Lepo\LepoThreeDsCodes;
 use App\Domain\CardIssuance\Webhooks\LepoWebhookRouter;
 use App\Domain\Subscription\Models\ProcessedWebhookEvent;
 use App\Http\Controllers\Controller;
@@ -73,6 +74,12 @@ final class LepoWebhookController extends Controller
             $data = is_array($payload['data'] ?? null) ? $payload['data'] : [];
 
             try {
+                // A 3-D Secure code is kept (encrypted, until it expires) before
+                // the payload is queued without it.
+                if (LepoWebhookRouter::carriesSecureCode($type)) {
+                    app(LepoThreeDsCodes::class)->store($data);
+                }
+
                 app(Dispatcher::class)->dispatch(new ProcessLepoWebhook($eventId, $type, LepoWebhookRouter::redact($type, $data)));
             } catch (Throwable $e) {
                 // Without the job the event would be acknowledged but never

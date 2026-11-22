@@ -13,6 +13,7 @@ use App\Domain\CardIssuance\Providers\CardProviderRegistry;
 use App\Domain\CardIssuance\Providers\CardProviderSelector;
 use App\Domain\CardIssuance\Providers\Lepo\LepoCardholderForm;
 use App\Domain\CardIssuance\Providers\Lepo\LepoCardOnboarding;
+use App\Domain\CardIssuance\Providers\Lepo\LepoTopUps;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CardIssuance\CardholderQuestionnaireRequest;
 use App\Http\Requests\CardIssuance\CreateCardholderRequest;
@@ -68,6 +69,7 @@ final class CardOnboardingController extends Controller
             'provider'         => $provider,
             'step'             => $step,
             'kyc_method'       => LepoCardOnboarding::kycMethod(),
+            'topups_enabled'   => LepoTopUps::enabled(),
             'deposit_networks' => array_map(
                 static fn (string $network, int $i): array => ['network' => $network, 'asset' => 'USDC', 'default' => $i === 0],
                 $networks,

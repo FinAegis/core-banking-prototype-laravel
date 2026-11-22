@@ -11,6 +11,7 @@ use App\Domain\CardIssuance\Providers\CardOnboardingSteps;
 use App\Domain\CardIssuance\Providers\CardProviderException;
 use App\Domain\CardIssuance\Providers\CardProviderSelector;
 use App\Domain\CardIssuance\Providers\Lepo\LepoCardLifecycle;
+use App\Domain\CardIssuance\Providers\Lepo\LepoThreeDsCodes;
 use App\Domain\CardIssuance\Support\PublicLink;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -197,6 +198,33 @@ final class CardIssuedController extends Controller
                 'expires_at'   => $expires->toIso8601String(),
             ]])->header('Cache-Control', 'no-store');
         });
+    }
+
+    #[OA\Get(
+        path: '/api/v1/cards/issued/{card}/3ds/code',
+        operationId: 'v1CardsIssuedThreeDsCode',
+        tags: ['Cards'],
+        summary: 'The waiting 3-D Secure code',
+        description: 'Returns {code, expires_at, merchant, amount, currency} while a code from the card issuer is waiting (at most 10 minutes). The push and the cards.3ds.code event never carry the code.',
+        security: [['sanctum' => []]],
+    )]
+    #[OA\Response(response: 200, description: '3-D Secure code')]
+    #[OA\Response(response: 404, description: 'ERR_CARDS_033: no code is waiting')]
+    public function threeDsCode(Request $request, string $card): JsonResponse
+    {
+        $user = $this->user($request);
+        $owned = Str::isUuid($card)
+            ? Card::query()->whereKey($card)->where('user_id', $user->id)->where('issuer', 'lepo')->first()
+            : null;
+        if ($owned === null) {
+            return ErrorResponse::make('ERR_CARDS_015');
+        }
+
+        $code = app(LepoThreeDsCodes::class)->current($owned);
+
+        return ($code === null
+            ? ErrorResponse::make('ERR_CARDS_033')
+            : response()->json(['success' => true, 'data' => $code]))->header('Cache-Control', 'no-store, private');
     }
 
     /**

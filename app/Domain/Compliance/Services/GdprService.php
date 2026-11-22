@@ -11,6 +11,7 @@ use App\Domain\CardIssuance\Models\Card;
 use App\Domain\CardIssuance\Models\CardDepositAddress;
 use App\Domain\CardIssuance\Models\CardFundingAccount;
 use App\Domain\CardIssuance\Models\Cardholder;
+use App\Domain\CardIssuance\Models\CardTopUp;
 use App\Domain\Compliance\Kyc\Models\BridgeCustomer;
 use App\Domain\Compliance\Models\AuditLog;
 use App\Domain\Mobile\Models\BiometricChallenge;
@@ -152,6 +153,7 @@ class GdprService
         'card_transactions'            => self::EXCL_LEGACY,
         'card_waitlist'                => self::EXCL_LEGACY,
         'card_waitlist_deposits'       => self::EXCL_LEGACY,
+        'card_topups'                  => 'Card top-ups: USDC deposits converted and loaded onto a card (amounts, network, transaction hash, status). Financial records retained under Art. 17(3)(b); no direct identifiers beyond the user FK. Exported with the card data.',
         'card_funding_accounts'        => 'Card funding account at the card provider (Lepo): status, currency and balance of the money loaded for cards. A financial-account record retained under Art. 17(3)(b); no direct identifiers beyond the user FK and the provider account id. Exported with the cardholder data.',
         'certificates'                 => self::EXCL_LEGACY,
         'cgo_investments'              => self::EXCL_LEGACY,
@@ -1033,6 +1035,20 @@ class GdprService
                     'currency'         => $card->currency,
                     'created_at'       => $card->created_at,
                     'cancelled_at'     => $card->cancelled_at,
+                ]
+            )->all(),
+            'topups' => CardTopUp::query()->where('user_id', $user->id)->orderBy('created_at')->get()->map(
+                fn (CardTopUp $topup): array => [
+                    'id'             => $topup->id,
+                    'status'         => $topup->status,
+                    'amount'         => $topup->amount,
+                    'asset'          => $topup->asset,
+                    'network'        => $topup->network,
+                    'tx_hash'        => $topup->tx_hash,
+                    'credited_cents' => $topup->credited_cents,
+                    'fee_cents'      => $topup->fee_cents,
+                    'created_at'     => $topup->created_at,
+                    'completed_at'   => $topup->completed_at,
                 ]
             )->all(),
             'funding_accounts' => CardFundingAccount::query()->where('user_id', $user->id)->with('depositAddresses')->get()->map(

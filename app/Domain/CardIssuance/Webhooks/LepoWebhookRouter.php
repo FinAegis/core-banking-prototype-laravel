@@ -6,6 +6,7 @@ namespace App\Domain\CardIssuance\Webhooks;
 
 use App\Domain\CardIssuance\Providers\Lepo\LepoCardWebhookHandler;
 use App\Domain\CardIssuance\Providers\Lepo\LepoOnboardingWebhookHandler;
+use App\Domain\CardIssuance\Providers\Lepo\LepoThreeDsCodes;
 use App\Infrastructure\Lepo\LepoRedactor;
 use Illuminate\Support\Facades\Log;
 
@@ -27,7 +28,13 @@ final class LepoWebhookRouter
     public function __construct(
         private readonly LepoOnboardingWebhookHandler $onboarding,
         private readonly LepoCardWebhookHandler $cards,
+        private readonly LepoThreeDsCodes $threeDs,
     ) {
+    }
+
+    public static function carriesSecureCode(string $type): bool
+    {
+        return in_array($type, self::SECURE_CODE_TYPES, true);
     }
 
     /**
@@ -41,6 +48,7 @@ final class LepoWebhookRouter
             in_array($type, self::KYC_TYPES, true)               => $this->onboarding->handleKyc($data, $eventId, $type),
             $type === 'account.deposit.address'                  => $this->onboarding->handleDepositAddresses($data, $eventId, $type),
             in_array($type, LepoCardWebhookHandler::TYPES, true) => $this->cards->handle($data, $eventId, $type),
+            self::carriesSecureCode($type)                       => $this->threeDs->announce($data),
             default                                              => null,
         };
     }
