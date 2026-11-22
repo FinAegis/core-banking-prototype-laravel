@@ -42,6 +42,23 @@ final class LepoCardLifecycle
         'CANCELLED'        => Card::STATUS_CANCELLED,
     ];
 
+    /** Lepo (and Interlace) transaction type → our type; anything else is `other`. */
+    private const TRANSACTION_TYPES = [
+        'payment'    => ['card_payment', 'purchase', 'payment_transfer', 'internal_payment', 'consumption'],
+        'refund'     => ['card_payment_reversal', 'crypto_refund', 'fee_reversal', 'refund', 'reversal'],
+        'top_up'     => ['card_topup', 'deposit', 'crypto_deposit', 'transfer_in', 'transfer_from_master', 'wallet_credit', 'p2p_receive', 'credit', 'crypto_to_quantum', 'crypto_to_quantum_transfer'],
+        'withdrawal' => ['card_withdrawal', 'card_unload', 'withdrawal', 'crypto_withdrawal', 'transfer_out', 'transfer_to_master', 'wallet_debit', 'p2p_send', 'payout', 'debit'],
+        'fee'        => ['card_payment_fee', 'card_fee', 'fees', 'card_issuance_fee', 'card_topup_fee', 'card_decline_fee'],
+    ];
+
+    /** Lepo transaction status → our status; anything else is `unknown`. */
+    private const TRANSACTION_STATUSES = [
+        'pending'   => 'pending', 'processing' => 'pending', 'on_hold' => 'pending', 'onhold' => 'pending',
+        'completed' => 'completed', 'success' => 'completed', 'succeeded' => 'completed',
+        'failed'    => 'failed', 'declined' => 'failed', 'fail' => 'failed',
+        'cancelled' => 'cancelled', 'canceled' => 'cancelled',
+    ];
+
     public function __construct(private readonly LepoClient $client)
     {
     }
@@ -264,11 +281,17 @@ final class LepoCardLifecycle
     }
 
     /**
-     * @return array{items: list<array{id: string, amount: string, currency: string, fee: string, type: string, status: string, merchant: ?string, merchant_country: ?string, occurred_at: ?string}>, has_more: bool, total: int|null}
+     * One shape for every transaction: our type (payment, refund, top_up,
+     * withdrawal, fee, other), a direction (debit or credit), the amount as a
+     * positive 2-decimal string and our status (pending, completed, failed,
+     * cancelled, unknown). Lepo's own type stays in provider_type. Our pages
+     * count from 0, Lepo's from 1.
+     *
+     * @return array{items: list<array{id: string, type: string, direction: string, amount: string, currency: string, fee: string, status: string, merchant: ?string, merchant_country: ?string, occurred_at: ?string, provider_type: ?string}>, has_more: bool, total: int|null}
      */
     public function transactions(Card $card, int $page, int $limit): array
     {
-        $response = $this->call(fn (): array => $this->client->getCardTransactions($this->token($card), $this->lepoUserId($this->cardholderOf($card)), max(0, $page), max(1, min(50, $limit))));
+        $response = $this->call(fn (): array => $this->client->getCardTransactions($this->token($card), $this->lepoUserId($this->cardholderOf($card)), max(0, $page) + 1, max(1, min(50, $limit))));
 
         $items = [];
         foreach (is_array($response['transactions'] ?? null) ? $response['transactions'] : [] as $row) {
@@ -276,16 +299,26 @@ final class LepoCardLifecycle
                 continue;
             }
 
+            $providerType = $this->text($row['type'] ?? null);
+            $type = $this->transactionType($providerType);
+            $amount = $row['amount'] ?? null;
+
             $items[] = [
-                'id'               => $this->text($row['id'] ?? null) ?? '',
-                'amount'           => $this->text($row['amount'] ?? null) ?? '0',
+                'id'        => $this->text($row['id'] ?? null) ?? '',
+                'type'      => $type,
+                'direction' => match ($type) {
+                    'payment', 'withdrawal', 'fee' => 'debit',
+                    'refund', 'top_up'             => 'credit',
+                    default                        => $this->isNegative($amount) ? 'debit' : 'credit',
+                },
+                'amount'           => $this->money($amount),
                 'currency'         => $this->text($row['currency'] ?? null) ?? 'USD',
-                'fee'              => $this->text($row['fee'] ?? null) ?? '0',
-                'type'             => $this->text($row['type'] ?? null) ?? '',
-                'status'           => $this->text($row['status'] ?? null) ?? '',
+                'fee'              => $this->money($row['fee'] ?? null),
+                'status'           => self::TRANSACTION_STATUSES[strtolower((string) $this->text($row['status'] ?? null))] ?? 'unknown',
                 'merchant'         => $this->text($row['merchantName'] ?? null),
                 'merchant_country' => $this->text($row['merchantCountry'] ?? null),
                 'occurred_at'      => $this->text($row['transactionTime'] ?? null),
+                'provider_type'    => $providerType === null ? null : strtolower($providerType),
             ];
         }
 
@@ -428,6 +461,42 @@ final class LepoCardLifecycle
         }
 
         return (int) bcmul(bcadd($value, '0', 6), '100', 0);
+    }
+
+    private function transactionType(?string $providerType): string
+    {
+        $type = strtolower((string) $providerType);
+        foreach (self::TRANSACTION_TYPES as $ours => $theirs) {
+            if (in_array($type, $theirs, true)) {
+                return $ours;
+            }
+        }
+
+        return 'other';
+    }
+
+    /**
+     * A Lepo amount (a JSON number or a decimal string) as a positive
+     * 2-decimal string; the sign is carried by `direction`.
+     */
+    private function money(mixed $amount): string
+    {
+        if (is_float($amount)) {
+            // A JSON number: printf avoids exponent forms such as 1.0E-5.
+            $amount = is_finite($amount) ? sprintf('%.6F', $amount) : '0';
+        }
+
+        $value = is_string($amount) || is_int($amount) ? trim((string) $amount) : '0';
+        if (! is_numeric($value)) {
+            return '0.00';
+        }
+
+        return bcadd(ltrim(bcadd($value, '0', 6), '-'), '0', 2);
+    }
+
+    private function isNegative(mixed $amount): bool
+    {
+        return (is_int($amount) || is_float($amount) || is_string($amount)) && is_numeric(trim((string) $amount)) && str_starts_with(trim((string) $amount), '-');
     }
 
     private function text(mixed $value): ?string

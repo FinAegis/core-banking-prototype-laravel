@@ -329,21 +329,46 @@ it('freezes and unfreezes a card at Lepo', function (): void {
         ->and($card->frozen_at)->toBeNull();
 });
 
-it('lists transactions as decimal strings', function (): void {
+it('lists transactions in one shape the app can show', function (): void {
     $card = openLifecycleCard();
-    Http::fake(['lepo.test/api/v2/cards/777/transactions*' => Http::response(['transactions' => [[
-        'id'           => 't1', 'amount' => '-12.50', 'currency' => 'USD', 'fee' => '0.10', 'type' => 'CONSUMPTION', 'status' => 'SUCCESS',
-        'merchantName' => 'Coffee Shop', 'merchantCountry' => 'LT', 'transactionTime' => '2026-11-22T10:00:00Z',
-    ]], 'total' => 1, 'hasMorePages' => false])]);
+    Http::fake(['lepo.test/api/v2/cards/777/transactions*' => Http::response(['transactions' => [
+        ['id'              => 't1', 'amount' => 42.5, 'currency' => 'USD', 'fee' => 0.1, 'type' => 'card_payment', 'status' => 'completed',
+            'merchantName' => 'Coffee Shop', 'merchantCountry' => 'LT', 'transactionTime' => '2026-11-22T10:00:00Z'],
+        ['id' => 't2', 'amount' => '-12.505', 'currency' => 'USD', 'fee' => '0', 'type' => 'CONSUMPTION', 'status' => 'SUCCESS'],
+        ['id' => 't3', 'amount' => '25', 'currency' => 'USD', 'type' => 'card_topup', 'status' => 'processing'],
+        ['id' => 't4', 'amount' => '3.10', 'currency' => 'USD', 'type' => 'card_payment_reversal', 'status' => 'on_hold'],
+        ['id' => 't5', 'amount' => '1', 'currency' => 'USD', 'type' => 'card_issuance_fee', 'status' => 'failed'],
+        ['id' => 't6', 'amount' => 1.0E-5, 'currency' => 'USD', 'type' => 'something_new', 'status' => 'weird'],
+    ], 'total' => 6, 'hasMorePages' => false])]);
 
     $page = app(LepoCardLifecycle::class)->transactions($card, 0, 20);
 
     expect($page['has_more'])->toBeFalse()
-        ->and($page['total'])->toBe(1)
+        ->and($page['total'])->toBe(6)
         ->and($page['items'][0])->toBe([
-            'id'       => 't1', 'amount' => '-12.50', 'currency' => 'USD', 'fee' => '0.10', 'type' => 'CONSUMPTION', 'status' => 'SUCCESS',
-            'merchant' => 'Coffee Shop', 'merchant_country' => 'LT', 'occurred_at' => '2026-11-22T10:00:00Z',
+            'id'            => 't1', 'type' => 'payment', 'direction' => 'debit', 'amount' => '42.50', 'currency' => 'USD', 'fee' => '0.10',
+            'status'        => 'completed', 'merchant' => 'Coffee Shop', 'merchant_country' => 'LT', 'occurred_at' => '2026-11-22T10:00:00Z',
+            'provider_type' => 'card_payment',
+        ])
+        ->and(array_map(fn (array $i): array => [$i['type'], $i['direction'], $i['amount'], $i['status']], $page['items']))->toBe([
+            ['payment', 'debit', '42.50', 'completed'],
+            ['payment', 'debit', '12.50', 'completed'],
+            ['top_up', 'credit', '25.00', 'pending'],
+            ['refund', 'credit', '3.10', 'pending'],
+            ['fee', 'debit', '1.00', 'failed'],
+            ['other', 'credit', '0.00', 'unknown'],
         ]);
+});
+
+it('asks Lepo for pages counted from one', function (): void {
+    $card = openLifecycleCard();
+    Http::fake(['lepo.test/api/v2/cards/777/transactions*' => Http::response(['transactions' => [], 'hasMorePages' => false])]);
+
+    app(LepoCardLifecycle::class)->transactions($card, 0, 20);
+    app(LepoCardLifecycle::class)->transactions($card, 2, 20);
+
+    Http::assertSent(fn (Request $r): bool => str_contains($r->url(), 'page=1&'));
+    Http::assertSent(fn (Request $r): bool => str_contains($r->url(), 'page=3&'));
 });
 
 it('gets a widget token for the card details page', function (): void {

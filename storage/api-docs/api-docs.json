@@ -13694,7 +13694,7 @@
                 "operationId": "v1CardsIssuedTransactions",
                 "responses": {
                     "200": {
-                        "description": "Transactions {items: [{id, amount, currency, fee, type, status, merchant, merchant_country, occurred_at}], has_more, page, total}"
+                        "description": "Transactions {items: [{id, type (payment|refund|top_up|withdrawal|fee|other), direction (debit|credit), amount (positive, 2 decimals), currency, fee, status (pending|completed|failed|cancelled|unknown), merchant, merchant_country, occurred_at, provider_type}], has_more, page, total}"
                     }
                 },
                 "security": [
