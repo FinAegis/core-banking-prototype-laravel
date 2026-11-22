@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\CardIssuance\Webhooks;
 
+use App\Domain\CardIssuance\Jobs\AdvanceLepoTopUps;
 use App\Domain\CardIssuance\Providers\Lepo\LepoCardWebhookHandler;
 use App\Domain\CardIssuance\Providers\Lepo\LepoOnboardingWebhookHandler;
 use App\Domain\CardIssuance\Providers\Lepo\LepoThreeDsCodes;
@@ -22,6 +23,9 @@ final class LepoWebhookRouter
     /** Event types whose payload carries a one-time 3-D Secure code. */
     private const SECURE_CODE_TYPES = ['card.3ds.otp', 'card.3ds_auth_request'];
 
+    /** Events that can mean a deposit or a card load for a user. */
+    private const DEPOSIT_TYPES = ['wallet.topped_up', 'card.topup'];
+
     /** Identity-check events; their payloads only identify the user. */
     private const KYC_TYPES = ['kyc.verified', 'kyc.update', 'user.kyc.updated', 'kyc.resubmission_required', 'kyc.interlace_submission_failed'];
 
@@ -30,6 +34,20 @@ final class LepoWebhookRouter
         private readonly LepoCardWebhookHandler $cards,
         private readonly LepoThreeDsCodes $threeDs,
     ) {
+    }
+
+    /**
+     * Lepo reports money moving for a user: advance that user's top-ups now
+     * instead of waiting for the next scheduled run.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function wakeTopUps(array $data): void
+    {
+        $userId = $data['userId'] ?? null;
+        if (is_scalar($userId) && (string) $userId !== '') {
+            AdvanceLepoTopUps::dispatch((string) $userId);
+        }
     }
 
     public static function carriesSecureCode(string $type): bool
@@ -49,6 +67,7 @@ final class LepoWebhookRouter
             $type === 'account.deposit.address'                  => $this->onboarding->handleDepositAddresses($data, $eventId, $type),
             in_array($type, LepoCardWebhookHandler::TYPES, true) => $this->cards->handle($data, $eventId, $type),
             self::carriesSecureCode($type)                       => $this->threeDs->announce($data),
+            in_array($type, self::DEPOSIT_TYPES, true)           => $this->wakeTopUps($data),
             default                                              => null,
         };
     }

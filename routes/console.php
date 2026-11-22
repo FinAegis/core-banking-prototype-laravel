@@ -229,6 +229,14 @@ Schedule::job(new App\Domain\Mobile\Jobs\CleanupStaleDevices())
     ->appendOutputTo(storage_path('logs/mobile-cleanup.log'))
     ->withoutOverlapping();
 
+// Lepo cards - "Add to card": find deposits, move received money onto the
+// card, expire unfunded top-ups (the job does nothing while
+// CARD_TOPUPS_ENABLED is off)
+Schedule::job(new App\Domain\CardIssuance\Jobs\AdvanceLepoTopUps())
+    ->everyMinute()
+    ->description('Advance Lepo card top-ups')
+    ->withoutOverlapping();
+
 // Mobile Payment - Expire stale payment intents every minute
 Schedule::job(new App\Domain\MobilePayment\Jobs\ExpireStalePaymentIntents())
     ->everyMinute()
