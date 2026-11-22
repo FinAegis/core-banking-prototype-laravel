@@ -105,6 +105,18 @@ it('hands out a signed identity-check page by default', function (): void {
     Http::assertNothingSent();
 });
 
+it('builds the identity-check link from APP_URL over https in production', function (): void {
+    Http::fake();
+    config(['app.url' => 'http://zelta.app']);
+    app()->detectEnvironment(fn (): string => 'production');
+    $cardholder = lepoCardholderFor(User::factory()->create());
+
+    $url = (string) app(LepoCardOnboarding::class)->startKyc($cardholder)->url;
+
+    app()->detectEnvironment(fn (): string => 'testing');
+    expect($url)->toStartWith('https://zelta.app/cards/kyc/' . $cardholder->id . '?');
+});
+
 it('gets a web identity-check token with the questionnaire answers', function (): void {
     Http::fake(['lepo.test/api/v2/users/12345/sumsub/kyc-url' => Http::response(['success' => true, 'accessToken' => 'web-token', 'status' => 'init'])]);
     $cardholder = lepoCardholderFor(User::factory()->create());

@@ -137,7 +137,7 @@ final class LepoCardOnboarding implements CardOnboardingProvider
             // the API and the page cannot break the signature.
             $path = URL::temporarySignedRoute('cards.kyc.hosted', $expires, ['cardholder' => $cardholder->id], absolute: false);
 
-            return new KycStart('hosted_url', null, url($path), $expires->toIso8601String());
+            return new KycStart('hosted_url', null, self::publicUrl($path), $expires->toIso8601String());
         }
 
         $response = $this->call(fn (): array => $this->client->createSumsubAccessToken($this->lepoUserId($cardholder), $this->questionnaireOf($cardholder)));
@@ -150,6 +150,20 @@ final class LepoCardOnboarding implements CardOnboardingProvider
         // The status moves on only when Lepo reports a submission: a user who
         // closes the SDK without submitting can simply start again.
         return new KycStart('sumsub_sdk', $token, null, null);
+    }
+
+    /**
+     * The link the app opens: APP_URL, not the API request's host, and always
+     * https in production (the app refuses any other scheme).
+     */
+    private static function publicUrl(string $path): string
+    {
+        $base = rtrim((string) config('app.url'), '/');
+        if (app()->environment('production')) {
+            $base = (string) preg_replace('#^http://#i', 'https://', $base);
+        }
+
+        return $base . $path;
     }
 
     /**
