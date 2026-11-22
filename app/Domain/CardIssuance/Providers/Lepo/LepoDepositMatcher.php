@@ -60,9 +60,11 @@ final class LepoDepositMatcher
         }
 
         foreach ($this->deposits($userId, $window) as $deposit) {
-            if ($this->isFor($deposit, $topup->deposit_address, $topup->network)
+            if (
+                $this->isFor($deposit, $topup->deposit_address, $topup->network)
                 && $this->closeEnough($deposit['amount'], LepoTopUps::number((string) $topup->amount))
-                && $this->claim($topup, $deposit)) {
+                && $this->claim($topup, $deposit)
+            ) {
                 return true;
             }
         }
@@ -181,9 +183,11 @@ final class LepoDepositMatcher
             $amount = is_array($row['amount'] ?? null) ? $row['amount'] : [];
             $value = $this->decimal($amount['amount'] ?? null);
 
-            if (! is_scalar($id) || (string) $id === '' || $value === null
+            if (
+                ! is_scalar($id) || (string) $id === '' || $value === null
                 || strtoupper((string) ($amount['currency'] ?? '')) !== 'USDC'
-                || ! in_array(strtolower((string) ($row['status'] ?? '')), self::COMPLETED, true)) {
+                || ! in_array(strtolower((string) ($row['status'] ?? '')), self::COMPLETED, true)
+            ) {
                 continue;
             }
 
