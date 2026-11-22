@@ -11,6 +11,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 class ThresholdMonitoringService
 {
@@ -178,7 +179,11 @@ class ThresholdMonitoringService
     protected function buildTransactionContext(Transaction $transaction): array
     {
         $account = $transaction->account;
-        $user = $account->user;
+        $user = $account?->user;
+
+        if (! $account instanceof Account || ! $user instanceof User) {
+            throw new RuntimeException("Transaction {$transaction->id} has no account owner to monitor.");
+        }
 
         // Get transaction velocity
         $dailyTransactions = Transaction::where('aggregate_uuid', $account->uuid)
@@ -202,14 +207,14 @@ class ThresholdMonitoringService
                 'id'       => $account->id,
                 'type'     => $account->type,
                 'balance'  => $account->getBalance($transaction->event_properties['currency'] ?? 'USD'),
-                'age_days' => $account->created_at->diffInDays(now()),
+                'age_days' => $account->created_at?->diffInDays(now()),
             ],
             'user' => [
                 'id'          => $user->id,
                 'risk_rating' => $user->risk_rating,
                 'kyc_level'   => $user->kyc_level,
                 'pep_status'  => $user->pep_status,
-                'country'     => $user->country,
+                'country'     => $user->country_code,
             ],
             'velocity' => [
                 'daily_transaction_count'  => $dailyCount,
@@ -249,7 +254,7 @@ class ThresholdMonitoringService
                 'id'               => $user->id,
                 'name'             => $user->name,
                 'email'            => $user->email,
-                'country'          => $user->country,
+                'country'          => $user->country_code,
                 'risk_rating'      => $user->risk_rating,
                 'kyc_level'        => $user->kyc_level,
                 'kyc_status'       => $user->kyc_status,
@@ -278,6 +283,10 @@ class ThresholdMonitoringService
     {
         $user = $account->user;
 
+        if (! $user instanceof User) {
+            throw new RuntimeException("Account {$account->uuid} has no owner to monitor.");
+        }
+
         // Get account activity metrics
         $monthlyTransactions = Transaction::where('aggregate_uuid', $account->uuid)
             ->where('created_at', '>=', now()->subMonth())
@@ -301,14 +310,14 @@ class ThresholdMonitoringService
                 'currency'   => 'USD', // Default currency
                 'balance'    => $account->getBalance('USD'),
                 'created_at' => $account->created_at,
-                'age_days'   => $account->created_at->diffInDays(now()),
+                'age_days'   => $account->created_at?->diffInDays(now()),
                 'status'     => $account->frozen ? 'frozen' : 'active',
             ],
             'user' => [
                 'id'          => $user->id,
                 'risk_rating' => $user->risk_rating,
                 'kyc_level'   => $user->kyc_level,
-                'country'     => $user->country,
+                'country'     => $user->country_code,
             ],
             'activity' => [
                 'monthly_transaction_count'  => $monthlyMetrics->count ?? 0,
@@ -408,7 +417,8 @@ class ThresholdMonitoringService
             ->get();
 
         foreach ($results as $result) {
-            $account = Account::find($result->account_id);
+            // account_id is accounts.id from the raw query row above.
+            $account = Account::query()->find((int) $result->account_id);
             if ($account) {
                 $aggregateData[$result->account_id] = [
                     'account_id'        => $result->account_id,
