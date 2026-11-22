@@ -237,6 +237,7 @@ it('lists transactions as decimal strings', function (): void {
     $page = app(LepoCardLifecycle::class)->transactions($card, 0, 20);
 
     expect($page['has_more'])->toBeFalse()
+        ->and($page['total'])->toBe(1)
         ->and($page['items'][0])->toBe([
             'id'       => 't1', 'amount' => '-12.50', 'currency' => 'USD', 'fee' => '0.10', 'type' => 'CONSUMPTION', 'status' => 'SUCCESS',
             'merchant' => 'Coffee Shop', 'merchant_country' => 'LT', 'occurred_at' => '2026-11-22T10:00:00Z',

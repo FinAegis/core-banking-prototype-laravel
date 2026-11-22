@@ -13632,7 +13632,7 @@
                 "operationId": "v1CardsIssuedIndex",
                 "responses": {
                     "200": {
-                        "description": "Cards: [{id, provider, status, last4, network, currency, balance_cents, expires_at, frozen, created_at}]"
+                        "description": "Cards: [{id, provider, status, last4, network, currency, balance_cents, expires_at, frozen_by_support, created_at}]"
                     }
                 },
                 "security": [
@@ -13653,7 +13653,7 @@
                         "description": "Card created"
                     },
                     "409": {
-                        "description": "ERR_CARDS_024: identity check or funding account not ready; ERR_CARDS_026: the user already has a card"
+                        "description": "ERR_CARDS_024: onboarding step is not ready yet; ERR_CARDS_026: the user already has a card"
                     }
                 },
                 "security": [
@@ -13694,7 +13694,7 @@
                 "operationId": "v1CardsIssuedTransactions",
                 "responses": {
                     "200": {
-                        "description": "Transactions {items: [{id, amount, currency, fee, type, status, merchant, merchant_country, occurred_at}], has_more}"
+                        "description": "Transactions {items: [{id, amount, currency, fee, type, status, merchant, merchant_country, occurred_at}], has_more, page, total}"
                     }
                 },
                 "security": [

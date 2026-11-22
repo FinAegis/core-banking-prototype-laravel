@@ -91,9 +91,9 @@ it('lists only the user\'s own Lepo cards', function (): void {
         ->assertJsonPath('data.0.id', $card->id);
 });
 
-it('creates a pending card after verification', function (): void {
+it('creates a pending card once funding is ready', function (): void {
     $user = issuedUser();
-    issuedCardholder($user, 'verified', 'lepo', false);
+    issuedCardholder($user);
     Http::fake();
 
     $this->withHeader('Idempotency-Key', idem())->postJson('/api/v1/cards/issued')
@@ -102,6 +102,14 @@ it('creates a pending card after verification', function (): void {
         ->assertJsonPath('data.status', 'pending')
         ->assertJsonPath('data.last4', null);
     Http::assertNothingSent();
+});
+
+it('refuses a card while the funding account is being set up', function (): void {
+    $user = issuedUser();
+    issuedCardholder($user, 'verified', 'lepo', false);
+
+    $this->withHeader('Idempotency-Key', idem())->postJson('/api/v1/cards/issued')
+        ->assertStatus(409)->assertJsonPath('error.code', 'ERR_CARDS_024');
 });
 
 it('refuses a card before the identity check', function (): void {
@@ -129,8 +137,9 @@ it('shows a card', function (): void {
 
     expect($response->json('data'))->toMatchArray([
         'id'            => $card->id, 'provider' => 'lepo', 'status' => 'active', 'last4' => '1234', 'network' => 'visa', 'currency' => 'USD',
-        'balance_cents' => 2500, 'frozen' => false,
-    ])->and($response->json('data'))->toHaveKeys(['expires_at', 'created_at']);
+        'balance_cents' => 2500, 'frozen_by_support' => false,
+    ])->and($response->json('data'))->toHaveKeys(['expires_at', 'created_at'])
+        ->and($response->json('data'))->not->toHaveKey('frozen');
 });
 
 it('still shows a card when Lepo cannot be reached', function (): void {
@@ -165,9 +174,9 @@ it('freezes and unfreezes', function (): void {
     });
 
     $this->withHeader('Idempotency-Key', idem())->postJson("/api/v1/cards/issued/{$card->id}/freeze")
-        ->assertOk()->assertJsonPath('data.status', 'frozen')->assertJsonPath('data.frozen', true);
+        ->assertOk()->assertJsonPath('data.status', 'frozen')->assertJsonPath('data.frozen_by_support', false);
     $this->withHeader('Idempotency-Key', idem())->postJson("/api/v1/cards/issued/{$card->id}/unfreeze")
-        ->assertOk()->assertJsonPath('data.status', 'active')->assertJsonPath('data.frozen', false);
+        ->assertOk()->assertJsonPath('data.status', 'active');
 });
 
 it('refuses to unfreeze a staff freeze', function (): void {
@@ -178,6 +187,7 @@ it('refuses to unfreeze a staff freeze', function (): void {
 
     $this->withHeader('Idempotency-Key', idem())->postJson("/api/v1/cards/issued/{$card->id}/unfreeze")
         ->assertStatus(403)->assertJsonPath('error.code', 'ERR_CARDS_021');
+    $this->getJson('/api/v1/cards/issued')->assertJsonPath('data.0.frozen_by_support', true);
     Http::assertNothingSent();
 });
 
@@ -222,12 +232,14 @@ it('refuses to freeze a card that was never opened', function (): void {
 it('pages transactions', function (): void {
     $user = issuedUser();
     $card = issuedCard(issuedCardholder($user));
-    Http::fake(['lepo.test/api/v2/cards/777/transactions*' => Http::response(['transactions' => [['id' => 't1', 'amount' => '-5.00', 'currency' => 'USD']], 'hasMorePages' => true])]);
+    Http::fake(['lepo.test/api/v2/cards/777/transactions*' => Http::response(['transactions' => [['id' => 't1', 'amount' => '-5.00', 'currency' => 'USD']], 'hasMorePages' => true, 'total' => 11])]);
 
     $this->getJson("/api/v1/cards/issued/{$card->id}/transactions?page=1&limit=5")
         ->assertOk()
         ->assertJsonPath('data.items.0.amount', '-5.00')
-        ->assertJsonPath('data.has_more', true);
+        ->assertJsonPath('data.has_more', true)
+        ->assertJsonPath('data.page', 1)
+        ->assertJsonPath('data.total', 11);
     Http::assertSent(fn (Request $r): bool => str_contains($r->url(), 'page=1') && str_contains($r->url(), 'limit=5'));
 });
 

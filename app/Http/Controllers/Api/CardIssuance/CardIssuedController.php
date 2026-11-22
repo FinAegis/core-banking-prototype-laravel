@@ -34,7 +34,7 @@ final class CardIssuedController extends Controller
     }
 
     #[OA\Get(path: '/api/v1/cards/issued', operationId: 'v1CardsIssuedIndex', tags: ['Cards'], summary: 'The user\'s cards', security: [['sanctum' => []]])]
-    #[OA\Response(response: 200, description: 'Cards: [{id, provider, status, last4, network, currency, balance_cents, expires_at, frozen, created_at}]')]
+    #[OA\Response(response: 200, description: 'Cards: [{id, provider, status, last4, network, currency, balance_cents, expires_at, frozen_by_support, created_at}]')]
     public function index(Request $request): JsonResponse
     {
         $user = $this->user($request);
@@ -58,7 +58,7 @@ final class CardIssuedController extends Controller
         security: [['sanctum' => []]],
     )]
     #[OA\Response(response: 201, description: 'Card created')]
-    #[OA\Response(response: 409, description: 'ERR_CARDS_024: identity check or funding account not ready; ERR_CARDS_026: the user already has a card')]
+    #[OA\Response(response: 409, description: 'ERR_CARDS_024: onboarding step is not ready yet; ERR_CARDS_026: the user already has a card')]
     public function store(Request $request): JsonResponse
     {
         $user = $this->user($request);
@@ -73,7 +73,9 @@ final class CardIssuedController extends Controller
         }
 
         $cardholder = Cardholder::query()->where('user_id', $user->id)->where('provider', 'lepo')->first();
-        if (! in_array(CardOnboardingSteps::for($cardholder), ['funding_pending', 'ready'], true) || $cardholder === null) {
+        // Card actions need a ready funding account: the app shows "Add to
+        // card" next to "Get card", and a top-up needs a deposit address.
+        if ($cardholder === null || CardOnboardingSteps::for($cardholder) !== 'ready') {
             return ErrorResponse::make('ERR_CARDS_024');
         }
 
@@ -105,19 +107,20 @@ final class CardIssuedController extends Controller
     }
 
     #[OA\Get(path: '/api/v1/cards/issued/{card}/transactions', operationId: 'v1CardsIssuedTransactions', tags: ['Cards'], summary: 'Card transactions (page from 0, limit up to 50)', security: [['sanctum' => []]])]
-    #[OA\Response(response: 200, description: 'Transactions {items: [{id, amount, currency, fee, type, status, merchant, merchant_country, occurred_at}], has_more}')]
+    #[OA\Response(response: 200, description: 'Transactions {items: [{id, amount, currency, fee, type, status, merchant, merchant_country, occurred_at}], has_more, page, total}')]
     public function transactions(Request $request, string $card): JsonResponse
     {
         return $this->withCard($request, $card, 'transactions', function (Card $owned) use ($request): JsonResponse {
             if (! $owned->isOpenAtProvider()) {
-                return response()->json(['success' => true, 'data' => ['items' => [], 'has_more' => false]]);
+                return response()->json(['success' => true, 'data' => ['items' => [], 'has_more' => false, 'total' => 0, 'page' => 0]]);
             }
 
-            return response()->json(['success' => true, 'data' => $this->cards->transactions(
-                $owned,
-                max(0, $request->integer('page', 0)),
-                max(1, min(50, $request->integer('limit', 20))),
-            )]);
+            $page = max(0, $request->integer('page', 0));
+
+            return response()->json(['success' => true, 'data' => [
+                ...$this->cards->transactions($owned, $page, max(1, min(50, $request->integer('limit', 20)))),
+                'page' => $page,
+            ]]);
         });
     }
 
@@ -180,8 +183,9 @@ final class CardIssuedController extends Controller
             'currency'      => $card->currency,
             'balance_cents' => $card->balance_cents ?? 0,
             'expires_at'    => $card->expires_at?->toIso8601String(),
-            'frozen'        => $card->status === Card::STATUS_FROZEN,
-            'created_at'    => $card->created_at?->toIso8601String(),
+            // A support or issuer freeze: only staff can lift it (ERR_CARDS_021).
+            'frozen_by_support' => $card->isOpenAtProvider() && CardStaffFreeze::isHeld((string) $card->issuer_card_token),
+            'created_at'        => $card->created_at?->toIso8601String(),
         ];
     }
 

@@ -190,7 +190,7 @@ final class LepoCardLifecycle
     }
 
     /**
-     * @return array{items: list<array{id: string, amount: string, currency: string, fee: string, type: string, status: string, merchant: ?string, merchant_country: ?string, occurred_at: ?string}>, has_more: bool}
+     * @return array{items: list<array{id: string, amount: string, currency: string, fee: string, type: string, status: string, merchant: ?string, merchant_country: ?string, occurred_at: ?string}>, has_more: bool, total: int|null}
      */
     public function transactions(Card $card, int $page, int $limit): array
     {
@@ -215,7 +215,9 @@ final class LepoCardLifecycle
             ];
         }
 
-        return ['items' => $items, 'has_more' => ($response['hasMorePages'] ?? false) === true];
+        $total = $response['total'] ?? null;
+
+        return ['items' => $items, 'has_more' => ($response['hasMorePages'] ?? false) === true, 'total' => is_numeric($total) ? (int) $total : null];
     }
 
     /**
