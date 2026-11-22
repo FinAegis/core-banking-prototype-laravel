@@ -118,6 +118,11 @@ return [
         // Lepo webhooks can carry one-time 3-D Secure codes and personal data;
         // Telescope keeps the full payload of any failed request.
         'api/v1/webhooks/lepo',
+        // The waiting 3-D Secure code and the signed card pages (SumSub and
+        // Widget.js tokens) must never reach telescope_entries.
+        'api/v1/cards/issued/*/3ds/code',
+        'cards/kyc/*',
+        'cards/details/*',
     ],
 
     'ignore_commands' => [

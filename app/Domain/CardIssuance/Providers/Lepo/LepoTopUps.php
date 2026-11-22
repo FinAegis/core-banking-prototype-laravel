@@ -13,6 +13,7 @@ use App\Domain\CardIssuance\Providers\CardProviderException;
 use App\Domain\CardIssuance\Providers\CardProviderSelector;
 use App\Infrastructure\Lepo\LepoApiException;
 use App\Infrastructure\Lepo\LepoClient;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -155,22 +156,38 @@ final class LepoTopUps
      */
     public function attachTxHash(CardTopUp $topup, string $txHash): CardTopUp
     {
-        if ($topup->tx_hash !== null || $topup->status !== CardTopUp::STATUS_AWAITING_DEPOSIT) {
+        // A conditional write: the deposit may be detected at the same moment.
+        try {
+            $changed = CardTopUp::query()->whereKey($topup->id)
+                ->where('status', CardTopUp::STATUS_AWAITING_DEPOSIT)
+                ->whereNull('tx_hash')
+                ->update(['tx_hash' => strtolower($txHash), 'updated_at' => now()]);
+        } catch (UniqueConstraintViolationException) {
+            $changed = 0;
+        }
+
+        if ($changed !== 1) {
             throw CardProviderException::topUp('not_cancellable');
         }
 
-        $topup->forceFill(['tx_hash' => strtolower($txHash)])->save();
-
-        return $topup;
+        return $topup->refresh();
     }
 
     public function cancel(CardTopUp $topup): CardTopUp
     {
-        if ($topup->status !== CardTopUp::STATUS_AWAITING_DEPOSIT || $topup->tx_hash !== null) {
+        // A conditional write: a deposit detected meanwhile must not be hidden
+        // under a cancelled top-up.
+        $changed = CardTopUp::query()->whereKey($topup->id)
+            ->where('status', CardTopUp::STATUS_AWAITING_DEPOSIT)
+            ->whereNull('tx_hash')
+            ->whereNull('provider_deposit_id')
+            ->update(['status' => CardTopUp::STATUS_CANCELLED, 'updated_at' => now()]);
+
+        if ($changed !== 1) {
             throw CardProviderException::topUp('not_cancellable');
         }
 
-        $topup->forceFill(['status' => CardTopUp::STATUS_CANCELLED])->save();
+        $topup->refresh();
         $this->announce($topup);
 
         return $topup;

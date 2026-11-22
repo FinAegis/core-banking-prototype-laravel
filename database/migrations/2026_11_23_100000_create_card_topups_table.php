@@ -45,9 +45,12 @@ return new class () extends Migration {
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();
 
-            $table->unique(['network', 'tx_hash']);
+            // A bundled (ERC-4337) transaction can carry several users' sends,
+            // so a hash is unique per user, not globally.
+            $table->unique(['user_id', 'network', 'tx_hash']);
             $table->index(['user_id', 'status']);
-            $table->index('provider_deposit_id');
+            // One deposit funds one top-up, enforced by the database.
+            $table->unique(['provider', 'provider_deposit_id']);
         });
     }
 

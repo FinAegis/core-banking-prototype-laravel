@@ -149,6 +149,20 @@ it('records the wallet transaction hash once', function (): void {
         ->assertStatus(409)->assertJsonPath('error.code', 'ERR_CARDS_032');
 });
 
+it('accepts the same bundled transaction hash from two users', function (): void {
+    $hash = '0x' . str_repeat('e', 64);
+    foreach ([1, 2] as $user) {
+        $card = tuCard();
+        $id = (string) tuStart($this, $card)->json('data.id');
+        $this->withHeader('Idempotency-Key', (string) Str::uuid())->patchJson("/api/v1/cards/issued/{$card->id}/topups/{$id}", ['tx_hash' => $hash])
+            ->assertOk()->assertJsonPath('data.tx_hash', $hash);
+    }
+});
+
+it('keeps card codes and secure pages out of Telescope', function (): void {
+    expect(config('telescope.ignore_paths'))->toContain('api/v1/cards/issued/*/3ds/code', 'cards/kyc/*', 'cards/details/*', 'api/v1/webhooks/lepo');
+});
+
 it('rejects a malformed transaction hash', function (): void {
     $card = tuCard();
     $id = (string) tuStart($this, $card)->json('data.id');

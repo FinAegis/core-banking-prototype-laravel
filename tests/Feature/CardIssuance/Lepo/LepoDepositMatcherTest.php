@@ -112,6 +112,71 @@ it('re-opens an expired top-up when its deposit arrives late', function (): void
         ->and($topup->fresh()?->status)->toBe('deposit_received');
 });
 
+it('does not cancel a top-up whose deposit was just detected', function (): void {
+    $topup = dmTopUp(dmCard());
+    $stale = CardTopUp::query()->findOrFail($topup->id);
+    Http::fake(['lepo.test/api/v2/transfers/crypto-transactions*' => Http::response(['transfers' => [dmDeposit()]])]);
+
+    expect(app(LepoDepositMatcher::class)->detect($topup))->toBeTrue();
+    expect(fn () => app(App\Domain\CardIssuance\Providers\Lepo\LepoTopUps::class)->cancel($stale))
+        ->toThrow(App\Domain\CardIssuance\Providers\CardProviderException::class);
+
+    expect($topup->fresh()?->status)->toBe('deposit_received')->and($topup->fresh()?->provider_deposit_id)->toBe('dep-1');
+});
+
+it('does not link a deposit to a top-up that was just cancelled', function (): void {
+    $topup = dmTopUp(dmCard());
+    $stale = CardTopUp::query()->findOrFail($topup->id);
+    app(App\Domain\CardIssuance\Providers\Lepo\LepoTopUps::class)->cancel($topup);
+    Http::fake(['lepo.test/api/v2/transfers/crypto-transactions*' => Http::response(['transfers' => [dmDeposit()]])]);
+
+    expect(app(LepoDepositMatcher::class)->detect($stale))->toBeFalse()
+        ->and($topup->fresh()?->status)->toBe('cancelled')
+        ->and($topup->fresh()?->provider_deposit_id)->toBeNull();
+});
+
+it('lets the database refuse one deposit on two top-ups', function (): void {
+    $card = dmCard();
+    dmTopUp($card, ['status' => 'completed', 'provider_deposit_id' => 'dep-9']);
+
+    expect(fn () => dmTopUp($card, ['status' => 'deposit_received', 'provider_deposit_id' => 'dep-9']))->toThrow(Illuminate\Database\QueryException::class);
+});
+
+it('falls back to the amount when the transaction hash finds nothing', function (): void {
+    $topup = dmTopUp(dmCard(), ['tx_hash' => '0x' . str_repeat('d', 64)]);
+    Http::fake(fn (Request $r) => str_contains($r->url(), 'transactionHash=')
+        ? Http::response(['transfers' => []])
+        : Http::response(['transfers' => [dmDeposit()]]));
+
+    expect(app(LepoDepositMatcher::class)->detect($topup))->toBeTrue();
+    Http::assertSent(fn (Request $r): bool => str_contains($r->url(), 'startTime='));
+});
+
+it('finds unmatched deposits to a retired address and before the last week', function (): void {
+    $card = dmCard();
+    $holder = $card->cardholder()->firstOrFail();
+    $account = CardFundingAccount::query()->where('cardholder_id', $holder->id)->firstOrFail();
+    $account->forceFill(['created_at' => now()->subDays(30)])->save();
+    $account->depositAddresses()->create(['provider' => 'lepo', 'network' => 'polygon', 'asset' => 'USDC', 'address' => '0xRetired000000000000000000000000000000001', 'is_active' => false]);
+    Http::fake(['lepo.test/api/v2/transfers/crypto-transactions*' => Http::response(['transfers' => [
+        dmDeposit(['id' => 'dep-old', 'destination' => ['chain' => 'POLYGON', 'address' => '0xretired000000000000000000000000000000001']]),
+    ]])]);
+
+    expect(array_column(app(LepoDepositMatcher::class)->findUnmatched($holder), 'id'))->toBe(['dep-old']);
+    Http::assertSent(fn (Request $r): bool => str_contains($r->url(), 'startTime=' . $account->created_at?->copy()->subDay()->getTimestampMs()));
+});
+
+it('reads every page of transfers when looking for unmatched deposits', function (): void {
+    $card = dmCard();
+    $holder = $card->cardholder()->firstOrFail();
+    $first = array_map(fn (int $i): array => dmDeposit(['id' => "dep-p1-{$i}", 'status' => 'PENDING']), range(1, 100));
+    Http::fake(fn (Request $r) => str_contains($r->url(), 'page=2')
+        ? Http::response(['transfers' => [dmDeposit(['id' => 'dep-page-2'])]])
+        : Http::response(['transfers' => $first]));
+
+    expect(array_column(app(LepoDepositMatcher::class)->findUnmatched($holder), 'id'))->toBe(['dep-page-2']);
+});
+
 it('lists deposits that belong to no top-up', function (): void {
     $card = dmCard();
     dmTopUp($card, ['status' => 'completed', 'provider_deposit_id' => 'dep-1']);
