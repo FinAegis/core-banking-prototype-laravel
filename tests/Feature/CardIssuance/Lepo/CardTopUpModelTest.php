@@ -23,11 +23,14 @@ function topUpCard(): Card
  */
 function topUpRow(Card $card, array $overrides = []): CardTopUp
 {
-    return CardTopUp::create(array_merge([
+    $topup = new CardTopUp();
+    $topup->forceFill(array_merge([
         'user_id' => $card->user_id, 'card_id' => $card->id, 'provider' => 'lepo', 'source' => CardTopUp::SOURCE_APP,
         'asset'   => 'USDC', 'network' => 'arbitrum', 'amount' => '25.123456', 'deposit_address' => '0x' . str_repeat('a', 40),
         'status'  => CardTopUp::STATUS_AWAITING_DEPOSIT, 'expires_at' => now()->addHour(),
-    ], $overrides));
+    ], $overrides))->save();
+
+    return $topup;
 }
 
 it('stores a top-up with decimal amounts', function (): void {
