@@ -13791,6 +13791,29 @@
                 ]
             }
         },
+        "/api/v1/cards/issued/{card}/3ds/code": {
+            "get": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "The waiting 3-D Secure code",
+                "description": "Returns {code, expires_at, merchant, amount, currency} while a code from the card issuer is waiting (at most 10 minutes). The push and the cards.3ds.code event never carry the code.",
+                "operationId": "v1CardsIssuedThreeDsCode",
+                "responses": {
+                    "200": {
+                        "description": "3-D Secure code"
+                    },
+                    "404": {
+                        "description": "ERR_CARDS_033: no code is waiting"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/v1/cards/onboarding": {
             "get": {
                 "tags": [

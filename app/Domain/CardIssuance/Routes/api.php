@@ -87,6 +87,7 @@ Route::prefix('v1/cards')->name('api.cards.fincard.')
             Route::get('/{card}', [CardIssuedController::class, 'show'])->name('show');
             Route::get('/{card}/transactions', [CardIssuedController::class, 'transactions'])->name('transactions');
             Route::get('/{card}/sensitive', [CardIssuedController::class, 'sensitive'])->name('sensitive');
+            Route::get('/{card}/3ds/code', [CardIssuedController::class, 'threeDsCode'])->name('3ds.code');
             Route::get('/{card}/topups/estimate', [CardTopUpController::class, 'estimate'])->name('topups.estimate');
             Route::get('/{card}/topups', [CardTopUpController::class, 'index'])->name('topups.index');
             Route::get('/{card}/topups/{topup}', [CardTopUpController::class, 'show'])->name('topups.show');
