@@ -6,6 +6,7 @@ use App\Domain\CardIssuance\Events\Broadcast\CardStateChanged;
 use App\Domain\CardIssuance\Models\Card;
 use App\Domain\CardIssuance\Models\CardFundingAccount;
 use App\Domain\CardIssuance\Models\Cardholder;
+use App\Domain\CardIssuance\Models\CardStaffFreeze;
 use App\Domain\CardIssuance\Providers\CardProviderException;
 use App\Domain\CardIssuance\Providers\Lepo\LepoCardLifecycle;
 use App\Models\User;
@@ -98,14 +99,29 @@ it('opens the card at Lepo with our card id', function (): void {
 it('adopts the card Lepo created when the create call fails', function (): void {
     $cardholder = lifecycleCardholder();
     $card = app(LepoCardLifecycle::class)->createPending($cardholder);
-    Http::fake(fn (Request $r) => $r->method() === 'POST'
-        ? Http::response(['message' => 'timeout upstream'], 500)
-        : Http::response(['cards' => [lepoCard(['id' => 900, 'externalCardId' => 'someone-else']), lepoCard(['externalCardId' => $card->id])], 'total' => 2]));
+    $lists = 0;
+    Http::fake(function (Request $r) use (&$lists, $card) {
+        if ($r->method() === 'POST') {
+            return Http::response(['message' => 'timeout upstream'], 500);
+        }
+        $lists++;
+
+        return Http::response(['cards' => $lists === 1 ? [] : [lepoCard(['id' => 900, 'externalCardId' => 'someone-else']), lepoCard(['externalCardId' => $card->id])], 'total' => 2]);
+    });
 
     $opened = app(LepoCardLifecycle::class)->open($card);
 
     expect($opened->issuer_card_token)->toBe('777')->and($opened->status)->toBe(Card::STATUS_ACTIVE);
-    Http::assertSentCount(2);
+    Http::assertSentCount(3);
+});
+
+it('adopts a card Lepo already holds for this row without creating one', function (): void {
+    $cardholder = lifecycleCardholder();
+    $card = app(LepoCardLifecycle::class)->createPending($cardholder);
+    Http::fake(['lepo.test/api/v2/cards*' => Http::response(['cards' => [lepoCard(['externalCardId' => $card->id])]])]);
+
+    expect(app(LepoCardLifecycle::class)->open($card)->issuer_card_token)->toBe('777');
+    Http::assertNotSent(fn (Request $r): bool => $r->method() === 'POST');
 });
 
 it('does not open a card twice', function (): void {
@@ -184,6 +200,92 @@ it('refuses to cancel when the balance cannot be read', function (): void {
         expect($e->reason())->toBe('provider_unavailable');
     }
     Http::assertNotSent(fn (Request $r): bool => $r->method() === 'DELETE');
+});
+
+it('refuses to cancel when Lepo gives no balance', function (array $answer): void {
+    $card = openLifecycleCard();
+    Http::fake(['lepo.test/api/v2/cards/777*' => Http::response($answer)]);
+
+    try {
+        app(LepoCardLifecycle::class)->cancel($card);
+        $this->fail('The card was cancelled without a readable balance.');
+    } catch (CardProviderException $e) {
+        expect($e->reason())->toBe('provider_unavailable');
+    }
+    Http::assertNotSent(fn (Request $r): bool => $r->method() === 'DELETE');
+})->with([
+    'no balance object' => [['id' => 777, 'status' => 'ACTIVE']],
+    'balance is null'   => [['id' => 777, 'status' => 'ACTIVE', 'balance' => null]],
+    'a part is missing' => [['id' => 777, 'status' => 'ACTIVE', 'balance' => ['available' => '0', 'frozen' => '0']]],
+    'a part is null'    => [['id' => 777, 'status' => 'ACTIVE', 'balance' => ['available' => '0', 'pending' => null, 'frozen' => '0']]],
+]);
+
+it('records an issuer suspension or block as a support freeze', function (string $lepoStatus): void {
+    $card = openLifecycleCard();
+    $lifecycle = app(LepoCardLifecycle::class);
+
+    $lifecycle->sync($card, lepoCard(['status' => $lepoStatus]));
+    expect(CardStaffFreeze::isHeld('777'))->toBeTrue();
+
+    $lifecycle->sync($card, lepoCard(['status' => 'ACTIVE']));
+    expect(CardStaffFreeze::isHeld('777'))->toBeFalse();
+})->with(['SUSPENDED', 'BLOCKED']);
+
+it('keeps a support freeze when Lepo reports the card active', function (): void {
+    $card = openLifecycleCard();
+    CardStaffFreeze::place('777', null);
+
+    app(LepoCardLifecycle::class)->sync($card, lepoCard(['status' => 'ACTIVE']));
+
+    expect(CardStaffFreeze::isHeld('777'))->toBeTrue();
+});
+
+it('does not create a second card when a retry finds the first one', function (): void {
+    $cardholder = lifecycleCardholder();
+    $card = app(LepoCardLifecycle::class)->createPending($cardholder);
+    $lists = 0;
+    Http::fake(function (Request $r) use (&$lists, $card) {
+        if ($r->method() === 'POST') {
+            return Http::response(['message' => 'timeout upstream'], 504);
+        }
+        $lists++;
+
+        // Lepo commits the card only after the first attempt has given up.
+        return Http::response(['cards' => $lists > 2 ? [lepoCard(['externalCardId' => $card->id])] : []]);
+    });
+    $lifecycle = app(LepoCardLifecycle::class);
+
+    expect(fn () => $lifecycle->open($card))->toThrow(CardProviderException::class);
+    $opened = $lifecycle->open($card->fresh() ?? $card);
+
+    expect($opened->issuer_card_token)->toBe('777');
+    Http::assertSentCount(4);
+    expect(collect(Http::recorded())->filter(fn (array $pair): bool => $pair[0]->method() === 'POST')->count())->toBe(1);
+});
+
+it('reads the expiry from Lepo\'s month and year', function (): void {
+    $card = openLifecycleCard();
+
+    $synced = app(LepoCardLifecycle::class)->sync($card, lepoCard(['expiryDate' => '12/28', 'expMonth' => '12', 'expYear' => '2028']));
+
+    expect($synced->expires_at?->toDateString())->toBe('2028-12-31');
+});
+
+it('reads an expiry date written as month and short year', function (string $written): void {
+    $card = openLifecycleCard();
+
+    $synced = app(LepoCardLifecycle::class)->sync($card, lepoCard(['expiryDate' => $written]));
+
+    expect($synced->expires_at?->toDateString())->toBe('2028-12-31');
+})->with(['12/28', '12/2028', '2028-12-31']);
+
+it('ignores an expiry date it cannot read', function (): void {
+    $card = openLifecycleCard();
+    $card->forceFill(['expires_at' => '2027-06-30'])->save();
+
+    $synced = app(LepoCardLifecycle::class)->sync($card, lepoCard(['expiryDate' => '1228']));
+
+    expect($synced->expires_at?->toDateString())->toBe('2027-06-30');
 });
 
 it('cancels an empty card', function (): void {

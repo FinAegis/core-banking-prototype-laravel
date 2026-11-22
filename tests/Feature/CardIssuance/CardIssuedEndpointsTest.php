@@ -210,15 +210,59 @@ it('refuses to cancel when Lepo is down', function (): void {
         ->assertStatus(502)->assertJsonPath('error.code', 'ERR_CARDS_016');
 });
 
-it('cancels a card that was never opened without calling Lepo', function (): void {
+it('cancels a card that was never opened without deleting anything at Lepo', function (): void {
     $user = issuedUser();
     $card = issuedCard(issuedCardholder($user), 'pending', null);
-    Http::fake();
+    Http::fake(['lepo.test/api/v2/cards*' => Http::response(['cards' => []])]);
 
     $this->withHeader('Idempotency-Key', idem())->postJson("/api/v1/cards/issued/{$card->id}/cancel")
         ->assertOk()->assertJsonPath('data.status', 'cancelled');
-    Http::assertNothingSent();
+    Http::assertNotSent(fn (Request $r): bool => $r->method() === 'DELETE');
 });
+
+it('cancels the Lepo card an unfinished open created', function (): void {
+    $user = issuedUser();
+    $card = issuedCard(issuedCardholder($user), 'pending', null);
+    $deleted = false;
+    Http::fake(function (Request $r) use (&$deleted, $card) {
+        if ($r->method() === 'DELETE') {
+            $deleted = true;
+
+            return Http::response(['success' => true]);
+        }
+        $lepo = issuedLepoCard(['externalCardId' => $card->id, 'balance' => ['available' => '0', 'pending' => '0', 'frozen' => '0']]);
+
+        return str_contains((string) parse_url($r->url(), PHP_URL_PATH), '/cards/777') ? Http::response($lepo) : Http::response(['cards' => [$lepo]]);
+    });
+
+    $this->withHeader('Idempotency-Key', idem())->postJson("/api/v1/cards/issued/{$card->id}/cancel")
+        ->assertOk()->assertJsonPath('data.status', 'cancelled');
+
+    expect($deleted)->toBeTrue()->and($card->fresh()?->issuer_card_token)->toBe('777');
+});
+
+it('refuses to cancel a card that was never opened when Lepo cannot be asked', function (): void {
+    $user = issuedUser();
+    $card = issuedCard(issuedCardholder($user), 'pending', null);
+    Http::fake(['lepo.test/*' => Http::response(['message' => 'down'], 500)]);
+
+    $this->withHeader('Idempotency-Key', idem())->postJson("/api/v1/cards/issued/{$card->id}/cancel")
+        ->assertStatus(502)->assertJsonPath('error.code', 'ERR_CARDS_016');
+    expect($card->fresh()?->status)->toBe('pending');
+});
+
+it('refuses to unfreeze a card that is not frozen', function (string $status, ?string $token): void {
+    $user = issuedUser();
+    $card = issuedCard(issuedCardholder($user), $status, $token);
+    Http::fake();
+
+    $this->withHeader('Idempotency-Key', idem())->postJson("/api/v1/cards/issued/{$card->id}/unfreeze")
+        ->assertStatus(409)->assertJsonPath('error.code', 'ERR_CARDS_024');
+    Http::assertNothingSent();
+})->with([
+    'active'       => ['active', '777'],
+    'never opened' => ['pending', null],
+]);
 
 it('refuses to freeze a card that was never opened', function (): void {
     $user = issuedUser();
@@ -249,8 +293,20 @@ it('keeps FinCard users on FinCard', function (): void {
     issuedCard(issuedCardholder($user, 'verified', 'fincard'), 'active', 'fc-1');
     Http::fake();
 
-    $this->getJson('/api/v1/cards/issued')->assertOk();
+    // FinCard's own response shape: its card id, no Lepo fields.
+    $this->getJson('/api/v1/cards/issued')->assertOk()->assertJsonPath('data.0.card_id', 'fc-1')->assertJsonMissingPath('data.0.frozen_by_support');
+    $this->getJson('/api/v1/cards/issued/fc-1')->assertOk()->assertJsonPath('data.card_id', 'fc-1');
     Http::assertNotSent(fn (Request $r): bool => str_contains($r->url(), 'lepo.test'));
+});
+
+it('never hands a Lepo user to FinCard', function (): void {
+    $user = issuedUser();
+    $card = issuedCard(issuedCardholder($user));
+    Http::fake(['lepo.test/api/v2/cards/777*' => Http::response(issuedLepoCard())]);
+    $this->mock(App\Http\Controllers\Api\CardIssuance\FinCardCardController::class, fn ($mock) => $mock->shouldNotReceive('index', 'show', 'transactions', 'freeze', 'unfreeze', 'cancel', 'sensitive', 'open'));
+
+    $this->getJson('/api/v1/cards/issued')->assertOk()->assertJsonPath('data.0.id', $card->id);
+    $this->getJson("/api/v1/cards/issued/{$card->id}")->assertOk()->assertJsonPath('data.id', $card->id);
 });
 
 it('adds the card summary once funding is ready', function (): void {

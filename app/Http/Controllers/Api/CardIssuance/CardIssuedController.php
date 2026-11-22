@@ -139,8 +139,13 @@ final class CardIssuedController extends Controller
     public function unfreeze(Request $request, string $card): JsonResponse
     {
         return $this->withCard($request, $card, 'unfreeze', function (Card $owned): JsonResponse {
+            // A support or issuer freeze is not the owner's to lift.
             if ($owned->isOpenAtProvider() && CardStaffFreeze::isHeld((string) $owned->issuer_card_token)) {
                 return ErrorResponse::make('ERR_CARDS_021');
+            }
+
+            if (! $owned->isOpenAtProvider() || $owned->status !== Card::STATUS_FROZEN) {
+                return ErrorResponse::make('ERR_CARDS_024');
             }
 
             return $this->mutate($owned, fn (Card $c): Card => $this->cards->unfreeze($c));
@@ -160,14 +165,9 @@ final class CardIssuedController extends Controller
     public function cancel(Request $request, string $card): JsonResponse
     {
         return $this->withCard($request, $card, 'cancel', function (Card $owned): JsonResponse {
-            if (! $owned->isOpenAtProvider()) {
-                // Nothing exists at Lepo yet, so nothing can hold money.
-                $owned->forceFill(['status' => Card::STATUS_CANCELLED, 'cancelled_at' => now()])->save();
-
-                return response()->json(['success' => true, 'data' => self::present($owned)]);
-            }
-
-            return $this->mutate($owned, fn (Card $c): Card => $this->cards->cancel($c));
+            // A row Lepo has not opened as far as we know is checked at Lepo
+            // first: an unfinished open may have created the card there.
+            return $this->mutate($owned, fn (Card $c): Card => $c->isOpenAtProvider() ? $this->cards->cancel($c) : $this->cards->cancelUnopened($c));
         });
     }
 

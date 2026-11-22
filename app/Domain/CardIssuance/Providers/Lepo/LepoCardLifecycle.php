@@ -7,6 +7,7 @@ namespace App\Domain\CardIssuance\Providers\Lepo;
 use App\Domain\CardIssuance\Events\Broadcast\CardStateChanged;
 use App\Domain\CardIssuance\Models\Card;
 use App\Domain\CardIssuance\Models\Cardholder;
+use App\Domain\CardIssuance\Models\CardStaffFreeze;
 use App\Domain\CardIssuance\Providers\CardProviderException;
 use App\Infrastructure\Lepo\LepoApiException;
 use App\Infrastructure\Lepo\LepoClient;
@@ -84,11 +85,27 @@ final class LepoCardLifecycle
             return $card;
         }
 
+        // One open per card at a time, and a card a previous attempt already
+        // created at Lepo (found by our card id) is adopted, never created twice.
+        return Cache::lock("cards:lepo:open:{$card->id}", 30)->block(10, function () use ($card): Card {
+            $card->refresh();
+
+            return $card->isOpenAtProvider() ? $card : $this->createAtLepo($card);
+        });
+    }
+
+    private function createAtLepo(Card $card): Card
+    {
         $cardholder = $this->cardholderOf($card);
         $userId = $this->lepoUserId($cardholder);
         $cardTypeId = (int) config('cardissuance.issuers.lepo.card_type_id_virtual');
         if ($cardTypeId <= 0) {
             throw CardProviderException::providerUnavailable('lepo', 'NO_CARD_TYPE');
+        }
+
+        $lepoCard = $this->findByExternalId($userId, $card->id);
+        if ($lepoCard !== null) {
+            return $this->adopt($card, $lepoCard);
         }
 
         try {
@@ -103,6 +120,14 @@ final class LepoCardLifecycle
                 ?? throw CardProviderException::providerUnavailable('lepo', $e->lepoCode());
         }
 
+        return $this->adopt($card, $lepoCard);
+    }
+
+    /**
+     * @param  array<mixed>  $lepoCard
+     */
+    private function adopt(Card $card, array $lepoCard): Card
+    {
         $id = $lepoCard['id'] ?? null;
         if (! is_scalar($id) || (string) $id === '') {
             throw CardProviderException::providerUnavailable('lepo', 'NO_CARD_ID');
@@ -127,17 +152,38 @@ final class LepoCardLifecycle
             'status'        => $status,
             'last4'         => $this->last4($lepoCard['cardNumber'] ?? null) ?? $card->last4,
             'network'       => $this->network($lepoCard['cardNetwork'] ?? null) ?? $card->network,
-            'expires_at'    => $this->expiry($lepoCard['expiryDate'] ?? null) ?? $card->expires_at,
+            'expires_at'    => $this->expiry($lepoCard) ?? $card->expires_at,
             'balance_cents' => $this->cents(is_array($lepoCard['balance'] ?? null) ? ($lepoCard['balance']['available'] ?? null) : null) ?? $card->balance_cents,
             'frozen_at'     => $status === Card::STATUS_FROZEN ? ($card->frozen_at ?? now()) : null,
             'cancelled_at'  => $status === Card::STATUS_CANCELLED ? ($card->cancelled_at ?? now()) : $card->cancelled_at,
         ])->save();
+
+        $this->recordIssuerFreeze($card, strtoupper(trim((string) ($lepoCard['status'] ?? ''))));
 
         if ($status !== $before) {
             CardStateChanged::dispatch((int) $card->user_id, $card->id, $status, (int) ($card->balance_cents ?? 0));
         }
 
         return $card;
+    }
+
+    /**
+     * A suspension or block by the card issuer is not the owner's freeze, so
+     * the owner must not lift it (as for FinCard issuer blocks). It is lifted
+     * when Lepo reports the card active again; a support freeze stays.
+     */
+    private function recordIssuerFreeze(Card $card, string $lepoStatus): void
+    {
+        if (! $card->isOpenAtProvider()) {
+            return;
+        }
+
+        $token = (string) $card->issuer_card_token;
+        if (in_array($lepoStatus, ['SUSPENDED', 'BLOCKED'], true)) {
+            CardStaffFreeze::place($token, null, CardStaffFreeze::SOURCE_ISSUER);
+        } elseif ($lepoStatus === 'ACTIVE') {
+            CardStaffFreeze::query()->where('issuer_card_token', $token)->where('source', CardStaffFreeze::SOURCE_ISSUER)->delete();
+        }
     }
 
     public function refresh(Card $card): Card
@@ -166,15 +212,20 @@ final class LepoCardLifecycle
     public function cancel(Card $card): Card
     {
         $live = $this->live($card);
-        $balance = is_array($live['balance'] ?? null) ? $live['balance'] : [];
+        $balance = $live['balance'] ?? null;
+        if (! is_array($balance)) {
+            throw CardProviderException::providerUnavailable('lepo', 'NO_BALANCE');
+        }
 
+        // Every part must be present and readable: a missing part is not zero,
+        // and Lepo deletes a cancelled card permanently.
         $total = '0';
         foreach (['available', 'pending', 'frozen'] as $part) {
-            $amount = $balance[$part] ?? '0';
-            if (! is_numeric($amount)) {
+            $amount = $balance[$part] ?? null;
+            if ((! is_string($amount) && ! is_int($amount)) || ! is_numeric(trim((string) $amount))) {
                 throw CardProviderException::providerUnavailable('lepo', 'NO_BALANCE');
             }
-            $total = bcadd($total, bcadd((string) $amount, '0', 6), 6);
+            $total = bcadd($total, bcadd(trim((string) $amount), '0', 6), 6);
         }
 
         if (bccomp($total, '0', 6) === 1) {
@@ -187,6 +238,29 @@ final class LepoCardLifecycle
 
         // Lepo deletes the card permanently, so it may no longer be readable.
         return $this->sync($card, ['status' => 'CANCELLED'] + $live);
+    }
+
+    /**
+     * Cancels a row Lepo has not opened as far as we know. An open attempt
+     * may still have created the card at Lepo, so Lepo is asked first: a card
+     * found by our card id goes through the guarded cancel above, and when
+     * Lepo cannot be asked the row stays as it is.
+     */
+    public function cancelUnopened(Card $card): Card
+    {
+        if ($card->isOpenAtProvider()) {
+            return $this->cancel($card);
+        }
+
+        $userId = $this->lepoUserId($this->cardholderOf($card));
+        $cards = $this->call(fn (): array => $this->client->listCards($userId))['cards'] ?? [];
+        foreach (is_array($cards) ? $cards : [] as $lepoCard) {
+            if (is_array($lepoCard) && ($lepoCard['externalCardId'] ?? null) === $card->id) {
+                return $this->cancel($this->adopt($card, $lepoCard));
+            }
+        }
+
+        return $this->sync($card, ['status' => 'CANCELLED']);
     }
 
     /**
@@ -303,17 +377,40 @@ final class LepoCardLifecycle
         return $value !== '' ? $value : null;
     }
 
-    private function expiry(mixed $date): ?Carbon
+    /**
+     * The card's expiry: Lepo's expMonth/expYear when given, else expiryDate
+     * in a format we know (MM/YY, MM/YYYY or YYYY-MM-DD). A card expires at
+     * the end of its month. Anything else is ignored rather than guessed.
+     *
+     * @param  array<mixed>  $lepoCard
+     */
+    private function expiry(array $lepoCard): ?Carbon
     {
-        if (! is_string($date) || trim($date) === '') {
-            return null;
+        $month = $lepoCard['expMonth'] ?? null;
+        $year = $lepoCard['expYear'] ?? null;
+        if (is_scalar($month) && is_scalar($year) && preg_match('/^\d{1,2}$/', (string) $month) === 1 && preg_match('/^\d{4}$/', (string) $year) === 1) {
+            return $this->endOfMonth((int) $year, (int) $month);
         }
 
-        try {
-            return Carbon::parse($date);
-        } catch (Throwable) {
-            return null;
+        $date = is_string($lepoCard['expiryDate'] ?? null) ? trim($lepoCard['expiryDate']) : '';
+        if (preg_match('#^(\d{1,2})/(\d{2}|\d{4})$#', $date, $m) === 1) {
+            return $this->endOfMonth(strlen($m[2]) === 2 ? 2000 + (int) $m[2] : (int) $m[2], (int) $m[1]);
         }
+
+        if (preg_match('/^\d{4}-\d{2}-\d{2}/', $date) === 1) {
+            try {
+                return Carbon::parse(substr($date, 0, 10))->endOfDay();
+            } catch (Throwable) {
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    private function endOfMonth(int $year, int $month): ?Carbon
+    {
+        return $month >= 1 && $month <= 12 ? Carbon::create($year, $month, 1)?->endOfMonth() : null;
     }
 
     /**
