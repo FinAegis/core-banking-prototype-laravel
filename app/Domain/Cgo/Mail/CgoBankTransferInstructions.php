@@ -36,7 +36,7 @@ class CgoBankTransferInstructions extends Mailable
             markdown: 'emails.cgo.bank-transfer-instructions',
             with: [
                 'investment' => $this->investment,
-                'amount'     => number_format($this->investment->amount, 2),
+                'amount'     => $this->investment->formattedAmount(),
             ],
         );
     }
