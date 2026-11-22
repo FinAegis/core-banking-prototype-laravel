@@ -74,6 +74,9 @@ class Transaction extends TenantAwareStoredEvent
         return \Database\Factories\TransactionFactory::new();
     }
 
+    /**
+     * @return BelongsTo<Account, $this>
+     */
     public function account(): BelongsTo
     {
         return $this->belongsTo(Account::class, 'aggregate_uuid', 'uuid');

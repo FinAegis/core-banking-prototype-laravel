@@ -123,6 +123,10 @@ class DeviceFingerprint extends Model
     public const DEVICE_TYPE_TABLET = 'tablet';
 
     // Relationships
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
