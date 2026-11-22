@@ -467,7 +467,10 @@ class WorkflowMonitoringController extends Controller
         }
 
         if ($searchType === 'exception' || $searchType === 'all') {
-            $query->orWhere('exception', 'LIKE', "%{$searchTerm}%");
+            // Exceptions are rows in workflow_exceptions, not a workflows column.
+            $query->orWhereHas('exceptions', function ($exceptions) use ($searchTerm) {
+                $exceptions->where('workflow_exceptions.exception', 'LIKE', "%{$searchTerm}%");
+            });
         }
 
         $results = $query->with(['logs:id,stored_workflow_id,index,class,result,created_at'])

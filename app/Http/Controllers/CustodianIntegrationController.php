@@ -113,19 +113,24 @@ class CustodianIntegrationController extends Controller
             abort(404, 'Custodian not found');
         }
 
-        // Get custodian accounts
-        $accounts = CustodianAccount::where('custodian_code', $custodianCode)
+        // Get custodian accounts (custodian_name holds the custodian code)
+        $accounts = CustodianAccount::where('custodian_name', $custodianCode)
             ->with('account')
             ->get();
 
-        // Get recent transfers for this custodian
-        $transfers = CustodianTransfer::where('custodian_code', $custodianCode)
+        // Get recent transfers from or to this custodian's accounts
+        $custodianAccountIds = $accounts->pluck('id');
+        $transfers = CustodianTransfer::query()
+            ->where(function ($query) use ($custodianAccountIds) {
+                $query->whereIn('from_custodian_account_id', $custodianAccountIds)
+                    ->orWhereIn('to_custodian_account_id', $custodianAccountIds);
+            })
             ->orderBy('created_at', 'desc')
             ->take(50)
             ->get();
 
         // Get webhook history
-        $webhooks = CustodianWebhook::where('custodian', $custodianCode)
+        $webhooks = CustodianWebhook::where('custodian_name', $custodianCode)
             ->orderBy('created_at', 'desc')
             ->take(50)
             ->get();
@@ -245,7 +250,7 @@ class CustodianIntegrationController extends Controller
 
         foreach ($custodians as $code => $config) {
             $health = $this->healthMonitor->getHealth($code);
-            $accounts = CustodianAccount::where('custodian_code', $code)->count();
+            $accounts = CustodianAccount::where('custodian_name', $code)->count();
             $lastSync = Cache::get("custodian_last_sync_{$code}");
 
             $status[] = [
