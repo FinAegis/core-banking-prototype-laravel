@@ -129,4 +129,11 @@ return [
     'ERR_CARDS_024' => ['http' => 409, 'description' => 'Finish the earlier steps of the card setup first.'],
     'ERR_CARDS_025' => ['http' => 409, 'description' => 'This card still holds money, so it cannot be cancelled. Spend the money on the card first.'],
     'ERR_CARDS_026' => ['http' => 409, 'description' => 'You already have a card.'],
+    'ERR_CARDS_027' => ['http' => 503, 'description' => 'Top-ups are not available yet.'],
+    'ERR_CARDS_028' => ['http' => 422, 'description' => 'The amount is outside the allowed range.'],
+    'ERR_CARDS_029' => ['http' => 422, 'description' => 'This network is not supported for top-ups.'],
+    'ERR_CARDS_030' => ['http' => 409, 'description' => 'This card cannot be topped up.'],
+    'ERR_CARDS_031' => ['http' => 409, 'description' => 'Another top-up is still in progress.'],
+    'ERR_CARDS_032' => ['http' => 409, 'description' => 'This top-up can no longer be cancelled.'],
+    'ERR_CARDS_033' => ['http' => 404, 'description' => 'No verification code is waiting.'],
 ];
