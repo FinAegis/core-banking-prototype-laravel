@@ -126,5 +126,5 @@ return [
     // ─── Provider-neutral card onboarding (/api/v1/cards/*) ─────────────────
     'ERR_CARDS_022' => ['http' => 403, 'description' => 'Cards are not available for your account yet.'],
     'ERR_CARDS_023' => ['http' => 422, 'description' => 'Cards are not available for this nationality or country yet.'],
-    'ERR_CARDS_024' => ['http' => 409, 'description' => 'Finish the identity check first.'],
+    'ERR_CARDS_024' => ['http' => 409, 'description' => 'Finish the earlier steps of the card setup first.'],
 ];
