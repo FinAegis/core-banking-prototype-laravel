@@ -28,6 +28,16 @@ final class CardProviderException extends RuntimeException
         return new self("Cards are not available for nationality or country {$country} yet.", 'restricted_nationality');
     }
 
+    public static function cardLimit(): self
+    {
+        return new self('The user already holds the allowed number of cards.', 'card_limit');
+    }
+
+    public static function holdsMoney(): self
+    {
+        return new self('The card still holds money, so it cannot be cancelled.', 'holds_money');
+    }
+
     public static function providerUnavailable(string $provider, ?string $code): self
     {
         $label = $code !== null && $code !== '' ? " [{$code}]" : '';

@@ -11,11 +11,9 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * Broadcast when a FinCard card's state changes (created, frozen, cancelled, or
- * balance moved). Delivered on the user's private channel as `card.state_changed`.
- * `balanceCents` is integer minor units (USD cents).
- *
- * @see docs/FINCARD_MOBILE_INTEGRATION.md §6
+ * A card changed status (any provider). Broadcast
+ * as `card.state_changed` on the user's private channel with the card id
+ * and its new status.
  */
 final class CardStateChanged implements ShouldBroadcast
 {
@@ -27,7 +25,6 @@ final class CardStateChanged implements ShouldBroadcast
         public readonly int $userId,
         public readonly string $cardId,
         public readonly string $status,
-        public readonly int $balanceCents,
     ) {
     }
 
@@ -45,15 +42,11 @@ final class CardStateChanged implements ShouldBroadcast
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<string, string>
      */
     public function broadcastWith(): array
     {
-        return [
-            'card_id'       => $this->cardId,
-            'status'        => $this->status,
-            'balance_cents' => $this->balanceCents,
-        ];
+        return ['card_id' => $this->cardId, 'status' => $this->status];
     }
 
     public function broadcastWhen(): bool
