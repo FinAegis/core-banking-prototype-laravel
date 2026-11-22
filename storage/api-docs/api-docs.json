@@ -13768,13 +13768,36 @@
                 ]
             }
         },
+        "/api/v1/cards/issued/{card}/sensitive": {
+            "get": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Card details page",
+                "description": "Returns {display_mode: widget, url, expires_at}: a signed page that shows the card number, expiry and security code through Interlace Widget.js. The link is valid for 5 minutes and opens once.",
+                "operationId": "v1CardsIssuedSensitive",
+                "responses": {
+                    "200": {
+                        "description": "Card details link"
+                    },
+                    "409": {
+                        "description": "ERR_CARDS_024: the card is not open yet"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/v1/cards/onboarding": {
             "get": {
                 "tags": [
                     "Cards"
                 ],
                 "summary": "Card onboarding state for the current user",
-                "description": "In the steps funding_pending and ready it also returns `card` {id, status, last4} of the current card, or null. Whether cards are available, the provider, the next step (cardholder, kyc, kyc_review, kyc_action_required, kyc_rejected, funding_pending, ready), the identity-check method (hosted_url or sumsub_sdk) and the deposit networks [{network, asset, default}]. In the steps cardholder, kyc and kyc_action_required it also returns `form` {fields, options, prefill}: the whole cardholder form for a new user, or only the questionnaire while the answers can still be corrected. Field names are the request keys and the keys of 422 validation errors.",
+                "description": "In the steps kyc and kyc_action_required it returns `kyc_submitted` (true once the identity-check page reported a submission Lepo has not answered). In the steps funding_pending and ready it also returns `card` {id, status, last4} of the current card, or null. Whether cards are available, the provider, the next step (cardholder, kyc, kyc_review, kyc_action_required, kyc_rejected, funding_pending, ready), the identity-check method (hosted_url or sumsub_sdk) and the deposit networks [{network, asset, default}]. In the steps cardholder, kyc and kyc_action_required it also returns `form` {fields, options, prefill}: the whole cardholder form for a new user, or only the questionnaire while the answers can still be corrected. Field names are the request keys and the keys of 422 validation errors.",
                 "operationId": "v1CardsOnboarding",
                 "responses": {
                     "200": {

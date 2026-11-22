@@ -42,7 +42,7 @@ final class CardOnboardingController extends Controller
         operationId: 'v1CardsOnboarding',
         tags: ['Cards'],
         summary: 'Card onboarding state for the current user',
-        description: 'In the steps funding_pending and ready it also returns `card` {id, status, last4} of the current card, or null. Whether cards are available, the provider, the next step (cardholder, kyc, kyc_review, kyc_action_required, kyc_rejected, funding_pending, ready), the identity-check method (hosted_url or sumsub_sdk) and the deposit networks [{network, asset, default}]. In the steps cardholder, kyc and kyc_action_required it also returns `form` {fields, options, prefill}: the whole cardholder form for a new user, or only the questionnaire while the answers can still be corrected. Field names are the request keys and the keys of 422 validation errors.',
+        description: 'In the steps kyc and kyc_action_required it returns `kyc_submitted` (true once the identity-check page reported a submission Lepo has not answered). In the steps funding_pending and ready it also returns `card` {id, status, last4} of the current card, or null. Whether cards are available, the provider, the next step (cardholder, kyc, kyc_review, kyc_action_required, kyc_rejected, funding_pending, ready), the identity-check method (hosted_url or sumsub_sdk) and the deposit networks [{network, asset, default}]. In the steps cardholder, kyc and kyc_action_required it also returns `form` {fields, options, prefill}: the whole cardholder form for a new user, or only the questionnaire while the answers can still be corrected. Field names are the request keys and the keys of 422 validation errors.',
         security: [['sanctum' => []]],
     )]
     #[OA\Response(response: 200, description: 'Onboarding state')]
@@ -77,6 +77,13 @@ final class CardOnboardingController extends Controller
 
         if (in_array($step, CardOnboardingSteps::CORRECTABLE, true)) {
             $data['form'] = $this->form->describe($user, $cardholder);
+        }
+
+        if (in_array($step, ['kyc', 'kyc_action_required'], true)) {
+            // The identity-check page reported a submission Lepo has not
+            // answered yet; the app shows "check sent" instead of asking again.
+            $verification = is_array($cardholder?->verification_data) ? $cardholder->verification_data : [];
+            $data['kyc_submitted'] = ! empty($verification['kyc_submitted_at']);
         }
 
         if (in_array($step, ['funding_pending', 'ready'], true)) {

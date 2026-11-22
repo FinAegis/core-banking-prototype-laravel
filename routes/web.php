@@ -66,6 +66,17 @@ Route::get('/cards/kyc/{cardholder}/token', [App\Http\Controllers\Web\Cards\Host
     ->whereUuid('cardholder')
     ->middleware(['signed:relative', 'throttle:20,1'])
     ->name('cards.kyc.hosted.token');
+Route::post('/cards/kyc/{cardholder}/submitted', [App\Http\Controllers\Web\Cards\HostedKycController::class, 'submitted'])
+    ->whereUuid('cardholder')
+    ->middleware(['signed:relative', 'throttle:20,1'])
+    ->name('cards.kyc.hosted.submitted');
+
+// Card details (number, expiry, security code) shown by Interlace Widget.js.
+// The link is signed, valid for 5 minutes and opens once (nonce `n`).
+Route::get('/cards/details/{card}', [App\Http\Controllers\Web\Cards\HostedCardDetailsController::class, 'show'])
+    ->whereUuid('card')
+    ->middleware('throttle:20,1')
+    ->name('cards.details.hosted');
 
 // Applies a profile email change from the signed link sent to the new address.
 Route::get('/user/confirm-email', App\Http\Controllers\Web\ConfirmEmailChangeController::class)

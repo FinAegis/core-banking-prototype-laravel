@@ -123,6 +123,17 @@ it('offers only the questionnaire to a cardholder before the identity check', fu
         ->toBe(['occupation', 'annual_salary', 'account_purpose', 'expected_monthly_volume', 'document_issue_date']);
 });
 
+it('tells the app the identity check was sent before Lepo decides', function (): void {
+    $user = pilotUser();
+    $cardholder = endpointCardholder($user, 'pending');
+
+    $this->getJson('/api/v1/cards/onboarding')->assertJsonPath('data.step', 'kyc')->assertJsonPath('data.kyc_submitted', false);
+
+    $cardholder->forceFill(['verification_data' => [...$cardholder->verification_data, 'kyc_submitted_at' => now()->toIso8601String()]])->save();
+
+    $this->getJson('/api/v1/cards/onboarding')->assertJsonPath('data.step', 'kyc')->assertJsonPath('data.kyc_submitted', true);
+});
+
 it('hides the form once the identity check is submitted', function (): void {
     $user = pilotUser();
     endpointCardholder($user, 'in_review');

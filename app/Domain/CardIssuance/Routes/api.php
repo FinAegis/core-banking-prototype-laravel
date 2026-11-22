@@ -85,6 +85,7 @@ Route::prefix('v1/cards')->name('api.cards.fincard.')
                 ->middleware(['idempotency.required', 'api.rate_limit:mutation'])->name('store');
             Route::get('/{card}', [CardIssuedController::class, 'show'])->name('show');
             Route::get('/{card}/transactions', [CardIssuedController::class, 'transactions'])->name('transactions');
+            Route::get('/{card}/sensitive', [CardIssuedController::class, 'sensitive'])->name('sensitive');
             Route::middleware(['idempotency.required', 'api.rate_limit:mutation'])->group(function (): void {
                 Route::post('/{card}/freeze', [CardIssuedController::class, 'freeze'])->name('freeze');
                 Route::post('/{card}/unfreeze', [CardIssuedController::class, 'unfreeze'])->name('unfreeze');

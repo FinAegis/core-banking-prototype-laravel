@@ -28,7 +28,7 @@ class SecurityHeaders
 
         // Referrer policy. The card identity-check page is reached by a signed
         // link, which must not travel to SumSub in a Referer header.
-        $response->headers->set('Referrer-Policy', $this->isCardKycPage($request) ? 'no-referrer' : 'strict-origin-when-cross-origin');
+        $response->headers->set('Referrer-Policy', $this->isHostedCardPage($request) ? 'no-referrer' : 'strict-origin-when-cross-origin');
 
         // Content Security Policy
         $csp = $this->getContentSecurityPolicy($request);
@@ -93,6 +93,25 @@ class SecurityHeaders
                 "font-src 'self' data:",
                 "connect-src 'self' https://*.sumsub.com",
                 'frame-src https://*.sumsub.com',
+                "media-src 'none'",
+                "object-src 'none'",
+                "base-uri 'self'",
+                "form-action 'self'",
+                "frame-ancestors 'none'",
+            ]);
+        }
+
+        // Card details: Interlace Widget.js loads from univisioncard.com and
+        // renders the card data in its own https frames.
+        if ($request->is('cards/details/*')) {
+            return implode('; ', [
+                "default-src 'self'",
+                "script-src 'self' 'unsafe-inline' https://static.univisioncard.com https://staging-static.univisioncard.com",
+                "style-src 'self' 'unsafe-inline'",
+                "img-src 'self' data: https:",
+                "font-src 'self' data: https:",
+                "connect-src 'self' https:",
+                'frame-src https:',
                 "media-src 'none'",
                 "object-src 'none'",
                 "base-uri 'self'",
@@ -198,6 +217,15 @@ class SecurityHeaders
     private function isCardKycPage(Request $request): bool
     {
         return $request->is('cards/kyc/*');
+    }
+
+    /**
+     * Pages reached by a signed link (identity check, card details): the link
+     * must not travel to a third party in a Referer header.
+     */
+    private function isHostedCardPage(Request $request): bool
+    {
+        return $request->is('cards/kyc/*') || $request->is('cards/details/*');
     }
 
     /**

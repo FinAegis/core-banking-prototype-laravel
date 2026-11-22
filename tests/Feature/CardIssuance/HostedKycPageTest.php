@@ -57,6 +57,20 @@ it('opens the SumSub identity check with a fresh Lepo token', function (): void 
         && $request['occupation'] === '15-1252' && $request['annualSalary'] === '30001-50000');
 });
 
+it('records that the identity check was sent from the page', function (): void {
+    Http::fake(['lepo.test/api/v2/users/12345/sumsub/kyc-url' => Http::response(['success' => true, 'accessToken' => 'web-token'])]);
+    $cardholder = hostedCardholder();
+
+    $this->get(hostedLink($cardholder))->assertOk()->assertSee('X-CSRF-TOKEN', false);
+    $submitted = URL::temporarySignedRoute('cards.kyc.hosted.submitted', now()->addMinutes(60), ['cardholder' => $cardholder->id], absolute: false);
+
+    $this->postJson($submitted)->assertNoContent();
+    $this->postJson(route('cards.kyc.hosted.submitted', ['cardholder' => $cardholder->id]))->assertForbidden();
+
+    expect($cardholder->fresh()?->verification_data['kyc_submitted_at'] ?? null)->toBeString()
+        ->and($cardholder->fresh()?->kyc_status)->toBe('pending');
+});
+
 it('gives the page a signed link to renew the token', function (): void {
     Http::fake(['lepo.test/api/v2/users/12345/sumsub/kyc-url' => Http::response(['success' => true, 'accessToken' => 'renewed-token'])]);
     $cardholder = hostedCardholder();

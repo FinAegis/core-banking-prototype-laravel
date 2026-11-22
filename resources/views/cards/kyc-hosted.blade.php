@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
     <meta name="referrer" content="no-referrer">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Identity check · {{ $brand }}</title>
     <style>
         :root { color-scheme: light dark; --bg: #ffffff; --fg: #111827; --muted: #4b5563; --accent: #111827; --accent-fg: #ffffff; }
@@ -49,6 +50,7 @@
             (function () {
                 var returnUrl = @json($returnUrl);
                 var refreshUrl = @json($refreshUrl);
+                var submittedUrl = @json($submittedUrl);
                 var finished = false;
 
                 function show(id) {
@@ -60,7 +62,18 @@
                     if (finished) { return; }
                     finished = true;
                     show('sent');
-                    if (returnUrl) { window.location.href = returnUrl; }
+
+                    // Tell the server the check was sent, then return to the app.
+                    var back = function () { if (returnUrl) { window.location.href = returnUrl; } };
+                    var csrf = document.querySelector('meta[name="csrf-token"]');
+                    var timer = window.setTimeout(back, 1500);
+                    fetch(submittedUrl, {
+                        method: 'POST',
+                        headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrf ? csrf.getAttribute('content') : '' },
+                        credentials: 'same-origin',
+                        keepalive: true,
+                        referrerPolicy: 'no-referrer'
+                    }).catch(function () {}).then(function () { window.clearTimeout(timer); back(); });
                 }
 
                 function statusChanged(payload) {

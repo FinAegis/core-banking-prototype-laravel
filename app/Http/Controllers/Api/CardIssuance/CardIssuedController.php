@@ -11,11 +11,13 @@ use App\Domain\CardIssuance\Providers\CardOnboardingSteps;
 use App\Domain\CardIssuance\Providers\CardProviderException;
 use App\Domain\CardIssuance\Providers\CardProviderSelector;
 use App\Domain\CardIssuance\Providers\Lepo\LepoCardLifecycle;
+use App\Domain\CardIssuance\Support\PublicLink;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\ErrorResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
 
@@ -166,6 +168,34 @@ final class CardIssuedController extends Controller
             }
 
             return $this->mutate($owned, fn (Card $c): Card => $this->cards->cancel($c));
+        });
+    }
+
+    #[OA\Get(
+        path: '/api/v1/cards/issued/{card}/sensitive',
+        operationId: 'v1CardsIssuedSensitive',
+        tags: ['Cards'],
+        summary: 'Card details page',
+        description: 'Returns {display_mode: widget, url, expires_at}: a signed page that shows the card number, expiry and security code through Interlace Widget.js. The link is valid for 5 minutes and opens once.',
+        security: [['sanctum' => []]],
+    )]
+    #[OA\Response(response: 200, description: 'Card details link')]
+    #[OA\Response(response: 409, description: 'ERR_CARDS_024: the card is not open yet')]
+    public function sensitive(Request $request, string $card): JsonResponse
+    {
+        return $this->withCard($request, $card, 'sensitive', function (Card $owned): JsonResponse {
+            if (! $owned->isOpenAtProvider() || ! in_array($owned->status, [Card::STATUS_ACTIVE, Card::STATUS_FROZEN], true)) {
+                return ErrorResponse::make('ERR_CARDS_024');
+            }
+
+            $expires = now()->addMinutes(5);
+            $path = URL::temporarySignedRoute('cards.details.hosted', $expires, ['card' => $owned->id, 'n' => bin2hex(random_bytes(16))], absolute: false);
+
+            return response()->json(['success' => true, 'data' => [
+                'display_mode' => 'widget',
+                'url'          => PublicLink::to($path),
+                'expires_at'   => $expires->toIso8601String(),
+            ]])->header('Cache-Control', 'no-store');
         });
     }
 
