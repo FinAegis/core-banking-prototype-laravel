@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\CardIssuance;
 
+use App\Domain\CardIssuance\Models\Card;
 use App\Domain\CardIssuance\Models\CardDepositAddress;
 use App\Domain\CardIssuance\Models\Cardholder;
 use App\Domain\CardIssuance\Providers\CardOnboardingSteps;
@@ -41,7 +42,7 @@ final class CardOnboardingController extends Controller
         operationId: 'v1CardsOnboarding',
         tags: ['Cards'],
         summary: 'Card onboarding state for the current user',
-        description: 'Whether cards are available, the provider, the next step (cardholder, kyc, kyc_review, kyc_action_required, kyc_rejected, funding_pending, ready), the identity-check method (hosted_url or sumsub_sdk) and the deposit networks [{network, asset, default}]. In the steps cardholder, kyc and kyc_action_required it also returns `form` {fields, options, prefill}: the whole cardholder form for a new user, or only the questionnaire while the answers can still be corrected. Field names are the request keys and the keys of 422 validation errors.',
+        description: 'In the steps funding_pending and ready it also returns `card` {id, status, last4} of the current card, or null. Whether cards are available, the provider, the next step (cardholder, kyc, kyc_review, kyc_action_required, kyc_rejected, funding_pending, ready), the identity-check method (hosted_url or sumsub_sdk) and the deposit networks [{network, asset, default}]. In the steps cardholder, kyc and kyc_action_required it also returns `form` {fields, options, prefill}: the whole cardholder form for a new user, or only the questionnaire while the answers can still be corrected. Field names are the request keys and the keys of 422 validation errors.',
         security: [['sanctum' => []]],
     )]
     #[OA\Response(response: 200, description: 'Onboarding state')]
@@ -76,6 +77,10 @@ final class CardOnboardingController extends Controller
 
         if (in_array($step, CardOnboardingSteps::CORRECTABLE, true)) {
             $data['form'] = $this->form->describe($user, $cardholder);
+        }
+
+        if (in_array($step, ['funding_pending', 'ready'], true)) {
+            $data['card'] = $this->cardSummary($user);
         }
 
         return response()->json(['success' => true, 'data' => $data]);
@@ -214,6 +219,23 @@ final class CardOnboardingController extends Controller
             'balance_cents'     => $account->balance_cents,
             'deposit_addresses' => $this->depositAddresses($account->depositAddresses()->where('is_active', true)->get(['network', 'asset', 'address'])->all()),
         ]]);
+    }
+
+    /**
+     * The user's current card ({id, status, last4}), or null before one exists.
+     *
+     * @return array{id: string, status: string, last4: string|null}|null
+     */
+    private function cardSummary(User $user): ?array
+    {
+        $card = Card::query()
+            ->where('user_id', $user->id)
+            ->where('issuer', 'lepo')
+            ->whereNotIn('status', Card::CLOSED_STATUSES)
+            ->orderByDesc('created_at')
+            ->first();
+
+        return $card === null ? null : ['id' => $card->id, 'status' => $card->status, 'last4' => $card->last4];
     }
 
     /**

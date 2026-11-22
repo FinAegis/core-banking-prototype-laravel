@@ -13623,13 +13623,158 @@
                 ]
             }
         },
+        "/api/v1/cards/issued": {
+            "get": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "The user's cards",
+                "operationId": "v1CardsIssuedIndex",
+                "responses": {
+                    "200": {
+                        "description": "Cards: [{id, provider, status, last4, network, currency, balance_cents, expires_at, frozen, created_at}]"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Get a card",
+                "description": "Creates the user's card. A Lepo card starts as `pending` without a number and opens after the first top-up.",
+                "operationId": "v1CardsIssuedCreate",
+                "responses": {
+                    "201": {
+                        "description": "Card created"
+                    },
+                    "409": {
+                        "description": "ERR_CARDS_024: identity check or funding account not ready; ERR_CARDS_026: the user already has a card"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/cards/issued/{card}": {
+            "get": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "One card",
+                "operationId": "v1CardsIssuedShow",
+                "responses": {
+                    "200": {
+                        "description": "Card"
+                    },
+                    "404": {
+                        "description": "ERR_CARDS_015: card not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/cards/issued/{card}/transactions": {
+            "get": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Card transactions (page from 0, limit up to 50)",
+                "operationId": "v1CardsIssuedTransactions",
+                "responses": {
+                    "200": {
+                        "description": "Transactions {items: [{id, amount, currency, fee, type, status, merchant, merchant_country, occurred_at}], has_more}"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/cards/issued/{card}/freeze": {
+            "post": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Freeze a card",
+                "operationId": "v1CardsIssuedFreeze",
+                "responses": {
+                    "200": {
+                        "description": "Card"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/cards/issued/{card}/unfreeze": {
+            "post": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Unfreeze a card",
+                "operationId": "v1CardsIssuedUnfreeze",
+                "responses": {
+                    "200": {
+                        "description": "Card"
+                    },
+                    "403": {
+                        "description": "ERR_CARDS_021: frozen by support"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/cards/issued/{card}/cancel": {
+            "post": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Cancel a card",
+                "description": "Refused while the card holds any money. A card that was never opened is cancelled at once.",
+                "operationId": "v1CardsIssuedCancel",
+                "responses": {
+                    "200": {
+                        "description": "Card"
+                    },
+                    "409": {
+                        "description": "ERR_CARDS_025: the card still holds money"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/v1/cards/onboarding": {
             "get": {
                 "tags": [
                     "Cards"
                 ],
                 "summary": "Card onboarding state for the current user",
-                "description": "Whether cards are available, the provider, the next step (cardholder, kyc, kyc_review, kyc_action_required, kyc_rejected, funding_pending, ready), the identity-check method (hosted_url or sumsub_sdk) and the deposit networks [{network, asset, default}]. In the steps cardholder, kyc and kyc_action_required it also returns `form` {fields, options, prefill}: the whole cardholder form for a new user, or only the questionnaire while the answers can still be corrected. Field names are the request keys and the keys of 422 validation errors.",
+                "description": "In the steps funding_pending and ready it also returns `card` {id, status, last4} of the current card, or null. Whether cards are available, the provider, the next step (cardholder, kyc, kyc_review, kyc_action_required, kyc_rejected, funding_pending, ready), the identity-check method (hosted_url or sumsub_sdk) and the deposit networks [{network, asset, default}]. In the steps cardholder, kyc and kyc_action_required it also returns `form` {fields, options, prefill}: the whole cardholder form for a new user, or only the questionnaire while the answers can still be corrected. Field names are the request keys and the keys of 422 validation errors.",
                 "operationId": "v1CardsOnboarding",
                 "responses": {
                     "200": {
