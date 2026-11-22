@@ -462,7 +462,9 @@ class AmlScreeningService
             // Use aggregate for event-sourced screenings
             $aggregate = AmlScreeningAggregate::retrieve($aggregateId);
             $aggregate->reviewScreening(
-                reviewedBy: $reviewer->id,
+                // The event stores the id as a string; the projector looks the
+                // reviewer up by id or uuid.
+                reviewedBy: (string) $reviewer->id,
                 decision: $decision,
                 notes: $notes
             );
