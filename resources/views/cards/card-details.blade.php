@@ -35,7 +35,7 @@
                 <div class="row"><div><dt>Expiry date</dt><dd id="card-exp"></dd></div><div class="copy" id="copy-card-exp">Copy</div></div>
                 <div class="row"><div><dt>Security code</dt><dd id="card-cvv"></dd></div><div class="copy" id="copy-card-cvv">Copy</div></div>
             </dl>
-            <p>This page closes its link after you open it. Go back to the app to see the details again.</p>
+            <p>This link works only once. To see the details again, go back to the app.</p>
             <button type="button" class="button" id="done">Done</button>
         </section>
         <section id="failed" hidden>

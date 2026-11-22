@@ -127,6 +127,6 @@ return [
     'ERR_CARDS_022' => ['http' => 403, 'description' => 'Cards are not available for your account yet.'],
     'ERR_CARDS_023' => ['http' => 422, 'description' => 'Cards are not available for this nationality or country yet.'],
     'ERR_CARDS_024' => ['http' => 409, 'description' => 'Finish the earlier steps of the card setup first.'],
-    'ERR_CARDS_025' => ['http' => 409, 'description' => 'This card still holds money, so it cannot be cancelled.'],
+    'ERR_CARDS_025' => ['http' => 409, 'description' => 'This card still holds money, so it cannot be cancelled. Spend the money on the card first.'],
     'ERR_CARDS_026' => ['http' => 409, 'description' => 'You already have a card.'],
 ];
