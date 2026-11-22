@@ -72,7 +72,7 @@ function ghsaAgentsUser(?string $role = null): User
 /**
  * An active Agent Protocol agent with a well-formed DID.
  *
- * @param  array<string, mixed>  $attributes
+ * @param  array<model-property<Agent>, mixed>  $attributes
  */
 function ghsaAgentsAgent(?User $owner = null, array $attributes = []): Agent
 {

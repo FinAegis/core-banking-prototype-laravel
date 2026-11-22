@@ -1103,7 +1103,7 @@ describe('GraphQL mutations on platform records', function (): void {
 });
 
 /**
- * @param  array<string, mixed>  $overrides
+ * @param  array<model-property<Poll>, mixed>  $overrides
  */
 function achPoll(User $creator, array $overrides = []): Poll
 {

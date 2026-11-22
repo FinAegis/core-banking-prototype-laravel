@@ -912,7 +912,7 @@ describe('MPP client spending limits', function (): void {
     }
 
     /**
-     * @param  array<string, mixed>  $attributes
+     * @param  array<model-property<MppSpendingLimit>, mixed>  $attributes
      */
     function acfMppLimit(string $agentId, ?int $teamId, array $attributes = []): MppSpendingLimit
     {

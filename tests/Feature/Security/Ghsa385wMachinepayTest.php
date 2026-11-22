@@ -114,7 +114,7 @@ function ghsaMpX402Payment(?int $teamId, string $amount = '1000000'): X402Paymen
 }
 
 /**
- * @param  array<string, mixed>  $overrides
+ * @param  array<model-property<X402MonetizedEndpoint>, mixed>  $overrides
  */
 function ghsaMpEndpoint(?int $teamId, array $overrides = []): X402MonetizedEndpoint
 {
@@ -133,7 +133,7 @@ function ghsaMpEndpoint(?int $teamId, array $overrides = []): X402MonetizedEndpo
 }
 
 /**
- * @param  array<string, mixed>  $overrides
+ * @param  array<model-property<X402SpendingLimit>, mixed>  $overrides
  */
 function ghsaMpX402Limit(string $agentId, ?int $teamId, ?int $userId, array $overrides = []): X402SpendingLimit
 {
@@ -155,7 +155,7 @@ function ghsaMpX402Limit(string $agentId, ?int $teamId, ?int $userId, array $ove
 }
 
 /**
- * @param  array<string, mixed>  $overrides
+ * @param  array<model-property<MppSpendingLimit>, mixed>  $overrides
  */
 function ghsaMpMppLimit(string $agentId, ?int $teamId, ?int $userId, array $overrides = []): MppSpendingLimit
 {

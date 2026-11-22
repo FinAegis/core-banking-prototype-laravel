@@ -72,7 +72,7 @@ class MultiAssetAccountTest extends TestCase
 
         // The balance attribute should return USD balance
         expect($this->testAccount->balance)->toBe(12345);
-        expect($this->testAccount->toArray()['balance'])->toBe(12345);
+        expect($this->testAccount->toArray())->toHaveKey('balance', 12345);
     }
 
     // Money manipulation methods removed - use event sourcing via WalletService instead

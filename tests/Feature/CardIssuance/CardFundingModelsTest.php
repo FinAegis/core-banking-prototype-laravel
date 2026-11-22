@@ -10,7 +10,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
 /**
- * @param  array<string, mixed>  $overrides
+ * @param  array<model-property<Cardholder>, mixed>  $overrides
  */
 function fundingCardholder(User $user, array $overrides = []): Cardholder
 {

@@ -240,6 +240,7 @@ class BasketValueCalculationServiceTest extends ServiceTestCase
 
         // Deactivate one component
         $gbpComponent = $this->basket->components()->where('asset_code', 'GBP')->first();
+        $this->assertNotNull($gbpComponent);
         $gbpComponent->update(['is_active' => false]);
 
         // Refresh basket to ensure changes are loaded

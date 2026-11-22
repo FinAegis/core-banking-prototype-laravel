@@ -359,6 +359,7 @@ class PasswordResetControllerTest extends ControllerTestCase
 
         $newRememberToken = $this->user->fresh()->remember_token;
         $this->assertNotEquals($oldRememberToken, $newRememberToken);
+        $this->assertIsString($newRememberToken);
         $this->assertEquals(60, strlen($newRememberToken));
     }
 }
