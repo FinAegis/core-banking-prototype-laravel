@@ -6,6 +6,7 @@ use App\Domain\CardIssuance\Models\Card;
 use App\Domain\CardIssuance\Models\CardFundingAccount;
 use App\Domain\CardIssuance\Models\Cardholder;
 use App\Domain\CardIssuance\Models\CardStaffFreeze;
+use App\Http\Controllers\Api\CardIssuance\FinCardCardController;
 use App\Models\User;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -303,7 +304,9 @@ it('never hands a Lepo user to FinCard', function (): void {
     $user = issuedUser();
     $card = issuedCard(issuedCardholder($user));
     Http::fake(['lepo.test/api/v2/cards/777*' => Http::response(issuedLepoCard())]);
-    $this->mock(App\Http\Controllers\Api\CardIssuance\FinCardCardController::class, fn ($mock) => $mock->shouldNotReceive('index', 'show', 'transactions', 'freeze', 'unfreeze', 'cancel', 'sensitive', 'open'));
+    $finCard = Mockery::mock(FinCardCardController::class);
+    $finCard->shouldNotReceive('index', 'show', 'transactions', 'freeze', 'unfreeze', 'cancel', 'sensitive', 'open');
+    app()->instance(FinCardCardController::class, $finCard);
 
     $this->getJson('/api/v1/cards/issued')->assertOk()->assertJsonPath('data.0.id', $card->id);
     $this->getJson("/api/v1/cards/issued/{$card->id}")->assertOk()->assertJsonPath('data.id', $card->id);
