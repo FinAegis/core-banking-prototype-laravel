@@ -180,7 +180,7 @@ class WalletController extends Controller
             function ($transaction) {
                 return [
                     'id'            => $transaction->id,
-                    'created_at'    => $transaction->created_at->toISOString(),
+                    'created_at'    => $transaction->created_at?->toISOString(),
                     'type'          => $this->mapTransactionType($transaction->type),
                     'description'   => $transaction->description,
                     'reference'     => $transaction->reference ?? '',

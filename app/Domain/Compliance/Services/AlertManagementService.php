@@ -763,10 +763,13 @@ class AlertManagementService
             ->get()
             ->groupBy('date')
             ->map(function ($dayAlerts) {
+                // "count" is the selectRaw aggregate, not a model column.
+                $count = static fn (ComplianceAlert $row): int => (int) $row->getAttribute('count');
+
                 return [
-                    'total'       => $dayAlerts->sum('count'),
-                    'by_severity' => $dayAlerts->groupBy('severity')->map->sum('count'),
-                    'by_type'     => $dayAlerts->groupBy('type')->map->sum('count'),
+                    'total'       => $dayAlerts->sum($count),
+                    'by_severity' => $dayAlerts->groupBy('severity')->map(fn ($group) => $group->sum($count)),
+                    'by_type'     => $dayAlerts->groupBy('type')->map(fn ($group) => $group->sum($count)),
                 ];
             })
             ->toArray();

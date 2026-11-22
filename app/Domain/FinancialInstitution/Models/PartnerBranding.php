@@ -113,8 +113,8 @@ class PartnerBranding extends Model
     /**
      * Scope to filter active branding.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param \Illuminate\Database\Eloquent\Builder<self> $query
+     * @return \Illuminate\Database\Eloquent\Builder<self>
      */
     public function scopeActive($query)
     {

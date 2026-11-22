@@ -146,6 +146,8 @@ class Stablecoin extends Model
 
     /**
      * Get all collateral positions for this stablecoin.
+     *
+     * @return HasMany<StablecoinCollateralPosition, $this>
      */
     public function collateralPositions(): HasMany
     {
@@ -156,7 +158,7 @@ class Stablecoin extends Model
      * Get active collateral positions.
      */
     /**
-     * @return HasMany
+     * @return HasMany<StablecoinCollateralPosition, $this>
      */
     public function activePositions(): HasMany
     {

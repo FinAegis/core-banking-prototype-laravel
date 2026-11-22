@@ -280,7 +280,7 @@ class AbiEncoder
 
         for ($i = 0; $i < strlen($hex); $i++) {
             $dec = bcmul($dec, '16', 0);
-            $dec = bcadd($dec, (string) hexdec($hex[$i]), 0);
+            $dec = bcadd($dec, (string) intval($hex[$i], 16), 0);
         }
 
         return $dec;

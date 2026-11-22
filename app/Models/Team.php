@@ -60,7 +60,7 @@ class Team extends JetstreamTeam
      * Team-specific user roles.
      */
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<TeamUserRole, $this>
      */
     public function teamUserRoles()
     {

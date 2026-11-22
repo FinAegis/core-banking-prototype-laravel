@@ -156,7 +156,10 @@ class ExchangeRatesRelationManager extends RelationManager
 
                     Tables\Filters\Filter::make('expired')
                         ->label('Expired')
-                        ->query(fn (Builder $query): Builder => $query->where('expires_at', '<=', now())),
+                        ->query(function (Builder $query): Builder {
+                            /** @var Builder<ExchangeRate> $query */
+                            return $query->where('expires_at', '<=', now());
+                        }),
                 ]
             )
             ->headerActions(

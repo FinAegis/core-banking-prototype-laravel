@@ -71,6 +71,9 @@ class LiquidityPool extends Model
         return $this->hasMany(LiquidityProvider::class, 'pool_id', 'pool_id');
     }
 
+    /**
+     * @return HasMany<PoolSwap, $this>
+     */
     public function swaps(): HasMany
     {
         return $this->hasMany(PoolSwap::class, 'pool_id', 'pool_id');

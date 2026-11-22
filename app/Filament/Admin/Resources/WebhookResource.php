@@ -138,7 +138,10 @@ class WebhookResource extends Resource
                         )
                         ->label('Status'),
                     Tables\Filters\Filter::make('has_failures')
-                        ->query(fn (Builder $query): Builder => $query->where('consecutive_failures', '>', 0))
+                        ->query(function (Builder $query): Builder {
+                            /** @var Builder<Webhook> $query */
+                            return $query->where('consecutive_failures', '>', 0);
+                        })
                         ->label('Has Failures'),
                 ]
             )

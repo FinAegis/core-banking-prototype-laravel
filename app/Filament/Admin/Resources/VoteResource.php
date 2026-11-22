@@ -192,11 +192,17 @@ class VoteResource extends Resource
                         ->preload(),
 
                     Tables\Filters\Filter::make('high_voting_power')
-                        ->query(fn (Builder $query) => $query->where('voting_power', '>', 10))
+                        ->query(function (Builder $query): Builder {
+                            /** @var Builder<Vote> $query */
+                            return $query->where('voting_power', '>', 10);
+                        })
                         ->label('High Voting Power (>10)'),
 
                     Tables\Filters\Filter::make('recent_votes')
-                        ->query(fn (Builder $query) => $query->where('voted_at', '>=', now()->subDays(7)))
+                        ->query(function (Builder $query): Builder {
+                            /** @var Builder<Vote> $query */
+                            return $query->where('voted_at', '>=', now()->subDays(7));
+                        })
                         ->label('Recent Votes (7 days)'),
 
                     Tables\Filters\Filter::make('invalid_votes')

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\BasketAssetResource\RelationManagers;
 
+use App\Domain\Basket\Models\BasketValue;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -71,13 +72,22 @@ class ValuesRelationManager extends RelationManager
             ->filters(
                 [
                     Tables\Filters\Filter::make('last_24_hours')
-                        ->query(fn (Builder $query): Builder => $query->where('calculated_at', '>=', now()->subDay())),
+                        ->query(function (Builder $query): Builder {
+                            /** @var Builder<BasketValue> $query */
+                            return $query->where('calculated_at', '>=', now()->subDay());
+                        }),
 
                     Tables\Filters\Filter::make('last_7_days')
-                        ->query(fn (Builder $query): Builder => $query->where('calculated_at', '>=', now()->subWeek())),
+                        ->query(function (Builder $query): Builder {
+                            /** @var Builder<BasketValue> $query */
+                            return $query->where('calculated_at', '>=', now()->subWeek());
+                        }),
 
                     Tables\Filters\Filter::make('last_30_days')
-                        ->query(fn (Builder $query): Builder => $query->where('calculated_at', '>=', now()->subMonth())),
+                        ->query(function (Builder $query): Builder {
+                            /** @var Builder<BasketValue> $query */
+                            return $query->where('calculated_at', '>=', now()->subMonth());
+                        }),
                 ]
             )
             ->defaultSort('calculated_at', 'desc')

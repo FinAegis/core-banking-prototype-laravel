@@ -289,7 +289,7 @@ class Account extends Model
      * Get transactions from the transaction projection table.
      */
     /**
-     * @return HasMany
+     * @return HasMany<TransactionProjection, $this>
      */
     public function transactions()
     {

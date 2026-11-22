@@ -110,8 +110,8 @@ class AiPromptTemplate extends Model
     /**
      * Scope to filter active templates.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param \Illuminate\Database\Eloquent\Builder<self> $query
+     * @return \Illuminate\Database\Eloquent\Builder<self>
      */
     public function scopeActive($query)
     {
@@ -121,9 +121,9 @@ class AiPromptTemplate extends Model
     /**
      * Scope to filter by category.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Illuminate\Database\Eloquent\Builder<self> $query
      * @param string $category
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return \Illuminate\Database\Eloquent\Builder<self>
      */
     public function scopeCategory($query, string $category)
     {

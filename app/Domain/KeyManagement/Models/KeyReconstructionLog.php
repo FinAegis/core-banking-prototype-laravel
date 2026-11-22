@@ -25,10 +25,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  *
- * @method static \Illuminate\Database\Eloquent\Builder|static query()
- * @method static \Illuminate\Database\Eloquent\Builder|static forUser(string $userUuid)
- * @method static \Illuminate\Database\Eloquent\Builder|static successful()
- * @method static \Illuminate\Database\Eloquent\Builder|static failed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static> query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static> forUser(string $userUuid)
+ * @method static \Illuminate\Database\Eloquent\Builder<static> successful()
+ * @method static \Illuminate\Database\Eloquent\Builder<static> failed()
  */
 class KeyReconstructionLog extends Model
 {

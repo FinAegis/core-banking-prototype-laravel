@@ -50,8 +50,8 @@ class GcuTradingController extends Controller
         $gcuBalance = 0;
         $usdBalance = 0;
 
-        if ($accounts->count() > 0) {
-            $mainAccount = $accounts->first();
+        $mainAccount = $accounts->first();
+        if ($mainAccount !== null) {
             $gcuBalance = $mainAccount->getBalance('GCU');
             $usdBalance = $mainAccount->getBalance('USD');
         }

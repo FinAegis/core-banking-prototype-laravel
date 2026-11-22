@@ -229,11 +229,17 @@ class ExchangeRateResource extends Resource
 
                     Tables\Filters\Filter::make('expired')
                         ->label('Expired')
-                        ->query(fn (Builder $query): Builder => $query->where('expires_at', '<=', now())),
+                        ->query(function (Builder $query): Builder {
+                            /** @var Builder<ExchangeRate> $query */
+                            return $query->where('expires_at', '<=', now());
+                        }),
 
                     Tables\Filters\Filter::make('stale')
                         ->label('Stale (>24h)')
-                        ->query(fn (Builder $query): Builder => $query->where('valid_at', '<=', now()->subDay())),
+                        ->query(function (Builder $query): Builder {
+                            /** @var Builder<ExchangeRate> $query */
+                            return $query->where('valid_at', '<=', now()->subDay());
+                        }),
                 ]
             )
             ->actions(

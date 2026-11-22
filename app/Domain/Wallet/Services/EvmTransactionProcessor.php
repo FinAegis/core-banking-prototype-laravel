@@ -199,7 +199,7 @@ class EvmTransactionProcessor
         $decimal = '0';
 
         foreach (str_split($hex) as $nibble) {
-            $decimal = bcadd(bcmul($decimal, '16'), (string) hexdec($nibble));
+            $decimal = bcadd(bcmul($decimal, '16'), (string) intval($nibble, 16));
         }
 
         return $decimal;

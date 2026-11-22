@@ -127,7 +127,7 @@ class BlockchainWalletController extends Controller
         }
 
         $wallet = $this->walletService->createWallet(
-            userId: $request->user()->id,
+            userId: (string) $request->user()->id,
             type: $validated['type'],
             mnemonic: $validated['mnemonic'] ?? null,
             settings: $validated['settings'] ?? []

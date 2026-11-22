@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\AssetResource\Pages;
 
+use App\Domain\Asset\Models\Asset;
 use App\Filament\Admin\Resources\AssetResource;
 use Filament\Actions;
 use Filament\Resources\Components\Tab;
@@ -32,22 +33,25 @@ class ListAssets extends ListRecords
             'fiat' => Tab::make('Fiat Currencies')
                 ->icon('heroicon-m-banknotes')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('type', 'fiat'))
-                ->badge(fn () => \App\Domain\Asset\Models\Asset::where('type', 'fiat')->count()),
+                ->badge(fn () => Asset::where('type', 'fiat')->count()),
 
             'crypto' => Tab::make('Cryptocurrencies')
                 ->icon('heroicon-m-cpu-chip')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('type', 'crypto'))
-                ->badge(fn () => \App\Domain\Asset\Models\Asset::where('type', 'crypto')->count()),
+                ->badge(fn () => Asset::where('type', 'crypto')->count()),
 
             'commodity' => Tab::make('Commodities')
                 ->icon('heroicon-m-cube')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('type', 'commodity'))
-                ->badge(fn () => \App\Domain\Asset\Models\Asset::where('type', 'commodity')->count()),
+                ->badge(fn () => Asset::where('type', 'commodity')->count()),
 
             'active' => Tab::make('Active')
                 ->icon('heroicon-m-check-circle')
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('is_active', true))
-                ->badge(fn () => \App\Domain\Asset\Models\Asset::where('is_active', true)->count()),
+                ->modifyQueryUsing(function (Builder $query): Builder {
+                    /** @var Builder<Asset> $query */
+                    return $query->where('is_active', true);
+                })
+                ->badge(fn () => Asset::where('is_active', true)->count()),
         ];
     }
 }

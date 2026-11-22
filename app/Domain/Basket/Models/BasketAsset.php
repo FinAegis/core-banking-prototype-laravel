@@ -74,6 +74,8 @@ class BasketAsset extends Model
 
     /**
      * Get the components of this basket.
+     *
+     * @return HasMany<BasketComponent, $this>
      */
     public function components(): HasMany
     {
@@ -102,6 +104,8 @@ class BasketAsset extends Model
 
     /**
      * Get the performance records of this basket.
+     *
+     * @return HasMany<BasketPerformance, $this>
      */
     public function performances(): HasMany
     {

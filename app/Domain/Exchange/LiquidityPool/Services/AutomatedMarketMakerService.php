@@ -230,16 +230,18 @@ class AutomatedMarketMakerService
 
         // Calculate price changes
         $priceChanges = [];
-        for ($i = 1; $i < $recentSwaps->count(); $i++) {
-            $prevPrice = BigDecimal::of($recentSwaps[$i - 1]->execution_price);
-            $currPrice = BigDecimal::of($recentSwaps[$i]->execution_price);
+        $prevPrice = null;
+        foreach ($recentSwaps as $swap) {
+            $currPrice = BigDecimal::of($swap->execution_price);
 
-            if (! $prevPrice->isZero()) {
+            if ($prevPrice !== null && ! $prevPrice->isZero()) {
                 $change = $currPrice->minus($prevPrice)
                     ->dividedBy($prevPrice, 18, RoundingMode::HALF_UP)
                     ->abs();
                 $priceChanges[] = $change;
             }
+
+            $prevPrice = $currPrice;
         }
 
         if (empty($priceChanges)) {

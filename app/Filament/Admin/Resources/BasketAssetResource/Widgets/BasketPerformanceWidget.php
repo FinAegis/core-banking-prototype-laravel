@@ -153,14 +153,7 @@ class BasketPerformanceWidget extends BaseWidget
                         ->color('primary')
                         ->action(
                             function () {
-                                $service = app(BasketPerformanceService::class);
-                                if ($service !== null) {
-                                    if ($service !== null) {
-                                        if ($service !== null) {
-                                            $performances = $service->calculateAllPeriods($this->record);
-                                        }
-                                    }
-                                }
+                                $performances = app(BasketPerformanceService::class)->calculateAllPeriods($this->record);
 
                                 $this->dispatch(
                                     'notify',

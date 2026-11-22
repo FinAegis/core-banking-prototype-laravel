@@ -28,10 +28,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon|null $deleted_at
  *
- * @method static \Illuminate\Database\Eloquent\Builder|static query()
- * @method static \Illuminate\Database\Eloquent\Builder|static forUser(string $userUuid)
- * @method static \Illuminate\Database\Eloquent\Builder|static active()
- * @method static \Illuminate\Database\Eloquent\Builder|static ofType(ShardType $type)
+ * @method static \Illuminate\Database\Eloquent\Builder<static> query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static> forUser(string $userUuid)
+ * @method static \Illuminate\Database\Eloquent\Builder<static> active()
+ * @method static \Illuminate\Database\Eloquent\Builder<static> ofType(ShardType $type)
  */
 class KeyShardRecord extends Model
 {
