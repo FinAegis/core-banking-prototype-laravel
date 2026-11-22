@@ -7,6 +7,9 @@ namespace App\Domain\Compliance\Services;
 use App\Domain\Account\Models\BlockchainAddress;
 use App\Domain\Account\Models\TransactionProjection;
 use App\Domain\Auth\Services\PrivyEmailOtpClient;
+use App\Domain\CardIssuance\Models\CardDepositAddress;
+use App\Domain\CardIssuance\Models\CardFundingAccount;
+use App\Domain\CardIssuance\Models\Cardholder;
 use App\Domain\Compliance\Kyc\Models\BridgeCustomer;
 use App\Domain\Compliance\Models\AuditLog;
 use App\Domain\Mobile\Models\BiometricChallenge;
@@ -85,6 +88,8 @@ class GdprService
         'subscription_consent_log',
         'trial_card_fingerprints',
         'cues',
+        // Cards: the cardholder record given to the card provider (v7.18+)
+        'cardholders',
         // Bridge.xyz ramp (v7.15+)
         'bridge_customers',
         'ramp_sessions',
@@ -145,7 +150,7 @@ class GdprService
         'card_transactions'            => self::EXCL_LEGACY,
         'card_waitlist'                => self::EXCL_LEGACY,
         'card_waitlist_deposits'       => self::EXCL_LEGACY,
-        'cardholders'                  => self::EXCL_LEGACY,
+        'card_funding_accounts'        => 'Card funding account at the card provider (Lepo): status, currency and balance of the money loaded for cards. A financial-account record retained under Art. 17(3)(b); no direct identifiers beyond the user FK and the provider account id. Exported with the cardholder data.',
         'cards'                        => self::EXCL_LEGACY,
         'certificates'                 => self::EXCL_LEGACY,
         'cgo_investments'              => self::EXCL_LEGACY,
@@ -284,6 +289,7 @@ class GdprService
             'mobile_payments' => $this->getMobilePaymentData($user),
             'devices'         => $this->getDeviceData($user),
             'api_usage'       => $this->getApiUsageData($user),
+            'cards'           => $this->getCardData($user),
         ];
     }
 
@@ -346,6 +352,10 @@ class GdprService
                 );
             }
         );
+
+        // Card data lives on the tenant connection, so it is erased after the
+        // default-connection transaction above, never inside it.
+        $this->eraseCardData($user);
     }
 
     /**
@@ -971,6 +981,94 @@ class GdprService
     /**
      * Erase Bridge.xyz ramp personal data while preserving financial records.
      */
+    /**
+     * Card data: what the user gave the card provider to become a cardholder,
+     * and the funding accounts their cards are loaded from.
+     *
+     * Field choices: the issuer ids are included (the user's reference at the
+     * card provider); the provider's raw payloads are not stored, so nothing
+     * else is omitted.
+     *
+     * @return array<string, mixed>
+     */
+    protected function getCardData(User $user): array
+    {
+        return [
+            'cardholders' => Cardholder::query()->where('user_id', $user->id)->get()->map(
+                function (Cardholder $cardholder): array {
+                    $verification = is_array($cardholder->verification_data) ? $cardholder->verification_data : [];
+
+                    return [
+                        'provider'             => $cardholder->provider,
+                        'issuer_cardholder_id' => $cardholder->issuer_cardholder_id,
+                        'first_name'           => $cardholder->first_name,
+                        'last_name'            => $cardholder->last_name,
+                        'email'                => $cardholder->email,
+                        'phone'                => $cardholder->phone,
+                        'date_of_birth'        => $verification['date_of_birth'] ?? null,
+                        'nationality'          => $verification['nationality'] ?? null,
+                        'questionnaire'        => $verification['questionnaire'] ?? null,
+                        'address'              => [
+                            'line1'       => $cardholder->shipping_address_line1,
+                            'line2'       => $cardholder->shipping_address_line2,
+                            'city'        => $cardholder->shipping_city,
+                            'state'       => $cardholder->shipping_state,
+                            'postal_code' => $cardholder->shipping_postal_code,
+                            'country'     => $cardholder->shipping_country,
+                        ],
+                        'kyc_status'  => $cardholder->kyc_status,
+                        'verified_at' => $cardholder->verified_at,
+                        'created_at'  => $cardholder->created_at,
+                    ];
+                }
+            )->all(),
+            'funding_accounts' => CardFundingAccount::query()->where('user_id', $user->id)->with('depositAddresses')->get()->map(
+                fn (CardFundingAccount $account): array => [
+                    'provider'            => $account->provider,
+                    'provider_account_id' => $account->provider_account_id,
+                    'status'              => $account->status,
+                    'currency'            => $account->currency,
+                    'balance_cents'       => $account->balance_cents,
+                    'deposit_addresses'   => $account->depositAddresses->map(
+                        fn (CardDepositAddress $address): array => [
+                            'network' => $address->network,
+                            'asset'   => $address->asset,
+                            'address' => $address->address,
+                        ]
+                    )->all(),
+                    'created_at' => $account->created_at,
+                ]
+            )->all(),
+        ];
+    }
+
+    /**
+     * Erase what the user gave the card provider while keeping the provider
+     * record traceable.
+     */
+    protected function eraseCardData(User $user): void
+    {
+        // cardholders: name, contact details, address, date of birth,
+        // nationality and questionnaire answers are erased (Art. 17(1)). The
+        // provider and its cardholder id stay, because cards and the money on
+        // them remain at the card provider (Art. 17(3)(b)); the provider keeps
+        // its own statutory KYC records as a controller.
+        Cardholder::query()->where('user_id', $user->id)->update([
+            'first_name'             => 'Erased',
+            'last_name'              => 'Erased',
+            'email'                  => null,
+            'phone'                  => null,
+            'kyc_rejection_reason'   => null,
+            'shipping_address_line1' => null,
+            'shipping_address_line2' => null,
+            'shipping_city'          => null,
+            'shipping_state'         => null,
+            'shipping_postal_code'   => null,
+            'shipping_country'       => null,
+            'verification_data'      => null,
+        ]);
+    }
+
     protected function eraseBridgeData(User $user): void
     {
         // bridge_customers: pure identity/KYC-link record (1:1 with the user,

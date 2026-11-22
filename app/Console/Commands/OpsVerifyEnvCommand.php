@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Domain\CardIssuance\Providers\CardProviderSelector;
 use App\Domain\Wallet\Services\Send\SolanaSponsorSigner;
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Application;
@@ -337,11 +338,13 @@ class OpsVerifyEnvCommand extends Command
      */
     private function checkLepoCardProvider(): void
     {
-        $inUse = $this->configString('cardissuance.default_issuer') === 'lepo'
+        $enabled = in_array('lepo', CardProviderSelector::listFromConfig('cardissuance.providers.enabled'), true);
+        $inUse = $enabled
+            || $this->configString('cardissuance.default_issuer') === 'lepo'
             || $this->configString('cardissuance.issuers.lepo.api_key') !== '';
 
         if (! $inUse) {
-            $this->add(self::CATEGORY_CONDITIONAL, 'cards.lepo', self::SKIP, 'Lepo is not the card issuer (CARD_ISSUER) and LEPO_API_KEY is empty.');
+            $this->add(self::CATEGORY_CONDITIONAL, 'cards.lepo', self::SKIP, 'Lepo is not an enabled card provider (CARD_PROVIDERS_ENABLED) nor the card issuer (CARD_ISSUER), and LEPO_API_KEY is empty.');
 
             return;
         }
@@ -367,6 +370,16 @@ class OpsVerifyEnvCommand extends Command
 
         if ($this->configString('cardissuance.issuers.lepo.card_type_id_virtual') === '') {
             $this->add(self::CATEGORY_CONDITIONAL, 'cards.lepo', self::WARN, 'LEPO_CARD_TYPE_ID_VIRTUAL is empty, so virtual cards cannot be opened. Set it to the consumer virtual card type of the Lepo tier.');
+
+            return;
+        }
+
+        $emptyPilot = $enabled
+            && (bool) config('cardissuance.providers.lepo_pilot_only', true)
+            && CardProviderSelector::listFromConfig('cardissuance.providers.lepo_pilot_users') === [];
+
+        if ($emptyPilot) {
+            $this->add(self::CATEGORY_CONDITIONAL, 'cards.lepo', self::WARN, 'Lepo cards are on in pilot mode but CARD_PROVIDER_LEPO_PILOT_USERS is empty, so nobody can get a card. Add the pilot users or set CARD_PROVIDER_LEPO_PILOT_ONLY=false.');
 
             return;
         }

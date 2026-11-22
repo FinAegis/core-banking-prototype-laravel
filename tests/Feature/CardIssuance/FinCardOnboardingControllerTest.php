@@ -41,6 +41,10 @@ function validFinCardCardholderBody(array $overrides = []): array
 }
 
 beforeEach(function () {
+    // These tests cover a deployment whose card provider is FinCard (the
+    // default provider is Lepo since the provider-neutral onboarding).
+    config(['cardissuance.providers.enabled' => 'fincard', 'cardissuance.providers.default' => 'fincard']);
+
     config(['cache.default' => 'array']);
     Cache::flush();
 

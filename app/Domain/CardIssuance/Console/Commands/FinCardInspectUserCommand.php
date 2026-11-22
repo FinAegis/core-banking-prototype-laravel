@@ -55,6 +55,7 @@ final class FinCardInspectUserCommand extends Command
         $this->line('<comment>Cardholder (KYC)</comment>');
         $cardholder = Cardholder::query()
             ->where('user_id', $user->id)
+            ->where(static fn ($query) => $query->where('provider', 'fincard')->orWhereNull('provider'))
             ->whereNotNull('issuer_cardholder_id')
             ->first();
 

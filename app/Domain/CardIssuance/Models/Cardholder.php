@@ -9,12 +9,14 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Persistent cardholder model linked to KYC verification.
  *
  * @property string $id
  * @property string $user_id
+ * @property string|null $provider
  * @property string $first_name
  * @property string $last_name
  * @property string|null $email
@@ -43,6 +45,7 @@ class Cardholder extends Model
 
     protected $fillable = [
         'user_id',
+        'provider',
         'first_name',
         'last_name',
         'email',
@@ -96,6 +99,14 @@ class Cardholder extends Model
     public function cards(): HasMany
     {
         return $this->hasMany(Card::class);
+    }
+
+    /**
+     * @return HasOne<CardFundingAccount, $this>
+     */
+    public function fundingAccount(): HasOne
+    {
+        return $this->hasOne(CardFundingAccount::class);
     }
 
     public function getShippingAddress(): string

@@ -151,3 +151,16 @@ it('asks for the first page of card transactions as page zero', function (): voi
 
     Http::assertSent(fn (Request $request): bool => str_contains($request->url(), 'page=0'));
 });
+
+it('finds a user by our external id', function (): void {
+    Http::fake(['lepo.test/*' => Http::response(['users' => [['id' => 7, 'externalUserId' => 'ext-1']], 'total' => 1])]);
+
+    expect(LepoClient::fromConfig()->findUserByExternalId('ext-1'))->toBe(['id' => 7, 'externalUserId' => 'ext-1']);
+    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), 'externalUserId=ext-1'));
+});
+
+it('returns null when no user has our external id', function (): void {
+    Http::fake(['lepo.test/*' => Http::response(['users' => [], 'total' => 0])]);
+
+    expect(LepoClient::fromConfig()->findUserByExternalId('ext-2'))->toBeNull();
+});

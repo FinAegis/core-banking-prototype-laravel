@@ -82,6 +82,7 @@ class FinCardCardholderServiceTest extends TestCase
         ], ['forwarded_for' => '203.0.113.4', 'platform' => 'ios', 'device_id' => 'd1']);
 
         $this->assertSame('h-123', $cardholder->issuer_cardholder_id);
+        $this->assertSame('fincard', $cardholder->provider);
         $this->assertSame('in_review', $cardholder->kyc_status);
         $this->assertSame('admin', $cardholder->kyc_stage);
         $this->assertSame((int) $user->id, (int) $cardholder->user_id);
