@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\CardIssuance\CardController;
 use App\Http\Controllers\Api\CardIssuance\CardholderController;
 use App\Http\Controllers\Api\CardIssuance\CardIssuedController;
 use App\Http\Controllers\Api\CardIssuance\CardOnboardingController;
+use App\Http\Controllers\Api\CardIssuance\CardTopUpController;
 use App\Http\Controllers\Api\CardIssuance\CardTransactionWebhookController;
 use App\Http\Controllers\Api\CardIssuance\FinCardAccountController;
 use App\Http\Controllers\Api\CardIssuance\FinCardCardController;
@@ -86,10 +87,16 @@ Route::prefix('v1/cards')->name('api.cards.fincard.')
             Route::get('/{card}', [CardIssuedController::class, 'show'])->name('show');
             Route::get('/{card}/transactions', [CardIssuedController::class, 'transactions'])->name('transactions');
             Route::get('/{card}/sensitive', [CardIssuedController::class, 'sensitive'])->name('sensitive');
+            Route::get('/{card}/topups/estimate', [CardTopUpController::class, 'estimate'])->name('topups.estimate');
+            Route::get('/{card}/topups', [CardTopUpController::class, 'index'])->name('topups.index');
+            Route::get('/{card}/topups/{topup}', [CardTopUpController::class, 'show'])->name('topups.show');
             Route::middleware(['idempotency.required', 'api.rate_limit:mutation'])->group(function (): void {
                 Route::post('/{card}/freeze', [CardIssuedController::class, 'freeze'])->name('freeze');
                 Route::post('/{card}/unfreeze', [CardIssuedController::class, 'unfreeze'])->name('unfreeze');
                 Route::post('/{card}/cancel', [CardIssuedController::class, 'cancel'])->name('cancel');
+                Route::post('/{card}/topups', [CardTopUpController::class, 'store'])->name('topups.store');
+                Route::patch('/{card}/topups/{topup}', [CardTopUpController::class, 'update'])->name('topups.update');
+                Route::post('/{card}/topups/{topup}/cancel', [CardTopUpController::class, 'cancel'])->name('topups.cancel');
             });
         });
 

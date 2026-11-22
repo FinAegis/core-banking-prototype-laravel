@@ -13902,6 +13902,137 @@
                 ]
             }
         },
+        "/api/v1/cards/issued/{card}/topups/estimate": {
+            "get": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Estimate a top-up",
+                "description": "Query: amount (USDC, decimal string) and network. Returns {amount, asset, network, credited_cents, fee_cents, issuance_fee_cents, min_amount, max_amount}.",
+                "operationId": "v1CardsTopUpEstimate",
+                "responses": {
+                    "200": {
+                        "description": "Estimate"
+                    },
+                    "503": {
+                        "description": "ERR_CARDS_027: top-ups are not available yet"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/cards/issued/{card}/topups": {
+            "get": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "The card's top-ups, newest first (page from 0)",
+                "operationId": "v1CardsTopUpIndex",
+                "responses": {
+                    "200": {
+                        "description": "Top-ups {items, has_more, page}"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Start a top-up",
+                "description": "Body: {amount (USDC decimal string), asset: USDC, network}. Returns the top-up with the deposit address to send USDC to.",
+                "operationId": "v1CardsTopUpStart",
+                "responses": {
+                    "201": {
+                        "description": "Top-up {id, card_id, source, status, amount, asset, network, deposit_address, tx_hash, credited_cents, fee_cents, issuance_fee_cents, expires_at, created_at, completed_at}"
+                    },
+                    "409": {
+                        "description": "ERR_CARDS_030: card cannot be topped up; ERR_CARDS_031: another top-up is in progress"
+                    },
+                    "422": {
+                        "description": "ERR_CARDS_028: amount outside the limits (with min_amount, max_amount); ERR_CARDS_029: network not supported"
+                    },
+                    "503": {
+                        "description": "ERR_CARDS_027: top-ups are not available yet"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/cards/issued/{card}/topups/{topup}": {
+            "get": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "One top-up",
+                "operationId": "v1CardsTopUpShow",
+                "responses": {
+                    "200": {
+                        "description": "Top-up"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Report the wallet transaction hash",
+                "description": "Body: {tx_hash}. Optional; recorded once.",
+                "operationId": "v1CardsTopUpTxHash",
+                "responses": {
+                    "200": {
+                        "description": "Top-up"
+                    },
+                    "409": {
+                        "description": "ERR_CARDS_032: the top-up can no longer be changed"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/cards/issued/{card}/topups/{topup}/cancel": {
+            "post": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Cancel a top-up that has no deposit yet",
+                "operationId": "v1CardsTopUpCancel",
+                "responses": {
+                    "200": {
+                        "description": "Top-up"
+                    },
+                    "409": {
+                        "description": "ERR_CARDS_032: the top-up can no longer be changed"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/webhooks/card-issuer/transaction": {
             "post": {
                 "tags": [

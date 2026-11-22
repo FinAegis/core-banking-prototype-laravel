@@ -134,6 +134,6 @@ return [
     'ERR_CARDS_029' => ['http' => 422, 'description' => 'This network is not supported for top-ups.'],
     'ERR_CARDS_030' => ['http' => 409, 'description' => 'This card cannot be topped up.'],
     'ERR_CARDS_031' => ['http' => 409, 'description' => 'Another top-up is still in progress.'],
-    'ERR_CARDS_032' => ['http' => 409, 'description' => 'This top-up can no longer be cancelled.'],
+    'ERR_CARDS_032' => ['http' => 409, 'description' => 'This top-up can no longer be changed.'],
     'ERR_CARDS_033' => ['http' => 404, 'description' => 'No verification code is waiting.'],
 ];

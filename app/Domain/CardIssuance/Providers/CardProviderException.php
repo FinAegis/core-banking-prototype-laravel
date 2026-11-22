@@ -38,6 +38,16 @@ final class CardProviderException extends RuntimeException
         return new self('The card still holds money, so it cannot be cancelled.', 'holds_money');
     }
 
+    /**
+     * A top-up the request cannot start or change: topups_disabled,
+     * amount_out_of_range, network_unsupported, card_unavailable,
+     * topup_in_progress or not_cancellable.
+     */
+    public static function topUp(string $reason): self
+    {
+        return new self("The top-up was refused: {$reason}.", $reason);
+    }
+
     public static function providerUnavailable(string $provider, ?string $code): self
     {
         $label = $code !== null && $code !== '' ? " [{$code}]" : '';
