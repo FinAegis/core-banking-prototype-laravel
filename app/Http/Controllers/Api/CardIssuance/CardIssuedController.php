@@ -109,7 +109,7 @@ final class CardIssuedController extends Controller
     }
 
     #[OA\Get(path: '/api/v1/cards/issued/{card}/transactions', operationId: 'v1CardsIssuedTransactions', tags: ['Cards'], summary: 'Card transactions (page from 0, limit up to 50)', security: [['sanctum' => []]])]
-    #[OA\Response(response: 200, description: 'Transactions {items: [{id, amount, currency, fee, type, status, merchant, merchant_country, occurred_at}], has_more, page, total}')]
+    #[OA\Response(response: 200, description: 'Transactions {items: [{id, type (payment|refund|top_up|withdrawal|fee|other), direction (debit|credit), amount (positive, 2 decimals), currency, fee, status (pending|completed|failed|cancelled|unknown), merchant, merchant_country, occurred_at, provider_type}], has_more, page, total}')]
     public function transactions(Request $request, string $card): JsonResponse
     {
         return $this->withCard($request, $card, 'transactions', function (Card $owned) use ($request): JsonResponse {

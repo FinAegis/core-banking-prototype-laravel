@@ -281,11 +281,13 @@ it('pages transactions', function (): void {
 
     $this->getJson("/api/v1/cards/issued/{$card->id}/transactions?page=1&limit=5")
         ->assertOk()
-        ->assertJsonPath('data.items.0.amount', '-5.00')
+        ->assertJsonPath('data.items.0.amount', '5.00')
+        ->assertJsonPath('data.items.0.direction', 'debit')
         ->assertJsonPath('data.has_more', true)
         ->assertJsonPath('data.page', 1)
         ->assertJsonPath('data.total', 11);
-    Http::assertSent(fn (Request $r): bool => str_contains($r->url(), 'page=1') && str_contains($r->url(), 'limit=5'));
+    // Our pages count from 0, Lepo's from 1.
+    Http::assertSent(fn (Request $r): bool => str_contains($r->url(), 'page=2') && str_contains($r->url(), 'limit=5'));
 });
 
 it('keeps FinCard users on FinCard', function (): void {
