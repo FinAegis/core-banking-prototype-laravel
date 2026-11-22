@@ -31,7 +31,7 @@ function hostedCardholder(string $status = 'pending', string $provider = 'lepo')
 
 function hostedLink(Cardholder $cardholder, int $minutes = 30): string
 {
-    return URL::temporarySignedRoute('cards.kyc.hosted', now()->addMinutes($minutes), ['cardholder' => $cardholder->id]);
+    return URL::temporarySignedRoute('cards.kyc.hosted', now()->addMinutes($minutes), ['cardholder' => $cardholder->id], absolute: false);
 }
 
 it('opens the SumSub identity check with a fresh Lepo token', function (): void {
@@ -61,10 +61,21 @@ it('gives the page a signed link to renew the token', function (): void {
     Http::fake(['lepo.test/api/v2/users/12345/sumsub/kyc-url' => Http::response(['success' => true, 'accessToken' => 'renewed-token'])]);
     $cardholder = hostedCardholder();
 
-    $refresh = URL::temporarySignedRoute('cards.kyc.hosted.token', now()->addMinutes(60), ['cardholder' => $cardholder->id]);
+    $refresh = URL::temporarySignedRoute('cards.kyc.hosted.token', now()->addMinutes(60), ['cardholder' => $cardholder->id], absolute: false);
 
     $this->getJson($refresh)->assertOk()->assertExactJson(['token' => 'renewed-token']);
     $this->getJson(route('cards.kyc.hosted.token', ['cardholder' => $cardholder->id]))->assertForbidden();
+});
+
+it('accepts the link the API hands out whatever host or scheme reaches the page', function (): void {
+    Http::fake(['lepo.test/api/v2/users/12345/sumsub/kyc-url' => Http::response(['success' => true, 'accessToken' => 'web-token'])]);
+    $cardholder = hostedCardholder();
+    $url = (string) app(App\Domain\CardIssuance\Providers\Lepo\LepoCardOnboarding::class)->startKyc($cardholder)->url;
+
+    $path = (string) parse_url($url, PHP_URL_PATH) . '?' . (string) parse_url($url, PHP_URL_QUERY);
+    expect($url)->toStartWith('http')
+        ->and($this->get('https://zelta.app' . $path)->status())->toBe(200)
+        ->and($this->get('http://proxy.internal' . $path)->status())->toBe(200);
 });
 
 it('refuses a link that is expired or not signed', function (): void {

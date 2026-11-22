@@ -64,7 +64,7 @@ Route::get('/cards/kyc/{cardholder}', [App\Http\Controllers\Web\Cards\HostedKycC
     ->name('cards.kyc.hosted');
 Route::get('/cards/kyc/{cardholder}/token', [App\Http\Controllers\Web\Cards\HostedKycController::class, 'token'])
     ->whereUuid('cardholder')
-    ->middleware(['signed', 'throttle:20,1'])
+    ->middleware(['signed:relative', 'throttle:20,1'])
     ->name('cards.kyc.hosted.token');
 
 // Applies a profile email change from the signed link sent to the new address.

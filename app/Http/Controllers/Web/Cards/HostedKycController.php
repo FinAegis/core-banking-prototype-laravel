@@ -30,7 +30,7 @@ final class HostedKycController extends Controller
 
     public function show(Request $request, string $cardholder): Response
     {
-        if (! $request->hasValidSignature()) {
+        if (! $request->hasValidRelativeSignature()) {
             return $this->page('expired', 403);
         }
 
@@ -47,7 +47,7 @@ final class HostedKycController extends Controller
 
         return $this->page('ready', 200, [
             'token'      => $token,
-            'refreshUrl' => URL::temporarySignedRoute('cards.kyc.hosted.token', now()->addMinutes(60), ['cardholder' => $holder->id]),
+            'refreshUrl' => URL::temporarySignedRoute('cards.kyc.hosted.token', now()->addMinutes(60), ['cardholder' => $holder->id], absolute: false),
         ]);
     }
 

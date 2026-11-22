@@ -133,12 +133,11 @@ final class LepoCardOnboarding implements CardOnboardingProvider
             // link costs nothing and an expired token is never handed out.
             $expires = now()->addMinutes(max(5, (int) config('cardissuance.providers.kyc_link_minutes', 30)));
 
-            return new KycStart(
-                'hosted_url',
-                null,
-                URL::temporarySignedRoute('cards.kyc.hosted', $expires, ['cardholder' => $cardholder->id]),
-                $expires->toIso8601String(),
-            );
+            // Only the path is signed, so a proxy or a scheme change between
+            // the API and the page cannot break the signature.
+            $path = URL::temporarySignedRoute('cards.kyc.hosted', $expires, ['cardholder' => $cardholder->id], absolute: false);
+
+            return new KycStart('hosted_url', null, url($path), $expires->toIso8601String());
         }
 
         $response = $this->call(fn (): array => $this->client->createSumsubAccessToken($this->lepoUserId($cardholder), $this->questionnaireOf($cardholder)));
