@@ -228,6 +228,22 @@ final class LepoCardLifecycle
      */
     public function cancel(Card $card): Card
     {
+        // Never while a top-up moves money for this user: a load landing
+        // between the balance check and the delete would be lost.
+        $lock = Cache::lock(LepoTopUpPipeline::moneyLockKey((int) $card->user_id), 120);
+        if (! $lock->get()) {
+            throw CardProviderException::providerUnavailable('lepo', 'MONEY_OPERATION_IN_PROGRESS');
+        }
+
+        try {
+            return $this->cancelUnlocked($card);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private function cancelUnlocked(Card $card): Card
+    {
         $live = $this->live($card);
         $balance = $live['balance'] ?? null;
         if (! is_array($balance)) {
