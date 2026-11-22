@@ -58,7 +58,7 @@ jobs:
           
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -76,7 +76,7 @@ jobs:
         run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
         
       - name: Cache Dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
@@ -127,7 +127,7 @@ jobs:
         # unseen (the previous `|| true` suffixes meant this workflow could
         # never fail at all). File/refresh a tracking issue instead.
         if: failure() && github.event_name == 'schedule'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const title = 'Nightly slow-test suite failed';

@@ -48,7 +48,7 @@ jobs:
             description: '@finaegis/mcp — stdio relay so Claude Desktop / Cursor / Continue.dev can talk to the Zelta MCP server'
     steps:
       - name: Checkout (full history, no default credentials)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
