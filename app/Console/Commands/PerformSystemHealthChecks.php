@@ -234,15 +234,8 @@ class PerformSystemHealthChecks extends Command
             $total = disk_total_space($disk);
             $usedPercentage = round(($total - $free) / $total * 100, 2);
 
-            $status = 'operational';
-            if ($usedPercentage > 90) {
-                $status = 'degraded';
-            } elseif ($usedPercentage > 95) {
-                $status = 'down';
-            }
-
             return [
-                'status'   => $status,
+                'status'   => $this->storageStatus($usedPercentage),
                 'metadata' => [
                     'disk_usage_percent' => $usedPercentage,
                     'free_space_gb'      => round($free / 1024 / 1024 / 1024, 2),
@@ -254,6 +247,16 @@ class PerformSystemHealthChecks extends Command
                 'error_message' => $e->getMessage(),
             ];
         }
+    }
+
+    private function storageStatus(float $usedPercentage): string
+    {
+        // Check the stricter threshold first, otherwise "down" is unreachable.
+        return match (true) {
+            $usedPercentage > 95 => 'down',
+            $usedPercentage > 90 => 'degraded',
+            default              => 'operational',
+        };
     }
 
     private function checkWebResponse()

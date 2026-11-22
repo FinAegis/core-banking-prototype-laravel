@@ -4,7 +4,6 @@ namespace App\Filament\Admin\Resources\AccountResource\Widgets;
 
 use App\Domain\Account\Models\Turnover;
 use Filament\Widgets\ChartWidget;
-use Illuminate\Support\Facades\DB;
 
 class TurnoverTrendChart extends ChartWidget
 {
@@ -117,52 +116,32 @@ class TurnoverTrendChart extends ChartWidget
         $endDate = now()->endOfMonth();
         $startDate = now()->subMonths($months - 1)->startOfMonth();
 
-        $turnovers = Turnover::select(
-            'year',
-            'month',
-            DB::raw('SUM(debit) as total_debit'),
-            DB::raw('SUM(credit) as total_credit')
-        )
-            ->where(
-                function ($query) use ($startDate) {
-                    $query->where('year', '>', $startDate->year)
-                        ->orWhere(
-                            function ($q) use ($startDate) {
-                                $q->where('year', $startDate->year)
-                                    ->where('month', '>=', $startDate->month);
-                            }
-                        );
-                }
-            )
-            ->where(
-                function ($query) use ($endDate) {
-                    $query->where('year', '<', $endDate->year)
-                        ->orWhere(
-                            function ($q) use ($endDate) {
-                                $q->where('year', $endDate->year)
-                                    ->where('month', '<=', $endDate->month);
-                            }
-                        );
-                }
-            )
-            ->groupBy('year', 'month')
-            ->orderBy('year')
-            ->orderBy('month')
+        // turnovers has one row per account and date (no year/month
+        // columns): sum per date in SQL, then bucket the dates by month.
+        $dailyTotals = Turnover::query()
+            ->select('date')
+            ->selectRaw('SUM(debit) as total_debit, SUM(credit) as total_credit')
+            ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->groupBy('date')
             ->get();
+
+        $monthlyTotals = [];
+        foreach ($dailyTotals as $day) {
+            $month = $day->date->format('Y-m');
+            $monthlyTotals[$month] ??= ['debit' => 0, 'credit' => 0];
+            $monthlyTotals[$month]['debit'] += (int) $day->getAttribute('total_debit');
+            $monthlyTotals[$month]['credit'] += (int) $day->getAttribute('total_credit');
+        }
 
         // Fill in missing months with zeros
         $data = collect();
         $current = $startDate->copy();
 
         while ($current <= $endDate) {
-            $turnover = $turnovers->first(
-                function ($t) use ($current) {
-                    return $t->year == $current->year && $t->month == $current->month;
-                }
-            );
+            $totals = $monthlyTotals[$current->format('Y-m')] ?? ['debit' => 0, 'credit' => 0];
 
-            $debit = ($turnover?->total_debit ?? 0) / 100;
-            $credit = ($turnover?->total_credit ?? 0) / 100;
+            $debit = $totals['debit'] / 100;
+            $credit = $totals['credit'] / 100;
 
             $data->push(
                 [
