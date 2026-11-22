@@ -51,7 +51,9 @@ describe('health endpoint', function () {
     });
 
     it('returns unhealthy status when a service is unhealthy', function () {
-        // Mock database failure
+        // Mock database failure on a partial mock, so the framework can still
+        // use the real database manager (it closes connections after a test).
+        DB::partialMock();
         DB::shouldReceive('select')->with('SELECT 1')->andThrow(new Exception('Database connection failed'));
         DB::shouldReceive('table')->with('failed_jobs')->andReturnSelf();
         DB::shouldReceive('where')->andReturnSelf();
@@ -70,7 +72,8 @@ describe('health endpoint', function () {
     });
 
     it('returns unhealthy status when multiple services fail', function () {
-        // Mock multiple failures
+        // Mock multiple failures (partial mock, as above)
+        DB::partialMock();
         DB::shouldReceive('select')->with('SELECT 1')->andThrow(new Exception('Database connection failed'));
         DB::shouldReceive('table')->andThrow(new Exception('Database unavailable'));
         Redis::shouldReceive('ping')->andThrow(new Exception('Redis connection failed'));
