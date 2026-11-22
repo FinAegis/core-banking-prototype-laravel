@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\CardIssuance\Providers\Lepo;
 
-use App\Domain\CardIssuance\Events\Broadcast\CardFundingAccountReady;
-use App\Domain\CardIssuance\Events\Broadcast\CardKycStatusChanged;
-use App\Domain\CardIssuance\Models\CardFundingAccount;
+use App\Domain\CardIssuance\Events\Broadcast\CardOnboardingUpdated;
 use App\Domain\CardIssuance\Models\Cardholder;
+use App\Domain\CardIssuance\Providers\CardOnboardingSteps;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -30,16 +29,14 @@ final class LepoOnboardingWebhookHandler
             return;
         }
 
-        $before = $cardholder->kyc_status;
+        $before = CardOnboardingSteps::for($cardholder);
         $this->onboarding->refreshKycStatus($cardholder);
 
-        if ($cardholder->kyc_status !== $before) {
-            CardKycStatusChanged::dispatch((int) $cardholder->user_id, 'lepo', (string) $cardholder->kyc_status);
+        if ($cardholder->kyc_status === 'verified') {
+            $this->onboarding->syncDepositAddresses($this->onboarding->openFundingAccount($cardholder));
         }
 
-        if ($cardholder->kyc_status === 'verified') {
-            $this->syncFunding($this->onboarding->openFundingAccount($cardholder));
-        }
+        $this->announce($cardholder, $before);
     }
 
     /**
@@ -52,19 +49,20 @@ final class LepoOnboardingWebhookHandler
             return;
         }
 
-        $this->syncFunding($this->onboarding->openFundingAccount($cardholder));
+        $before = CardOnboardingSteps::for($cardholder);
+        $this->onboarding->syncDepositAddresses($this->onboarding->openFundingAccount($cardholder));
+        $this->announce($cardholder, $before);
     }
 
-    private function syncFunding(CardFundingAccount $account): void
+    /**
+     * One update per webhook, and only when the step the app shows changed.
+     */
+    private function announce(Cardholder $cardholder, string $before): void
     {
-        if ($this->onboarding->syncDepositAddresses($account) === 0) {
-            return;
+        $after = CardOnboardingSteps::for($cardholder);
+        if ($after !== $before) {
+            CardOnboardingUpdated::dispatch((int) $cardholder->user_id, 'lepo', $after);
         }
-
-        /** @var list<string> $networks */
-        $networks = $account->depositAddresses()->where('is_active', true)->orderBy('network')->pluck('network')->all();
-
-        CardFundingAccountReady::dispatch((int) $account->user_id, 'lepo', $networks);
     }
 
     /**

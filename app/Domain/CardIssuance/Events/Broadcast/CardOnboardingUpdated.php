@@ -11,22 +11,20 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * A card funding account has deposit addresses, so the user can add money.
- * Broadcast as `cards.funding.ready` on the user's private channel.
+ * The user's card onboarding moved to another step (any provider). Broadcast
+ * as `cards.onboarding.updated` on the user's private channel; the step has
+ * the same values as `step` in GET /api/v1/cards/onboarding.
  */
-final class CardFundingAccountReady implements ShouldBroadcast
+final class CardOnboardingUpdated implements ShouldBroadcast
 {
     use Dispatchable;
     use InteractsWithSockets;
     use SerializesModels;
 
-    /**
-     * @param  list<string>  $networks
-     */
     public function __construct(
         public readonly int $userId,
         public readonly string $provider,
-        public readonly array $networks,
+        public readonly string $step,
     ) {
     }
 
@@ -40,15 +38,15 @@ final class CardFundingAccountReady implements ShouldBroadcast
 
     public function broadcastAs(): string
     {
-        return 'cards.funding.ready';
+        return 'cards.onboarding.updated';
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<string, string>
      */
     public function broadcastWith(): array
     {
-        return ['provider' => $this->provider, 'networks' => $this->networks];
+        return ['provider' => $this->provider, 'step' => $this->step];
     }
 
     public function broadcastWhen(): bool

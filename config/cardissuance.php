@@ -39,12 +39,20 @@ return [
     'providers' => [
         // Opt-in: an enabled provider without credentials would break cards
         // (and fails ops:verify-env in production). Zelta: CARD_PROVIDERS_ENABLED=lepo.
-        'enabled'               => env('CARD_PROVIDERS_ENABLED', ''),
-        'default'               => env('CARD_PROVIDER_DEFAULT', 'lepo'),
-        'selection'             => env('CARD_PROVIDER_SELECTION', 'default'),
-        'lepo_pilot_only'       => (bool) env('CARD_PROVIDER_LEPO_PILOT_ONLY', true),
-        'lepo_pilot_users'      => env('CARD_PROVIDER_LEPO_PILOT_USERS', ''),
+        'enabled'          => env('CARD_PROVIDERS_ENABLED', ''),
+        'default'          => env('CARD_PROVIDER_DEFAULT', 'lepo'),
+        'selection'        => env('CARD_PROVIDER_SELECTION', 'default'),
+        'lepo_pilot_only'  => (bool) env('CARD_PROVIDER_LEPO_PILOT_ONLY', true),
+        'lepo_pilot_users' => env('CARD_PROVIDER_LEPO_PILOT_USERS', ''),
+        // The first network is the one the app offers by default.
         'lepo_deposit_networks' => env('LEPO_DEPOSIT_NETWORKS', 'arbitrum,polygon'),
+        // How the app runs the identity check: hosted_url (our page with the
+        // SumSub web SDK, opened in the app's browser) or sumsub_sdk (a token
+        // for the native SumSub SDK).
+        'lepo_kyc_method' => env('CARD_LEPO_KYC_METHOD', 'hosted_url'),
+        // Where the identity-check page sends the user when the check is sent.
+        'kyc_return_url'   => env('CARD_KYC_RETURN_URL', 'zelta://cards/kyc-done'),
+        'kyc_link_minutes' => (int) env('CARD_KYC_LINK_MINUTES', 30),
     ],
 
     /*

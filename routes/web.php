@@ -55,6 +55,18 @@ Route::middleware('feature:privy.web_login_enabled')->group(function () {
         ->name('login.privy.verify');
 });
 
+// Card identity check opened by the app from a signed, short-lived link
+// (POST /api/v1/cards/kyc/session). The page itself checks the signature so an
+// expired link gets a readable page instead of a bare 403.
+Route::get('/cards/kyc/{cardholder}', [App\Http\Controllers\Web\Cards\HostedKycController::class, 'show'])
+    ->whereUuid('cardholder')
+    ->middleware('throttle:20,1')
+    ->name('cards.kyc.hosted');
+Route::get('/cards/kyc/{cardholder}/token', [App\Http\Controllers\Web\Cards\HostedKycController::class, 'token'])
+    ->whereUuid('cardholder')
+    ->middleware(['signed:relative', 'throttle:20,1'])
+    ->name('cards.kyc.hosted.token');
+
 // Applies a profile email change from the signed link sent to the new address.
 Route::get('/user/confirm-email', App\Http\Controllers\Web\ConfirmEmailChangeController::class)
     ->middleware(['auth:sanctum', config('jetstream.auth_session'), 'signed', 'throttle:6,1'])

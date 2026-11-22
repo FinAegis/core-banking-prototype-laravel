@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\CardIssuance;
 
-use App\Domain\CardIssuance\Models\CardFundingAccount;
+use App\Domain\CardIssuance\Models\CardDepositAddress;
 use App\Domain\CardIssuance\Models\Cardholder;
+use App\Domain\CardIssuance\Providers\CardOnboardingSteps;
 use App\Domain\CardIssuance\Providers\CardProviderException;
 use App\Domain\CardIssuance\Providers\CardProviderRegistry;
 use App\Domain\CardIssuance\Providers\CardProviderSelector;
+use App\Domain\CardIssuance\Providers\Lepo\LepoCardholderForm;
 use App\Domain\CardIssuance\Providers\Lepo\LepoCardOnboarding;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CardIssuance\CardholderQuestionnaireRequest;
 use App\Http\Requests\CardIssuance\CreateCardholderRequest;
 use App\Models\User;
 use App\Support\ErrorResponse;
@@ -29,6 +32,7 @@ final class CardOnboardingController extends Controller
     public function __construct(
         private readonly CardProviderSelector $selector,
         private readonly CardProviderRegistry $registry,
+        private readonly LepoCardholderForm $form,
     ) {
     }
 
@@ -37,7 +41,7 @@ final class CardOnboardingController extends Controller
         operationId: 'v1CardsOnboarding',
         tags: ['Cards'],
         summary: 'Card onboarding state for the current user',
-        description: 'Whether cards are available, the provider, the next step (cardholder, kyc, kyc_review, kyc_action_required, kyc_rejected, funding_pending, ready), the identity-check method and the deposit networks.',
+        description: 'Whether cards are available, the provider, the next step (cardholder, kyc, kyc_review, kyc_action_required, kyc_rejected, funding_pending, ready), the identity-check method (hosted_url or sumsub_sdk) and the deposit networks [{network, asset, default}]. In the steps cardholder, kyc and kyc_action_required it also returns `form` {fields, options, prefill}: the whole cardholder form for a new user, or only the questionnaire while the answers can still be corrected. Field names are the request keys and the keys of 422 validation errors.',
         security: [['sanctum' => []]],
     )]
     #[OA\Response(response: 200, description: 'Onboarding state')]
@@ -55,15 +59,26 @@ final class CardOnboardingController extends Controller
         }
 
         $cardholder = $this->cardholder($user, $provider);
+        $step = CardOnboardingSteps::for($cardholder);
+        $networks = $this->depositNetworks();
 
-        return response()->json(['success' => true, 'data' => [
+        $data = [
             'available'        => true,
             'provider'         => $provider,
-            'step'             => $this->step($cardholder),
-            'kyc_method'       => 'sumsub_sdk',
-            'deposit_networks' => CardProviderSelector::listFromConfig('cardissuance.providers.lepo_deposit_networks'),
-            'prefill'          => array_filter(['email' => $user->email]),
-        ]]);
+            'step'             => $step,
+            'kyc_method'       => LepoCardOnboarding::kycMethod(),
+            'deposit_networks' => array_map(
+                static fn (string $network, int $i): array => ['network' => $network, 'asset' => 'USDC', 'default' => $i === 0],
+                $networks,
+                array_keys($networks),
+            ),
+        ];
+
+        if (in_array($step, CardOnboardingSteps::CORRECTABLE, true)) {
+            $data['form'] = $this->form->describe($user, $cardholder);
+        }
+
+        return response()->json(['success' => true, 'data' => $data]);
     }
 
     #[OA\Get(path: '/api/v1/cards/cardholder', operationId: 'v1CardsCardholderStatus', tags: ['Cards'], summary: 'Cardholder and identity-check status', security: [['sanctum' => []]])]
@@ -84,8 +99,16 @@ final class CardOnboardingController extends Controller
             : $this->present($cardholder)]);
     }
 
-    #[OA\Post(path: '/api/v1/cards/cardholder', operationId: 'v1CardsCreateCardholder', tags: ['Cards'], summary: 'Become a cardholder with the card provider', security: [['sanctum' => []]])]
+    #[OA\Post(
+        path: '/api/v1/cards/cardholder',
+        operationId: 'v1CardsCreateCardholder',
+        tags: ['Cards'],
+        summary: 'Become a cardholder with the card provider',
+        description: 'Takes the fields of `form` from GET /api/v1/cards/onboarding. A cardholder whose identity check has not started (or must be resubmitted) sends only the questionnaire fields to correct the answers.',
+        security: [['sanctum' => []]],
+    )]
     #[OA\Response(response: 201, description: 'Cardholder created')]
+    #[OA\Response(response: 200, description: 'Existing cardholder; questionnaire answers updated when the identity check can still use them')]
     #[OA\Response(response: 403, description: 'ERR_CARDS_022: cards not available for this account')]
     #[OA\Response(response: 422, description: 'Validation error, or ERR_CARDS_023: nationality or country not supported')]
     public function createCardholder(Request $request): JsonResponse
@@ -106,17 +129,19 @@ final class CardOnboardingController extends Controller
             return response()->json(['success' => true, 'data' => $this->present($existing)]);
         }
 
-        $form = app(CreateCardholderRequest::class);
-
         if ($existing !== null) {
-            // Not yet through the identity check: the answers may be corrected.
+            // Not yet through the identity check: only the answers may be
+            // corrected, so only they are validated.
+            $answers = app(CardholderQuestionnaireRequest::class);
             $onboarding = $this->registry->onboarding($provider);
             if ($onboarding instanceof LepoCardOnboarding) {
-                $onboarding->updateQuestionnaire($existing, $form->toProfile());
+                $onboarding->updateQuestionnaire($existing, $answers->questionnaire());
             }
 
             return response()->json(['success' => true, 'data' => $this->present($existing)]);
         }
+
+        $form = app(CreateCardholderRequest::class);
 
         try {
             $cardholder = $this->registry->onboarding($provider)->createCardholder($user, $form->toProfile());
@@ -132,7 +157,7 @@ final class CardOnboardingController extends Controller
         operationId: 'v1CardsKycSession',
         tags: ['Cards'],
         summary: 'Start the identity check',
-        description: 'Returns how the app starts the identity check: method sumsub_sdk with a token for the SumSub mobile SDK.',
+        description: 'Returns how the app starts the identity check. method hosted_url: open `url` (a signed page, valid until `expires_at`) in the in-app browser; it returns to zelta://cards/kyc-done when the check is sent, then read GET /api/v1/cards/onboarding again. method sumsub_sdk: `token` for the native SumSub SDK.',
         security: [['sanctum' => []]],
     )]
     #[OA\Response(response: 200, description: 'Identity-check session')]
@@ -187,36 +212,38 @@ final class CardOnboardingController extends Controller
             'status'            => $account->status,
             'currency'          => $account->currency,
             'balance_cents'     => $account->balance_cents,
-            'deposit_addresses' => $account->depositAddresses()
-                ->where('is_active', true)
-                ->whereIn('network', CardProviderSelector::listFromConfig('cardissuance.providers.lepo_deposit_networks'))
-                ->orderBy('network')
-                ->get(['network', 'asset', 'address'])
-                ->map(static fn ($address): array => ['network' => $address->network, 'asset' => $address->asset, 'address' => $address->address])
-                ->all(),
+            'deposit_addresses' => $this->depositAddresses($account->depositAddresses()->where('is_active', true)->get(['network', 'asset', 'address'])->all()),
         ]]);
     }
 
-    private function step(?Cardholder $cardholder): string
+    /**
+     * Active addresses on the offered networks, in the offered order; the
+     * first offered network is the default.
+     *
+     * @param  array<int, CardDepositAddress>  $addresses
+     * @return list<array{network: string, asset: string, address: string, default: bool}>
+     */
+    private function depositAddresses(array $addresses): array
     {
-        if ($cardholder === null) {
-            return 'cardholder';
+        $networks = $this->depositNetworks();
+        $list = [];
+        foreach ($networks as $i => $network) {
+            foreach ($addresses as $address) {
+                if ($address->network === $network) {
+                    $list[] = ['network' => $network, 'asset' => $address->asset, 'address' => $address->address, 'default' => $i === 0];
+                }
+            }
         }
 
-        return match ($cardholder->kyc_status) {
-            'verified'        => $this->fundingReady($cardholder->fundingAccount) ? 'ready' : 'funding_pending',
-            'in_review'       => 'kyc_review',
-            'action_required' => 'kyc_action_required',
-            'rejected'        => 'kyc_rejected',
-            default           => 'kyc',
-        };
+        return $list;
     }
 
-    private function fundingReady(?CardFundingAccount $account): bool
+    /**
+     * @return list<string>
+     */
+    private function depositNetworks(): array
     {
-        return $account !== null
-            && $account->status === 'active'
-            && $account->depositAddresses()->where('is_active', true)->exists();
+        return array_values(CardProviderSelector::listFromConfig('cardissuance.providers.lepo_deposit_networks'));
     }
 
     /**
