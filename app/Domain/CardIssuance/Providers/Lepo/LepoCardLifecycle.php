@@ -284,14 +284,14 @@ final class LepoCardLifecycle
      * One shape for every transaction: our type (payment, refund, top_up,
      * withdrawal, fee, other), a direction (debit or credit), the amount as a
      * positive 2-decimal string and our status (pending, completed, failed,
-     * cancelled, unknown). Lepo's own type stays in provider_type. Our pages
-     * count from 0, Lepo's from 1.
+     * cancelled, unknown). Lepo's own type stays in provider_type. Pages count
+     * from 0, as Lepo documents them ("starting from 0, default: 0").
      *
      * @return array{items: list<array{id: string, type: string, direction: string, amount: string, currency: string, fee: string, status: string, merchant: ?string, merchant_country: ?string, occurred_at: ?string, provider_type: ?string}>, has_more: bool, total: int|null}
      */
     public function transactions(Card $card, int $page, int $limit): array
     {
-        $response = $this->call(fn (): array => $this->client->getCardTransactions($this->token($card), $this->lepoUserId($this->cardholderOf($card)), max(0, $page) + 1, max(1, min(50, $limit))));
+        $response = $this->call(fn (): array => $this->client->getCardTransactions($this->token($card), $this->lepoUserId($this->cardholderOf($card)), max(0, $page), max(1, min(50, $limit))));
 
         $items = [];
         foreach (is_array($response['transactions'] ?? null) ? $response['transactions'] : [] as $row) {
