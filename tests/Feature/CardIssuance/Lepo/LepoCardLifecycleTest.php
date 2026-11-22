@@ -157,7 +157,7 @@ it('announces a status change once', function (): void {
 
     Event::assertDispatchedTimes(CardStateChanged::class, 1);
     Event::assertDispatched(CardStateChanged::class, fn (CardStateChanged $e): bool => $e->cardId === $card->id && $e->status === 'active'
-        && $e->broadcastAs() === 'card.state_changed' && $e->broadcastWith() === ['card_id' => $card->id, 'status' => 'active']);
+        && $e->broadcastAs() === 'card.state_changed' && $e->broadcastWith() === ['card_id' => $card->id, 'status' => 'active', 'balance_cents' => 0]);
 });
 
 it('refuses to cancel a card that holds money', function (): void {

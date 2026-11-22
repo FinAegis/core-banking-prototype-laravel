@@ -134,7 +134,7 @@ final class LepoCardLifecycle
         ])->save();
 
         if ($status !== $before) {
-            CardStateChanged::dispatch((int) $card->user_id, $card->id, $status);
+            CardStateChanged::dispatch((int) $card->user_id, $card->id, $status, (int) ($card->balance_cents ?? 0));
         }
 
         return $card;
