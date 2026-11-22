@@ -93,7 +93,7 @@ class Campaign extends Model
      */
     public function getTargetSubscriberCount(): int
     {
-        $query = Subscriber::where('is_active', true);
+        $query = Subscriber::where('status', Subscriber::STATUS_ACTIVE);
 
         if ($this->segment !== null) {
             $query->where('source', $this->segment);

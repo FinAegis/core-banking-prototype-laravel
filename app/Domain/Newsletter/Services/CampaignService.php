@@ -84,7 +84,7 @@ class CampaignService
             $totalCount = 0;
 
             // Use cursor() to avoid loading all subscribers into memory
-            $subscribers = Subscriber::where('is_active', true);
+            $subscribers = Subscriber::where('status', Subscriber::STATUS_ACTIVE);
             if ($locked->segment !== null) {
                 $subscribers->where('source', $locked->segment);
             }
@@ -211,7 +211,7 @@ class CampaignService
      */
     private function getRecipientCount(Campaign $campaign): int
     {
-        $query = Subscriber::where('is_active', true);
+        $query = Subscriber::where('status', Subscriber::STATUS_ACTIVE);
 
         if ($campaign->segment !== null) {
             $query->where('source', $campaign->segment);
