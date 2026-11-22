@@ -10,6 +10,7 @@ use App\Domain\CrossChain\Enums\BridgeStatus;
 use App\Domain\CrossChain\Enums\CrossChainNetwork;
 use App\Domain\CrossChain\ValueObjects\BridgeQuote;
 use App\Domain\CrossChain\ValueObjects\BridgeRoute;
+use App\Support\DecimalString;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
 
@@ -32,8 +33,8 @@ class DemoBridgeAdapter implements BridgeAdapterInterface
         string $token,
         string $amount,
     ): array {
-        $feePercentage = (float) config('crosschain.demo.fee_percentage', 0.1);
-        $fee = bcmul($amount, (string) ($feePercentage / 100), 8);
+        $feePercentage = DecimalString::fromNumeric(config('crosschain.demo.fee_percentage', 0.1), 18) ?? '0';
+        $fee = bcmul($amount, bcdiv($feePercentage, '100', 20), 8);
 
         return [
             'fee'            => $fee,

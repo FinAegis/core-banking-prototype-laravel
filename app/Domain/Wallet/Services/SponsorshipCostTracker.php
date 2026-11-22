@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Wallet\Services;
 
 use App\Domain\Asset\Services\ExchangeRateService;
+use App\Support\DecimalString;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -100,13 +101,11 @@ class SponsorshipCostTracker
      */
     public function dailyBudgetUsd(): ?string
     {
-        $budget = config('wallet.sponsorship.daily_budget_usd');
+        $normalized = DecimalString::fromNumeric(config('wallet.sponsorship.daily_budget_usd'), 6);
 
-        if (! is_numeric($budget)) {
+        if ($normalized === null) {
             return null;
         }
-
-        $normalized = bcadd((string) $budget, '0', 6);
 
         return bccomp($normalized, '0', 6) > 0 ? $normalized : null;
     }

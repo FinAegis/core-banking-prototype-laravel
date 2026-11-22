@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Ramp\Services;
 
+use App\Support\DecimalString;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -114,10 +115,7 @@ class StripeCryptoOnrampService
         /** @var array<string, mixed> $data */
         $data = $response->json() ?? [];
 
-        $destinationAmount = null;
-        if (isset($data['destination_amount']) && is_numeric($data['destination_amount'])) {
-            $destinationAmount = bcadd((string) $data['destination_amount'], '0', 8);
-        }
+        $destinationAmount = DecimalString::fromNumeric($data['destination_amount'] ?? null, 8);
 
         return [
             'status'             => (string) ($data['status'] ?? 'initialized'),

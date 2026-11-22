@@ -17,6 +17,8 @@ beforeEach(function (): void {
 });
 
 /**
+ * @param numeric-string|null $rate
+ *
  * @return ExchangeRateService&Mockery\MockInterface
  */
 function mockRateService(?string $rate): ExchangeRateService

@@ -6,6 +6,7 @@ namespace App\Domain\Ramp\Providers;
 
 use App\Domain\Ramp\Contracts\RampProviderInterface;
 use App\Domain\Ramp\Services\StripeCryptoOnrampService;
+use App\Support\DecimalString;
 
 /**
  * Stripe Crypto Onramp provider (hosted card-payment checkout).
@@ -184,10 +185,7 @@ class StripeCryptoOnrampProvider implements RampProviderInterface
             return null;
         }
 
-        $cryptoAmount = null;
-        if (isset($object['destination_amount']) && is_numeric($object['destination_amount'])) {
-            $cryptoAmount = bcadd((string) $object['destination_amount'], '0', 8);
-        }
+        $cryptoAmount = DecimalString::fromNumeric($object['destination_amount'] ?? null, 8);
 
         return [
             'session_id'    => $sessionId,

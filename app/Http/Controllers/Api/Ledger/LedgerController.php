@@ -8,6 +8,7 @@ use App\Domain\Ledger\Enums\AccountType;
 use App\Domain\Ledger\Services\ChartOfAccountsService;
 use App\Domain\Ledger\Services\LedgerService;
 use App\Http\Controllers\Controller;
+use App\Support\DecimalString;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -126,10 +127,19 @@ final class LedgerController extends Controller
         try {
             $lines = [];
             foreach ($validated['lines'] as $line) {
+                // The numeric rule also lets through values bcmath rejects,
+                // such as 1e3 or a JSON float PHP prints as 1.0E+15.
+                $debit = DecimalString::fromNumeric($line['debit'], 4);
+                $credit = DecimalString::fromNumeric($line['credit'], 4);
+
+                if ($debit === null || $credit === null) {
+                    throw new RuntimeException('Each debit and credit must be a finite decimal number.');
+                }
+
                 $entry = [
                     'account_code' => (string) $line['account_code'],
-                    'debit'        => bcadd(is_numeric($line['debit']) ? (string) $line['debit'] : '0', '0', 4),
-                    'credit'       => bcadd(is_numeric($line['credit']) ? (string) $line['credit'] : '0', '0', 4),
+                    'debit'        => $debit,
+                    'credit'       => $credit,
                 ];
 
                 if (isset($line['narrative'])) {

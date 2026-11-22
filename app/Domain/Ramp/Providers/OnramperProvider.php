@@ -7,6 +7,7 @@ namespace App\Domain\Ramp\Providers;
 use App\Domain\Ramp\Clients\OnramperClient;
 use App\Domain\Ramp\Contracts\RampProviderInterface;
 use App\Models\RampSession;
+use App\Support\DecimalString;
 use RuntimeException;
 
 class OnramperProvider implements RampProviderInterface
@@ -164,10 +165,7 @@ class OnramperProvider implements RampProviderInterface
             return null;
         }
 
-        $cryptoAmount = null;
-        if (isset($payload['crypto_amount']) && is_numeric($payload['crypto_amount'])) {
-            $cryptoAmount = bcadd((string) $payload['crypto_amount'], '0', 8);
-        }
+        $cryptoAmount = DecimalString::fromNumeric($payload['crypto_amount'] ?? null, 8);
 
         return [
             'session_id'    => $sessionId,

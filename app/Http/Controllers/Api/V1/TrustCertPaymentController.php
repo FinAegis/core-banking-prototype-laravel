@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Domain\TrustCert\Models\VerificationPayment;
 use App\Http\Controllers\Controller;
+use App\Support\DecimalString;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -321,16 +322,8 @@ class TrustCertPaymentController extends Controller
         // In production, query the actual wallet/ledger service
         $balance = Cache::get("wallet_balance:{$userId}");
 
-        if (is_string($balance) && is_numeric($balance)) {
-            return bcadd($balance, '0', 2);
-        }
-
-        if (is_int($balance) || is_float($balance)) {
-            return bcadd((string) $balance, '0', 2);
-        }
-
-        // Default demo balance for testing
-        return '100.00';
+        // Default demo balance for testing when nothing usable is cached.
+        return DecimalString::fromNumeric($balance, 2) ?? '100.00';
     }
 
     /**

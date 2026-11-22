@@ -6,6 +6,7 @@ namespace App\GraphQL\Mutations\Ledger;
 
 use App\Domain\Ledger\Models\JournalEntry;
 use App\Domain\Ledger\Services\LedgerService;
+use App\Support\DecimalString;
 use App\Support\StaffRoles;
 use Illuminate\Support\Facades\Auth;
 use Nuwave\Lighthouse\Exceptions\AuthorizationException;
@@ -39,8 +40,10 @@ final class PostEntryMutation
 
             $entry = [
                 'account_code' => (string) ($line['account_code'] ?? ''),
-                'debit'        => bcadd(is_numeric($line['debit'] ?? '') ? (string) ($line['debit'] ?? '0') : '0', '0', 4),
-                'credit'       => bcadd(is_numeric($line['credit'] ?? '') ? (string) ($line['credit'] ?? '0') : '0', '0', 4),
+                // A missing or non-numeric amount counts as zero, as before;
+                // LedgerService rejects an unbalanced or all-zero entry.
+                'debit'  => DecimalString::fromNumeric($line['debit'] ?? null, 4) ?? '0.0000',
+                'credit' => DecimalString::fromNumeric($line['credit'] ?? null, 4) ?? '0.0000',
             ];
 
             if (isset($line['narrative'])) {

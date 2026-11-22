@@ -147,3 +147,25 @@ it('rejects unsupported networks in v1 (Solana etc.)', function () {
         'network' => 'solana',
     ])))->toThrow(RuntimeException::class, "only supports network 'polygon'");
 });
+
+it('normalizes a transfer webhook whose destination_amount is a JSON float in exponent form', function () {
+    // json_decode gives the float 1.0E-6 for a 0.000001 USDC transfer, and
+    // (string) 1.0E-6 is "1.0E-6", which bcadd() rejected with a ValueError.
+    $payload = json_decode('{"type":"transfer.completed","data":{"object":{"id":"tr_tiny","destination_amount":0.000001}}}', true);
+
+    $normalized = makeBridgeProvider()->normalizeWebhookPayload($payload);
+
+    expect($normalized)->not->toBeNull()
+        ->and($normalized['crypto_amount'] ?? null)->toBe('0.00000100')
+        ->and($normalized['status'] ?? null)->toBe('completed');
+});
+
+it('leaves crypto_amount empty when destination_amount is not a finite number', function () {
+    $normalized = makeBridgeProvider()->normalizeWebhookPayload([
+        'type' => 'transfer.completed',
+        'data' => ['object' => ['id' => 'tr_bad', 'destination_amount' => 'abc']],
+    ]);
+
+    expect($normalized)->toHaveKey('crypto_amount')
+        ->and($normalized['crypto_amount'] ?? null)->toBeNull();
+});

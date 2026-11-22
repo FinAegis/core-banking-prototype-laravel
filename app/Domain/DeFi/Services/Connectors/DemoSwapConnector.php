@@ -8,6 +8,7 @@ use App\Domain\CrossChain\Enums\CrossChainNetwork;
 use App\Domain\DeFi\Contracts\SwapProtocolInterface;
 use App\Domain\DeFi\Enums\DeFiProtocol;
 use App\Domain\DeFi\ValueObjects\SwapQuote;
+use App\Support\DecimalString;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
 
@@ -25,8 +26,8 @@ class DemoSwapConnector implements SwapProtocolInterface
         string $amount,
         float $slippageTolerance = 0.5,
     ): SwapQuote {
-        $feeRate = (float) config('defi.demo.simulated_swap_fee', 0.003);
-        $fee = bcmul($amount, (string) $feeRate, 8);
+        $feeRate = DecimalString::fromNumeric(config('defi.demo.simulated_swap_fee', 0.003), 18) ?? '0';
+        $fee = bcmul($amount, $feeRate, 8);
         $outputAmount = bcsub($amount, $fee, 8);
 
         return new SwapQuote(
