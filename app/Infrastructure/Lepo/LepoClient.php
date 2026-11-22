@@ -113,6 +113,18 @@ final class LepoClient
     }
 
     /**
+     * Crypto transfers of a user (deposits to their addresses among them),
+     * newest first. Filters: transactionHash, startTime/endTime (ms), limit.
+     *
+     * @param  array<string, scalar>  $filters
+     * @return array<string, mixed>
+     */
+    public function getCryptoTransactions(string $userId, array $filters = []): array
+    {
+        return $this->read('/transfers/crypto-transactions', [], ['userId' => $userId] + $filters);
+    }
+
+    /**
      * Opens the user's funding (Interlace "Quantum") account.
      *
      * @return array<string, mixed>
