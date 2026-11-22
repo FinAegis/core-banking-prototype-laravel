@@ -58,7 +58,7 @@ class GCUController extends Controller
     public function index(): JsonResponse
     {
         $gcu = BasketAsset::where('code', 'GCU')->with('components.asset')->firstOrFail();
-        $latestValue = BasketValue::where('basket_code', 'GCU')
+        $latestValue = BasketValue::where('basket_asset_code', 'GCU')
             ->orderBy('calculated_at', 'desc')
             ->first();
 
@@ -136,7 +136,7 @@ class GCUController extends Controller
 
         $startDate = $this->getPeriodStartDate($period);
 
-        $values = BasketValue::where('basket_code', 'GCU')
+        $values = BasketValue::where('basket_asset_code', 'GCU')
             ->where('calculated_at', '>=', $startDate)
             ->orderBy('calculated_at')
             ->get();
@@ -289,7 +289,7 @@ class GCUController extends Controller
     public function composition(): JsonResponse
     {
         $gcu = BasketAsset::where('code', 'GCU')->with('components.asset')->firstOrFail();
-        $latestValue = BasketValue::where('basket_code', 'GCU')
+        $latestValue = BasketValue::where('basket_asset_code', 'GCU')
             ->orderBy('calculated_at', 'desc')
             ->first();
 
@@ -445,14 +445,14 @@ class GCUController extends Controller
     private function calculateValueChanges(string $basketCode): array
     {
         $now = now();
-        $currentValue = BasketValue::where('basket_code', $basketCode)
+        $currentValue = BasketValue::where('basket_asset_code', $basketCode)
             ->orderBy('calculated_at', 'desc')
             ->value('value') ?? 1.0;
 
         $changes = [];
 
         foreach (['24h' => 1, '7d' => 7, '30d' => 30] as $period => $days) {
-            $previousValue = BasketValue::where('basket_code', $basketCode)
+            $previousValue = BasketValue::where('basket_asset_code', $basketCode)
                 ->where('calculated_at', '<=', $now->copy()->subDays($days))
                 ->orderBy('calculated_at', 'desc')
                 ->value('value') ?? $currentValue;
@@ -569,14 +569,14 @@ class GCUController extends Controller
 
     private function calculateGCUPerformance(string $basketCode): array
     {
-        $currentValue = BasketValue::where('basket_code', $basketCode)
+        $currentValue = BasketValue::where('basket_asset_code', $basketCode)
             ->orderBy('calculated_at', 'desc')
             ->value('value') ?? 1.0;
 
         $performance = [];
 
         foreach ([1 => '24h', 7 => '7d', 30 => '30d'] as $days => $label) {
-            $pastValue = BasketValue::where('basket_code', $basketCode)
+            $pastValue = BasketValue::where('basket_asset_code', $basketCode)
                 ->where('calculated_at', '<=', now()->subDays($days))
                 ->orderBy('calculated_at', 'desc')
                 ->value('value') ?? $currentValue;

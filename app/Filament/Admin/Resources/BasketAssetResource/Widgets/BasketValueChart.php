@@ -27,7 +27,7 @@ class BasketValueChart extends ChartWidget
         $endDate = now();
         $startDate = now()->subDays($days);
 
-        $values = BasketValue::where('basket_code', $this->record->code)
+        $values = BasketValue::where('basket_asset_code', $this->record->code)
             ->where('calculated_at', '>=', $startDate)
             ->where('calculated_at', '<=', $endDate)
             ->orderBy('calculated_at')
