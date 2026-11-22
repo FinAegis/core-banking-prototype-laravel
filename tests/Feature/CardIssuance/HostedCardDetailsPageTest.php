@@ -35,9 +35,10 @@ function detailsCard(string $status = 'active', string $provider = 'lepo', ?stri
     ]);
 }
 
-function detailsLink(Card $card, int $minutes = 5, string $nonce = 'aaaabbbbccccddddeeeeffff00001111'): string
+function detailsLink(Card $card, int $minutes = 5): string
 {
-    return URL::temporarySignedRoute('cards.details.hosted', now()->addMinutes($minutes), ['card' => $card->id, 'n' => $nonce], absolute: false);
+    // A fresh nonce per link: CI shares one cache between tests.
+    return URL::temporarySignedRoute('cards.details.hosted', now()->addMinutes($minutes), ['card' => $card->id, 'n' => bin2hex(random_bytes(16))], absolute: false);
 }
 
 it('shows the card with Interlace Widget.js and a fresh token', function (): void {
