@@ -286,8 +286,8 @@ it('pages transactions', function (): void {
         ->assertJsonPath('data.has_more', true)
         ->assertJsonPath('data.page', 1)
         ->assertJsonPath('data.total', 11);
-    // Our pages count from 0, Lepo's from 1.
-    Http::assertSent(fn (Request $r): bool => str_contains($r->url(), 'page=2') && str_contains($r->url(), 'limit=5'));
+    // Our pages and Lepo's both count from 0.
+    Http::assertSent(fn (Request $r): bool => str_contains($r->url(), 'page=1') && str_contains($r->url(), 'limit=5'));
 });
 
 it('keeps FinCard users on FinCard', function (): void {

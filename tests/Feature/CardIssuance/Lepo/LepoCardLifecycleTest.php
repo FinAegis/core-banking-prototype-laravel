@@ -360,15 +360,17 @@ it('lists transactions in one shape the app can show', function (): void {
         ]);
 });
 
-it('asks Lepo for pages counted from one', function (): void {
+it('asks Lepo for pages counted from zero, like ours', function (): void {
     $card = openLifecycleCard();
     Http::fake(['lepo.test/api/v2/cards/777/transactions*' => Http::response(['transactions' => [], 'hasMorePages' => false])]);
 
     app(LepoCardLifecycle::class)->transactions($card, 0, 20);
     app(LepoCardLifecycle::class)->transactions($card, 2, 20);
 
-    Http::assertSent(fn (Request $r): bool => str_contains($r->url(), 'page=1&'));
-    Http::assertSent(fn (Request $r): bool => str_contains($r->url(), 'page=3&'));
+    // Lepo documents the page parameter as "starting from 0, default: 0".
+    Http::assertSent(fn (Request $r): bool => str_contains($r->url(), 'page=0&'));
+    Http::assertSent(fn (Request $r): bool => str_contains($r->url(), 'page=2&'));
+    Http::assertNotSent(fn (Request $r): bool => str_contains($r->url(), 'page=1&') || str_contains($r->url(), 'page=3&'));
 });
 
 it('gets a widget token for the card details page', function (): void {
