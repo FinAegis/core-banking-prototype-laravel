@@ -26,15 +26,16 @@ class SecurityHeaders
         // Prevent clickjacking
         $response->headers->set('X-Frame-Options', 'DENY');
 
-        // Referrer policy
-        $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+        // Referrer policy. The card identity-check page is reached by a signed
+        // link, which must not travel to SumSub in a Referer header.
+        $response->headers->set('Referrer-Policy', $this->isCardKycPage($request) ? 'no-referrer' : 'strict-origin-when-cross-origin');
 
         // Content Security Policy
         $csp = $this->getContentSecurityPolicy($request);
         $response->headers->set('Content-Security-Policy', $csp);
 
         // Permissions Policy (formerly Feature Policy)
-        $permissions = $this->getPermissionsPolicy();
+        $permissions = $this->getPermissionsPolicy($request);
         $response->headers->set('Permissions-Policy', $permissions);
 
         // HSTS - set in all environments with appropriate max-age
@@ -77,6 +78,25 @@ class SecurityHeaders
                 "connect-src 'self'",
                 "form-action 'self' http://127.0.0.1:* http://[::1]:* https:",
                 "base-uri 'self'",
+                "frame-ancestors 'none'",
+            ]);
+        }
+
+        // Card identity check: the SumSub web SDK loads from static.sumsub.com
+        // and runs in a sumsub.com frame that talks to the SumSub API.
+        if ($this->isCardKycPage($request)) {
+            return implode('; ', [
+                "default-src 'self'",
+                "script-src 'self' 'unsafe-inline' https://static.sumsub.com",
+                "style-src 'self' 'unsafe-inline'",
+                "img-src 'self' data: blob: https:",
+                "font-src 'self' data:",
+                "connect-src 'self' https://*.sumsub.com",
+                'frame-src https://*.sumsub.com',
+                "media-src 'none'",
+                "object-src 'none'",
+                "base-uri 'self'",
+                "form-action 'self'",
                 "frame-ancestors 'none'",
             ]);
         }
@@ -175,6 +195,11 @@ class SecurityHeaders
         return implode('; ', $policies);
     }
 
+    private function isCardKycPage(Request $request): bool
+    {
+        return $request->is('cards/kyc/*');
+    }
+
     /**
      * Merge two CSP source lists into a deduplicated, trimmed result.
      *
@@ -198,8 +223,25 @@ class SecurityHeaders
     /**
      * Get Permissions Policy directives.
      */
-    private function getPermissionsPolicy(): string
+    private function getPermissionsPolicy(Request $request): string
     {
+        if ($this->isCardKycPage($request)) {
+            // The SumSub frame takes document photos and a selfie. CSP
+            // frame-src limits frames on this page to sumsub.com, and the
+            // frame's own origin is not documented, so camera and microphone
+            // are not tied to one origin here.
+            return implode(', ', [
+                'accelerometer=()',
+                'camera=*',
+                'geolocation=()',
+                'gyroscope=()',
+                'magnetometer=()',
+                'microphone=*',
+                'payment=()',
+                'usb=()',
+            ]);
+        }
+
         $policies = [
             'accelerometer=()',
             'camera=()',

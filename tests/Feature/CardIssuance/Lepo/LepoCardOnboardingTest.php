@@ -90,7 +90,38 @@ it('adopts the existing Lepo user on a 409', function (): void {
     expect($cardholder->issuer_cardholder_id)->toBe('777');
 });
 
+it('hands out a signed identity-check page by default', function (): void {
+    Http::fake();
+    $cardholder = lepoCardholderFor(User::factory()->create());
+
+    $start = app(LepoCardOnboarding::class)->startKyc($cardholder)->toArray();
+
+    expect($start['method'])->toBe('hosted_url')
+        ->and($start['url'] ?? '')->toContain('/cards/kyc/' . $cardholder->id . '?')
+        ->and($start['url'] ?? '')->toContain('signature=')
+        ->and($start['expires_at'] ?? null)->not->toBeNull()
+        ->and($cardholder->fresh()?->kyc_status)->toBe('pending');
+    // The page asks Lepo for the token when it opens, not when the link is made.
+    Http::assertNothingSent();
+});
+
+it('gets a web identity-check token with the questionnaire answers', function (): void {
+    Http::fake(['lepo.test/api/v2/users/12345/sumsub/kyc-url' => Http::response(['success' => true, 'accessToken' => 'web-token', 'status' => 'init'])]);
+    $cardholder = lepoCardholderFor(User::factory()->create());
+
+    expect(app(LepoCardOnboarding::class)->webKycToken($cardholder))->toBe('web-token');
+    Http::assertSent(fn (Request $request): bool => $request['occupation'] === 'engineer' && $request['documentIssueDate'] === '2020-05-01');
+});
+
+it('refuses a web identity-check answer without a token', function (): void {
+    Http::fake(['lepo.test/api/v2/users/12345/sumsub/kyc-url' => Http::response(['success' => true, 'accessToken' => null])]);
+    $cardholder = lepoCardholderFor(User::factory()->create());
+
+    expect(fn () => app(LepoCardOnboarding::class)->webKycToken($cardholder))->toThrow(CardProviderException::class);
+});
+
 it('starts a SumSub SDK session', function (): void {
+    config(['cardissuance.providers.lepo_kyc_method' => 'sumsub_sdk']);
     Http::fake(['lepo.test/api/v2/users/12345/kyc/sumsub-access-token' => Http::response(['success' => true, 'token' => 'sdk-token', 'userId' => '12345'])]);
     $cardholder = lepoCardholderFor(User::factory()->create());
 

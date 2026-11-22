@@ -13629,7 +13629,7 @@
                     "Cards"
                 ],
                 "summary": "Card onboarding state for the current user",
-                "description": "Whether cards are available, the provider, the next step (cardholder, kyc, kyc_review, kyc_action_required, kyc_rejected, funding_pending, ready), the identity-check method and the deposit networks.",
+                "description": "Whether cards are available, the provider, the next step (cardholder, kyc, kyc_review, kyc_action_required, kyc_rejected, funding_pending, ready), the identity-check method (hosted_url or sumsub_sdk) and the deposit networks [{network, asset, default}]. In the steps cardholder, kyc and kyc_action_required it also returns `form` {fields, options, prefill}: the whole cardholder form for a new user, or only the questionnaire while the answers can still be corrected. Field names are the request keys and the keys of 422 validation errors.",
                 "operationId": "v1CardsOnboarding",
                 "responses": {
                     "200": {
@@ -13666,10 +13666,14 @@
                     "Cards"
                 ],
                 "summary": "Become a cardholder with the card provider",
+                "description": "Takes the fields of `form` from GET /api/v1/cards/onboarding. A cardholder whose identity check has not started (or must be resubmitted) sends only the questionnaire fields to correct the answers.",
                 "operationId": "v1CardsCreateCardholder",
                 "responses": {
                     "201": {
                         "description": "Cardholder created"
+                    },
+                    "200": {
+                        "description": "Existing cardholder; questionnaire answers updated when the identity check can still use them"
                     },
                     "403": {
                         "description": "ERR_CARDS_022: cards not available for this account"
@@ -13691,7 +13695,7 @@
                     "Cards"
                 ],
                 "summary": "Start the identity check",
-                "description": "Returns how the app starts the identity check: method sumsub_sdk with a token for the SumSub mobile SDK.",
+                "description": "Returns how the app starts the identity check. method hosted_url: open `url` (a signed page, valid until `expires_at`) in the in-app browser; it returns to zelta://cards/kyc-done when the check is sent, then read GET /api/v1/cards/onboarding again. method sumsub_sdk: `token` for the native SumSub SDK.",
                 "operationId": "v1CardsKycSession",
                 "responses": {
                     "200": {

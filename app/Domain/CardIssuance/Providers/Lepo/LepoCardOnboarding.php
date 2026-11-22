@@ -16,10 +16,11 @@ use App\Infrastructure\Lepo\LepoClient;
 use App\Models\User;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 
 /**
- * Lepo Finance onboarding: Lepo user, SumSub identity check (SDK token),
- * funding account and USDC deposit addresses.
+ * Lepo Finance onboarding: Lepo user, SumSub identity check (our hosted page
+ * or a native SDK token), funding account and USDC deposit addresses.
  *
  * Lepo's KYC webhook payloads are not documented in detail, so the
  * cardholder's status always comes from Lepo's detailed status: `verified`
@@ -28,7 +29,7 @@ use Illuminate\Support\Facades\Log;
 final class LepoCardOnboarding implements CardOnboardingProvider
 {
     /** Countries and nationalities without cards in v1 (Lepo needs an SSN for US nationals). */
-    private const RESTRICTED = ['US'];
+    private const RESTRICTED = LepoCardholderForm::EXCLUDED_COUNTRIES;
 
     /** Values Lepo accepts for the identity-check questionnaire. */
     public const ANNUAL_SALARY_BANDS = ['0-10000', '10001-30000', '30001-50000', '50001-75000', '75001-100000', '100001-150000', '150001-250000', '250001+'];
@@ -107,23 +108,40 @@ final class LepoCardOnboarding implements CardOnboardingProvider
     /**
      * Replaces the questionnaire answers of a cardholder that has not been
      * through the identity check yet, so a refused answer can be corrected.
+     *
+     * @param  array<string, string>  $questionnaire  keyed as Lepo names the answers
      */
-    public function updateQuestionnaire(Cardholder $cardholder, CardholderProfile $profile): Cardholder
+    public function updateQuestionnaire(Cardholder $cardholder, array $questionnaire): Cardholder
     {
         $data = is_array($cardholder->verification_data) ? $cardholder->verification_data : [];
-        $data['questionnaire'] = $profile->questionnaire();
+        $data['questionnaire'] = $questionnaire;
 
         $cardholder->forceFill(['verification_data' => $data])->save();
 
         return $cardholder;
     }
 
+    public static function kycMethod(): string
+    {
+        return config('cardissuance.providers.lepo_kyc_method') === 'sumsub_sdk' ? 'sumsub_sdk' : 'hosted_url';
+    }
+
     public function startKyc(Cardholder $cardholder): KycStart
     {
-        $data = is_array($cardholder->verification_data) ? $cardholder->verification_data : [];
-        $questionnaire = is_array($data['questionnaire'] ?? null) ? $data['questionnaire'] : [];
+        if (self::kycMethod() === 'hosted_url') {
+            // The page asks Lepo for a token when it opens, so an unopened
+            // link costs nothing and an expired token is never handed out.
+            $expires = now()->addMinutes(max(5, (int) config('cardissuance.providers.kyc_link_minutes', 30)));
 
-        $response = $this->call(fn (): array => $this->client->createSumsubAccessToken($this->lepoUserId($cardholder), $questionnaire));
+            return new KycStart(
+                'hosted_url',
+                null,
+                URL::temporarySignedRoute('cards.kyc.hosted', $expires, ['cardholder' => $cardholder->id]),
+                $expires->toIso8601String(),
+            );
+        }
+
+        $response = $this->call(fn (): array => $this->client->createSumsubAccessToken($this->lepoUserId($cardholder), $this->questionnaireOf($cardholder)));
 
         $token = $response['token'] ?? null;
         if (! is_string($token) || $token === '') {
@@ -133,6 +151,21 @@ final class LepoCardOnboarding implements CardOnboardingProvider
         // The status moves on only when Lepo reports a submission: a user who
         // closes the SDK without submitting can simply start again.
         return new KycStart('sumsub_sdk', $token, null, null);
+    }
+
+    /**
+     * A SumSub access token for the web SDK on our identity-check page.
+     */
+    public function webKycToken(Cardholder $cardholder): string
+    {
+        $response = $this->call(fn (): array => $this->client->createSumsubKycUrl($this->lepoUserId($cardholder), $this->questionnaireOf($cardholder)));
+
+        $token = $response['accessToken'] ?? null;
+        if (! is_string($token) || $token === '') {
+            throw CardProviderException::providerUnavailable('lepo', 'NO_KYC_TOKEN');
+        }
+
+        return $token;
     }
 
     public function refreshKycStatus(Cardholder $cardholder): Cardholder
@@ -266,6 +299,16 @@ final class LepoCardOnboarding implements CardOnboardingProvider
         }
 
         return null;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function questionnaireOf(Cardholder $cardholder): array
+    {
+        $data = is_array($cardholder->verification_data) ? $cardholder->verification_data : [];
+
+        return is_array($data['questionnaire'] ?? null) ? $data['questionnaire'] : [];
     }
 
     private function existingCardholder(User $user): ?Cardholder

@@ -2,8 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Domain\CardIssuance\Events\Broadcast\CardFundingAccountReady;
-use App\Domain\CardIssuance\Events\Broadcast\CardKycStatusChanged;
+use App\Domain\CardIssuance\Events\Broadcast\CardOnboardingUpdated;
 use App\Domain\CardIssuance\Models\CardFundingAccount;
 use App\Domain\CardIssuance\Models\Cardholder;
 use App\Domain\CardIssuance\Webhooks\LepoWebhookRouter;
@@ -17,7 +16,7 @@ beforeEach(function (): void {
         'cardissuance.issuers.lepo.api_key'            => 'test-key',
         'cardissuance.providers.lepo_deposit_networks' => 'arbitrum,polygon',
     ]);
-    Event::fake([CardKycStatusChanged::class, CardFundingAccountReady::class]);
+    Event::fake([CardOnboardingUpdated::class]);
 });
 
 function webhookCardholder(string $status = 'in_review'): Cardholder
@@ -54,8 +53,10 @@ it('verifies the cardholder and opens the funding account', function (): void {
     expect($cardholder->fresh()?->kyc_status)->toBe('verified')
         ->and($account->status)->toBe('active')
         ->and($account->depositAddresses()->pluck('address')->all())->toBe(['0xarb']);
-    Event::assertDispatched(CardKycStatusChanged::class, fn (CardKycStatusChanged $e): bool => $e->kycStatus === 'verified' && $e->provider === 'lepo');
-    Event::assertDispatched(CardFundingAccountReady::class, fn (CardFundingAccountReady $e): bool => $e->networks === ['arbitrum']);
+    // One update for the whole move: in review → ready to fund.
+    Event::assertDispatchedTimes(CardOnboardingUpdated::class, 1);
+    Event::assertDispatched(CardOnboardingUpdated::class, fn (CardOnboardingUpdated $e): bool => $e->step === 'ready' && $e->provider === 'lepo'
+        && $e->broadcastAs() === 'cards.onboarding.updated' && $e->broadcastWith() === ['provider' => 'lepo', 'step' => 'ready']);
 });
 
 it('marks action required on a resubmission event', function (): void {
@@ -66,7 +67,7 @@ it('marks action required on a resubmission event', function (): void {
 
     expect($cardholder->fresh()?->kyc_status)->toBe('action_required')
         ->and(CardFundingAccount::query()->count())->toBe(0);
-    Event::assertDispatched(CardKycStatusChanged::class, fn (CardKycStatusChanged $e): bool => $e->kycStatus === 'action_required');
+    Event::assertDispatched(CardOnboardingUpdated::class, fn (CardOnboardingUpdated $e): bool => $e->step === 'kyc_action_required');
 });
 
 it('does not announce an unchanged status', function (): void {
@@ -75,7 +76,7 @@ it('does not announce an unchanged status', function (): void {
 
     app(LepoWebhookRouter::class)->route('user.kyc.updated', ['userId' => 12345, 'status' => 'pending'], 'evt_3');
 
-    Event::assertNotDispatched(CardKycStatusChanged::class);
+    Event::assertNotDispatched(CardOnboardingUpdated::class);
 });
 
 it('ignores kyc events for unknown users', function (): void {
@@ -84,7 +85,7 @@ it('ignores kyc events for unknown users', function (): void {
     app(LepoWebhookRouter::class)->route('kyc.verified', ['userId' => 99999, 'status' => 'approved'], 'evt_4');
 
     Http::assertNothingSent();
-    Event::assertNotDispatched(CardKycStatusChanged::class);
+    Event::assertNotDispatched(CardOnboardingUpdated::class);
 });
 
 it('stores deposit addresses and announces the funding account', function (): void {
@@ -94,5 +95,5 @@ it('stores deposit addresses and announces the funding account', function (): vo
 
     app(LepoWebhookRouter::class)->route('account.deposit.address', ['userId' => 12345, 'status' => 'created'], 'evt_5');
 
-    Event::assertDispatched(CardFundingAccountReady::class);
+    Event::assertDispatched(CardOnboardingUpdated::class, fn (CardOnboardingUpdated $e): bool => $e->step === 'ready');
 });

@@ -103,6 +103,16 @@ final class LepoClient
     }
 
     /**
+     * Standard Occupational Classification codes Lepo accepts as `occupation`.
+     *
+     * @return array<mixed>
+     */
+    public function getOccupationCodes(): array
+    {
+        return $this->read('/users/occupation-codes');
+    }
+
+    /**
      * Opens the user's funding (Interlace "Quantum") account.
      *
      * @return array<string, mixed>
