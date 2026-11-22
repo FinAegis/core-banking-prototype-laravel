@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Requests\CardIssuance;
 
 use App\Domain\CardIssuance\Providers\CardholderProfile;
+use App\Domain\CardIssuance\Providers\Lepo\LepoCardOnboarding;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Cardholder form for the provider-neutral onboarding. Field names follow the
@@ -25,8 +27,8 @@ class CreateCardholderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_name'              => ['required', 'string', 'max:100'],
-            'last_name'               => ['required', 'string', 'max:100'],
+            'first_name'              => ['required', 'string', 'max:' . LepoCardOnboarding::NAME_MAX_LENGTH],
+            'last_name'               => ['required', 'string', 'max:' . LepoCardOnboarding::NAME_MAX_LENGTH],
             'email'                   => ['required', 'email', 'max:255'],
             'phone'                   => ['required', 'string', 'regex:/^\+[1-9][0-9]{6,14}$/'],
             'birthday'                => ['required', 'date_format:Y-m-d', 'before_or_equal:' . now()->subYears(18)->format('Y-m-d')],
@@ -38,9 +40,9 @@ class CreateCardholderRequest extends FormRequest
             'country'                 => ['required', 'string', 'regex:/^[A-Za-z]{2}$/'],
             'nationality'             => ['required', 'string', 'regex:/^[A-Za-z]{2}$/'],
             'occupation'              => ['required', 'string', 'max:100'],
-            'annual_salary'           => ['required', 'string', 'max:64'],
+            'annual_salary'           => ['required', 'string', Rule::in(LepoCardOnboarding::ANNUAL_SALARY_BANDS)],
             'account_purpose'         => ['required', 'string', 'max:255'],
-            'expected_monthly_volume' => ['required', 'string', 'max:64'],
+            'expected_monthly_volume' => ['required', 'string', Rule::in(LepoCardOnboarding::MONTHLY_VOLUME_BANDS)],
             'document_issue_date'     => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
         ];
     }

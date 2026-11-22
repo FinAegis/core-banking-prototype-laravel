@@ -9,6 +9,7 @@ use App\Domain\CardIssuance\Models\Cardholder;
 use App\Domain\CardIssuance\Providers\CardProviderException;
 use App\Domain\CardIssuance\Providers\CardProviderRegistry;
 use App\Domain\CardIssuance\Providers\CardProviderSelector;
+use App\Domain\CardIssuance\Providers\Lepo\LepoCardOnboarding;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CardIssuance\CreateCardholderRequest;
 use App\Models\User;
@@ -53,7 +54,7 @@ final class CardOnboardingController extends Controller
             return $this->delegate(FinCardOnboardingController::class, 'onboarding');
         }
 
-        $cardholder = $this->cardholder($user);
+        $cardholder = $this->cardholder($user, $provider);
 
         return response()->json(['success' => true, 'data' => [
             'available'        => true,
@@ -76,7 +77,7 @@ final class CardOnboardingController extends Controller
             return $this->delegate(FinCardOnboardingController::class, 'status');
         }
 
-        $cardholder = $this->cardholder($user);
+        $cardholder = $this->cardholder($user, $provider);
 
         return response()->json(['success' => true, 'data' => $cardholder === null
             ? ['provider' => $provider, 'kyc_status' => 'not_started']
@@ -100,12 +101,22 @@ final class CardOnboardingController extends Controller
             return $this->delegate(FinCardOnboardingController::class, 'createCardholder');
         }
 
-        $existing = $this->cardholder($user);
-        if ($existing !== null) {
+        $existing = $this->cardholder($user, $provider);
+        if ($existing !== null && ! in_array($existing->kyc_status, ['pending', 'action_required'], true)) {
             return response()->json(['success' => true, 'data' => $this->present($existing)]);
         }
 
         $form = app(CreateCardholderRequest::class);
+
+        if ($existing !== null) {
+            // Not yet through the identity check: the answers may be corrected.
+            $onboarding = $this->registry->onboarding($provider);
+            if ($onboarding instanceof LepoCardOnboarding) {
+                $onboarding->updateQuestionnaire($existing, $form->toProfile());
+            }
+
+            return response()->json(['success' => true, 'data' => $this->present($existing)]);
+        }
 
         try {
             $cardholder = $this->registry->onboarding($provider)->createCardholder($user, $form->toProfile());
@@ -135,7 +146,7 @@ final class CardOnboardingController extends Controller
             return ErrorResponse::make('ERR_CARDS_022');
         }
 
-        $cardholder = $this->cardholder($user);
+        $cardholder = $this->cardholder($user, $provider);
         if ($provider === 'fincard' || $cardholder === null) {
             return ErrorResponse::make('ERR_CARDS_024');
         }
@@ -165,7 +176,7 @@ final class CardOnboardingController extends Controller
             return $this->delegate(FinCardAccountController::class, 'account');
         }
 
-        $cardholder = $this->cardholder($user);
+        $cardholder = $this->cardholder($user, $provider);
         $account = $cardholder?->fundingAccount;
         if ($cardholder === null || $cardholder->kyc_status !== 'verified' || $account === null) {
             return ErrorResponse::make('ERR_CARDS_024');
@@ -178,6 +189,7 @@ final class CardOnboardingController extends Controller
             'balance_cents'     => $account->balance_cents,
             'deposit_addresses' => $account->depositAddresses()
                 ->where('is_active', true)
+                ->whereIn('network', CardProviderSelector::listFromConfig('cardissuance.providers.lepo_deposit_networks'))
                 ->orderBy('network')
                 ->get(['network', 'asset', 'address'])
                 ->map(static fn ($address): array => ['network' => $address->network, 'asset' => $address->asset, 'address' => $address->address])
@@ -228,9 +240,11 @@ final class CardOnboardingController extends Controller
         };
     }
 
-    private function cardholder(User $user): ?Cardholder
+    private function cardholder(User $user, ?string $provider): ?Cardholder
     {
-        return Cardholder::query()->where('user_id', $user->id)->latest()->first();
+        return $provider === null
+            ? null
+            : Cardholder::query()->where('user_id', $user->id)->where('provider', $provider)->first();
     }
 
     /**

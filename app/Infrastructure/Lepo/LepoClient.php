@@ -109,7 +109,17 @@ final class LepoClient
      */
     public function createFundingAccount(string $userId): array
     {
-        return $this->write('POST', '/users/create-interlace-account/{id}', ['id' => $userId]);
+        // `accountAlreadyExists: true` arrives with `success: false` and is
+        // not a failure: the account is there (`interlaceAccountId`).
+        return $this->send(
+            $this->http(),
+            'POST',
+            '/users/create-interlace-account/{id}',
+            ['id' => $userId],
+            [],
+            [],
+            static fn (array $data): bool => ($data['accountAlreadyExists'] ?? false) === true,
+        );
     }
 
     /**
@@ -280,7 +290,7 @@ final class LepoClient
      * @param  array<string, scalar>  $query
      * @return array<string, mixed>
      */
-    private function send(PendingRequest $request, string $method, string $template, array $params, array $body, array $query): array
+    private function send(PendingRequest $request, string $method, string $template, array $params, array $body, array $query, ?callable $acceptFailureBody = null): array
     {
         $path = $template;
         foreach ($params as $name => $value) {
@@ -302,13 +312,14 @@ final class LepoClient
             throw LepoApiException::transport($template, 0);
         }
 
-        return $this->decode($response, $template);
+        return $this->decode($response, $template, $acceptFailureBody);
     }
 
     /**
+     * @param  (callable(array<mixed>): bool)|null  $acceptFailureBody
      * @return array<string, mixed>
      */
-    private function decode(Response $response, string $template): array
+    private function decode(Response $response, string $template, ?callable $acceptFailureBody = null): array
     {
         $status = $response->status();
         $json = $response->json();
@@ -328,7 +339,7 @@ final class LepoClient
             throw LepoApiException::business($template, $this->errorCode($data), $status);
         }
 
-        if (($data['success'] ?? null) === false) {
+        if (($data['success'] ?? null) === false && ! ($acceptFailureBody !== null && $acceptFailureBody($data))) {
             throw LepoApiException::business($template, $this->errorCode($data), $status);
         }
 

@@ -35,6 +35,7 @@ final class FinCardCardholderService
     {
         return Cardholder::query()
             ->where('user_id', $user->id)
+            ->where(static fn ($query) => $query->where('provider', 'fincard')->orWhereNull('provider'))
             ->whereNotNull('issuer_cardholder_id')
             ->first();
     }
@@ -79,6 +80,7 @@ final class FinCardCardholderService
         $cardholder->kyc_status = 'in_review';
         $cardholder->kyc_stage = 'admin';
         $cardholder->issuer_cardholder_id = $holderId;
+        $cardholder->provider = 'fincard';
         $cardholder->shipping_address_line1 = $this->stringOrNull($validated['address'] ?? null);
         $cardholder->shipping_city = $this->stringOrNull($validated['city'] ?? null);
         $cardholder->shipping_state = $this->stringOrNull($validated['state'] ?? null);
@@ -111,7 +113,10 @@ final class FinCardCardholderService
             return;
         }
 
-        $cardholder = Cardholder::query()->where('issuer_cardholder_id', $holderId)->first();
+        $cardholder = Cardholder::query()
+            ->where('issuer_cardholder_id', $holderId)
+            ->where(static fn ($query) => $query->where('provider', 'fincard')->orWhereNull('provider'))
+            ->first();
         if (! $cardholder instanceof Cardholder) {
             Log::warning('FinCard KYC webhook for unknown cardholder', ['holder_id' => $holderId, 'event' => $eventType]);
 

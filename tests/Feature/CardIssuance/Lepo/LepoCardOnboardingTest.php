@@ -35,9 +35,9 @@ function lepoProfile(string $nationality = 'LT', string $country = 'LT'): Cardho
         country: $country,
         nationality: $nationality,
         occupation: 'engineer',
-        annualSalary: '30000-60000',
+        annualSalary: '30001-50000',
         accountPurpose: 'spending',
-        expectedMonthlyVolume: '1000-5000',
+        expectedMonthlyVolume: '1001-5000',
         documentIssueDate: '2020-05-01',
     );
 }
@@ -97,7 +97,7 @@ it('starts a SumSub SDK session', function (): void {
     $start = app(LepoCardOnboarding::class)->startKyc($cardholder);
 
     expect($start->toArray())->toBe(['method' => 'sumsub_sdk', 'token' => 'sdk-token'])
-        ->and($cardholder->fresh()?->kyc_status)->toBe('in_review');
+        ->and($cardholder->fresh()?->kyc_status)->toBe('pending');
     Http::assertSent(fn (Request $request): bool => $request['occupation'] === 'engineer' && $request['documentIssueDate'] === '2020-05-01');
 });
 
@@ -119,7 +119,7 @@ it('maps the detailed kyc status', function (array $detail, string $expected): v
 ]);
 
 it('opens the funding account once', function (): void {
-    Http::fake(['lepo.test/api/v2/users/create-interlace-account/12345' => Http::response(['success' => true, 'accountId' => 'acc-1'])]);
+    Http::fake(['lepo.test/api/v2/users/create-interlace-account/12345' => Http::response(['success' => true, 'interlaceAccountId' => 'ia-1'])]);
     $cardholder = lepoCardholderFor(User::factory()->create(), 'verified');
     $onboarding = app(LepoCardOnboarding::class);
 
@@ -128,6 +128,7 @@ it('opens the funding account once', function (): void {
 
     expect($first->id)->toBe($second->id)
         ->and($first->status)->toBe('active')
+        ->and($first->provider_account_id)->toBe('ia-1')
         ->and(CardFundingAccount::query()->count())->toBe(1);
     Http::assertSentCount(1);
 });
@@ -157,3 +158,69 @@ it('stores only the offered USDC networks', function (): void {
     expect($stored)->toBe(2)
         ->and($account->depositAddresses()->orderBy('network')->pluck('address', 'network')->all())->toBe(['arbitrum' => '0xarb', 'polygon' => '0xpol']);
 });
+
+it('accepts an already existing funding account answer', function (): void {
+    Http::fake(['lepo.test/*' => Http::response(['success' => false, 'accountAlreadyExists' => true, 'interlaceAccountId' => 'ia-9', 'errorCode' => 'ACCOUNT_EXISTS'])]);
+
+    $account = app(LepoCardOnboarding::class)->openFundingAccount(lepoCardholderFor(User::factory()->create(), 'verified'));
+
+    expect($account->status)->toBe('active')
+        ->and($account->provider_account_id)->toBe('ia-9');
+});
+
+it('keeps one cardholder when two creates race', function (): void {
+    $user = User::factory()->create();
+    $existing = lepoCardholderFor($user);
+    Http::fake([
+        'lepo.test/api/v2/users?*' => Http::response(['users' => [['id' => 12345, 'externalUserId' => $user->uuid]]]),
+        'lepo.test/api/v2/users'   => Http::response(['message' => 'exists', 'code' => 'USER_EXISTS'], 409),
+    ]);
+
+    $cardholder = app(LepoCardOnboarding::class)->createCardholder($user, lepoProfile());
+
+    expect($cardholder->id)->toBe($existing->id)
+        ->and(Cardholder::query()->where('user_id', $user->id)->where('provider', 'lepo')->count())->toBe(1);
+});
+
+it('registers the account e-mail at Lepo', function (): void {
+    Http::fake(['lepo.test/api/v2/users' => Http::response(['id' => 12345], 201)]);
+    $user = User::factory()->create(['email' => 'owner@example.com']);
+
+    app(LepoCardOnboarding::class)->createCardholder($user, lepoProfile());
+
+    Http::assertSent(fn (Request $request): bool => $request['email'] === 'owner@example.com');
+});
+
+it('reads the network from either address field', function (): void {
+    Http::fake(['lepo.test/api/v2/users/12345/crypto-addresses' => Http::response(['userId' => 12345, 'addresses' => [
+        ['address' => '0xarb', 'currency' => 'USDC', 'network' => 'Arbitrum One', 'chain' => 'ARB', 'isActive' => true],
+    ]])]);
+    $cardholder = lepoCardholderFor(User::factory()->create(), 'verified');
+    $account = CardFundingAccount::create(['user_id' => $cardholder->user_id, 'cardholder_id' => $cardholder->id, 'provider' => 'lepo', 'status' => 'active']);
+
+    expect(app(LepoCardOnboarding::class)->syncDepositAddresses($account))->toBe(1);
+});
+
+it('deactivates addresses that are no longer offered', function (): void {
+    Http::fake(['lepo.test/api/v2/users/12345/crypto-addresses' => Http::response(['userId' => 12345, 'addresses' => [
+        ['address' => '0xarb', 'currency' => 'USDC', 'network' => 'ARBITRUM', 'isActive' => true],
+    ]])]);
+    $cardholder = lepoCardholderFor(User::factory()->create(), 'verified');
+    $account = CardFundingAccount::create(['user_id' => $cardholder->user_id, 'cardholder_id' => $cardholder->id, 'provider' => 'lepo', 'status' => 'active']);
+    $account->depositAddresses()->create(['provider' => 'lepo', 'network' => 'polygon', 'asset' => 'USDC', 'address' => '0xpol', 'is_active' => true]);
+
+    app(LepoCardOnboarding::class)->syncDepositAddresses($account);
+
+    expect($account->depositAddresses()->where('is_active', true)->pluck('network')->all())->toBe(['arbitrum']);
+});
+
+it('reports a decision taken at the identity-check stage', function (string $userStatus, string $expected): void {
+    Http::fake([
+        'lepo.test/api/v2/users/12345/kyc/detailed-status' => Http::response(['lepoFinanceKycApproved' => false, 'cardIssuerKycApproved' => false, 'interlace' => ['status' => 'not_started']]),
+        'lepo.test/api/v2/users/12345'                     => Http::response(['id' => 12345, 'kycStatus' => $userStatus]),
+    ]);
+
+    $refreshed = app(LepoCardOnboarding::class)->refreshKycStatus(lepoCardholderFor(User::factory()->create(), 'in_review'));
+
+    expect($refreshed->kyc_status)->toBe($expected);
+})->with([['REJECTED', 'rejected'], ['RETRY', 'action_required']]);

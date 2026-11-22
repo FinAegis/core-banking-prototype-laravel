@@ -29,6 +29,12 @@ return new class () extends Migration {
             });
 
             DB::table('cardholders')->whereNotNull('issuer_cardholder_id')->update(['provider' => 'fincard']);
+
+            // One cardholder per user and provider (rows without a provider are
+            // older, provider-less rows; NULLs never collide in a unique index).
+            Schema::table('cardholders', function (Blueprint $table): void {
+                $table->unique(['user_id', 'provider'], 'cardholders_user_provider_unique');
+            });
         }
 
         if (! Schema::hasTable('card_funding_accounts')) {
@@ -70,6 +76,7 @@ return new class () extends Migration {
 
         if (Schema::hasTable('cardholders') && Schema::hasColumn('cardholders', 'provider')) {
             Schema::table('cardholders', function (Blueprint $table): void {
+                $table->dropUnique('cardholders_user_provider_unique');
                 $table->dropIndex(['provider']);
                 $table->dropColumn('provider');
             });

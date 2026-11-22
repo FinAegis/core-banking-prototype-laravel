@@ -45,6 +45,11 @@ it('backfills fincard as the provider of existing cardholders', function (): voi
 
     expect(DB::table('cardholders')->where('id', '0f1b2c3d-0000-4000-8000-000000000001')->value('provider'))->toBe('fincard')
         ->and(DB::table('cardholders')->where('id', '0f1b2c3d-0000-4000-8000-000000000002')->value('provider'))->toBeNull();
+
+    // On MySQL/MariaDB the schema changes above commit the test transaction,
+    // so remove what this test wrote instead of relying on the rollback.
+    DB::table('cardholders')->whereIn('id', ['0f1b2c3d-0000-4000-8000-000000000001', '0f1b2c3d-0000-4000-8000-000000000002'])->delete();
+    $user->delete();
 });
 
 it('stores one funding account per user and provider', function (): void {

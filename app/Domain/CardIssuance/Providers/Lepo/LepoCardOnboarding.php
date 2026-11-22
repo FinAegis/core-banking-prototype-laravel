@@ -14,6 +14,8 @@ use App\Domain\CardIssuance\Providers\KycStart;
 use App\Infrastructure\Lepo\LepoApiException;
 use App\Infrastructure\Lepo\LepoClient;
 use App\Models\User;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Lepo Finance onboarding: Lepo user, SumSub identity check (SDK token),
@@ -28,10 +30,18 @@ final class LepoCardOnboarding implements CardOnboardingProvider
     /** Countries and nationalities without cards in v1 (Lepo needs an SSN for US nationals). */
     private const RESTRICTED = ['US'];
 
+    /** Values Lepo accepts for the identity-check questionnaire. */
+    public const ANNUAL_SALARY_BANDS = ['0-10000', '10001-30000', '30001-50000', '50001-75000', '75001-100000', '100001-150000', '150001-250000', '250001+'];
+
+    public const MONTHLY_VOLUME_BANDS = ['0-1000', '1001-5000', '5001-15000', '15001-50000', '50001-100000', '100001+'];
+
+    /** Lepo allows up to 50 characters per name. */
+    public const NAME_MAX_LENGTH = 50;
+
     /** Lepo network or chain spellings → our network names. */
     private const NETWORKS = [
-        'arbitrum' => 'arbitrum', 'arb' => 'arbitrum', '42161' => 'arbitrum',
-        'polygon'  => 'polygon', 'matic' => 'polygon', '137' => 'polygon',
+        'arbitrum' => 'arbitrum', 'arb' => 'arbitrum', '42161' => 'arbitrum', 'arbitrum one' => 'arbitrum',
+        'polygon'  => 'polygon', 'matic' => 'polygon', '137' => 'polygon', 'polygon pos' => 'polygon',
         'base'     => 'base', '8453' => 'base',
         'ethereum' => 'ethereum', 'eth' => 'ethereum', '1' => 'ethereum',
     ];
@@ -53,6 +63,11 @@ final class LepoCardOnboarding implements CardOnboardingProvider
             }
         }
 
+        $existing = $this->existingCardholder($user);
+        if ($existing !== null) {
+            return $existing;
+        }
+
         $lepoUserId = $this->createOrAdoptUser($user, $profile);
 
         $cardholder = new Cardholder();
@@ -61,7 +76,7 @@ final class LepoCardOnboarding implements CardOnboardingProvider
             'provider'               => 'lepo',
             'first_name'             => $profile->firstName,
             'last_name'              => $profile->lastName,
-            'email'                  => $profile->email,
+            'email'                  => $this->accountEmail($user, $profile),
             'phone'                  => $profile->phone,
             'kyc_status'             => 'pending',
             'issuer_cardholder_id'   => $lepoUserId,
@@ -77,7 +92,28 @@ final class LepoCardOnboarding implements CardOnboardingProvider
                 'questionnaire' => $profile->questionnaire(),
             ],
         ]);
-        $cardholder->save();
+
+        try {
+            $cardholder->save();
+        } catch (UniqueConstraintViolationException) {
+            // A concurrent request created it first (Lepo answered it 201 and
+            // this one 409): keep the single row.
+            return $this->existingCardholder($user) ?? throw CardProviderException::providerUnavailable('lepo', 'DUPLICATE_CARDHOLDER');
+        }
+
+        return $cardholder;
+    }
+
+    /**
+     * Replaces the questionnaire answers of a cardholder that has not been
+     * through the identity check yet, so a refused answer can be corrected.
+     */
+    public function updateQuestionnaire(Cardholder $cardholder, CardholderProfile $profile): Cardholder
+    {
+        $data = is_array($cardholder->verification_data) ? $cardholder->verification_data : [];
+        $data['questionnaire'] = $profile->questionnaire();
+
+        $cardholder->forceFill(['verification_data' => $data])->save();
 
         return $cardholder;
     }
@@ -94,10 +130,8 @@ final class LepoCardOnboarding implements CardOnboardingProvider
             throw CardProviderException::providerUnavailable('lepo', 'NO_KYC_TOKEN');
         }
 
-        if (in_array($cardholder->kyc_status, ['pending', 'action_required'], true)) {
-            $cardholder->forceFill(['kyc_status' => 'in_review'])->save();
-        }
-
+        // The status moves on only when Lepo reports a submission: a user who
+        // closes the SDK without submitting can simply start again.
         return new KycStart('sumsub_sdk', $token, null, null);
     }
 
@@ -106,6 +140,19 @@ final class LepoCardOnboarding implements CardOnboardingProvider
         $detail = $this->call(fn (): array => $this->client->getKycDetailedStatus($this->lepoUserId($cardholder)));
         $issuer = is_array($detail['interlace'] ?? null) ? $detail['interlace'] : [];
         $issuerStatus = strtolower((string) ($issuer['status'] ?? ''));
+
+        // Before the card issuer sees the user, a decision can only come from
+        // the identity check itself (the user's own kycStatus).
+        $undecided = ! in_array($issuerStatus, ['approved', 'rejected', 'action_required', 'retry', 'resubmission_required', 'pending', 'submitted', 'in_review', 'processing'], true);
+        if ($undecided && ($detail['cardIssuerKycApproved'] ?? false) !== true && ($detail['lepoFinanceKycApproved'] ?? false) !== true) {
+            $lepoUser = $this->call(fn (): array => $this->client->getUser($this->lepoUserId($cardholder)));
+            $issuerStatus = match (strtoupper((string) ($lepoUser['kycStatus'] ?? ''))) {
+                'REJECTED'             => 'rejected',
+                'RETRY'                => 'action_required',
+                'PENDING', 'SUBMITTED' => 'pending',
+                default                => $issuerStatus,
+            };
+        }
 
         $status = match (true) {
             ($detail['cardIssuerKycApproved'] ?? false) === true || ($issuer['approved'] ?? false) === true => 'verified',
@@ -145,8 +192,8 @@ final class LepoCardOnboarding implements CardOnboardingProvider
 
         try {
             $response = $this->client->createFundingAccount($this->lepoUserId($cardholder));
-            $accountId = $response['accountId'] ?? $response['id'] ?? null;
-            $account->provider_account_id = is_scalar($accountId) ? (string) $accountId : null;
+            $accountId = $response['interlaceAccountId'] ?? $response['accountId'] ?? null;
+            $account->provider_account_id = is_scalar($accountId) && (string) $accountId !== '' ? (string) $accountId : null;
         } catch (LepoApiException $e) {
             if ($e->httpStatus() !== 409) {
                 throw CardProviderException::providerUnavailable('lepo', $e->lepoCode());
@@ -173,15 +220,18 @@ final class LepoCardOnboarding implements CardOnboardingProvider
             is_array($response['cryptoAddresses'] ?? null) ? $response['cryptoAddresses'] : [],
         );
 
-        $stored = 0;
+        $kept = [];
+        $skipped = 0;
         foreach ($rows as $row) {
             if (! is_array($row) || ($row['isActive'] ?? true) === false) {
                 continue;
             }
 
-            $network = self::NETWORKS[strtolower((string) ($row['network'] ?? $row['chain'] ?? ''))] ?? null;
+            $network = $this->network($row);
             $address = $row['address'] ?? null;
             if ($network === null || ! in_array($network, $offered, true) || strtoupper((string) ($row['currency'] ?? '')) !== 'USDC' || ! is_string($address) || $address === '') {
+                $skipped++;
+
                 continue;
             }
 
@@ -189,17 +239,52 @@ final class LepoCardOnboarding implements CardOnboardingProvider
                 ['network' => $network, 'asset' => 'USDC'],
                 ['provider' => 'lepo', 'address' => $address, 'is_active' => true],
             );
-            $stored++;
+            $kept[] = $network;
         }
 
-        return $stored;
+        // Addresses Lepo no longer returns, or networks no longer offered, must
+        // not be shown: money sent there would not reach the card.
+        $account->depositAddresses()->whereNotIn('network', $kept === [] ? [''] : $kept)->update(['is_active' => false]);
+
+        if ($skipped > 0) {
+            Log::info('Lepo deposit addresses skipped', ['funding_account_id' => $account->id, 'skipped' => $skipped, 'kept' => count($kept)]);
+        }
+
+        return count($kept);
+    }
+
+    /**
+     * @param  array<mixed>  $row
+     */
+    private function network(array $row): ?string
+    {
+        foreach (['network', 'chain'] as $field) {
+            $value = strtolower(trim((string) ($row[$field] ?? '')));
+            if ($value !== '' && isset(self::NETWORKS[$value])) {
+                return self::NETWORKS[$value];
+            }
+        }
+
+        return null;
+    }
+
+    private function existingCardholder(User $user): ?Cardholder
+    {
+        return Cardholder::query()->where('user_id', $user->id)->where('provider', 'lepo')->first();
+    }
+
+    private function accountEmail(User $user, CardholderProfile $profile): string
+    {
+        $email = trim((string) $user->email);
+
+        return $email !== '' ? $email : $profile->email;
     }
 
     private function createOrAdoptUser(User $user, CardholderProfile $profile): string
     {
         try {
             $created = $this->client->createUser([
-                'email'          => $profile->email,
+                'email'          => $this->accountEmail($user, $profile),
                 'firstName'      => $profile->firstName,
                 'lastName'       => $profile->lastName,
                 'externalUserId' => (string) $user->uuid,

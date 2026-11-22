@@ -38,8 +38,8 @@ function cardholderPayload(array $overrides = []): array
     return array_merge([
         'first_name'      => 'Ada', 'last_name' => 'Lovelace', 'email' => 'ada@example.com', 'phone' => '+37060000000',
         'birthday'        => '1990-01-01', 'address' => 'Gedimino 1', 'city' => 'Vilnius', 'zip_code' => '01103',
-        'country'         => 'LT', 'nationality' => 'LT', 'occupation' => 'engineer', 'annual_salary' => '30000-60000',
-        'account_purpose' => 'spending', 'expected_monthly_volume' => '1000-5000', 'document_issue_date' => '2020-05-01',
+        'country'         => 'LT', 'nationality' => 'LT', 'occupation' => 'engineer', 'annual_salary' => '30001-50000',
+        'account_purpose' => 'spending', 'expected_monthly_volume' => '1001-5000', 'document_issue_date' => '2020-05-01',
     ], $overrides);
 }
 
@@ -165,4 +165,56 @@ it('keeps FinCard users on the FinCard flow', function (): void {
 
     // FinCard's own onboarding refuses a user who already has a cardholder.
     $this->getJson('/api/v1/cards/onboarding')->assertJsonPath('error.code', 'ERR_CARDS_009');
+});
+
+it('shows only the configured deposit networks', function (): void {
+    config(['cardissuance.providers.lepo_deposit_networks' => 'arbitrum']);
+    $user = pilotUser();
+    $cardholder = endpointCardholder($user, 'verified');
+    $account = CardFundingAccount::create(['user_id' => $user->id, 'cardholder_id' => $cardholder->id, 'provider' => 'lepo', 'status' => 'active']);
+    $account->depositAddresses()->create(['provider' => 'lepo', 'network' => 'arbitrum', 'asset' => 'USDC', 'address' => '0xarb', 'is_active' => true]);
+    $account->depositAddresses()->create(['provider' => 'lepo', 'network' => 'polygon', 'asset' => 'USDC', 'address' => '0xpol', 'is_active' => true]);
+
+    $this->getJson('/api/v1/cards/account')->assertOk()->assertJsonCount(1, 'data.deposit_addresses');
+});
+
+it('ignores cardholders of other providers', function (): void {
+    $user = pilotUser();
+    $legacy = new Cardholder();
+    $legacy->forceFill(['user_id' => $user->id, 'first_name' => 'Old', 'last_name' => 'Row', 'kyc_status' => 'verified']);
+    $legacy->save();
+
+    $this->getJson('/api/v1/cards/onboarding')->assertJsonPath('data.step', 'cardholder');
+});
+
+it('rejects questionnaire answers Lepo does not accept', function (): void {
+    pilotUser();
+
+    $this->withHeader('Idempotency-Key', (string) Str::uuid())
+        ->postJson('/api/v1/cards/cardholder', cardholderPayload(['annual_salary' => '30000-60000', 'expected_monthly_volume' => 'lots']))
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['annual_salary', 'expected_monthly_volume']);
+});
+
+it('lets a cardholder correct the answers before the identity check', function (): void {
+    $user = pilotUser();
+    $cardholder = endpointCardholder($user, 'pending');
+    Http::fake();
+
+    $this->withHeader('Idempotency-Key', (string) Str::uuid())
+        ->postJson('/api/v1/cards/cardholder', cardholderPayload(['annual_salary' => '50001-75000']))
+        ->assertOk()
+        ->assertJsonPath('data.cardholder_id', $cardholder->id);
+
+    expect($cardholder->fresh()?->verification_data['questionnaire']['annualSalary'] ?? null)->toBe('50001-75000');
+    Http::assertNothingSent();
+});
+
+it('limits names to the 50 characters Lepo accepts', function (): void {
+    pilotUser();
+
+    $this->withHeader('Idempotency-Key', (string) Str::uuid())
+        ->postJson('/api/v1/cards/cardholder', cardholderPayload(['first_name' => str_repeat('A', 51)]))
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['first_name']);
 });
