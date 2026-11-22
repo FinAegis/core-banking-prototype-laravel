@@ -502,7 +502,7 @@ test('export includes all post-v7.13 user-data sections with deliberate field ch
 
     expect($data)->toHaveKeys([
         'user', 'accounts', 'transactions', 'kyc_documents', 'audit_logs', 'consents',
-        'subscriptions', 'bridge', 'wallet', 'mobile_payments', 'devices', 'api_usage',
+        'subscriptions', 'bridge', 'wallet', 'mobile_payments', 'devices', 'api_usage', 'cards',
     ]);
 
     // Identity-provider link is included in the user section
