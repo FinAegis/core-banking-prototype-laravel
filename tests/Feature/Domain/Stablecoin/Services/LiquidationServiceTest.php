@@ -38,7 +38,8 @@ class LiquidationServiceTest extends ServiceTestCase
 
         // Mock DB transactions; a partial mock keeps the rest of the database
         // manager real for the framework (it closes connections after a test).
-        DB::partialMock()->shouldReceive('transaction')->andReturnUsing(function ($callback) {
+        DB::partialMock();
+        DB::shouldReceive('transaction')->andReturnUsing(function ($callback) {
             return $callback();
         });
 
