@@ -36,7 +36,9 @@ class LiquidationServiceTest extends ServiceTestCase
         $this->collateralService = Mockery::mock(CollateralService::class);
         $this->walletService = Mockery::mock(WalletService::class);
 
-        // Mock DB facade
+        // Mock DB transactions; a partial mock keeps the rest of the database
+        // manager real for the framework (it closes connections after a test).
+        DB::partialMock();
         DB::shouldReceive('transaction')->andReturnUsing(function ($callback) {
             return $callback();
         });

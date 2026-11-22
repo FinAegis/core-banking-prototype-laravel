@@ -158,8 +158,10 @@ class HealthCheckerTest extends TestCase
 
     public function test_unhealthy_status_when_check_fails(): void
     {
-        // Mock a failing database connection
-        DB::shouldReceive('select')
+        // Mock a failing database connection. A partial mock keeps the rest
+        // of the database manager real, which the framework still needs
+        // (for example to close connections when the test ends).
+        DB::partialMock()->shouldReceive('select')
             ->once()
             ->andThrow(new Exception('Database connection failed'));
 

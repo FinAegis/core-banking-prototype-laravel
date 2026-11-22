@@ -7,11 +7,10 @@ use Tests\UnitTestCase;
 uses(UnitTestCase::class);
 
 beforeEach(function () {
-    $this->app = Mockery::mock(Application::class);
-    $this->provider = new FortifyServiceProvider($this->app);
-
-    // Add flush method expectation for tearDown
-    $this->app->shouldReceive('flush')->andReturnNull();
+    // A separate mock, so the test case keeps its real application for the
+    // framework's own teardown.
+    $this->mockApp = Mockery::mock(Application::class);
+    $this->provider = new FortifyServiceProvider($this->mockApp);
 });
 
 it('can instantiate fortify service provider', function () {
