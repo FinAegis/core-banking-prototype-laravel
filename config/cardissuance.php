@@ -53,6 +53,9 @@ return [
         // Where the identity-check page sends the user when the check is sent.
         'kyc_return_url'   => env('CARD_KYC_RETURN_URL', 'zelta://cards/kyc-done'),
         'kyc_link_minutes' => (int) env('CARD_KYC_LINK_MINUTES', 30),
+        // Cards a user may hold at once (cancelled, expired and failed cards
+        // do not count); one card keeps "Add to card" unambiguous.
+        'lepo_max_cards' => (int) env('CARD_LEPO_MAX_CARDS', 1),
     ],
 
     /*
@@ -129,6 +132,9 @@ return [
             'card_type_id_virtual' => env('LEPO_CARD_TYPE_ID_VIRTUAL'),
             'tier_id'              => env('LEPO_TIER_ID'),
             'timeout_seconds'      => (int) env('LEPO_TIMEOUT_SECONDS', 15),
+            // Interlace Widget.js for the card-details page (staging:
+            // https://staging-static.univisioncard.com/api/sdk/card/1.0.0/index.min.js).
+            'widget_script_url' => env('LEPO_WIDGET_SCRIPT_URL') ?: 'https://static.univisioncard.com/api/sdk/card/1.0.0/index.min.js',
         ],
     ],
 
