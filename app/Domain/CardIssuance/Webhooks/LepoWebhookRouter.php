@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\CardIssuance\Webhooks;
 
+use App\Domain\CardIssuance\Providers\Lepo\LepoCardWebhookHandler;
 use App\Domain\CardIssuance\Providers\Lepo\LepoOnboardingWebhookHandler;
 use App\Infrastructure\Lepo\LepoRedactor;
 use Illuminate\Support\Facades\Log;
@@ -23,8 +24,10 @@ final class LepoWebhookRouter
     /** Identity-check events; their payloads only identify the user. */
     private const KYC_TYPES = ['kyc.verified', 'kyc.update', 'user.kyc.updated', 'kyc.resubmission_required', 'kyc.interlace_submission_failed'];
 
-    public function __construct(private readonly LepoOnboardingWebhookHandler $onboarding)
-    {
+    public function __construct(
+        private readonly LepoOnboardingWebhookHandler $onboarding,
+        private readonly LepoCardWebhookHandler $cards,
+    ) {
     }
 
     /**
@@ -35,9 +38,10 @@ final class LepoWebhookRouter
         Log::info('Lepo webhook received', ['event_id' => $eventId, 'type' => $type]);
 
         match (true) {
-            in_array($type, self::KYC_TYPES, true) => $this->onboarding->handleKyc($data, $eventId, $type),
-            $type === 'account.deposit.address'    => $this->onboarding->handleDepositAddresses($data, $eventId, $type),
-            default                                => null,
+            in_array($type, self::KYC_TYPES, true)               => $this->onboarding->handleKyc($data, $eventId, $type),
+            $type === 'account.deposit.address'                  => $this->onboarding->handleDepositAddresses($data, $eventId, $type),
+            in_array($type, LepoCardWebhookHandler::TYPES, true) => $this->cards->handle($data, $eventId, $type),
+            default                                              => null,
         };
     }
 

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\CardIssuance\Models\Card;
 use App\Domain\CardIssuance\Models\CardFundingAccount;
 use App\Domain\CardIssuance\Models\Cardholder;
 use App\Domain\Compliance\Services\GdprService;
@@ -33,6 +34,11 @@ function gdprCardholder(User $user): Cardholder
     $account = CardFundingAccount::create(['user_id' => $user->id, 'cardholder_id' => $cardholder->id, 'provider' => 'lepo', 'status' => 'active', 'balance_cents' => 2500]);
     $account->depositAddresses()->create(['provider' => 'lepo', 'network' => 'arbitrum', 'asset' => 'USDC', 'address' => '0xarb', 'is_active' => true]);
 
+    Card::create([
+        'user_id' => $user->id, 'cardholder_id' => $cardholder->id, 'issuer' => 'lepo', 'status' => 'active', 'issuer_card_token' => '555',
+        'last4'   => '1234', 'network' => 'visa', 'currency' => 'USD', 'label' => 'Travel', 'metadata' => ['note' => 'x'],
+    ]);
+
     return $cardholder;
 }
 
@@ -60,7 +66,9 @@ it('exports the card data a user gave the card provider', function (): void {
         ->and($cards['cardholders'][0]['address']['line1'])->toBe('Gedimino 1')
         ->and($cards['cardholders'][0]['questionnaire'])->toBe(['occupation' => '15-1252'])
         ->and($cards['funding_accounts'][0])->toMatchArray(['provider' => 'lepo', 'status' => 'active', 'balance_cents' => 2500])
-        ->and($cards['funding_accounts'][0]['deposit_addresses'][0])->toBe(['network' => 'arbitrum', 'asset' => 'USDC', 'address' => '0xarb']);
+        ->and($cards['funding_accounts'][0]['deposit_addresses'][0])->toBe(['network' => 'arbitrum', 'asset' => 'USDC', 'address' => '0xarb'])
+        ->and($cards['cards'][0])->toMatchArray(['provider' => 'lepo', 'provider_card_id' => '555', 'label' => 'Travel', 'status' => 'active', 'last4' => '1234', 'currency' => 'USD'])
+        ->and($cards['cards'][0])->not->toHaveKey('metadata');
 });
 
 it('erases the personal data of a cardholder and keeps the provider record', function (): void {
@@ -83,4 +91,10 @@ it('erases the personal data of a cardholder and keeps the provider record', fun
         ->and($erased?->issuer_cardholder_id)->toBe('12345')
         ->and($erased?->provider)->toBe('lepo')
         ->and(CardFundingAccount::query()->where('user_id', $user->id)->value('balance_cents'))->toBe(2500);
+
+    $card = Card::query()->where('user_id', $user->id)->firstOrFail();
+    expect($card->label)->toBeNull()
+        ->and($card->metadata)->toBeNull()
+        ->and($card->issuer_card_token)->toBe('555')
+        ->and($card->status)->toBe('active');
 });

@@ -117,6 +117,18 @@ it('builds the identity-check link from APP_URL over https in production', funct
     expect($url)->toStartWith('https://zelta.app/cards/kyc/' . $cardholder->id . '?');
 });
 
+it('forgets that the check was sent once Lepo changes the status', function (): void {
+    Http::fake(['lepo.test/api/v2/users/12345/kyc/detailed-status' => Http::response(['cardIssuerKycApproved' => false, 'interlace' => ['status' => 'action_required', 'requiredAction' => 'RESUBMIT']])]);
+    $cardholder = lepoCardholderFor(User::factory()->create());
+    $cardholder->forceFill(['verification_data' => [...($cardholder->verification_data ?? []), 'kyc_submitted_at' => now()->toIso8601String()]])->save();
+
+    app(LepoCardOnboarding::class)->refreshKycStatus($cardholder);
+
+    expect($cardholder->fresh()?->kyc_status)->toBe('action_required')
+        ->and($cardholder->fresh()?->verification_data)->not->toHaveKey('kyc_submitted_at')
+        ->and($cardholder->fresh()?->verification_data['questionnaire'] ?? null)->not->toBeNull();
+});
+
 it('gets a web identity-check token with the questionnaire answers', function (): void {
     Http::fake(['lepo.test/api/v2/users/12345/sumsub/kyc-url' => Http::response(['success' => true, 'accessToken' => 'web-token', 'status' => 'init'])]);
     $cardholder = lepoCardholderFor(User::factory()->create());

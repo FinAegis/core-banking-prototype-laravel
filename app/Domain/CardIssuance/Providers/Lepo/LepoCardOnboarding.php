@@ -11,6 +11,7 @@ use App\Domain\CardIssuance\Providers\CardProviderException;
 use App\Domain\CardIssuance\Providers\CardProviderSelector;
 use App\Domain\CardIssuance\Providers\Contracts\CardOnboardingProvider;
 use App\Domain\CardIssuance\Providers\KycStart;
+use App\Domain\CardIssuance\Support\PublicLink;
 use App\Infrastructure\Lepo\LepoApiException;
 use App\Infrastructure\Lepo\LepoClient;
 use App\Models\User;
@@ -137,7 +138,7 @@ final class LepoCardOnboarding implements CardOnboardingProvider
             // the API and the page cannot break the signature.
             $path = URL::temporarySignedRoute('cards.kyc.hosted', $expires, ['cardholder' => $cardholder->id], absolute: false);
 
-            return new KycStart('hosted_url', null, self::publicUrl($path), $expires->toIso8601String());
+            return new KycStart('hosted_url', null, PublicLink::to($path), $expires->toIso8601String());
         }
 
         $response = $this->call(fn (): array => $this->client->createSumsubAccessToken($this->lepoUserId($cardholder), $this->questionnaireOf($cardholder)));
@@ -150,20 +151,6 @@ final class LepoCardOnboarding implements CardOnboardingProvider
         // The status moves on only when Lepo reports a submission: a user who
         // closes the SDK without submitting can simply start again.
         return new KycStart('sumsub_sdk', $token, null, null);
-    }
-
-    /**
-     * The link the app opens: APP_URL, not the API request's host, and always
-     * https in production (the app refuses any other scheme).
-     */
-    private static function publicUrl(string $path): string
-    {
-        $base = rtrim((string) config('app.url'), '/');
-        if (app()->environment('production')) {
-            $base = (string) preg_replace('#^http://#i', 'https://', $base);
-        }
-
-        return $base . $path;
     }
 
     /**
@@ -211,6 +198,14 @@ final class LepoCardOnboarding implements CardOnboardingProvider
         };
 
         $changes = ['kyc_status' => $status];
+
+        // "Sent from the page" only bridges the wait for Lepo's first answer;
+        // once Lepo changes the status it no longer applies.
+        if ($status !== $cardholder->kyc_status && is_array($cardholder->verification_data) && array_key_exists('kyc_submitted_at', $cardholder->verification_data)) {
+            $data = $cardholder->verification_data;
+            unset($data['kyc_submitted_at']);
+            $changes['verification_data'] = $data;
+        }
         if ($status === 'verified' && $cardholder->verified_at === null) {
             $changes['verified_at'] = now();
         }

@@ -30,6 +30,10 @@ function fundingCardholder(User $user, array $overrides = []): Cardholder
 it('backfills fincard as the provider of existing cardholders', function (): void {
     $user = User::factory()->create();
     $migration = require database_path('migrations/2026_11_21_100000_add_provider_to_cardholders_and_create_card_funding_tables.php');
+    // cards.funding_account_id (a later migration) references the funding
+    // accounts this migration drops, so it is rolled back first.
+    $cardsMigration = require database_path('migrations/2026_11_22_100000_prepare_cards_for_card_providers.php');
+    $cardsMigration->down();
     $migration->down();
 
     DB::table('cardholders')->insert([
@@ -42,6 +46,7 @@ it('backfills fincard as the provider of existing cardholders', function (): voi
     ]);
 
     $migration->up();
+    $cardsMigration->up();
 
     expect(DB::table('cardholders')->where('id', '0f1b2c3d-0000-4000-8000-000000000001')->value('provider'))->toBe('fincard')
         ->and(DB::table('cardholders')->where('id', '0f1b2c3d-0000-4000-8000-000000000002')->value('provider'))->toBeNull();

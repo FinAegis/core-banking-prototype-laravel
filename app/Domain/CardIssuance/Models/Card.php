@@ -42,9 +42,29 @@ class Card extends Model
 
     protected $table = 'cards';
 
+    public const STATUS_PENDING = 'pending';
+
+    public const STATUS_ACTIVE = 'active';
+
+    public const STATUS_FROZEN = 'frozen';
+
+    public const STATUS_PAYMENT_REQUIRED = 'payment_required';
+
+    public const STATUS_BLOCKED = 'blocked';
+
+    public const STATUS_FAILED = 'failed';
+
+    public const STATUS_CANCELLED = 'cancelled';
+
+    public const STATUS_EXPIRED = 'expired';
+
+    /** Statuses of a card that no longer counts towards the card limit. */
+    public const CLOSED_STATUSES = [self::STATUS_CANCELLED, self::STATUS_EXPIRED, self::STATUS_FAILED];
+
     protected $fillable = [
         'user_id',
         'cardholder_id',
+        'funding_account_id',
         'issuer_card_token',
         'issuer',
         'last4',
@@ -103,6 +123,22 @@ class Card extends Model
     public function cardholder(): BelongsTo
     {
         return $this->belongsTo(Cardholder::class);
+    }
+
+    /**
+     * @return BelongsTo<CardFundingAccount, $this>
+     */
+    public function fundingAccount(): BelongsTo
+    {
+        return $this->belongsTo(CardFundingAccount::class, 'funding_account_id');
+    }
+
+    /**
+     * Whether the provider has opened the card (a row can exist before).
+     */
+    public function isOpenAtProvider(): bool
+    {
+        return $this->issuer_card_token !== null && $this->issuer_card_token !== '';
     }
 
     public function getMaskedNumber(): string

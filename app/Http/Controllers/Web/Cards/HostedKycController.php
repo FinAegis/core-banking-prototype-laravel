@@ -46,9 +46,27 @@ final class HostedKycController extends Controller
         }
 
         return $this->page('ready', 200, [
-            'token'      => $token,
-            'refreshUrl' => URL::temporarySignedRoute('cards.kyc.hosted.token', now()->addMinutes(60), ['cardholder' => $holder->id], absolute: false),
+            'token'        => $token,
+            'refreshUrl'   => URL::temporarySignedRoute('cards.kyc.hosted.token', now()->addMinutes(60), ['cardholder' => $holder->id], absolute: false),
+            'submittedUrl' => URL::temporarySignedRoute('cards.kyc.hosted.submitted', now()->addMinutes(60), ['cardholder' => $holder->id], absolute: false),
         ]);
+    }
+
+    /**
+     * The SumSub SDK reported a submission. Only a hint for the app until
+     * Lepo's webhook decides; it never changes the cardholder's status.
+     */
+    public function submitted(string $cardholder): Response
+    {
+        $holder = $this->cardholder($cardholder);
+
+        if (in_array($holder->kyc_status, self::OPEN, true)) {
+            $data = is_array($holder->verification_data) ? $holder->verification_data : [];
+            $data['kyc_submitted_at'] = now()->toIso8601String();
+            $holder->forceFill(['verification_data' => $data])->save();
+        }
+
+        return response()->noContent();
     }
 
     /**

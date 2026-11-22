@@ -8,6 +8,7 @@ use App\Domain\CardIssuance\Http\Controllers\WaitlistDepositController;
 use App\Domain\CardIssuance\Webhooks\CardWaitlistWebhookController;
 use App\Http\Controllers\Api\CardIssuance\CardController;
 use App\Http\Controllers\Api\CardIssuance\CardholderController;
+use App\Http\Controllers\Api\CardIssuance\CardIssuedController;
 use App\Http\Controllers\Api\CardIssuance\CardOnboardingController;
 use App\Http\Controllers\Api\CardIssuance\CardTransactionWebhookController;
 use App\Http\Controllers\Api\CardIssuance\FinCardAccountController;
@@ -75,6 +76,22 @@ Route::prefix('v1/cards')->name('api.cards.fincard.')
                 ->middleware(['idempotency.required', 'api.rate_limit:mutation'])
                 ->name('dev.simulate-deposit');
         }
+
+        // Provider-neutral cards: Lepo is served by CardIssuedController, FinCard
+        // users are handed on to FinCardCardController.
+        Route::prefix('/issued')->name('issued.')->group(function (): void {
+            Route::get('/', [CardIssuedController::class, 'index'])->name('index');
+            Route::post('/', [CardIssuedController::class, 'store'])
+                ->middleware(['idempotency.required', 'api.rate_limit:mutation'])->name('store');
+            Route::get('/{card}', [CardIssuedController::class, 'show'])->name('show');
+            Route::get('/{card}/transactions', [CardIssuedController::class, 'transactions'])->name('transactions');
+            Route::get('/{card}/sensitive', [CardIssuedController::class, 'sensitive'])->name('sensitive');
+            Route::middleware(['idempotency.required', 'api.rate_limit:mutation'])->group(function (): void {
+                Route::post('/{card}/freeze', [CardIssuedController::class, 'freeze'])->name('freeze');
+                Route::post('/{card}/unfreeze', [CardIssuedController::class, 'unfreeze'])->name('unfreeze');
+                Route::post('/{card}/cancel', [CardIssuedController::class, 'cancel'])->name('cancel');
+            });
+        });
 
         // Card lifecycle (Phase 4) — namespaced under /fincard/* to avoid the
         // generic card routes. Sensitive PAN/CVV is fetched on demand, never stored.

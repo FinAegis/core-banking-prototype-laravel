@@ -7,6 +7,7 @@ namespace App\Domain\Compliance\Services;
 use App\Domain\Account\Models\BlockchainAddress;
 use App\Domain\Account\Models\TransactionProjection;
 use App\Domain\Auth\Services\PrivyEmailOtpClient;
+use App\Domain\CardIssuance\Models\Card;
 use App\Domain\CardIssuance\Models\CardDepositAddress;
 use App\Domain\CardIssuance\Models\CardFundingAccount;
 use App\Domain\CardIssuance\Models\Cardholder;
@@ -88,8 +89,9 @@ class GdprService
         'subscription_consent_log',
         'trial_card_fingerprints',
         'cues',
-        // Cards: the cardholder record given to the card provider (v7.18+)
+        // Cards: the cardholder record given to the card provider and the cards (v7.18+)
         'cardholders',
+        'cards',
         // Bridge.xyz ramp (v7.15+)
         'bridge_customers',
         'ramp_sessions',
@@ -151,7 +153,6 @@ class GdprService
         'card_waitlist'                => self::EXCL_LEGACY,
         'card_waitlist_deposits'       => self::EXCL_LEGACY,
         'card_funding_accounts'        => 'Card funding account at the card provider (Lepo): status, currency and balance of the money loaded for cards. A financial-account record retained under Art. 17(3)(b); no direct identifiers beyond the user FK and the provider account id. Exported with the cardholder data.',
-        'cards'                        => self::EXCL_LEGACY,
         'certificates'                 => self::EXCL_LEGACY,
         'cgo_investments'              => self::EXCL_LEGACY,
         'cgo_refunds'                  => self::EXCL_LEGACY,
@@ -986,8 +987,8 @@ class GdprService
      * and the funding accounts their cards are loaded from.
      *
      * Field choices: the issuer ids are included (the user's reference at the
-     * card provider); the provider's raw payloads are not stored, so nothing
-     * else is omitted.
+     * card provider); the provider's raw payloads are not stored. Card
+     * metadata is left out: it holds internal processing references.
      *
      * @return array<string, mixed>
      */
@@ -1021,6 +1022,18 @@ class GdprService
                         'created_at'  => $cardholder->created_at,
                     ];
                 }
+            )->all(),
+            'cards' => Card::query()->where('user_id', $user->id)->get()->map(
+                fn (Card $card): array => [
+                    'provider'         => $card->issuer,
+                    'provider_card_id' => $card->issuer_card_token,
+                    'label'            => $card->label,
+                    'status'           => $card->status,
+                    'last4'            => $card->last4,
+                    'currency'         => $card->currency,
+                    'created_at'       => $card->created_at,
+                    'cancelled_at'     => $card->cancelled_at,
+                ]
             )->all(),
             'funding_accounts' => CardFundingAccount::query()->where('user_id', $user->id)->with('depositAddresses')->get()->map(
                 fn (CardFundingAccount $account): array => [
@@ -1067,6 +1080,10 @@ class GdprService
             'shipping_country'       => null,
             'verification_data'      => null,
         ]);
+
+        // cards: the card stays at the card provider; the user's own label
+        // and the stored metadata are erased.
+        Card::query()->where('user_id', $user->id)->update(['label' => null, 'metadata' => null]);
     }
 
     protected function eraseBridgeData(User $user): void
