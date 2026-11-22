@@ -129,7 +129,7 @@ it('tells the app the identity check was sent before Lepo decides', function ():
 
     $this->getJson('/api/v1/cards/onboarding')->assertJsonPath('data.step', 'kyc')->assertJsonPath('data.kyc_submitted', false);
 
-    $cardholder->forceFill(['verification_data' => [...$cardholder->verification_data, 'kyc_submitted_at' => now()->toIso8601String()]])->save();
+    $cardholder->forceFill(['verification_data' => [...($cardholder->verification_data ?? []), 'kyc_submitted_at' => now()->toIso8601String()]])->save();
 
     $this->getJson('/api/v1/cards/onboarding')->assertJsonPath('data.step', 'kyc')->assertJsonPath('data.kyc_submitted', true);
 });

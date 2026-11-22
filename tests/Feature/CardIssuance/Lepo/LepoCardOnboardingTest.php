@@ -120,7 +120,7 @@ it('builds the identity-check link from APP_URL over https in production', funct
 it('forgets that the check was sent once Lepo changes the status', function (): void {
     Http::fake(['lepo.test/api/v2/users/12345/kyc/detailed-status' => Http::response(['cardIssuerKycApproved' => false, 'interlace' => ['status' => 'action_required', 'requiredAction' => 'RESUBMIT']])]);
     $cardholder = lepoCardholderFor(User::factory()->create());
-    $cardholder->forceFill(['verification_data' => [...$cardholder->verification_data, 'kyc_submitted_at' => now()->toIso8601String()]])->save();
+    $cardholder->forceFill(['verification_data' => [...($cardholder->verification_data ?? []), 'kyc_submitted_at' => now()->toIso8601String()]])->save();
 
     app(LepoCardOnboarding::class)->refreshKycStatus($cardholder);
 
