@@ -4,7 +4,9 @@
 
 ## Overview
 
-The CGO Refund Processing System implements a comprehensive event-sourced workflow for handling refund requests on CGO investments. It follows domain-driven design principles with event sourcing, sagas, and temporal workflows.
+The CGO refund system is an event-sourced workflow for refund requests on CGO investments. It uses an aggregate, a projector and a workflow with activities.
+
+It is not reachable from the outside yet. No page, API route or admin action calls `RequestRefundAction`. The `Cgo` module is also switched off in production through `MODULES_DISABLED`.
 
 ## Architecture
 
@@ -20,26 +22,18 @@ The CGO Refund Processing System implements a comprehensive event-sourced workfl
 - `RefundCancelled`: Refund cancelled by user/admin
 
 #### 2. Aggregate
-- `RefundAggregate`: Manages refund state and business rules
-- Enforces state transitions
-- Validates business invariants
+`RefundAggregate` holds the refund state. It records the events above and refuses status changes that the rules do not allow.
 
 #### 3. Projector
-- `RefundProjector`: Updates read model (`cgo_refunds` table)
-- Handles all refund events
-- Maintains denormalized view for queries
+`RefundProjector` handles every refund event. It keeps the `cgo_refunds` table up to date for queries.
 
 #### 4. Repository
-- `CgoEventRepository`: Custom event repository for CGO domain
-- Stores events in `cgo_events` table
-- Extends `EloquentStoredEventRepository`
+`CgoEventRepository` is the event repository for the CGO domain. It extends `EloquentStoredEventRepository` and stores events in the `cgo_events` table.
 
 ### Workflow Components
 
 #### 1. Workflow
-- `ProcessRefundWorkflow`: Orchestrates refund process
-- Handles auto-approval logic
-- Manages error handling and compensation
+`ProcessRefundWorkflow` runs the refund from request to completion. An auto-approved refund is approved, processed and completed in one run. Any other refund waits without end, because the workflow has no approval signal yet. When a step fails, the workflow runs the failure activity.
 
 #### 2. Activities
 - `InitiateRefundActivity`: Creates refund request
@@ -49,10 +43,10 @@ The CGO Refund Processing System implements a comprehensive event-sourced workfl
 - `FailRefundActivity`: Handles failures
 
 #### 3. Actions
-- `RequestRefundAction`: Entry point for refund requests
-- Validates eligibility
-- Determines auto-approval
-- Starts temporal workflow
+- `RequestRefundAction` is the entry point for refund requests.
+- It checks eligibility and decides whether the refund is approved automatically.
+- It starts `ProcessRefundWorkflow` on the `cgo-refunds` task queue through the Temporal client (`Temporal\Client\WorkflowClient`).
+- The Temporal PHP SDK is not installed (it is not in `composer.lock`), so the action cannot run as it stands. `ProcessRefundWorkflow` itself is a Laravel Workflow class.
 
 ### Data Model
 
@@ -78,6 +72,8 @@ The CGO Refund Processing System implements a comprehensive event-sourced workfl
 - processor_status
 - processor_response
 - processed_at
+- processor_reference
+- processing_notes
 - amount_refunded
 - completed_at
 - failure_reason
@@ -86,6 +82,8 @@ The CGO Refund Processing System implements a comprehensive event-sourced workfl
 - cancelled_by
 - cancelled_at
 - requested_at
+- refund_address
+- bank_details
 - metadata
 ```
 
@@ -99,10 +97,10 @@ The CGO Refund Processing System implements a comprehensive event-sourced workfl
 5. No active refund in progress
 
 ### Auto-Approval Rules
-Refunds are automatically approved if:
-1. Amount ≤ $100
-2. Within 7-day grace period
-3. Specific reasons: duplicate_payment, payment_error, system_error
+A refund is approved automatically when any one of these is true:
+1. The investment amount is 10000 or less. The code comment calls this $100, but `cgo_investments.amount` is stored in dollars, so the limit is in practice $10,000.
+2. The payment completed within the last 7 days.
+3. The reason is `duplicate_payment`, `payment_error` or `system_error`.
 
 ### Status Flow
 ```
@@ -113,53 +111,36 @@ rejected  cancelled   failed
 
 ## Admin Interface
 
-### Filament Resources
-
-#### CgoRefundResource
-- View all refund requests
-- Approve/Reject/Cancel actions
-- Detailed refund information
-- Status filtering and search
-
-#### CgoInvestmentResource Enhancement
-- Added "Request Refund" action
-- Shows refund eligibility
-- Links to related refunds
-
-### Dashboard Features
-- Pending refunds count badge
-- Status-based color coding
-- Bulk action support
-- Timeline view of refund history
+There is no admin interface for refunds. The admin panel has no refund resource, and `CgoInvestmentResource` is an empty scaffold without a refund action. See [CGO_ADMIN_RESOURCES.md](../15-ADMINISTRATION/CGO_ADMIN_RESOURCES.md).
 
 ## Payment Processing
 
+`RefundProcessingService` picks the path from the investment's payment method: `stripe`, `crypto` or `bank_transfer`. The web invest form stores card payments as `card`, which this service does not accept.
+
 ### Stripe Refunds
-- Automatic refund via Stripe API
-- Uses original payment_intent_id
-- Returns processor reference
+- The service creates a refund through the Stripe API.
+- It uses the investment's `stripe_payment_intent_id`.
+- It stores Stripe's refund id as the processor reference.
 
 ### Crypto Refunds
-- Manual process flagged
-- Requires wallet address
-- Admin verification needed
+- The service marks the refund as `processing` and flags it for manual handling.
+- A person has to send the refund to the refund address, which the customer still has to provide.
 
 ### Bank Transfer Refunds
-- Manual process flagged
-- Uses stored bank details
-- Requires manual wire transfer
+- The service marks the refund as `processing` and flags it for manual handling.
+- A person has to send the wire transfer.
 
 ## Security Considerations
 
 1. **Authorization**
-   - Only investment owner can request refund
-   - Admin approval required for large amounts
-   - Audit trail for all actions
+   - `RequestRefundAction` records who started the refund, but it does not check that this person owns the investment. A caller has to check that.
+   - Refunds that are not approved automatically stay `pending`. The workflow has no way yet to receive a manual approval.
+   - Every step is recorded as an event.
 
 2. **Validation**
-   - Amount cannot exceed original investment
-   - Partial refunds tracked cumulatively
-   - Business rule enforcement in aggregate
+   - The refund amount is the investment amount.
+   - `CgoInvestment::getTotalRefundedAmount()` adds up completed refunds.
+   - The aggregate enforces the status transitions (only `pending` refunds can be approved or rejected, and only `approved` refunds can be processed).
 
 3. **Event Integrity**
    - Events are immutable
@@ -169,19 +150,14 @@ rejected  cancelled   failed
 ## Testing
 
 ### Unit Tests
-- `RefundAggregateTest`: Tests all state transitions
-- Validates business rules
-- Tests error conditions
+- `tests/Unit/Domain/Cgo/RefundAggregateTest.php` covers the aggregate's state transitions and error cases.
 
-### Feature Tests
-- `RefundProcessingTest`: End-to-end workflows
-- Tests auto-approval logic
-- Validates relationships
+There is no feature test for the full refund workflow.
 
 ## Configuration
 
 ### Event Class Map
-Add to `config/event-sourcing.php`:
+The refund events are registered in `config/event-sourcing.php`:
 ```php
 'cgo_refund_requested' => App\Domain\Cgo\Events\RefundRequested::class,
 'cgo_refund_approved' => App\Domain\Cgo\Events\RefundApproved::class,
@@ -193,10 +169,10 @@ Add to `config/event-sourcing.php`:
 ```
 
 ### Queue Configuration
-Refund events use `EventQueues::EVENTS` queue.
+Refund events go to the `events` queue.
 
-### Temporal Configuration
-Refund workflows use `cgo-refunds` task queue.
+### Workflow Configuration
+`RequestRefundAction` starts refund workflows on the `cgo-refunds` task queue.
 
 ## Usage Examples
 
@@ -231,13 +207,15 @@ if ($refund->isCompleted()) {
 
 ## Monitoring
 
-### Key Metrics
+The module has no refund metrics or alerts yet. These are the ones worth adding.
+
+### Suggested Metrics
 - Refund request rate
 - Auto-approval percentage
 - Average processing time
 - Failure rate by payment method
 
-### Alerts
+### Suggested Alerts
 - Failed refunds
 - Stuck refunds (processing > 24h)
 - High refund rate anomalies

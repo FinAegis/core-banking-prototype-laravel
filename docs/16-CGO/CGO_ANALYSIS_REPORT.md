@@ -2,6 +2,8 @@
 
 > Concept and demo code for an investment-round workflow (tiers, payments, KYC, agreements, refunds). The CGO round is closed.
 
+*Historical record from September 2024. It describes the code as it was then. Several gaps were closed later. The PDF package (`barryvdh/laravel-dompdf`) is installed, QR codes use `endroid/qr-code`, and Stripe and Coinbase Commerce adapters and a refund aggregate exist. v7.18.0 fixed the payment instruction mails. The `Cgo` module is switched off in production. See [README.md](README.md) for the current state.*
+
 ## Executive Summary
 
 The CGO demo module is **partially functional** but has several critical issues that prevent it from being production-ready. While the core investment flow works, missing dependencies and incomplete payment integrations pose significant risks.

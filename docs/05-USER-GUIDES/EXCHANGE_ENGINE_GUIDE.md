@@ -2,85 +2,72 @@
 
 ## Overview
 
-The FinAegis Exchange Engine is a configurable component of a self-hosted FinAegis deployment, with order matching, external exchange API connectors and automated market-making capabilities. This guide describes those engine capabilities; which of them are enabled, and on what terms, is decided by the operator of each deployment.
+The FinAegis exchange engine is a demo order book that runs inside a self-hosted FinAegis deployment. It matches market and limit orders between accounts on the platform. It also has example connectors that read prices from the Binance and Kraken APIs. This guide describes what the engine does at v7.18.1. The operator of each deployment decides whether it is switched on.
 
 > FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory
 > compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
 
+The engine is part of the demo trading features. It needs `TRADING_ENABLED=true`. That flag is off in production, including on the Zelta site, and on in the demo environment. When it is off, the exchange pages and the exchange API return "not found".
+
 ## Table of Contents
 
 1. [Getting Started](#getting-started)
-2. [Trading Basics](#trading-basics)
+2. [Placing Orders](#placing-orders)
 3. [Order Types](#order-types)
-4. [Market Making](#market-making)
-5. [External Exchanges](#external-exchanges)
-6. [Trading Strategies](#trading-strategies)
-7. [Risk Management](#risk-management)
-8. [API Trading](#api-trading)
-9. [Troubleshooting](#troubleshooting)
+4. [Fees and Limits](#fees-and-limits)
+5. [Market Making](#market-making)
+6. [External Exchanges](#external-exchanges)
+7. [API Trading](#api-trading)
+8. [Troubleshooting](#troubleshooting)
 
 ## Getting Started
 
-### Account Setup
+### Before You Trade
 
-Before you can start trading, ensure your account is properly configured:
+1. Log in with a verified account. Placing and cancelling orders needs a logged-in user with a verified email.
+2. Make sure your account holds a balance in the currency you want to spend. In the demo, the demo accounts start with simulated balances.
 
-1. **Verify Your Account**
-   - Complete KYC verification
-   - Enable 2FA for security
-   - Set up API keys if using automated trading
+### Trading Pairs
 
-2. **Fund Your Trading Account**
-   - Deposit base currencies (USD, EUR, etc.)
-   - Transfer cryptocurrencies if trading crypto pairs
-   - Check minimum balance requirements
+A trading pair shows the price of one asset in another. In BTC/EUR, BTC is the base asset that you buy or sell. EUR is the quote asset that sets the price. A price of 45,000 means that one BTC costs 45,000 EUR.
 
-3. **Configure Trading Preferences**
-   ```
-   Settings → Trading → Preferences
-   - Default order type
-   - Risk limits
-   - Notification preferences
-   ```
+An order can use any two assets that are marked tradeable in the `assets` table. A fresh install marks BTC, ETH, EUR, USD and GBP as tradeable. The trading page opens BTC/EUR by default and takes another pair through `?base=` and `?quote=`. Its market summary shows BTC and ETH against EUR and USD. The markets API lists the pairs of the active liquidity pools, or BTC/EUR and ETH/EUR when there are none. `config/trading.php` also has a `pairs` list, but the code does not read it.
 
-### Understanding Trading Pairs
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
 
-Trading pairs represent the exchange rate between two assets:
+## Placing Orders
 
-- **Base Asset**: The asset you're buying/selling (e.g., BTC in BTC/USD)
-- **Quote Asset**: The asset used for pricing (e.g., USD in BTC/USD)
-- **Price**: How much quote asset for one unit of base asset
-
-Example: BTC/USD at 45,000 means 1 BTC costs 45,000 USD
-
-## Trading Basics
-
-### Placing Your First Order
+The trading page is at `/exchange`. Anyone can see the order book there. You need to log in to place an order.
 
 #### Market Order
-Executes immediately at the best available price:
 
-1. Navigate to **Exchange → Trade**
-2. Select your trading pair (e.g., BTC/USD)
-3. Choose **Market Order**
-4. Enter amount to buy/sell
-5. Review estimated price
-6. Click **Place Order**
+A market order runs at once against the best prices in the order book.
+
+1. Open **Exchange** in the top navigation.
+2. Select the trading pair.
+3. Choose **Market**.
+4. Enter the amount to buy or sell.
+5. Click to place the order.
 
 #### Limit Order
-Executes only at your specified price or better:
 
-1. Select **Limit Order**
-2. Enter your desired price
-3. Enter amount
-4. Review order details
-5. Click **Place Order**
+A limit order runs only at your price or a better one.
 
-Your order will be added to the order book and executed when matched.
+1. Choose **Limit**.
+2. Enter your price.
+3. Enter the amount.
+4. Click to place the order.
+
+A limit order that does not match at once waits in the order book until another order matches it or you cancel it.
+
+### Your Orders and Trades
+
+- `/exchange/orders` lists your orders. You can cancel an open order there.
+- `/exchange/trades` lists your completed trades. The page shows CSV and PDF export buttons, but the export does not work at v7.18.1 because its controller method is missing.
 
 ### Reading the Order Book
 
-The order book shows all pending buy and sell orders:
+The order book lists open sell orders (asks) above open buy orders (bids).
 
 ```
 SELL ORDERS (Asks)
@@ -95,439 +82,152 @@ Price     | Amount  | Total
 BUY ORDERS (Bids)
 ```
 
-- **Spread**: Difference between best bid and ask
-- **Depth**: Total volume at each price level
-- **Your Orders**: Highlighted in the book
+The spread is the gap between the best bid and the best ask. The depth is the amount waiting at each price.
 
 ## Order Types
 
-### Market Orders
+The engine accepts two order types, which are `market` and `limit`. Stop orders, stop-limit orders, fill-or-kill, immediate-or-cancel and day orders are not supported.
 
-**Pros:**
-- Immediate execution
-- Guaranteed fill
-- Simple to use
+A market order fills straight away, but the final price can move away from the price you saw. This is called slippage. A limit order fixes your price, but it may never fill.
 
-**Cons:**
-- Price uncertainty
-- Potential slippage
-- Higher fees
+## Fees and Limits
 
-**Best for:** Quick trades, small amounts, volatile markets
+### Fees
 
-### Limit Orders
+The fee calculator charges a maker fee of 0.1% and a taker fee of 0.2% by default. The maker is the side whose resting order is matched. The taker is the side whose new order matches it.
 
-**Pros:**
-- Price control
-- Lower fees
-- No slippage
+Lower fees apply when an account's trading volume over the last 30 days passes a threshold.
 
-**Cons:**
-- May not execute
-- Requires monitoring
-- Missed opportunities
+| 30-day volume | Maker fee | Taker fee |
+|---------------|-----------|-----------|
+| Below $500,000 | 0.1% | 0.2% |
+| $500,000 or more | 0.095% | 0.19% |
+| $1,000,000 or more | 0.09% | 0.18% |
 
-**Best for:** Patient traders, large orders, stable markets
+### Order Size Limits
 
-### Stop Orders
+The engine has fixed minimum order amounts for the base asset. They are 0.0001 BTC, 0.001 ETH and 10 EUR, USD or GCU. Any other base asset needs at least 1 unit. There is no maximum order size.
 
-Stop orders trigger when price reaches a specified level:
-
-#### Stop Loss
-Sells automatically to limit losses:
-```
-Current BTC price: $45,000
-Stop Loss at: $43,000
-If price drops to $43,000 → Sell order triggers
-```
-
-#### Stop Limit
-Combines stop trigger with limit price:
-```
-Stop Price: $43,000
-Limit Price: $42,900
-If price hits $43,000 → Limit order at $42,900 placed
-```
-
-### Advanced Orders
-
-#### Fill or Kill (FOK)
-Must execute completely immediately or cancel
-
-#### Immediate or Cancel (IOC)
-Execute what's possible immediately, cancel the rest
-
-#### Good Till Cancelled (GTC)
-Remains active until executed or manually cancelled
-
-#### Day Order
-Expires at end of trading day if not executed
+`config/trading.php` also lists minimum and maximum order sizes and has the `TRADING_MAKER_FEE` and `TRADING_TAKER_FEE` settings. At v7.18.1 the order flow does not read these values, so changing them has no effect.
 
 ## Market Making
 
-### Market-Making Capability
+The engine can place buy and sell orders on both sides of a market to keep the order book filled. When trading is on, the scheduler runs `liquidity:update-market-making --cancel-existing` every five minutes. The command reads each active liquidity pool, cancels the pool's previous market-making orders and places new ones around the pool price.
 
-The engine can run market-making strategies that place both buy and sell orders to provide liquidity on a self-hosted deployment. Any market-maker arrangements are defined by the operator of that deployment.
+`config/trading.php` also has a `market_making` block with `TRADING_MARKET_MAKING_ENABLED`, a spread, an order size and a maximum exposure. At v7.18.1 the scheduled command does not read that block.
 
-### Automated Market Making
-
-Configure automated strategies:
-
-```javascript
-// Example configuration
-{
-  "pair": "BTC/USD",
-  "spread": 0.1,        // 0.1% spread
-  "depth": 5,           // 5 orders each side
-  "amount": 0.1,        // 0.1 BTC per order
-  "rebalance": true,    // Auto-rebalance inventory
-  "max_exposure": 10    // Max 10 BTC exposure
-}
-```
-
-### Managing Inventory
-
-Monitor and rebalance your inventory:
-
-- **Inventory Skew**: Imbalance between assets
-- **Rebalancing**: Automatic or manual adjustment
-- **Hedging**: Use external exchanges to manage risk
+Adding, removing and rebalancing pool liquidity was removed in v7.18.0. The pool lists, swaps, positions, rewards and impermanent-loss protection stay. See [Liquidity Pools](../03-FEATURES/LIQUIDITY-POOLS.md).
 
 ## External Exchanges
 
-### Exchange API connectors
+### Exchange API Connectors
 
 - Example connectors for the Binance and Kraken APIs. Integration adapters for third-party APIs; no partnership or endorsement implied.
 
-### Arbitrage Opportunities
+The connectors read public prices and order books. They do not hold any funds.
 
-The system identifies price differences across exchanges:
+### External Exchange Pages
 
-1. **View Opportunities**
-   ```
-   Exchange → Arbitrage Monitor
-   
-   Opportunity: BTC/USD
-   Buy on: Kraken @ $44,950
-   Sell on: Binance @ $45,050
-   Profit: $100 per BTC (0.22%)
-   ```
+The page at `/exchange/external` lists the connectors and has a form for API credentials. The form accepts Binance, Kraken and Coinbase, but only the Binance and Kraken connectors exist. At v7.18.1 the credentials are only checked for presence, and the connection is logged. The credentials are not stored.
 
-2. **Execute Arbitrage**
-   - Click **Execute Arbitrage**
-   - System handles both trades
-   - Automatic fund transfers
+The page at `/exchange/external/arbitrage` shows price differences between the connected exchanges. Executing an arbitrage trade from that page does not work at v7.18.1.
 
-### Cross-Exchange Trading
-
-Route orders to best exchange:
-
-```
-Settings → Trading → Smart Routing
-☑ Enable smart order routing
-☑ Include external exchanges
-☑ Optimize for best price
-```
-
-## Trading Strategies
-
-### Momentum Trading
-
-Follow price trends:
-
-1. **Identify Trend**
-   - Use technical indicators (RSI, MACD)
-   - Check volume patterns
-   - Monitor news sentiment
-
-2. **Entry Strategy**
-   - Buy on breakout above resistance
-   - Confirm with volume spike
-   - Set stop loss below support
-
-3. **Exit Strategy**
-   - Take profits at resistance levels
-   - Trail stop loss to lock gains
-   - Exit on trend reversal signals
-
-### Mean Reversion
-
-Trade price reversions to average:
-
-1. **Identify Extremes**
-   - Price far from moving average
-   - RSI oversold (<30) or overbought (>70)
-   - Bollinger Bands squeeze
-
-2. **Entry Points**
-   - Buy at support in uptrend
-   - Sell at resistance in downtrend
-   - Use limit orders for better fills
-
-### Grid Trading
-
-Place orders at regular intervals:
-
-```
-Grid Configuration:
-Base Price: $45,000
-Grid Size: $100
-Grid Count: 10
-Buy below: $44,500 to $44,900
-Sell above: $45,100 to $45,500
-```
-
-Benefits:
-- Profits from volatility
-- No need to predict direction
-- Automated execution
-
-## Risk Management
-
-### Position Sizing
-
-Calculate appropriate position sizes:
-
-```
-Account Balance: $10,000
-Risk per Trade: 2% = $200
-Stop Loss: 5% below entry
-Position Size = $200 / 0.05 = $4,000
-```
-
-### Risk Limits
-
-Set automatic limits:
-
-1. **Daily Loss Limit**
-   - Maximum daily loss: $500
-   - Auto-stop trading when reached
-
-2. **Position Limits**
-   - Max position size: $5,000
-   - Max open positions: 5
-
-### Portfolio Management
-
-Diversify across assets:
-
-```
-Recommended Allocation:
-- Major Crypto (BTC, ETH): 40%
-- Altcoins: 20%
-- Stablecoins: 20%
-- Fiat reserves: 20%
-```
+The page at `/exchange/external/price-alignment` shows how the internal prices compare with the external ones.
 
 ## API Trading
 
-### Getting API Keys
+### Authentication
 
-1. Go to **Settings → API Management**
-2. Click **Create New API Key**
-3. Set permissions:
-   - Read: View balances and orders
-   - Trade: Place and cancel orders
-   - Withdraw: Disabled by default
+The exchange API uses the same bearer tokens as the rest of the platform. Get a token from `POST /api/auth/login`.
 
-4. Save your keys securely
+```bash
+curl -X POST https://<your-deployment>/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "you@example.com", "password": "..."}'
+```
+
+Send the `access_token` from the response in the `Authorization: Bearer` header.
 
 ### API Endpoints
 
-Base URL: `https://<your-deployment>/api/v2`
+The base URL is `https://<your-deployment>/api`. The full reference is at `/api/documentation`.
 
-#### Get Order Book
+| Method | Path | Login needed |
+|--------|------|--------------|
+| GET | `/api/exchange/orderbook/{baseCurrency}/{quoteCurrency}` | No |
+| GET | `/api/exchange/markets` | No |
+| POST | `/api/exchange/orders` | Yes |
+| GET | `/api/exchange/orders` | Yes |
+| DELETE | `/api/exchange/orders/{orderId}` | Yes |
+| GET | `/api/exchange/trades` | Yes |
+| GET | `/api/external-exchange/connectors` | No |
+| GET | `/api/external-exchange/ticker/{base}/{quote}` | No |
+| GET | `/api/external-exchange/orderbook/{base}/{quote}` | No |
+| GET | `/api/external-exchange/arbitrage/{base}/{quote}` | Yes |
+
+#### Get the Order Book
 ```bash
-GET /exchange/orderbook/{pair}
-
-curl https://<your-deployment>/api/v2/exchange/orderbook/BTC-USD \
-  -H "X-API-Key: your-api-key"
+curl https://<your-deployment>/api/exchange/orderbook/BTC/EUR
 ```
 
-#### Place Order
+#### Place an Order
 ```bash
-POST /exchange/orders
-
-curl -X POST https://<your-deployment>/api/v2/exchange/orders \
-  -H "X-API-Key: your-api-key" \
+curl -X POST https://<your-deployment>/api/exchange/orders \
+  -H "Authorization: Bearer {access_token}" \
   -H "Content-Type: application/json" \
+  -H "Idempotency-Key: 6f1c2b7e-0d1a-4c55-9f00-1b2c3d4e5f60" \
   -d '{
-    "pair": "BTC/USD",
-    "side": "buy",
-    "type": "limit",
-    "price": 44500,
-    "amount": 0.1
+    "type": "buy",
+    "order_type": "limit",
+    "base_currency": "BTC",
+    "quote_currency": "EUR",
+    "amount": 0.1,
+    "price": 44500
   }'
 ```
 
-#### Cancel Order
+`price` is required for a limit order. The `Idempotency-Key` header is optional. When you send it, a repeated request with the same key returns the first result instead of placing a second order.
+
+#### Cancel an Order
 ```bash
-DELETE /exchange/orders/{orderId}
-
-curl -X DELETE https://<your-deployment>/api/v2/exchange/orders/12345 \
-  -H "X-API-Key: your-api-key"
-```
-
-### WebSocket Streams
-
-Real-time market data:
-
-```javascript
-const ws = new WebSocket('wss://<your-deployment>/<websocket-path>');
-
-ws.on('open', () => {
-  // Subscribe to BTC/USD trades
-  ws.send(JSON.stringify({
-    action: 'subscribe',
-    channel: 'trades',
-    pair: 'BTC/USD'
-  }));
-});
-
-ws.on('message', (data) => {
-  const trade = JSON.parse(data);
-  console.log(`Price: ${trade.price}, Amount: ${trade.amount}`);
-});
+curl -X DELETE https://<your-deployment>/api/exchange/orders/{orderId} \
+  -H "Authorization: Bearer {access_token}"
 ```
 
 ### Rate Limits
 
-Respect API rate limits:
-
-- **Public endpoints**: 100 requests/minute
-- **Private endpoints**: 60 requests/minute
-- **Order placement**: 10 orders/second
-- **WebSocket**: 5 connections per IP
-
-## Trading Interface
-
-### Desktop Trading
-
-Full-featured trading interface:
-
-1. **Chart View**
-   - Multiple timeframes (1m to 1M)
-   - Technical indicators
-   - Drawing tools
-   - Multi-chart layouts
-
-2. **Order Panel**
-   - Quick order entry
-   - Order templates
-   - One-click trading
-   - Keyboard shortcuts
-
-3. **Position Manager**
-   - Open positions
-   - P&L tracking
-   - Quick close/modify
-   - Risk metrics
-
-### Trading Widgets
-
-Embed trading in your site:
-
-```html
-<iframe 
-  src="https://<your-deployment>/<widget-path>?pair=BTC/USD"
-  width="400"
-  height="600">
-</iframe>
-```
+Order placement is limited per user. At v7.18.1 it uses the transfer limit of 15 orders per hour. Read requests have their own per-minute limits.
 
 ## Troubleshooting
 
 ### Common Issues
 
-#### Order Not Executing
+#### The exchange page returns "not found"
 
-**Limit Order Issues:**
-- Price not reached
-- Insufficient balance
-- Order expired
-- Market moved away
+`TRADING_ENABLED` is off. Set it to `true` on a demo or development deployment.
 
-**Solutions:**
-- Adjust price closer to market
-- Check available balance
-- Use market order for immediate execution
-- Set GTC order type
+#### An order does not fill
 
-#### Connection Problems
+A limit order fills only when another order matches its price. Check your price against the order book. A market order fills only if there are resting orders on the other side.
 
-**Symptoms:**
-- Delayed price updates
-- Orders timing out
-- WebSocket disconnections
+#### The balance looks lower than expected
 
-**Solutions:**
-- Check internet connection
-- Clear browser cache
-- Try different browser
-- Check status page
-
-#### Balance Discrepancies
-
-**Possible Causes:**
-- Pending deposits
-- Open orders locking funds
-- Unsettled trades
-- Network delays
-
-**Solutions:**
-- Wait for confirmations
-- Check open orders
-- Review transaction history
-- Contact support if persists
+Open orders hold part of your balance until they fill or you cancel them. Check `/exchange/orders`.
 
 ### Error Messages
 
 #### "Insufficient Balance"
-You don't have enough funds. Check:
-- Available vs. total balance
-- Open orders locking funds
-- Correct asset selected
+Your account does not hold enough of the asset you are spending. Check the available balance and your open orders.
 
-#### "Order Too Small"
-Order below minimum size:
-- BTC minimum: 0.001
-- ETH minimum: 0.01
-- Check pair minimums
-
-#### "Rate Limited"
-Too many requests:
-- Wait 60 seconds
-- Reduce request frequency
-- Upgrade API tier
+#### "Too Many Requests"
+You reached a rate limit. Wait and try again later.
 
 ### Getting Help
 
 - [GitHub Issues](https://github.com/FinAegis/core-banking-prototype-laravel/issues)
 
-## Best Practices
+## Further Reading
 
-### Security
-- Enable 2FA authentication
-- Use API key whitelisting
-- Regular security audits
-- Secure key storage
-
-### Trading Discipline
-- Set daily limits
-- Use stop losses
-- Keep trading journal
-- Review performance regularly
-
-### Continuous Learning
-- Follow market news
-- Study successful traders
-- Practice with demo account
-- Join trading community
-
-## Conclusion
-
-The FinAegis Exchange Engine provides trading capabilities with user-friendly interfaces. Start with small trades, learn the platform, and gradually develop your trading strategy. Remember to always trade responsibly and never invest more than you can afford to lose.
-
-For technical integration and advanced features, refer to the [API Documentation](/docs/api/exchange) and [Developer Guide](/docs/developer/exchange).
-
-Happy Trading!
+- [Exchange feature notes](../03-FEATURES/EXCHANGE.md)
+- [External exchange connectors](../03-FEATURES/EXTERNAL-EXCHANGE-CONNECTORS.md)
+- [REST API Reference](../04-API/REST_API_REFERENCE.md)

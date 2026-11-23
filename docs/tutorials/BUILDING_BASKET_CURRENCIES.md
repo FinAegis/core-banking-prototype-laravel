@@ -13,15 +13,17 @@ This tutorial walks you through creating a custom basket currency using FinAegis
 >
 > See [REGULATORY-CLAIMS.md](../REGULATORY-CLAIMS.md).
 
+The Basket module is demo code. Production deployments switch it off by listing `Basket` in `MODULES_DISABLED`. Everything below runs in a local or demo environment.
+
 ## Table of Contents
 
 1. [Introduction](#introduction)
 2. [Prerequisites](#prerequisites)
 3. [Step 1: Design Your Basket](#step-1-design-your-basket)
-4. [Step 2: Create the Database Structure](#step-2-create-the-database-structure)
-5. [Step 3: Implement the Services](#step-3-implement-the-services)
-6. [Step 4: Create Workflows](#step-4-create-workflows)
-7. [Step 5: Add Governance](#step-5-add-governance)
+4. [Step 2: Create the Basket](#step-2-create-the-basket)
+5. [Step 3: Value the Basket](#step-3-value-the-basket)
+6. [Step 4: Compose and Decompose](#step-4-compose-and-decompose)
+7. [Step 5: Rebalancing and Governance](#step-5-rebalancing-and-governance)
 8. [Step 6: Testing](#step-6-testing)
 9. [Advanced Topics](#advanced-topics)
 
@@ -29,31 +31,44 @@ This tutorial walks you through creating a custom basket currency using FinAegis
 
 ## Introduction
 
-A **basket currency** is a synthetic currency unit whose value is derived from a weighted combination of other currencies or assets. Famous examples include:
+A basket currency is a unit of account whose value comes from a weighted set of other currencies or assets. Two well-known examples exist outside FinAegis.
 
-- **SDR (Special Drawing Rights)** - IMF's basket of USD, EUR, CNY, JPY, GBP
-- **ECU (European Currency Unit)** - Predecessor to the Euro
-- **GCU (Global Currency Unit)** - FinAegis reference implementation
+- The IMF's Special Drawing Rights (SDR) are a basket of USD, EUR, CNY, JPY and GBP.
+- The European Currency Unit (ECU) was the basket that came before the euro.
 
-### Why Basket Currencies?
+The GCU demo in FinAegis is a reference implementation of the same idea.
 
-| Benefit | Explanation |
+### What a Basket Design Gives You
+
+| Property | Explanation |
 |---------|-------------|
-| **Stability** | Diversification reduces volatility |
-| **Democratic Control** | Composition can be governed by community |
-| **Transparency** | Clear, auditable valuation methodology |
-| **Flexibility** | Adapt to economic changes over time |
+| **Diversification** | The value depends on several currencies, so a move in one of them has a smaller effect. |
+| **Governance** | The composition can be changed through polls. |
+| **Transparency** | The value is a published weighted sum of exchange rates. |
+| **Flexibility** | The weights can change over time. |
+
+### What FinAegis Already Provides
+
+You do not write tables or services for a new basket. The Basket domain in `app/Domain/Basket/` already has them.
+
+- The tables `basket_assets`, `basket_components` and `basket_values` come from `database/migrations/2025_06_16_232847_create_basket_assets_tables.php`.
+- The models are `BasketAsset`, `BasketComponent`, `BasketValue` and `BasketPerformance`.
+- `BasketValueCalculationService` values a basket in USD.
+- `BasketRebalancingService` keeps component weights inside their bounds.
+- `BasketService` composes and decomposes baskets through `ComposeBasketWorkflow` and `DecomposeBasketWorkflow`.
+- The REST API lives under `/api/v2/baskets`, and the GraphQL schema is `graphql/basket.graphql`.
+
+A new basket is data. You add the component assets, create the basket and its components, and then use the existing services.
 
 ---
 
 ## Prerequisites
 
-Before starting, ensure you have:
+Before starting, make sure you have these in place.
 
-- FinAegis development environment running
-- Understanding of [Event Sourcing](../adr/0007-event-sourcing.md)
-- Familiarity with [Saga Pattern](../adr/0009-saga-pattern.md)
-- Access to exchange rate data (or mock service)
+- A FinAegis development environment is running, with the Basket module enabled.
+- You know the basics of [Event Sourcing](../adr/0007-event-sourcing.md) and the [Saga Pattern](../adr/0009-saga-pattern.md).
+- Each component currency has an exchange rate to USD in the `exchange_rates` table, or you add test rates as in Step 6.
 
 ---
 
@@ -61,7 +76,7 @@ Before starting, ensure you have:
 
 ### 1.1 Define the Purpose
 
-Ask yourself:
+Answer these questions first.
 - What problem does this basket solve?
 - Who will use it?
 - What assets should be included?
@@ -69,96 +84,102 @@ Ask yourself:
 
 ### 1.2 Choose Components
 
-For our example, let's create an **Asian Currency Basket (ACB)**:
+This tutorial builds an **Asian Currency Basket (ACB)**. Weights in FinAegis are percentages from 0 to 100, and they must add up to 100.
 
 | Currency | Weight | Rationale |
 |----------|--------|-----------|
-| CNY | 40% | Largest Asian economy |
-| JPY | 30% | Second largest, safe haven |
-| KRW | 15% | Strong tech economy |
-| SGD | 10% | Financial hub stability |
-| HKD | 5% | International trade gateway |
+| CNY | 40 | Largest Asian economy |
+| JPY | 30 | Second largest economy in the basket |
+| KRW | 15 | Large export economy |
+| SGD | 10 | Regional financial centre |
+| HKD | 5 | Regional trade centre |
 
 ### 1.3 Define Rebalancing Rules
 
+A FinAegis basket has three rebalancing settings.
+
+- `type` is `fixed` or `dynamic`. Only dynamic baskets are rebalanced.
+- `rebalance_frequency` is `daily`, `weekly`, `monthly`, `quarterly` or `never`.
+- Each component can have a `min_weight` and a `max_weight`. Rebalancing moves a component's weight back inside these bounds.
+
 ```php
-// Rebalancing triggers
-$rules = [
-    'drift_threshold' => 0.05,    // Rebalance if any component drifts 5%
-    'schedule' => 'monthly',       // Regular monthly rebalance
-    'min_trade_size' => 1000,      // Avoid small trades
+// Rebalancing settings for the ACB basket
+$settings = [
+    'type'                => 'dynamic',
+    'rebalance_frequency' => 'monthly',
+    // Per component: weight with lower and upper bounds (percent)
+    'bounds' => [
+        'CNY' => ['weight' => 40, 'min_weight' => 35, 'max_weight' => 45],
+        'JPY' => ['weight' => 30, 'min_weight' => 25, 'max_weight' => 35],
+    ],
 ];
 ```
 
 ---
 
-## Step 2: Create the Database Structure
+## Step 2: Create the Basket
 
-### 2.1 Create Migration
+### 2.1 Add the Component Assets
 
-```bash
-php artisan make:migration create_acb_basket_tables
-```
+`basket_components.asset_code` is a foreign key to `assets.code`. The default `AssetSeeder` adds USD, EUR, GBP, CHF, JPY, XAU, GCU, BTC and ETH. Add the other ACB currencies first.
 
 ```php
-// database/migrations/xxxx_create_acb_basket_tables.php
+// database/seeders/ACBAssetSeeder.php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+namespace Database\Seeders;
 
-return new class extends Migration
+use App\Domain\Asset\Models\Asset;
+use Illuminate\Database\Seeder;
+
+class ACBAssetSeeder extends Seeder
 {
-    public function up(): void
+    public function run(): void
     {
-        // Basket definition
-        Schema::create('basket_assets', function (Blueprint $table) {
-            $table->id();
-            $table->uuid('uuid')->unique();
-            $table->string('code', 10)->unique();  // 'ACB'
-            $table->string('name');                 // 'Asian Currency Basket'
-            $table->string('description')->nullable();
-            $table->string('base_currency', 3)->default('USD');
-            $table->boolean('is_active')->default(true);
-            $table->boolean('rebalancing_enabled')->default(true);
-            $table->string('rebalancing_schedule')->default('monthly');
-            $table->decimal('drift_threshold', 5, 4)->default(0.05);
-            $table->timestamps();
-            $table->softDeletes();
-        });
+        $assets = [
+            ['code' => 'CNY', 'name' => 'Chinese Yuan'],
+            ['code' => 'KRW', 'name' => 'South Korean Won'],
+            ['code' => 'SGD', 'name' => 'Singapore Dollar'],
+            ['code' => 'HKD', 'name' => 'Hong Kong Dollar'],
+        ];
 
-        // Basket components (the currencies in the basket)
-        Schema::create('basket_components', function (Blueprint $table) {
-            $table->id();
-            $table->uuid('uuid')->unique();
-            $table->foreignId('basket_asset_id')->constrained()->cascadeOnDelete();
-            $table->string('asset_code', 10);       // 'CNY', 'JPY', etc.
-            $table->string('asset_name');
-            $table->decimal('weight', 8, 4);        // 0.40 for 40%
-            $table->decimal('target_weight', 8, 4); // Target for rebalancing
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-
-            $table->unique(['basket_asset_id', 'asset_code']);
-        });
-
-        // NAV history
-        Schema::create('basket_values', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('basket_asset_id')->constrained()->cascadeOnDelete();
-            $table->decimal('nav', 20, 8);          // Net Asset Value
-            $table->decimal('nav_change', 10, 4)->nullable();
-            $table->json('component_values');       // Snapshot of component prices
-            $table->timestamp('calculated_at');
-            $table->timestamps();
-
-            $table->index(['basket_asset_id', 'calculated_at']);
-        });
+        foreach ($assets as $asset) {
+            Asset::updateOrCreate(
+                ['code' => $asset['code']],
+                ['name' => $asset['name'], 'type' => 'fiat', 'precision' => 2, 'is_active' => true]
+            );
+        }
     }
-};
+}
 ```
 
-### 2.2 Create Seeder
+### 2.2 Create the Basket Through the API
+
+`POST /api/v2/baskets` creates a basket with its components. Only platform operators (the `admin`, `super_admin` and `bank_admin` roles) may call it.
+
+```http
+POST /api/v2/baskets
+Authorization: Bearer {operator-token}
+Content-Type: application/json
+
+{
+  "code": "ACB",
+  "name": "Asian Currency Basket",
+  "description": "A demo basket of major Asian currencies",
+  "type": "dynamic",
+  "rebalance_frequency": "monthly",
+  "components": [
+    {"asset_code": "CNY", "weight": 40, "min_weight": 35, "max_weight": 45},
+    {"asset_code": "JPY", "weight": 30, "min_weight": 25, "max_weight": 35},
+    {"asset_code": "KRW", "weight": 15, "min_weight": 10, "max_weight": 20},
+    {"asset_code": "SGD", "weight": 10, "min_weight": 5, "max_weight": 15},
+    {"asset_code": "HKD", "weight": 5, "min_weight": 0, "max_weight": 10}
+  ]
+}
+```
+
+The endpoint returns 422 when the weights do not add up to 100. On success it also creates a matching row in `assets` (through `BasketAsset::toAsset()`) and stores the first value.
+
+### 2.3 Or Create It in a Seeder
 
 ```php
 // database/seeders/ACBBasketSeeder.php
@@ -166,534 +187,293 @@ return new class extends Migration
 namespace Database\Seeders;
 
 use App\Domain\Basket\Models\BasketAsset;
-use App\Domain\Basket\Models\BasketComponent;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 
 class ACBBasketSeeder extends Seeder
 {
     public function run(): void
     {
-        $basket = BasketAsset::create([
-            'uuid' => Str::uuid(),
-            'code' => 'ACB',
-            'name' => 'Asian Currency Basket',
-            'description' => 'A basket of major Asian currencies',
-            'base_currency' => 'USD',
-            'is_active' => true,
-            'rebalancing_enabled' => true,
-            'rebalancing_schedule' => 'monthly',
-            'drift_threshold' => 0.05,
-        ]);
+        $basket = BasketAsset::updateOrCreate(
+            ['code' => 'ACB'],
+            [
+                'name'                => 'Asian Currency Basket',
+                'description'         => 'A demo basket of major Asian currencies',
+                'type'                => 'dynamic',
+                'rebalance_frequency' => 'monthly',
+                'is_active'           => true,
+            ]
+        );
+
+        $basket->components()->delete();
 
         $components = [
-            ['code' => 'CNY', 'name' => 'Chinese Yuan', 'weight' => 0.40],
-            ['code' => 'JPY', 'name' => 'Japanese Yen', 'weight' => 0.30],
-            ['code' => 'KRW', 'name' => 'South Korean Won', 'weight' => 0.15],
-            ['code' => 'SGD', 'name' => 'Singapore Dollar', 'weight' => 0.10],
-            ['code' => 'HKD', 'name' => 'Hong Kong Dollar', 'weight' => 0.05],
+            ['asset_code' => 'CNY', 'weight' => 40.0, 'min_weight' => 35.0, 'max_weight' => 45.0],
+            ['asset_code' => 'JPY', 'weight' => 30.0, 'min_weight' => 25.0, 'max_weight' => 35.0],
+            ['asset_code' => 'KRW', 'weight' => 15.0, 'min_weight' => 10.0, 'max_weight' => 20.0],
+            ['asset_code' => 'SGD', 'weight' => 10.0, 'min_weight' => 5.0, 'max_weight' => 15.0],
+            ['asset_code' => 'HKD', 'weight' => 5.0, 'min_weight' => 0.0, 'max_weight' => 10.0],
         ];
 
         foreach ($components as $component) {
-            BasketComponent::create([
-                'uuid' => Str::uuid(),
-                'basket_asset_id' => $basket->id,
-                'asset_code' => $component['code'],
-                'asset_name' => $component['name'],
-                'weight' => $component['weight'],
-                'target_weight' => $component['weight'],
-                'is_active' => true,
-            ]);
+            $basket->components()->create($component + ['is_active' => true]);
         }
+
+        // Register the basket as an asset so accounts can hold it
+        $basket->toAsset();
     }
 }
 ```
+
+`database/seeders/GCUBasketSeeder.php` builds the GCU demo basket the same way.
 
 ---
 
-## Step 3: Implement the Services
+## Step 3: Value the Basket
 
-### 3.1 NAV Calculation Service
+### 3.1 Calculate the Value
 
-```php
-// app/Domain/Basket/Services/BasketValueCalculationService.php
-
-namespace App\Domain\Basket\Services;
-
-use App\Domain\Basket\Models\BasketAsset;
-use App\Domain\Basket\Models\BasketValue;
-use App\Domain\Exchange\Contracts\ExchangeRateServiceInterface;
-
-class BasketValueCalculationService
-{
-    public function __construct(
-        private readonly ExchangeRateServiceInterface $exchangeRateService,
-    ) {}
-
-    /**
-     * Calculate the current NAV for a basket.
-     */
-    public function calculateNAV(BasketAsset $basket): float
-    {
-        $nav = 0.0;
-        $componentValues = [];
-
-        foreach ($basket->activeComponents as $component) {
-            // Get exchange rate to base currency
-            $rate = $this->exchangeRateService->getRate(
-                from: $component->asset_code,
-                to: $basket->base_currency
-            );
-
-            // Calculate weighted value
-            $componentValue = $rate * $component->weight;
-            $nav += $componentValue;
-
-            $componentValues[$component->asset_code] = [
-                'rate' => $rate,
-                'weight' => $component->weight,
-                'value' => $componentValue,
-            ];
-        }
-
-        // Store the calculation
-        $this->storeNAV($basket, $nav, $componentValues);
-
-        return $nav;
-    }
-
-    /**
-     * Store NAV calculation for history.
-     */
-    private function storeNAV(
-        BasketAsset $basket,
-        float $nav,
-        array $componentValues
-    ): void {
-        $previousNav = $basket->latestValue?->nav;
-        $navChange = $previousNav ? (($nav - $previousNav) / $previousNav) * 100 : null;
-
-        BasketValue::create([
-            'basket_asset_id' => $basket->id,
-            'nav' => $nav,
-            'nav_change' => $navChange,
-            'component_values' => $componentValues,
-            'calculated_at' => now(),
-        ]);
-    }
-
-    /**
-     * Get historical NAV for a specific date.
-     */
-    public function getHistoricalNAV(BasketAsset $basket, \DateTimeInterface $date): ?float
-    {
-        return BasketValue::where('basket_asset_id', $basket->id)
-            ->whereDate('calculated_at', $date)
-            ->orderBy('calculated_at', 'desc')
-            ->value('nav');
-    }
-}
-```
-
-### 3.2 Rebalancing Service
+`BasketValueCalculationService::calculateValue()` values one basket unit in USD. For each active component it multiplies the component's USD rate by its weight divided by 100, and it adds the results up.
 
 ```php
-// app/Domain/Basket/Services/BasketRebalancingService.php
-
-namespace App\Domain\Basket\Services;
-
-use App\Domain\Basket\Events\BasketRebalanced;
 use App\Domain\Basket\Models\BasketAsset;
-use App\Domain\Exchange\Services\ExchangeService;
+use App\Domain\Basket\Services\BasketValueCalculationService;
 
-class BasketRebalancingService
-{
-    public function __construct(
-        private readonly ExchangeService $exchangeService,
-        private readonly BasketValueCalculationService $navService,
-    ) {}
+$basket = BasketAsset::where('code', 'ACB')->firstOrFail();
+$service = app(BasketValueCalculationService::class);
 
-    /**
-     * Check if basket needs rebalancing.
-     */
-    public function shouldRebalance(BasketAsset $basket): bool
-    {
-        foreach ($basket->activeComponents as $component) {
-            $currentWeight = $this->calculateCurrentWeight($basket, $component);
-            $drift = abs($currentWeight - $component->target_weight);
+$value = $service->calculateValue($basket, useCache: false);
 
-            if ($drift > $basket->drift_threshold) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Calculate current weight based on market values.
-     */
-    private function calculateCurrentWeight(
-        BasketAsset $basket,
-        $component
-    ): float {
-        $totalValue = 0;
-        $componentValue = 0;
-
-        foreach ($basket->activeComponents as $comp) {
-            $value = $this->navService->getComponentValue($comp);
-            $totalValue += $value;
-
-            if ($comp->id === $component->id) {
-                $componentValue = $value;
-            }
-        }
-
-        return $totalValue > 0 ? $componentValue / $totalValue : 0;
-    }
-
-    /**
-     * Execute rebalancing trades.
-     */
-    public function executeRebalancing(BasketAsset $basket): array
-    {
-        $trades = [];
-        $currentWeights = [];
-        $targetWeights = [];
-
-        // Calculate current vs target
-        foreach ($basket->activeComponents as $component) {
-            $currentWeights[$component->asset_code] = $this->calculateCurrentWeight($basket, $component);
-            $targetWeights[$component->asset_code] = $component->target_weight;
-        }
-
-        // Determine required trades
-        foreach ($basket->activeComponents as $component) {
-            $currentWeight = $currentWeights[$component->asset_code];
-            $targetWeight = $targetWeights[$component->asset_code];
-            $difference = $targetWeight - $currentWeight;
-
-            if (abs($difference) > 0.001) { // Minimum trade threshold
-                $trades[] = [
-                    'asset' => $component->asset_code,
-                    'action' => $difference > 0 ? 'buy' : 'sell',
-                    'weight_change' => abs($difference),
-                ];
-            }
-        }
-
-        // Execute trades through exchange
-        foreach ($trades as &$trade) {
-            $result = $this->exchangeService->executeTrade([
-                'asset' => $trade['asset'],
-                'action' => $trade['action'],
-                'amount' => $this->calculateTradeAmount($basket, $trade),
-            ]);
-            $trade['result'] = $result;
-        }
-
-        // Fire domain event
-        event(new BasketRebalanced($basket, $trades));
-
-        return $trades;
-    }
-}
+$value->value;            // USD value of one ACB unit
+$value->component_values; // per-component rate, weight and weighted value
+$value->calculated_at;
 ```
+
+The service reads rates through `App\Domain\Asset\Services\ExchangeRateService`. A component without a USD rate is logged and left out of that calculation, and the error is kept in `component_values._metadata.calculation_errors`. Each result is stored in `basket_values` under the basket's code (`basket_asset_code`). Results are cached for five minutes under `basket_value:{code}`, unless you pass `useCache: false`.
+
+Before v7.18.0 the GCU endpoints looked up stored values by a column that does not exist, so they never found a GCU value. They now use `basket_asset_code`.
+
+### 3.2 History and Performance
+
+```php
+$history = $service->getHistoricalValues($basket, now()->subDays(30), now());
+$performance = $service->calculatePerformance($basket, now()->subDays(30), now());
+```
+
+The same data is available over the API and the console.
+
+```bash
+GET /api/v2/baskets/ACB/value
+GET /api/v2/baskets/ACB/history
+GET /api/v2/baskets/ACB/performance
+
+php artisan basket:calculate-performance --basket=ACB --period=month
+php artisan baskets:performance ACB --period=30d --detailed
+```
+
+The scheduler in `routes/console.php` runs `basket:calculate-performance` every hour and with `--period=day` every day at 00:30, as long as the Basket module is enabled.
 
 ---
 
-## Step 4: Create Workflows
+## Step 4: Compose and Decompose
 
-### 4.1 Compose Basket Workflow
+Composing turns component balances into basket units. Decomposing turns basket units back into components. Amounts are integers in the smallest unit, and each component amount is `amount × weight / 100`, rounded.
+
+```http
+POST /api/v2/accounts/{uuid}/baskets/compose
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{"basket_code": "ACB", "amount": 1000}
+```
+
+`POST /api/v2/accounts/{uuid}/baskets/decompose` takes the same body, and `GET /api/v2/accounts/{uuid}/baskets` lists the account's basket holdings. The account must belong to the signed-in user.
+
+In code, `BasketService::composeBasket()` checks the basket, its weights and the account's balances, and then starts `ComposeBasketWorkflow`.
 
 ```php
-// app/Domain/Basket/Workflows/ComposeBasketWorkflow.php
+use App\Domain\Basket\Services\BasketService;
 
-namespace App\Domain\Basket\Workflows;
+$result = app(BasketService::class)->composeBasket(
+    accountUuid: $account->uuid,
+    basketCode: 'ACB',
+    amount: 1000
+);
+```
 
-use App\Domain\Basket\Activities\ComposeBasketActivity;
-use App\Domain\Basket\Activities\ValidateCompositionActivity;
-use App\Domain\Basket\Activities\LockComponentsActivity;
-use App\Domain\Basket\Activities\IssueBasketUnitsActivity;
-use Workflow\ActivityStub;
-use Workflow\Workflow;
+`ComposeBasketWorkflow` runs `ComposeBasketActivity`. If a later step fails, its compensation runs `DecomposeBasketActivity` to undo the composition.
+
+```php
+// app/Domain/Basket/Workflows/ComposeBasketWorkflow.php (shipped)
 
 class ComposeBasketWorkflow extends Workflow
 {
-    public function execute(
-        string $accountUuid,
-        string $basketCode,
-        int $amount
-    ): array {
-        // Step 1: Validate the composition request
-        $validation = yield ActivityStub::make(
-            ValidateCompositionActivity::class,
-            $accountUuid,
-            $basketCode,
-            $amount
-        );
-
-        if (!$validation['valid']) {
-            return ['success' => false, 'error' => $validation['error']];
-        }
-
-        // Step 2: Lock component currencies from account
-        $lockResult = yield ActivityStub::make(
-            LockComponentsActivity::class,
-            $accountUuid,
-            $basketCode,
-            $amount
-        );
-
+    public function execute(AccountUuid $accountUuid, string $basketCode, int $amount): Generator
+    {
         try {
-            // Step 3: Issue basket units
-            $issueResult = yield ActivityStub::make(
-                IssueBasketUnitsActivity::class,
+            $result = yield ActivityStub::make(
+                ComposeBasketActivity::class,
                 $accountUuid,
                 $basketCode,
                 $amount
             );
 
-            return [
-                'success' => true,
-                'basket_units' => $issueResult['units'],
-                'components_used' => $lockResult['components'],
-            ];
-
-        } catch (\Throwable $e) {
-            // Compensation: Return locked components
-            yield ActivityStub::make(
-                UnlockComponentsActivity::class,
-                $accountUuid,
-                $lockResult['lock_id']
+            // Add compensation to decompose the basket if composition fails later
+            $this->addCompensation(
+                fn () => ActivityStub::make(
+                    DecomposeBasketActivity::class,
+                    $accountUuid,
+                    $basketCode,
+                    $amount
+                )
             );
 
-            throw $e;
+            return $result;
+        } catch (Throwable $th) {
+            yield from $this->compensate();
+            throw $th;
         }
-    }
-}
-```
-
-### 4.2 Activities
-
-```php
-// app/Domain/Basket/Activities/LockComponentsActivity.php
-
-namespace App\Domain\Basket\Activities;
-
-use App\Domain\Account\Services\AccountService;
-use App\Domain\Basket\Models\BasketAsset;
-use Workflow\Activity;
-
-class LockComponentsActivity extends Activity
-{
-    public function __construct(
-        private readonly AccountService $accountService,
-    ) {}
-
-    public function execute(
-        string $accountUuid,
-        string $basketCode,
-        int $amount
-    ): array {
-        $basket = BasketAsset::where('code', $basketCode)->firstOrFail();
-        $lockedComponents = [];
-
-        foreach ($basket->activeComponents as $component) {
-            $componentAmount = (int) round($amount * $component->weight);
-
-            $this->accountService->lockBalance(
-                accountUuid: $accountUuid,
-                assetCode: $component->asset_code,
-                amount: $componentAmount,
-                reason: "Basket composition: {$basketCode}"
-            );
-
-            $lockedComponents[$component->asset_code] = $componentAmount;
-        }
-
-        return [
-            'lock_id' => uniqid('lock_'),
-            'components' => $lockedComponents,
-        ];
     }
 }
 ```
 
 ---
 
-## Step 5: Add Governance
+## Step 5: Rebalancing and Governance
 
-### 5.1 Create Composition Change Proposal
+### 5.1 Rebalancing
+
+`BasketRebalancingService` works on dynamic baskets. A basket is due when its `rebalance_frequency` period has passed since `last_rebalanced_at`. Rebalancing moves any component weight that is outside its `min_weight` and `max_weight` back to the nearest bound, and it normalises the weights to 100. It changes the stored weights and fires a `BasketRebalanced` event. It does not place trades.
 
 ```php
-// app/Domain/Basket/Services/BasketGovernanceService.php
+use App\Domain\Basket\Services\BasketRebalancingService;
 
-namespace App\Domain\Basket\Services;
+$rebalancing = app(BasketRebalancingService::class);
 
-use App\Domain\Basket\Models\BasketAsset;
-use App\Domain\Governance\Models\Proposal;
-use App\Domain\Governance\Services\GovernanceService;
-
-class BasketGovernanceService
-{
-    public function __construct(
-        private readonly GovernanceService $governanceService,
-    ) {}
-
-    /**
-     * Create a proposal to change basket composition.
-     */
-    public function proposeCompositionChange(
-        BasketAsset $basket,
-        array $newComposition,
-        string $rationale
-    ): Proposal {
-        // Validate new composition sums to 100%
-        $totalWeight = array_sum(array_column($newComposition, 'weight'));
-        if (abs($totalWeight - 1.0) > 0.001) {
-            throw new \InvalidArgumentException('Weights must sum to 100%');
-        }
-
-        return $this->governanceService->createProposal([
-            'type' => 'basket_composition_change',
-            'title' => "Update {$basket->code} composition",
-            'description' => $rationale,
-            'data' => [
-                'basket_id' => $basket->id,
-                'basket_code' => $basket->code,
-                'current_composition' => $basket->activeComponents->toArray(),
-                'proposed_composition' => $newComposition,
-            ],
-            'voting_period_days' => config('gcu.governance.voting_period_days', 7),
-            'quorum' => config('gcu.governance.quorum_percentage', 0.10),
-            'approval_threshold' => config('gcu.governance.approval_threshold', 0.66),
-        ]);
-    }
-
-    /**
-     * Execute an approved composition change.
-     */
-    public function executeApprovedChange(Proposal $proposal): void
-    {
-        if (!$proposal->isApproved()) {
-            throw new \RuntimeException('Proposal not approved');
-        }
-
-        $basket = BasketAsset::findOrFail($proposal->data['basket_id']);
-        $newComposition = $proposal->data['proposed_composition'];
-
-        DB::transaction(function () use ($basket, $newComposition) {
-            // Deactivate current components
-            $basket->activeComponents()->update(['is_active' => false]);
-
-            // Create new components
-            foreach ($newComposition as $component) {
-                BasketComponent::create([
-                    'basket_asset_id' => $basket->id,
-                    'asset_code' => $component['code'],
-                    'asset_name' => $component['name'],
-                    'weight' => $component['weight'],
-                    'target_weight' => $component['weight'],
-                    'is_active' => true,
-                ]);
-            }
-        });
-
-        event(new BasketCompositionChanged($basket, $newComposition));
-    }
-}
+$rebalancing->needsRebalancing($basket);     // is the basket due?
+$rebalancing->simulateRebalancing($basket);  // dry run, weights stay unchanged
+$rebalancing->rebalance($basket);            // apply the adjustments
+$rebalancing->getRebalancingHistory($basket);
 ```
+
+```bash
+php artisan baskets:rebalance --basket=ACB --dry-run
+php artisan baskets:rebalance --basket=ACB --force
+```
+
+`POST /api/v2/baskets/{code}/rebalance` does the same for platform operators. The scheduler runs `baskets:rebalance` on the first day of each month at 00:05.
+
+### 5.2 Composition Polls
+
+The Governance domain can change a basket's composition through a poll. `VotingTemplateService::createMonthlyBasketVotingPoll()` shows the pattern for the primary basket. It creates a weighted-choice poll with asset-weighted voting, sets `execution_workflow` to `UpdateBasketCompositionWorkflow` and stores the basket code in the poll metadata.
+
+```php
+use App\Domain\Governance\Enums\PollType;
+use App\Domain\Governance\Strategies\AssetWeightedVotingStrategy;
+use App\Domain\Governance\Services\GovernanceService;
+use App\Domain\Governance\Workflows\UpdateBasketCompositionWorkflow;
+
+$poll = app(GovernanceService::class)->createPoll([
+    'title'                  => 'ACB composition - next quarter',
+    'type'                   => PollType::WEIGHTED_CHOICE->value,
+    'options'                => [
+        [
+            'id'         => 'basket_weights',
+            'label'      => 'ACB weights',
+            'type'       => 'allocation',
+            'currencies' => [
+                ['code' => 'CNY', 'name' => 'Chinese Yuan', 'min' => 30, 'max' => 50, 'default' => 40],
+                ['code' => 'JPY', 'name' => 'Japanese Yen', 'min' => 20, 'max' => 40, 'default' => 30],
+                // ...
+            ],
+            'constraint' => 'must_sum_to_100',
+        ],
+    ],
+    'start_date'             => now(),
+    'end_date'               => now()->addDays(7),
+    'required_participation' => 10,
+    'voting_power_strategy'  => AssetWeightedVotingStrategy::class,
+    'execution_workflow'     => UpdateBasketCompositionWorkflow::class,
+    'created_by'             => $operator->uuid,
+    'metadata'               => ['basket_code' => 'ACB'],
+]);
+```
+
+`UpdateBasketCompositionWorkflow` takes the poll's UUID. It calculates the weighted average of the votes, updates the basket components, triggers rebalancing and records a governance event.
+
+`GovernanceService::completePoll()` does not start this workflow today. It only knows the short names `AddAssetWorkflow`, `FeatureToggleWorkflow` and `UpdateConfigurationWorkflow`. After the poll closes, start the workflow yourself.
+
+```php
+use Workflow\WorkflowStub;
+
+WorkflowStub::make(UpdateBasketCompositionWorkflow::class)->start($poll->uuid);
+```
+
+The GCU demo also has a separate path. Simulated GCU proposals (`GcuVotingProposal`) are applied with `php artisan baskets:apply-vote`, which updates the GCU composition and rebalances the dynamic baskets. v7.18.0 fixed the GCU voting power calculation, which read columns that do not exist.
 
 ---
 
 ## Step 6: Testing
 
-### 6.1 Unit Tests
+### 6.1 Value Calculation
+
+The shipped tests in `tests/Feature/Basket/` and `tests/Domain/Basket/` follow this pattern. Create the assets and exchange rates, create the basket, and check the calculated value.
 
 ```php
-// tests/Domain/Basket/Services/BasketValueCalculationServiceTest.php
+// tests/Feature/Basket/ACBValueTest.php
 
+use App\Domain\Asset\Models\Asset;
+use App\Domain\Asset\Models\ExchangeRate;
 use App\Domain\Basket\Models\BasketAsset;
 use App\Domain\Basket\Services\BasketValueCalculationService;
 
-describe('BasketValueCalculationService', function () {
-    beforeEach(function () {
-        $this->service = app(BasketValueCalculationService::class);
-        $this->basket = BasketAsset::factory()
-            ->withComponents([
-                ['code' => 'USD', 'weight' => 0.50],
-                ['code' => 'EUR', 'weight' => 0.50],
-            ])
-            ->create();
-    });
+it('values a 50/50 USD and EUR basket', function () {
+    Asset::firstOrCreate(['code' => 'USD'], ['name' => 'US Dollar', 'type' => 'fiat', 'precision' => 2, 'is_active' => true]);
+    Asset::firstOrCreate(['code' => 'EUR'], ['name' => 'Euro', 'type' => 'fiat', 'precision' => 2, 'is_active' => true]);
 
-    it('calculates NAV correctly', function () {
-        // Mock exchange rates
-        $this->mock(ExchangeRateServiceInterface::class)
-            ->shouldReceive('getRate')
-            ->with('USD', 'USD')->andReturn(1.0)
-            ->shouldReceive('getRate')
-            ->with('EUR', 'USD')->andReturn(1.10);
+    ExchangeRate::create([
+        'from_asset_code' => 'EUR',
+        'to_asset_code'   => 'USD',
+        'rate'            => 1.1000,
+        'is_active'       => true,
+        'source'          => 'test',
+        'valid_at'        => now(),
+        'expires_at'      => now()->addHours(2),
+    ]);
 
-        $nav = $this->service->calculateNAV($this->basket);
+    $basket = BasketAsset::create([
+        'code'                => 'TEST_5050',
+        'name'                => 'Test 50/50',
+        'type'                => 'fixed',
+        'rebalance_frequency' => 'never',
+    ]);
+    $basket->components()->createMany([
+        ['asset_code' => 'USD', 'weight' => 50.0, 'is_active' => true],
+        ['asset_code' => 'EUR', 'weight' => 50.0, 'is_active' => true],
+    ]);
 
-        // Expected: (1.0 * 0.50) + (1.10 * 0.50) = 1.05
-        expect($nav)->toBe(1.05);
-    });
+    $value = app(BasketValueCalculationService::class)->calculateValue($basket, useCache: false);
 
-    it('stores NAV history', function () {
-        $this->service->calculateNAV($this->basket);
-
-        expect($this->basket->values()->count())->toBe(1);
-    });
+    // (1.00 × 0.50) + (1.10 × 0.50) = 1.05
+    expect($value->value)->toEqualWithDelta(1.05, 0.0001)
+        ->and($basket->values()->count())->toBe(1);
 });
 ```
 
-### 6.2 Integration Tests
+### 6.2 Existing Tests to Read
 
-```php
-// tests/Feature/Basket/ComposeBasketTest.php
-
-use App\Domain\Account\Models\Account;
-use App\Domain\Basket\Services\BasketService;
-
-describe('Basket Composition', function () {
-    it('composes basket from component currencies', function () {
-        $account = Account::factory()->create();
-        $account->credit('USD', 500);
-        $account->credit('EUR', 500);
-
-        $service = app(BasketService::class);
-        $result = $service->composeBasket(
-            accountUuid: $account->uuid,
-            basketCode: 'ACB',
-            amount: 1000
-        );
-
-        expect($result['success'])->toBeTrue()
-            ->and($account->getBalance('ACB'))->toBe(1000)
-            ->and($account->getBalance('USD'))->toBeLessThan(500);
-    });
-
-    it('fails with insufficient balance', function () {
-        $account = Account::factory()->create();
-        // No balances
-
-        $service = app(BasketService::class);
-
-        expect(fn() => $service->composeBasket(
-            accountUuid: $account->uuid,
-            basketCode: 'ACB',
-            amount: 1000
-        ))->toThrow(\Exception::class, 'Insufficient');
-    });
-});
-```
+- `tests/Feature/Basket/BasketValueCalculationServiceTest.php`
+- `tests/Feature/Basket/BasketRebalancingServiceTest.php`
+- `tests/Feature/Basket/BasketAccountServiceTest.php`
+- `tests/Feature/Basket/GcuBasketValueLookupTest.php`
+- `tests/Feature/Domain/Basket/Activities/ComposeBasketActivityTest.php`
+- `tests/Domain/Basket/Workflows/DecomposeBasketWorkflowTest.php`
+- `tests/Integration/GraphQL/BasketGraphQLTest.php`
 
 ---
 
 ## Advanced Topics
+
+The examples in this section are sketches. FinAegis does not ship them.
 
 ### Custom Weighting Strategies
 
@@ -710,7 +490,7 @@ class MarketCapWeightingStrategy implements WeightingStrategyInterface
         $totalMarketCap = array_sum(array_column($assets, 'market_cap'));
 
         return array_map(
-            fn($asset) => $asset['market_cap'] / $totalMarketCap,
+            fn($asset) => $asset['market_cap'] / $totalMarketCap * 100,
             $assets
         );
     }
@@ -720,15 +500,17 @@ class EqualWeightingStrategy implements WeightingStrategyInterface
 {
     public function calculateWeights(array $assets): array
     {
-        $weight = 1.0 / count($assets);
+        $weight = 100 / count($assets);
         return array_fill(0, count($assets), $weight);
     }
 }
 ```
 
+The strategies return percentages, because `basket_components.weight` stores 0 to 100.
+
 ### Multi-Chain Basket
 
-For baskets spanning multiple blockchains:
+A basket whose components live on several blockchains needs a lock step per chain. FinAegis baskets have no chain field, so this sketch assumes you add one.
 
 ```php
 class MultiChainBasketService
@@ -748,34 +530,37 @@ class MultiChainBasketService
 }
 ```
 
-### Real-Time NAV Updates
+### Real-Time Value Updates
 
 ```php
 // Using Laravel Broadcasting
-class NAVUpdateBroadcaster
+class BasketValueBroadcaster
 {
-    public function broadcastNAVUpdate(BasketAsset $basket): void
+    public function broadcastValue(BasketAsset $basket): void
     {
-        $nav = $this->navService->calculateNAV($basket);
+        $value = $this->valueService->calculateValue($basket, useCache: false);
 
-        broadcast(new NAVUpdated($basket->code, $nav))->toOthers();
+        broadcast(new BasketValueUpdated($basket->code, $value->value))->toOthers();
     }
 }
 ```
+
+`BasketValueUpdated` is an event class you would write yourself.
 
 ---
 
 ## Summary
 
-You've learned how to:
+You have learned how to do these things.
 
-1. **Design** a basket currency with clear purpose and composition
-2. **Implement** NAV calculation and rebalancing
-3. **Orchestrate** operations with saga workflows
-4. **Integrate** with governance for democratic control
-5. **Test** thoroughly with unit and integration tests
+1. Design a basket with a clear purpose, weights and rebalancing bounds.
+2. Create the basket and its component assets through the API or a seeder.
+3. Value the basket and read its history and performance.
+4. Compose and decompose basket units through the shipped workflows.
+5. Rebalance the basket and change its composition through a poll.
+6. Test the valuation.
 
-Use the [GCU implementation](../../app/Domain/Basket/) as your reference patterns.
+Use the [GCU implementation](../../app/Domain/Basket/) as your reference.
 
 ---
 
