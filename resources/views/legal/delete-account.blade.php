@@ -54,7 +54,7 @@
                 <p>After the applicable retention period expires, the residual records are deleted or fully anonymized.</p>
 
                 <h2>On-chain transactions</h2>
-                <p>Transactions recorded on public blockchains (Ethereum, Polygon, Base, Arbitrum, BSC, Solana, and other supported networks) cannot be deleted by us. They are part of immutable public ledgers and remain visible after account deletion. We can only remove the link between your identity and those addresses from our own systems.</p>
+                <p>Transactions recorded on public blockchains (Solana, Polygon, Base, Arbitrum, Ethereum and other supported networks) cannot be deleted by us. They are part of immutable public ledgers and remain visible after account deletion. We can only remove the link between your identity and those addresses from our own systems.</p>
 
                 <h2>Questions?</h2>
                 <p>Email <a href="mailto:support@zelta.app">support@zelta.app</a> or visit our <a href="{{ route('legal.privacy') }}">Privacy Policy</a> for more detail on how we handle your data.</p>

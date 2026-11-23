@@ -257,7 +257,7 @@ it('serves the Privy OTP login view at GET /login when the feature flag is on', 
     $response->assertOk()
         ->assertSee('Sign in to')
         ->assertSee('Send code')
-        ->assertSeeText('Email-only, passwordless');
+        ->assertSeeText('You sign in with a code that we send to your email.');
 });
 
 it('preserves intended URL across the OTP flow (signup-during-OAuth)', function (): void {

@@ -11,14 +11,14 @@
         $mcpUrl  = 'https://' . $mcpHost . '/mcp';
     @endphp
 
-    <title>Connect to your AI — {{ $brand }}</title>
+    <title>Connect {{ $brand }} to your AI assistant</title>
 
     @include('partials.favicon')
 
     @include('partials.seo', [
         'title'       => 'Connect ' . $brand . ' to your AI',
-        'description' => 'Connect Claude Desktop, Claude.ai, Cursor, or Continue.dev to your ' . $brand . ' wallet through one OAuth-protected MCP endpoint. Set a daily spending cap, pick scopes, and go.',
-        'keywords'    => $brand . ', MCP, Claude, Cursor, AI wallet, agentic payments',
+        'description' => 'This page shows how to connect Claude, Cursor or Continue to your ' . $brand . ' wallet. You sign in, add one connector address to your assistant and approve the connection.',
+        'keywords'    => $brand . ', AI assistant connector, Claude, Cursor, AI wallet',
         'robots'      => 'noindex',
     ])
 
@@ -123,13 +123,13 @@
             <div class="text-center mb-12 mt-4">
                 <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-acid bru-border text-sm font-bold mb-6" style="transform: rotate(-1deg);">
                     <span class="w-2 h-2 rounded-full bg-obsidian"></span>
-                    AGENTIC PAYMENTS
+                    AI ASSISTANTS
                 </div>
                 <h1 class="text-4xl sm:text-5xl md:text-6xl font-black mb-5 font-heading" style="line-height: 0.95;">
                     Connect <span class="text-z-purple">Claude</span> to your wallet
                 </h1>
                 <p class="text-lg md:text-xl max-w-xl mx-auto text-text-sec font-medium">
-                    Three steps. About four minutes. Free.
+                    It takes three steps and about four minutes. It is free.
                 </p>
             </div>
 
@@ -141,7 +141,7 @@
                 <div class="mt-6">
                     <h2 class="font-black font-heading text-2xl md:text-3xl mb-3">Sign in to {{ $brand }}</h2>
                     <p class="text-base font-medium text-text-sec mb-6">
-                        Email-only, passwordless. If you don't have an account yet, signing in creates one.
+                        You sign in with a code that we send to your email. If you do not have an account yet, signing in creates one.
                     </p>
                     <a href="{{ route('login') }}" class="btn-hover inline-flex items-center gap-2 rounded-full px-7 py-3 text-base font-black bg-acid text-obsidian bru-border">
                         Sign in →
@@ -157,12 +157,12 @@
                 <div class="mt-6">
                     <h2 class="font-black font-heading text-2xl md:text-3xl mb-3">Add the connector to your AI</h2>
                     <p class="text-base font-medium text-text-sec mb-6">
-                        Pick the AI you use:
+                        Choose the assistant you use.
                     </p>
 
                     {{-- Client picker tabs --}}
                     <div role="tablist" aria-label="Pick your AI client" class="flex flex-wrap gap-2 mb-5">
-                        @foreach (['claude-desktop' => 'Claude Desktop', 'claude-ai' => 'Claude.ai', 'cursor' => 'Cursor', 'continue' => 'Continue.dev', 'stdio' => 'Other (stdio)'] as $key => $label)
+                        @foreach (['claude-desktop' => 'Claude Desktop', 'claude-ai' => 'Claude.ai', 'cursor' => 'Cursor', 'continue' => 'Continue', 'stdio' => 'Other assistants'] as $key => $label)
                             <button
                                 type="button"
                                 role="tab"
@@ -179,7 +179,7 @@
                     @php
                         $panels = [
                             'claude-desktop' => [
-                                'instructions' => 'In Claude Desktop, edit the file at <code class="font-mono text-xs bg-white px-1.5 py-0.5 rounded bru-border">~/Library/Application Support/Claude/claude_desktop_config.json</code> (or the equivalent on your OS). Restart Claude Desktop after saving.',
+                                'instructions' => 'In Claude Desktop, add this block to the settings file. On a Mac the file is <code class="font-mono text-xs bg-white px-1.5 py-0.5 rounded bru-border">~/Library/Application Support/Claude/claude_desktop_config.json</code>. Restart Claude Desktop after you save it.',
                                 'snippet' => '{
   "mcpServers": {
     "' . strtolower($brand) . '": {
@@ -189,21 +189,21 @@
 }',
                             ],
                             'claude-ai' => [
-                                'instructions' => 'In Claude.ai, open Settings → Connectors → Add a custom connector. Paste the URL.',
+                                'instructions' => 'In Claude.ai, open Settings, then Connectors, and choose Add a custom connector. Paste this address.',
                                 'snippet' => $mcpUrl,
                             ],
                             'cursor' => [
-                                'instructions' => 'In Cursor, open Settings → Features → MCP → Add Server. Paste the URL.',
+                                'instructions' => 'In Cursor, open Settings, then Features, then MCP, and choose Add Server. Paste this address.',
                                 'snippet' => $mcpUrl,
                             ],
                             'continue' => [
-                                'instructions' => 'Add this block under <code class="font-mono text-xs bg-white px-1.5 py-0.5 rounded bru-border">experimental.modelContextProtocolServer</code> in your <code class="font-mono text-xs bg-white px-1.5 py-0.5 rounded bru-border">config.json</code>.',
+                                'instructions' => 'Add this block under <code class="font-mono text-xs bg-white px-1.5 py-0.5 rounded bru-border">experimental.modelContextProtocolServer</code> in your <code class="font-mono text-xs bg-white px-1.5 py-0.5 rounded bru-border">config.json</code> file.',
                                 'snippet' => '{
   "url": "' . $mcpUrl . '"
 }',
                             ],
                             'stdio' => [
-                                'instructions' => 'For older clients without remote streamable-HTTP support, use the npm wrapper. Token persists in your OS keychain.',
+                                'instructions' => 'Some older assistants cannot connect to a web address. For them, run this small helper program on your computer. It keeps your sign-in in your computer\'s password store.',
                                 'snippet' => 'npx -y @finaegis/mcp',
                             ],
                         ];
@@ -239,13 +239,13 @@
                 <div class="mt-6">
                     <h2 class="font-black font-heading text-2xl md:text-3xl mb-3">Authorize</h2>
                     <p class="text-base font-medium text-obsidian mb-4">
-                        First time you use the connector in your AI client, it opens a browser for OAuth. Pick the scopes you want, set a daily spending cap, approve. The token persists per client — subsequent launches are silent.
+                        The first time you use the connector, your assistant opens a sign-in page in your browser. You see what the assistant asks for, and you approve or refuse it. After that, the assistant stays connected and does not ask again.
                     </p>
                     <p class="text-sm font-bold text-obsidian inline-flex items-center gap-2">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                         </svg>
-                        DONE — TRY: <em class="not-italic ml-1">"check my balance"</em>
+                        THEN TRY ASKING <em class="not-italic ml-1">"check my balance"</em>
                     </p>
                 </div>
             </section>
@@ -253,9 +253,9 @@
             {{-- Reassurance --}}
             <div class="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4">
                 @foreach ([
-                    ['title' => 'You approve scopes', 'desc' => '12 read/write scopes. Pick what your AI gets.'],
-                    ['title' => 'Daily spending cap', 'desc' => 'Set on consent. Server-enforced.'],
-                    ['title' => 'Revoke any time', 'desc' => 'Tokens listed in your account settings.'],
+                    ['title' => 'You approve access', 'desc' => 'The approval page lists what the assistant asks for. Nothing is shared until you approve.'],
+                    ['title' => 'Only you can send money', 'desc' => 'The assistant cannot send money from your wallet. Only your device can sign a payment.'],
+                    ['title' => 'Read your account', 'desc' => 'The assistant can check balances, read activity and history, and analyse your spending.'],
                 ] as $item)
                     <div class="bg-white bru-card rounded-2xl p-5">
                         <div class="flex items-center gap-2 mb-2">
@@ -269,7 +269,7 @@
 
             {{-- Footer --}}
             <p class="text-center text-sm text-text-muted mt-12">
-                Want the technical details? <a href="{{ config('brand.docs_url', 'https://finaegis.org/developers/mcp-tools') }}" target="_blank" rel="noopener" class="font-semibold text-obsidian underline hover:no-underline">Developer reference →</a>
+                The developer reference explains the connector in technical detail. <a href="{{ config('brand.docs_url', 'https://finaegis.org/developers/mcp-tools') }}" target="_blank" rel="noopener" class="font-semibold text-obsidian underline hover:no-underline">Open the developer reference →</a>
             </p>
 
             {{-- Regulatory status (copy kit Z1 on zelta.app, F1 on finaegis.org — see docs/REGULATORY-CLAIMS.md) --}}

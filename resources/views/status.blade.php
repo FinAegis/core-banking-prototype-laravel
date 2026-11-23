@@ -1,11 +1,11 @@
 @extends('layouts.public')
 
-@section('title', 'System Status - ' . config('brand.name', 'Zelta'))
+@section('title', 'System status of ' . config('brand.name', 'Zelta'))
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'System Status - ' . config('brand.name', 'Zelta'),
-        'description' => 'Real-time status of ' . config('brand.name', 'Zelta') . ' platform services and infrastructure.',
+        'title' => 'System status of ' . config('brand.name', 'Zelta'),
+        'description' => 'This page shows whether ' . config('brand.name', 'Zelta') . ' services are working right now.',
         'keywords' => config('brand.name', 'Zelta') . ' status, system status, platform uptime, service availability',
     ])
 
@@ -48,7 +48,7 @@
                             @if($status['overall'] === 'operational')
                                 All Systems Operational
                             @elseif($status['overall'] === 'degraded')
-                                Some Systems Degraded
+                                Some Systems Have Problems
                             @else
                                 Major Outage
                             @endif
@@ -63,7 +63,7 @@
                     </div>
                     <div class="text-center">
                         <div class="font-display text-2xl font-bold text-white">{{ $status['response_time'] }}ms</div>
-                        <div class="text-xs text-slate-400 uppercase tracking-wider">Avg Response</div>
+                        <div class="text-xs text-slate-400 uppercase tracking-wider">Average response</div>
                     </div>
                 </div>
             </div>
@@ -179,8 +179,8 @@
             <!-- Footer -->
             <div class="text-center py-6">
                 <p class="text-sm text-slate-500">
-                    Programmatic access:
-                    <a href="{{ route('status.api') }}" class="text-blue-600 hover:text-blue-700 font-semibold">Status API</a>
+                    Programs can read the same status as data.
+                    <a href="{{ route('status.api') }}" class="text-blue-600 hover:text-blue-700 font-semibold">Open the status data</a>
                 </p>
             </div>
         </div>

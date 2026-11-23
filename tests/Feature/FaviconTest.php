@@ -51,7 +51,7 @@ class FaviconTest extends TestCase
 
         // Production brand is Zelta (FinAegis is the demo identity) — the
         // manifest was truth-passed in the v7.15 landing refresh.
-        $this->assertEquals('Zelta — Agentic Payments', $manifest['name']);
+        $this->assertEquals('Zelta', $manifest['name']);
         $this->assertEquals('Zelta', $manifest['short_name']);
         $this->assertEquals('#0a0a0a', $manifest['theme_color']);
 

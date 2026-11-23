@@ -1637,9 +1637,10 @@ These need a product or legal decision, a binary asset, or a change outside the 
 - Route availability: some demo routes (GCU voting/trading, CGO concept pages, investor page, exchange, liquidity, GCU API)
   are registered outside the promotional-pages gate and are therefore reachable on zelta.app. Copy on them was corrected;
   whether to restrict them to the demo environment is pending.
-- Operator legal entity details: the Terms and Privacy Policy now show them (see "Card pilot legal text" above, from
-  `BRAND_LEGAL_*`). The footer and the /invest page still need them; /invest says "Aegis Brightsmark Ltd.", but the
-  registered form is MB (small partnership). `TODO(regulatory)` comments mark the places.
+- Operator legal entity details: the Terms and Privacy Policy show them (see "Card pilot legal text" above, from
+  `BRAND_LEGAL_*`). Since 2026-11-23 the zelta.app footers name the operator from `BRAND_LEGAL_ENTITY`, and /invest
+  names "Aegis brightsmark capital, MB" with company code 307576279 instead of "Aegis Brightsmark Ltd.". The
+  developer name on /legal/delete-account still says FinAegis and must match the Play Console listing.
 - Social preview images (`public/images/og-default.png`, `public/images/og-twitter.png`) contain card artwork and need to
   be regenerated.
 - `docs/archive/litas_specification.pdf` (concept document) cannot be edited in place.

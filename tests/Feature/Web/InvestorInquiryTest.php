@@ -51,6 +51,14 @@ it('shows the invest page anonymously', function (): void {
         ->assertSee('content="noindex,nofollow"', false);
 });
 
+it('names the registered legal entity on the invest page', function (): void {
+    $this->get(route('invest.show'))
+        ->assertOk()
+        ->assertSeeText('Aegis brightsmark capital, MB')
+        ->assertSeeText('company code 307576279')
+        ->assertDontSeeText('Brightsmark Ltd');
+});
+
 it('requires GDPR consent', function (): void {
     Notification::fake();
 

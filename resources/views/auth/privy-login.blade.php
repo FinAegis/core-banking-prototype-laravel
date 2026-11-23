@@ -12,7 +12,7 @@
 
         <h1 class="text-xl font-bold mb-1">Sign in to {{ $brand }}</h1>
         <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
-            Email-only, passwordless. New here? The same form signs you up.
+            You sign in with a code that we send to your email. If you are new, the same form creates your account.
         </p>
 
         <x-validation-errors class="mb-4" />
@@ -81,7 +81,7 @@
             <a href="{{ route('legal.terms') }}" class="underline hover:no-underline">Terms</a>
             and
             <a href="{{ route('legal.privacy') }}" class="underline hover:no-underline">Privacy Policy</a>.
-            We email you a one-time code; we never ask for a password.
+            We email you a one-time code. We never ask for a password.
         </p>
     </x-authentication-card>
 </x-guest-layout>
