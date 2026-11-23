@@ -1602,6 +1602,19 @@ Repository: `finaegis.github.io` · 8 changes
 </details>
 
 
+## Card pilot legal text (2026-11-23)
+
+The owner approved a virtual card pilot with a licensed card-issuing partner. The Terms and the Privacy Policy on zelta.app
+now describe it. The text appears only on the Zelta site (`@unless($isFinAegisSite)`), never on finaegis.org. No partner,
+issuer, network or identity-check provider is named. Guarded by `tests/Feature/LegalPagesCardsTest.php`.
+
+| Location | Where it appears | Original claim | Risk | Change |
+|---|---|---|---|---|
+| `resources/views/legal/terms.blade.php` | /legal/terms Regulatory status | (only "Any card or off-ramp services will be provided by licensed third parties under their own terms.") | medium | Added: virtual cards are issued and run by a licensed card-issuing partner; the user sends money from their own wallet to their account at the partner, which changes it to US dollars and loads the card. The sentence "do not hold, exchange or transmit users' funds" is unchanged and should be confirmed by counsel now that the server sends top-up instructions to the partner on the user's behalf. |
+| `resources/views/legal/terms.blade.php` | /legal/terms §4.4 Virtual Cards (new) | (none) | medium | Partner issues and runs the card under its own terms and fees; Zelta is not the issuer; identity check required; not for US citizens or residents; top-ups are user-confirmed USDC sends; fees and an "about" amount are shown before confirming; only USDC on networks shown in the app; a card holding money cannot be cancelled in the app; no card-to-wallet withdrawal for now; card details shown only by the partner's secure page; never share the verification code; disputes handled by the partner; the partner or support may freeze or close a card. |
+| `resources/views/legal/privacy.blade.php` | /legal/privacy §2.1, §4.1, §4.4 (new), §8 | (no card data) | medium | Lists the card application details, names the card partner, its issuer and their identity-verification service as recipients (by category), says that full card numbers and security codes are never received, that verification codes are kept encrypted for at most ten minutes and never written to the database or logs, and that card data may be processed outside the EEA under the listed safeguards. |
+| `resources/views/legal/{terms,privacy}.blade.php` contact blocks, `config/brand.php` | /legal/terms §16, /legal/privacy §12 | Address: Lithuania | medium | The operator's legal name, company code, VAT code and registered address come from `BRAND_LEGAL_*` (`.env.zelta.example`: Aegis brightsmark capital, MB, 307576279, LT100020614313, Sembų g. 6, Buivydiškės, LT-14166 Vilnius District Municipality, Lithuania). The privacy page names the data controller. Whether a Data Protection Officer is appointed is still open. |
+
 ## Items not changed in this pass (pending owner decision)
 
 These need a product or legal decision, a binary asset, or a change outside the repository, so they were not edited here:
@@ -1609,8 +1622,9 @@ These need a product or legal decision, a binary asset, or a change outside the 
 - Route availability: some demo routes (GCU voting/trading, CGO concept pages, investor page, exchange, liquidity, GCU API)
   are registered outside the promotional-pages gate and are therefore reachable on zelta.app. Copy on them was corrected;
   whether to restrict them to the demo environment is pending.
-- Operator legal entity details (name, legal form, company code, registered address) in the footer and Terms are pending
-  confirmation. No details were invented; `TODO(regulatory)` comments mark the places.
+- Operator legal entity details: the Terms and Privacy Policy now show them (see "Card pilot legal text" above, from
+  `BRAND_LEGAL_*`). The footer and the /invest page still need them; /invest says "Aegis Brightsmark Ltd.", but the
+  registered form is MB (small partnership). `TODO(regulatory)` comments mark the places.
 - Social preview images (`public/images/og-default.png`, `public/images/og-twitter.png`) contain card artwork and need to
   be regenerated.
 - `docs/archive/litas_specification.pdf` (concept document) cannot be edited in place.

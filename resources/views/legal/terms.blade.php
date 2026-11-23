@@ -4,7 +4,7 @@
         <div class="bg-gray-50 border-b">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <h1 class="text-4xl font-bold text-gray-900">Terms of Service</h1>
-                <p class="mt-4 text-lg text-gray-600">Last updated: December 23, 2025</p>
+                <p class="mt-4 text-lg text-gray-600">Last updated: November 23, 2026</p>
             </div>
         </div>
 
@@ -20,6 +20,7 @@
                 <p>FinAegis is a software project and does not hold any banking, e-money, payment-institution, crypto-asset service provider or token-issuer licence or authorisation.</p>
                 @else
                 <p>Zelta is non-custodial wallet software. Zelta and its operator are not a bank, electronic money institution, payment institution or crypto-asset service provider, and do not hold, exchange or transmit users&rsquo; funds. Any card or off-ramp services will be provided by licensed third parties under their own terms.</p>
+                <p>Virtual cards are issued and run by a licensed card-issuing partner. When you add money to a card, you send it from your own wallet to your account at that partner, and the partner changes it to US dollars and loads your card. See <a href="#virtual-cards">4.4 Virtual Cards</a>.</p>
                 @endif
 
                 <h2>1. Acceptance of Terms</h2>
@@ -62,6 +63,21 @@
 
                 <h3>4.3 Transaction Limits</h3>
                 <p>We may impose daily, monthly, or other periodic transaction limits for security purposes.</p>
+
+                @unless($isFinAegisSite)
+                <h3 id="virtual-cards">4.4 Virtual Cards</h3>
+                <p>Where available, you can apply for a virtual card in the app. The card is issued and run by a licensed card-issuing partner under its own terms and fee schedule. Zelta is not the card issuer.</p>
+                <p>The card is offered only to people who pass the partner&rsquo;s identity check. It is not available to citizens or residents of the United States.</p>
+                <p>When you apply, we send your details to the partner so that it can open your card and check your identity. Our <a href="{{ route('legal.privacy') }}">Privacy Policy</a> explains which details we send.</p>
+                <p>You add money by sending USDC from your own Zelta wallet to your card account at the partner. You confirm every send yourself. The partner changes the USDC to US dollars and adds it to your card.</p>
+                <p>Before you confirm, the app shows the partner&rsquo;s fees and about how much your card will receive. The final amount can differ a little because of the exchange rate. Your first top-up also pays the card opening fee shown in the app.</p>
+                <p>Send only USDC on a network shown in the app. Other tokens, or tokens sent on another network, may not be credited and may be lost.</p>
+                <p>A card that still holds money cannot be cancelled in the app. Moving money from the card back to your wallet is not available at this time.</p>
+                <p>Your card number, expiry date and security code are shown only by the partner&rsquo;s secure page inside the app. Zelta does not store them.</p>
+                <p>Online shops may ask for a one-time verification code. The app shows it after you confirm it is you. Never share this code with anyone.</p>
+                <p>Card payments, refunds and disputes are handled by the partner under its terms. Contact our support and we will help you reach the partner.</p>
+                <p>The partner or our support team may freeze or close a card, for example for security or legal reasons.</p>
+                @endunless
 
                 <h2>5. Prohibited Activities</h2>
                 <p>You agree not to use our Service for:</p>
@@ -119,11 +135,10 @@
 
                 <h2>16. Contact Information</h2>
                 <p>If you have any questions about these Terms, please contact us at:</p>
-                {{-- TODO(regulatory): operator legal entity details pending — see docs/REGULATORY-CLAIMS.md --}}
                 <div class="bg-gray-50 p-6 rounded-lg mt-6">
                     <p><strong>{{ config('brand.legal_entity') }} Legal Department</strong><br>
                     Email: {{ config('brand.legal_email') }}<br>
-                    Address: {{ config('brand.legal_jurisdiction') }}</p>
+                    @include('legal.partials.operator')</p>
                 </div>
 
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mt-8">
