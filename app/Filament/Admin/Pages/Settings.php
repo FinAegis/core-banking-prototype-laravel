@@ -2,7 +2,7 @@
 
 namespace App\Filament\Admin\Pages;
 
-use App\Domain\Account\Models\Setting;
+use App\Models\Setting;
 use App\Services\SettingsService;
 use Exception;
 use Filament\Forms;
@@ -13,6 +13,9 @@ use Filament\Support\Exceptions\Halt;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * @property-read Form $form
+ */
 class Settings extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
@@ -25,6 +28,7 @@ class Settings extends Page
 
     protected static ?string $title = 'Platform Settings';
 
+    /** @var array<string, mixed>|null */
     public ?array $data = [];
 
     protected SettingsService $settingsService;

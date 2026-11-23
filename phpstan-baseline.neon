@@ -3871,36 +3871,6 @@ parameters:
 			path: app/Domain/Webhook/Services/WebhookService.php
 
 		-
-			message: '#^Call to an undefined method App\\Domain\\Custodian\\Contracts\\ICustodianConnector\:\:resetCircuitBreaker\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Filament/Admin/Pages/BankOperations.php
-
-		-
-			message: '#^Call to an undefined method App\\Filament\\Admin\\Pages\\BankOperations\:\:notify\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: app/Filament/Admin/Pages/BankOperations.php
-
-		-
-			message: '#^Parameter \#2 \$syntax of method Carbon\\Carbon\:\:diffForHumans\(\) expects array\|int\|null, true given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Filament/Admin/Pages/BankOperations.php
-
-		-
-			message: '#^Access to an undefined property App\\Filament\\Admin\\Pages\\Settings\:\:\$form\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Filament/Admin/Pages/Settings.php
-
-		-
-			message: '#^Call to static method all\(\) on an unknown class App\\Domain\\Account\\Models\\Setting\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Filament/Admin/Pages/Settings.php
-
-		-
 			message: '#^Access to an undefined property App\\Filament\\Admin\\Pages\\SubProducts\:\:\$form\.$#'
 			identifier: property.notFound
 			count: 2
@@ -4055,12 +4025,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: app/Filament/Admin/Resources/AssetResource/Widgets/AssetOverviewWidget.php
-
-		-
-			message: '#^Class App\\Domain\\Account\\Models\\AuditLog not found\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Filament/Admin/Resources/AuditLogResource.php
 
 		-
 			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:where\(\) expects array\<int\|model property of Illuminate\\Database\\Eloquent\\Model, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\)\: Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of Illuminate\\Database\\Eloquent\\Model, ''last_rebalanced_at'' given\.$#'
@@ -4267,66 +4231,6 @@ parameters:
 			path: app/Filament/Admin/Resources/ReconciliationReportResource/Pages/ListReconciliationReports.php
 
 		-
-			message: '#^Access to constant AVAILABLE_BANKS on an unknown class App\\Models\\UserBankPreference\.$#'
-			identifier: class.notFound
-			count: 3
-			path: app/Filament/Admin/Resources/UserBankPreferenceResource.php
-
-		-
-			message: '#^Access to property \$allocation_percentage on an unknown class App\\Models\\UserBankPreference\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Filament/Admin/Resources/UserBankPreferenceResource.php
-
-		-
-			message: '#^Access to property \$bank_code on an unknown class App\\Models\\UserBankPreference\.$#'
-			identifier: class.notFound
-			count: 2
-			path: app/Filament/Admin/Resources/UserBankPreferenceResource.php
-
-		-
-			message: '#^Access to property \$is_primary on an unknown class App\\Models\\UserBankPreference\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Filament/Admin/Resources/UserBankPreferenceResource.php
-
-		-
-			message: '#^Access to property \$metadata on an unknown class App\\Models\\UserBankPreference\.$#'
-			identifier: class.notFound
-			count: 2
-			path: app/Filament/Admin/Resources/UserBankPreferenceResource.php
-
-		-
-			message: '#^Access to property \$status on an unknown class App\\Models\\UserBankPreference\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Filament/Admin/Resources/UserBankPreferenceResource.php
-
-		-
-			message: '#^Access to property \$user on an unknown class App\\Models\\UserBankPreference\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Filament/Admin/Resources/UserBankPreferenceResource.php
-
-		-
-			message: '#^Called ''pluck'' on Laravel collection, but could have been retrieved as a query\.$#'
-			identifier: larastan.noUnnecessaryCollectionCall
-			count: 1
-			path: app/Filament/Admin/Resources/UserBankPreferenceResource.php
-
-		-
-			message: '#^Class App\\Models\\UserBankPreference not found\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Filament/Admin/Resources/UserBankPreferenceResource.php
-
-		-
-			message: '#^Parameter \$record of anonymous function has invalid type App\\Models\\UserBankPreference\.$#'
-			identifier: class.notFound
-			count: 5
-			path: app/Filament/Admin/Resources/UserBankPreferenceResource.php
-
-		-
 			message: '#^Access to an undefined property App\\Domain\\Governance\\Models\\Poll\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Domain\\Governance\\Models\\Poll\>\:\:\$options\.$#'
 			identifier: property.notFound
 			count: 2
@@ -4363,24 +4267,6 @@ parameters:
 			path: app/Filament/Admin/TenantAwareResource.php
 
 		-
-			message: '#^Access to constant AVAILABLE_BANKS on an unknown class App\\Models\\UserBankPreference\.$#'
-			identifier: class.notFound
-			count: 2
-			path: app/Filament/Admin/Widgets/BankAllocationWidget.php
-
-		-
-			message: '#^Call to static method query\(\) on an unknown class App\\Models\\UserBankPreference\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Filament/Admin/Widgets/BankAllocationWidget.php
-
-		-
-			message: '#^Method App\\Filament\\Admin\\Widgets\\BankAllocationWidget\:\:getTotalInsuranceCoverage\(\) should return string but returns string\|false\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Filament/Admin/Widgets/BankAllocationWidget.php
-
-		-
 			message: '#^Method App\\Filament\\Admin\\Widgets\\BasketPerformanceChart\:\:getFilters\(\) should return array\<int\|string, bool\|float\|int\|string\>\|null but returns array\<string, array\<mixed\>\>\.$#'
 			identifier: return.type
 			count: 1
@@ -4403,30 +4289,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: app/Filament/Admin/Widgets/BasketPerformanceStats.php
-
-		-
-			message: '#^Call to static method count\(\) on an unknown class App\\Models\\UserBankPreference\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Filament/Admin/Widgets/MultiBankDistributionWidget.php
-
-		-
-			message: '#^Call to static method distinct\(\) on an unknown class App\\Models\\UserBankPreference\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Filament/Admin/Widgets/MultiBankDistributionWidget.php
-
-		-
-			message: '#^Call to static method exists\(\) on an unknown class App\\Models\\UserBankPreference\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Filament/Admin/Widgets/MultiBankDistributionWidget.php
-
-		-
-			message: '#^Call to static method select\(\) on an unknown class App\\Models\\UserBankPreference\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Filament/Admin/Widgets/MultiBankDistributionWidget.php
 
 		-
 			message: '#^Array has 2 duplicate keys with value ''warning'' \(''warning'', ''warning''\)\.$#'

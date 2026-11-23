@@ -2,8 +2,8 @@
 
 namespace App\Filament\Admin\Widgets;
 
+use App\Domain\Banking\Models\UserBankPreference;
 use App\Filament\Admin\Traits\WidgetRespectsModuleVisibility;
-use App\Models\UserBankPreference;
 use Filament\Widgets\Widget;
 
 class MultiBankDistributionWidget extends Widget
@@ -48,6 +48,9 @@ class MultiBankDistributionWidget extends Widget
 
     /**
      * Get bank distribution statistics.
+     */
+    /**
+     * @return array<int, mixed>
      */
     private function getBankDistributionStats(): array
     {
@@ -102,6 +105,9 @@ class MultiBankDistributionWidget extends Widget
 
     /**
      * Get total allocated funds across all banks.
+     */
+    /**
+     * @return array<string, mixed>
      */
     private function getTotalAllocatedFunds(): array
     {
