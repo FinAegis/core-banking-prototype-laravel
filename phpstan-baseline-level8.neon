@@ -973,12 +973,6 @@ parameters:
 			path: app/Domain/Exchange/LiquidityPool/Services/LiquidityIncentivesService.php
 
 		-
-			message: '#^Parameter \#1 \$pool of method App\\Domain\\Exchange\\LiquidityPool\\Services\\PoolRebalancingService\:\:calculateCurrentInventoryRatio\(\) expects App\\Domain\\Exchange\\Projections\\LiquidityPool, App\\Domain\\Exchange\\Projections\\LiquidityPool\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Domain/Exchange/LiquidityPool/Services/PoolRebalancingService.php
-
-		-
 			message: '#^Parameter \#1 \$num1 of function bcdiv expects string, string\|null given\.$#'
 			identifier: argument.type
 			count: 2
@@ -2507,18 +2501,6 @@ parameters:
 			identifier: method.nonObject
 			count: 4
 			path: app/Http/Controllers/LendingController.php
-
-		-
-			message: '#^Cannot access property \$account on App\\Models\\User\|null\.$#'
-			identifier: property.nonObject
-			count: 5
-			path: app/Http/Controllers/LiquidityController.php
-
-		-
-			message: '#^Cannot access property \$id on Illuminate\\Database\\Eloquent\\Model\|null\.$#'
-			identifier: property.nonObject
-			count: 5
-			path: app/Http/Controllers/LiquidityController.php
 
 		-
 			message: '#^Cannot call method completeOnboarding\(\) on App\\Models\\User\|null\.$#'

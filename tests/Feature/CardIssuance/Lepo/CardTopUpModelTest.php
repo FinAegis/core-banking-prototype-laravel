@@ -19,7 +19,7 @@ function topUpCard(): Card
 }
 
 /**
- * @param  array<string, mixed>  $overrides
+ * @param  array<model-property<CardTopUp>, mixed>  $overrides
  */
 function topUpRow(Card $card, array $overrides = []): CardTopUp
 {

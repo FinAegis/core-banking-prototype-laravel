@@ -51,18 +51,10 @@ $order = $service->placeOrder(
 );
 ```
 
-### Add Liquidity to Pool
-```php
-use App\Domain\Exchange\Services\LiquidityPoolService;
-
-$service = app(LiquidityPoolService::class);
-$position = $service->addLiquidity(
-    poolId: 'pool-123',
-    providerId: 'user-456',
-    baseAmount: '10',
-    quoteAmount: '500000'
-);
-```
+### Adding and removing liquidity
+Not available. The add, remove and rebalance flow was removed in November 2026 because it never
+worked (its activities used a missing class, a missing table and missing columns). The pool
+aggregate's `addLiquidity()` and `removeLiquidity()` remain as domain logic.
 
 ### Calculate Fee Tier
 ```php

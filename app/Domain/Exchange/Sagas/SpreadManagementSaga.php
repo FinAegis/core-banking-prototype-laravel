@@ -168,7 +168,7 @@ class SpreadManagementSaga extends Reactor
     }
 
     /**
-     * Check inventory balance and trigger rebalancing if needed.
+     * Check inventory balance and report a critical imbalance.
      */
     private function checkInventoryBalance(string $poolId): void
     {
@@ -181,10 +181,8 @@ class SpreadManagementSaga extends Reactor
         $imbalance = abs(0.5 - $inventoryRatio);
 
         if ($imbalance > self::CRITICAL_IMBALANCE_THRESHOLD) {
-            // Trigger automatic rebalancing
-            $this->poolService->rebalancePool($poolId, '0.5');
-
-            Log::warning('Critical inventory imbalance detected, triggering rebalance', [
+            // Pool rebalancing was removed (it never worked), so a person acts on this.
+            Log::warning('Critical inventory imbalance detected; automatic rebalancing is not available', [
                 'pool_id'         => $poolId,
                 'inventory_ratio' => $inventoryRatio,
                 'imbalance'       => $imbalance,

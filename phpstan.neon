@@ -20,6 +20,8 @@ includes:
     - phpstan-baseline-trustcert.neon
     - phpstan-baseline-compliance-projector.neon
     - phpstan-baseline-fraud.neon
+    # Temporary: removed by the fraud case alignment PR.
+    - phpstan-baseline-fraud-case-alignment.neon
     - phpstan-baseline-level6.neon
     - phpstan-baseline-level7.neon
     - phpstan-baseline-level8.neon
@@ -32,7 +34,6 @@ parameters:
         - app
         - tests
     excludePaths:
-        - app/Domain/Exchange/Workflows/Policies/LiquidityRetryPolicy.php
         - tests/Browser
         - tests/CreatesApplication.php
         - tests/DuskTestCase.php

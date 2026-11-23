@@ -1387,42 +1387,6 @@ parameters:
 			path: app/Domain/Contact/Mail/ContactFormSubmission.php
 
 		-
-			message: '#^Method App\\Domain\\Contact\\Services\\ContactTicketService\:\:assignTicket\(\) should return App\\Domain\\Contact\\Models\\ContactSubmission but returns App\\Domain\\Contact\\Models\\ContactSubmission\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Domain/Contact/Services/ContactTicketService.php
-
-		-
-			message: '#^Method App\\Domain\\Contact\\Services\\ContactTicketService\:\:close\(\) should return App\\Domain\\Contact\\Models\\ContactSubmission but returns App\\Domain\\Contact\\Models\\ContactSubmission\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Domain/Contact/Services/ContactTicketService.php
-
-		-
-			message: '#^Method App\\Domain\\Contact\\Services\\ContactTicketService\:\:list\(\) return type with generic interface Illuminate\\Contracts\\Pagination\\LengthAwarePaginator does not specify its types\: TKey, TValue$#'
-			identifier: missingType.generics
-			count: 1
-			path: app/Domain/Contact/Services/ContactTicketService.php
-
-		-
-			message: '#^Method App\\Domain\\Contact\\Services\\ContactTicketService\:\:reopen\(\) should return App\\Domain\\Contact\\Models\\ContactSubmission but returns App\\Domain\\Contact\\Models\\ContactSubmission\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Domain/Contact/Services/ContactTicketService.php
-
-		-
-			message: '#^Method App\\Domain\\Contact\\Services\\ContactTicketService\:\:respond\(\) should return App\\Domain\\Contact\\Models\\ContactSubmission but returns App\\Domain\\Contact\\Models\\ContactSubmission\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Domain/Contact/Services/ContactTicketService.php
-
-		-
-			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Contact\\Models\\ContactSubmission\>\:\:where\(\) expects array\<int\|model property of App\\Domain\\Contact\\Models\\ContactSubmission, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Contact\\Models\\ContactSubmission\>\)\: Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Contact\\Models\\ContactSubmission\>\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Contact\\Models\\ContactSubmission\>\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of App\\Domain\\Contact\\Models\\ContactSubmission, ''assigned_to'' given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Domain/Contact/Services/ContactTicketService.php
-
-		-
 			message: '#^Parameter \#1 \$num1 of function bcadd expects numeric\-string, string given\.$#'
 			identifier: argument.type
 			count: 1
@@ -1909,18 +1873,6 @@ parameters:
 			path: app/Domain/DeFi/ValueObjects/SwapQuote.php
 
 		-
-			message: '#^Multiple PHPDoc @var tags above single variable assignment are not supported\.$#'
-			identifier: varTag.multipleTags
-			count: 2
-			path: app/Domain/Exchange/Activities/CalculatePoolSharesActivity.php
-
-		-
-			message: '#^PHPDoc tag @var for variable \$pool contains unknown class App\\Domain\\Liquidity\\Models\\LiquidityPool\.$#'
-			identifier: class.notFound
-			count: 5
-			path: app/Domain/Exchange/Activities/CalculatePoolSharesActivity.php
-
-		-
 			message: '#^Call to static method where\(\) on an unknown class App\\Models\\AssetBalance\.$#'
 			identifier: class.notFound
 			count: 1
@@ -1939,34 +1891,10 @@ parameters:
 			path: app/Domain/Exchange/Activities/LockAccountBalanceActivity.php
 
 		-
-			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\:\:where\(\) expects array\<int\|model property of App\\Domain\\Account\\Models\\AccountBalance, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\)\: Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of App\\Domain\\Account\\Models\\AccountBalance, ''currency_code'' given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Domain/Exchange/Activities/LockLiquidityActivity.php
-
-		-
-			message: '#^Parameter \#1 \$column of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\:\:where\(\) expects array\<int\|model property of App\\Domain\\Account\\Models\\AccountBalance, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\)\: Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of App\\Domain\\Account\\Models\\AccountBalance, ''account_id'' given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Domain/Exchange/Activities/LockLiquidityActivity.php
-
-		-
 			message: '#^Call to static method where\(\) on an unknown class App\\Models\\AssetBalance\.$#'
 			identifier: class.notFound
 			count: 1
 			path: app/Domain/Exchange/Activities/ReleaseAccountBalanceActivity.php
-
-		-
-			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\:\:where\(\) expects array\<int\|model property of App\\Domain\\Account\\Models\\AccountBalance, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\)\: Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of App\\Domain\\Account\\Models\\AccountBalance, ''currency_code'' given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Domain/Exchange/Activities/ReleaseLiquidityActivity.php
-
-		-
-			message: '#^Parameter \#1 \$column of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\:\:where\(\) expects array\<int\|model property of App\\Domain\\Account\\Models\\AccountBalance, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\)\: Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of App\\Domain\\Account\\Models\\AccountBalance, ''account_id'' given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Domain/Exchange/Activities/ReleaseLiquidityActivity.php
 
 		-
 			message: '#^Access to constant EXCHANGE on an unknown class App\\Domain\\Transaction\\Enums\\TransactionType\.$#'
@@ -2011,24 +1939,6 @@ parameters:
 			path: app/Domain/Exchange/Activities/TransferAssetsActivity.php
 
 		-
-			message: '#^Call to static method retrieve\(\) on an unknown class App\\Domain\\Account\\Aggregates\\AccountAggregate\.$#'
-			identifier: class.notFound
-			count: 2
-			path: app/Domain/Exchange/Activities/TransferLiquidityActivity.php
-
-		-
-			message: '#^PHPDoc tag @var above assignment does not specify variable name\.$#'
-			identifier: varTag.noVariable
-			count: 2
-			path: app/Domain/Exchange/Activities/TransferLiquidityActivity.php
-
-		-
-			message: '#^Undefined variable\: \$pool$#'
-			identifier: variable.undefined
-			count: 4
-			path: app/Domain/Exchange/Activities/TransferLiquidityActivity.php
-
-		-
 			message: '#^Parameter \#1 \$num1 of function bccomp expects numeric\-string, string given\.$#'
 			identifier: argument.type
 			count: 4
@@ -2039,42 +1949,6 @@ parameters:
 			identifier: argument.type
 			count: 3
 			path: app/Domain/Exchange/Activities/UpdateOrderBookActivity.php
-
-		-
-			message: '#^Call to method providers\(\) on an unknown class App\\Domain\\Liquidity\\Models\\LiquidityPool\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Domain/Exchange/Activities/ValidateLiquidityActivity.php
-
-		-
-			message: '#^Call to method toArray\(\) on an unknown class App\\Domain\\Liquidity\\Models\\LiquidityPool\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Domain/Exchange/Activities/ValidateLiquidityActivity.php
-
-		-
-			message: '#^PHPDoc tag @var above assignment does not specify variable name\.$#'
-			identifier: varTag.noVariable
-			count: 1
-			path: app/Domain/Exchange/Activities/ValidateLiquidityActivity.php
-
-		-
-			message: '#^PHPDoc tag @var for variable \$pool contains unknown class App\\Domain\\Liquidity\\Models\\LiquidityPool\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Domain/Exchange/Activities/ValidateLiquidityActivity.php
-
-		-
-			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\:\:where\(\) expects array\<int\|model property of App\\Domain\\Account\\Models\\AccountBalance, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\)\: Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of App\\Domain\\Account\\Models\\AccountBalance, ''currency_code'' given\.$#'
-			identifier: argument.type
-			count: 2
-			path: app/Domain/Exchange/Activities/ValidateLiquidityActivity.php
-
-		-
-			message: '#^Parameter \#1 \$column of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\:\:where\(\) expects array\<int\|model property of App\\Domain\\Account\\Models\\AccountBalance, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\)\: Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of App\\Domain\\Account\\Models\\AccountBalance, ''account_id'' given\.$#'
-			identifier: argument.type
-			count: 2
-			path: app/Domain/Exchange/Activities/ValidateLiquidityActivity.php
 
 		-
 			message: '#^PHPDoc tag @var above assignment does not specify variable name\.$#'
@@ -2171,42 +2045,6 @@ parameters:
 			identifier: ternary.alwaysTrue
 			count: 1
 			path: app/Domain/Exchange/LiquidityPool/Services/LiquidityIncentivesService.php
-
-		-
-			message: '#^Cannot call method __toString\(\) on array\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: app/Domain/Exchange/LiquidityPool/Services/PoolRebalancingService.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\Contracts\\PriceAggregatorInterface\:\:getAggregatedPrice\(\) invoked with 2 parameters, 1 required\.$#'
-			identifier: arguments.count
-			count: 1
-			path: app/Domain/Exchange/LiquidityPool/Services/PoolRebalancingService.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\Services\\ArbitrageService\:\:findOpportunities\(\) invoked with 3 parameters, 1 required\.$#'
-			identifier: arguments.count
-			count: 1
-			path: app/Domain/Exchange/LiquidityPool/Services/PoolRebalancingService.php
-
-		-
-			message: '#^Parameter \#1 \$that of method Brick\\Math\\BigDecimal\:\:dividedBy\(\) expects Brick\\Math\\BigNumber\|float\|int\|string, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Domain/Exchange/LiquidityPool/Services/PoolRebalancingService.php
-
-		-
-			message: '#^Parameter \#1 \$that of method Brick\\Math\\BigDecimal\:\:minus\(\) expects Brick\\Math\\BigNumber\|float\|int\|string, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Domain/Exchange/LiquidityPool/Services/PoolRebalancingService.php
-
-		-
-			message: '#^Parameter \#2 \$marketPrice of method App\\Domain\\Exchange\\LiquidityPool\\Services\\PoolRebalancingService\:\:calculateTargetInventoryRatio\(\) expects Brick\\Math\\BigDecimal, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Domain/Exchange/LiquidityPool/Services/PoolRebalancingService.php
 
 		-
 			message: '#^Parameter \#1 \$num1 of function bccomp expects numeric\-string, float given\.$#'
@@ -5903,18 +5741,6 @@ parameters:
 			identifier: property.onlyWritten
 			count: 1
 			path: app/Http/Controllers/LendingController.php
-
-		-
-			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:where\(\) expects array\<int\|model property of Illuminate\\Database\\Eloquent\\Model, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\)\: Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of Illuminate\\Database\\Eloquent\\Model, ''provider_id'' given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/LiquidityController.php
-
-		-
-			message: '#^Parameter \#1 \$view of function view expects view\-string\|null, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/LiquidityController.php
 
 		-
 			message: '#^Call to an undefined method App\\Domain\\Exchange\\Contracts\\LiquidityPoolServiceInterface\:\:getAllPools\(\)\.$#'

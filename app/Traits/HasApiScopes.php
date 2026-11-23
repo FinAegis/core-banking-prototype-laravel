@@ -66,6 +66,9 @@ trait HasApiScopes
         // Get expiration from config (in minutes)
         $expirationMinutes = config('sanctum.expiration');
 
+        // Every token sign-in (login, sign-up, social, 2FA, refresh) counts as activity.
+        $user->recordLogin();
+
         // Create the token
         $token = $user->createToken($tokenName, $scopes);
 

@@ -10,16 +10,6 @@
                 </p>
             </div>
             <div class="flex space-x-2">
-                <a href="{{ route('liquidity.create', $pool['id']) }}" 
-                   class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
-                    Add Liquidity
-                </a>
-                @if($userPosition)
-                    <a href="{{ route('liquidity.remove', $pool['id']) }}" 
-                       class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
-                        Remove Liquidity
-                    </a>
-                @endif
                 <a href="{{ route('liquidity.index') }}" 
                    class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
                     Back to Pools

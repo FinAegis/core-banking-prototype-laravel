@@ -18331,22 +18331,10 @@ parameters:
 			path: app/Domain/Exchange/Activities/CalculateOptimalQuotesActivity.php
 
 		-
-			message: '#^Static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Exchange\\Projections\\LiquidityPool\>\:\:where\(\) invoked with 0 parameters, at least 1 required\.$#'
-			identifier: arguments.count
-			count: 2
-			path: app/Domain/Exchange/Activities/CalculatePoolSharesActivity.php
-
-		-
 			message: '#^Return type of call to static method Illuminate\\Database\\Connection\:\:transaction\(\) contains unresolvable type\.$#'
 			identifier: staticMethod.unresolvableReturnType
 			count: 1
 			path: app/Domain/Exchange/Activities/LockAccountBalanceActivity.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\Activities\\LockLiquidityActivity\:\:execute\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/Activities/LockLiquidityActivity.php
 
 		-
 			message: '#^Method App\\Domain\\Exchange\\Activities\\MonitorMarketConditionsActivity\:\:execute\(\) return type has no value type specified in iterable type array\.$#'
@@ -18359,42 +18347,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: app/Domain/Exchange/Activities/MonitorMarketConditionsActivity.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\Activities\\ReleaseLiquidityActivity\:\:execute\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/Activities/ReleaseLiquidityActivity.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\Activities\\TransferLiquidityActivity\:\:execute\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/Activities/TransferLiquidityActivity.php
-
-		-
-			message: '#^Static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Exchange\\Projections\\LiquidityPool\>\:\:where\(\) invoked with 0 parameters, at least 1 required\.$#'
-			identifier: arguments.count
-			count: 2
-			path: app/Domain/Exchange/Activities/TransferLiquidityActivity.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\Activities\\ValidateLiquidityActivity\:\:execute\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/Activities/ValidateLiquidityActivity.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\Activities\\ValidateLiquidityActivity\:\:validateAddition\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/Activities/ValidateLiquidityActivity.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\Activities\\ValidateLiquidityActivity\:\:validateRemoval\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/Activities/ValidateLiquidityActivity.php
 
 		-
 			message: '#^Method App\\Domain\\Exchange\\Aggregates\\LiquidityPool\:\:addLiquidity\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
@@ -18713,12 +18665,6 @@ parameters:
 			identifier: argument.templateType
 			count: 5
 			path: app/Domain/Exchange/Connectors/KrakenConnector.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\Console\\Commands\\LiquidityPool\\RebalancePoolsCommand\:\:displayRebalancingResult\(\) has parameter \$result with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/Console/Commands/LiquidityPool/RebalancePoolsCommand.php
 
 		-
 			message: '#^Method App\\Domain\\Exchange\\Contracts\\ArbitrageServiceInterface\:\:calculateProfitability\(\) has parameter \$opportunity with no value type specified in iterable type array\.$#'
@@ -19433,78 +19379,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: app/Domain/Exchange/LiquidityPool/Services/LiquidityIncentivesService.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\LiquidityPool\\Services\\PoolRebalancingService\:\:analyzePoolState\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/LiquidityPool/Services/PoolRebalancingService.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\LiquidityPool\\Services\\PoolRebalancingService\:\:calculateRebalancingAmounts\(\) has parameter \$strategy with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/LiquidityPool/Services/PoolRebalancingService.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\LiquidityPool\\Services\\PoolRebalancingService\:\:calculateRebalancingAmounts\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/LiquidityPool/Services/PoolRebalancingService.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\LiquidityPool\\Services\\PoolRebalancingService\:\:checkAndRebalancePool\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/LiquidityPool/Services/PoolRebalancingService.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\LiquidityPool\\Services\\PoolRebalancingService\:\:checkArbitrageOpportunities\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/LiquidityPool/Services/PoolRebalancingService.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\LiquidityPool\\Services\\PoolRebalancingService\:\:determineRebalancingStrategy\(\) has parameter \$analysis with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/LiquidityPool/Services/PoolRebalancingService.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\LiquidityPool\\Services\\PoolRebalancingService\:\:determineRebalancingStrategy\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/LiquidityPool/Services/PoolRebalancingService.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\LiquidityPool\\Services\\PoolRebalancingService\:\:executeRebalancing\(\) has parameter \$analysis with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/LiquidityPool/Services/PoolRebalancingService.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\LiquidityPool\\Services\\PoolRebalancingService\:\:executeRebalancing\(\) has parameter \$strategy with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/LiquidityPool/Services/PoolRebalancingService.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\LiquidityPool\\Services\\PoolRebalancingService\:\:executeRebalancing\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/LiquidityPool/Services/PoolRebalancingService.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\LiquidityPool\\Services\\PoolRebalancingService\:\:getRebalancingHistory\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
-			identifier: missingType.generics
-			count: 1
-			path: app/Domain/Exchange/LiquidityPool/Services/PoolRebalancingService.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\LiquidityPool\\Services\\PoolRebalancingService\:\:rebalanceAllPools\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/LiquidityPool/Services/PoolRebalancingService.php
 
 		-
 			message: '#^Method App\\Domain\\Exchange\\LiquidityPool\\ValueObjects\\LiquidityShare\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
@@ -20905,30 +20779,6 @@ parameters:
 			path: app/Domain/Exchange/ValueObjects/ExternalTrade.php
 
 		-
-			message: '#^Method App\\Domain\\Exchange\\ValueObjects\\LiquidityAdditionInput\:\:__construct\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/ValueObjects/LiquidityAdditionInput.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\ValueObjects\\LiquidityAdditionInput\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/ValueObjects/LiquidityAdditionInput.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\ValueObjects\\LiquidityRemovalInput\:\:__construct\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/ValueObjects/LiquidityRemovalInput.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\ValueObjects\\LiquidityRemovalInput\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/ValueObjects/LiquidityRemovalInput.php
-
-		-
 			message: '#^Method App\\Domain\\Exchange\\ValueObjects\\MarketPair\:\:__construct\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -20969,42 +20819,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: app/Domain/Exchange/ValueObjects/RateProviderCapabilities.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\Workflows\\EnhancedLiquidityManagementWorkflow\:\:compensateAddLiquidity\(\) has parameter \$context with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/Workflows/EnhancedLiquidityManagementWorkflow.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\Workflows\\EnhancedLiquidityManagementWorkflow\:\:executeWithCircuitBreaker\(\) has parameter \$context with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/Workflows/EnhancedLiquidityManagementWorkflow.php
-
-		-
-			message: '#^Method App\\Domain\\Exchange\\Workflows\\EnhancedLiquidityManagementWorkflow\:\:lockFundsWithRetry\(\) has parameter \$context with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/Workflows/EnhancedLiquidityManagementWorkflow.php
-
-		-
-			message: '#^Property App\\Domain\\Exchange\\Workflows\\EnhancedLiquidityManagementWorkflow\:\:\$compensationLog type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/Workflows/EnhancedLiquidityManagementWorkflow.php
-
-		-
-			message: '#^Property App\\Domain\\Exchange\\Workflows\\EnhancedLiquidityManagementWorkflow\:\:\$lockedBalances type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/Workflows/EnhancedLiquidityManagementWorkflow.php
-
-		-
-			message: '#^Property App\\Domain\\Exchange\\Workflows\\LiquidityManagementWorkflow\:\:\$lockedBalances type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Exchange/Workflows/LiquidityManagementWorkflow.php
 
 		-
 			message: '#^Method App\\Domain\\Exchange\\Workflows\\MarketMakerWorkflow\:\:execute\(\) has parameter \$config with no value type specified in iterable type array\.$#'

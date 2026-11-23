@@ -309,6 +309,7 @@ class LoginController extends Controller
         // created before team provisioning existed are healed too.
         $this->ensurePersonalTeam($user);
 
+        $user->recordLogin();
         $token = $user->createToken('privy', ['read', 'write', 'delete'])->plainTextToken;
 
         return response()->json([

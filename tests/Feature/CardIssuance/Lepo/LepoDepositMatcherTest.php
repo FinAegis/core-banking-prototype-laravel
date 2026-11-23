@@ -33,7 +33,7 @@ function dmCard(): Card
 }
 
 /**
- * @param  array<string, mixed>  $overrides
+ * @param  array<model-property<CardTopUp>, mixed>  $overrides
  */
 function dmTopUp(Card $card, array $overrides = []): CardTopUp
 {

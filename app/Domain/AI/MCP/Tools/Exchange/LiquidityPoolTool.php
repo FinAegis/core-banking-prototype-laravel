@@ -7,8 +7,6 @@ namespace App\Domain\AI\MCP\Tools\Exchange;
 use App\Domain\AI\Contracts\MCPToolInterface;
 use App\Domain\AI\ValueObjects\ToolExecutionResult;
 use App\Domain\Exchange\Services\LiquidityPoolService;
-use App\Domain\Exchange\ValueObjects\LiquidityAdditionInput;
-use App\Domain\Exchange\ValueObjects\LiquidityRemovalInput;
 use App\Models\User;
 use DomainException;
 use Exception;
@@ -45,7 +43,7 @@ class LiquidityPoolTool implements MCPToolInterface
                 'action' => [
                     'type'        => 'string',
                     'description' => 'Action to perform',
-                    'enum'        => ['create', 'add_liquidity', 'remove_liquidity', 'get_info', 'get_metrics', 'list_pools', 'my_positions'],
+                    'enum'        => ['create', 'get_info', 'get_metrics', 'list_pools', 'my_positions'],
                 ],
                 'pool_id' => [
                     'type'        => 'string',
@@ -62,31 +60,11 @@ class LiquidityPoolTool implements MCPToolInterface
                     'description' => 'Quote currency code',
                     'enum'        => ['USD', 'EUR', 'GBP', 'BTC', 'ETH', 'USDC', 'USDT', 'DAI'],
                 ],
-                'base_amount' => [
-                    'type'        => 'string',
-                    'description' => 'Amount of base currency to add/remove',
-                    'pattern'     => '^\\d+(\\.\\d+)?$',
-                ],
-                'quote_amount' => [
-                    'type'        => 'string',
-                    'description' => 'Amount of quote currency to add/remove',
-                    'pattern'     => '^\\d+(\\.\\d+)?$',
-                ],
-                'shares' => [
-                    'type'        => 'string',
-                    'description' => 'Amount of LP shares to remove',
-                    'pattern'     => '^\\d+(\\.\\d+)?$',
-                ],
                 'fee_rate' => [
                     'type'        => 'string',
                     'description' => 'Fee rate for the pool (e.g., 0.003 for 0.3%)',
                     'pattern'     => '^0\\.\\d+$',
                     'default'     => '0.003',
-                ],
-                'account_id' => [
-                    'type'        => 'string',
-                    'description' => 'Account UUID for the liquidity provider',
-                    'pattern'     => '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
                 ],
                 'user_uuid' => [
                     'type'        => 'string',
@@ -103,26 +81,22 @@ class LiquidityPoolTool implements MCPToolInterface
         return [
             'type'       => 'object',
             'properties' => [
-                'pool_id'         => ['type' => 'string'],
-                'base_currency'   => ['type' => 'string'],
-                'quote_currency'  => ['type' => 'string'],
-                'base_reserve'    => ['type' => 'string'],
-                'quote_reserve'   => ['type' => 'string'],
-                'total_shares'    => ['type' => 'string'],
-                'fee_rate'        => ['type' => 'string'],
-                'tvl'             => ['type' => 'string'],
-                'apy'             => ['type' => 'string'],
-                'volume_24h'      => ['type' => 'string'],
-                'fees_24h'        => ['type' => 'string'],
-                'price_impact'    => ['type' => 'string'],
-                'shares_received' => ['type' => 'string'],
-                'shares_removed'  => ['type' => 'string'],
-                'base_received'   => ['type' => 'string'],
-                'quote_received'  => ['type' => 'string'],
-                'status'          => ['type' => 'string'],
-                'positions'       => ['type' => 'array'],
-                'pools'           => ['type' => 'array'],
-                'message'         => ['type' => 'string'],
+                'pool_id'        => ['type' => 'string'],
+                'base_currency'  => ['type' => 'string'],
+                'quote_currency' => ['type' => 'string'],
+                'base_reserve'   => ['type' => 'string'],
+                'quote_reserve'  => ['type' => 'string'],
+                'total_shares'   => ['type' => 'string'],
+                'fee_rate'       => ['type' => 'string'],
+                'tvl'            => ['type' => 'string'],
+                'apy'            => ['type' => 'string'],
+                'volume_24h'     => ['type' => 'string'],
+                'fees_24h'       => ['type' => 'string'],
+                'price_impact'   => ['type' => 'string'],
+                'status'         => ['type' => 'string'],
+                'positions'      => ['type' => 'array'],
+                'pools'          => ['type' => 'array'],
+                'message'        => ['type' => 'string'],
             ],
         ];
     }
@@ -140,19 +114,17 @@ class LiquidityPoolTool implements MCPToolInterface
             // Get the user
             $user = $this->getUser($parameters['user_uuid'] ?? null);
 
-            if (! $user && in_array($action, ['add_liquidity', 'remove_liquidity', 'my_positions'])) {
+            if (! $user && $action === 'my_positions') {
                 return ToolExecutionResult::failure('User authentication required for this action');
             }
 
             return match ($action) {
-                'create'           => $this->createPool($parameters, $user),
-                'add_liquidity'    => $this->addLiquidity($parameters, $user),
-                'remove_liquidity' => $this->removeLiquidity($parameters, $user),
-                'get_info'         => $this->getPoolInfo($parameters),
-                'get_metrics'      => $this->getPoolMetrics($parameters),
-                'list_pools'       => $this->listPools(),
-                'my_positions'     => $this->getMyPositions($user),
-                default            => ToolExecutionResult::failure("Unknown action: {$action}"),
+                'create'       => $this->createPool($parameters, $user),
+                'get_info'     => $this->getPoolInfo($parameters),
+                'get_metrics'  => $this->getPoolMetrics($parameters),
+                'list_pools'   => $this->listPools(),
+                'my_positions' => $this->getMyPositions($user),
+                default        => ToolExecutionResult::failure("Unknown action: {$action}"),
             };
         } catch (Exception $e) {
             Log::error('MCP Tool error: exchange.liquidity_pool', [
@@ -206,113 +178,6 @@ class LiquidityPoolTool implements MCPToolInterface
                 'message'        => 'Liquidity pool created successfully',
             ]);
         } catch (DomainException $e) {
-            return ToolExecutionResult::failure($e->getMessage());
-        }
-    }
-
-    private function addLiquidity(array $parameters, ?User $user): ToolExecutionResult
-    {
-        if (! $user) {
-            return ToolExecutionResult::failure('User authentication required');
-        }
-
-        if (! isset($parameters['pool_id']) && ! (isset($parameters['base_currency']) && isset($parameters['quote_currency']))) {
-            return ToolExecutionResult::failure('Pool ID or currency pair required');
-        }
-
-        if (! isset($parameters['base_amount']) || ! isset($parameters['quote_amount'])) {
-            return ToolExecutionResult::failure('Base and quote amounts are required');
-        }
-
-        // Get pool ID if not provided
-        $poolId = $parameters['pool_id'] ?? null;
-        if (! $poolId && isset($parameters['base_currency']) && isset($parameters['quote_currency'])) {
-            $pool = $this->liquidityPoolService->getPoolByPair(
-                $parameters['base_currency'],
-                $parameters['quote_currency']
-            );
-            if (! $pool) {
-                return ToolExecutionResult::failure('Pool not found for the given currency pair');
-            }
-            $poolId = $pool->pool_id;
-        }
-
-        try {
-            // Get pool to retrieve currency information
-            $pool = $this->liquidityPoolService->getPool($poolId);
-            if (! $pool) {
-                return ToolExecutionResult::failure('Pool not found');
-            }
-
-            $input = new LiquidityAdditionInput(
-                poolId: $poolId,
-                providerId: $parameters['account_id'] ?? $user->uuid,
-                baseCurrency: $pool->base_currency,
-                quoteCurrency: $pool->quote_currency,
-                baseAmount: $parameters['base_amount'],
-                quoteAmount: $parameters['quote_amount']
-            );
-
-            $result = $this->liquidityPoolService->addLiquidity($input);
-
-            return ToolExecutionResult::success([
-                'pool_id'         => $poolId,
-                'shares_received' => $result['shares_received'] ?? '0',
-                'base_added'      => $parameters['base_amount'],
-                'quote_added'     => $parameters['quote_amount'],
-                'status'          => 'success',
-                'message'         => 'Liquidity added successfully',
-            ]);
-        } catch (Exception $e) {
-            return ToolExecutionResult::failure($e->getMessage());
-        }
-    }
-
-    private function removeLiquidity(array $parameters, ?User $user): ToolExecutionResult
-    {
-        if (! $user) {
-            return ToolExecutionResult::failure('User authentication required');
-        }
-
-        if (! isset($parameters['pool_id']) && ! (isset($parameters['base_currency']) && isset($parameters['quote_currency']))) {
-            return ToolExecutionResult::failure('Pool ID or currency pair required');
-        }
-
-        if (! isset($parameters['shares'])) {
-            return ToolExecutionResult::failure('Number of shares to remove is required');
-        }
-
-        // Get pool ID if not provided
-        $poolId = $parameters['pool_id'] ?? null;
-        if (! $poolId && isset($parameters['base_currency']) && isset($parameters['quote_currency'])) {
-            $pool = $this->liquidityPoolService->getPoolByPair(
-                $parameters['base_currency'],
-                $parameters['quote_currency']
-            );
-            if (! $pool) {
-                return ToolExecutionResult::failure('Pool not found for the given currency pair');
-            }
-            $poolId = $pool->pool_id;
-        }
-
-        try {
-            $input = new LiquidityRemovalInput(
-                poolId: $poolId,
-                providerId: $parameters['account_id'] ?? $user->uuid,
-                shares: $parameters['shares']
-            );
-
-            $result = $this->liquidityPoolService->removeLiquidity($input);
-
-            return ToolExecutionResult::success([
-                'pool_id'        => $poolId,
-                'shares_removed' => $parameters['shares'],
-                'base_received'  => $result['base_received'] ?? '0',
-                'quote_received' => $result['quote_received'] ?? '0',
-                'status'         => 'success',
-                'message'        => 'Liquidity removed successfully',
-            ]);
-        } catch (Exception $e) {
             return ToolExecutionResult::failure($e->getMessage());
         }
     }
@@ -476,21 +341,8 @@ class LiquidityPoolTool implements MCPToolInterface
         }
 
         // Validate action
-        $validActions = ['create', 'add_liquidity', 'remove_liquidity', 'get_info', 'get_metrics', 'list_pools', 'my_positions'];
+        $validActions = ['create', 'get_info', 'get_metrics', 'list_pools', 'my_positions'];
         if (! in_array($parameters['action'], $validActions)) {
-            return false;
-        }
-
-        // Validate amounts if provided
-        if (isset($parameters['base_amount']) && ! preg_match('/^\d+(\.\d+)?$/', $parameters['base_amount'])) {
-            return false;
-        }
-
-        if (isset($parameters['quote_amount']) && ! preg_match('/^\d+(\.\d+)?$/', $parameters['quote_amount'])) {
-            return false;
-        }
-
-        if (isset($parameters['shares']) && ! preg_match('/^\d+(\.\d+)?$/', $parameters['shares'])) {
             return false;
         }
 
