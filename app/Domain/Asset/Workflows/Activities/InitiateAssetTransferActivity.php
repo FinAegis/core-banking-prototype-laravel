@@ -26,19 +26,19 @@ class InitiateAssetTransferActivity extends Activity
         ?string $description = null
     ): string {
         // Validate accounts exist
-        $fromAccount = Account::where('uuid', $fromAccountUuid->toString())->first();
-        $toAccount = Account::where('uuid', $toAccountUuid->toString())->first();
+        $fromAccount = Account::where('uuid', (string) $fromAccountUuid)->first();
+        $toAccount = Account::where('uuid', (string) $toAccountUuid)->first();
 
         if (! $fromAccount) {
-            throw new Exception("Source account not found: {$fromAccountUuid->toString()}");
+            throw new Exception("Source account not found: {$fromAccountUuid}");
         }
 
         if (! $toAccount) {
-            throw new Exception("Destination account not found: {$toAccountUuid->toString()}");
+            throw new Exception("Destination account not found: {$toAccountUuid}");
         }
 
         // Check if source account has sufficient balance
-        $fromBalance = AccountBalance::where('account_uuid', $fromAccountUuid->toString())
+        $fromBalance = AccountBalance::where('account_uuid', (string) $fromAccountUuid)
             ->where('asset_code', $fromAssetCode)
             ->first();
 

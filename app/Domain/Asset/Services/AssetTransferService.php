@@ -55,8 +55,13 @@ class AssetTransferService implements AssetTransferInterface
             'amount'          => $amount,
         ]);
 
+        if ($fromAccountId === $toAccountId) {
+            throw new InvalidArgumentException('The source and destination accounts must be different');
+        }
+
         $this->validateAsset($assetCode);
-        $this->validateSufficientBalance($fromAccountId, $assetCode, $amount);
+        $amountMinor = $this->toMinorUnits($assetCode, $amount, exact: true);
+        $this->validateSufficientBalance($fromAccountId, $assetCode, $amountMinor, $amount);
 
         $transferId = (string) Str::uuid();
 
@@ -64,7 +69,7 @@ class AssetTransferService implements AssetTransferInterface
             // Convert to value objects for aggregate
             $fromAccountUuid = new AccountUuid($fromAccountId);
             $toAccountUuid = new AccountUuid($toAccountId);
-            $amountMoney = new Money($this->stringToMinorUnits($amount));
+            $amountMoney = new Money($amountMinor);
 
             $aggregate = AssetTransferAggregate::retrieve($transferId);
             $aggregate->initiate(
@@ -77,6 +82,9 @@ class AssetTransferService implements AssetTransferInterface
                 1.0,
                 null
             );
+            // A ledger transfer has no outside step to wait for, so it completes
+            // at once; the completion is what moves the balances.
+            $aggregate->complete($transferId);
             $aggregate->persist();
 
             $this->auditOperationSuccess('asset_transfer', [
@@ -132,7 +140,8 @@ class AssetTransferService implements AssetTransferInterface
 
         $this->validateAsset($fromAssetCode);
         $this->validateAsset($toAssetCode);
-        $this->validateSufficientBalance($fromAccountId, $fromAssetCode, $fromAmount);
+        $fromAmountMinor = $this->toMinorUnits($fromAssetCode, $fromAmount, exact: true);
+        $this->validateSufficientBalance($fromAccountId, $fromAssetCode, $fromAmountMinor, $fromAmount);
 
         if ($exchangeRate === null) {
             $exchangeRate = $this->getExchangeRate($fromAssetCode, $toAssetCode);
@@ -150,6 +159,8 @@ class AssetTransferService implements AssetTransferInterface
         /** @var numeric-string $b */
         $b = $exchangeRate;
         $toAmount = bcmul($a, $b, 8);
+        // The converted amount is rounded down to the target asset's smallest unit.
+        $toAmountMinor = $this->toMinorUnits($toAssetCode, $toAmount, exact: false);
 
         $transferId = (string) Str::uuid();
 
@@ -157,8 +168,8 @@ class AssetTransferService implements AssetTransferInterface
             // Convert to value objects for aggregate
             $fromAccountUuid = new AccountUuid($fromAccountId);
             $toAccountUuid = new AccountUuid($toAccountId);
-            $fromAmountMoney = new Money($this->stringToMinorUnits($fromAmount));
-            $toAmountMoney = new Money($this->stringToMinorUnits($toAmount));
+            $fromAmountMoney = new Money($fromAmountMinor);
+            $toAmountMoney = new Money($toAmountMinor);
 
             $aggregate = AssetTransferAggregate::retrieve($transferId);
             $aggregate->initiate(
@@ -171,6 +182,7 @@ class AssetTransferService implements AssetTransferInterface
                 (float) $exchangeRate,
                 null
             );
+            $aggregate->complete($transferId);
             $aggregate->persist();
 
             $result = [
@@ -295,7 +307,9 @@ class AssetTransferService implements AssetTransferInterface
         $this->validateAssetCode($toAssetCode, 'target asset code');
 
         try {
-            return (string) $this->exchangeRateService->getRate($fromAssetCode, $toAssetCode);
+            $rate = $this->exchangeRateService->getRate($fromAssetCode, $toAssetCode);
+
+            return $rate === null ? null : (string) $rate->rate;
         } catch (Exception) {
             return null;
         }
@@ -361,8 +375,8 @@ class AssetTransferService implements AssetTransferInterface
                 'to_account_id'   => $toAccountUuid !== null ? (string) $toAccountUuid : '',
                 'from_asset_code' => (string) ($aggregate->getFromAssetCode() ?? ''),
                 'to_asset_code'   => (string) ($aggregate->getToAssetCode() ?? ''),
-                'from_amount'     => $fromAmount !== null ? $this->minorUnitsToString($fromAmount->getAmount()) : '0',
-                'to_amount'       => $toAmount !== null ? $this->minorUnitsToString($toAmount->getAmount()) : '0',
+                'from_amount'     => $fromAmount !== null ? $this->minorUnitsToString((string) $aggregate->getFromAssetCode(), $fromAmount->getAmount()) : '0',
+                'to_amount'       => $toAmount !== null ? $this->minorUnitsToString((string) $aggregate->getToAssetCode(), $toAmount->getAmount()) : '0',
                 'exchange_rate'   => $aggregate->getExchangeRate() !== null ? (string) $aggregate->getExchangeRate() : null,
                 'created_at'      => now()->toIso8601String(),
                 'completed_at'    => null,
@@ -408,9 +422,9 @@ class AssetTransferService implements AssetTransferInterface
     }
 
     /**
-     * Validate account has sufficient balance.
+     * Validate the account holds at least the amount, both in minor units.
      */
-    private function validateSufficientBalance(string $accountId, string $assetCode, string $amount): void
+    private function validateSufficientBalance(string $accountId, string $assetCode, int $amountMinor, string $amount): void
     {
         $account = Account::where('uuid', $accountId)->first();
 
@@ -418,46 +432,53 @@ class AssetTransferService implements AssetTransferInterface
             throw new InsufficientAssetBalanceException($accountId, $assetCode, $amount, '0');
         }
 
-        $balance = (string) $account->getBalance($assetCode);
+        $balance = $account->getBalance($assetCode);
 
-        /** @var numeric-string $a */
-        $a = $balance;
-        /** @var numeric-string $b */
-        $b = $amount;
+        if ($balance < $amountMinor) {
+            $available = $this->minorUnitsToString($assetCode, $balance);
 
-        if (bccomp($a, $b, 8) < 0) {
-            throw new InsufficientAssetBalanceException($accountId, $assetCode, $amount, $balance);
+            throw new InsufficientAssetBalanceException($accountId, $assetCode, $amount, $available);
         }
     }
 
     /**
-     * Convert a string amount to minor units (int).
+     * Convert a decimal amount to the asset's minor units (its `precision`).
      *
-     * Assumes 8 decimal places of precision.
+     * With $exact, an amount with more decimals than the asset has is refused
+     * instead of being cut; without it, extra decimals are rounded down.
      */
-    private function stringToMinorUnits(string $amount): int
+    private function toMinorUnits(string $assetCode, string $amount, bool $exact): int
     {
-        // Multiply by 10^8 to convert to minor units
-        /** @var numeric-string $a */
-        $a = $amount;
-        /** @var numeric-string $b */
-        $b = '100000000';
+        /** @var numeric-string $value */
+        $value = $amount;
+        $factor = bcpow('10', (string) $this->precisionOf($assetCode));
+        $minor = bcmul($value, $factor, 0);
 
-        return (int) bcmul($a, $b, 0);
+        if ($exact && bccomp(bcmul($value, $factor, 8), $minor, 8) !== 0) {
+            $precision = $this->precisionOf($assetCode);
+
+            throw new InvalidArgumentException("{$assetCode} amounts can have at most {$precision} decimal places");
+        }
+
+        if (bccomp($minor, '0') <= 0) {
+            throw new InvalidArgumentException("The amount is smaller than the smallest {$assetCode} unit");
+        }
+
+        return (int) $minor;
     }
 
     /**
-     * Convert minor units (int) back to a string amount.
-     *
-     * Assumes 8 decimal places of precision.
+     * Convert minor units back to a decimal amount in the asset's precision.
      */
-    private function minorUnitsToString(int $amount): string
+    private function minorUnitsToString(string $assetCode, int $amount): string
     {
-        // Divide by 10^8 to convert from minor units
-        $amountString = (string) $amount;
-        $divisor = '100000000';
+        $precision = $this->precisionOf($assetCode);
 
-        // @phpstan-ignore argument.type
-        return bcdiv($amountString, $divisor, 8);
+        return bcdiv((string) $amount, bcpow('10', (string) $precision), $precision);
+    }
+
+    private function precisionOf(string $assetCode): int
+    {
+        return (int) (Asset::query()->where('code', $assetCode)->value('precision') ?? 2);
     }
 }
