@@ -22,13 +22,8 @@ final class ConsentScreenController
      *                                                    This is NOT the Laravel CSRF token —
      *                                                    `@csrf` already handles that separately.
      *
-     * NOTE on `mcp_daily_limit_minor`:
-     * The consent form posts a `mcp_daily_limit_minor` field that captures the user's chosen
-     * 24-hour spending cap at consent time. There is currently no server-side enforcement of
-     * this value — that's intentionally deferred to a later task. The next implementer should
-     * read it during access-token issuance (Passport `OAuthEvent::AccessTokenIssued` or a
-     * `passport:before-saving-token` hook) and persist it on the issued token, then enforce it
-     * in the MCP tool dispatcher. Search for `mcp_daily_limit_minor` to find this hook point.
+     * The form's `mcp_daily_limit_minor` field is saved on approval by
+     * CaptureMcpConsentLimit (see ConsentSpendingPolicy).
      */
     public function __invoke(Request $request, array $passportParameters = []): View
     {

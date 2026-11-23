@@ -328,7 +328,7 @@ final class JsonRpcRouter
             // the cache below skips the reserve/release dance entirely (the
             // first call already settled the spend).
             $execWithSpending = $isPayment
-                ? fn (): array => $this->spendingSaga->run($ctx->tokenId, $arguments, $entry, $baseExec)
+                ? fn (): array => $this->spendingSaga->run($ctx->spendingPolicyKey(), $arguments, $entry, $baseExec)
                 : $baseExec;
 
             if ($isWrite) {

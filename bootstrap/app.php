@@ -208,6 +208,9 @@ return Application::configure(basePath: is_string($_appBasePath) ? $_appBasePath
         if (env('APP_ENV') === 'demo') {
             $middleware->appendToGroup('web', App\Http\Middleware\DemoMode::class);
         }
+
+        // Saves the MCP consent screen's daily spending limit on approval.
+        $middleware->appendToGroup('web', App\Http\Middleware\CaptureMcpConsentLimit::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Treat 'demo' environment as production for error handling

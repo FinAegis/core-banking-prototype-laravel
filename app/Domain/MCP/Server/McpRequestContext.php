@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\MCP\Server;
 
+use App\Domain\MCP\Policy\ConsentSpendingPolicy;
+
 /**
  * Per-request authentication and authorization context for MCP JSON-RPC dispatch.
  *
@@ -22,6 +24,18 @@ final class McpRequestContext
         public readonly ?int $userId,
         public readonly array $scopes,
     ) {
+    }
+
+    /**
+     * The key of the daily spending limit for this request: the user's
+     * approval of the app, so every token of that approval shares one limit.
+     * A token without a user (client credentials) has no approval to key on.
+     */
+    public function spendingPolicyKey(): string
+    {
+        return $this->userId === null
+            ? "token:{$this->tokenId}"
+            : ConsentSpendingPolicy::key($this->clientId, $this->userId);
     }
 
     /**
