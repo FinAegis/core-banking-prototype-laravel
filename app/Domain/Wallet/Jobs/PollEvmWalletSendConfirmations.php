@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Wallet\Jobs;
 
 use App\Domain\Relayer\Contracts\BundlerInterface;
+use App\Domain\Relayer\Enums\SupportedNetwork;
 use App\Domain\Wallet\Models\WalletSendRecord;
 use App\Domain\Wallet\Services\SponsorshipCostTracker;
 use App\Support\SecretRedactor;
@@ -38,6 +39,9 @@ class PollEvmWalletSendConfirmations implements ShouldQueue
     public int $tries = 1;
 
     public int $timeout = 60;
+
+    /** How long a send with an unknown broadcast outcome waits before the bundler is asked whether it ever saw it. */
+    private const int UNKNOWN_OUTCOME_WAIT_MINUTES = 10;
 
     public function handle(BundlerInterface $bundler, SponsorshipCostTracker $costTracker): void
     {
@@ -121,7 +125,57 @@ class PollEvmWalletSendConfirmations implements ShouldQueue
             ]);
         }
 
+        if ($reportedStatus === 'pending') {
+            $this->settleUnknownSubmit($bundler, $record);
+        }
+
         // pending / unknown → leave the row in submitted; we'll poll again next tick.
+    }
+
+    /**
+     * A send whose broadcast outcome was unknown (see EvmUserOpSubmitter) and
+     * that still has no receipt after the wait is failed only when the
+     * bundler says it never saw the operation. Anything else keeps waiting.
+     */
+    private function settleUnknownSubmit(BundlerInterface $bundler, WalletSendRecord $record): void
+    {
+        $metadata = $record->metadata ?? [];
+        if (($metadata['submit_outcome'] ?? null) !== WalletSendRecord::SUBMIT_OUTCOME_UNKNOWN) {
+            return;
+        }
+
+        if ($record->submitted_at === null || $record->submitted_at->gt(now()->subMinutes(self::UNKNOWN_OUTCOME_WAIT_MINUTES))) {
+            return;
+        }
+
+        $network = SupportedNetwork::tryFrom((string) $record->network);
+        if ($network === null) {
+            return;
+        }
+
+        try {
+            $known = $bundler->isUserOperationKnown((string) $record->user_op_hash, $network);
+        } catch (Throwable $e) {
+            Log::warning('PollEvmWalletSendConfirmations: bundler lookup error', [
+                'record_id'    => $record->id,
+                'user_op_hash' => $record->user_op_hash,
+                'network'      => $record->network,
+                'error'        => SecretRedactor::message($e),
+            ]);
+
+            return;
+        }
+
+        if ($known) {
+            return;
+        }
+
+        $record->update([
+            'status'        => WalletSendRecord::STATUS_FAILED,
+            'failed_at'     => now(),
+            'error_code'    => 'BUNDLER_NOT_ACCEPTED',
+            'error_message' => 'This transfer did not reach the network. No funds were moved.',
+        ]);
     }
 
     /**

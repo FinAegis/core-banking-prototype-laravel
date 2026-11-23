@@ -225,6 +225,28 @@ it('flips the record to failed with HELIUS_REJECTED when the RPC raises SolanaRp
         ->and($result->tx_hash)->toBeNull();
 });
 
+it('keeps the send submitted under its own signature when the broadcast outcome is unknown', function (): void {
+    ['record' => $record] = makePendingRecord();
+    $deviceSig = random_bytes(64);
+
+    /** @var HeliusRpcClient&MockInterface $rpc */
+    $rpc = Mockery::mock(HeliusRpcClient::class);
+    $rpc->shouldReceive('sendTransaction')
+        ->once()
+        ->andThrow(SolanaRpcException::fromRpcError(0, 'Helius RPC unreachable (sendTransaction): cURL error 28', outcomeUnknown: true));
+
+    $submitter = new SolanaSendSubmitter($rpc, new SolanaTransferBuilder(), new SolanaSponsorSigner());
+    $result = $submitter->submit($record, base64_encode($deviceSig));
+
+    expect($result->status)->toBe(WalletSendRecord::STATUS_SUBMITTED)
+        ->and($result->tx_hash)->toBe(Base58::encode($deviceSig))
+        ->and($result->submitted_at)->not->toBeNull()
+        ->and($result->failed_at)->toBeNull()
+        ->and($result->error_code)->toBeNull()
+        ->and($result->metadata['submit_outcome'] ?? null)->toBe('unknown')
+        ->and($result->metadata['submit_error'] ?? '')->toContain('cURL error 28');
+});
+
 describe('sponsored send', function (): void {
     /**
      * Build a sponsored pending record: a two-signer message with the sponsor
@@ -309,6 +331,26 @@ describe('sponsored send', function (): void {
 
         expect($result->status)->toBe(WalletSendRecord::STATUS_SUBMITTED)
             ->and($result->tx_hash)->toBe('SPONSORED_SIG_RETURNED');
+    });
+
+    it('keeps an unknown-outcome sponsored send under the sponsor signature, which is the transaction id', function (): void {
+        $kp = sodium_crypto_sign_keypair();
+        $sponsorSecret = sodium_crypto_sign_secretkey($kp);
+        config(['wallet.solana.sponsor.secret_key' => Base58::encode($sponsorSecret)]);
+
+        ['record' => $record, 'message' => $message] = makeSponsoredPendingRecord(Base58::encode(sodium_crypto_sign_publickey($kp)));
+
+        /** @var HeliusRpcClient&MockInterface $rpc */
+        $rpc = Mockery::mock(HeliusRpcClient::class);
+        $rpc->shouldReceive('sendTransaction')
+            ->once()
+            ->andThrow(SolanaRpcException::fromRpcError(504, 'HTTP 504 from Helius RPC (sendTransaction)', outcomeUnknown: true));
+
+        $submitter = new SolanaSendSubmitter($rpc, new SolanaTransferBuilder(), new SolanaSponsorSigner());
+        $result = $submitter->submit($record, base64_encode(random_bytes(64)));
+
+        expect($result->status)->toBe(WalletSendRecord::STATUS_SUBMITTED)
+            ->and($result->tx_hash)->toBe(Base58::encode(sodium_crypto_sign_detached($message, $sponsorSecret)));
     });
 
     it('throws when a sponsored record is submitted but the sponsor key is gone', function (): void {

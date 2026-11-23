@@ -7,8 +7,10 @@ namespace App\Domain\Wallet\Services\Send;
 use App\Domain\Wallet\Exceptions\InvalidSendStateException;
 use App\Domain\Wallet\Exceptions\InvalidSignatureException;
 use App\Domain\Wallet\Exceptions\SolanaRpcException;
+use App\Domain\Wallet\Helpers\Crypto\Base58;
 use App\Domain\Wallet\Models\WalletSendRecord;
 use App\Support\SecretRedactor;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Step 2 of the non-custodial Solana send flow.
@@ -67,6 +69,10 @@ class SolanaSendSubmitter
         try {
             $signature = $this->rpc->sendTransaction($base64Tx);
         } catch (SolanaRpcException $e) {
+            if ($e->isOutcomeUnknown()) {
+                return $this->keepForConfirmation($record, Base58::encode($orderedSignatures[0]), $e);
+            }
+
             $record->status = WalletSendRecord::STATUS_FAILED;
             $record->error_code = 'HELIUS_REJECTED';
             $record->error_message = SecretRedactor::message($e);
@@ -80,6 +86,33 @@ class SolanaSendSubmitter
         $record->tx_hash = $signature;
         $record->submitted_at = now();
         $record->save();
+
+        return $record;
+    }
+
+    /**
+     * The node may have the transaction although we saw an error. Calling it
+     * failed could lead the user to send again and pay twice. A Solana
+     * transaction's id is its first signature, known before broadcast, so the
+     * send stays submitted under it and the confirmation poller settles it:
+     * confirmed, failed, or dropped once its blockhash expires.
+     */
+    private function keepForConfirmation(WalletSendRecord $record, string $transactionId, SolanaRpcException $e): WalletSendRecord
+    {
+        $metadata = $record->metadata ?? [];
+        $metadata['submit_outcome'] = WalletSendRecord::SUBMIT_OUTCOME_UNKNOWN;
+        $metadata['submit_error'] = SecretRedactor::message($e);
+
+        $record->metadata = $metadata;
+        $record->status = WalletSendRecord::STATUS_SUBMITTED;
+        $record->tx_hash = $transactionId;
+        $record->submitted_at = now();
+        $record->save();
+
+        Log::warning('SolanaSendSubmitter: broadcast outcome unknown, left for the confirmation poller', [
+            'record_id' => $record->id,
+            'signature' => $transactionId,
+        ]);
 
         return $record;
     }

@@ -240,3 +240,84 @@ it('confirms without a sponsored fee when the receipt has no usable cost fields'
         ->and($record->sponsored_fee_raw)->toBeNull()
         ->and($record->sponsored_fee_asset)->toBeNull();
 });
+
+function makeUncertainRecord(int $minutesAgo): WalletSendRecord
+{
+    $record = makeSubmittedRecord('arbitrum', '0xUncertain');
+    $record->metadata = ['submit_outcome' => 'unknown', 'submit_error' => 'RPC connection failed: cURL error 28'];
+    $record->submitted_at = now()->subMinutes($minutesAgo);
+    $record->save();
+
+    return $record;
+}
+
+it('fails an uncertain send the bundler never accepted once the wait is over', function (): void {
+    $record = makeUncertainRecord(11);
+
+    /** @var BundlerInterface&Mockery\MockInterface $bundler */
+    $bundler = Mockery::mock(BundlerInterface::class);
+    $bundler->shouldReceive('getUserOperationStatus')->once()->andReturn(['status' => 'pending', 'tx_hash' => null, 'receipt' => null]);
+    $bundler->shouldReceive('isUserOperationKnown')->once()->with('0xUncertain', App\Domain\Relayer\Enums\SupportedNetwork::ARBITRUM)->andReturn(false);
+
+    (new PollEvmWalletSendConfirmations())->handle($bundler, app(SponsorshipCostTracker::class));
+
+    $record->refresh();
+    expect($record->status)->toBe('failed')
+        ->and($record->error_code)->toBe('BUNDLER_NOT_ACCEPTED')
+        ->and($record->error_message)->toBe('This transfer did not reach the network. No funds were moved.')
+        ->and($record->failed_at)->not->toBeNull();
+});
+
+it('keeps waiting on an uncertain send the bundler knows about', function (): void {
+    $record = makeUncertainRecord(11);
+
+    /** @var BundlerInterface&Mockery\MockInterface $bundler */
+    $bundler = Mockery::mock(BundlerInterface::class);
+    $bundler->shouldReceive('getUserOperationStatus')->once()->andReturn(['status' => 'pending', 'tx_hash' => null, 'receipt' => null]);
+    $bundler->shouldReceive('isUserOperationKnown')->once()->andReturn(true);
+
+    (new PollEvmWalletSendConfirmations())->handle($bundler, app(SponsorshipCostTracker::class));
+
+    expect($record->refresh()->status)->toBe('submitted');
+});
+
+it('does not give up on an uncertain send before the wait is over', function (): void {
+    $record = makeUncertainRecord(5);
+
+    /** @var BundlerInterface&Mockery\MockInterface $bundler */
+    $bundler = Mockery::mock(BundlerInterface::class);
+    $bundler->shouldReceive('getUserOperationStatus')->once()->andReturn(['status' => 'pending', 'tx_hash' => null, 'receipt' => null]);
+    $bundler->shouldNotReceive('isUserOperationKnown');
+
+    (new PollEvmWalletSendConfirmations())->handle($bundler, app(SponsorshipCostTracker::class));
+
+    expect($record->refresh()->status)->toBe('submitted');
+});
+
+it('keeps waiting on an uncertain send when the bundler lookup fails', function (): void {
+    $record = makeUncertainRecord(11);
+
+    /** @var BundlerInterface&Mockery\MockInterface $bundler */
+    $bundler = Mockery::mock(BundlerInterface::class);
+    $bundler->shouldReceive('getUserOperationStatus')->once()->andReturn(['status' => 'pending', 'tx_hash' => null, 'receipt' => null]);
+    $bundler->shouldReceive('isUserOperationKnown')->once()->andThrow(new RuntimeException('Bundler RPC down'));
+
+    (new PollEvmWalletSendConfirmations())->handle($bundler, app(SponsorshipCostTracker::class));
+
+    expect($record->refresh()->status)->toBe('submitted');
+});
+
+it('never expires a send the bundler accepted', function (): void {
+    $record = makeSubmittedRecord('polygon', '0xAccepted');
+    $record->submitted_at = now()->subMinutes(30);
+    $record->save();
+
+    /** @var BundlerInterface&Mockery\MockInterface $bundler */
+    $bundler = Mockery::mock(BundlerInterface::class);
+    $bundler->shouldReceive('getUserOperationStatus')->once()->andReturn(['status' => 'pending', 'tx_hash' => null, 'receipt' => null]);
+    $bundler->shouldNotReceive('isUserOperationKnown');
+
+    (new PollEvmWalletSendConfirmations())->handle($bundler, app(SponsorshipCostTracker::class));
+
+    expect($record->refresh()->status)->toBe('submitted');
+});

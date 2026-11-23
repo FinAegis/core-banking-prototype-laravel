@@ -6,6 +6,7 @@ namespace Tests\Unit\Domain\Relayer\Services;
 
 use App\Domain\Relayer\Enums\SupportedNetwork;
 use App\Domain\Relayer\Exceptions\RpcException;
+use App\Domain\Relayer\Exceptions\RpcOutcomeUnknownException;
 use App\Domain\Relayer\Services\EthRpcClient;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -119,6 +120,102 @@ class EthRpcClientTest extends TestCase
         $this->client->call(SupportedNetwork::POLYGON, 'eth_blockNumber');
 
         Http::assertSentCount(3);
+    }
+
+    public function test_a_bundler_call_that_times_out_every_time_has_an_unknown_outcome(): void
+    {
+        Http::fake([
+            'api.pimlico.io/*' => Http::failedConnection('cURL error 28: Operation timed out after 5000 milliseconds with 0 bytes received'),
+        ]);
+
+        $this->expectException(RpcOutcomeUnknownException::class);
+        $this->expectExceptionMessage('RPC connection failed');
+
+        $this->client->bundlerCall(SupportedNetwork::POLYGON, 'eth_sendUserOperation', []);
+    }
+
+    public function test_a_server_error_on_every_attempt_has_an_unknown_outcome(): void
+    {
+        Http::fake([
+            'api.pimlico.io/*' => Http::response(null, 504),
+        ]);
+
+        $this->expectException(RpcOutcomeUnknownException::class);
+
+        $this->client->bundlerCall(SupportedNetwork::POLYGON, 'eth_sendUserOperation', []);
+    }
+
+    public function test_a_rejection_after_a_timed_out_attempt_has_an_unknown_outcome(): void
+    {
+        Http::fake([
+            'api.pimlico.io/*' => Http::sequence()
+                ->pushFailedConnection('cURL error 28: Operation timed out after 5000 milliseconds with 0 bytes received')
+                ->push([
+                    'jsonrpc' => '2.0',
+                    'id'      => 1,
+                    'error'   => ['code' => -32602, 'message' => 'AA25 invalid account nonce'],
+                ]),
+        ]);
+
+        try {
+            $this->client->bundlerCall(SupportedNetwork::POLYGON, 'eth_sendUserOperation', []);
+            $this->fail('A rejection that follows a timed-out attempt must not look final.');
+        } catch (RpcOutcomeUnknownException $e) {
+            $this->assertStringContainsString('AA25 invalid account nonce', $e->getMessage());
+            $this->assertSame('eth_sendUserOperation', $e->rpcMethod);
+        }
+
+        Http::assertSentCount(2);
+    }
+
+    public function test_a_connection_that_never_opened_is_a_definite_failure(): void
+    {
+        Http::fake([
+            'api.pimlico.io/*' => Http::failedConnection('cURL error 7: Failed to connect to api.pimlico.io port 443 after 3 ms: Connection refused'),
+        ]);
+
+        try {
+            $this->client->bundlerCall(SupportedNetwork::POLYGON, 'eth_sendUserOperation', []);
+            $this->fail('Expected an RpcException.');
+        } catch (RpcException $e) {
+            $this->assertNotInstanceOf(RpcOutcomeUnknownException::class, $e);
+            $this->assertStringContainsString('RPC connection failed', $e->getMessage());
+        }
+    }
+
+    public function test_a_client_error_on_every_attempt_is_a_definite_failure(): void
+    {
+        Http::fake([
+            'api.pimlico.io/*' => Http::response(null, 429),
+        ]);
+
+        try {
+            $this->client->bundlerCall(SupportedNetwork::POLYGON, 'eth_sendUserOperation', []);
+            $this->fail('Expected an RpcException.');
+        } catch (RpcException $e) {
+            $this->assertNotInstanceOf(RpcOutcomeUnknownException::class, $e);
+        }
+    }
+
+    public function test_a_json_rpc_rejection_on_the_first_attempt_is_a_definite_failure(): void
+    {
+        Http::fake([
+            'api.pimlico.io/*' => Http::response([
+                'jsonrpc' => '2.0',
+                'id'      => 1,
+                'error'   => ['code' => -32500, 'message' => 'AA21 didn\'t pay prefund'],
+            ]),
+        ]);
+
+        try {
+            $this->client->bundlerCall(SupportedNetwork::POLYGON, 'eth_sendUserOperation', []);
+            $this->fail('Expected an RpcException.');
+        } catch (RpcException $e) {
+            $this->assertNotInstanceOf(RpcOutcomeUnknownException::class, $e);
+            $this->assertSame(-32500, $e->rpcErrorCode);
+        }
+
+        Http::assertSentCount(1);
     }
 
     public function test_throws_when_no_rpc_url_configured(): void

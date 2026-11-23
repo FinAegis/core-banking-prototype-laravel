@@ -32,6 +32,12 @@ interface BundlerInterface
     public function getUserOperationStatus(string $userOpHash): array;
 
     /**
+     * Whether the bundler has seen this UserOperation: waiting in its mempool
+     * or already included in a block.
+     */
+    public function isUserOperationKnown(string $userOpHash, SupportedNetwork $network): bool;
+
+    /**
      * Estimate gas for a UserOperation.
      *
      * @return array{preVerificationGas: int, verificationGasLimit: int, callGasLimit: int}

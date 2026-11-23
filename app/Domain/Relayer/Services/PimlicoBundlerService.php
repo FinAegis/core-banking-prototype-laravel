@@ -123,6 +123,17 @@ class PimlicoBundlerService implements BundlerInterface
     }
 
     /**
+     * Whether the bundler has seen this UserOperation. Pimlico answers
+     * eth_getUserOperationByHash with null when the hash is unknown to it.
+     *
+     * @throws RpcException
+     */
+    public function isUserOperationKnown(string $userOpHash, SupportedNetwork $network): bool
+    {
+        return $this->rpcClient->bundlerCall($network, 'eth_getUserOperationByHash', [$userOpHash]) !== null;
+    }
+
+    /**
      * Estimate gas for a UserOperation via the bundler.
      *
      * @return array{preVerificationGas: int, verificationGasLimit: int, callGasLimit: int}

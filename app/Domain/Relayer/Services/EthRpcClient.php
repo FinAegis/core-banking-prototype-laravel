@@ -6,7 +6,9 @@ namespace App\Domain\Relayer\Services;
 
 use App\Domain\Relayer\Enums\SupportedNetwork;
 use App\Domain\Relayer\Exceptions\RpcException;
+use App\Domain\Relayer\Exceptions\RpcOutcomeUnknownException;
 use App\Support\SecretRedactor;
+use App\Support\TransportFailure;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -170,6 +172,7 @@ class EthRpcClient
         ];
 
         $lastException = null;
+        $mayHaveBeenProcessed = false;
 
         for ($attempt = 1; $attempt <= $this->retryCount; $attempt++) {
             try {
@@ -184,10 +187,20 @@ class EthRpcClient
 
                 return $response['result'] ?? null;
             } catch (RpcException $e) {
-                // Don't retry RPC-level errors (invalid params, etc.)
+                // Don't retry RPC-level errors (invalid params, etc.). After an
+                // attempt the server may have processed, this answer is about
+                // the repeat, not the original, so it settles nothing.
+                if ($mayHaveBeenProcessed) {
+                    throw RpcOutcomeUnknownException::after(
+                        $method,
+                        'an earlier attempt may have been processed; the retry answered: ' . $e->getMessage()
+                    );
+                }
+
                 throw $e;
             } catch (Throwable $e) {
                 $lastException = $e;
+                $mayHaveBeenProcessed = $mayHaveBeenProcessed || TransportFailure::mayHaveBeenProcessed($e);
 
                 Log::warning('RPC call failed, retrying', [
                     'method'  => $method,
@@ -204,9 +217,12 @@ class EthRpcClient
 
         // Transport errors embed the request URL (and with it the provider
         // key); RpcException redacts its message, this keeps the intent explicit.
-        throw RpcException::connectionFailed(
-            $method,
-            $lastException !== null ? SecretRedactor::message($lastException) : 'All retry attempts exhausted'
-        );
+        $reason = $lastException !== null ? SecretRedactor::message($lastException) : 'All retry attempts exhausted';
+
+        if ($mayHaveBeenProcessed) {
+            throw RpcOutcomeUnknownException::after($method, $reason);
+        }
+
+        throw RpcException::connectionFailed($method, $reason);
     }
 }

@@ -54,6 +54,26 @@ class PimlicoBundlerServiceTest extends TestCase
         $this->assertEquals($expectedHash, $result);
     }
 
+    public function test_a_user_operation_the_bundler_has_seen_is_known(): void
+    {
+        $this->rpcClient->shouldReceive('bundlerCall')
+            ->once()
+            ->with(SupportedNetwork::ARBITRUM, 'eth_getUserOperationByHash', ['0xabc'])
+            ->andReturn(['userOperation' => ['sender' => '0x1'], 'entryPoint' => '0x5FF1', 'blockNumber' => null]);
+
+        $this->assertTrue($this->service->isUserOperationKnown('0xabc', SupportedNetwork::ARBITRUM));
+    }
+
+    public function test_a_user_operation_the_bundler_has_not_seen_is_unknown(): void
+    {
+        $this->rpcClient->shouldReceive('bundlerCall')
+            ->once()
+            ->with(SupportedNetwork::POLYGON, 'eth_getUserOperationByHash', ['0xabc'])
+            ->andReturn(null);
+
+        $this->assertFalse($this->service->isUserOperationKnown('0xabc', SupportedNetwork::POLYGON));
+    }
+
     public function test_throws_on_bundler_error(): void
     {
         $userOp = UserOperation::createUnsigned(

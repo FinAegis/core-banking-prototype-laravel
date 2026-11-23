@@ -76,6 +76,11 @@ class DemoBundlerService implements BundlerInterface
         ];
     }
 
+    public function isUserOperationKnown(string $userOpHash, SupportedNetwork $network): bool
+    {
+        return Cache::has("user_op:{$userOpHash}");
+    }
+
     public function estimateUserOperationGas(
         UserOperation $userOp,
         SupportedNetwork $network

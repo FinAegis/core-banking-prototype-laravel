@@ -6,6 +6,7 @@ namespace App\Domain\Wallet\Services\Send;
 
 use App\Domain\Wallet\Exceptions\SolanaRpcException;
 use App\Support\SecretRedactor;
+use App\Support\TransportFailure;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
@@ -196,14 +197,16 @@ class HeliusRpcClient
         } catch (RequestException $e) {
             throw SolanaRpcException::fromRpcError(
                 $e->response->status(),
-                "HTTP {$e->response->status()} from Helius RPC ({$method})"
+                "HTTP {$e->response->status()} from Helius RPC ({$method})",
+                outcomeUnknown: TransportFailure::mayHaveBeenProcessed($e),
             );
         } catch (ConnectionException $e) {
             // Transport errors embed the request URL, which carries the
             // api-key query parameter.
             throw SolanaRpcException::fromRpcError(
                 0,
-                "Helius RPC unreachable ({$method}): " . SecretRedactor::message($e)
+                "Helius RPC unreachable ({$method}): " . SecretRedactor::message($e),
+                outcomeUnknown: TransportFailure::mayHaveBeenProcessed($e),
             );
         }
 
