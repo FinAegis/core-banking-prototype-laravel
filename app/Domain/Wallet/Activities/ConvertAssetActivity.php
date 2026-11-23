@@ -19,7 +19,10 @@ class ConvertAssetActivity extends Activity
     /**
      * Convert part of an account's balance from one asset to another.
      *
-     * Amounts are in each asset's minor units. The transfer id is derived from
+     * Amounts are in each asset's minor units. A caller that quoted a price
+     * (GCU buy and sell use the basket value less the fee) passes it as $rate,
+     * so the booking matches the quote; otherwise the rate table decides. The
+     * transfer id is derived from
      * the workflow and this activity's position in it, so a retry after the
      * conversion was booked returns the booked result instead of converting
      * again.
@@ -30,7 +33,8 @@ class ConvertAssetActivity extends Activity
         AccountUuid $accountUuid,
         string $fromAssetCode,
         string $toAssetCode,
-        int $amount
+        int $amount,
+        ?string $rate = null
     ): array {
         $transferId = $this->transferId();
         $booked = AssetTransferAggregate::retrieve($transferId);
@@ -43,12 +47,9 @@ class ConvertAssetActivity extends Activity
             throw new InvalidArgumentException('The amount to convert must be positive.');
         }
 
-        $exchangeRate = ExchangeRate::getRate($fromAssetCode, $toAssetCode);
-        if (! $exchangeRate) {
-            throw new InvalidArgumentException("Exchange rate not available for {$fromAssetCode} to {$toAssetCode}");
-        }
+        $rateUsed = $rate === null ? $this->tableRate($fromAssetCode, $toAssetCode) : $this->givenRate($rate);
 
-        $convertedAmount = $this->convertMinorUnits($amount, $exchangeRate, $fromAssetCode, $toAssetCode);
+        $convertedAmount = $this->convertMinorUnits($amount, $rateUsed, $fromAssetCode, $toAssetCode);
         if ($convertedAmount <= 0) {
             throw new InvalidArgumentException("The amount is too small to convert {$fromAssetCode} to {$toAssetCode}.");
         }
@@ -70,13 +71,38 @@ class ConvertAssetActivity extends Activity
                 $toAssetCode,
                 new Money($amount),
                 new Money($convertedAmount),
-                $exchangeRate,
+                (float) $rateUsed,
                 'Wallet currency conversion'
             )
             ->complete($transferId)
             ->persist();
 
-        return $this->result($transferId, $fromAssetCode, $toAssetCode, $amount, $convertedAmount, $exchangeRate);
+        return $this->result($transferId, $fromAssetCode, $toAssetCode, $amount, $convertedAmount, (float) $rateUsed);
+    }
+
+    /**
+     * @return numeric-string
+     */
+    private function tableRate(string $fromAssetCode, string $toAssetCode): string
+    {
+        $rate = ExchangeRate::getRate($fromAssetCode, $toAssetCode);
+        if (! $rate) {
+            throw new InvalidArgumentException("Exchange rate not available for {$fromAssetCode} to {$toAssetCode}");
+        }
+
+        return sprintf('%.10F', $rate);
+    }
+
+    /**
+     * @return numeric-string
+     */
+    private function givenRate(string $rate): string
+    {
+        if (! is_numeric($rate) || preg_match('/^\d+(\.\d+)?$/', $rate) !== 1 || bccomp($rate, '0', 10) !== 1) {
+            throw new InvalidArgumentException('The conversion rate must be a positive decimal number.');
+        }
+
+        return $rate;
     }
 
     /**
@@ -84,10 +110,13 @@ class ConvertAssetActivity extends Activity
      * target's, rounded down to a whole minor unit with bcmath (10 000 x 0.29
      * must give 2 900, not the 2 899 that floating point gives).
      */
-    private function convertMinorUnits(int $amount, float $rate, string $fromAssetCode, string $toAssetCode): int
+    /**
+     * @param  numeric-string  $rate
+     */
+    private function convertMinorUnits(int $amount, string $rate, string $fromAssetCode, string $toAssetCode): int
     {
         $major = bcdiv((string) $amount, bcpow('10', (string) $this->precisionOf($fromAssetCode)), 18);
-        $converted = bcmul($major, sprintf('%.10F', $rate), 18);
+        $converted = bcmul($major, $rate, 18);
 
         return (int) bcmul($converted, bcpow('10', (string) $this->precisionOf($toAssetCode)), 0);
     }

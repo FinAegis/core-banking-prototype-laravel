@@ -74,3 +74,32 @@ it('refuses a GCU purchase above the balance held in minor units', function (): 
 
     WorkflowStub::assertNotDispatched(ConvertAssetActivity::class);
 });
+
+it('books a GCU purchase at the quoted price after the fee', function (): void {
+    // GCU is worth 1.25 USD, so 1 USD buys 0.8 GCU, and the 1 % fee leaves 0.792.
+    // The conversion used to read the rate table instead, which knows no GCU price.
+    [, $account] = gcuTrader(['USD' => 50_000]);
+
+    $this->postJson('/api/v2/gcu/buy', ['amount' => '128.14', 'currency' => 'USD', 'account_uuid' => $account->uuid])
+        ->assertOk()
+        ->assertJsonPath('data.received_amount', 101.48);
+
+    WorkflowStub::assertDispatched(
+        ConvertAssetActivity::class,
+        fn (AccountUuid $uuid, string $from, string $to, int $amount, ?string $rate = null): bool => $amount === 12_814 && $rate === '0.7920000000'
+    );
+});
+
+it('books a GCU sale at the quoted price after the fee', function (): void {
+    // 1 GCU is 1.25 USD; after the 1 % fee each GCU pays 1.2375 USD.
+    [, $account] = gcuTrader(['GCU' => 5_000]);
+
+    $this->postJson('/api/v2/gcu/sell', ['amount' => 10, 'currency' => 'USD', 'account_uuid' => $account->uuid])
+        ->assertOk()
+        ->assertJsonPath('data.received_amount', 12.37);
+
+    WorkflowStub::assertDispatched(
+        ConvertAssetActivity::class,
+        fn (AccountUuid $uuid, string $from, string $to, int $amount, ?string $rate = null): bool => $amount === 1_000 && $rate === '1.2375000000'
+    );
+});

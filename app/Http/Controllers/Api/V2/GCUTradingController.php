@@ -160,6 +160,11 @@ class GCUTradingController extends Controller
         $netAmount = $validated['amount'] - $feeAmount;
         $gcuAmount = $netAmount * $exchangeRate;
 
+        // The conversion books the quoted price less the fee, so the booking
+        // and this answer agree. The received amount is what that rate books.
+        $bookedRate = $this->rateAfterFee($exchangeRate, $feeRate);
+        $gcuAmount = (float) $this->bookedAmount($validated['currency'], 'GCU', $spentMinor, $bookedRate);
+
         DB::beginTransaction();
         try {
             // Create transaction ID
@@ -172,7 +177,8 @@ class GCUTradingController extends Controller
                 AccountUuid::fromString($accountUuid),
                 $validated['currency'], // From currency (EUR)
                 'GCU', // To currency (GCU)
-                $spentMinor
+                $spentMinor,
+                $bookedRate
             );
 
             // Get updated GCU balance
@@ -191,7 +197,7 @@ class GCUTradingController extends Controller
                         'account_uuid'      => $accountUuid,
                         'spent_amount'      => $validated['amount'],
                         'spent_currency'    => $validated['currency'],
-                        'received_amount'   => round($gcuAmount, 4),
+                        'received_amount'   => $gcuAmount,
                         'received_currency' => 'GCU',
                         'exchange_rate'     => round($exchangeRate, 6),
                         'fee_amount'        => round($feeAmount, 2),
@@ -339,6 +345,11 @@ class GCUTradingController extends Controller
         $feeAmount = $grossAmount * $feeRate;
         $netAmount = $grossAmount - $feeAmount;
 
+        // The conversion books the quoted price less the fee, so the booking
+        // and this answer agree. The received amount is what that rate books.
+        $bookedRate = $this->rateAfterFee($exchangeRate, $feeRate);
+        $netAmount = (float) $this->bookedAmount('GCU', $validated['currency'], $soldMinor, $bookedRate);
+
         DB::beginTransaction();
         try {
             // Create transaction ID
@@ -350,7 +361,8 @@ class GCUTradingController extends Controller
                 AccountUuid::fromString($accountUuid),
                 'GCU', // From currency (GCU)
                 $validated['currency'], // To currency (EUR)
-                $soldMinor
+                $soldMinor,
+                $bookedRate
             );
 
             // Get updated GCU balance
@@ -369,7 +381,7 @@ class GCUTradingController extends Controller
                         'account_uuid'      => $accountUuid,
                         'sold_amount'       => $validated['amount'],
                         'sold_currency'     => 'GCU',
-                        'received_amount'   => round($netAmount, 2),
+                        'received_amount'   => $netAmount,
                         'received_currency' => $validated['currency'],
                         'exchange_rate'     => round($exchangeRate, 6),
                         'fee_amount'        => round($feeAmount, 2),
@@ -601,6 +613,34 @@ class GCUTradingController extends Controller
      * @param  float  $gcuValueInUSD  The current GCU value in USD
      * @return float The exchange rate (how many GCU per 1 unit of currency)
      */
+    /**
+     * The quoted price less the trading fee, as the rate the conversion books.
+     *
+     * @return numeric-string
+     */
+    private function rateAfterFee(float $rate, float $feeRate): string
+    {
+        return bcmul(sprintf('%.10F', $rate), bcsub('1', sprintf('%.10F', $feeRate), 10), 10);
+    }
+
+    /**
+     * What the conversion books for $amountMinor at $rate, in the target
+     * asset's major units, rounded down like the conversion itself.
+     *
+     * @param  numeric-string  $rate
+     * @return numeric-string
+     */
+    private function bookedAmount(string $fromAssetCode, string $toAssetCode, int $amountMinor, string $rate): string
+    {
+        $fromPrecision = (int) (Asset::query()->where('code', $fromAssetCode)->value('precision') ?? 2);
+        $toPrecision = (int) (Asset::query()->where('code', $toAssetCode)->value('precision') ?? 2);
+
+        $major = bcdiv((string) $amountMinor, bcpow('10', (string) $fromPrecision), 18);
+        $minor = bcmul(bcmul($major, $rate, 18), bcpow('10', (string) $toPrecision), 0);
+
+        return bcdiv($minor, bcpow('10', (string) $toPrecision), $toPrecision);
+    }
+
     /**
      * Convert a typed amount to the asset's minor units by its precision,
      * without float arithmetic. Extra decimals are cut. Null when invalid.
