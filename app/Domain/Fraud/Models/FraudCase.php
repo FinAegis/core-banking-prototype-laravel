@@ -86,6 +86,7 @@ class FraudCase extends Model
         'resolved_at',
         'actions_taken',
         'resolution_notes',
+        'fraud_score_id',
     ];
 
     protected $casts = [
@@ -187,6 +188,16 @@ class FraudCase extends Model
     public function subjectAccount(): BelongsTo
     {
         return $this->belongsTo(Account::class, 'subject_account_uuid', 'uuid');
+    }
+
+    /**
+     * The fraud score that opened this case, when the detection system did.
+     *
+     * @return BelongsTo<FraudScore, $this>
+     */
+    public function fraudScore(): BelongsTo
+    {
+        return $this->belongsTo(FraudScore::class, 'fraud_score_id');
     }
 
     public function assignedTo(): BelongsTo

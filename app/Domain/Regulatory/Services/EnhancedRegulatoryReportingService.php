@@ -16,6 +16,14 @@ use Illuminate\Support\Facades\Storage;
 
 class EnhancedRegulatoryReportingService extends RegulatoryReportingService
 {
+    /** Report priority (1-5) for a fraud case severity; 4 and above need immediate filing. */
+    private const array CASE_SEVERITY_PRIORITY = [
+        FraudCase::SEVERITY_LOW      => 2,
+        FraudCase::SEVERITY_MEDIUM   => 3,
+        FraudCase::SEVERITY_HIGH     => 4,
+        FraudCase::SEVERITY_CRITICAL => 5,
+    ];
+
     private ThresholdMonitoringService $thresholdService;
 
     private ReportGeneratorService $reportGenerator;
@@ -56,7 +64,7 @@ class EnhancedRegulatoryReportingService extends RegulatoryReportingService
             'generated_at'           => now(),
             'regulation_reference'   => '31 CFR 1022.310',
             'is_mandatory'           => true,
-            'due_date'               => $date->copy()->addBusinessDays(15),
+            'due_date'               => $date->copy()->addWeekdays(15),
             ]
         );
 
@@ -76,13 +84,14 @@ class EnhancedRegulatoryReportingService extends RegulatoryReportingService
     {
         // Get all fraud cases in the period
         $fraudCases = FraudCase::whereBetween('created_at', [$startDate, $endDate])
-            ->where('priority', '>=', FraudCase::PRIORITY_HIGH)
-            ->with(['fraudScore', 'fraudScore.entity'])
+            ->whereIn('severity', [FraudCase::SEVERITY_HIGH, FraudCase::SEVERITY_CRITICAL])
+            ->with('fraudScore')
             ->get();
 
-        // Get high-risk fraud scores without cases
+        // Get high-risk fraud scores without cases. Risk levels are words, so
+        // they are listed: compared as text, "low" sorts after "high".
         $highRiskScores = FraudScore::whereBetween('created_at', [$startDate, $endDate])
-            ->where('risk_level', '>=', FraudScore::RISK_LEVEL_HIGH)
+            ->whereIn('risk_level', [FraudScore::RISK_LEVEL_HIGH, FraudScore::RISK_LEVEL_VERY_HIGH])
             ->whereDoesntHave('fraudCase')
             ->with('entity')
             ->get();
@@ -128,7 +137,7 @@ class EnhancedRegulatoryReportingService extends RegulatoryReportingService
             'generated_at'           => now(),
             'regulation_reference'   => '31 CFR 1022.320',
             'is_mandatory'           => true,
-            'due_date'               => now()->addBusinessDays(30),
+            'due_date'               => now()->addWeekdays(30),
             'report_data'            => [
                 'total_activities'          => $suspiciousActivities->count(),
                 'fraud_cases'               => $fraudCases->count(),
@@ -206,7 +215,7 @@ class EnhancedRegulatoryReportingService extends RegulatoryReportingService
             'generated_at'           => now(),
             'regulation_reference'   => 'BSA/AML',
             'is_mandatory'           => true,
-            'due_date'               => $endDate->copy()->addBusinessDays(10),
+            'due_date'               => $endDate->copy()->addWeekdays(10),
             'report_data'            => [
                 'total_transactions_monitored' => $reportData['transaction_monitoring']['total_monitored'],
                 'suspicious_transactions'      => $reportData['transaction_monitoring']['suspicious_count'],
@@ -254,7 +263,7 @@ class EnhancedRegulatoryReportingService extends RegulatoryReportingService
             'generated_at'           => now(),
             'regulation_reference'   => 'OFAC Sanctions',
             'is_mandatory'           => true,
-            'due_date'               => $date->copy()->addBusinessDays(1), // Immediate reporting required
+            'due_date'               => $date->copy()->addWeekdays(1), // Immediate reporting required
             'report_data'            => [
                 'total_screened'            => $reportData['screening_results']['total_screened'],
                 'matches_found'             => $reportData['screening_results']['matches_found'],
@@ -307,7 +316,7 @@ class EnhancedRegulatoryReportingService extends RegulatoryReportingService
             'generated_at'           => now(),
             'regulation_reference'   => 'Bank Secrecy Act',
             'is_mandatory'           => true,
-            'due_date'               => $endDate->copy()->addBusinessDays(30),
+            'due_date'               => $endDate->copy()->addWeekdays(30),
             'report_data'            => [
                 'ctr_count'        => $reportData['ctr_filings']['total_filed'],
                 'sar_count'        => $reportData['sar_filings']['total_filed'],
@@ -444,18 +453,20 @@ class EnhancedRegulatoryReportingService extends RegulatoryReportingService
 
         // Add fraud cases
         foreach ($fraudCases as $case) {
+            $score = $case->fraudScore;
             $activities->push(
                 [
                 'id'              => $case->id,
                 'type'            => 'fraud_case',
-                'entity_type'     => $case->entity_type,
-                'entity_id'       => $case->entity_id,
-                'risk_score'      => $case->total_score,
+                'entity_type'     => $score?->entity_type,
+                'entity_id'       => $score?->entity_id,
+                'risk_score'      => $case->risk_score,
                 'fraud_case_id'   => $case->id,
-                'risk_indicators' => $case->risk_factors,
-                'detected_at'     => $case->created_at->toIso8601String(),
+                'risk_indicators' => $case->detection_rules,
+                'detected_at'     => ($case->detected_at ?? $case->created_at)?->toIso8601String(),
                 'status'          => $case->status,
-                'priority'        => $case->priority,
+                'priority'        => self::CASE_SEVERITY_PRIORITY[$case->severity] ?? 3,
+                'loss_amount'     => $case->amount,
                 ]
             );
         }
