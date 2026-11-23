@@ -62,8 +62,9 @@ function dmDeposit(array $overrides = []): array
 }
 
 it('matches a deposit by transaction hash', function (): void {
+    // The row carries the same hash, so a different amount is still this deposit.
     $topup = dmTopUp(dmCard(), ['tx_hash' => '0x' . str_repeat('b', 64), 'amount' => '30.000000']);
-    Http::fake(['lepo.test/api/v2/transfers/crypto-transactions*' => Http::response(['transfers' => [dmDeposit(['amount' => ['amount' => 24.5]])], 'total' => 1])]);
+    Http::fake(['lepo.test/api/v2/transfers/crypto-transactions*' => Http::response(['transfers' => [dmDeposit(['amount' => ['amount' => 24.5], 'transactionHash' => '0x' . str_repeat('B', 64)])], 'total' => 1])]);
 
     expect(app(LepoDepositMatcher::class)->detect($topup))->toBeTrue();
 
@@ -73,6 +74,23 @@ it('matches a deposit by transaction hash', function (): void {
         ->and($fresh?->received_amount)->toBe('24.500000');
     Http::assertSent(fn (Request $r): bool => str_contains($r->url(), 'transactionHash=0x' . str_repeat('b', 64)) && str_contains($r->url(), 'userId=12345'));
     Event::assertDispatched(CardTopUpUpdated::class, fn (CardTopUpUpdated $e): bool => $e->status === 'deposit_received');
+});
+
+it('does not trust the hash filter alone when the row has no hash', function (): void {
+    // If Lepo ignored the filter, the first completed deposit to the address
+    // would be taken whatever its amount. Without a hash the amount must fit.
+    $topup = dmTopUp(dmCard(), ['tx_hash' => '0x' . str_repeat('c', 64)]);
+    Http::fake(['lepo.test/api/v2/transfers/crypto-transactions*' => Http::response(['transfers' => [dmDeposit(['id' => 'dep-other', 'amount' => ['amount' => 90.0]])]])]);
+
+    expect(app(LepoDepositMatcher::class)->detect($topup))->toBeFalse()
+        ->and($topup->fresh()?->provider_deposit_id)->toBeNull();
+});
+
+it('refuses a row that names a different transaction', function (): void {
+    $topup = dmTopUp(dmCard(), ['tx_hash' => '0x' . str_repeat('e', 64), 'amount' => '30.000000']);
+    Http::fake(['lepo.test/api/v2/transfers/crypto-transactions*' => Http::response(['transfers' => [dmDeposit(['amount' => ['amount' => 24.5], 'transactionHash' => '0x' . str_repeat('f', 64)])]])]);
+
+    expect(app(LepoDepositMatcher::class)->detect($topup))->toBeFalse();
 });
 
 it('matches a deposit by amount within one percent', function (float $amount, bool $matches): void {

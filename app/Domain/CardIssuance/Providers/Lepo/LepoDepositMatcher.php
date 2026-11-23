@@ -50,10 +50,17 @@ final class LepoDepositMatcher
         $window = ['startTime' => ($topup->created_at ?? now())->copy()->subMinutes(5)->getTimestampMs(), 'limit' => 50];
 
         // The wallet's hash matches exactly; when Lepo finds nothing for it
-        // (it may index another hash), the amount within 1% still does.
+        // (it may index another hash), the amount within 1% still does. The
+        // filter alone is not trusted: a row that names its hash must name
+        // ours, and a row without one must also fit the amount.
         if ($topup->tx_hash !== null) {
+            $expected = LepoTopUps::number((string) $topup->amount);
             foreach ($this->deposits($userId, ['transactionHash' => $topup->tx_hash] + $window) as $deposit) {
-                if ($this->isFor($deposit, $topup->deposit_address, $topup->network) && $this->claim($topup, $deposit)) {
+                $sameTransaction = $deposit['hash'] !== null
+                    ? $deposit['hash'] === strtolower($topup->tx_hash)
+                    : $this->closeEnough($deposit['amount'], $expected);
+
+                if ($sameTransaction && $this->isFor($deposit, $topup->deposit_address, $topup->network) && $this->claim($topup, $deposit)) {
                     return true;
                 }
             }
@@ -76,7 +83,7 @@ final class LepoDepositMatcher
      * Links the deposit with a conditional write, so a top-up cancelled at the
      * same moment, or a deposit another top-up claimed, is never overwritten.
      *
-     * @param  array{id: string, amount: numeric-string, network: string|null, address: string}  $deposit
+     * @param  array{id: string, amount: numeric-string, network: string|null, address: string, hash: string|null}  $deposit
      */
     private function claim(CardTopUp $topup, array $deposit): bool
     {
@@ -161,7 +168,7 @@ final class LepoDepositMatcher
      * @param  array<string, scalar>  $filters
      * @param  int|null  $raw  set to the number of rows Lepo returned (for paging)
      * @param-out int  $raw
-     * @return list<array{id: string, amount: numeric-string, network: string|null, address: string}>
+     * @return list<array{id: string, amount: numeric-string, network: string|null, address: string, hash: string|null}>
      */
     private function deposits(string $userId, array $filters, ?int &$raw = null): array
     {
@@ -191,11 +198,16 @@ final class LepoDepositMatcher
                 continue;
             }
 
+            // Lepo's documented row has no hash; read one if it is sent.
+            $metadata = is_array($row['metadata'] ?? null) ? $row['metadata'] : [];
+            $hash = $row['transactionHash'] ?? $row['txHash'] ?? $row['hash'] ?? $metadata['transaction_hash'] ?? null;
+
             $deposits[] = [
                 'id'      => (string) $id,
                 'amount'  => $value,
                 'network' => LepoCardOnboarding::NETWORKS[strtolower(trim((string) ($destination['chain'] ?? '')))] ?? null,
                 'address' => strtolower(trim((string) ($destination['address'] ?? ''))),
+                'hash'    => is_string($hash) && trim($hash) !== '' ? strtolower(trim($hash)) : null,
             ];
         }
 
@@ -203,7 +215,7 @@ final class LepoDepositMatcher
     }
 
     /**
-     * @param  array{id: string, amount: numeric-string, network: string|null, address: string}  $deposit
+     * @param  array{id: string, amount: numeric-string, network: string|null, address: string, hash: string|null}  $deposit
      */
     private function isFor(array $deposit, string $address, string $network): bool
     {

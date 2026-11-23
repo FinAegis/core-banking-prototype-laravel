@@ -85,14 +85,27 @@ it('estimates a top-up with the issuance fee for a new card', function (): void 
     $this->getJson('/api/v1/cards/onboarding')->assertJsonPath('data.topups_enabled', true);
 });
 
-it('counts a percentage top-up fee in the estimate as well', function (): void {
+it('counts the percentage top-up fee as a fraction of the loaded dollars', function (): void {
+    // Lepo: topupfeepercent is a fraction (0.015 = 1.5 %) of the amount loaded,
+    // rounded to the cent, and it is the whole load fee: topupfee is not added.
     $card = tuCard('active', '777');
-    Http::fake(['lepo.test/api/v2/cards/quantum-topup/estimate*' => Http::response(tuEstimate(topupFeePercent: '1'))]);
+    Http::fake(['lepo.test/api/v2/cards/quantum-topup/estimate*' => Http::response(tuEstimate(topupFeePercent: '0.015'))]);
 
-    // 25.00 x 0.999 = 24.975; minus 0.05 conversion fee, 0.25 top-up fee and 1% of 25.00 = 24.425.
+    // 25.00 x 0.999 - 0.05 = 24.925 loaded; 1.5 % of it is 0.373875, so 0.38; the card gets 24.545.
     $this->getJson("/api/v1/cards/issued/{$card->id}/topups/estimate?amount=25.00&network=arbitrum")
-        ->assertJsonPath('data.credited_cents', 2442)
-        ->assertJsonPath('data.fee_cents', 55);
+        ->assertJsonPath('data.credited_cents', 2454)
+        ->assertJsonPath('data.fee_cents', 43);
+});
+
+it('takes the percentage fee from what is loaded after the issuance fee', function (): void {
+    $card = tuCard();
+    Http::fake(['lepo.test/api/v2/cards/quantum-topup/estimate*' => Http::response(tuEstimate(topupFeePercent: '0.015'))]);
+
+    // 24.925 - 1.00 issuance = 23.925 loaded; 1.5 % is 0.358875, so 0.36; the card gets 23.565.
+    $this->getJson("/api/v1/cards/issued/{$card->id}/topups/estimate?amount=25.00&network=arbitrum")
+        ->assertJsonPath('data.credited_cents', 2356)
+        ->assertJsonPath('data.fee_cents', 41)
+        ->assertJsonPath('data.issuance_fee_cents', 100);
 });
 
 it('ignores a negative percentage top-up fee', function (): void {

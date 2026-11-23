@@ -8,10 +8,12 @@ use App\Domain\CardIssuance\Models\Card;
 use App\Domain\CardIssuance\Models\CardFundingAccount;
 use App\Domain\CardIssuance\Models\Cardholder;
 use App\Domain\CardIssuance\Models\CardTopUp;
+use App\Domain\CardIssuance\Providers\Lepo\LepoTopUpPipeline;
 use App\Domain\CardIssuance\Webhooks\LepoWebhookRouter;
 use App\Models\User;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
@@ -19,6 +21,8 @@ use Illuminate\Support\Facades\Queue;
 const AT_ADDRESS = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
 
 beforeEach(function (): void {
+    // The shared 15-second conversion slot outlives a test when CI keeps the cache in Redis.
+    Cache::lock(LepoTopUpPipeline::CONVERSION_SLOT_KEY)->forceRelease();
     config([
         'cardissuance.issuers.lepo.base_url'             => 'https://lepo.test/api/v2', 'cardissuance.issuers.lepo.api_key' => 'k',
         'cardissuance.issuers.lepo.card_type_id_virtual' => '145', 'cardissuance.providers.lepo_topups_enabled' => true,
@@ -76,8 +80,8 @@ function atLepo(array $transfers): void
         return match (true) {
             str_ends_with($path, '/transfers/crypto-transactions')          => Http::response(['transfers' => $transfers]),
             str_ends_with($path, '/transfers/crypto-to-quantum-transfer')   => Http::response(['success' => true, 'transferId' => 'tr-1', 'details' => ['status' => 'COMPLETED']]),
-            str_ends_with($path, '/users/12345/assets')                     => Http::response(['assets' => [['currency' => 'USD', 'availableBalance' => $opened ? '23.90' : '24.90']]]),
-            $r->method() === 'POST' && str_ends_with($path, '/cards/topup') => Http::response(['success' => true, 'orderId' => 'ord-1', 'value' => $r['value'], 'isPartial' => false]),
+            str_ends_with($path, '/users/12345/assets')                     => Http::response(['assets' => [['assetType' => 'fiat', 'balanceType' => 'QuantumAccount', 'balanceId' => 'b-usd', 'currency' => 'USD', 'availableBalance' => $opened ? '23.90' : '24.90']]]),
+            $r->method() === 'POST' && str_ends_with($path, '/cards/topup') => Http::response(['success' => true, 'orderId' => 'ord-1', 'requestedValue' => $r['value'], 'grossValue' => $r['value'], 'fee' => '0', 'value' => $r['value'], 'isPartial' => false]),
             $r->method() === 'POST' && str_ends_with($path, '/cards')       => (function () use (&$opened) {
                 $opened = true;
 
