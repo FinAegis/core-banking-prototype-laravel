@@ -8941,18 +8941,6 @@ parameters:
 			path: app/Domain/Asset/Models/ExchangeRate.php
 
 		-
-			message: '#^Call to an undefined method App\\Domain\\Account\\DataObjects\\AccountUuid\:\:toString\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: app/Domain/Asset/Projectors/AssetTransferProjector.php
-
-		-
-			message: '#^Parameter \#1 \$column of static method Spatie\\EventSourcing\\StoredEvents\\Models\\EloquentStoredEventQueryBuilder\<App\\Domain\\Account\\Models\\Transfer\>\:\:where\(\) expects array\<int\|model property of App\\Domain\\Account\\Models\\Transfer, mixed\>\|\(Closure\(Spatie\\EventSourcing\\StoredEvents\\Models\\EloquentStoredEventQueryBuilder\<App\\Domain\\Account\\Models\\Transfer\>\)\: Spatie\\EventSourcing\\StoredEvents\\Models\\EloquentStoredEventQueryBuilder\<App\\Domain\\Account\\Models\\Transfer\>\)\|\(Closure\(Spatie\\EventSourcing\\StoredEvents\\Models\\EloquentStoredEventQueryBuilder\<App\\Domain\\Account\\Models\\Transfer\>\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of App\\Domain\\Account\\Models\\Transfer, ''hash'' given\.$#'
-			identifier: argument.type
-			count: 2
-			path: app/Domain/Asset/Projectors/AssetTransferProjector.php
-
-		-
 			message: '#^Method App\\Domain\\Asset\\Services\\ExchangeRateService\:\:fetchFromCommodityProvider\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -8993,12 +8981,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: app/Domain/Asset/Services/ExchangeRateService.php
-
-		-
-			message: '#^Call to an undefined method App\\Domain\\Account\\DataObjects\\AccountUuid\:\:toString\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: app/Domain/Asset/Workflows/Activities/InitiateAssetTransferActivity.php
 
 		-
 			message: '#^Method App\\Domain\\Asset\\Workflows\\Activities\\ValidateExchangeRateActivity\:\:execute\(\) return type has no value type specified in iterable type array\.$#'
@@ -33533,12 +33515,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: app/Domain/User/ValueObjects/UserPreferences.php
-
-		-
-			message: '#^Method App\\Domain\\Wallet\\Activities\\ConvertAssetActivity\:\:execute\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Domain/Wallet/Activities/ConvertAssetActivity.php
 
 		-
 			message: '#^Method App\\Domain\\Wallet\\Aggregates\\BlockchainWallet\:\:create\(\) has parameter \$settings with no value type specified in iterable type array\.$#'
