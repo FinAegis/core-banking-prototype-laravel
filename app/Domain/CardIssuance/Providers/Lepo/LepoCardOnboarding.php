@@ -141,31 +141,69 @@ final class LepoCardOnboarding implements CardOnboardingProvider
             return new KycStart('hosted_url', null, PublicLink::to($path), $expires->toIso8601String());
         }
 
-        $response = $this->call(fn (): array => $this->client->createSumsubAccessToken($this->lepoUserId($cardholder), $this->questionnaireOf($cardholder)));
+        // The status moves on only when Lepo reports a submission: a user who
+        // closes the SDK without submitting can simply start again. An
+        // already approved check has no token; the status is synced and the
+        // app reads it from the onboarding state.
+        $token = $this->sdkToken($cardholder)
+            ?? throw CardProviderException::providerUnavailable('lepo', 'KYC_ALREADY_APPROVED');
+
+        return new KycStart('sumsub_sdk', $token, null, null);
+    }
+
+    /**
+     * A SumSub access token for the web SDK on our identity-check page, or
+     * null when Lepo says the user's identity check is already approved (the
+     * cardholder's status is then synced from Lepo).
+     */
+    public function webKycToken(Cardholder $cardholder): ?string
+    {
+        return $this->sdkToken($cardholder);
+    }
+
+    /**
+     * The token both SumSub SDKs need comes from sumsub-access-token. The
+     * accessToken that sumsub/kyc-url answers is a link to Lepo's own hosted
+     * page, not an SDK token (Lepo, 2026-11-23). Lepo needs the questionnaire
+     * answers on every call and answers 400 KYC_ALREADY_APPROVED once the
+     * check is approved.
+     */
+    private function sdkToken(Cardholder $cardholder): ?string
+    {
+        try {
+            $response = $this->client->createSumsubAccessToken($this->lepoUserId($cardholder), $this->questionnaireOf($cardholder));
+        } catch (LepoApiException $e) {
+            if ($e->lepoCode() === 'KYC_ALREADY_APPROVED') {
+                $this->syncAfterApproval($cardholder);
+
+                return null;
+            }
+
+            throw CardProviderException::providerUnavailable('lepo', $e->lepoCode());
+        }
 
         $token = $response['token'] ?? null;
         if (! is_string($token) || $token === '') {
             throw CardProviderException::providerUnavailable('lepo', 'NO_KYC_TOKEN');
         }
 
-        // The status moves on only when Lepo reports a submission: a user who
-        // closes the SDK without submitting can simply start again.
-        return new KycStart('sumsub_sdk', $token, null, null);
+        return $token;
     }
 
     /**
-     * A SumSub access token for the web SDK on our identity-check page.
+     * Read the decision Lepo already made. If that read fails, the webhook
+     * still brings the status, so the approval is not reported as an error.
      */
-    public function webKycToken(Cardholder $cardholder): string
+    private function syncAfterApproval(Cardholder $cardholder): void
     {
-        $response = $this->call(fn (): array => $this->client->createSumsubKycUrl($this->lepoUserId($cardholder), $this->questionnaireOf($cardholder)));
-
-        $token = $response['accessToken'] ?? null;
-        if (! is_string($token) || $token === '') {
-            throw CardProviderException::providerUnavailable('lepo', 'NO_KYC_TOKEN');
+        try {
+            $this->refreshKycStatus($cardholder);
+        } catch (CardProviderException $e) {
+            Log::warning('Lepo identity check already approved, but its status could not be read', [
+                'cardholder_id' => $cardholder->id,
+                'reason'        => $e->getMessage(),
+            ]);
         }
-
-        return $token;
     }
 
     public function refreshKycStatus(Cardholder $cardholder): Cardholder

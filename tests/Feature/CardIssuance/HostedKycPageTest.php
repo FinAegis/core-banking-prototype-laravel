@@ -14,6 +14,7 @@ beforeEach(function (): void {
         'cardissuance.issuers.lepo.api_key'     => 'test-key',
         'cardissuance.providers.kyc_return_url' => 'zelta://cards/kyc-done',
     ]);
+    Http::preventStrayRequests();
 });
 
 function hostedCardholder(string $status = 'pending', string $provider = 'lepo'): Cardholder
@@ -34,8 +35,8 @@ function hostedLink(Cardholder $cardholder, int $minutes = 30): string
     return URL::temporarySignedRoute('cards.kyc.hosted', now()->addMinutes($minutes), ['cardholder' => $cardholder->id], absolute: false);
 }
 
-it('opens the SumSub identity check with a fresh Lepo token', function (): void {
-    Http::fake(['lepo.test/api/v2/users/12345/sumsub/kyc-url' => Http::response(['success' => true, 'accessToken' => 'web-token-123', 'status' => 'init'])]);
+it('opens the SumSub identity check with a fresh Lepo SDK token', function (): void {
+    Http::fake(['lepo.test/api/v2/users/12345/kyc/sumsub-access-token' => Http::response(['success' => true, 'token' => 'web-token-123', 'status' => 'init'])]);
     $cardholder = hostedCardholder();
 
     $response = $this->get(hostedLink($cardholder))
@@ -53,12 +54,12 @@ it('opens the SumSub identity check with a fresh Lepo token', function (): void 
         ->and($response->headers->get('X-Robots-Tag'))->toBe('noindex, nofollow')
         ->and((string) $response->headers->get('Permissions-Policy'))->toContain('camera=*');
 
-    Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/users/12345/sumsub/kyc-url')
+    Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/users/12345/kyc/sumsub-access-token')
         && $request['occupation'] === '15-1252' && $request['annualSalary'] === '30001-50000');
 });
 
 it('records that the identity check was sent from the page', function (): void {
-    Http::fake(['lepo.test/api/v2/users/12345/sumsub/kyc-url' => Http::response(['success' => true, 'accessToken' => 'web-token'])]);
+    Http::fake(['lepo.test/api/v2/users/12345/kyc/sumsub-access-token' => Http::response(['success' => true, 'token' => 'web-token'])]);
     $cardholder = hostedCardholder();
 
     $this->get(hostedLink($cardholder))->assertOk()->assertSee('X-CSRF-TOKEN', false);
@@ -72,7 +73,7 @@ it('records that the identity check was sent from the page', function (): void {
 });
 
 it('gives the page a signed link to renew the token', function (): void {
-    Http::fake(['lepo.test/api/v2/users/12345/sumsub/kyc-url' => Http::response(['success' => true, 'accessToken' => 'renewed-token'])]);
+    Http::fake(['lepo.test/api/v2/users/12345/kyc/sumsub-access-token' => Http::response(['success' => true, 'token' => 'renewed-token'])]);
     $cardholder = hostedCardholder();
 
     $refresh = URL::temporarySignedRoute('cards.kyc.hosted.token', now()->addMinutes(60), ['cardholder' => $cardholder->id], absolute: false);
@@ -82,7 +83,7 @@ it('gives the page a signed link to renew the token', function (): void {
 });
 
 it('accepts the link the API hands out whatever host or scheme reaches the page', function (): void {
-    Http::fake(['lepo.test/api/v2/users/12345/sumsub/kyc-url' => Http::response(['success' => true, 'accessToken' => 'web-token'])]);
+    Http::fake(['lepo.test/api/v2/users/12345/kyc/sumsub-access-token' => Http::response(['success' => true, 'token' => 'web-token'])]);
     $cardholder = hostedCardholder();
     $url = (string) app(App\Domain\CardIssuance\Providers\Lepo\LepoCardOnboarding::class)->startKyc($cardholder)->url;
 
@@ -119,8 +120,47 @@ it('does not open the page for another provider', function (): void {
 });
 
 it('asks to try again later when Lepo cannot start the check', function (): void {
-    Http::fake(['lepo.test/api/v2/users/12345/sumsub/kyc-url' => Http::response(['message' => 'down'], 500)]);
+    Http::fake(['lepo.test/api/v2/users/12345/kyc/sumsub-access-token' => Http::response(['message' => 'down'], 500)]);
     $cardholder = hostedCardholder();
 
     $this->get(hostedLink($cardholder))->assertStatus(502)->assertSee('could not start right now');
+});
+
+it('never hands the web SDK the hosted verification link from kyc-url', function (): void {
+    // Lepo: the accessToken from sumsub/kyc-url is a link to their hosted
+    // page, not an SDK token. The SDK token comes from sumsub-access-token.
+    Http::fake([
+        'lepo.test/api/v2/users/12345/kyc/sumsub-access-token' => Http::response(['success' => true, 'token' => 'sdk-token']),
+        'lepo.test/api/v2/users/12345/sumsub/kyc-url'          => Http::response(['success' => true, 'accessToken' => 'https://verify.example/link']),
+    ]);
+    $cardholder = hostedCardholder();
+
+    $this->get(hostedLink($cardholder))->assertOk()->assertSee('"sdk-token"', false)->assertDontSee('verify.example');
+
+    Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/sumsub/kyc-url'));
+});
+
+it('shows the sent page and syncs the status when Lepo says the check is already approved', function (): void {
+    Http::fake([
+        'lepo.test/api/v2/users/12345/kyc/sumsub-access-token' => Http::response(['message' => 'KYC already approved', 'code' => 'KYC_ALREADY_APPROVED'], 400),
+        'lepo.test/api/v2/users/12345/kyc/detailed-status'     => Http::response(['cardIssuerKycApproved' => true, 'interlace' => ['status' => 'approved', 'approved' => true]]),
+    ]);
+    $cardholder = hostedCardholder();
+
+    $this->get(hostedLink($cardholder))->assertOk()->assertSee('already been sent');
+
+    expect($cardholder->fresh()?->kyc_status)->toBe('verified');
+});
+
+it('tells the page to stop renewing the token once the check is already approved', function (): void {
+    Http::fake([
+        'lepo.test/api/v2/users/12345/kyc/sumsub-access-token' => Http::response(['code' => 'KYC_ALREADY_APPROVED'], 400),
+        'lepo.test/api/v2/users/12345/kyc/detailed-status'     => Http::response(['lepoFinanceKycApproved' => true]),
+    ]);
+    $cardholder = hostedCardholder();
+    $refresh = URL::temporarySignedRoute('cards.kyc.hosted.token', now()->addMinutes(60), ['cardholder' => $cardholder->id], absolute: false);
+
+    $this->getJson($refresh)->assertStatus(409)->assertExactJson(['error' => 'submitted']);
+
+    expect($cardholder->fresh()?->kyc_status)->toBe('in_review');
 });
