@@ -43,9 +43,9 @@ function tuCard(string $status = 'pending', ?string $token = null, ?User $user =
 /**
  * @return array<string, mixed>
  */
-function tuEstimate(string $rate = '0.999', string $fee = '0.05', string $topupFee = '0.25'): array
+function tuEstimate(string $rate = '0.999', string $fee = '0.05', string $topupFee = '0.25', string $topupFeePercent = '0'): array
 {
-    return ['success' => true, 'usdAmount' => 25, 'topupfee' => $topupFee, 'topupfeepercent' => 1,
+    return ['success' => true, 'usdAmount' => 25, 'topupfee' => $topupFee, 'topupfeepercent' => $topupFeePercent,
         'usdcToUsd'   => ['baseCurrency' => 'USDC', 'quoteCurrency' => 'USD', 'baseAmount' => '25', 'rfqAmount' => '24.975', 'fee' => $fee, 'feeCurrency' => 'USD', 'rate' => $rate, 'quoteId' => 'q1']];
 }
 
@@ -83,6 +83,25 @@ it('estimates a top-up with the issuance fee for a new card', function (): void 
             'issuance_fee_cents' => 100, 'min_amount' => '10.00', 'max_amount' => '1000.00',
         ]);
     $this->getJson('/api/v1/cards/onboarding')->assertJsonPath('data.topups_enabled', true);
+});
+
+it('counts a percentage top-up fee in the estimate as well', function (): void {
+    $card = tuCard('active', '777');
+    Http::fake(['lepo.test/api/v2/cards/quantum-topup/estimate*' => Http::response(tuEstimate(topupFeePercent: '1'))]);
+
+    // 25.00 x 0.999 = 24.975; minus 0.05 conversion fee, 0.25 top-up fee and 1% of 25.00 = 24.425.
+    $this->getJson("/api/v1/cards/issued/{$card->id}/topups/estimate?amount=25.00&network=arbitrum")
+        ->assertJsonPath('data.credited_cents', 2442)
+        ->assertJsonPath('data.fee_cents', 55);
+});
+
+it('ignores a negative percentage top-up fee', function (): void {
+    $card = tuCard('active', '777');
+    Http::fake(['lepo.test/api/v2/cards/quantum-topup/estimate*' => Http::response(tuEstimate(topupFeePercent: '-2'))]);
+
+    $this->getJson("/api/v1/cards/issued/{$card->id}/topups/estimate?amount=25.00&network=arbitrum")
+        ->assertJsonPath('data.credited_cents', 2467)
+        ->assertJsonPath('data.fee_cents', 30);
 });
 
 it('estimates no issuance fee once the card is open', function (): void {
