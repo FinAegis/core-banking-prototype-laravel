@@ -1627,10 +1627,10 @@ issuer, network or identity-check provider is named. Guarded by `tests/Feature/L
 
 ## Items not changed in this pass (pending owner decision)
 
-- Card top-ups and MiCA: the app passes the user's instruction to convert a USDC deposit to the card partner. Confirm with
-  the card partner that its own authorisation covers the conversion and the card load for our users, so that Zelta acts
-  only as the technical interface and does not itself provide "reception and transmission of orders for crypto-assets on
-  behalf of clients" (MiCA Art. 3(1)(16)(i)). Until confirmed, keep the pilot small and invitation-only.
+- ANSWERED 2026-11-23: Card top-ups and MiCA. The app passes the user's instruction to convert a USDC deposit to the card
+  partner. The owner confirmed that the card partner's own licence covers the conversion and the card load for our users
+  ("dėl Lepo licencijos - taip, apima"), so Zelta acts only as the technical interface and does not itself provide
+  "reception and transmission of orders for crypto-assets on behalf of clients" (MiCA Art. 3(1)(16)(i)).
 
 These need a product or legal decision, a binary asset, or a change outside the repository, so they were not edited here:
 
