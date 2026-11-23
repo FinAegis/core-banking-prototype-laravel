@@ -171,12 +171,12 @@ class CueResource extends Resource
             ])
             ->actions([
                 Action::make('markDismissed')
-                    ->label('Mark dismissed')
+                    ->label('Mark Dismissed')
                     ->color('warning')
                     ->icon('heroicon-o-x-circle')
                     ->requiresConfirmation()
                     ->modalHeading('Dismiss this cue?')
-                    ->modalDescription('Sets dismissed_at = now(). Use when a cue is known-stale and the user should not see it.')
+                    ->modalDescription('This marks the cue as dismissed now, so the app stops showing it. Use this when you know the cue is out of date.')
                     ->visible(fn (Cue $record): bool => $record->dismissed_at === null)
                     ->action(function (Cue $record): void {
                         $record->forceFill([
@@ -190,10 +190,10 @@ class CueResource extends Resource
                             ->send();
                     }),
                 Tables\Actions\DeleteAction::make()
-                    ->label('Force delete')
+                    ->label('Delete Permanently')
                     ->requiresConfirmation()
-                    ->modalHeading('Force delete this cue?')
-                    ->modalDescription('Hard-deletes the row. Use only when the cue was created erroneously. This action cannot be undone.')
+                    ->modalHeading('Delete this cue permanently?')
+                    ->modalDescription('This removes the cue from the database. Use this only when the cue was created by mistake. You cannot undo this action.')
                     ->visible(fn (): bool => auth()->user()?->canAccessPanel(\Filament\Facades\Filament::getCurrentPanel() ?? \Filament\Facades\Filament::getDefaultPanel()) ?? false),
             ])
             ->bulkActions([]);

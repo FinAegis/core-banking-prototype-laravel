@@ -26,9 +26,9 @@ class AccountResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
 
-    protected static ?string $navigationLabel = 'Bank Accounts';
+    protected static ?string $navigationLabel = 'Accounts';
 
-    protected static ?string $modelLabel = 'Bank Account';
+    protected static ?string $modelLabel = 'Account';
 
     protected static ?string $navigationGroup = 'Banking';
 
@@ -40,7 +40,7 @@ class AccountResource extends Resource
             ->schema(
                 [
                     Section::make('Account Information')
-                        ->description('Basic account details')
+                        ->description('Give the account a name and link it to the user who owns it.')
                         ->schema(
                             [
                                 Forms\Components\TextInput::make('uuid')
@@ -57,12 +57,12 @@ class AccountResource extends Resource
                                     ->label('User UUID')
                                     ->required()
                                     ->placeholder('UUID of the account owner')
-                                    ->helperText('The unique identifier of the user who owns this account'),
+                                    ->helperText('Enter the unique ID of the user who owns this account.'),
                             ]
                         )->columns(2),
 
                     Section::make('Financial Details')
-                        ->description('Account balance and status')
+                        ->description('This section shows the balance and whether the account is frozen.')
                         ->schema(
                             [
                                 Forms\Components\TextInput::make('balance')
@@ -73,16 +73,16 @@ class AccountResource extends Resource
                                     ->prefix('$')
                                     ->disabled()
                                     ->dehydrated(false)
-                                    ->helperText('Balance can only be modified through transactions'),
+                                    ->helperText('The balance can only change through transactions.'),
                                 Forms\Components\Toggle::make('frozen')
                                     ->label('Account Frozen')
-                                    ->helperText('Frozen accounts cannot perform transactions')
+                                    ->helperText('A frozen account cannot make any transactions.')
                                     ->reactive()
                                     ->afterStateUpdated(
                                         function ($state, $old) {
                                             if ($state !== $old && $old !== null) {
                                                 Notification::make()
-                                                    ->title($state ? 'Account will be frozen' : 'Account will be unfrozen')
+                                                    ->title($state ? 'The account will be frozen when you save.' : 'The account will be unfrozen when you save.')
                                                     ->warning()
                                                     ->send();
                                             }
@@ -212,7 +212,7 @@ class AccountResource extends Resource
                                     ->required()
                                     ->minValue(0.01)
                                     ->prefix('$')
-                                    ->helperText('Enter the amount to deposit'),
+                                    ->helperText('Enter the amount to add to the account.'),
                             ]
                         )
                         ->action(
@@ -256,7 +256,7 @@ class AccountResource extends Resource
                                     ->required()
                                     ->minValue(0.01)
                                     ->prefix('$')
-                                    ->helperText('Enter the amount to withdraw'),
+                                    ->helperText('Enter the amount to take out of the account.'),
                             ]
                         )
                         ->action(
@@ -292,7 +292,7 @@ class AccountResource extends Resource
                         ->color('danger')
                         ->requiresConfirmation()
                         ->modalHeading('Freeze Account')
-                        ->modalDescription('Are you sure you want to freeze this account? This will prevent all transactions.')
+                        ->modalDescription('Are you sure you want to freeze this account? A frozen account cannot make any transactions.')
                         ->modalSubmitActionLabel('Yes, freeze account')
                         ->action(
                             function (Account $record): void {
@@ -321,7 +321,7 @@ class AccountResource extends Resource
                         ->color('success')
                         ->requiresConfirmation()
                         ->modalHeading('Unfreeze Account')
-                        ->modalDescription('Are you sure you want to unfreeze this account? This will allow transactions again.')
+                        ->modalDescription('Are you sure you want to unfreeze this account? The account can then make transactions again.')
                         ->modalSubmitActionLabel('Yes, unfreeze account')
                         ->action(
                             function (Account $record): void {
@@ -376,7 +376,7 @@ class AccountResource extends Resource
                                             Notification::make()
                                                 ->title('Accounts Frozen')
                                                 ->success()
-                                                ->body("{$success} account(s) frozen successfully.")
+                                                ->body("{$success} account(s) were frozen.")
                                                 ->send();
                                         }
 

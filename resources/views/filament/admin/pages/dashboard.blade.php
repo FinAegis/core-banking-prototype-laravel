@@ -12,22 +12,22 @@
                             <span class="ml-3 text-3xl">{{ config('app.gcu_basket_symbol', 'Ǥ') }}</span>
                         </div>
                         <p class="mt-2 text-base text-gray-700 dark:text-gray-300">
-                            {{ config('app.gcu_basket_description', 'Democratic global currency backed by real banks') }}
+                            {{ config('app.gcu_basket_description', 'This is a software demonstration of a currency basket. It is not issued, offered or sold to anyone, and it has no monetary value.') }}
                         </p>
                         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                            Powered by {{ config('brand.name', 'Zelta') }} Platform
+                            The demonstration runs on the {{ config('brand.name', 'Zelta') }} platform.
                         </p>
                     </div>
                 </div>
                 
                 <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
-                        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Currency Type</h3>
-                        <p class="text-lg font-semibold text-gray-900 dark:text-white">User-Controlled</p>
+                        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Status</h3>
+                        <p class="text-lg font-semibold text-gray-900 dark:text-white">Demonstration Only</p>
                     </div>
                     <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
                         <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Bank Partners</h3>
-                        <p class="text-lg font-semibold text-gray-900 dark:text-white">5 Integrated Banks</p>
+                        <p class="text-lg font-semibold text-gray-900 dark:text-white">None</p>
                     </div>
                     <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
                         <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Governance</h3>
@@ -40,10 +40,10 @@
         {{-- {{ config('brand.name', 'Zelta') }} Platform Dashboard --}}
         <div class="space-y-4">
             <div class="text-2xl font-bold tracking-tight">
-                Welcome to {{ config('brand.name', 'Zelta') }} Dashboard
+                Welcome to the {{ config('brand.name', 'Zelta') }} admin panel
             </div>
             <div class="text-sm text-gray-600 dark:text-gray-400">
-                Enterprise-grade core banking platform
+                Staff use this panel to look after users, accounts, payments and the systems that run them.
             </div>
         </div>
     @endif

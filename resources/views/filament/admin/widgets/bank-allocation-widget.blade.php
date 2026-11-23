@@ -1,16 +1,16 @@
 <x-filament-widgets::widget>
     <x-filament::section>
         <x-slot name="heading">
-            Bank Partner Network
+            Bank Allocations
         </x-slot>
         
         <x-slot name="description">
-            Multi-bank fund distribution for enhanced security and deposit insurance
+            This shows how users split their funds between the banks set up in this deployment.
         </x-slot>
 
         <div class="mb-4">
             <div class="text-sm text-gray-600 dark:text-gray-400">
-                Total Deposit Insurance Coverage: <span class="font-bold text-primary-600">{{ $this->getTotalInsuranceCoverage() }}</span>
+                Sum of the stored deposit limits: <span class="font-bold text-primary-600">{{ $this->getTotalInsuranceCoverage() }}</span>
             </div>
         </div>
 
@@ -23,7 +23,7 @@
                         <th class="text-left p-2">Type</th>
                         <th class="text-center p-2">Active Users</th>
                         <th class="text-center p-2">Avg. Allocation</th>
-                        <th class="text-right p-2">Insurance</th>
+                        <th class="text-right p-2">Deposit Limit</th>
                         <th class="text-left p-2">Features</th>
                     </tr>
                 </thead>
@@ -69,7 +69,7 @@
         </div>
 
         <div class="mt-4 text-xs text-gray-500 dark:text-gray-400">
-            <p>Each bank provides government-backed deposit insurance protection. Diversifying funds across multiple banks maximizes coverage.</p>
+            <p>Each limit is a value stored for the bank in this deployment. It does not confirm that any user's funds are covered.</p>
         </div>
     </x-filament::section>
 </x-filament-widgets::widget>

@@ -35,7 +35,7 @@ class AccountBalancesRelationManager extends RelationManager
                         ->label('Balance')
                         ->numeric()
                         ->required()
-                        ->helperText('Balance in smallest unit (e.g., cents for USD)'),
+                        ->helperText('Enter the balance in the smallest unit of the asset, for example cents for US dollars.'),
                 ]
             );
     }

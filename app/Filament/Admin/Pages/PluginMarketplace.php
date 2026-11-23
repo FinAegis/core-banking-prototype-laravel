@@ -135,7 +135,7 @@ class PluginMarketplace extends Page
         } catch (Exception $e) {
             Notification::make()
                 ->title('Error')
-                ->body("Failed to enable plugin: {$e->getMessage()}")
+                ->body("The plugin could not be enabled. {$e->getMessage()}")
                 ->danger()
                 ->send();
 
@@ -179,7 +179,7 @@ class PluginMarketplace extends Page
         } catch (Exception $e) {
             Notification::make()
                 ->title('Error')
-                ->body("Failed to disable plugin: {$e->getMessage()}")
+                ->body("The plugin could not be disabled. {$e->getMessage()}")
                 ->danger()
                 ->send();
 
@@ -215,7 +215,7 @@ class PluginMarketplace extends Page
 
                 Notification::make()
                     ->title('Security Issues Found')
-                    ->body("{$issueCount} issue(s) found in {$vendor}/{$name}: {$types}")
+                    ->body("The scan found {$issueCount} issue(s) in {$vendor}/{$name}. The issue types are {$types}.")
                     ->warning()
                     ->duration(10000)
                     ->send();
@@ -230,7 +230,7 @@ class PluginMarketplace extends Page
         } catch (Exception $e) {
             Notification::make()
                 ->title('Scan Error')
-                ->body("Failed to scan plugin: {$e->getMessage()}")
+                ->body("The plugin could not be scanned. {$e->getMessage()}")
                 ->danger()
                 ->send();
 
@@ -255,7 +255,7 @@ class PluginMarketplace extends Page
 
             Notification::make()
                 ->title('Plugin Discovery Complete')
-                ->body("Discovered {$result['discovered']} plugin(s), {$result['new']} new.")
+                ->body("The scan found {$result['discovered']} plugin(s), and {$result['new']} of them are new.")
                 ->success()
                 ->send();
 
@@ -267,7 +267,7 @@ class PluginMarketplace extends Page
         } catch (Exception $e) {
             Notification::make()
                 ->title('Discovery Error')
-                ->body("Failed to discover plugins: {$e->getMessage()}")
+                ->body("The plugin scan failed. {$e->getMessage()}")
                 ->danger()
                 ->send();
 
@@ -289,7 +289,7 @@ class PluginMarketplace extends Page
 
         Notification::make()
             ->title('Not Available')
-            ->body('Runtime plugin management is turned off (ADMIN_RUNTIME_MANAGEMENT_ENABLED).')
+            ->body('The ADMIN_RUNTIME_MANAGEMENT_ENABLED setting turns off plugin changes from the admin panel.')
             ->warning()
             ->send();
 

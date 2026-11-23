@@ -33,7 +33,7 @@ class ExchangeRateStatsWidget extends BaseWidget
                 ->descriptionIcon('heroicon-m-arrow-trending-up'),
 
             Stat::make('Stale Rates', $staleRates)
-                ->description("{$stalePercentage}% over 24h old")
+                ->description("{$stalePercentage}% older than 24 hours")
                 ->icon('heroicon-m-clock')
                 ->color($staleRates > 0 ? 'warning' : 'success')
                 ->descriptionIcon($staleRates > 0 ? 'heroicon-m-exclamation-triangle' : 'heroicon-m-check'),

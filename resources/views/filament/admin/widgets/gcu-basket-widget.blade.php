@@ -2,7 +2,7 @@
     <x-filament::section>
         <x-slot name="heading">
             <div class="flex items-center justify-between">
-                <span>{{ $title ?? 'GCU Currency Basket Composition' }}</span>
+                <span>{{ $title ?? 'GCU Basket Composition' }}</span>
                 @if (!$exists)
                     <x-filament::badge color="warning">Not Configured</x-filament::badge>
                 @else
@@ -14,11 +14,11 @@
         <div class="space-y-4">
             @if (!$exists)
                 <div class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                    The {{ config('baskets.primary_name', 'GCU') }} basket has not been configured yet. The proposed composition is:
+                    The {{ config('baskets.primary_name', 'GCU') }} basket is not set up yet. The proposed composition is shown below.
                 </div>
             @else
                 <div class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                    {{ $description ?? 'Current allocation of currencies in the Global Currency Unit basket' }}
+                    {{ $description ?? 'This is how the Global Currency Unit basket is split between currencies today.' }}
                 </div>
             @endif
 
@@ -62,8 +62,8 @@
             @endif
 
             <div class="mt-6 text-sm text-gray-600 dark:text-gray-400">
-                <p>The {{ config('baskets.primary_name', 'Global Currency Unit') }} ({{ config('baskets.primary_code', 'GCU') }}) is backed by a diversified basket of major currencies and gold, providing stability and reducing single-currency risk.</p>
-                <p class="mt-2">Users vote monthly on the basket composition, ensuring democratic control over the currency.</p>
+                <p>The {{ config('baskets.primary_name', 'Global Currency Unit') }} is a software demonstration of a basket of major currencies and gold. It is not issued, offered or sold to anyone, and it has no monetary value.</p>
+                <p class="mt-2">In the demonstration, users vote each month on how the basket is made up.</p>
             </div>
         </div>
     </x-filament::section>

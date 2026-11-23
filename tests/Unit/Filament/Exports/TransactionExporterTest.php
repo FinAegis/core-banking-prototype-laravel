@@ -97,7 +97,7 @@ it('generates correct completion notification body', function () {
 
     $body = TransactionExporter::getCompletedNotificationBody($export);
 
-    expect($body)->toBe('Your transaction export has completed and 500 rows exported.');
+    expect($body)->toBe('Your transaction export is complete. 500 rows were exported.');
 });
 
 it('has correct model association', function () {

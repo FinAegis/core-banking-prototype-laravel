@@ -32,9 +32,9 @@ class IapSubscriptionResource extends Resource
 
     protected static ?string $navigationGroup = 'Subscriptions';
 
-    protected static ?string $navigationLabel = 'IAP Subscriptions';
+    protected static ?string $navigationLabel = 'In-App Subscriptions';
 
-    protected static ?string $modelLabel = 'IAP Subscription';
+    protected static ?string $modelLabel = 'In-App Subscription';
 
     protected static ?int $navigationSort = 10;
 
@@ -114,8 +114,8 @@ class IapSubscriptionResource extends Resource
             ])
             ->actions([])
             ->bulkActions([])
-            ->emptyStateHeading('No IAP subscriptions yet')
-            ->emptyStateDescription('Rows appear after the first successful /subscriptions/iap/verify.');
+            ->emptyStateHeading('No in-app subscriptions yet')
+            ->emptyStateDescription('A row appears here after the server verifies a purchase that the app made in the App Store or Google Play.');
     }
 
     public static function getPages(): array

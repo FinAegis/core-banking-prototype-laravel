@@ -69,10 +69,10 @@ class UserBankPreferenceResource extends Resource
                         ->minValue(0)
                         ->maxValue(100)
                         ->suffix('%')
-                        ->helperText('Percentage of funds to allocate to this bank'),
+                        ->helperText('Enter the share of the user\'s funds, as a percentage, that goes to this bank.'),
                     Forms\Components\Toggle::make('is_primary')
                         ->label('Primary Bank')
-                        ->helperText('Primary bank will be used for urgent transfers'),
+                        ->helperText('Turn this on to make this bank the user\'s main bank.'),
                     Forms\Components\Select::make('status')
                         ->options(
                             [

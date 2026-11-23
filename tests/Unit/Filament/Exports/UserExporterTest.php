@@ -43,7 +43,7 @@ it('generates correct completion notification body', function () {
 
     $body = UserExporter::getCompletedNotificationBody($export);
 
-    expect($body)->toBe('Your user export has completed and 50 rows exported.');
+    expect($body)->toBe('Your user export is complete. 50 rows were exported.');
 });
 
 it('generates correct completion notification body with failed rows', function () {
@@ -53,7 +53,7 @@ it('generates correct completion notification body with failed rows', function (
 
     $body = UserExporter::getCompletedNotificationBody($export);
 
-    expect($body)->toBe('Your user export has completed and 45 rows exported. 5 rows failed to export.');
+    expect($body)->toBe('Your user export is complete. 45 rows were exported. 5 rows could not be exported.');
 });
 
 it('has correct model association', function () {

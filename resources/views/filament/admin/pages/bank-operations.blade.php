@@ -16,7 +16,7 @@
                     @endif">
                     {{ $percentage }}%
                 </div>
-                <p class="text-sm text-gray-600">{{ $healthy }}/{{ $total }} banks operational</p>
+                <p class="text-sm text-gray-600">{{ $healthy }} of {{ $total }} bank connectors are healthy</p>
             </x-filament::card>
             
             <x-filament::card>
@@ -62,7 +62,7 @@
             Run Daily Reconciliation
         </x-slot>
         
-        <p>This will perform a full balance reconciliation for all accounts. This process may take several minutes.</p>
+        <p>This reconciles the balance of every account. It can take several minutes.</p>
         
         <x-slot name="footer">
             <x-filament::button

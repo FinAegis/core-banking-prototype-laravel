@@ -117,7 +117,7 @@ class RevenueEventResource extends Resource
             ->actions([])
             ->bulkActions([])
             ->emptyStateHeading('No revenue events yet')
-            ->emptyStateDescription('Rows are projected from revenue_outbox_events by ProjectRevenueOutbox.');
+            ->emptyStateDescription('A row appears here once an event from the revenue outbox has been recorded.');
     }
 
     public static function getPages(): array

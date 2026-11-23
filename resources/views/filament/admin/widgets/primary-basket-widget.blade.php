@@ -2,7 +2,7 @@
     <x-filament::section>
         <x-slot name="heading">
             <div class="flex items-center justify-between">
-                <span>GCU Currency Basket Composition</span>
+                <span>GCU Basket Composition</span>
                 @if (!$this->getBasketData()['exists'])
                     <x-filament::badge color="warning">Not Configured</x-filament::badge>
                 @else
@@ -14,7 +14,7 @@
         <div class="space-y-4">
             @if (!$this->getBasketData()['exists'])
                 <div class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                    The GCU basket has not been configured yet. The proposed composition is:
+                    The GCU basket is not set up yet. The proposed composition is shown below.
                 </div>
             @endif
 
@@ -35,8 +35,8 @@
             </div>
 
             <div class="mt-6 text-sm text-gray-600 dark:text-gray-400">
-                <p>The Global Currency Unit (GCU) is backed by a diversified basket of major currencies and gold, providing stability and reducing single-currency risk.</p>
-                <p class="mt-2">Users vote monthly on the basket composition, ensuring democratic control over the currency.</p>
+                <p>The Global Currency Unit is a software demonstration of a basket of major currencies and gold. It is not issued, offered or sold to anyone, and it has no monetary value.</p>
+                <p class="mt-2">In the demonstration, users vote each month on how the basket is made up.</p>
             </div>
         </div>
     </x-filament::section>

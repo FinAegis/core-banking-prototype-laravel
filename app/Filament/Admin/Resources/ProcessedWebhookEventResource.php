@@ -109,13 +109,15 @@ class ProcessedWebhookEventResource extends Resource
     private static function providerLabel(string $provider): string
     {
         return match ($provider) {
-            'stripe'               => 'Stripe',
-            'apple_iap'            => 'Apple IAP',
-            'google_play'          => 'Google Play',
-            'stripe_crypto_onramp' => 'Stripe Crypto Onramp',
-            'hyperswitch'          => 'HyperSwitch',
-            'bridge'               => 'Bridge',
-            default                => ucwords(str_replace('_', ' ', $provider)),
+            'stripe'                => 'Stripe',
+            'apple', 'apple_iap'    => 'Apple App Store',
+            'google', 'google_play' => 'Google Play',
+            'stripe_crypto_onramp'  => 'Stripe Crypto Onramp',
+            'hyperswitch'           => 'HyperSwitch',
+            'bridge'                => 'Bridge',
+            'lepo'                  => 'Lepo Finance',
+            'fincard'               => 'FinCard',
+            default                 => ucwords(str_replace('_', ' ', $provider)),
         };
     }
 

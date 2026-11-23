@@ -101,7 +101,7 @@ final class McpToolInvocationResource extends Resource
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('idempotency_key')
-                    ->label('Idem key')
+                    ->label('Idempotency Key')
                     ->limit(12)
                     ->tooltip(fn (McpToolInvocation $r): ?string => $r->idempotency_key)
                     ->placeholder('—')
@@ -112,7 +112,7 @@ final class McpToolInvocationResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('request_id')
-                    ->label('Request id')
+                    ->label('Request ID')
                     ->limit(12)
                     ->tooltip(fn (McpToolInvocation $r): ?string => $r->request_id)
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -144,13 +144,13 @@ final class McpToolInvocationResource extends Resource
                     }),
 
                 Filter::make('settled_only')
-                    ->label('Settled (has $-impact) only')
+                    ->label('Only Calls That Moved Money')
                     ->query(fn (Builder $query): Builder => $query->whereNotNull('settlement_amount_minor')),
             ])
             ->actions([])
             ->bulkActions([])
-            ->emptyStateHeading('No MCP tool invocations yet')
-            ->emptyStateDescription('Calls to https://mcp.zelta.app/mcp will appear here.');
+            ->emptyStateHeading('No MCP tool calls yet')
+            ->emptyStateDescription('Each call that an AI assistant makes to the Model Context Protocol server appears here.');
     }
 
     public static function canCreate(): bool

@@ -99,7 +99,7 @@
                                 Status
                             </th>
                             <th class="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                Deps
+                                Dependencies
                             </th>
                             <th class="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                 Routes
@@ -173,7 +173,7 @@
                                         @case('missing_dependencies')
                                             <span class="inline-flex items-center gap-x-1 rounded-md bg-danger-50 px-2 py-1 text-xs font-medium text-danger-700 ring-1 ring-inset ring-danger-600/20 dark:bg-danger-400/10 dark:text-danger-400 dark:ring-danger-400/30">
                                                 <x-heroicon-m-exclamation-triangle class="h-3.5 w-3.5" />
-                                                Missing Deps
+                                                Missing Dependencies
                                             </span>
                                             @break
                                     @endswitch
@@ -233,7 +233,7 @@
                                             {{-- Disable Button (not for core domains) --}}
                                             <x-filament::button
                                                 wire:click="disableModule('{{ $module->name }}')"
-                                                wire:confirm="Are you sure you want to disable this module? Migrations will be preserved."
+                                                wire:confirm="Are you sure you want to disable this module? Its database tables and data will be kept."
                                                 color="warning"
                                                 size="xs"
                                                 icon="heroicon-m-pause"
@@ -260,7 +260,7 @@
             <div class="border-t border-gray-200 px-4 py-3 dark:border-gray-700">
                 <p class="text-xs text-gray-500 dark:text-gray-400">
                     Showing {{ $this->modules->count() }} of {{ $this->stats['total'] }} modules.
-                    Core domains cannot be disabled.
+                    Core modules cannot be disabled.
                 </p>
             </div>
         </div>

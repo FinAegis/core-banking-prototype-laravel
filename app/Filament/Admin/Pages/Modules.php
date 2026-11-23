@@ -130,7 +130,7 @@ class Modules extends Page
             if ($result->success) {
                 Notification::make()
                     ->title('Module Enabled')
-                    ->body("Successfully enabled {$domain}.")
+                    ->body("{$domain} is now enabled.")
                     ->success()
                     ->send();
 
@@ -149,7 +149,7 @@ class Modules extends Page
         } catch (Exception $e) {
             Notification::make()
                 ->title('Error')
-                ->body("Failed to enable module: {$e->getMessage()}")
+                ->body("The module could not be enabled. {$e->getMessage()}")
                 ->danger()
                 ->send();
 
@@ -175,7 +175,7 @@ class Modules extends Page
             if ($result->success) {
                 Notification::make()
                     ->title('Module Disabled')
-                    ->body("Successfully disabled {$domain}. Migrations are preserved.")
+                    ->body("{$domain} is now disabled. Its database tables and data are kept.")
                     ->success()
                     ->send();
 
@@ -194,7 +194,7 @@ class Modules extends Page
         } catch (Exception $e) {
             Notification::make()
                 ->title('Error')
-                ->body("Failed to disable module: {$e->getMessage()}")
+                ->body("The module could not be disabled. {$e->getMessage()}")
                 ->danger()
                 ->send();
 
@@ -215,7 +215,7 @@ class Modules extends Page
 
             if ($result->valid) {
                 $totalChecks = count($result->checks);
-                $message = "Verified: {$result->getPassedCount()}/{$totalChecks} checks passed.";
+                $message = "{$result->getPassedCount()} of {$totalChecks} checks passed.";
 
                 if (! empty($result->warnings)) {
                     $message .= ' Warnings: ' . implode(', ', $result->warnings);
@@ -229,7 +229,7 @@ class Modules extends Page
                     ->send();
             } else {
                 $totalChecks = count($result->checks);
-                $message = "Failed: {$result->getPassedCount()}/{$totalChecks} checks passed.";
+                $message = "Only {$result->getPassedCount()} of {$totalChecks} checks passed.";
 
                 if (! empty($result->errors)) {
                     $message .= ' Errors: ' . implode(', ', $result->errors);
@@ -253,7 +253,7 @@ class Modules extends Page
         } catch (Exception $e) {
             Notification::make()
                 ->title('Error')
-                ->body("Failed to verify module: {$e->getMessage()}")
+                ->body("The module could not be verified. {$e->getMessage()}")
                 ->danger()
                 ->send();
 
@@ -290,7 +290,7 @@ class Modules extends Page
 
         Notification::make()
             ->title('Not Available')
-            ->body('Runtime module management is turned off (ADMIN_RUNTIME_MANAGEMENT_ENABLED). Change MODULES_DISABLED in the environment instead.')
+            ->body('The ADMIN_RUNTIME_MANAGEMENT_ENABLED setting turns off module changes from the admin panel. Change MODULES_DISABLED in the environment instead.')
             ->warning()
             ->send();
 

@@ -37,7 +37,7 @@ class ExchangeRatesRelationManager extends RelationManager
                         ->numeric()
                         ->step(0.0000000001)
                         ->required()
-                        ->helperText('Rate for converting from base asset to target asset'),
+                        ->helperText('Enter the rate that converts one unit of the base asset into the target asset.'),
 
                     Forms\Components\Select::make('source')
                         ->label('Source')
@@ -60,7 +60,7 @@ class ExchangeRatesRelationManager extends RelationManager
                     Forms\Components\DateTimePicker::make('expires_at')
                         ->label('Expires At')
                         ->after('valid_at')
-                        ->helperText('Leave empty for rates that don\'t expire'),
+                        ->helperText('Leave this empty if the rate does not expire.'),
 
                     Forms\Components\Toggle::make('is_active')
                         ->label('Active')

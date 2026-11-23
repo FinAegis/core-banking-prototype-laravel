@@ -110,7 +110,7 @@ class RevenueOutboxEventResource extends Resource
                     ->label('Source')
                     ->options([
                         RevenueOutboxEvent::SOURCE_STRIPE               => 'Stripe',
-                        RevenueOutboxEvent::SOURCE_APPLE_IAP            => 'Apple IAP',
+                        RevenueOutboxEvent::SOURCE_APPLE_IAP            => 'Apple App Store',
                         RevenueOutboxEvent::SOURCE_GOOGLE_PLAY          => 'Google Play',
                         RevenueOutboxEvent::SOURCE_STRIPE_CRYPTO_ONRAMP => 'Stripe Crypto Onramp',
                         RevenueOutboxEvent::SOURCE_ONDATO               => 'Ondato',
@@ -118,13 +118,13 @@ class RevenueOutboxEventResource extends Resource
             ])
             ->actions([
                 Action::make('redispatch')
-                    ->label('Re-dispatch')
+                    ->label('Retry')
                     ->icon('heroicon-o-arrow-path')
                     ->color('warning')
                     ->visible(fn (RevenueOutboxEvent $record): bool => $record->status !== RevenueOutboxEvent::STATUS_DELIVERED)
                     ->requiresConfirmation()
-                    ->modalHeading('Re-dispatch this outbox row?')
-                    ->modalDescription('Queues ProjectRevenueOutbox for this row. Projection is idempotent on (source_type, source_event_id, event_type) — a replay never double-counts revenue.')
+                    ->modalHeading('Record this revenue event again?')
+                    ->modalDescription('This queues the event to be recorded in revenue again. It is safe to repeat. An event is matched by its source, its source event ID and its type, so it is never counted twice.')
                     ->action(function (RevenueOutboxEvent $record): void {
                         ProjectRevenueOutbox::dispatch((int) $record->id);
 
@@ -136,14 +136,14 @@ class RevenueOutboxEventResource extends Resource
                         ]);
 
                         Notification::make()
-                            ->title('Outbox row re-dispatched')
-                            ->body('ProjectRevenueOutbox queued for row #' . $record->id . '.')
+                            ->title('Revenue event queued again')
+                            ->body('Row ' . $record->id . ' is queued to be recorded again.')
                             ->success()
                             ->send();
                     }),
             ])
             ->bulkActions([])
-            ->emptyStateHeading('Revenue outbox is empty');
+            ->emptyStateHeading('The revenue outbox is empty');
     }
 
     public static function getPages(): array

@@ -80,18 +80,18 @@ class TrialCardFingerprintResource extends Resource
 
                         return $eligibleAt->isFuture()
                             ? $eligibleAt->toDateTimeString()
-                            : 'now';
+                            : 'Now';
                     }),
             ])
             ->defaultSort('last_used_at', 'desc')
             ->actions([
                 Action::make('blockOverride')
-                    ->label('Block Override')
+                    ->label('Lift Trial Block')
                     ->color('warning')
                     ->icon('heroicon-o-shield-check')
                     ->requiresConfirmation()
-                    ->modalHeading('Override trial-block for this fingerprint?')
-                    ->modalDescription('Sets last_used_at to 13 months ago, making the user eligible for a new trial immediately. Use only after manual fraud review.')
+                    ->modalHeading('Lift the trial block for this payment card?')
+                    ->modalDescription('This moves the card\'s last trial date back 13 months. The user can then start a new trial straight away. Use this only after you have checked the case for fraud by hand.')
                     ->action(function (TrialCardFingerprint $record): void {
                         $record->forceFill([
                             'last_used_at' => Carbon::now()->subMonths(
@@ -100,15 +100,15 @@ class TrialCardFingerprintResource extends Resource
                         ])->save();
 
                         Notification::make()
-                            ->title('Trial block overridden')
-                            ->body('Fingerprint is now eligible for a new trial.')
+                            ->title('Trial block lifted')
+                            ->body('This payment card can now be used for a new trial.')
                             ->success()
                             ->send();
                     }),
                 Tables\Actions\DeleteAction::make()
-                    ->label('Delete Row')
+                    ->label('Delete Record')
                     ->requiresConfirmation()
-                    ->modalDescription('Removes the fingerprint row entirely. The user can immediately reuse the same card for a new trial. Prefer "Block Override" unless this is a hard fraud-disputes wipe.'),
+                    ->modalDescription('This removes the card fingerprint completely. The same payment card can then be used for a new trial straight away. Use "Lift Trial Block" instead, unless a fraud dispute requires the record to be erased.'),
             ])
             ->bulkActions([]);
     }

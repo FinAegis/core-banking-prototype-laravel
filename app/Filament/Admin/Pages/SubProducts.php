@@ -62,7 +62,7 @@ class SubProducts extends Page
             foreach ($config['features'] as $feature => $default) {
                 $featureFields[] = Forms\Components\Toggle::make("{$key}_{$feature}")
                     ->label(str($feature)->replace('_', ' ')->title())
-                    ->helperText("Enable {$feature} functionality")
+                    ->helperText('Turn this on to offer ' . str($feature)->replace('_', ' ')->lower() . '.')
                     ->disabled(fn (Forms\Get $get) => ! $get("{$key}_enabled"))
                     ->columnSpan(1);
             }
@@ -74,7 +74,7 @@ class SubProducts extends Page
                     [
                         Forms\Components\Toggle::make("{$key}_enabled")
                             ->label('Enable ' . $config['name'])
-                            ->helperText("Enable or disable the entire {$config['name']} sub-product")
+                            ->helperText("This turns the whole {$config['name']} sub-product on or off.")
                             ->reactive()
                             ->afterStateUpdated(
                                 function ($state, Forms\Set $set) use ($key, $config) {
