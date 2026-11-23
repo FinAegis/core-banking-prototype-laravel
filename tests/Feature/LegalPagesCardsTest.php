@@ -26,6 +26,7 @@ describe('Zelta legal pages', function (): void {
         $response->assertSee('4.4 Virtual Cards');
         $response->assertSee('The card is issued and run by a licensed card-issuing partner');
         $response->assertSee('It is not available to citizens or residents of the United States.');
+        $response->assertSee('Send at least the minimum amount shown in the app. A smaller amount is not loaded to your card automatically.');
         $response->assertSee('A card that still holds money cannot be cancelled in the app.');
         $response->assertSee('Never share this code with anyone.');
     });

@@ -72,6 +72,7 @@
                 <p>You add money by sending USDC from your own Zelta wallet to your card account at the partner. You confirm every send yourself. The partner changes the USDC to US dollars and adds it to your card.</p>
                 <p>Before you confirm, the app shows the partner&rsquo;s fees and about how much your card will receive. The final amount can differ a little because of the exchange rate. Your first top-up also pays the card opening fee shown in the app.</p>
                 <p>Send only USDC on a network shown in the app. Other tokens, or tokens sent on another network, may not be credited and may be lost.</p>
+                <p>Send at least the minimum amount shown in the app. A smaller amount is not loaded to your card automatically.</p>
                 <p>A card that still holds money cannot be cancelled in the app. Moving money from the card back to your wallet is not available at this time.</p>
                 <p>Your card number, expiry date and security code are shown only by the partner&rsquo;s secure page inside the app. Zelta does not store them.</p>
                 <p>Online shops may ask for a one-time verification code. The app shows it after you confirm it is you. Never share this code with anyone.</p>
