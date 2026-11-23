@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Changelog | ' . config('brand.name', 'Zelta'),
-        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.16.0.',
+        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.18.0.',
         'keywords' => 'changelog, release notes, updates, ' . config('brand.name', 'Zelta') . ', version history, core banking',
     ])
 
@@ -43,6 +43,46 @@
 
             @php
                 $releases = [
+                    [
+                        'version' => 'v7.18.0',
+                        'date' => 'November 23, 2026',
+                        'label' => 'Virtual Cards with Lepo Finance',
+                        'label_color' => 'blue',
+                        'badge_color' => 'bg-blue-100 text-blue-700 border-blue-200',
+                        'dot_color' => 'bg-blue-500',
+                        'items' => [
+                            'Virtual cards for a closed pilot. Virtual cards are built and will first be offered to a small pilot group who pass the identity check. Our card partner, Lepo Finance, issues and runs the cards. The card number and security code appear only on the partner&rsquo;s secure page, so Zelta never stores them.',
+                            'Adding money to a card. The app shows an estimate first, then the person sends USDC from their own wallet, and the card partner converts it to US dollars and loads the card. This feature is built and tested, and it stays switched off until the card partner confirms how the money moves.',
+                            'Online payment codes. When a shop asks for a one-time verification code, the app shows it after the person confirms it is them. The code is kept encrypted for at most ten minutes.',
+                            'Clearer send results. A wallet send no longer shows &ldquo;failed&rdquo; when the network may have accepted it. It waits for the blockchain to settle it, so nobody is led to pay twice.',
+                            'Fixes found by code checkers. Newer code checkers found faults in fraud checks, compliance reports and several admin pages, and they are fixed. A liquidity feature in the exchange demo that never worked was removed.',
+                            'Security updates. Libraries with published security advisories are updated, including the Laravel framework.',
+                            'Clearer legal terms. A legal review brought the Zelta terms and privacy policy in line with EU consumer and data protection law. Disputes now go to the courts or to the consumer rights authority instead of binding arbitration, and we give notice before closing an account or changing the terms.',
+                        ],
+                    ],
+                    [
+                        'version' => 'v7.17.1',
+                        'date' => 'November 20, 2026',
+                        'label' => 'Security Follow-ups and Account Linking',
+                        'label_color' => 'slate',
+                        'badge_color' => 'bg-slate-100 text-slate-700 border-slate-200',
+                        'dot_color' => 'bg-slate-500',
+                        'items' => [
+                            'Security follow-ups. This release fixes the issues described in our second published security advisory of November. Card freezes placed by staff or the card issuer can no longer be lifted by the cardholder. A new email address takes effect only after it is confirmed, and a password reset ends every existing sign-in.',
+                            'Account linking. Signing in with an email code now links an existing account with the same email. Accounts protected by two-factor authentication are never linked automatically.',
+                        ],
+                    ],
+                    [
+                        'version' => 'v7.17.0',
+                        'date' => 'November 19, 2026',
+                        'label' => 'Security Release',
+                        'label_color' => 'slate',
+                        'badge_color' => 'bg-slate-100 text-slate-700 border-slate-200',
+                        'dot_color' => 'bg-slate-500',
+                        'items' => [
+                            'Security release. This release fixes the vulnerabilities described in our published security advisory of November 19. The advisory lists the affected parts and how to upgrade.',
+                        ],
+                    ],
                     [
                         'version' => 'v7.16.0',
                         'date' => 'June 21, 2026',

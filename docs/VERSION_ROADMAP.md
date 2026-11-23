@@ -3252,6 +3252,38 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 
 ---
 
+## Version 7.18.0 — Virtual Cards with Lepo Finance (November 2026)
+
+**Theme**: Virtual cards are built for a closed pilot. People in the pilot who pass the identity check will open a card in the Zelta app and see its details on the card partner's secure page. Cards stay off until the pilot is switched on. Adding money from the wallet is built but stays off until Lepo Finance answers the open questions about the money path.
+
+### Delivered Features
+- A provider-neutral card layer with Lepo Finance as the first provider (#1219, #1221). Lepo's webhooks are signed and checked, and `ops:verify-env` checks the Lepo settings.
+- Card onboarding on the contract agreed with the mobile app: a form description, the `cards.onboarding.updated` event, and our own identity-check page with the SumSub web SDK (#1225, #1230).
+- Cards through `/api/v1/cards/issued`, with card numbers shown only on the partner's secure page, card webhooks, and one transaction shape for the app (#1232, #1234, #1235).
+- "Add to card": an estimate, top-ups from the wallet, deposit detection and a money pipeline that never repeats Lepo's money calls (#1236, #1237, #1240). It is off through `CARD_TOPUPS_ENABLED=false`.
+- 3-D Secure codes in the app, kept encrypted for at most ten minutes (#1236).
+- Wallet sends with an unclear network result stay submitted until the chain settles them, and a second concurrent submit gets `409 SUBMIT_IN_PROGRESS` (#1238).
+- The larastan 3.15 and phpstan 2.3.7 upgrade, with every new finding fixed or removed (#1233, #1242, #1244). Sign-ins are recorded in `users.last_login_at`, and fraud cases run on the real table.
+- Security updates for composer, npm and GitHub Actions (#1222, #1226, #1227, #1229, #1239).
+- Legal texts for the card pilot and the operating company, and a legal review of the Zelta terms and privacy policy for EU consumer and data protection law (#1241, #1243).
+
+### Scope Notes
+- Top-ups switch on only after Lepo confirms that conversions and card loads are final when they return, how the top-up fee is charged, and whether deposits arrive net of fees. These questions are in the private design document.
+- The FinAegis exchange's liquidity add, remove and rebalance flow was removed because it never worked. Asset transfers still fail on a missing `AccountUuid::toString()`, which needs its own decision.
+
+### Required Configuration
+- Cards: `CARD_PROVIDERS_ENABLED=lepo`, `LEPO_API_KEY`, `LEPO_WEBHOOK_SECRET`, `LEPO_CARD_TYPE_ID_VIRTUAL`, `LEPO_TIER_ID` and `CARD_PROVIDER_LEPO_PILOT_USERS` while the pilot runs. Lepo must allow the site's domain in its SumSub WebSDK domain list.
+- Top-ups: `CARD_TOPUPS_ENABLED`, `CARD_TOPUP_MIN`, `CARD_TOPUP_MAX`, `CARD_TOPUP_TTL_MINUTES` and `LEPO_DEPOSIT_NETWORKS`.
+- Legal texts: the `BRAND_LEGAL_*` keys in `.env.zelta.example`.
+
+---
+
+## Versions 7.17.0 and 7.17.1 — Security Releases (November 2026)
+
+These two releases fix the vulnerabilities in advisories GHSA-385w-q6j4-5qw6 (v7.17.0, 19 November) and GHSA-rrfq-93h6-29wj (v7.17.1, 20 November). They cover GraphQL token abilities, card freezes, email changes, password resets, social login, the admin dashboards and account linking for the identity provider's email code. The advisories list the affected components and the upgrade notes.
+
+---
+
 ## Version 7.16.0 — Non-Custodial RAILGUN Privacy (Backend) (June 2026)
 
 **Theme**: Migrate the RAILGUN privacy stack to the platform's non-custodial model (the device holds all keys, like Wallet Send). Proving cannot be delegated without surrendering custody, so the device proves on-device and the backend becomes support services. This release is the **backend groundwork** — the user-facing private-transaction flow ships once the mobile on-device engine lands. Also fixes the iOS AASA file that broke passkeys + universal links.
@@ -3445,5 +3477,5 @@ Embeddable JS widget that renders Zelta's 402 payment flow inside the partner's 
 
 ---
 
-*Document Version: 7.16.0*
-*Updated: June 21, 2026 (v7.16.0 non-custodial RAILGUN privacy backend — wallet-register, on-device engine-config, signed-URL RPC proxy, Phase 0 custody-neutral fixes, iOS AASA fix)*
+*Document Version: 7.18.0*
+*Updated: November 23, 2026 (v7.18.0 virtual cards with Lepo Finance, top-ups built and switched off, 3-D Secure codes, wallet send outcomes, analyzer upgrade)*

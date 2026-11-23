@@ -54,6 +54,7 @@ FinAegis provides the foundation for building digital banking applications. The 
 | Payment orchestration (experimental, opt-in) | HyperSwitch routing for card deposits behind `HYPERSWITCH_ENABLED` (off by default — Stripe is the default rail); webhook-credited deposit completion (v6.4.2, wired in #1118) |
 | Mobile launch readiness | Quest auto-triggers, device attestation, JIT funding, rewards (v6.5.0) |
 | SMS multi-rail payments | VertexSMS integration, MPP-gated SMS, MCP tool for AI agents (v7.10.7) |
+| Virtual card issuing (closed pilot) | Provider-neutral card layer with Lepo Finance first: onboarding with a hosted identity check, cards with partner-hosted card details, 3-D Secure codes, and wallet top-ups that stay switched off until the partner confirms the money path (v7.18.0) |
 | Public MCP server | OAuth-secured Model Context Protocol server at `mcp.zelta.app`, `@finaegis/mcp` npm wrapper (v7.11.0) |
 | Non-custodial wallet | Privy passkey/device-key signing, sponsored EVM + Solana sends, prepare/submit flow (v7.12.0) |
 | Mobile subscriptions | Apple App Store + Google Play IAP verification, pseudonymised receipts, revenue outbox (v7.13.0) |
