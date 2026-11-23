@@ -52,7 +52,7 @@ final class LepoTopUpPipeline
      * Lepo allows one conversion every 15 seconds for all users together. The
      * slot is a lock that is never released, so it expires after the gap.
      */
-    private const CONVERSION_SLOT_KEY = 'cards:lepo:conversion-slot';
+    public const CONVERSION_SLOT_KEY = 'cards:lepo:conversion-slot';
 
     private const CONVERSION_GAP_SECONDS = 15;
 
@@ -344,10 +344,12 @@ final class LepoTopUpPipeline
 
         $rows = [];
         foreach ($assets as $asset) {
-            if (! is_array($asset)
+            if (
+                ! is_array($asset)
                 || strtolower((string) ($asset['assetType'] ?? '')) !== 'fiat'
                 || strtolower((string) ($asset['balanceType'] ?? '')) !== 'quantumaccount'
-                || strtoupper((string) ($asset['currency'] ?? '')) !== 'USD') {
+                || strtoupper((string) ($asset['currency'] ?? '')) !== 'USD'
+            ) {
                 continue;
             }
 
