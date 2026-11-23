@@ -27,6 +27,13 @@ use Throwable;
  */
 class EthRpcClient
 {
+    /**
+     * Calls that change chain state. When one of them fails in a way the
+     * server may have processed, the caller gets RpcOutcomeUnknownException
+     * instead of a plain failure. Reads keep the plain failure.
+     */
+    private const array WRITE_METHODS = ['eth_sendUserOperation', 'eth_sendRawTransaction'];
+
     private int $timeout;
 
     private int $retryCount;
@@ -200,7 +207,8 @@ class EthRpcClient
                 throw $e;
             } catch (Throwable $e) {
                 $lastException = $e;
-                $mayHaveBeenProcessed = $mayHaveBeenProcessed || TransportFailure::mayHaveBeenProcessed($e);
+                $mayHaveBeenProcessed = $mayHaveBeenProcessed
+                    || (in_array($method, self::WRITE_METHODS, true) && TransportFailure::mayHaveBeenProcessed($e));
 
                 Log::warning('RPC call failed, retrying', [
                     'method'  => $method,

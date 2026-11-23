@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Domain\Relayer\Contracts\BundlerInterface;
+use App\Domain\Relayer\Enums\SupportedNetwork;
+use App\Domain\Relayer\Services\EntryPointNonces;
 use App\Domain\Wallet\Jobs\PollEvmWalletSendConfirmations;
 use App\Domain\Wallet\Models\WalletSendRecord;
 use App\Domain\Wallet\Services\SponsorshipCostTracker;
@@ -241,25 +243,60 @@ it('confirms without a sponsored fee when the receipt has no usable cost fields'
         ->and($record->sponsored_fee_asset)->toBeNull();
 });
 
-function makeUncertainRecord(int $minutesAgo): WalletSendRecord
+/**
+ * A send whose broadcast outcome was unknown, prepared $minutesSincePrepare
+ * minutes ago with a verifying-paymaster sponsorship valid until
+ * $validUntilAfterPrepare seconds after prepare (0 = no expiry).
+ */
+function makeUncertainRecord(int $minutesSincePrepare, int $validUntilAfterPrepare = 600, int $nonce = 7): WalletSendRecord
 {
+    $preparedAt = now()->subMinutes($minutesSincePrepare);
+    $validUntil = $validUntilAfterPrepare === 0 ? 0 : $preparedAt->getTimestamp() + $validUntilAfterPrepare;
+
     $record = makeSubmittedRecord('arbitrum', '0xUncertain');
-    $record->metadata = ['submit_outcome' => 'unknown', 'submit_error' => 'RPC connection failed: cURL error 28'];
-    $record->submitted_at = now()->subMinutes($minutesAgo);
+    $record->sender_address = '0x1111111111111111111111111111111111111111';
+    $record->metadata = [
+        'submit_outcome' => 'unknown',
+        'submit_error'   => 'RPC connection failed: cURL error 28',
+        'user_op'        => [
+            'sender'           => '0x1111111111111111111111111111111111111111',
+            'nonce'            => '0x' . dechex($nonce),
+            'paymasterAndData' => '0x' . str_repeat('ab', 20) . '00'
+                . str_pad(dechex($validUntil), 12, '0', STR_PAD_LEFT) . str_repeat('0', 12) . str_repeat('cd', 65),
+        ],
+    ];
+    $record->created_at = $preparedAt;
+    $record->submitted_at = $preparedAt->copy()->addSeconds(20);
     $record->save();
 
     return $record;
 }
 
-it('fails an uncertain send the bundler never accepted once the wait is over', function (): void {
-    $record = makeUncertainRecord(11);
-
+/** @return BundlerInterface&Mockery\MockInterface */
+function pendingBundler(): BundlerInterface
+{
     /** @var BundlerInterface&Mockery\MockInterface $bundler */
     $bundler = Mockery::mock(BundlerInterface::class);
-    $bundler->shouldReceive('getUserOperationStatus')->once()->andReturn(['status' => 'pending', 'tx_hash' => null, 'receipt' => null]);
-    $bundler->shouldReceive('isUserOperationKnown')->once()->with('0xUncertain', App\Domain\Relayer\Enums\SupportedNetwork::ARBITRUM)->andReturn(false);
+    $bundler->shouldReceive('getUserOperationStatus')->andReturn(['status' => 'pending', 'tx_hash' => null, 'receipt' => null]);
 
-    (new PollEvmWalletSendConfirmations())->handle($bundler, app(SponsorshipCostTracker::class));
+    return $bundler;
+}
+
+/** @return EntryPointNonces&Mockery\MockInterface */
+function nonceReader(): EntryPointNonces
+{
+    /** @var EntryPointNonces&Mockery\MockInterface $nonces */
+    $nonces = Mockery::mock(EntryPointNonces::class);
+
+    return $nonces;
+}
+
+it('fails an uncertain send once its sponsorship has expired and the operation never ran', function (): void {
+    $record = makeUncertainRecord(16);
+    $nonces = nonceReader();
+    $nonces->shouldReceive('sequence')->once()->with('0x1111111111111111111111111111111111111111', SupportedNetwork::ARBITRUM)->andReturn(7);
+
+    (new PollEvmWalletSendConfirmations())->handle(pendingBundler(), app(SponsorshipCostTracker::class), $nonces);
 
     $record->refresh();
     expect($record->status)->toBe('failed')
@@ -268,56 +305,81 @@ it('fails an uncertain send the bundler never accepted once the wait is over', f
         ->and($record->failed_at)->not->toBeNull();
 });
 
-it('keeps waiting on an uncertain send the bundler knows about', function (): void {
-    $record = makeUncertainRecord(11);
+it('keeps waiting while the sponsorship can still be used', function (): void {
+    $record = makeUncertainRecord(12);
+    $nonces = nonceReader();
+    $nonces->shouldNotReceive('sequence');
 
-    /** @var BundlerInterface&Mockery\MockInterface $bundler */
-    $bundler = Mockery::mock(BundlerInterface::class);
-    $bundler->shouldReceive('getUserOperationStatus')->once()->andReturn(['status' => 'pending', 'tx_hash' => null, 'receipt' => null]);
-    $bundler->shouldReceive('isUserOperationKnown')->once()->andReturn(true);
-
-    (new PollEvmWalletSendConfirmations())->handle($bundler, app(SponsorshipCostTracker::class));
+    (new PollEvmWalletSendConfirmations())->handle(pendingBundler(), app(SponsorshipCostTracker::class), $nonces);
 
     expect($record->refresh()->status)->toBe('submitted');
 });
 
-it('does not give up on an uncertain send before the wait is over', function (): void {
-    $record = makeUncertainRecord(5);
+it('waits for a longer sponsorship written in the paymaster data', function (): void {
+    $record = makeUncertainRecord(20, validUntilAfterPrepare: 3600);
+    $nonces = nonceReader();
+    $nonces->shouldNotReceive('sequence');
 
-    /** @var BundlerInterface&Mockery\MockInterface $bundler */
-    $bundler = Mockery::mock(BundlerInterface::class);
-    $bundler->shouldReceive('getUserOperationStatus')->once()->andReturn(['status' => 'pending', 'tx_hash' => null, 'receipt' => null]);
-    $bundler->shouldNotReceive('isUserOperationKnown');
-
-    (new PollEvmWalletSendConfirmations())->handle($bundler, app(SponsorshipCostTracker::class));
+    (new PollEvmWalletSendConfirmations())->handle(pendingBundler(), app(SponsorshipCostTracker::class), $nonces);
 
     expect($record->refresh()->status)->toBe('submitted');
 });
 
-it('keeps waiting on an uncertain send when the bundler lookup fails', function (): void {
-    $record = makeUncertainRecord(11);
+it('never fails an uncertain send whose sponsorship has no expiry', function (): void {
+    $record = makeUncertainRecord(180, validUntilAfterPrepare: 0);
+    $nonces = nonceReader();
+    $nonces->shouldNotReceive('sequence');
 
-    /** @var BundlerInterface&Mockery\MockInterface $bundler */
-    $bundler = Mockery::mock(BundlerInterface::class);
-    $bundler->shouldReceive('getUserOperationStatus')->once()->andReturn(['status' => 'pending', 'tx_hash' => null, 'receipt' => null]);
-    $bundler->shouldReceive('isUserOperationKnown')->once()->andThrow(new RuntimeException('Bundler RPC down'));
+    (new PollEvmWalletSendConfirmations())->handle(pendingBundler(), app(SponsorshipCostTracker::class), $nonces);
 
-    (new PollEvmWalletSendConfirmations())->handle($bundler, app(SponsorshipCostTracker::class));
+    expect($record->refresh()->status)->toBe('submitted');
+});
+
+it('leaves an uncertain send for review when its nonce was used but no receipt was found', function (): void {
+    $record = makeUncertainRecord(16);
+    $nonces = nonceReader();
+    $nonces->shouldReceive('sequence')->once()->andReturn(8);
+
+    (new PollEvmWalletSendConfirmations())->handle(pendingBundler(), app(SponsorshipCostTracker::class), $nonces);
+    (new PollEvmWalletSendConfirmations())->handle(pendingBundler(), app(SponsorshipCostTracker::class), $nonces);
+
+    $record->refresh();
+    expect($record->status)->toBe('submitted')
+        ->and($record->metadata['submit_review'] ?? null)->toBe('nonce_used_without_receipt');
+});
+
+it('keeps waiting on an uncertain send when the nonce cannot be read', function (): void {
+    $record = makeUncertainRecord(16);
+    $nonces = nonceReader();
+    $nonces->shouldReceive('sequence')->once()->andThrow(new RuntimeException('RPC down'));
+
+    (new PollEvmWalletSendConfirmations())->handle(pendingBundler(), app(SponsorshipCostTracker::class), $nonces);
 
     expect($record->refresh()->status)->toBe('submitted');
 });
 
 it('never expires a send the bundler accepted', function (): void {
     $record = makeSubmittedRecord('polygon', '0xAccepted');
+    $record->created_at = now()->subMinutes(30);
     $record->submitted_at = now()->subMinutes(30);
     $record->save();
+    $nonces = nonceReader();
+    $nonces->shouldNotReceive('sequence');
+
+    (new PollEvmWalletSendConfirmations())->handle(pendingBundler(), app(SponsorshipCostTracker::class), $nonces);
+
+    expect($record->refresh()->status)->toBe('submitted');
+});
+
+it('keeps checking an uncertain send after the two-hour window', function (): void {
+    $record = makeUncertainRecord(180, validUntilAfterPrepare: 0);
 
     /** @var BundlerInterface&Mockery\MockInterface $bundler */
     $bundler = Mockery::mock(BundlerInterface::class);
-    $bundler->shouldReceive('getUserOperationStatus')->once()->andReturn(['status' => 'pending', 'tx_hash' => null, 'receipt' => null]);
-    $bundler->shouldNotReceive('isUserOperationKnown');
+    $bundler->shouldReceive('getUserOperationStatus')->once()->with('0xUncertain')
+        ->andReturn(['status' => 'confirmed', 'tx_hash' => '0xtx', 'receipt' => null]);
 
-    (new PollEvmWalletSendConfirmations())->handle($bundler, app(SponsorshipCostTracker::class));
+    (new PollEvmWalletSendConfirmations())->handle($bundler, app(SponsorshipCostTracker::class), nonceReader());
 
-    expect($record->refresh()->status)->toBe('submitted');
+    expect($record->refresh()->status)->toBe('confirmed');
 });

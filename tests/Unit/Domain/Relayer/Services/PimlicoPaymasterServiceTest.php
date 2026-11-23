@@ -167,4 +167,29 @@ class PimlicoPaymasterServiceTest extends TestCase
 
         $this->assertEquals('0xPaymaster123', $address);
     }
+
+    public function test_reads_the_sponsorship_expiry_from_verifying_paymaster_data(): void
+    {
+        $data = '0x' . str_repeat('ab', 20) . '00' . str_pad(dechex(1_800_000_000), 12, '0', STR_PAD_LEFT)
+            . str_repeat('0', 12) . str_repeat('cd', 65);
+
+        $this->assertSame(1_800_000_000, PimlicoPaymasterService::sponsorshipValidUntil($data));
+    }
+
+    public function test_a_sponsorship_without_expiry_never_expires(): void
+    {
+        $data = '0x' . str_repeat('ab', 20) . '01' . str_repeat('0', 24) . str_repeat('cd', 65);
+
+        $this->assertSame(PHP_INT_MAX, PimlicoPaymasterService::sponsorshipValidUntil($data));
+    }
+
+    public function test_paymaster_data_it_cannot_read_has_no_expiry_reading(): void
+    {
+        // ERC-20 mode (mode bits = 1) uses another layout.
+        $erc20 = '0x' . str_repeat('ab', 20) . '02' . str_repeat('11', 40);
+
+        $this->assertNull(PimlicoPaymasterService::sponsorshipValidUntil($erc20));
+        $this->assertNull(PimlicoPaymasterService::sponsorshipValidUntil('0x'));
+        $this->assertNull(PimlicoPaymasterService::sponsorshipValidUntil('0x' . str_repeat('ab', 25)));
+    }
 }

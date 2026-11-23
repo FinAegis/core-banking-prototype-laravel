@@ -293,3 +293,31 @@ test('a Helius rejection is a definite failure', function (): void {
         expect($e->isOutcomeUnknown())->toBeFalse();
     }
 });
+
+test('getBlockHeight returns the current block height', function (): void {
+    Http::fake([HELIUS_URL_PATTERN => Http::response(['jsonrpc' => '2.0', 'id' => 1, 'result' => 312345678])]);
+
+    expect((new HeliusRpcClient())->getBlockHeight())->toBe(312345678);
+});
+
+test('getSignatureStatuses without a value list is an error, not an unknown signature', function (): void {
+    Http::fake([HELIUS_URL_PATTERN => Http::response(['jsonrpc' => '2.0', 'id' => 1, 'result' => ['context' => ['slot' => 1]]])]);
+
+    try {
+        (new HeliusRpcClient())->getSignatureStatuses(['5xSig']);
+        $this->fail('Expected SolanaRpcException');
+    } catch (SolanaRpcException $e) {
+        expect($e->getMessage())->toContain('no value list');
+    }
+});
+
+test('sendTransaction with an unreadable answer has an unknown outcome', function (): void {
+    Http::fake([HELIUS_URL_PATTERN => Http::response(['jsonrpc' => '2.0', 'id' => 1, 'result' => null])]);
+
+    try {
+        (new HeliusRpcClient())->sendTransaction('AABB');
+        $this->fail('Expected SolanaRpcException');
+    } catch (SolanaRpcException $e) {
+        expect($e->isOutcomeUnknown())->toBeTrue();
+    }
+});

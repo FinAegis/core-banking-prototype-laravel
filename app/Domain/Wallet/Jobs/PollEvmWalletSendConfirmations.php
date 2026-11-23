@@ -6,6 +6,8 @@ namespace App\Domain\Wallet\Jobs;
 
 use App\Domain\Relayer\Contracts\BundlerInterface;
 use App\Domain\Relayer\Enums\SupportedNetwork;
+use App\Domain\Relayer\Services\EntryPointNonces;
+use App\Domain\Relayer\Services\PimlicoPaymasterService;
 use App\Domain\Wallet\Models\WalletSendRecord;
 use App\Domain\Wallet\Services\SponsorshipCostTracker;
 use App\Support\SecretRedactor;
@@ -40,21 +42,34 @@ class PollEvmWalletSendConfirmations implements ShouldQueue
 
     public int $timeout = 60;
 
-    /** How long a send with an unknown broadcast outcome waits before the bundler is asked whether it ever saw it. */
-    private const int UNKNOWN_OUTCOME_WAIT_MINUTES = 10;
+    /** Slack on top of the sponsorship expiry for clock differences between this server and the chain. */
+    private const int EXPIRY_MARGIN_SECONDS = 300;
 
-    public function handle(BundlerInterface $bundler, SponsorshipCostTracker $costTracker): void
-    {
+    /** Sends with an unknown broadcast outcome are watched this long instead of the usual two hours. */
+    private const int UNKNOWN_OUTCOME_WATCH_DAYS = 7;
+
+    public function handle(
+        BundlerInterface $bundler,
+        SponsorshipCostTracker $costTracker,
+        ?EntryPointNonces $nonces = null,
+    ): void {
         $records = WalletSendRecord::query()
             ->where('status', WalletSendRecord::STATUS_SUBMITTED)
             ->whereNotNull('user_op_hash')
             ->whereIn('network', ['polygon', 'base', 'arbitrum', 'ethereum'])
-            ->where('submitted_at', '>=', now()->subHours(2))
+            ->where(function ($query): void {
+                $query->where('submitted_at', '>=', now()->subHours(2))
+                    ->orWhere(function ($uncertain): void {
+                        // @phpstan-ignore argument.type (a JSON path, which larastan does not accept as a model column)
+                        $uncertain->where('metadata->submit_outcome', WalletSendRecord::SUBMIT_OUTCOME_UNKNOWN)
+                            ->where('submitted_at', '>=', now()->subDays(self::UNKNOWN_OUTCOME_WATCH_DAYS));
+                    });
+            })
             ->limit(100)
             ->get();
 
         foreach ($records as $record) {
-            $this->reconcile($bundler, $costTracker, $record);
+            $this->reconcile($bundler, $costTracker, $record, $nonces);
         }
     }
 
@@ -62,6 +77,7 @@ class PollEvmWalletSendConfirmations implements ShouldQueue
         BundlerInterface $bundler,
         SponsorshipCostTracker $costTracker,
         WalletSendRecord $record,
+        ?EntryPointNonces $nonces,
     ): void {
         if ($record->user_op_hash === null) {
             return;
@@ -126,47 +142,69 @@ class PollEvmWalletSendConfirmations implements ShouldQueue
         }
 
         if ($reportedStatus === 'pending') {
-            $this->settleUnknownSubmit($bundler, $record);
+            $this->settleUnknownSubmit($record, $nonces);
         }
 
         // pending / unknown → leave the row in submitted; we'll poll again next tick.
     }
 
     /**
-     * A send whose broadcast outcome was unknown (see EvmUserOpSubmitter) and
-     * that still has no receipt after the wait is failed only when the
-     * bundler says it never saw the operation. Anything else keeps waiting.
+     * A send whose broadcast outcome was unknown (see EvmUserOpSubmitter) is
+     * failed only when it provably can no longer land: its paymaster
+     * sponsorship has expired, so the EntryPoint would refuse it, and the
+     * account's on-chain nonce shows that it never ran. Anything less certain
+     * keeps waiting. The bundler's own lookups are no proof here: they search
+     * mined logs only, over a limited block range.
      */
-    private function settleUnknownSubmit(BundlerInterface $bundler, WalletSendRecord $record): void
+    private function settleUnknownSubmit(WalletSendRecord $record, ?EntryPointNonces $nonces): void
     {
         $metadata = $record->metadata ?? [];
-        if (($metadata['submit_outcome'] ?? null) !== WalletSendRecord::SUBMIT_OUTCOME_UNKNOWN) {
+        if (($metadata['submit_outcome'] ?? null) !== WalletSendRecord::SUBMIT_OUTCOME_UNKNOWN || isset($metadata['submit_review'])) {
             return;
         }
 
-        if ($record->submitted_at === null || $record->submitted_at->gt(now()->subMinutes(self::UNKNOWN_OUTCOME_WAIT_MINUTES))) {
+        /** @var array<string, mixed> $userOp */
+        $userOp = is_array($metadata['user_op'] ?? null) ? $metadata['user_op'] : [];
+
+        $deadline = $this->sponsorshipDeadline($record, $userOp);
+        if ($deadline === null || now()->getTimestamp() <= $deadline + self::EXPIRY_MARGIN_SECONDS) {
             return;
         }
 
         $network = SupportedNetwork::tryFrom((string) $record->network);
-        if ($network === null) {
+        $sender = is_string($userOp['sender'] ?? null) ? $userOp['sender'] : '';
+        $nonceHex = is_string($userOp['nonce'] ?? null) ? $userOp['nonce'] : '';
+        $opNonce = preg_match('/^0x0*([0-9a-fA-F]{1,15})$/', $nonceHex, $digits) === 1 ? (int) hexdec($digits[1]) : null;
+        if ($network === null || $sender === '' || $opNonce === null) {
             return;
         }
 
         try {
-            $known = $bundler->isUserOperationKnown((string) $record->user_op_hash, $network);
+            $nextNonce = ($nonces ?? app(EntryPointNonces::class))->sequence($sender, $network);
         } catch (Throwable $e) {
-            Log::warning('PollEvmWalletSendConfirmations: bundler lookup error', [
-                'record_id'    => $record->id,
-                'user_op_hash' => $record->user_op_hash,
-                'network'      => $record->network,
-                'error'        => SecretRedactor::message($e),
+            Log::warning('PollEvmWalletSendConfirmations: could not read the account nonce', [
+                'record_id' => $record->id,
+                'network'   => $record->network,
+                'error'     => SecretRedactor::message($e),
             ]);
 
             return;
         }
 
-        if ($known) {
+        if ($nextNonce > $opNonce) {
+            // The nonce was used, by this operation (whose receipt the bundler
+            // could not find) or by another one. Only a person can tell which.
+            $metadata['submit_review'] = 'nonce_used_without_receipt';
+            $record->update(['metadata' => $metadata]);
+
+            Log::error('PollEvmWalletSendConfirmations: uncertain send needs review, its nonce was used but no receipt was found', [
+                'record_id'    => $record->id,
+                'user_op_hash' => $record->user_op_hash,
+                'network'      => $record->network,
+                'op_nonce'     => $opNonce,
+                'next_nonce'   => $nextNonce,
+            ]);
+
             return;
         }
 
@@ -176,6 +214,32 @@ class PollEvmWalletSendConfirmations implements ShouldQueue
             'error_code'    => 'BUNDLER_NOT_ACCEPTED',
             'error_message' => 'This transfer did not reach the network. No funds were moved.',
         ]);
+    }
+
+    /**
+     * Unix time after which the operation's sponsorship can no longer be used,
+     * or null when it never expires (no paymaster, or validUntil 0). The
+     * sponsorship is requested at prepare, so the record's creation time plus
+     * Pimlico's default validity is never earlier than the real expiry; a
+     * longer validity written in the paymaster data wins.
+     *
+     * @param array<string, mixed> $userOp
+     */
+    private function sponsorshipDeadline(WalletSendRecord $record, array $userOp): ?int
+    {
+        $paymasterAndData = is_string($userOp['paymasterAndData'] ?? null) ? $userOp['paymasterAndData'] : '';
+        if ($paymasterAndData === '' || $paymasterAndData === '0x') {
+            return null;
+        }
+
+        $written = PimlicoPaymasterService::sponsorshipValidUntil($paymasterAndData);
+        if ($written === PHP_INT_MAX) {
+            return null;
+        }
+
+        $default = $record->created_at->getTimestamp() + PimlicoPaymasterService::SPONSORSHIP_VALID_SECONDS;
+
+        return max($default, $written ?? $default);
     }
 
     /**

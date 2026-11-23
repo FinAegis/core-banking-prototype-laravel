@@ -54,24 +54,34 @@ class PimlicoBundlerServiceTest extends TestCase
         $this->assertEquals($expectedHash, $result);
     }
 
-    public function test_a_user_operation_the_bundler_has_seen_is_known(): void
+    public function test_an_unreadable_submit_answer_has_an_unknown_outcome(): void
     {
-        $this->rpcClient->shouldReceive('bundlerCall')
-            ->once()
-            ->with(SupportedNetwork::ARBITRUM, 'eth_getUserOperationByHash', ['0xabc'])
-            ->andReturn(['userOperation' => ['sender' => '0x1'], 'entryPoint' => '0x5FF1', 'blockNumber' => null]);
+        $userOp = UserOperation::createUnsigned(
+            sender: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
+            nonce: 0,
+            callData: '0xabcdef',
+        );
 
-        $this->assertTrue($this->service->isUserOperationKnown('0xabc', SupportedNetwork::ARBITRUM));
+        $this->rpcClient->shouldReceive('bundlerCall')->once()->andReturn(null);
+
+        $this->expectException(\App\Domain\Relayer\Exceptions\RpcOutcomeUnknownException::class);
+
+        $this->service->submitUserOperation($userOp, SupportedNetwork::POLYGON);
     }
 
-    public function test_a_user_operation_the_bundler_has_not_seen_is_unknown(): void
+    public function test_a_submit_answer_that_is_not_a_hash_has_an_unknown_outcome(): void
     {
-        $this->rpcClient->shouldReceive('bundlerCall')
-            ->once()
-            ->with(SupportedNetwork::POLYGON, 'eth_getUserOperationByHash', ['0xabc'])
-            ->andReturn(null);
+        $userOp = UserOperation::createUnsigned(
+            sender: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
+            nonce: 0,
+            callData: '0xabcdef',
+        );
 
-        $this->assertFalse($this->service->isUserOperationKnown('0xabc', SupportedNetwork::POLYGON));
+        $this->rpcClient->shouldReceive('bundlerCall')->once()->andReturn('ok');
+
+        $this->expectException(\App\Domain\Relayer\Exceptions\RpcOutcomeUnknownException::class);
+
+        $this->service->submitUserOperation($userOp, SupportedNetwork::POLYGON);
     }
 
     public function test_throws_on_bundler_error(): void

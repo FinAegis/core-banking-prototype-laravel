@@ -85,7 +85,24 @@ class HeliusRpcClient
         ]);
 
         if (! is_string($result)) {
-            throw SolanaRpcException::fromRpcError(0, 'sendTransaction returned non-string result');
+            // The node received the transaction but answered unreadably: it
+            // may still land, so this is not a rejection.
+            throw SolanaRpcException::fromRpcError(0, 'sendTransaction returned non-string result', outcomeUnknown: true);
+        }
+
+        return $result;
+    }
+
+    /**
+     * The current block height. A transaction whose last valid block height
+     * is below it can no longer be processed.
+     */
+    public function getBlockHeight(): int
+    {
+        $result = $this->call('getBlockHeight', [['commitment' => $this->commitment()]]);
+
+        if (! is_int($result)) {
+            throw SolanaRpcException::fromRpcError(0, 'getBlockHeight returned non-integer result');
         }
 
         return $result;
@@ -104,9 +121,13 @@ class HeliusRpcClient
             ['searchTransactionHistory' => true],
         ]);
 
-        $value = is_array($result) && isset($result['value']) && is_array($result['value'])
-            ? $result['value']
-            : [];
+        // Without the value list nothing is known about the signatures; reading
+        // that as "unknown signature" would let a poller drop a landed send.
+        if (! is_array($result) || ! isset($result['value']) || ! is_array($result['value'])) {
+            throw SolanaRpcException::fromRpcError(0, 'getSignatureStatuses returned no value list');
+        }
+
+        $value = $result['value'];
 
         /** @var array<string, array{confirmationStatus: string, err: array<int|string, mixed>|null}|null> $out */
         $out = [];

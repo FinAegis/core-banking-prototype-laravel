@@ -168,6 +168,20 @@ class EthRpcClientTest extends TestCase
         Http::assertSentCount(2);
     }
 
+    public function test_a_read_that_times_out_every_time_stays_a_plain_failure(): void
+    {
+        Http::fake([
+            'polygon-rpc.example.com' => Http::failedConnection('cURL error 28: Operation timed out after 5000 milliseconds with 0 bytes received'),
+        ]);
+
+        try {
+            $this->client->call(SupportedNetwork::POLYGON, 'eth_call', []);
+            $this->fail('Expected an RpcException.');
+        } catch (RpcException $e) {
+            $this->assertNotInstanceOf(RpcOutcomeUnknownException::class, $e);
+        }
+    }
+
     public function test_a_connection_that_never_opened_is_a_definite_failure(): void
     {
         Http::fake([
