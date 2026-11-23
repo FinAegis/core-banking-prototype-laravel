@@ -20,7 +20,7 @@
                 <p>FinAegis is a software project and does not hold any banking, e-money, payment-institution, crypto-asset service provider or token-issuer licence or authorisation.</p>
                 @else
                 <p>Zelta is non-custodial wallet software. Zelta and its operator are not a bank, electronic money institution, payment institution or crypto-asset service provider, and do not hold, exchange or transmit users&rsquo; funds. Any card or off-ramp services will be provided by licensed third parties under their own terms.</p>
-                <p>Virtual cards are issued and run by a licensed card-issuing partner. When you add money to a card, you send it from your own wallet to your account at that partner, and the partner changes it to US dollars and loads your card. See <a href="#virtual-cards">4.4 Virtual Cards</a>.</p>
+                <p>Virtual cards are issued and run by a licensed card-issuing partner under its own licence and terms. When you add money to a card, you send USDC from your own wallet to your own account with that partner. On your instruction, which the app passes to the partner, the partner converts it to US dollars and loads your card. Zelta does not take possession of the money at any point and does not carry out the conversion. See <a href="#virtual-cards">4.4 Virtual Cards</a>.</p>
                 @endif
 
                 <h2>1. Acceptance of Terms</h2>
@@ -111,25 +111,44 @@
 
                 <h2>9. Limitation of Liability</h2>
                 <p>To the maximum extent permitted by law, {{ config('brand.legal_entity') }} shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses.</p>
+                <p>Nothing in these Terms limits or excludes liability for death or personal injury caused by negligence, for fraud, for intentional misconduct or gross negligence, or any other liability that cannot be limited or excluded under applicable law, including your mandatory rights as a consumer.</p>
 
                 <h2>10. Indemnification</h2>
                 <p>You agree to defend, indemnify, and hold harmless {{ config('brand.legal_entity') }} and its affiliates from and against any claims, liabilities, damages, judgments, awards, losses, costs, expenses, or fees arising out of or relating to your violation of these Terms or your use of the Service.</p>
 
                 <h2>11. Termination</h2>
-                <p>We may terminate or suspend your account immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms.</p>
+                <p>You can stop using the Service and delete your account at any time.</p>
+                <p>We may suspend or close your account at once if you seriously breach these Terms, if the law requires it, or to protect you, other users or the Service. In other cases we give you at least 30 days&rsquo; notice.</p>
+                @unless($isFinAegisSite)
+                <p>Closing your Zelta account does not affect the funds in wallets you control. A virtual card is closed under the card partner&rsquo;s terms.</p>
+                @endunless
 
                 <h2>12. Governing Law</h2>
+                @if($isFinAegisSite)
                 <p>These Terms shall be interpreted and governed by the laws of the jurisdiction in which {{ config('brand.legal_entity') }} is incorporated. Any legal action or proceeding arising under these Terms will be brought exclusively in the courts of that jurisdiction.</p>
+                @else
+                <p>These Terms are governed by the laws of the Republic of Lithuania. If you are a consumer, you also keep the protection of the mandatory laws of the country where you live.</p>
+                @endif
 
                 <h2>13. Changes to Terms</h2>
-                <p>We reserve the right to modify or replace these Terms at any time. If a revision is material, we will try to provide at least 30 days notice prior to any new terms taking effect.</p>
+                <p>We may change these Terms. We give at least 30 days&rsquo; notice of a material change. If you do not agree with it, you can stop using the Service and delete your account before the change takes effect.</p>
 
                 <h2>14. Dispute Resolution</h2>
+                @if($isFinAegisSite)
                 <h3>14.1 Binding Arbitration</h3>
                 <p>Any dispute, claim, or controversy arising out of or relating to these Terms shall be settled by binding arbitration in accordance with the applicable arbitration rules of the jurisdiction in which {{ config('brand.legal_entity') }} is incorporated.</p>
 
                 <h3>14.2 Class Action Waiver</h3>
                 <p>You agree that any dispute resolution proceedings will be conducted only on an individual basis and not in a class, consolidated, or representative action.</p>
+                @else
+                <h3>14.1 Complaints</h3>
+                <p>If something goes wrong, contact our support first at {{ config('brand.support_email') }}. We reply within 14 days.</p>
+
+                <h3>14.2 Courts and out-of-court resolution</h3>
+                <p>Disputes are decided by the courts of the Republic of Lithuania. If you are a consumer, you may also bring a claim in the courts of the country where you live.</p>
+                <p>If you are a consumer and we cannot solve a complaint together, you may ask the State Consumer Rights Protection Authority of Lithuania (<a href="https://www.vvtat.lt" rel="noopener">www.vvtat.lt</a>) to resolve the dispute out of court.</p>
+                <p>Disputes about card payments are handled by the card partner under its terms. We will help you reach it.</p>
+                @endif
 
                 <h2>15. Severability</h2>
                 <p>If any provision of these Terms is held to be invalid or unenforceable by a court, the remaining provisions of these Terms will remain in effect.</p>
