@@ -13,6 +13,10 @@ beforeEach(function (): void {
         'cardissuance.issuers.lepo.base_url'    => 'https://lepo.test/api/v2',
         'cardissuance.issuers.lepo.api_key'     => 'test-key',
         'cardissuance.providers.kyc_return_url' => 'zelta://cards/kyc-done',
+        // The pages are throttled per address (20 a minute). CI keeps the cache
+        // in Redis across tests, so pin this file to a fresh array store.
+        'cache.default' => 'array',
+        'cache.limiter' => 'array',
     ]);
     Http::preventStrayRequests();
 });
