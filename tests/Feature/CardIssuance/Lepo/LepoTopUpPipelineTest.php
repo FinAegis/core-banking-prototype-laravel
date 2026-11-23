@@ -60,7 +60,8 @@ function plLepo(array $over = []): void
     Http::fake(function (Request $r) use ($over, &$opened, $next) {
         $path = (string) parse_url($r->url(), PHP_URL_PATH);
         if (str_ends_with($path, '/transfers/crypto-to-quantum-transfer')) {
-            return $over['convert'] ?? Http::response(['success' => true, 'transferId' => 'tr-1', 'details' => ['status' => 'COMPLETED']]);
+            // Final on 200: Lepo sends no status to wait for.
+            return $next('convert') ?? Http::response(['success' => true, 'transferId' => 'tr-1']);
         }
         if (str_ends_with($path, '/transfers/tr-1')) {
             return $next('transfer') ?? Http::response(['id' => 'tr-1', 'status' => 'COMPLETED']);
@@ -69,10 +70,20 @@ function plLepo(array $over = []): void
             // Opening the card takes the 1 USD issue fee from the balance.
             $usd = $opened ? ($over['usd_after_open'] ?? '23.90') : ($over['usd'] ?? '24.90');
 
-            return $next('assets') ?? Http::response(['userId' => 12345, 'assets' => [['currency' => 'USD', 'balance' => $usd, 'availableBalance' => $usd], ['currency' => 'USDC', 'balance' => '0', 'availableBalance' => '0']]]);
+            // The account's dollars are the fiat QuantumAccount row; the Card row is the card's own balance.
+            return $next('assets') ?? Http::response(['userId' => 12345, 'assets' => [
+                ['assetType' => 'fiat', 'balanceType' => 'QuantumAccount', 'balanceId' => 'b-usd', 'currency' => 'USD', 'balance' => $usd, 'availableBalance' => $usd],
+                ['assetType' => 'fiat', 'balanceType' => 'Card', 'balanceId' => 'b-card', 'currency' => 'USD', 'balance' => '50.00', 'availableBalance' => '50.00'],
+                ['assetType' => 'crypto', 'balanceType' => 'Wallet', 'balanceId' => 'b-usdc', 'currency' => 'USDC', 'balance' => '0', 'availableBalance' => '0'],
+            ]]);
         }
         if ($r->method() === 'POST' && str_ends_with($path, '/cards/topup')) {
-            return $over['load'] ?? Http::response(['success' => true, 'orderId' => 'ord-1', 'value' => (float) $r['value'], 'fee' => 0.24, 'transakUrl' => null, 'isPartial' => false]);
+            // The 1.5 % fee comes out of value: value is what the card received.
+            $requested = (float) $r['value'];
+            $fee = round($requested * 0.015, 2);
+
+            return $over['load'] ?? Http::response(['success' => true, 'orderId' => 'ord-1', 'requestedValue' => $requested, 'grossValue' => $requested,
+                'fee'                                         => $fee, 'value' => round($requested - $fee, 2), 'transakUrl' => null, 'isPartial' => false]);
         }
         if ($r->method() === 'POST' && str_ends_with($path, '/cards')) {
             $opened = true;
@@ -101,13 +112,14 @@ it('converts, opens the card and loads it on the first top-up', function (): voi
     expect($done->status)->toBe('completed')
         ->and($done->provider_conversion_id)->toBe('tr-1')
         ->and($done->provider_load_id)->toBe('ord-1')
-        ->and($done->credited_cents)->toBe(2390)
+        ->and($done->credited_cents)->toBe(2354)
+        ->and($done->fee_cents)->toBe(36)
         ->and($done->issuance_fee_cents)->toBe(100)
         ->and($done->completed_at)->not->toBeNull()
         ->and($done->card?->fresh()?->issuer_card_token)->toBe('777');
-    Http::assertSent(fn (Request $r): bool => str_ends_with($r->url(), '/cards/topup') && $r['cardId'] === '777' && $r['value'] === '23.90');
+    Http::assertSent(fn (Request $r): bool => str_ends_with($r->url(), '/cards/topup') && $r['cardId'] === '777' && $r['value'] === '23.90' && $r['token'] === 'USD');
     Http::assertSent(fn (Request $r): bool => str_contains($r->url(), 'crypto-to-quantum-transfer') && $r['sourceCurrency'] === 'USDC' && $r['amount'] === '25.000000');
-    Event::assertDispatched(CardTopUpUpdated::class, fn (CardTopUpUpdated $e): bool => $e->status === 'completed' && $e->creditedCents === 2390);
+    Event::assertDispatched(CardTopUpUpdated::class, fn (CardTopUpUpdated $e): bool => $e->status === 'completed' && $e->creditedCents === 2354);
 });
 
 it('loads an already open card without opening it', function (): void {
@@ -203,7 +215,8 @@ it('loads no more than this deposit brought', function (): void {
     $topup = plTopUp('active', '777');
     plLepo(['usd' => '124.90']);
 
-    expect(app(LepoTopUpPipeline::class)->advance($topup)->credited_cents)->toBe(2500);
+    // 25.00 is loaded; the card receives it less Lepo's 1.5 % fee (0.38).
+    expect(app(LepoTopUpPipeline::class)->advance($topup)->credited_cents)->toBe(2462);
     Http::assertSent(fn (Request $r): bool => str_ends_with($r->url(), '/cards/topup') && $r['value'] === '25.00');
 });
 
@@ -221,11 +234,12 @@ it('waits while an earlier top-up of the user has an unclear outcome', function 
 
 it('credits what Lepo says it loaded', function (): void {
     $topup = plTopUp('active', '777');
-    plLepo(['load' => Http::response(['success' => true, 'orderId' => 'ord-2', 'value' => '24.90', 'fee' => '0.30', 'isPartial' => false])]);
+    plLepo(['load' => Http::response(['success' => true, 'orderId' => 'ord-2', 'requestedValue' => '24.90', 'grossValue' => '24.90', 'value' => '24.53', 'fee' => '0.37', 'isPartial' => false])]);
 
     $done = app(LepoTopUpPipeline::class)->advance($topup);
 
-    expect($done->credited_cents)->toBe(2490)->and($done->fee_cents)->toBe(30);
+    // Lepo takes the fee out of value, so a load with a fee is a normal success.
+    expect($done->status)->toBe('completed')->and($done->credited_cents)->toBe(2453)->and($done->fee_cents)->toBe(37);
 });
 
 it('stops when Lepo loaded only part or a different amount', function (array $answer, string $reason): void {
@@ -236,33 +250,68 @@ it('stops when Lepo loaded only part or a different amount', function (array $an
 
     expect($stopped->status)->toBe('needs_attention')->and($stopped->last_error)->toBe($reason);
 })->with([
-    'partial'   => [['value' => 10.0, 'isPartial' => true], 'LOAD_PARTIAL'],
-    'different' => [['value' => 10.0, 'isPartial' => false], 'LOAD_AMOUNT_MISMATCH'],
-    'no value'  => [['isPartial' => false], 'LOAD_AMOUNT_MISMATCH'],
+    'partial'            => [['requestedValue' => 24.90, 'value' => 10.0, 'isPartial' => true], 'LOAD_PARTIAL'],
+    'different request'  => [['requestedValue' => 10.0, 'value' => 9.85, 'isPartial' => false], 'LOAD_AMOUNT_MISMATCH'],
+    'no requested value' => [['value' => 24.53, 'isPartial' => false], 'LOAD_AMOUNT_MISMATCH'],
+    'no value'           => [['requestedValue' => 24.90, 'isPartial' => false], 'LOAD_AMOUNT_MISMATCH'],
 ]);
 
-it('waits for a pending conversion before loading', function (): void {
+it('treats a successful conversion as final and never asks Lepo for the transfer', function (): void {
+    // Lepo: the dollars are on the balance when the conversion answers 200, and
+    // GET /transfers/{id} does not know this id (it answers 400).
     $topup = plTopUp('active', '777');
     plLepo([
         'convert'  => Http::response(['success' => true, 'transferId' => 'tr-1', 'details' => ['status' => 'PENDING']]),
-        'transfer' => [Http::response(['id' => 'tr-1', 'status' => 'PROCESSING']), Http::response(['id' => 'tr-1', 'status' => 'PROCESSING']), Http::response(['id' => 'tr-1', 'status' => 'COMPLETED'])],
+        'transfer' => Http::response(['message' => 'unknown transfer'], 400),
     ]);
 
+    expect(app(LepoTopUpPipeline::class)->advance($topup)->status)->toBe('completed')
+        ->and(plCalls('/transfers/tr-1', 'GET'))->toBe(0)
+        ->and(plCalls('/transfers/crypto-to-quantum-transfer'))->toBe(1);
+});
+
+it('tries a rate-limited conversion again later instead of stopping', function (): void {
+    // Lepo allows one conversion every 15 seconds for all users together and
+    // answers 429 when it is busy: nothing happened, so it is safe to repeat.
+    $topup = plTopUp('active', '777');
+    plLepo(['convert' => [Http::response(['message' => 'Too many requests'], 429, ['Retry-After' => '15']), Http::response(['success' => true, 'transferId' => 'tr-1'])]]);
+
     $waiting = app(LepoTopUpPipeline::class)->advance($topup);
-    expect($waiting->status)->toBe('converting')->and($waiting->step_started_at)->toBeNull()->and(plCalls('/cards/topup'))->toBe(0);
 
-    app(LepoTopUpPipeline::class)->advance($waiting);
-    expect($waiting->fresh()?->status)->toBe('converting')->and(plCalls('/cards/topup'))->toBe(0);
+    expect($waiting->status)->toBe('deposit_received')
+        ->and($waiting->last_error)->toBe('CONVERSION_RATE_LIMITED')
+        ->and($waiting->step_started_at)->toBeNull()
+        ->and($waiting->conversion_requested_at)->toBeNull();
 
-    expect(app(LepoTopUpPipeline::class)->advance($waiting)->status)->toBe('completed');
-    expect(plCalls('/transfers/crypto-to-quantum-transfer'))->toBe(1);
+    $this->travel(16)->seconds();
+
+    expect(app(LepoTopUpPipeline::class)->advance($waiting)->status)->toBe('completed')
+        ->and(plCalls('/transfers/crypto-to-quantum-transfer'))->toBe(2);
+});
+
+it('starts at most one conversion every 15 seconds across users', function (): void {
+    $first = plTopUp('active', '777');
+    $first->forceFill(['provider_deposit_id' => 'dep-0'])->save();
+    $second = plTopUp('active', '778');
+    plLepo();
+
+    expect(app(LepoTopUpPipeline::class)->advance($first)->status)->toBe('completed');
+    $queued = app(LepoTopUpPipeline::class)->advance($second);
+    expect($queued->status)->toBe('deposit_received')
+        ->and($queued->last_error)->toBe('CONVERSION_QUEUED')
+        ->and(plCalls('/transfers/crypto-to-quantum-transfer'))->toBe(1);
+
+    $this->travel(16)->seconds();
+
+    expect(app(LepoTopUpPipeline::class)->advance($queued)->status)->toBe('completed')
+        ->and(plCalls('/transfers/crypto-to-quantum-transfer'))->toBe(2);
 });
 
 it('retries the load preparation instead of stopping', function (): void {
     $topup = plTopUp('active', '777');
     // The client retries a read twice, so the first run sees three failures.
     $busy = Http::response(['message' => 'busy'], 503);
-    plLepo(['assets' => [$busy, $busy, $busy, Http::response(['assets' => [['currency' => 'USD', 'availableBalance' => '24.90']]])]]);
+    plLepo(['assets' => [$busy, $busy, $busy, Http::response(['assets' => [['assetType' => 'fiat', 'balanceType' => 'QuantumAccount', 'balanceId' => 'b-usd', 'currency' => 'USD', 'availableBalance' => '24.90']]])]]);
 
     $waiting = app(LepoTopUpPipeline::class)->advance($topup);
     expect($waiting->status)->toBe('converting')->and($waiting->last_error)->toBe('BALANCE_UNREADABLE');
@@ -284,10 +333,20 @@ it('stops a load preparation that keeps failing for an hour', function (): void 
 
 it('reads only the available US-dollar balance', function (): void {
     $topup = plTopUp('active', '777');
-    plLepo(['assets' => Http::response(['assets' => [['currency' => 'USD', 'balance' => '30.00', 'availableBalance' => null]]])]);
+    plLepo(['assets' => Http::response(['assets' => [['assetType' => 'fiat', 'balanceType' => 'QuantumAccount', 'balanceId' => 'b-usd', 'currency' => 'USD', 'balance' => '30.00', 'availableBalance' => null]]])]);
 
     expect(app(LepoTopUpPipeline::class)->advance($topup)->last_error)->toBe('BALANCE_UNREADABLE');
     expect(plCalls('/cards/topup'))->toBe(0);
+});
+
+it('never counts the card\'s own balance as money to load', function (): void {
+    // The default answer has 24.90 on the account and 50.00 already on the card.
+    // Adding them would ask Lepo to load the 25.00 cap, more than the account holds.
+    $topup = plTopUp('active', '777');
+    plLepo();
+
+    expect(app(LepoTopUpPipeline::class)->advance($topup)->status)->toBe('completed');
+    Http::assertSent(fn (Request $r): bool => str_ends_with($r->url(), '/cards/topup') && $r['value'] === '24.90');
 });
 
 it('never calls Lepo again for a step already in flight', function (string $status): void {

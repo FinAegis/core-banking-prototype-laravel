@@ -76,8 +76,8 @@ function atLepo(array $transfers): void
         return match (true) {
             str_ends_with($path, '/transfers/crypto-transactions')          => Http::response(['transfers' => $transfers]),
             str_ends_with($path, '/transfers/crypto-to-quantum-transfer')   => Http::response(['success' => true, 'transferId' => 'tr-1', 'details' => ['status' => 'COMPLETED']]),
-            str_ends_with($path, '/users/12345/assets')                     => Http::response(['assets' => [['currency' => 'USD', 'availableBalance' => $opened ? '23.90' : '24.90']]]),
-            $r->method() === 'POST' && str_ends_with($path, '/cards/topup') => Http::response(['success' => true, 'orderId' => 'ord-1', 'value' => $r['value'], 'isPartial' => false]),
+            str_ends_with($path, '/users/12345/assets')                     => Http::response(['assets' => [['assetType' => 'fiat', 'balanceType' => 'QuantumAccount', 'balanceId' => 'b-usd', 'currency' => 'USD', 'availableBalance' => $opened ? '23.90' : '24.90']]]),
+            $r->method() === 'POST' && str_ends_with($path, '/cards/topup') => Http::response(['success' => true, 'orderId' => 'ord-1', 'requestedValue' => $r['value'], 'grossValue' => $r['value'], 'fee' => '0', 'value' => $r['value'], 'isPartial' => false]),
             $r->method() === 'POST' && str_ends_with($path, '/cards')       => (function () use (&$opened) {
                 $opened = true;
 

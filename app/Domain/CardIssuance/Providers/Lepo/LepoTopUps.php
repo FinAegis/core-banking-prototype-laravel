@@ -98,18 +98,23 @@ final class LepoTopUps
         if (in_array(strtoupper((string) ($leg['feeCurrency'] ?? 'USD')), ['USDC', 'USDT'], true)) {
             $conversionFee = bcmul($conversionFee, $rate, 8);
         }
-        $topUpFee = $this->decimal($quote['topupfee'] ?? null) ?? '0';
-        // Lepo also answers topupfeepercent and does not say whether topupfee
-        // already includes it. Counting it as well means the estimate never
-        // promises more than the card receives (open question in the design).
-        $topUpFeePercent = $this->decimal($quote['topupfeepercent'] ?? null) ?? '0';
-        if (bccomp($topUpFeePercent, '0', 8) === 1) {
-            $topUpFee = bcadd($topUpFee, bcdiv(bcmul($amount, $topUpFeePercent, 8), '100', 8), 8);
-        }
         $issuance = $card->isOpenAtProvider() ? 0 : self::ISSUANCE_FEE_CENTS;
 
-        $net = bcsub(bcsub(bcmul($amount, $rate, 8), $conversionFee, 8), $topUpFee, 8);
-        $credited = max(0, (int) bcmul($net, '100', 0) - $issuance);
+        // Dollars after the conversion, less the issue fee on the first
+        // top-up: that is what gets loaded onto the card.
+        $loaded = bcsub(bcsub(bcmul($amount, $rate, 8), $conversionFee, 8), bcdiv((string) $issuance, '100', 2), 8);
+
+        // Lepo (2026-11-23): the load fee is a percentage of the loaded amount,
+        // taken out of it and rounded to the cent; topupfeepercent is a
+        // fraction (0.015 = 1.5 %). Rounded up here, so the estimate never
+        // promises more than the card receives. Only without a percentage is
+        // topupfee used, as a fixed fee, so the fee is never counted twice.
+        $topUpFeePercent = $this->decimal($quote['topupfeepercent'] ?? null) ?? '0';
+        $topUpFee = bccomp($topUpFeePercent, '0', 8) === 1
+            ? self::centsUp(bcmul(bccomp($loaded, '0', 8) === 1 ? $loaded : '0', $topUpFeePercent, 8))
+            : ($this->decimal($quote['topupfee'] ?? null) ?? '0');
+
+        $credited = max(0, (int) bcmul(bcsub($loaded, $topUpFee, 8), '100', 0));
 
         return [
             'amount'             => bcadd($amount, '0', 2),
@@ -286,5 +291,22 @@ final class LepoTopUps
         $text = is_string($value) || is_int($value) ? trim((string) $value) : '';
 
         return preg_match('/^-?\d+(\.\d+)?$/', $text) === 1 && is_numeric($text) ? bcadd($text, '0', 8) : null;
+    }
+
+    /**
+     * A non-negative amount rounded up to the cent.
+     *
+     * @param  numeric-string  $amount
+     * @return numeric-string
+     */
+    private static function centsUp(string $amount): string
+    {
+        $cents = bcmul($amount, '100', 8);
+        $whole = bcadd($cents, '0', 0);
+        if (bccomp($cents, $whole, 8) === 1) {
+            $whole = bcadd($whole, '1', 0);
+        }
+
+        return bcdiv($whole, '100', 2);
     }
 }

@@ -16,10 +16,10 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Moves a received deposit onto the card: converts the USDC to US dollars,
- * waits until Lepo reports the conversion completed, opens the card on the
- * first top-up (Lepo takes the 1 USD issue fee from that money) and loads
- * the dollars onto the card.
+ * Moves a received deposit onto the card: converts the USDC to US dollars
+ * (final when Lepo answers 200), opens the card on the first top-up (Lepo
+ * takes the 1 USD issue fee from that money) and loads the dollars onto the
+ * card from the account's USD balance.
  *
  * Lepo's conversion and card-load calls take no idempotency key and no
  * client reference, so neither is ever repeated: each is recorded
@@ -47,6 +47,14 @@ final class LepoTopUpPipeline
 
     /** Outcomes where money may have moved: the user's other top-ups wait. */
     public const UNCLEAR = ['CONVERSION_UNCLEAR', 'CONVERSION_FAILED', 'STEP_INTERRUPTED', 'LOAD_UNCLEAR', 'LOAD_CHECKOUT_LINK', 'LOAD_PARTIAL', 'LOAD_AMOUNT_MISMATCH'];
+
+    /**
+     * Lepo allows one conversion every 15 seconds for all users together. The
+     * slot is a lock that is never released, so it expires after the gap.
+     */
+    private const CONVERSION_SLOT_KEY = 'cards:lepo:conversion-slot';
+
+    private const CONVERSION_GAP_SECONDS = 15;
 
     /** Lock lifetime: above the job timeout, so a slow run keeps it. */
     public const LOCK_SECONDS = 300;
@@ -124,11 +132,18 @@ final class LepoTopUpPipeline
         }
 
         $userId = $this->lepoUserId($card);
+        if (! Cache::lock(self::CONVERSION_SLOT_KEY, self::CONVERSION_GAP_SECONDS)->get()) {
+            return $this->retry($topup, 'CONVERSION_QUEUED', false);
+        }
+
         $this->mark($topup, CardTopUp::STATUS_CONVERTING, ['conversion_requested_at' => now()]);
         try {
             $converted = $this->client->convertCryptoToUsd($userId, 'USDC', $received);
-        } catch (LepoApiException) {
-            return $this->stop($topup, 'CONVERSION_UNCLEAR');
+        } catch (LepoApiException $e) {
+            // 429 is Lepo's rate limit: the conversion did not happen.
+            return $e->httpStatus() === 429
+                ? $this->backToDeposit($topup, 'CONVERSION_RATE_LIMITED')
+                : $this->stop($topup, 'CONVERSION_UNCLEAR');
         }
 
         $transferId = $converted['transferId'] ?? null;
@@ -136,11 +151,12 @@ final class LepoTopUpPipeline
             return $this->stop($topup, 'CONVERSION_UNCLEAR');
         }
 
+        // Final on 200 with success: the dollars are on the balance at once.
         $details = is_array($converted['details'] ?? null) ? $converted['details'] : [];
         $status = strtoupper((string) ($details['status'] ?? ''));
         $topup->forceFill([
             'provider_conversion_id' => (string) $transferId,
-            'converted_at'           => $status === 'COMPLETED' ? now() : null,
+            'converted_at'           => now(),
             'step_started_at'        => null,
         ])->save();
 
@@ -159,21 +175,9 @@ final class LepoTopUpPipeline
         $started = $topup->conversion_requested_at ?? $topup->updated_at ?? now();
         $giveUp = $started->lt(now()->subMinutes(self::PREPARE_MINUTES));
 
+        // A conversion that answered success is final (Lepo, 2026-11-23); a row
+        // from before that answer may still lack the time.
         if ($topup->converted_at === null) {
-            try {
-                $transfer = $this->client->getTransfer((string) $topup->provider_conversion_id);
-                $status = strtoupper((string) ($transfer['status'] ?? ''));
-            } catch (LepoApiException) {
-                $status = '';
-            }
-
-            if (in_array($status, ['FAILED', 'CANCELLED'], true)) {
-                return $this->stop($topup, 'CONVERSION_FAILED');
-            }
-            if ($status !== 'COMPLETED') {
-                return $this->retry($topup, 'CONVERSION_PENDING', $giveUp);
-            }
-
             $topup->forceFill(['converted_at' => now()])->save();
         }
 
@@ -224,7 +228,7 @@ final class LepoTopUpPipeline
 
         $this->mark($topup, CardTopUp::STATUS_LOADING);
         try {
-            $loaded = $this->client->topUpCard((string) $card->issuer_card_token, $value);
+            $loaded = $this->client->topUpCard((string) $card->issuer_card_token, $value, 'USD');
         } catch (LepoApiException) {
             return $this->stop($topup, 'LOAD_UNCLEAR');
         }
@@ -240,9 +244,12 @@ final class LepoTopUpPipeline
             return $this->stop($topup, 'LOAD_PARTIAL');
         }
 
-        // The credit is what Lepo says it loaded, and it must be what we asked.
+        // Lepo answers requestedValue (what we sent), grossValue (taken from the
+        // balance), fee and value (what the card received; the fee comes out
+        // of it). The request must be ours; the credit is value.
+        $requested = $this->decimal($loaded['requestedValue'] ?? null, 2);
         $credited = $this->decimal($loaded['value'] ?? null, 2);
-        if ($credited === null || bccomp($credited, $value, 2) !== 0) {
+        if ($requested === null || $credited === null || bccomp($requested, $value, 2) !== 0) {
             return $this->stop($topup, 'LOAD_AMOUNT_MISMATCH');
         }
 
@@ -316,8 +323,10 @@ final class LepoTopUpPipeline
     }
 
     /**
-     * The available US-dollar balance at Lepo, 2 decimals, rounded down. A
-     * missing available amount is unreadable, never the total balance.
+     * The available US-dollar balance of the account at Lepo, 2 decimals,
+     * rounded down. Only the fiat QuantumAccount USD row counts: the Card row
+     * is money already on the card. Rows are keyed on balanceId. A missing
+     * available amount is unreadable, never the total balance.
      *
      * @return numeric-string|null
      */
@@ -333,10 +342,12 @@ final class LepoTopUpPipeline
             return null;
         }
 
-        $total = '0';
-        $seen = false;
+        $rows = [];
         foreach ($assets as $asset) {
-            if (! is_array($asset) || strtoupper((string) ($asset['currency'] ?? '')) !== 'USD') {
+            if (! is_array($asset)
+                || strtolower((string) ($asset['assetType'] ?? '')) !== 'fiat'
+                || strtolower((string) ($asset['balanceType'] ?? '')) !== 'quantumaccount'
+                || strtoupper((string) ($asset['currency'] ?? '')) !== 'USD') {
                 continue;
             }
 
@@ -345,11 +356,19 @@ final class LepoTopUpPipeline
                 return null;
             }
 
-            $total = bcadd($total, $available, 6);
-            $seen = true;
+            $rows[(string) ($asset['balanceId'] ?? count($rows))] = $available;
         }
 
-        return $seen ? bcadd($total, '0', 2) : null;
+        if ($rows === []) {
+            return null;
+        }
+
+        $total = '0';
+        foreach ($rows as $available) {
+            $total = bcadd($total, $available, 6);
+        }
+
+        return bcadd($total, '0', 2);
     }
 
     private function lepoUserId(Card $card): string
@@ -377,6 +396,23 @@ final class LepoTopUpPipeline
         $text = is_string($value) || is_int($value) ? trim((string) $value) : '';
 
         return preg_match('/^\d+(\.\d+)?$/', $text) === 1 && is_numeric($text) ? bcadd($text, '0', $scale) : null;
+    }
+
+    /**
+     * The conversion call did not happen: undo the "converting" mark so the
+     * next run converts again.
+     */
+    private function backToDeposit(CardTopUp $topup, string $reason): CardTopUp
+    {
+        $topup->forceFill([
+            'status'                  => CardTopUp::STATUS_DEPOSIT_RECEIVED,
+            'conversion_requested_at' => null,
+            'step_started_at'         => null,
+            'last_error'              => $reason,
+        ])->save();
+        $this->topups->announce($topup);
+
+        return $topup;
     }
 
     /**
