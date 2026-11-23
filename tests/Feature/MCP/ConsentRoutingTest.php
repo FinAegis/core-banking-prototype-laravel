@@ -143,3 +143,90 @@ it('round-trips the approve POST to /oauth/authorize and redirects with code+sta
     expect($location)->toContain('state=feature-test-state');
     expect($location)->toContain('code=');
 });
+
+/**
+ * Walk the consent screen as the browser does and approve with the given
+ * limit field. Returns the client id and the approve response.
+ *
+ * @return array{0: string, 1: Illuminate\Testing\TestResponse<Symfony\Component\HttpFoundation\Response>}
+ */
+function approveConsent(PHPUnit\Framework\TestCase $test, User $user, ?string $limitField, ?string $clientId = null): array
+{
+    $clientId ??= (string) Str::uuid();
+    if (! DB::table('oauth_clients')->where('id', $clientId)->exists()) {
+        DB::table('oauth_clients')->insert([
+            'id'              => $clientId, 'owner_type' => null, 'owner_id' => null, 'name' => 'Limit Test App',
+            'secret'          => bcrypt('test-secret'), 'provider' => null,
+            'redirect_uris'   => (string) json_encode(['http://localhost:9999/callback']),
+            'grant_types'     => (string) json_encode(['authorization_code']), 'revoked' => false,
+            'client_logo_url' => null, 'registration_method' => 'dcr', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+
+    $html = (string) $test->actingAs($user, 'web')->get('/oauth/authorize?' . http_build_query([
+        'client_id' => $clientId, 'response_type' => 'code', 'redirect_uri' => 'http://localhost:9999/callback',
+        'scope'     => 'payments:write', 'state' => 'limit-state',
+    ]))->assertOk()->getContent();
+    preg_match('/name="auth_token"\s+value="([^"]+)"/', $html, $auth);
+    preg_match('/name="_token"\s+value="([^"]+)"/', $html, $csrf);
+
+    $form = ['_token' => $csrf[1] ?? '', 'auth_token' => $auth[1] ?? '', 'state' => 'limit-state'];
+    if ($limitField !== null) {
+        $form['mcp_daily_limit_minor'] = $limitField;
+    }
+
+    return [$clientId, $test->actingAs($user, 'web')->post('/oauth/authorize', $form)];
+}
+
+function consentPolicy(string $clientId, User $user): ?object
+{
+    return DB::table('mcp_token_policies')->where('token_id', "grant:{$clientId}:{$user->id}")->first();
+}
+
+it('saves the daily spending limit the user picks on the consent screen', function () {
+    $user = User::factory()->create();
+
+    [$clientId, $approve] = approveConsent($this, $user, '200000');
+
+    $approve->assertStatus(302);
+    $policy = consentPolicy($clientId, $user);
+    expect((int) $policy?->daily_limit_minor)->toBe(200000)
+        ->and((string) $policy?->daily_limit_currency)->toBe('USD');
+});
+
+it('saves "no limit" when the user picks it', function () {
+    $user = User::factory()->create();
+
+    [$clientId] = approveConsent($this, $user, '');
+
+    expect((int) consentPolicy($clientId, $user)?->daily_limit_minor)->toBe(PHP_INT_MAX);
+});
+
+it('falls back to the default limit for a value the screen never offered', function () {
+    $user = User::factory()->create();
+
+    [$clientId] = approveConsent($this, $user, '999999999');
+
+    expect((int) consentPolicy($clientId, $user)?->daily_limit_minor)->toBe(50000);
+});
+
+it('updates the limit on a later approval and keeps what was already spent today', function () {
+    $user = User::factory()->create();
+    [$clientId] = approveConsent($this, $user, '50000');
+    DB::table('mcp_token_policies')->where('token_id', "grant:{$clientId}:{$user->id}")->update(['daily_spend_minor' => 1200]);
+
+    approveConsent($this, $user, '5000', $clientId);
+
+    expect((int) consentPolicy($clientId, $user)?->daily_limit_minor)->toBe(5000)
+        ->and((int) consentPolicy($clientId, $user)?->daily_spend_minor)->toBe(1200);
+});
+
+it('saves nothing when the approval is not a valid Passport approval', function () {
+    $user = User::factory()->create();
+    $clientId = (string) Str::uuid();
+
+    $this->actingAs($user, 'web')->post('/oauth/authorize', ['auth_token' => 'forged', 'state' => 'x', 'mcp_daily_limit_minor' => '1000000']);
+
+    expect(DB::table('mcp_token_policies')->count())->toBe(0)
+        ->and(consentPolicy($clientId, $user))->toBeNull();
+});

@@ -96,7 +96,7 @@ function toolsCallStub(string $name, string $description, array $schema): MCPToo
 
 beforeEach(function () {
     DB::table('mcp_token_policies')->insert([
-        'token_id'              => 'tok_test',
+        'token_id'              => 'grant:cli:1',
         'daily_limit_minor'     => 50000,
         'daily_limit_currency'  => 'USD',
         'daily_spend_minor'     => 0,
@@ -288,11 +288,11 @@ it('reserves the daily spend on a successful payment-tool call and persists the 
     ], $ctx);
 
     expect($resp['result']['isError'])->toBeFalse();
-    expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_test')->value('daily_spend_minor'))->toBe(12000);
+    expect((int) DB::table('mcp_token_policies')->where('token_id', 'grant:cli:1')->value('daily_spend_minor'))->toBe(12000);
 });
 
 it('returns -32003 SPENDING_LIMIT_EXCEEDED when the reservation would exceed the daily cap', function () {
-    DB::table('mcp_token_policies')->where('token_id', 'tok_test')->update(['daily_spend_minor' => 49000]);
+    DB::table('mcp_token_policies')->where('token_id', 'grant:cli:1')->update(['daily_spend_minor' => 49000]);
 
     // amount=50 → 5000 minor. 49000 + 5000 = 54000 > 50000 limit → reject with 1000 remaining.
     $router = app(JsonRpcRouter::class);
@@ -309,7 +309,7 @@ it('returns -32003 SPENDING_LIMIT_EXCEEDED when the reservation would exceed the
     expect($resp['error']['code'])->toBe(-32003);
     expect($resp['error']['message'])->toBe('SPENDING_LIMIT_EXCEEDED');
     expect($resp['error']['data']['limit_remaining_minor'])->toBe(1000);
-    expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_test')->value('daily_spend_minor'))->toBe(49000);
+    expect((int) DB::table('mcp_token_policies')->where('token_id', 'grant:cli:1')->value('daily_spend_minor'))->toBe(49000);
 
     $this->assertDatabaseHas('mcp_tool_invocations', [
         'token_id'      => 'tok_test',
@@ -333,7 +333,7 @@ it('handles fractional float amounts via bcmath without IEEE-754 drift', functio
     ], $ctx);
 
     expect($resp['result']['isError'])->toBeFalse();
-    expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_test')->value('daily_spend_minor'))->toBe(10);
+    expect((int) DB::table('mcp_token_policies')->where('token_id', 'grant:cli:1')->value('daily_spend_minor'))->toBe(10);
 });
 
 it('releases the reservation when the payment tool reports an error', function () {
@@ -417,7 +417,7 @@ it('releases the reservation when the payment tool reports an error', function (
 
     expect($resp['result']['isError'])->toBeTrue();
     // Reservation rolled back — daily spend stays at 0.
-    expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_test')->value('daily_spend_minor'))->toBe(0);
+    expect((int) DB::table('mcp_token_policies')->where('token_id', 'grant:cli:1')->value('daily_spend_minor'))->toBe(0);
 });
 
 it('reserves the ramp.start fiat amount against the daily limit through the catalog wiring', function () {
@@ -443,7 +443,7 @@ it('reserves the ramp.start fiat amount against the daily limit through the cata
 
     expect($resp['result']['isError'])->toBeFalse();
     // '100.00' major × amount_decimals=2 → 10000 minor reserved.
-    expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_test')->value('daily_spend_minor'))->toBe(10000);
+    expect((int) DB::table('mcp_token_policies')->where('token_id', 'grant:cli:1')->value('daily_spend_minor'))->toBe(10000);
 });
 
 it('reserves the flat sms.send cost (fixed_cost_minor) without any amount argument', function () {
@@ -466,7 +466,7 @@ it('reserves the flat sms.send cost (fixed_cost_minor) without any amount argume
 
     expect($resp['result']['isError'])->toBeFalse();
     // Default MCP_SMS_PRICE_MINOR=10 → $0.10 reserved per message.
-    expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_test')->value('daily_spend_minor'))->toBe(10);
+    expect((int) DB::table('mcp_token_policies')->where('token_id', 'grant:cli:1')->value('daily_spend_minor'))->toBe(10);
 });
 
 it('returns -32006 USER_CONTEXT_REQUIRED when a user-context tool is called without a user-bound token', function () {
@@ -488,7 +488,7 @@ it('returns -32006 USER_CONTEXT_REQUIRED when a user-context tool is called with
     expect($resp['error']['code'])->toBe(-32006);
     expect($resp['error']['data']['tool'])->toBe('payment.transfer');
     // Counter must NOT have been touched.
-    expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_test')->value('daily_spend_minor'))->toBe(0);
+    expect((int) DB::table('mcp_token_policies')->where('token_id', 'grant:cli:1')->value('daily_spend_minor'))->toBe(0);
 });
 
 it('rejects a payment-tool call missing amount with -32003 AMOUNT_INVALID', function () {
@@ -504,4 +504,25 @@ it('rejects a payment-tool call missing amount with -32003 AMOUNT_INVALID', func
 
     expect($resp['error']['code'])->toBe(-32003);
     expect($resp['error']['data']['error_code'])->toBe('AMOUNT_INVALID');
+});
+
+it('keeps one daily limit for every token the same app holds for the same user', function () {
+    // The limit belongs to the user's approval of the app, not to one access
+    // token: a refreshed or re-issued token must not start a fresh allowance.
+    $router = app(JsonRpcRouter::class);
+    $call = fn (string $key): array => [
+        'jsonrpc' => '2.0', 'id' => 300, 'method' => 'tools/call',
+        'params'  => ['name' => 'payment.transfer', 'arguments' => [
+            'amount'          => 300,
+            'currency'        => 'USD',
+            'idempotency_key' => $key,
+        ]],
+    ];
+
+    $first = $router->dispatch($call('rot-1'), new McpRequestContext('tok_first', 'cli', 1, ['payments:write']));
+    $second = $router->dispatch($call('rot-2'), new McpRequestContext('tok_second', 'cli', 1, ['payments:write']));
+
+    expect($first['result']['isError'])->toBeFalse()
+        ->and($second['error']['code'] ?? null)->toBe(-32003)
+        ->and((int) DB::table('mcp_token_policies')->where('token_id', 'grant:cli:1')->value('daily_spend_minor'))->toBe(30000);
 });
