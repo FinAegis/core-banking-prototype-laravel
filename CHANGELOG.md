@@ -9,6 +9,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 >
 > Entries below describe software changes. Named third-party providers are integration adapters for third-party APIs; no partnership or endorsement implied. Mentions of the Global Currency Unit (GCU) refer to a software demonstration that is not issued, offered or sold to anyone and has no monetary value.
 
+## [7.18.0] - 2026-11-23
+
+**Virtual cards with Lepo Finance.** Virtual cards are built for a closed pilot. People in the pilot who pass the identity check will open a card in the Zelta app, see its details on the card partner's secure page and add money to it from their own wallet. Cards stay off until the pilot is switched on, and adding money stays off until Lepo Finance answers our open questions about how the money moves. This release also stops wallet sends from showing "failed" when the network may have accepted them. It fixes or removes code that newer code checkers showed could never work.
+
+### Added
+- Card issuing runs through one provider-neutral layer. Lepo Finance is the first provider, and FinCard will move onto the same layer later. Lepo's webhooks are signed and checked, and `ops:verify-env` checks the Lepo settings before a deploy (#1219, #1221).
+- Card onboarding follows the contract agreed with the mobile app. The app gets a form description and the `cards.onboarding.updated` event. The identity check runs on our own page with the SumSub web SDK, because Lepo returns a SumSub token rather than a link (#1225, #1230).
+- `/api/v1/cards/issued` lists, opens, freezes, unfreezes and cancels cards. Card numbers are shown only on the card partner's secure page, and card webhooks keep the app up to date (#1232). Card transactions come in one shape for the app: a type, a direction, a positive amount and one status (#1234, #1235).
+- "Add to card" lets a person top up a card with USDC from their wallet. The API gives an estimate, starts a top-up, records the wallet transaction and cancels a waiting top-up. A pipeline then finds the deposit, converts it to US dollars, opens the card on the first top-up and loads it. Lepo's conversion and load calls cannot be repeated safely, so neither is ever repeated, and an unclear result stops for an operator. Operators have `cards:inspect-user` and `cards:resolve-topup`. The whole feature stays off through `CARD_TOPUPS_ENABLED=false` (#1236, #1237, #1240).
+- 3-D Secure codes for online payments are shown in the app after the person confirms it is them. The code is kept encrypted for at most ten minutes and is never written to the database or the logs (#1236).
+- Every sign-in now records `users.last_login_at`. The compliance access review and the risk assessment use it (#1242).
+- The terms and the privacy policy describe the virtual card pilot and name the operating company (#1241).
+
+### Fixed
+- A wallet send no longer shows "failed" when the network may have accepted it after a timeout or a server error. Such a send stays submitted until the chain settles it. On Ethereum-type networks it fails only once its sponsorship has expired and the account's nonce shows it never ran. On Solana it fails only once its blockhash can no longer be used. A second submit of the same send while the first is still running gets `409 SUBMIT_IN_PROGRESS` (#1238).
+- larastan 3.15 and phpstan 2.3.7 found real bugs, now fixed with tests (#1233, #1242):
+  - Number parsing threw on values such as `1e3`.
+  - AML reviews always failed.
+  - GCU basket values were never found.
+  - The fraud velocity and behaviour checks always counted zero, and threshold monitoring ignored the customer's country. Both now see real data.
+  - Newsletter targeting, batch cancel and GCU voting power read columns that do not exist.
+  - Several lookups, the CGO payment mails, the admin turnover chart, the storage health status and an open banking error page were broken.
+  - The batch job's transaction archiving failed.
+  - The asset transfer projector looked up transfers by a column that does not exist.
+- Fraud cases now run on the real `fraud_cases` table, and a case keeps the fraud score that opened it. The enhanced suspicious activity report no longer counts low and medium risk scores as high risk. Report due dates no longer fail on a date method that does not exist (#1244).
+- Ids that are not UUIDs are no longer written into UUID columns, which MariaDB rejected in production (#1217). PHP 8.5 deprecation notices are gone (#1216).
+
+### Removed
+- The FinAegis exchange's add, remove and rebalance liquidity flow is gone. None of it ever worked: it used a class, a table and columns that do not exist. Pool lists, swaps, positions, rewards and impermanent-loss protection stay (#1242).
+- The bank withdrawal page no longer saves bank accounts, because the `bank_accounts` table never had the columns it wrote. The unused contact ticket service is removed (#1233, #1242).
+
+### Security
+- Composer packages with security advisories are updated, including Laravel 12.73 and Symfony (#1229, #1226). The npm fixes and major upgrades bring Trezor Connect 10, vitest 5 and typescript-eslint 8 (#1227, #1239). GitHub Actions run their current majors (#1222).
+
+### Upgrade
+Run `composer install --no-dev`, `npm ci && npm run build` and `php artisan migrate --force` (eight migrations). On a multi-database tenancy setup, also run `php artisan tenants:migrate` for two tenant migrations. Then run `php artisan horizon:terminate` and `php artisan ops:verify-env`. Cards stay off until `CARD_PROVIDERS_ENABLED=lepo` is set with the Lepo keys, and top-ups stay off until `CARD_TOPUPS_ENABLED=true`. See `.env.zelta.example` for every new key.
+
+## [7.17.1] - 2026-11-20
+
+**Security follow-ups and account linking.** This release fixes the issues in advisory GHSA-rrfq-93h6-29wj, which follows GHSA-385w-q6j4-5qw6.
+- GraphQL applies token abilities and IP blocking. Card freezes placed by staff or the card issuer can no longer be lifted by the cardholder.
+- A new email takes effect only after it is confirmed. A password reset ends every sign-in, and social login reaches an existing account only through a verified email.
+- The Horizon, Telescope and Waterline dashboards require an administrator, and `super_admin` counts as an administrator everywhere.
+- Signing in with the identity provider's email code links an existing account with the same email. It never links accounts that have confirmed two-factor authentication.
+- Fixes for asset workflows, MariaDB transfer history, backup retention and PHP 8.5 (#1205, #1207, #1208, #1209, #1214, #1215).
+
+## [7.17.0] - 2026-11-19
+
+**Security release.** This release fixes the vulnerabilities described in advisory GHSA-385w-q6j4-5qw6. The advisory lists the affected components and the upgrade notes.
+
 ## [7.16.0] - 2026-06-21
 
 **Non-custodial RAILGUN privacy — backend migration.** Moves the RAILGUN privacy stack toward the platform's non-custodial model (the device holds all keys, like Wallet Send): the backend stops holding wallet seeds and becomes a set of support services for an on-device engine. The user-facing private-transaction flow ships once the mobile on-device engine lands — this release is the backend groundwork. Also fixes the iOS Apple App Site Association file that broke passkeys and universal links.

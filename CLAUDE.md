@@ -175,6 +175,27 @@ Non-custodial flow. Privy holds the keys (passkey-controlled smart accounts on E
 | `quote_id` vs `quoteId` | prepare/submit normalise both spellings (`$request->merge` before `validate`) — snake_case is canonical, camelCase kept for older builds. Validation errors are keyed `quote_id`/`intent_id` |
 | Adding a new send/receive asset | Add the case to `App\Domain\MobilePayment\Enums\PaymentAsset` (decimals + label) AND make sure `EvmTokens` / `SolanaTokens` have the contract / mint. The receive QR builder uses `SolanaTokens::mintFor()` per Solana Pay spec — `spl-token` must be the mint, not the symbol. v7.13.1 added USDT this way |
 | Network casing on quote vs prepare | Both endpoints validate against `PaymentNetwork::values()` — case-sensitive: `SOLANA`/`TRON` uppercase, `polygon`/`base`/`arbitrum`/`ethereum` lowercase. Pre-existing enum inconsistency; quote response is `{ success, data: { quote_id, network, ... } }` (snake_case keys inside `data`). Request bodies on prepare/submit accept snake_case (canonical) or camelCase for the id field, but the `network` value itself is not normalised — mobile must send the exact enum value |
+| Send reported failed while it landed | A broadcast that times out or gets a 5xx may still be accepted. It stays `submitted` with `metadata.submit_outcome = unknown` (`RpcOutcomeUnknownException`, `SolanaRpcException::isOutcomeUnknown()`). EVM fails it (`BUNDLER_NOT_ACCEPTED`) only after the paymaster sponsorship expired (Pimlico default 10 min, `PimlicoPaymasterService::SPONSORSHIP_VALID_SECONDS`) and the EntryPoint nonce shows it never ran; Solana drops it only past `last_valid_block_height`. Pimlico's `eth_getUserOperationByHash`/receipt see mined operations only, so they prove nothing about queued ones |
+| Concurrent submit of one intent | Submit holds a per-intent cache lock; a second submit gets 409 `SUBMIT_IN_PROGRESS` instead of broadcasting again |
+
+## Card Issuing — Lepo Finance (v7.18.0+)
+
+Virtual consumer cards. Lepo Finance is the first provider (issuer Interlace, identity checks by SumSub); FinCard moves onto the same layer later. Domain: `app/Domain/CardIssuance/` (Lepo code in `Providers/Lepo/`). API: `/api/v1/cards/onboarding`, `/api/v1/cards/issued`, `/api/v1/cards/issued/{id}/topups`, `GET /api/v1/cards/issued/{id}/3ds/code`; Lepo webhooks at `POST /api/v1/webhooks/lepo`. The partner documentation and keys live outside the repo — never commit them.
+
+- Switches: `CARD_PROVIDERS_ENABLED` (empty = cards off), `CARD_PROVIDER_LEPO_PILOT_ONLY` + `CARD_PROVIDER_LEPO_PILOT_USERS`, `CARD_TOPUPS_ENABLED` (off until Lepo confirms the money path). Do not set `CARD_ISSUER=lepo`; that switch belongs to the older JIT issuers.
+- Operator commands: `php artisan cards:inspect-user {email}`, `php artisan cards:resolve-topup {topup} {outcome} --credited-cents= --note=` (after checking the top-up at Lepo).
+- Top-ups: `AdvanceLepoTopUps` runs every minute (and on deposit webhooks) under the per-user money lock `cards:lepo:money:{user_id}`; it returns at once while the switch is off.
+
+| Pitfall | Fix |
+|---|---|
+| Retrying a Lepo money call | `crypto-to-quantum-transfer` and `cards/topup` have no idempotency key. Record the step before the call, never retry it, and send any unclear result to `needs_attention` for an operator |
+| `sumsub/kyc-url` treated as a link | It returns a SumSub token. We host the page at `/cards/kyc/{cardholder}` (signed, path-only link); Lepo must allow the site's domain in its SumSub WebSDK domain list |
+| Card number or CVV in our systems | Never. `GET /cards/{id}/widget` returns a short-lived `widgetToken` for Interlace Widget.js on the partner-hosted page |
+| 3-D Secure code storage | Encrypted in the cache for at most 10 minutes, never in the database, logs, push payloads or events; Telescope ignores the webhook, code endpoint and hosted pages |
+| Page numbers | Card transaction pages start from 0; crypto-transaction pages from 1 |
+| Test fakes for an outage | `LepoClient::read()` retries twice, so a fake needs three failures; `Http::fake()` stubs accumulate (first match wins), so use one fake with response sequences |
+| Calling the production Lepo API | Read-only checks only; there is no sandbox |
+| Creating a same-named event | `card.state_changed` already exists for FinCard (`{card_id, status, balance_cents}`); reuse events by name |
 
 ## IAP / Subscriptions (v7.13.0+)
 
