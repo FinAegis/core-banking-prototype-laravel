@@ -21,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '22'  # vitest 5 needs Node 22.12+
           registry-url: 'https://registry.npmjs.org'
           cache: 'npm'
           cache-dependency-path: packages/finaegis-mcp-stdio/package-lock.json

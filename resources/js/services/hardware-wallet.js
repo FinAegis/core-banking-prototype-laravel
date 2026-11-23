@@ -6,7 +6,7 @@
  *
  * Supported devices:
  * - Ledger Nano S/X (via @ledgerhq/hw-transport-webusb)
- * - Trezor One/Model T (via @trezor/connect-web)
+ * - Trezor One/Model T (via @trezor/connect-web 10, which routes calls through Trezor Suite)
  *
  * Browser Requirements:
  * - Chrome 61+ (WebUSB support)
@@ -45,25 +45,44 @@ async function loadLedgerDependencies() {
 
 /**
  * Load Trezor dependencies
+ *
+ * Trezor Connect 10 is a thin client. Each call goes to Trezor Suite, which
+ * shows the approval screens. Suite desktop is reached over a local WebSocket
+ * when it runs. Otherwise Connect opens Suite Web in a popup. Connect 10
+ * requires `manifest.appName`, which Suite shows in its permission prompt.
+ * The `lazyLoad` option no longer exists. The page must allow
+ * https://suite.trezor.io in its CSP frame-src. Its Cross-Origin-Opener-Policy
+ * must not be `same-origin`, or the Suite Web handshake times out.
  */
 async function loadTrezorDependencies() {
-    if (!TrezorConnect) {
-        try {
-            const trezorModule = await import('@trezor/connect-web');
-            TrezorConnect = trezorModule.default;
-            // Initialize Trezor Connect
-            await TrezorConnect.init({
-                lazyLoad: true,
-                manifest: {
-                    email: 'support@finaegis.com',
-                    appUrl: window.location.origin,
-                },
-            });
-        } catch (e) {
-            console.warn('Trezor Connect not available:', e.message);
-            throw new Error('Trezor support requires @trezor/connect-web package');
-        }
+    if (TrezorConnect) {
+        return;
     }
+
+    let connect;
+    try {
+        const trezorModule = await import('@trezor/connect-web');
+        connect = trezorModule.default;
+    } catch (e) {
+        console.warn('Trezor Connect not available:', e.message);
+        throw new Error('Trezor support requires @trezor/connect-web package');
+    }
+
+    try {
+        await connect.init({
+            manifest: {
+                appName: document.querySelector('meta[name="application-name"]')?.content || 'Zelta',
+                email: 'support@finaegis.com',
+                appUrl: window.location.origin,
+            },
+        });
+    } catch (e) {
+        console.warn('Trezor Connect failed to initialise:', e.message);
+        throw new Error(`Trezor Connect failed to initialise: ${e.message}`);
+    }
+
+    // Keep the instance only after init succeeds, so a failed init is retried.
+    TrezorConnect = connect;
 }
 
 /**
