@@ -61,7 +61,7 @@ class SubscriptionRevenueStatsWidget extends BaseWidget
         $total = array_sum($byTier);
 
         $breakdown = $byTier === []
-            ? 'No live IAP subscriptions'
+            ? 'No live in-app subscriptions'
             : 'By tier: ' . implode(' · ', array_map(
                 static fn (string $tier, int $count): string => $tier . ' ' . $count,
                 array_keys($byTier),
@@ -80,7 +80,7 @@ class SubscriptionRevenueStatsWidget extends BaseWidget
             ->count();
 
         return Stat::make('Trialing', (string) $trialing)
-            ->description('Trials convert or expire at trial_ends_at')
+            ->description('Each trial converts or expires on its end date')
             ->color('info');
     }
 

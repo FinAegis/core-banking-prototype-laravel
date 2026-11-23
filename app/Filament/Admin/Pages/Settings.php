@@ -84,7 +84,7 @@ class Settings extends Page
             }
 
             $schema[] = Forms\Components\Section::make($groupConfig['label'])
-                ->description("Configure {$groupConfig['label']} for the platform")
+                ->description('Changes in this section apply to the whole platform.')
                 ->schema($fields)
                 ->collapsible()
                 ->persistCollapsed();
@@ -111,8 +111,8 @@ class Settings extends Page
 
                 if (! $validation['valid']) {
                     Notification::make()
-                        ->title('Validation Error')
-                        ->body("Invalid value for {$config['label']}: " . implode(', ', $validation['errors']))
+                        ->title('Settings not saved')
+                        ->body("The value for {$config['label']} is not valid. " . implode(' ', $validation['errors']))
                         ->danger()
                         ->send();
 
@@ -163,7 +163,7 @@ class Settings extends Page
             );
         } catch (Exception $e) {
             Notification::make()
-                ->title('Error resetting settings')
+                ->title('Settings could not be reset')
                 ->body($e->getMessage())
                 ->danger()
                 ->send();
@@ -177,9 +177,9 @@ class Settings extends Page
         $filename = 'settings-export-' . now()->format('Y-m-d-His') . '.json';
 
         Notification::make()
-            ->title('Settings exported')
-            ->body('Settings have been exported successfully.')
-            ->success()
+            ->title('Export not available yet')
+            ->body('The export request was written to the log. No file was created.')
+            ->warning()
             ->send();
 
         // In a real implementation, this would trigger a download

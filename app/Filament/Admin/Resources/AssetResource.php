@@ -41,14 +41,14 @@ class AssetResource extends Resource
                                     ->unique(ignoreRecord: true)
                                     ->maxLength(10)
                                     ->placeholder('USD, EUR, BTC, etc.')
-                                    ->helperText('Unique identifier for the asset (e.g., USD, EUR, BTC)'),
+                                    ->helperText('Enter a unique code for the asset, for example USD, EUR or BTC.'),
 
                                 Forms\Components\TextInput::make('name')
                                     ->label('Asset Name')
                                     ->required()
                                     ->maxLength(100)
                                     ->placeholder('US Dollar, Euro, Bitcoin, etc.')
-                                    ->helperText('Full name of the asset'),
+                                    ->helperText('Enter the full name of the asset.'),
 
                                 Forms\Components\Select::make('type')
                                     ->label('Asset Type')
@@ -61,13 +61,13 @@ class AssetResource extends Resource
                                         ]
                                     )
                                     ->reactive()
-                                    ->helperText('Type of asset being added'),
+                                    ->helperText('Choose what kind of asset this is.'),
 
                                 Forms\Components\TextInput::make('symbol')
                                     ->label('Symbol')
                                     ->maxLength(10)
                                     ->placeholder('$, €, ₿, etc.')
-                                    ->helperText('Display symbol for the asset'),
+                                    ->helperText('Enter the symbol shown next to amounts in this asset.'),
 
                                 Forms\Components\TextInput::make('precision')
                                     ->label('Decimal Precision')
@@ -83,7 +83,7 @@ class AssetResource extends Resource
                                     )
                                     ->minValue(0)
                                     ->maxValue(18)
-                                    ->helperText('Number of decimal places for this asset'),
+                                    ->helperText('Enter how many decimal places this asset uses.'),
                             ]
                         ),
 
@@ -93,13 +93,13 @@ class AssetResource extends Resource
                                 Forms\Components\Toggle::make('is_active')
                                     ->label('Active')
                                     ->default(true)
-                                    ->helperText('Whether this asset is available for transactions'),
+                                    ->helperText('Turn this on to allow transactions in this asset.'),
 
                                 Forms\Components\KeyValue::make('metadata')
                                     ->label('Metadata')
                                     ->keyLabel('Property')
                                     ->valueLabel('Value')
-                                    ->helperText('Additional properties and configuration for this asset')
+                                    ->helperText('Add any extra properties for this asset as keys and values.')
                                     ->columnSpanFull(),
                             ]
                         ),

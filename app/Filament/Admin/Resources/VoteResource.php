@@ -102,7 +102,7 @@ class VoteResource extends Resource
                                 Forms\Components\TextInput::make('signature')
                                     ->label('Cryptographic Signature')
                                     ->disabled()
-                                    ->helperText('Automatically generated when vote is saved'),
+                                    ->helperText('This is created automatically when the vote is saved.'),
 
                                 Forms\Components\KeyValue::make('metadata')
                                     ->label('Additional Metadata')
@@ -221,7 +221,7 @@ class VoteResource extends Resource
 
                                 \Filament\Notifications\Notification::make()
                                     ->title($isValid ? 'Signature Valid' : 'Signature Invalid')
-                                    ->body($isValid ? 'Vote signature is cryptographically valid' : 'Vote signature verification failed')
+                                    ->body($isValid ? 'The vote signature is valid.' : 'The vote signature could not be verified.')
                                     ->color($isValid ? 'success' : 'danger')
                                     ->send();
                             }
@@ -253,7 +253,7 @@ class VoteResource extends Resource
 
                                         \Filament\Notifications\Notification::make()
                                             ->title('Signature Verification Complete')
-                                            ->body("Valid: {$valid}, Invalid: {$invalid}")
+                                            ->body("{$valid} signatures are valid and {$invalid} are not.")
                                             ->color($invalid > 0 ? 'warning' : 'success')
                                             ->send();
                                     }

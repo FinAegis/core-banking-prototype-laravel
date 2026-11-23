@@ -21,8 +21,8 @@ class GCUBasketWidget extends PrimaryBasketWidget
         $data = parent::getBasketData();
 
         // Add GCU-specific information
-        $data['title'] = 'GCU (Global Currency Unit) Composition';
-        $data['description'] = 'Current allocation of currencies in the Global Currency Unit basket';
+        $data['title'] = 'Global Currency Unit Composition';
+        $data['description'] = 'This is how the Global Currency Unit basket is split between currencies today.';
         $data['symbol'] = config('baskets.primary_symbol', 'Ǥ');
 
         if ($data['exists'] && isset($data['basket'])) {

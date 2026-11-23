@@ -95,7 +95,7 @@ class PollResource extends Resource
                                     ->suffix('%')
                                     ->minValue(1)
                                     ->maxValue(100)
-                                    ->helperText('Minimum participation rate required for execution'),
+                                    ->helperText('Enter the lowest turnout, as a percentage, that the poll needs before its result is carried out.'),
                             ]
                         )
                         ->columns(2),
@@ -108,14 +108,14 @@ class PollResource extends Resource
                                         [
                                             Forms\Components\TextInput::make('id')
                                                 ->required()
-                                                ->helperText('Unique identifier for this option'),
+                                                ->helperText('Enter a unique ID for this option.'),
 
                                             Forms\Components\TextInput::make('label')
                                                 ->required()
-                                                ->helperText('Display name for this option'),
+                                                ->helperText('Enter the name that voters see for this option.'),
 
                                             Forms\Components\TextInput::make('description')
-                                                ->helperText('Optional description for this option'),
+                                                ->helperText('You can add a short description of this option.'),
                                         ]
                                     )
                                     ->columns(3)
@@ -149,7 +149,7 @@ class PollResource extends Resource
                                             'UpdateConfigurationWorkflow' => 'Update Configuration Workflow',
                                         ]
                                     )
-                                    ->helperText('Optional workflow to execute when poll passes'),
+                                    ->helperText('You can choose a workflow that runs when the poll passes.'),
 
                                 Forms\Components\Select::make('status')
                                     ->required()
@@ -349,7 +349,7 @@ class PollResource extends Resource
                                     $result = app(GovernanceService::class)->completePoll($record);
                                     Notification::make()
                                         ->title('Poll Completed')
-                                        ->body("Winner: {$result->winningOption} with {$result->totalVotes} votes")
+                                        ->body("{$result->winningOption} won with {$result->totalVotes} votes.")
                                         ->success()
                                         ->send();
                                 } catch (Exception $e) {

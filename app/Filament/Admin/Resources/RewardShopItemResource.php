@@ -70,7 +70,7 @@ class RewardShopItemResource extends Resource
                                     ->numeric()
                                     ->nullable()
                                     ->minValue(0)
-                                    ->helperText('Leave empty for unlimited stock'),
+                                    ->helperText('Leave this empty for unlimited stock.'),
                             ]
                         )->columns(2),
 

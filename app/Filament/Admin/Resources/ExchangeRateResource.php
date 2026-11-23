@@ -53,7 +53,7 @@ class ExchangeRateResource extends Resource
                                     ->preload()
                                     ->required()
                                     ->different('from_asset_code')
-                                    ->helperText('Must be different from the source asset'),
+                                    ->helperText('Choose an asset that is different from the source asset.'),
 
                                 Forms\Components\TextInput::make('rate')
                                     ->label('Exchange Rate')
@@ -61,7 +61,7 @@ class ExchangeRateResource extends Resource
                                     ->step(0.0000000001)
                                     ->required()
                                     ->minValue(0.0000000001)
-                                    ->helperText('Rate for converting from source to target asset'),
+                                    ->helperText('Enter the rate that converts one unit of the source asset into the target asset.'),
                             ]
                         )
                         ->columns(3),
@@ -82,24 +82,24 @@ class ExchangeRateResource extends Resource
                                     ->default(ExchangeRate::SOURCE_MANUAL)
                                     ->required()
                                     ->reactive()
-                                    ->helperText('Source of the exchange rate data'),
+                                    ->helperText('Choose where this rate comes from.'),
 
                                 Forms\Components\DateTimePicker::make('valid_at')
                                     ->label('Valid From')
                                     ->default(now())
                                     ->required()
                                     ->before('expires_at')
-                                    ->helperText('When this rate becomes effective'),
+                                    ->helperText('Choose when this rate starts to apply.'),
 
                                 Forms\Components\DateTimePicker::make('expires_at')
                                     ->label('Expires At')
                                     ->after('valid_at')
-                                    ->helperText('Leave empty for rates that don\'t expire'),
+                                    ->helperText('Leave this empty if the rate does not expire.'),
 
                                 Forms\Components\Toggle::make('is_active')
                                     ->label('Active')
                                     ->default(true)
-                                    ->helperText('Whether this rate is available for use'),
+                                    ->helperText('Turn this on to make the rate available for use.'),
                             ]
                         )
                         ->columns(2),
@@ -111,7 +111,7 @@ class ExchangeRateResource extends Resource
                                     ->label('Metadata')
                                     ->keyLabel('Property')
                                     ->valueLabel('Value')
-                                    ->helperText('Additional properties and configuration')
+                                    ->helperText('Add any extra properties for this rate as keys and values.')
                                     ->columnSpanFull(),
                             ]
                         )

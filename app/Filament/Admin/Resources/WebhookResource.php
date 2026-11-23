@@ -54,11 +54,11 @@ class WebhookResource extends Resource
                                     ->options(Webhook::EVENTS)
                                     ->columns(2)
                                     ->required()
-                                    ->helperText('Select the events that will trigger this webhook'),
+                                    ->helperText('Choose the events that send this webhook.'),
                                 Forms\Components\TextInput::make('secret')
                                     ->password()
                                     ->maxLength(255)
-                                    ->helperText('Optional secret for webhook signature verification'),
+                                    ->helperText('You can add a secret. It is used to sign each delivery so the receiver can verify it.'),
                                 Forms\Components\Toggle::make('is_active')
                                     ->label('Active')
                                     ->default(true),
@@ -84,7 +84,7 @@ class WebhookResource extends Resource
                                     ->keyLabel('Header Name')
                                     ->valueLabel('Header Value')
                                     ->addButtonLabel('Add Header')
-                                    ->helperText('Optional custom headers to include in webhook requests'),
+                                    ->helperText('You can add custom headers to send with each webhook request.'),
                             ]
                         )
                         ->collapsible(),

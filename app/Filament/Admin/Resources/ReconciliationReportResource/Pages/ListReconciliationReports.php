@@ -40,7 +40,7 @@ class ListReconciliationReports extends ListRecords
                 )
                 ->requiresConfirmation()
                 ->modalHeading('Run Daily Reconciliation')
-                ->modalDescription('This will perform a full balance reconciliation for all accounts. Continue?'),
+                ->modalDescription('This reconciles the balance of every account. It can take several minutes.'),
         ];
     }
 

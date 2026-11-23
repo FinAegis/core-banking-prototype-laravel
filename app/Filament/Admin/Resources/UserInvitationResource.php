@@ -46,7 +46,7 @@ class UserInvitationResource extends Resource
                             ->maxLength(255),
                         Forms\Components\Select::make('role')
                             ->options([
-                                'private'     => 'User (Private)',
+                                'private'     => 'User',
                                 'admin'       => 'Admin',
                                 'super_admin' => 'Super Admin',
                             ])
@@ -119,7 +119,7 @@ class UserInvitationResource extends Resource
                             app(UserInvitationService::class)->resend($record->id, $inviter);
                             Notification::make()->title('Invitation resent')->success()->send();
                         } catch (RuntimeException $e) {
-                            Notification::make()->title('Error')->body($e->getMessage())->danger()->send();
+                            Notification::make()->title('The invitation could not be resent')->body($e->getMessage())->danger()->send();
                         }
                     }),
                 Tables\Actions\Action::make('revoke')
@@ -133,7 +133,7 @@ class UserInvitationResource extends Resource
                             app(UserInvitationService::class)->revoke($record->id);
                             Notification::make()->title('Invitation revoked')->success()->send();
                         } catch (RuntimeException $e) {
-                            Notification::make()->title('Error')->body($e->getMessage())->danger()->send();
+                            Notification::make()->title('The invitation could not be revoked')->body($e->getMessage())->danger()->send();
                         }
                     }),
                 Tables\Actions\Action::make('copyLink')

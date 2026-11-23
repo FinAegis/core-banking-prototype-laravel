@@ -47,7 +47,7 @@ class HyperSwitchDepositIntentResource extends Resource
 
     protected static ?string $navigationGroup = 'Payments';
 
-    protected static ?string $navigationLabel = 'HyperSwitch Intents';
+    protected static ?string $navigationLabel = 'HyperSwitch Deposits';
 
     protected static ?string $modelLabel = 'HyperSwitch Deposit Intent';
 
@@ -139,17 +139,17 @@ class HyperSwitchDepositIntentResource extends Resource
             ])
             ->actions([
                 Action::make('markReconciled')
-                    ->label('Mark reconciled')
+                    ->label('Mark Reconciled')
                     ->icon('heroicon-o-check-badge')
                     ->color('warning')
                     ->visible(fn (HyperSwitchDepositIntent $record): bool => $record->status === HyperSwitchDepositIntent::STATUS_COMPLETION_FAILED)
                     ->requiresConfirmation()
-                    ->modalHeading('Mark this intent as manually reconciled?')
-                    ->modalDescription('Use ONLY after verifying the account balance and deposit aggregate by hand. This does NOT move money — it records that an operator settled the case and removes the row from the completion_failed worklist.')
+                    ->modalHeading('Mark this deposit as reconciled by hand?')
+                    ->modalDescription('Use this only after you have checked the account balance and the deposit record by hand. This action does not move any money. It records that an operator settled the case and takes the deposit off the list of failed completions.')
                     ->form([
                         Textarea::make('reconciliation_note')
                             ->label('Reconciliation note')
-                            ->helperText('How was this settled? Reference the manual credit / refund / ledger adjustment.')
+                            ->helperText('Explain how you settled the case. Name the manual credit, refund or ledger adjustment you used.')
                             ->required()
                             ->rows(3),
                     ])
@@ -169,15 +169,15 @@ class HyperSwitchDepositIntentResource extends Resource
                         ]);
 
                         Notification::make()
-                            ->title('Intent marked reconciled')
-                            ->body('Payment ' . $record->hyperswitch_payment_id . ' moved out of the completion_failed worklist.')
+                            ->title('Deposit marked as reconciled')
+                            ->body('Payment ' . $record->hyperswitch_payment_id . ' is no longer on the list of failed completions.')
                             ->success()
                             ->send();
                     }),
             ])
             ->bulkActions([])
-            ->emptyStateHeading('No intents match the current filter')
-            ->emptyStateDescription('The status filter defaults to completion_failed — clear it to see all deposit intents.');
+            ->emptyStateHeading('No deposits match the current filter')
+            ->emptyStateDescription('The status filter starts on "Completion failed". Clear the filter to see every deposit.');
     }
 
     public static function getPages(): array

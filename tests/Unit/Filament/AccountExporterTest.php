@@ -108,7 +108,7 @@ it('generates correct completion notification for successful export', function (
 
     $message = AccountExporter::getCompletedNotificationBody($export);
 
-    expect($message)->toBe('Your account export has completed and 100 rows exported.');
+    expect($message)->toBe('Your account export is complete. 100 rows were exported.');
 });
 
 it('generates correct completion notification with failed rows', function () {
@@ -119,7 +119,7 @@ it('generates correct completion notification with failed rows', function () {
 
     $message = AccountExporter::getCompletedNotificationBody($export);
 
-    expect($message)->toBe('Your account export has completed and 90 rows exported. 10 rows failed to export.');
+    expect($message)->toBe('Your account export is complete. 90 rows were exported. 10 rows could not be exported.');
 });
 
 it('handles singular row correctly in notification', function () {
@@ -129,5 +129,5 @@ it('handles singular row correctly in notification', function () {
 
     $message = AccountExporter::getCompletedNotificationBody($export);
 
-    expect($message)->toBe('Your account export has completed and 1 row exported.');
+    expect($message)->toBe('Your account export is complete. 1 row was exported.');
 });

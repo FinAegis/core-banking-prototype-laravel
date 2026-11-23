@@ -27,7 +27,7 @@ class ComponentsRelationManager extends RelationManager
                                 ->pluck('name', 'code')
                         )
                         ->searchable()
-                        ->helperText('Select the asset to include in the basket'),
+                        ->helperText('Choose an asset to include in the basket.'),
 
                     Forms\Components\TextInput::make('weight')
                         ->label('Weight (%)')
@@ -37,7 +37,7 @@ class ComponentsRelationManager extends RelationManager
                         ->maxValue(100)
                         ->suffix('%')
                         ->step(0.01)
-                        ->helperText('Percentage weight in the basket'),
+                        ->helperText('Enter the share of the basket that this asset makes up, as a percentage.'),
 
                     Forms\Components\Grid::make(2)
                         ->schema(
@@ -65,7 +65,7 @@ class ComponentsRelationManager extends RelationManager
                     Forms\Components\Toggle::make('is_active')
                         ->label('Active')
                         ->default(true)
-                        ->helperText('Whether this component is active in the basket'),
+                        ->helperText('Turn this on to include this asset in the basket.'),
                 ]
             );
     }

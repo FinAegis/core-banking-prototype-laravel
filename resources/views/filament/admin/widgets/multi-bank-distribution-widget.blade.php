@@ -1,14 +1,14 @@
 <x-filament-widgets::widget>
     <x-filament::section>
         <x-slot name="heading">
-            Multi-Bank Distribution Network
+            Multi-Bank Distribution
         </x-slot>
 
         <x-slot name="description">
             @if($isGcuEnabled)
-                GCU funds are distributed across multiple regulated banks for maximum security and deposit insurance coverage.
+                This shows how users of the GCU demonstration split their funds between the banks set up in this deployment.
             @else
-                Platform capability: Distribute user funds across multiple regulated banks.
+                This shows how users split their funds between the banks set up in this deployment.
             @endif
         </x-slot>
 
@@ -73,7 +73,7 @@
                         </svg>
                         <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No bank distributions yet</h3>
                         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                            Bank distributions will appear here when users configure their preferences.
+                            Bank distributions appear here once users choose how to split their funds.
                         </p>
                     </div>
                 @endforelse
@@ -96,7 +96,7 @@
                             </p>
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Avg Banks per User</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Average Banks per User</p>
                             <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
                                 {{ $totalAllocated['averagePerUser'] }}
                             </p>
@@ -115,12 +115,12 @@
                     </div>
                     <div class="ml-3">
                         <h3 class="text-sm font-medium text-blue-800 dark:text-blue-400">
-                            Deposit Insurance Protection
+                            Deposit Limits
                         </h3>
                         <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
                             <p>
-                                Each bank provides government-backed deposit insurance up to €100,000 per depositor. 
-                                By distributing funds across multiple banks, users can achieve up to €500,000 in total coverage.
+                                The limit shown for each bank is a value stored in this deployment.
+                                It does not confirm that any user's funds are covered.
                             </p>
                         </div>
                     </div>

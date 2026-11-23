@@ -46,20 +46,20 @@ class BasketAssetResource extends Resource
                                     ->unique(ignoreRecord: true)
                                     ->maxLength(20)
                                     ->placeholder('STABLE_BASKET, CRYPTO_INDEX, etc.')
-                                    ->helperText('Unique identifier for the basket asset'),
+                                    ->helperText('Enter a unique code for the basket.'),
 
                                 Forms\Components\TextInput::make('name')
                                     ->label('Basket Name')
                                     ->required()
                                     ->maxLength(100)
                                     ->placeholder('Stable Currency Basket, Crypto Index, etc.')
-                                    ->helperText('Display name of the basket'),
+                                    ->helperText('Enter the display name of the basket.'),
 
                                 Forms\Components\Textarea::make('description')
                                     ->label('Description')
                                     ->rows(3)
                                     ->maxLength(500)
-                                    ->helperText('Brief description of the basket\'s purpose and composition'),
+                                    ->helperText('Describe in a few words what the basket is for and what it holds.'),
 
                                 Forms\Components\Select::make('type')
                                     ->label('Basket Type')
@@ -71,7 +71,7 @@ class BasketAssetResource extends Resource
                                         ]
                                     )
                                     ->reactive()
-                                    ->helperText('Fixed baskets maintain constant weights, dynamic baskets can be rebalanced'),
+                                    ->helperText('A fixed basket keeps the same weights. A dynamic basket can be rebalanced.'),
 
                                 Forms\Components\Select::make('rebalance_frequency')
                                     ->label('Rebalance Frequency')
@@ -87,7 +87,7 @@ class BasketAssetResource extends Resource
                                     )
                                     ->default('never')
                                     ->disabled(fn (Forms\Get $get) => $get('type') !== 'dynamic')
-                                    ->helperText('How often the basket should be rebalanced (dynamic baskets only)'),
+                                    ->helperText('Choose how often the basket should be rebalanced. This applies to dynamic baskets only.'),
                             ]
                         ),
 
@@ -107,7 +107,7 @@ class BasketAssetResource extends Resource
                                                         ->pluck('name', 'code')
                                                 )
                                                 ->searchable()
-                                                ->helperText('Select the asset to include in the basket'),
+                                                ->helperText('Choose an asset to include in the basket.'),
 
                                             Forms\Components\TextInput::make('weight')
                                                 ->label('Weight (%)')
@@ -117,7 +117,7 @@ class BasketAssetResource extends Resource
                                                 ->maxValue(100)
                                                 ->suffix('%')
                                                 ->step(0.01)
-                                                ->helperText('Percentage weight in the basket'),
+                                                ->helperText('Enter the share of the basket that this asset makes up, as a percentage.'),
 
                                             Forms\Components\Grid::make(2)
                                                 ->schema(
@@ -145,7 +145,7 @@ class BasketAssetResource extends Resource
                                             Forms\Components\Toggle::make('is_active')
                                                 ->label('Active')
                                                 ->default(true)
-                                                ->helperText('Whether this component is active in the basket'),
+                                                ->helperText('Turn this on to include this asset in the basket.'),
                                         ]
                                     )
                                     ->columns(1)
@@ -183,7 +183,7 @@ class BasketAssetResource extends Resource
                                 Forms\Components\Toggle::make('is_active')
                                     ->label('Active')
                                     ->default(true)
-                                    ->helperText('Whether this basket is available for trading'),
+                                    ->helperText('Turn this on to make the basket available for trading.'),
 
                                 Forms\Components\DateTimePicker::make('last_rebalanced_at')
                                     ->label('Last Rebalanced')
@@ -369,7 +369,7 @@ class BasketAssetResource extends Resource
                                     \Filament\Notifications\Notification::make()
                                         ->success()
                                         ->title('Value Calculated')
-                                        ->body("Current value: \${$value->value}")
+                                        ->body("The current value is \${$value->value}.")
                                         ->send();
                                 } catch (Exception $e) {
                                     \Filament\Notifications\Notification::make()
@@ -399,7 +399,7 @@ class BasketAssetResource extends Resource
                                     \Filament\Notifications\Notification::make()
                                         ->success()
                                         ->title('Basket Rebalanced')
-                                        ->body("Adjusted {$result['adjustments_count']} components")
+                                        ->body("{$result['adjustments_count']} components were adjusted.")
                                         ->send();
                                 } catch (Exception $e) {
                                     \Filament\Notifications\Notification::make()
@@ -456,7 +456,7 @@ class BasketAssetResource extends Resource
                                         \Filament\Notifications\Notification::make()
                                             ->success()
                                             ->title('Values Calculated')
-                                            ->body("Success: {$success}, Failed: {$failed}")
+                                            ->body("{$success} values were calculated and {$failed} failed.")
                                             ->send();
                                     }
                                 )

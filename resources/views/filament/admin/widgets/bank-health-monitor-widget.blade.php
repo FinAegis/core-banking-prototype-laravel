@@ -5,7 +5,7 @@
         </x-slot>
         
         <x-slot name="description">
-            Real-time health status of bank connectors (Last update: {{ $lastUpdate }})
+            This shows the health of each bank connector. It was last updated {{ $lastUpdate }}.
         </x-slot>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -77,7 +77,7 @@
         
         @if(empty($healthData))
             <div class="text-center py-8 text-gray-500">
-                No bank connectors configured
+                No bank connectors are set up.
             </div>
         @endif
     </x-filament::section>

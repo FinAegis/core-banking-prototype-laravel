@@ -104,7 +104,7 @@ class ValuesRelationManager extends RelationManager
                             Tables\Actions\DeleteBulkAction::make()
                                 ->label('Delete Old Values')
                                 ->requiresConfirmation()
-                                ->modalDescription('This will delete the selected historical values. Recent values should be preserved for analytics.'),
+                                ->modalDescription('This deletes the selected past values. Keep the recent values, because the analytics use them.'),
                         ]
                     ),
                 ]

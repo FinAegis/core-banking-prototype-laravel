@@ -95,7 +95,7 @@ class DomainHealthWidget extends BaseWidget
                 ->color('info'),
 
             Stat::make('Oldest Snapshot', $maxAge > 0 ? "{$maxAge}h" : 'N/A')
-                ->description($maxAge > 168 ? 'Stale — consider refresh' : 'Within threshold')
+                ->description($maxAge > 168 ? 'Older than one week' : 'Within threshold')
                 ->descriptionIcon('heroicon-m-camera')
                 ->color($maxAge > 168 ? 'danger' : 'success'),
 

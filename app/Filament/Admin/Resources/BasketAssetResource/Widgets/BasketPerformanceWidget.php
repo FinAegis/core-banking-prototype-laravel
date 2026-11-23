@@ -159,7 +159,7 @@ class BasketPerformanceWidget extends BaseWidget
                                     'notify',
                                     [
                                         'type'    => 'success',
-                                        'message' => "Calculated {$performances->count()} performance periods",
+                                        'message' => "{$performances->count()} performance periods were calculated.",
                                     ]
                                 );
                             }

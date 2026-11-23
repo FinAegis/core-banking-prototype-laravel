@@ -24,9 +24,9 @@ class DelegatedProofJobResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
-    protected static ?string $navigationLabel = 'Proof Verifications';
+    protected static ?string $navigationLabel = 'Delegated Proofs';
 
-    protected static ?string $pluralModelLabel = 'Proof Verifications';
+    protected static ?string $pluralModelLabel = 'Delegated Proofs';
 
     public static function form(Form $form): Form
     {
@@ -101,11 +101,11 @@ class DelegatedProofJobResource extends Resource
                         ->badge()
                         ->color(
                             fn (string $state): string => match ($state) {
-                                'queued'     => 'gray',
-                                'processing' => 'warning',
-                                'completed'  => 'success',
-                                'failed'     => 'danger',
-                                default      => 'gray',
+                                'queued'    => 'gray',
+                                'proving'   => 'warning',
+                                'completed' => 'success',
+                                'failed'    => 'danger',
+                                default     => 'gray',
                             }
                         ),
                     Tables\Columns\TextColumn::make('progress')
@@ -123,10 +123,10 @@ class DelegatedProofJobResource extends Resource
                     Tables\Filters\SelectFilter::make('status')
                         ->options(
                             [
-                                'queued'     => 'Queued',
-                                'processing' => 'Processing',
-                                'completed'  => 'Completed',
-                                'failed'     => 'Failed',
+                                'queued'    => 'Queued',
+                                'proving'   => 'Proving',
+                                'completed' => 'Completed',
+                                'failed'    => 'Failed',
                             ]
                         ),
                     Tables\Filters\SelectFilter::make('proof_type')

@@ -72,7 +72,7 @@ class CueDispatchHealthWidget extends BaseWidget
         return [
             Stat::make('Cue Dispatch Health', ucfirst($status))
                 ->description(sprintf(
-                    '%d cue(s) created · %d failure(s) in 24h (%.2f%%)',
+                    '%d cue(s) created and %d failure(s) in the last 24 hours (%.2f%%)',
                     $cuesCreated,
                     $failedCount,
                     $failureRatePct,
