@@ -1,8 +1,12 @@
 # Demo Mode Configuration Refactoring Plan
 
-## Current Issue
+## Status
 
-The application currently has two overlapping ways to determine if it's in demo mode:
+This plan is done. Option 1 was implemented, and the rest of this page is kept as the record of the decision. `APP_ENV=demo` is now the single switch for demo mode. `bootstrap/app.php` adds the `DemoMode` middleware to the web group when `APP_ENV` is `demo`, and `DemoServiceProvider` binds the demo services with `$this->app->environment('demo')`. `config/demo.php` holds only feature flags, UI indicators and sandbox settings, and has no `mode` key. The `DemoMode` middleware still checks `config('demo.mode')` and `config('demo.sandbox.enabled')` as a fallback, and `ops:verify-env` fails a production deploy if `demo.mode` is true.
+
+## Original Issue
+
+The application had two overlapping ways to determine if it was in demo mode:
 1. `APP_ENV=demo` - Laravel's environment variable
 2. `DEMO_MODE=true` + `config('demo.mode')` - Custom demo flag
 

@@ -17,19 +17,17 @@ All contributions (human or AI-generated) must include:
 
 ### Testing
 ```bash
-# Run all tests
-./vendor/bin/pest
+# Code quality (run before commit; same as root CLAUDE.md)
+./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php
+XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G   # phpstan 2.3.7 + larastan 3.15, Level 8
+vendor/bin/phpcs                                                # PHPCS v4 as in CI (config: phpcs.xml)
 
-# Run all tests in parallel (faster execution)
-./vendor/bin/pest --parallel
+# Run all tests in parallel (~1,300 *Test.php files)
+./vendor/bin/pest --parallel --stop-on-failure
 
 # Run specific test suites
 ./vendor/bin/pest tests/Domain/         # Domain layer tests
 ./vendor/bin/pest tests/Feature/        # Feature tests
-./vendor/bin/pest --coverage --min=50  # Run with coverage report (50% minimum)
-
-# Run tests in parallel with coverage
-./vendor/bin/pest --parallel --coverage --min=50
 
 # Run single test file
 ./vendor/bin/pest tests/Domain/Account/Aggregates/LedgerAggregateTest.php
@@ -37,39 +35,41 @@ All contributions (human or AI-generated) must include:
 # Run tests with specific number of processes
 ./vendor/bin/pest --parallel --processes=4
 
-# CI-specific test configuration
-# Use phpunit.ci.xml for GitHub Actions
-./vendor/bin/pest --configuration=phpunit.ci.xml --parallel --coverage --min=50
+# Optional local coverage report (needs Xdebug or PCOV; CI does not collect coverage)
+./vendor/bin/pest --coverage
+
+# CI-style runners: bin/pest-batch, bin/pest-rest, bin/behat-ci, bin/pre-commit-check.sh
+# PHPUnit configs: phpunit.xml, phpunit.ci.xml, phpunit.ci-optimized.xml,
+#   phpunit.coverage.xml, phpunit.security.xml, phpunit.unit.xml
 ```
 
 #### Test Coverage Requirements
-- **Minimum Coverage**: 50% for all new code
+- **New code**: every feature or fix ships with tests (no numeric coverage gate)
 - **Critical Areas**: API controllers, domain services, workflows
-- **Coverage Reports**: Available in `coverage-html/` directory after running with --coverage
-- **CI Integration**: Automated coverage checks on all PRs
+- **CI Integration**: CI runs the suites but does NOT collect coverage or enforce `--min`
 
 ### CI/CD and GitHub Actions
 The project includes comprehensive GitHub Actions workflows:
 
 ```bash
-# Workflows are triggered on:
-# - Pull requests to main branch
-# - Pushes to main branch
+# Entry point: .github/workflows/ci-pipeline.yml
+# Triggered on pull requests and pushes to main/develop (plus manual dispatch)
+# Calls reusable workflows: 01-code-quality.yml, 02-security-scan.yml, 06-build.yml,
+#   03-test-suite.yml, 04-security-tests.yml, 05-performance.yml
 
-# Test Workflow (.github/workflows/test.yml):
-# - Sets up PHP 8.4+, MySQL 8.0, Redis 7, Node.js 20
-# - Installs Composer and NPM dependencies
-# - Builds frontend assets
-# - Runs database migrations and seeders
-# - Executes all tests in parallel with 50% coverage requirement
-# - Uses self-hosted runners for improved performance
-# - Uploads coverage reports to Codecov
+# Code Quality (.github/workflows/01-code-quality.yml):
+# - vendor/bin/phpcs, vendor/bin/phpstan analyse, php-cs-fixer --dry-run --diff
 
-# Security Workflow (.github/workflows/security.yml):
-# - Uses Gitleaks to scan for exposed secrets
-# - Scans entire git history for security vulnerabilities
-# - Uses self-hosted runners for improved performance
-# - Mandatory for all PRs to prevent secret leaks
+# Test Suite (.github/workflows/03-test-suite.yml):
+# - GitHub-hosted ubuntu-latest runners, PHP 8.4, MySQL 8.0, Redis 7, Node.js 20
+# - Installs Composer and NPM dependencies, builds frontend assets
+# - Runs database migrations; only the Behat job seeds data (TestSeeder)
+# - Runs test shards via bin/pest-batch and bin/pest-rest
+# - coverage: none (no coverage gate, no Codecov upload)
+
+# Security Scan (.github/workflows/02-security-scan.yml):
+# - Gitleaks CLI scans the full git history for exposed secrets
+# - Fails the pipeline on any finding (--exit-code 1)
 ```
 
 ### Building and Assets
@@ -103,8 +103,22 @@ php artisan migrate
 # Seed database
 php artisan db:seed
 
-# Fresh migration with seeding
+# Fresh migration with seeding (does NOT create demo users)
 php artisan migrate:fresh --seed
+
+# Demo data: runs the seeders plus DemoDataSeeder; creates demo.argentina@, demo.nomad@,
+# demo.business@, demo.investor@ and demo.user@gcu.global (password: demo123)
+php artisan demo:populate
+```
+
+### Domain Modules
+```bash
+php artisan domain:list                 # also: domain:status, domain:dependencies, domain:verify [domain]
+php artisan domain:install <domain>     # also: domain:create <Name>, domain:remove <domain>
+php artisan module:enable <domain>      # module:disable <domain>; MODULES_DISABLED env (config/modules.php)
+# 61 folders in app/Domain/ (plus app/Domain/AGENTS.md), but domain:* commands see 43:
+# 18 module.json manifests use "type": "feature", which DomainType (core|optional) rejects,
+# so DomainManager skips them
 ```
 
 ### Cache Management
@@ -133,10 +147,11 @@ php artisan queue:work --queue=events,ledger,transactions,transfers,webhooks
 php artisan horizon
 
 # Clear failed jobs
-php artisan queue:clear
+php artisan queue:flush
 
-# Create admin user for Filament dashboard
-php artisan make:filament-user
+# Create admin user for Filament dashboard (/admin requires the admin role;
+# make:filament-user does not grant it)
+php artisan user:create --admin        # or: php artisan user:promote user@email
 ```
 
 ### GCU Platform Management
@@ -145,9 +160,9 @@ php artisan make:filament-user
 php artisan db:seed --class=GCUBasketSeeder
 
 # Set up GCU voting polls
-php artisan voting:setup                      # Create next month's poll
-php artisan voting:setup --month=2024-09      # Create specific month
-php artisan voting:setup --year=2024          # Create all polls for year
+php artisan voting:setup                        # Create next month's GCU proposal (--month=current|next|1-12)
+php artisan voting:setup-batch --month=2024-09  # Create poll for a specific month
+php artisan voting:setup-batch --year=2024      # Create all polls for a year
 
 # Access admin dashboard
 # http://localhost:8000/admin
@@ -155,8 +170,8 @@ php artisan voting:setup --year=2024          # Create all polls for year
 
 ### Admin Dashboard Management
 ```bash
-# Create admin user
-php artisan make:filament-user
+# Create admin user (make:filament-user does not grant the admin role)
+php artisan user:create --admin
 
 # Access dashboard at:
 # http://localhost:8000/admin
@@ -167,7 +182,7 @@ php artisan view:clear
 ```
 
 ### Email Configuration
-For email setup and testing, see the comprehensive [Email Setup Guide](../EMAIL-SETUP.md).
+For email setup and testing, see the comprehensive [Email Setup Guide](EMAIL-SETUP.md).
 
 Quick setup with Resend (recommended):
 ```bash
@@ -183,97 +198,43 @@ php artisan tinker
 ```
 
 ### Phase 8 Features Management
+No `exchange:*`, `loans:*`, `stablecoins:*` or `wallets:*` artisan commands exist. The commands
+`liquidity:generate-orders`, `liquidity:rebalance`, `liquidity:calculate-positions` and `liquidity:analytics`
+do not exist either. Lending and stablecoin operations run through the API, workflows and services.
+Trading jobs need `TRADING_ENABLED`, which is off in production.
 
-#### Exchange & Trading
+#### Exchange & Liquidity Pools
 ```bash
-# Process order matching
-php artisan exchange:match-orders
-
-# Update external exchange rates
-php artisan exchange:sync-rates
-
-# Generate market making orders
-php artisan liquidity:generate-orders --pool=all
-
-# Monitor arbitrage opportunities
-php artisan exchange:arbitrage-monitor
-```
-
-#### P2P Lending
-```bash
-# Process loan applications
-php artisan loans:process-applications
-
-# Check for defaulted loans
-php artisan loans:check-defaults
-
-# Calculate daily interest
-php artisan loans:calculate-interest
-
-# Generate loan statements
-php artisan loans:generate-statements --month=2024-09
-```
-
-#### Stablecoins
-```bash
-# Monitor collateral health
-php artisan stablecoins:monitor-health
-
-# Process liquidations
-php artisan stablecoins:liquidate
-
-# Update oracle prices
-php artisan stablecoins:update-prices
-
-# Calculate stability fees
-php artisan stablecoins:calculate-fees
-```
-
-#### Liquidity Pools
-```bash
-# Distribute rewards to LPs
-php artisan liquidity:distribute-rewards
-
-# Rebalance pools
-php artisan liquidity:rebalance --strategy=conservative
-
-# Calculate LP positions
-php artisan liquidity:calculate-positions
-
-# Generate pool analytics
-php artisan liquidity:analytics --period=daily
+php artisan liquidity:distribute-rewards [--pool=ID] [--dry-run]
+php artisan liquidity:update-market-making [--pool=ID] [--cancel-existing]
+# Pool rebalancing (liquidity:rebalance / RebalancePoolsCommand) was removed in v7.18.0
 ```
 
 #### Blockchain Wallets
 ```bash
-# Sync blockchain balances
-php artisan wallets:sync-balances
-
-# Process pending transactions
-php artisan wallets:process-transactions
-
-# Generate new addresses
-php artisan wallets:generate-addresses --chain=ethereum
-
-# Monitor gas prices
-php artisan wallets:monitor-gas
+php artisan wallet:inspect-user user@example.com   # operator view of addresses + sends
+php artisan solana:sync                            # push addresses to Helius webhook
+php artisan solana:backfill-transactions           # Solana history from Helius
+php artisan evm:sync-webhooks                      # EVM address webhooks (Alchemy)
+php artisan evm:backfill-transactions              # EVM history from Alchemy
 ```
 
 ### Event Sourcing
 ```bash
 # Replay events to projectors
-php artisan event-sourcing:replay AccountProjector
-php artisan event-sourcing:replay TurnoverProjector
-php artisan event-sourcing:replay TransactionProjector
-php artisan event-sourcing:replay AssetTransactionProjector
-php artisan event-sourcing:replay AssetTransferProjector
-php artisan event-sourcing:replay ExchangeRateProjector
+# (spatie matches the fully qualified class name)
+php artisan event-sourcing:replay "App\Domain\Account\Projectors\AccountProjector"
+php artisan event-sourcing:replay "App\Domain\Account\Projectors\TurnoverProjector"
+php artisan event-sourcing:replay "App\Domain\Account\Projectors\TransactionProjector"
+php artisan event-sourcing:replay "App\Domain\Asset\Projectors\AssetTransactionProjector"
+php artisan event-sourcing:replay "App\Domain\Asset\Projectors\AssetTransferProjector"
+php artisan event-sourcing:replay "App\Domain\Asset\Projectors\ExchangeRateProjector"
 
-# Create snapshots
+# Create snapshots (--type=transaction|transfer|ledger|all)
 php artisan snapshot:create
 
 # Verify transaction hashes
-php artisan verify:transaction-hashes
+php artisan app:verify-transaction-hashes
 ```
 
 ### Custodian Management
@@ -290,26 +251,26 @@ php artisan custodian:sync-balances --custodian=paysera
 # Force sync even if recently synchronized
 php artisan custodian:sync-balances --force
 
-# Schedule automatic synchronization (add to kernel.php)
-# $schedule->command('custodian:sync-balances')->everyFiveMinutes();
+# Already scheduled every 30 minutes in routes/console.php (Laravel 12 has no Console Kernel)
 ```
 
 ### Compliance and Reporting
 ```bash
-# Generate compliance reports
-php artisan compliance:generate-ctr --date=2024-06-21
-php artisan compliance:generate-sar --month=2024-09
+# Generate compliance reports (--type=ctr|sar|summary|kyc|all)
+php artisan compliance:generate-reports --type=ctr --date=2024-06-21
+php artisan compliance:generate-reports --type=sar --month=2024-09
 
-# Process KYC documents
-php artisan kyc:process-pending
+# Data protection (GDPR); per-user export/erasure goes through
+# POST /api/compliance/gdpr/export and POST /api/compliance/gdpr/delete (GdprService)
+php artisan gdpr:register-export
+php artisan gdpr:retention-enforce --dry-run
+php artisan gdpr:breach-check
 
-# Data protection (GDPR)
-php artisan gdpr:export-user-data user@example.com
-php artisan gdpr:anonymize-user user-uuid-here
+# Compliance readiness tooling (no certification is held)
+php artisan compliance:access-review
+php artisan compliance:collect-evidence
 
-# Schedule compliance tasks (add to kernel.php)
-# $schedule->command('compliance:generate-ctr')->daily();
-# $schedule->command('compliance:generate-sar')->monthly();
+# The ctr/kyc/sar/summary reports are already scheduled in routes/console.php
 ```
 
 ### Liquidity Pool Management
@@ -323,17 +284,15 @@ php artisan tinker
 php artisan liquidity:distribute-rewards
 php artisan liquidity:distribute-rewards --pool=pool-uuid --dry-run
 
-# Rebalance pools to maintain optimal ratios
-php artisan liquidity:rebalance
-php artisan liquidity:rebalance --pool=pool-uuid --strategy=aggressive
-
 # Update automated market making orders
 php artisan liquidity:update-market-making
 php artisan liquidity:update-market-making --pool=pool-uuid --cancel-existing
 
-# Scheduled tasks (already in console.php):
+# Add/remove/rebalance liquidity (liquidity:rebalance, PoolRebalancingService and the
+# liquidity workflows, activities and routes) was removed in v7.18.0.
+
+# Scheduled tasks (routes/console.php, only when Exchange is enabled AND TRADING_ENABLED):
 # - Rewards distribution: Hourly
-# - Pool rebalancing: Every 30 minutes
 # - Market making updates: Every 5 minutes
 ```
 
@@ -375,16 +334,9 @@ $result = $circuitBreaker->call('external_exchange', function () {
 });
 ```
 
-**Enhanced Workflow with Retry Policies:**
-```php
-use App\Domain\Exchange\Workflows\EnhancedLiquidityManagementWorkflow;
-use App\Domain\Exchange\Workflows\Policies\LiquidityRetryPolicy;
-
-// Workflow with retry policies
-ActivityStub::make(ValidateLiquidityActivity::class)
-    ->withRetryOptions(LiquidityRetryPolicy::standard())
-    ->execute($input);
-```
+The enhanced liquidity workflow with retry policies was removed in v7.18.0. `EnhancedLiquidityManagementWorkflow`,
+`LiquidityRetryPolicy` and the liquidity activities never worked, and #1242 deleted them. The remaining Exchange
+workflows are `OrderMatchingWorkflow` and `MarketMakerWorkflow`.
 
 ### SEO and Schema Markup
 ```bash
@@ -410,7 +362,7 @@ ActivityStub::make(ValidateLiquidityActivity::class)
 
 ## Architecture Overview
 
-### Domain-Driven Design Structure (56 domains)
+### Domain-Driven Design Structure (61 domain folders in `app/Domain/`)
 - **Account Domain** (`app/Domain/Account/`): Core banking account management with multi-asset support
 - **Asset Domain** (`app/Domain/Asset/`): Multi-asset ledger, exchange rates, and asset management
 - **Basket Domain** (`app/Domain/Basket/`): Basket asset management with rebalancing services
@@ -423,7 +375,7 @@ ActivityStub::make(ValidateLiquidityActivity::class)
 - **DeFi Domain** (`app/Domain/DeFi/`): DEX aggregation, lending, staking, yield optimization (v3.0.0)
 - **RegTech Domain** (`app/Domain/RegTech/`): Reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements, jurisdiction adapters (v2.8.0)
 - **Monitoring Domain** (`app/Domain/Monitoring/`): Observability dashboards, structured logging, deep health checks (v3.3.0)
-- Each domain has Aggregates, Events, Workflows, Activities, Projectors, Reactors, and Services
+- Domains typically have Aggregates, Events, Workflows, Activities, Projectors, Reactors, and Services (not every domain has all of them)
 
 ### Caching Architecture
 - **Redis-based caching** for high-performance data access
@@ -444,11 +396,11 @@ ActivityStub::make(ValidateLiquidityActivity::class)
 
 ### GraphQL API (v4.0.0-v5.1.0)
 The platform provides a GraphQL API via Lighthouse PHP alongside the REST API:
-- **45 domain schemas**: Account, AgentProtocol, AI, Asset, Banking, Basket, Batch, CardIssuance, Cgo, Commerce, Compliance, CrossChain, Custodian, DeFi, Exchange, FinancialInstitution, Fraud, Governance, KeyManagement, Lending, Mobile, MobilePayment, Payment, Privacy, Product, RegTech, Regulatory, Relayer, Stablecoin, Treasury, TrustCert, User, Wallet, and 12 additional domain schemas
+- **43 domain schemas** (45 `#import` lines in `graphql/schema.graphql` = 43 domain schemas + `directives.graphql` + `subscriptions.graphql`): Account, AgentProtocol, AI, Asset, Banking, Basket, Batch, CardIssuance, Cgo, Commerce, Compliance, CrossChain, Custodian, DeFi, Exchange, FinancialInstitution, Fraud, Governance, KeyManagement, Lending, Mobile, MobilePayment, Payment, Privacy, Product, RegTech, Regulatory, Relayer, Stablecoin, Treasury, TrustCert, User, Wallet, plus ISO20022, X402, Plugin, Rewards, OpenBanking, Interledger, PaymentRails, Ledger, Microfinance, SMS
 - **Schema files**: `graphql/*.graphql`
 - **Resolvers**: `app/GraphQL/Queries/`, `app/GraphQL/Mutations/`, `app/GraphQL/Subscriptions/`
-- **Access**: POST `/graphql`, GET `/graphql-playground`
-- **Subscriptions**: accountUpdated, walletUpdated, orderMatched, portfolioRebalanced, paymentStatusChanged
+- **Access**: `/graphql` (GET/POST); there is no `/graphql-playground` route
+- **Subscriptions** (`graphql/subscriptions.graphql`): orderBookUpdated, tradeExecuted, walletBalanceUpdated, orderMatched, portfolioRebalanced, paymentStatusChanged, bridgeTransferCompleted
 
 ### Event Streaming (v5.0.0)
 Redis Streams-based event streaming for real-time event distribution:
@@ -464,12 +416,12 @@ Plugin marketplace with sandboxing and security scanning:
 - **Sandbox**: `app/Infrastructure/Plugins/PluginSandbox.php`
 - **Security Scanner**: `app/Infrastructure/Plugins/PluginSecurityScanner.php`
 - **Example plugins**: `plugins/WebhookNotifier/`, `plugins/AuditExporter/`, `plugins/DashboardWidget/`
-- **Commands**: `php artisan plugin:install`, `php artisan plugin:scan`
+- **Commands**: `plugin:install <path>`, `plugin:verify [name] [--all]` (integrity and security check), `plugin:list`, `plugin:create`, `plugin:enable`, `plugin:disable`, `plugin:remove`
 
 ### Workflow Orchestration (Saga Pattern)
 - **Account Management**: `CreateAccountWorkflow`, `FreezeAccountWorkflow`, `UnfreezeAccountWorkflow`, `DestroyAccountWorkflow`
 - **Transaction Processing**: `DepositAccountWorkflow`, `WithdrawAccountWorkflow`, `TransactionReversalWorkflow`
-- **Multi-Asset Operations**: `AssetDepositWorkflow`, `AssetWithdrawWorkflow`, `AssetTransferWorkflow`
+- **Multi-Asset Operations**: `AssetDepositWorkflow`, `AssetWithdrawWorkflow`, `AssetTransferWorkflow` (v7.18.1 fixed asset transfers and conversions so they book the right amounts, #1247)
 - **Transfer Operations**: `TransferWorkflow`, `BulkTransferWorkflow` (with compensation)
 - **System Operations**: `BalanceInquiryWorkflow`, `AccountValidationWorkflow`, `BatchProcessingWorkflow`
 - **Custodian Integration**: `CustodianTransferWorkflow` for external custodian operations
@@ -510,7 +462,7 @@ Events are processed through separate queues:
   - **Cash Flow Analysis**: Monitor debit/credit flows with net calculations
   - **Growth Metrics**: Track new account creation and cumulative growth
   - **Governance Analytics**: Poll activity, voting patterns, and governance statistics
-- **Export Functionality**: Export accounts, transactions, assets, exchange rates, and users to CSV/XLSX formats
+- **Export Functionality**: Export accounts, transactions and users (`app/Filament/Exports/`) to CSV/XLSX formats
 - **Webhook Management**: Configure and monitor webhook endpoints for real-time event notifications
 - **Search & Filtering**: Advanced search across all entities with multiple filter criteria
 
@@ -619,7 +571,7 @@ Events are processed through separate queues:
 - **Automated Market Making**: Dynamic spread adjustment and order generation
 - **Pool Types**: Constant product, weighted, stable, and concentrated liquidity
 - **Incentive System**: Multi-factor rewards with performance multipliers
-- **Rebalancing**: Conservative, aggressive, and adaptive strategies
+- **Rebalancing**: Conservative, aggressive, and adaptive strategies (removed in v7.18.0 together with the add/remove liquidity flow)
 - **Event Sourcing**: Full audit trail with PoolCreated, LiquidityAdded events
 
 #### 8.2 P2P Lending Platform
@@ -638,7 +590,7 @@ Events are processed through separate queues:
 
 #### 8.4 Exchange & Trading Engine
 - **Order Matching**: Event-sourced order book with saga pattern
-- **External Integration**: Binance, Kraken, Coinbase connectors
+- **External Integration**: Binance and Kraken connectors (`app/Domain/Exchange/Connectors/`)
 - **Arbitrage Detection**: Real-time opportunity scanning
 - **Market Making**: Automated liquidity provision
 - **Price Synchronization**: Multi-exchange rate aggregation
@@ -711,29 +663,24 @@ class MoneyAdded extends ShouldBeStored implements HasHash, HasMoney
 ```
 
 ### Phase 8 Development Patterns
+The lending, stablecoin and exchange connector sketches below are illustrative. The real lending workflow is
+`App\Domain\Lending\Workflows\LoanApplicationWorkflow`. Its activities are all in
+`app/Domain/Lending/Workflows/Activities/LoanApplicationActivities.php`, not in one class per step. The real
+stablecoin aggregate is `CollateralPositionAggregate`. There is no `StablecoinPositionAggregate` and no
+`CollateralHealthReactor`. Exchange connectors implement `IExternalExchangeConnector`, and the arbitrage method is
+`ArbitrageService::findOpportunities(string $symbol): array`.
 
 #### Liquidity Pool Pattern
 ```php
-// Creating a liquidity pool
-$aggregate = LiquidityPoolAggregate::retrieve($poolUuid);
-$aggregate->createPool($baseAsset, $quoteAsset, $feeRate);
-$aggregate->persist();
+// Creating a liquidity pool (aggregate: App\Domain\Exchange\Aggregates\LiquidityPool)
+$poolId = app(LiquidityPoolService::class)->createPool('BTC', 'USD', '0.003');
 
-// Adding liquidity
-$aggregate->addLiquidity(
-    providerId: $userId,
-    baseAmount: BigDecimal::of('1000'),
-    quoteAmount: BigDecimal::of('850'),
-    minShares: BigDecimal::of('900')
-);
+// Adding/removing liquidity: no service, workflow or route since v7.18.0
+// (the aggregate's addLiquidity()/removeLiquidity() remain as domain logic only)
 
 // Automated Market Making
 $ammService = app(AutomatedMarketMakerService::class);
-$orders = $ammService->generateOrders($pool, [
-    'depth' => 5,
-    'spread_factor' => 1.0,
-    'max_order_value' => BigDecimal::of('10000')
-]);
+$orders = $ammService->generateMarketMakingOrders($poolId);
 ```
 
 #### P2P Lending Pattern
@@ -1391,6 +1338,8 @@ test('account can hold multiple asset balances', function () {
 
 ## GCU Platform Development Patterns
 
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
+
 ### User Bank Preferences
 ```php
 // Creating default bank preferences for a user
@@ -1451,7 +1400,7 @@ $hasGCU = $account->getBalance('GCU') > 0;
 use App\Http\Controllers\Api\UserVotingController;
 
 $controller = app(UserVotingController::class);
-$activePolls = $controller->index($request);
+$activePolls = $controller->getActivePolls();
 
 // Submit basket allocation vote
 $voteData = [
@@ -1465,10 +1414,10 @@ $voteData = [
     ]
 ];
 
-$controller->vote($poll->uuid, new Request($voteData));
+$controller->submitBasketVote(new Request($voteData), $poll->uuid);
 
 // Get voting dashboard data
-$dashboard = $controller->dashboard($request);
+$dashboard = $controller->getDashboard();
 // Returns: stats, active_polls, voting_history, next_poll_date
 ```
 
@@ -1477,8 +1426,8 @@ $dashboard = $controller->dashboard($request);
 use App\Domain\Governance\Workflows\UpdateBasketCompositionWorkflow;
 
 // The workflow automatically calculates weighted averages
-$workflow = app(UpdateBasketCompositionWorkflow::class);
-$workflow->execute($poll);
+$workflow = WorkflowStub::make(UpdateBasketCompositionWorkflow::class);
+$workflow->start($poll->uuid); // execute(string $pollUuid)
 
 // Example of how weights are calculated:
 // User A: 1000 GCU votes USD=40%, EUR=30%
@@ -1488,19 +1437,18 @@ $workflow->execute($poll);
 
 #### GCU Configuration via Environment
 ```php
-// In .env file:
-GCU_ENABLED=true
-GCU_BASKET_CODE=GCU
-GCU_BASKET_NAME="Global Currency Unit"
-GCU_BASKET_SYMBOL=Ǥ
-GCU_BASKET_DESCRIPTION="GCU demo — a reference implementation of a basket-referenced unit built with FinAegis."
+// In .env file (config/baskets.php). There is no GCU_ENABLED flag;
+// the Basket module is switched off via MODULES_DISABLED.
+PRIMARY_BASKET_CODE=GCU
+PRIMARY_BASKET_NAME="Global Currency Unit"
+PRIMARY_BASKET_SYMBOL="Ǥ"
+PRIMARY_BASKET_DESCRIPTION="GCU demo - a reference implementation of a basket-referenced unit (software demonstration)"
 
 // Seeder uses configuration
 php artisan db:seed --class=GCUBasketSeeder
 
 // Access in code
-$gcuEnabled = config('app.gcu_enabled', false);
-$gcuCode = config('app.gcu_basket_code', 'GCU');
+$gcuCode = config('baskets.primary_code', 'GCU');
 ```
 
 #### Frontend Integration Examples
@@ -1536,8 +1484,7 @@ fetch('/api/voting/polls/' + pollId + '/vote', {
 ```php
 // Test GCU basket creation
 test('can create GCU basket from configuration', function () {
-    config(['app.gcu_enabled' => true]);
-    config(['app.gcu_basket_code' => 'TEST_GCU']);
+    config(['baskets.primary_code' => 'TEST_GCU']);
     
     $this->artisan('db:seed', ['--class' => 'GCUBasketSeeder']);
     
@@ -1630,21 +1577,30 @@ $stats = $settlementService->getSettlementStatistics();
 
 ### Compliance Workflows
 ```php
-// Enhanced KYC workflow
-$workflow = WorkflowStub::make(EnhancedKYCWorkflow::class);
-$result = $workflow->start($userId, $documents);
+// KYC workflow (app/Domain/Compliance/Workflows/)
+$workflow = WorkflowStub::make(KycVerificationWorkflow::class);
+$result = $workflow->start($input); // execute(array $input)
 
-// Regulatory reporting
-$ctrReport = app(CTRReportService::class)->generateDailyReport(today());
-$sarReport = app(SARReportService::class)->generateMonthlyReport();
+// Regulatory reporting (methods return the stored report filename)
+$reporting = app(RegulatoryReportingService::class);
+$ctrFile = $reporting->generateCTR(today());
+$sarFile = $reporting->generateSARCandidates(now()->subMonth(), now());
 
-// GDPR compliance
-$gdprService = app(GDPRService::class);
-$userData = $gdprService->exportUserData($userId);
-$gdprService->anonymizeUser($userId);
+// GDPR compliance (takes a User model)
+$gdprService = app(GdprService::class);
+$userData = $gdprService->exportUserData($user);
+$gdprService->deleteUserData($user);
 ```
 
 ## Phase 5.2 Resilience Patterns
+The samples below are illustrative. The real services are in `app/Domain/Custodian/Services/`.
+`CircuitBreakerService` has `execute(string $service, callable $operation, ?callable $fallback = null)`,
+`getState()`, `isAvailable()`, `reset()` and `getMetrics()`, and it takes its thresholds as constructor arguments.
+`RetryService` has `execute(callable $operation, array $retryableExceptions, string $context)` and
+`executeWithConfig()`. `FallbackService` has fixed helpers: `getFallbackBalance()`, `cacheBalance()`,
+`getFallbackAccountInfo()`, `getFallbackTransferStatus()`, `queueTransferForRetry()` and
+`getAlternativeCustodian()`. It has no `registerChain()`. `CustodianHealthMonitor` has `getCustodianHealth()`,
+`getAllCustodiansHealth()`, `getAvailabilityMetrics()` and `getHealthiestCustodian()`.
 
 ### Circuit Breaker Implementation
 ```php
@@ -1957,13 +1913,13 @@ test('fallback service executes chain in order', function () {
 - Workflow configuration: `config/workflows.php`
 - Queue configuration: `config/queue.php`
 - Cache configuration: `config/domain-cache.php`
-- Domain models: `app/Models/`
+- Domain models: `app/Domain/*/Models/` (shared models in `app/Models/`)
 - Domain events: `app/Domain/*/Events/`
 - Aggregates: `app/Domain/*/Aggregates/`
 - Workflows: `app/Domain/*/Workflows/`
 - Activities: `app/Domain/*/Workflows/*Activity.php`
 - Cache services: `app/Domain/*/Services/Cache/`
-- Filament resources: `app/Filament/Admin/Resources/`
+- Filament resources: `app/Filament/Admin/Resources/` (the legacy `app/Filament/Resources`, `app/Filament/Pages` and `app/Filament/Widgets` tree was deleted in PR #1141)
 - Filament tests: `tests/Feature/Filament/`
 
 ### New Multi-Asset Locations
@@ -1973,7 +1929,7 @@ test('fallback service executes chain in order', function () {
 - Multi-asset migrations: `database/migrations/`
 
 ### Basket Asset Locations
-- Basket models: `app/Models/BasketAsset.php`, `app/Models/BasketComponent.php`, `app/Models/BasketValue.php`
+- Basket models: `app/Domain/Basket/Models/BasketAsset.php`, `app/Domain/Basket/Models/BasketComponent.php`, `app/Domain/Basket/Models/BasketValue.php`
 - Basket services: `app/Domain/Basket/Services/`
 - Basket events: `app/Domain/Basket/Events/`
 - Basket workflows: `app/Domain/Basket/Workflows/`
@@ -1981,16 +1937,16 @@ test('fallback service executes chain in order', function () {
 - Basket Filament resources: `app/Filament/Admin/Resources/BasketAssetResource/`
 - Basket tests: `tests/Feature/Basket/`
 - Basket migration: `database/migrations/2025_06_16_232847_create_basket_assets_tables.php`
-- Basket documentation: `docs/BASKET_ASSETS_DESIGN.md`
+- Basket documentation: `docs/14-TECHNICAL/BASKET_ASSETS_DESIGN.md`
 
 ### GCU Platform Locations
-- User bank preferences: `app/Models/UserBankPreference.php`
-- GCU voting templates: `app/Domain/Governance/Services/GCUVotingTemplateService.php`
+- User bank preferences: `app/Domain/Banking/Models/UserBankPreference.php`
+- GCU voting templates: `app/Domain/Governance/Services/VotingTemplateService.php`
 - Voting strategies: `app/Domain/Governance/Strategies/`
 - GCU basket widget: `app/Filament/Admin/Widgets/GCUBasketWidget.php`
-- GCU commands: `app/Console/Commands/SetupGCUVotingPolls.php`
+- GCU commands: `app/Domain/Governance/Console/Commands/VotingSetupCommand.php` (`voting:setup`), `app/Domain/Governance/Console/Commands/SetupVotingPolls.php` (`voting:setup-batch`)
 - GCU seeders: `database/seeders/GCUBasketSeeder.php`
-- GCU tests: `tests/Feature/Governance/GCUVotingTemplateTest.php`
+- GCU tests: `tests/Feature/Governance/GcuVotingPowerTest.php`
 
 ### Phase 4.2 Specific Locations
 - User voting controller: `app/Http/Controllers/Api/UserVotingController.php`
@@ -1998,16 +1954,16 @@ test('fallback service executes chain in order', function () {
 - Vue voting dashboard: `resources/js/components/GCUVotingDashboard.vue`
 - Integration examples: `resources/js/components/voting-integration-example.js`
 - GCU widget blade: `resources/views/filament/admin/widgets/gcu-basket-widget.blade.php`
-- User voting tests: `tests/Feature/Api/UserVotingControllerTest.php`
+- User voting tests: no dedicated controller test (N+1 check in `tests/Feature/Http/Controllers/Api/N1QueryOptimizationTest.php`)
 - Basket composition workflow: `app/Domain/Governance/Workflows/UpdateBasketCompositionWorkflow.php`
-- Monthly poll schedule: `routes/console.php` (line 20)
+- Monthly poll schedule: `routes/console.php` (`voting:setup`, line 32)
 
 ### Phase 4.3 Compliance Locations
-- KYC models: `app/Models/KYCDocument.php`, `app/Models/KYCVerification.php`
+- KYC models: `app/Domain/Compliance/Models/KycDocument.php`, `app/Domain/Compliance/Models/KycVerification.php`
 - Compliance services: `app/Domain/Compliance/Services/`
-- Regulatory reports: `app/Domain/Compliance/Reports/`
-- GDPR service: `app/Domain/Compliance/Services/GDPRService.php`
-- Compliance commands: `app/Console/Commands/Generate*Report.php`
+- Regulatory reports: `app/Domain/Compliance/Services/RegulatoryReportingService.php`
+- GDPR service: `app/Domain/Compliance/Services/GdprService.php`
+- Compliance commands: `app/Console/Commands/GenerateRegulatoryReports.php` (`compliance:generate-reports`)
 - Compliance tests: `tests/Feature/Compliance/`
 
 ### Phase 5 Bank Integration Locations
@@ -2015,25 +1971,25 @@ test('fallback service executes chain in order', function () {
 - Balance sync service: `app/Domain/Custodian/Services/BalanceSynchronizationService.php`
 - Multi-bank transfer: `app/Domain/Custodian/Services/MultiCustodianTransferService.php`
 - Settlement service: `app/Domain/Custodian/Services/SettlementService.php`
-- Custodian models: `app/Models/CustodianAccount.php`
+- Custodian models: `app/Domain/Custodian/Models/CustodianAccount.php`
 - Custodian config: `config/custodians.php`
-- Integration docs: `docs/CUSTODIAN_INTEGRATION.md`
+- Integration docs: `docs/14-TECHNICAL/CUSTODIAN_INTEGRATION.md`
 
 ### Phase 5.2 Resilience Services Locations
 - Circuit breaker: `app/Domain/Custodian/Services/CircuitBreakerService.php`
 - Retry service: `app/Domain/Custodian/Services/RetryService.php`
 - Fallback service: `app/Domain/Custodian/Services/FallbackService.php`
 - Health monitor: `app/Domain/Custodian/Services/CustodianHealthMonitor.php`
-- Resilience tests: `tests/Feature/Custodian/ResilienceServicesTest.php`
-- Circuit breaker tests: `tests/Unit/Custodian/CircuitBreakerServiceTest.php`
-- Retry service tests: `tests/Unit/Custodian/RetryServiceTest.php`
+- Fallback tests: `tests/Feature/Domain/Custodian/Services/FallbackServiceTest.php`
+- Circuit breaker tests: `tests/Feature/Domain/Custodian/Services/CircuitBreakerServiceTest.php`
+- Retry service tests: `tests/Feature/Domain/Custodian/Services/RetryServiceTest.php`
 
 ### Phase 6 - Business Team Management ✅ Completed
 - Team management: `app/Http/Controllers/TeamMemberController.php`
 - Business organization trait: `app/Traits/BelongsToTeam.php`
 - Team member views: `resources/views/teams/members/`
 - Team role management: `database/migrations/2025_06_30_143734_enhance_teams_for_business_organizations.php`
-- Multi-tenant tests: `tests/Feature/BusinessTeamManagementTest.php`
+- Team tests: `tests/Feature/InviteTeamMemberTest.php`, `tests/Feature/LeaveTeamTest.php` (no dedicated business-team test)
 
 #### Business Team Management Usage
 ```bash
@@ -2062,11 +2018,11 @@ $user->assignRole('customer_business');
 - Payment confirmation views: `resources/views/cgo/crypto-payment.blade.php`, `bank-transfer.blade.php`, `card-payment.blade.php`
 - CGO routes: Added to authenticated navigation in `resources/views/navigation-menu.blade.php`
 - **Payment Integration**: 
-  - Stripe payments: `app/Services/Cgo/StripePaymentService.php`
-  - Coinbase Commerce: `app/Services/Cgo/CoinbaseCommerceService.php`
-  - Payment verification: `app/Services/Cgo/PaymentVerificationService.php`
+  - Stripe payments: `app/Domain/Cgo/Services/StripePaymentService.php`
+  - Coinbase Commerce: `app/Domain/Cgo/Services/CoinbaseCommerceService.php`
+  - Payment verification: `app/Domain/Cgo/Services/PaymentVerificationService.php`
 - **KYC/AML Implementation**:
-  - KYC service: `app/Services/Cgo/CgoKycService.php`
+  - KYC service: `app/Domain/Cgo/Services/CgoKycService.php`
   - KYC controller: `app/Http/Controllers/CgoKycController.php`
   - Documentation: `docs/06-DEVELOPMENT/CGO_KYC_AML.md`
   - Tiered KYC levels: Basic ($1k), Enhanced ($10k), Full ($50k+)
@@ -2095,7 +2051,7 @@ $user->assignRole('customer_business');
 
 ### Core Domains
 - Account Management: `app/Domain/Account/`
-- Transaction Processing: `app/Domain/Transaction/`
+- Transaction Processing: `app/Domain/Account/` (`TransactionAggregate`, `LedgerAggregate`) and `app/Domain/Payment/`
 - Asset Management: `app/Domain/Asset/`
 - Exchange & Trading: `app/Domain/Exchange/`
 - P2P Lending: `app/Domain/Lending/`
@@ -2104,10 +2060,10 @@ $user->assignRole('customer_business');
 - Wallet Management: `app/Domain/Wallet/`
 
 ### Infrastructure
-- Event Sourcing: `app/Infrastructure/EventSourcing/`
-- Workflow Engine: `app/Infrastructure/Workflow/`
-- External Connectors: `app/Infrastructure/Exchange/Connectors/`
-- Blockchain Services: `app/Infrastructure/Blockchain/`
+- Event Sourcing: `app/Domain/Shared/EventSourcing/` (spatie/laravel-event-sourcing 7.15)
+- Workflow Engine: `durable-workflow/workflow` package (`Workflow\` namespace, `config/workflows.php`)
+- External Connectors: `app/Domain/Exchange/Connectors/`
+- Blockchain Services: `app/Domain/Wallet/Connectors/`, `app/Infrastructure/Web3/`
 - Plugin Manager: `app/Infrastructure/Plugins/PluginManager.php`
 - Plugin Sandbox: `app/Infrastructure/Plugins/PluginSandbox.php`
 
@@ -2118,10 +2074,9 @@ $user->assignRole('customer_business');
 - Notification Service: `app/Domain/Shared/Notifications/NotificationService.php`
 
 ### Frontend
-- Vue Components: `resources/js/Components/`
+- Vue Components: `resources/js/components/`
 - Page Components: `resources/js/Pages/`
-- Shared Utilities: `resources/js/utils/`
-- API Client: `resources/js/api/`
+- JS services (WebSocket, hardware wallet): `resources/js/services/`
 
 ### GraphQL & Plugin System (v4.0.0+)
 - GraphQL schemas: `graphql/*.graphql`
@@ -2133,7 +2088,7 @@ $user->assignRole('customer_business');
 ### Configuration
 - Event Sourcing: `config/event-sourcing.php`
 - Event Streaming: `config/event-streaming.php`
-- Workflow: `config/workflow.php`
+- Workflow: `config/workflows.php`
 - Exchange: `config/exchange.php`
 - Blockchain: `config/blockchain.php`
 
@@ -2145,6 +2100,6 @@ $user->assignRole('customer_business');
 
 ---
 
-**Last Updated**: 2026-04-04
-**Version**: 7.9.0
-**Status**: Open-source reference platform - v5.1.5 with Dependency Cleanup (l5-swagger 10, swagger-php 6), PSR-4 Plugin Fix, Production Env Template
+**Last Updated**: 2026-11-24
+**Version**: 7.18.1
+**Status**: Open-source reference platform (not a production bank). Zelta is the hosted non-custodial wallet built on it. Stack: Laravel 12.73, PHP 8.4, Filament 3.3, Lighthouse 6.67, spatie/laravel-event-sourcing 7.15, Pest 3.8, phpstan 2.3.7 + larastan 3.15 (Level 8)

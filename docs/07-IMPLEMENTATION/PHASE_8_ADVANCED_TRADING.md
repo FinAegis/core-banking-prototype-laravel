@@ -5,6 +5,8 @@
 **Completion Date**: September 2024  
 **Documentation Version**: 1.1
 
+> This is a historical record of the 2024 phase. Today the trading features run only behind `TRADING_ENABLED` (route middleware `feature:trading.enabled`), which is off in production. The add, remove and rebalance liquidity flow was removed in v7.18.0. Pool lists, pool creation, swaps, positions, rewards, impermanent-loss protection and pool analytics remain under `/api/liquidity/...`.
+
 ## Overview
 
 Phase 8 introduces advanced trading capabilities, DeFi features, and blockchain integration to the FinAegis platform. This phase transforms the platform from a traditional banking system into a comprehensive financial software platform supporting both traditional and decentralized finance.
@@ -199,7 +201,7 @@ $loan->update([
 
 ### Liquidity Pool Management
 - **Pool creation** wizard
-- **Add/remove liquidity** interface
+- **Add/remove liquidity** interface (removed in v7.18.0)
 - **LP token management**
 - **Pool analytics** dashboard
 
@@ -236,6 +238,8 @@ POST   /api/pools/{id}/liquidity
 DELETE /api/pools/{id}/liquidity
 POST   /api/pools/{id}/swap
 ```
+
+These were the 2024 paths. The current routes are `GET /api/liquidity/pools`, `GET /api/liquidity/pools/{poolId}`, `POST /api/liquidity/pools` and `POST /api/liquidity/swap`. The add and remove liquidity endpoints were removed in v7.18.0.
 
 ### Stablecoin APIs
 ```

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide provides best practices for implementing and maintaining event sourcing in the FinAegis platform. Event sourcing is a critical architectural pattern that stores all changes to application state as a sequence of immutable events.
+This guide collects good practices for event sourcing in FinAegis. Event sourcing stores every change to application state as an immutable event in a sequence. FinAegis uses `spatie/laravel-event-sourcing` 7.15, with domain-specific event tables and an `event_class_map` in `config/event-sourcing.php` that must list every stored event. Most code samples below show patterns; some class names are illustrative.
 
 ## Table of Contents
 
@@ -437,15 +437,15 @@ CREATE INDEX idx_stored_events_replay ON stored_events(
 
 ### Partition Large Event Tables
 
-For high-volume systems:
+High-volume systems can partition the event table by month. The example below uses PostgreSQL syntax. FinAegis runs on MySQL 8 or MariaDB, where the same idea uses `PARTITION BY RANGE`.
 
 ```sql
--- Partition by month
+-- Partition by month (PostgreSQL syntax)
 CREATE TABLE stored_events_2025_01 PARTITION OF stored_events
-    FOR VALUES FROM ('2024-09-01') TO ('2024-09-01');
+    FOR VALUES FROM ('2025-01-01') TO ('2025-02-01');
 
 CREATE TABLE stored_events_2025_02 PARTITION OF stored_events
-    FOR VALUES FROM ('2024-09-01') TO ('2024-09-01');
+    FOR VALUES FROM ('2025-02-01') TO ('2025-03-01');
 ```
 
 ### Caching Strategies
@@ -686,7 +686,7 @@ class MultiAssetProjector extends Projector
 
 ### Liquidity Pool Events
 
-Complex DeFi operations:
+This example shows how an event can capture a complex DeFi operation. The exchange's add, remove and rebalance liquidity flow was removed in v7.18.0. The `LiquidityAdded` and `LiquidityRemoved` events and `LiquidityPoolProjector` stay in `app/Domain/Exchange/` so that stored events can still be replayed. Use the code as a pattern only:
 
 ```php
 class LiquidityAdded extends ShouldBeStored
@@ -836,7 +836,7 @@ class EventSourcingHealthCheck extends HealthCheck
 
 ## Conclusion
 
-Event sourcing provides powerful capabilities for audit, debugging, and temporal queries, but requires careful design and implementation. Follow these best practices to build maintainable, performant event-sourced systems in FinAegis.
+Event sourcing gives you a full audit trail, easier debugging and queries over past states. It also needs careful design. These practices keep the event-sourced parts of FinAegis maintainable and fast.
 
 Key takeaways:
 - Events are immutable facts
@@ -846,4 +846,4 @@ Key takeaways:
 - Monitor and measure everything
 - Plan for versioning from the start
 
-For FinAegis-specific patterns, refer to the domain documentation in `/docs/02-ARCHITECTURE/` and example implementations in `/app/Domain/*/`.
+For FinAegis-specific patterns, read the domain documentation in `docs/02-ARCHITECTURE/` and the implementations in `app/Domain/*/`.

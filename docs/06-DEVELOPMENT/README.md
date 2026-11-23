@@ -1,80 +1,71 @@
 # Development Documentation
 
-This directory contains guides for developers working on the FinAegis platform.
+This directory holds guides for developers who work on FinAegis. FinAegis is an open-source reference platform, and Zelta is the hosted non-custodial wallet built on it. The current version is v7.18.1.
 
 ## Contents
 
 ### Core Development Guides
-- **[CLAUDE.md](CLAUDE.md)** - AI assistant guidance for Claude Code and other AI coding tools
-- **[DEVELOPMENT.md](DEVELOPMENT.md)** - Development setup, conventions, and best practices
-- **[DEMO.md](DEMO.md)** - Demo environment setup and sample data
-- **[DEMO-DEPOSIT.md](DEMO-DEPOSIT.md)** - Demo deposit functionality implementation
+- **[CLAUDE.md](CLAUDE.md)** holds instructions for Claude Code and other AI coding tools.
+- **[DEVELOPMENT.md](DEVELOPMENT.md)** covers setup, architecture, conventions and good practices.
+- **[DOMAIN_MANAGEMENT.md](DOMAIN_MANAGEMENT.md)** explains the modular domain system and the `domain:*` and `module:*` commands.
+- **[INFRASTRUCTURE.md](INFRASTRUCTURE.md)** describes the command bus, query bus and domain event bus.
+- **[EVENT-SOURCING-BEST-PRACTICES.md](EVENT-SOURCING-BEST-PRACTICES.md)** collects event sourcing patterns.
+- **[PERFORMANCE-OPTIMIZATION.md](PERFORMANCE-OPTIMIZATION.md)** describes ways to keep the platform fast.
+- **[EMAIL-SETUP.md](EMAIL-SETUP.md)** explains how to configure email sending.
+- **[QUALITY/code-quality-workflow.md](QUALITY/code-quality-workflow.md)** lists the quality checks to run before you push.
+
+### Demo Environment
+- **[DEMO.md](DEMO.md)** explains how to set up the demo and its sample data.
+- **[DEMO-ENVIRONMENT.md](DEMO-ENVIRONMENT.md)** describes the demo services and how `APP_ENV=demo` switches them on.
+- **[DEMO-DEPOSIT.md](DEMO-DEPOSIT.md)** documents the `demo:deposit` command.
+- **[DEMO-MODE-REFACTORING.md](DEMO-MODE-REFACTORING.md)** records how demo mode was moved to `APP_ENV=demo`.
 
 ### Testing Documentation
-- **[BEHAT.md](BEHAT.md)** - Behat testing framework setup and usage
-- **[PARALLEL-TESTING.md](PARALLEL-TESTING.md)** - Parallel test execution configuration
-- **[TEST_SKIP_ANALYSIS.md](TEST_SKIP_ANALYSIS.md)** - Analysis of skipped tests and coverage gaps
+- **[TESTING_GUIDE.md](TESTING_GUIDE.md)** explains how tests are organised and run.
+- **[TESTING-STRATEGY.md](TESTING-STRATEGY.md)** describes the testing approach and standards.
+- **[PARALLEL-TESTING.md](PARALLEL-TESTING.md)** explains parallel test runs and isolation.
+- **[BEHAT.md](BEHAT.md)** explains the Behat setup and its suites.
 
-### CGO Implementation Guides
-- **[CGO_KYC_AML.md](CGO_KYC_AML.md)** - KYC/AML implementation for CGO investments
-- **[CGO_INVESTMENT_AGREEMENTS.md](CGO_INVESTMENT_AGREEMENTS.md)** - Investment agreement generation
-- **[CGO_PAYMENT_VERIFICATION.md](CGO_PAYMENT_VERIFICATION.md)** - Payment verification workflows
+### CGO Demo Module Guides
+The CGO module is a demo and not an offer of securities. It is disabled on the production site.
+- **[CGO_KYC_AML.md](CGO_KYC_AML.md)** describes the tiered KYC and AML checks for CGO investments.
+- **[CGO_INVESTMENT_AGREEMENTS.md](CGO_INVESTMENT_AGREEMENTS.md)** describes how sample agreements and certificates are generated.
+- **[CGO_PAYMENT_VERIFICATION.md](CGO_PAYMENT_VERIFICATION.md)** describes payment verification.
 
 ### Feature Documentation
-- **[FRAUD-DETECTION.md](FRAUD-DETECTION.md)** - Fraud detection implementation
-- **[REGULATORY-REPORTING.md](REGULATORY-REPORTING.md)** - Regulatory compliance reporting
-- **[features/fund-flow-visualization.md](features/fund-flow-visualization.md)** - Fund flow visualization feature
+- **[FRAUD-DETECTION.md](FRAUD-DETECTION.md)** describes fraud detection.
+- **[REGULATORY-REPORTING.md](REGULATORY-REPORTING.md)** describes the regulatory report drafts.
+- **[features/fund-flow-visualization.md](features/fund-flow-visualization.md)** describes the fund flow page.
+
+### Planning
+- **[MOBILE_APP_PLANNING.md](MOBILE_APP_PLANNING.md)** is the historical mobile app plan from January 2026.
 
 ## Purpose
 
-These documents help developers:
-- Set up their development environment
-- Understand coding conventions and patterns
-- Use AI coding assistants effectively
-- Create demo environments
-- Follow best practices for contributions
-- Run tests and maintain code quality
-- Implement complex features like KYC/AML and payment processing
-- Write comprehensive tests including Behat scenarios
+These documents help developers set up their environment and understand the conventions and patterns. They explain how to work with AI coding assistants, run the demo, run the tests and keep the code quality high. They also describe complex features such as KYC and AML checks and payment processing.
 
-## Current Development Status (September 2024)
-
-### Recently Implemented Features
-- ✅ **CGO Complete Implementation**
-  - KYC/AML verification with tiered levels
-  - Payment integration (Stripe & Coinbase Commerce)
-  - Investment agreement PDF generation
-  - Event-sourced refund processing
-  - Admin dashboard for investment management
-  
-- ✅ **Testing Infrastructure**
-  - Parallel testing configuration
-  - Behat testing framework setup
-  - Test coverage at 88%
-  
-- ✅ **Compliance Features**
-  - Fraud detection system
-  - Regulatory reporting (CTR, SAR)
-  - GDPR compliance tools
-
-- ✅ **Visualization Tools**
-  - Fund flow visualization with D3.js
-  - Interactive account network graphs
-
-### Development Commands Quick Reference
+## Development Commands Quick Reference
 ```bash
 # Run tests in parallel
-./vendor/bin/pest --parallel
+./vendor/bin/pest --parallel --stop-on-failure
 
 # Run Behat tests
-./vendor/bin/behat
+./bin/behat
 
-# Generate API documentation
-php artisan l5-swagger:generate
+# Code quality
+./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php
+./vendor/bin/phpcs
+XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G
+
+# Generate API documentation (commit storage/api-docs/api-docs.json; CI checks it)
+APP_URL=http://localhost php artisan l5-swagger:generate
 
 # Create admin user
-php artisan make:filament-user
+php artisan user:create --admin
 
-# Run specific test coverage
+# Populate demo data (demo users, password demo123)
+php artisan demo:populate
+
+# Run specific test coverage (local only; CI does not collect coverage)
 ./vendor/bin/pest --coverage --min=50
 ```

@@ -2,31 +2,18 @@
 
 ## Overview
 
-The FinAegis platform includes a regulatory reporting module that helps operators generate and track report drafts modelled on common formats (CTR, SAR, AML, OFAC, BSA, KYC). It does not by itself make a deployment compliant; filing obligations remain the responsibility of the operator of each deployment. The module integrates with the fraud detection system to provide enhanced reporting capabilities.
+The regulatory reporting module helps operators generate and track report drafts. The drafts are modelled on common formats such as the Currency Transaction Report (CTR), the Suspicious Activity Report (SAR) and AML, OFAC, BSA and KYC reports. The module does not by itself make a deployment compliant. Filing obligations remain the responsibility of the operator of each deployment. The module uses data from the fraud detection system in its reports.
 
 ## Architecture
 
 ### Core Components
 
-1. **Enhanced Regulatory Reporting Service** (`EnhancedRegulatoryReportingService`)
-   - Extends the base reporting service
-   - Integrates fraud detection data
-   - Supports multiple report types and jurisdictions
+The services live in `app/Domain/Regulatory/Services/`.
 
-2. **Threshold Monitoring Service** (`ThresholdMonitoringService`)
-   - Monitors transactions against regulatory thresholds
-   - Triggers automatic reporting when thresholds are breached
-   - Supports aggregation rules
-
-3. **Report Generator Service** (`ReportGeneratorService`)
-   - Generates reports in multiple formats (JSON, XML, CSV, PDF, Excel)
-   - Handles format-specific requirements
-   - Maintains report integrity with checksums
-
-4. **Regulatory Filing Service** (`RegulatoryFilingService`)
-   - Submits reports to operator-configured endpoints (no regulator connectivity is provided)
-   - Supports multiple filing methods (API, Portal, Email)
-   - Handles retries and status tracking
+1. `EnhancedRegulatoryReportingService` extends the base reporting service. It adds fraud detection data and supports several report types and jurisdictions.
+2. `ThresholdMonitoringService` checks transactions against regulatory thresholds. It can start a report when a threshold is breached, and it supports aggregation rules. Since v7.18.0 it takes the customer's country into account.
+3. `ReportGeneratorService` writes reports as JSON, XML, CSV, PDF or Excel. It stores a checksum to protect report integrity.
+4. `RegulatoryFilingService` records filing attempts with retries and status tracking. Filing is simulated, and no report reaches a regulator. See [Filing Methods](#filing-methods).
 
 ## Database Schema
 
@@ -76,72 +63,59 @@ The FinAegis platform includes a regulatory reporting module that helps operator
 ## Report Types
 
 ### 1. Currency Transaction Report (CTR)
-- Triggered by transactions exceeding $10,000
-- Enhanced with fraud detection data
-- Daily generation
-- 15-day filing deadline
+The CTR draft covers transactions above $10,000. It adds fraud detection data. It is generated daily and models a 15-day filing deadline.
 
 ### 2. Suspicious Activity Report (SAR)
-- Integrates fraud cases and high-risk scores
-- Identifies patterns and anomalies
-- 30-day filing deadline
-- Immediate filing for critical cases
+The SAR draft collects fraud cases, high-risk scores, patterns and anomalies. It models a 30-day filing deadline, with immediate filing for critical cases.
 
 ### 3. Anti-Money Laundering (AML)
-- Monthly comprehensive report
-- Includes transaction monitoring results
-- Customer risk ratings
-- Sanctions screening results
+The AML report is monthly. It contains the transaction monitoring results, customer risk ratings and the results of the sanctions country checks.
 
 ### 4. OFAC Screening Report
-- Daily screening against sanctions lists
-- Immediate action for matches
-- Blocked transaction reporting
-- False positive tracking
+The OFAC report is daily. It has sections for screening matches, blocked transactions and false positives. The screening step is a placeholder that returns zero results, so the report is an empty template. No sanctions list feed is connected.
 
 ### 5. Bank Secrecy Act (BSA)
-- Quarterly compliance report
-- CTR/SAR filing summary
-- Customer identification program
-- Risk assessment results
+The BSA report is quarterly. It summarises CTR and SAR drafts, the customer identification program and the risk assessment results.
 
 ### 6. Know Your Customer (KYC)
-- Customer verification status
-- Risk rating distribution
-- PEP identification
-- Expiring/expired KYC tracking
+The KYC report shows customer verification status, the risk rating distribution, politically exposed persons (PEP) and expiring or expired KYC checks.
 
 ## API Endpoints
 
-### Report Management
+All endpoints need `auth:sanctum` and the compliance staff role.
+
+### Report Generation and Files
+These routes are defined in `app/Domain/Banking/Routes/api.php`. They load only when the Banking module is enabled, and Banking is disabled on the production site.
 ```http
-GET  /api/regulatory/reports                    # List reports
-GET  /api/regulatory/reports/{id}               # Get report details
-GET  /api/regulatory/reports/{id}/download      # Download report
-POST /api/regulatory/reports/generate/ctr       # Generate CTR
-POST /api/regulatory/reports/generate/sar       # Generate SAR
-POST /api/regulatory/reports/generate/aml       # Generate AML report
-POST /api/regulatory/reports/generate/ofac      # Generate OFAC report
-POST /api/regulatory/reports/generate/bsa       # Generate BSA report
+POST   /api/regulatory/reports/ctr                   # Generate CTR
+POST   /api/regulatory/reports/sar-candidates        # Generate SAR candidates
+POST   /api/regulatory/reports/compliance-summary    # Generate compliance summary
+POST   /api/regulatory/reports/kyc                   # Generate KYC report
+GET    /api/regulatory/reports                       # List report files
+GET    /api/regulatory/reports/{filename}            # Get report
+GET    /api/regulatory/reports/{filename}/download   # Download report
+DELETE /api/regulatory/reports/{filename}            # Delete report
+GET    /api/regulatory/metrics                       # Reporting metrics
 ```
 
-### Filing Management
+### Report Workflow Routes
+`routes/api/regulatory.php` also registers these routes. Their controller methods do not exist in `RegulatoryReportingController` yet, so they cannot work. Several of them also share a URI with the file routes above.
 ```http
-POST /api/regulatory/filings/reports/{id}/submit    # Submit report
-GET  /api/regulatory/filings/{id}/status           # Check filing status
-POST /api/regulatory/filings/{id}/retry            # Retry failed filing
+GET  /api/regulatory/reports/{id}
+POST /api/regulatory/reports/generate
+POST /api/regulatory/reports/{id}/submit
+GET  /api/regulatory/reports/{id}/status
+GET  /api/regulatory/reports/{id}/download
+POST /api/regulatory/reports/{id}/amend
+GET  /api/regulatory/templates
+GET  /api/regulatory/jurisdictions
+GET  /api/regulatory/requirements
+GET  /api/regulatory/deadlines
+GET  /api/regulatory/filings
+GET  /api/regulatory/filings/{id}
 ```
 
-### Threshold Management
-```http
-GET  /api/regulatory/thresholds                    # List thresholds
-PUT  /api/regulatory/thresholds/{id}              # Update threshold
-```
-
-### Dashboard
-```http
-GET  /api/regulatory/dashboard                     # Regulatory dashboard
-```
+There are no HTTP endpoints for thresholds or for filing retries. Use the services or `regulatory:manage` instead.
 
 ## Threshold Configuration
 
@@ -177,38 +151,24 @@ GET  /api/regulatory/dashboard                     # Regulatory dashboard
 
 ## Integration with Fraud Detection
 
-The regulatory reporting framework automatically incorporates fraud detection data:
+The reporting services read data from the fraud detection system:
 
-1. **Enhanced CTR Reports**
-   - Include fraud risk scores
-   - Flag high-risk transactions
-   - Add behavioral anomalies
-
-2. **SAR Generation**
-   - Automatically include fraud cases
-   - Compile suspicious patterns
-   - Risk-based prioritization
-
-3. **Threshold Monitoring**
-   - Real-time transaction monitoring
-   - Pattern detection integration
-   - Automated alert generation
+1. **Enhanced CTR reports** include fraud risk scores, flag high-risk transactions and add behavioural anomalies.
+2. **SAR generation** includes fraud cases, collects suspicious patterns and orders the cases by risk.
+3. **Threshold monitoring** checks transactions as they happen, uses the pattern detection and creates alerts.
 
 ## Filing Methods
 
+Filing is simulated in this codebase. None of the three methods sends a report to a regulator. The service picks the method from the report type and jurisdiction. US CTR and SAR reports use the API method, the US OFAC report uses the portal method, and all other reports use email.
+
 ### 1. API Submission
-- Adapter for operator-configured submission endpoints (no regulator connectivity is provided)
-- Automatic status tracking
+The API method posts the report to the endpoint that `regulatory.api_endpoints` sets for the report's jurisdiction and type. No config file in the repository defines that key. The call therefore fails with "No API endpoint configured", and the filing is marked as failed.
 
 ### 2. Portal Submission
-- Automated portal interaction (where available)
-- Queue-based processing
-- Manual fallback option
+Portal submission is simulated. It logs the attempt and succeeds at random about 80% of the time with a `PORTAL-` reference. A later status check returns a random status of pending, accepted or rejected.
 
 ### 3. Email Submission
-- Secure email with encrypted attachments
-- Audit trail maintenance
-- Acknowledgment tracking
+Email submission is simulated. It logs the attempt and returns an `EMAIL-` reference, but it sends no email.
 
 ## Usage Examples
 
@@ -244,6 +204,7 @@ $filing = $filingService->submitReport($report, [
     'filing_type' => 'initial',
     'filing_method' => 'api'
 ]);
+// Filing is simulated. Without regulatory.api_endpoints this API filing fails.
 
 // Check status later
 $status = $filingService->checkFilingStatus($filing);
@@ -255,8 +216,11 @@ $status = $filingService->checkFilingStatus($filing);
 # Generate reports for a specific date
 php artisan regulatory:manage generate-reports --date=2024-01-15
 
-# Generate specific report type
+# Generate specific report type (CTR, SAR, AML, OFAC, BSA)
 php artisan regulatory:manage generate-reports --type=CTR
+
+# Limit to one jurisdiction (US, EU, UK)
+php artisan regulatory:manage generate-reports --jurisdiction=US
 
 # Check regulatory thresholds
 php artisan regulatory:manage check-thresholds
@@ -271,33 +235,18 @@ php artisan regulatory:manage check-overdue
 php artisan regulatory:manage generate-reports --dry-run
 ```
 
+The scheduler also runs `compliance:generate-reports` every day for CTR (01:00) and KYC (02:00), every Monday for SAR candidates (03:00) and on the first day of each month for the compliance summary (04:00). That command accepts `--type` (ctr, sar, summary, kyc, all), `--date` and `--month`.
+
 ## Configuration
 
-### Environment Variables
-```env
-# Institution identification
-REGULATORY_INSTITUTION_ID=FIN001
+### Configuration File
 
-# API Endpoints
-REGULATORY_API_US_CTR=https://regulator.example/ctr
-REGULATORY_API_US_SAR=https://regulator.example/sar
+The services read `config('regulatory.institution_id')`, `config('regulatory.credentials.{jurisdiction}')`, `config('regulatory.api_endpoints')` and `config('regulatory.email_submission')`. The repository has no `config/regulatory.php` and no `REGULATORY_*` environment variables yet. An operator who wants to file must create that file first. Until then, filing has no endpoints, credentials or institution ID. Portal and email filing stay simulated even with that file.
 
-# Credentials (encrypted in database)
-REGULATORY_US_API_KEY=your-api-key
-REGULATORY_US_INSTITUTION_ID=your-institution-id
+The example below shows the intended jurisdiction section of such a file:
 
-# Email submission
-REGULATORY_EMAIL_CTR_TO=ctr@regulator.example
-REGULATORY_EMAIL_SAR_TO=sar@regulator.example
-
-# Thresholds
-REGULATORY_CTR_THRESHOLD=1000000
-REGULATORY_SAR_MONITORING_DAYS=30
-```
-
-### Jurisdiction Configuration
 ```php
-// config/regulatory.php
+// config/regulatory.php (not included in the repository)
 return [
     'jurisdictions' => [
         'US' => [
@@ -318,93 +267,36 @@ return [
 ## Monitoring and Alerts
 
 ### Key Metrics
-1. **Report Generation**
-   - Reports generated by type
-   - Average generation time
-   - Error rates
+1. **Report generation.** Track the reports generated by type, the average generation time and the error rate.
+2. **Filing performance.** Track the submission success rate, the average processing time and the rejection reasons.
+3. **Threshold effectiveness.** Track how often thresholds trigger, the false positive rate and how many triggers produce a report.
+4. **Compliance status.** Track overdue reports, upcoming deadlines and the filing backlog.
 
-2. **Filing Performance**
-   - Submission success rate
-   - Average processing time
-   - Rejection reasons
-
-3. **Threshold Effectiveness**
-   - Trigger frequency
-   - False positive rate
-   - Auto-report rate
-
-4. **Compliance Status**
-   - Overdue reports
-   - Upcoming deadlines
-   - Filing backlog
-
-### Dashboard Features
-- Real-time compliance status
-- Upcoming report deadlines
-- Recent filing activities
-- Threshold trigger summary
-- Jurisdiction breakdown
+`GET /api/regulatory/metrics` returns the reporting metrics. A dashboard should show the compliance status, upcoming deadlines, recent filings, threshold triggers and a breakdown by jurisdiction.
 
 ## Best Practices
 
-1. **Report Generation**
-   - Schedule daily generation jobs
-   - Implement retry logic
-   - Maintain audit trails
-   - Validate data completeness
-
-2. **Threshold Management**
-   - Regular review of thresholds
-   - Monitor false positive rates
-   - Adjust based on regulatory updates
-   - Test before activation
-
-3. **Filing Process**
-   - Verify report accuracy before submission
-   - Maintain filing credentials securely
-   - Monitor submission status
-   - Handle rejections promptly
-
-4. **Data Security**
-   - Encrypt sensitive report data
-   - Secure API credentials
-   - Audit access logs
-   - Implement data retention policies
+1. **Report generation.** Schedule the daily generation jobs, retry failures, keep audit trails and check that the data is complete.
+2. **Threshold management.** Review thresholds and their false positive rates regularly. Adjust them when regulations change, and test them before activation.
+3. **Filing.** Check every report before submission. Keep filing credentials secure, watch the submission status and handle rejections quickly.
+4. **Data security.** Encrypt sensitive report data, protect API credentials, audit access logs and apply a data retention policy.
 
 ## Testing
 
 ```bash
 # Run regulatory tests
-php artisan test --filter=Regulatory
+./vendor/bin/pest --filter=Regulatory
 
 # Test report generation
 php artisan regulatory:manage generate-reports --dry-run
 
-# Test threshold evaluation
-php artisan test tests/Feature/Regulatory/ThresholdMonitoringTest.php
+# Test threshold evaluation by customer country
+./vendor/bin/pest tests/Feature/Regulatory/ThresholdCustomerCountryTest.php
 ```
 
 ## Compliance Considerations
 
-1. **Data Privacy**
-   - GDPR compliance for EU reports
-   - PII handling procedures
-   - Data minimization principles
-
-2. **Audit Requirements**
-   - Complete audit trail
-   - Report versioning
-   - Access logging
-   - Change tracking
-
-3. **Retention Policies**
-   - 5-year minimum retention
-   - Secure archival
-   - Retrieval procedures
-   - Destruction protocols
-
-4. **Regulatory Updates**
-   - Monitor regulatory changes
-   - Update thresholds promptly
-   - Test new requirements
-   - Document changes
+1. **Data privacy.** EU reports fall under the GDPR. Define how personal data is handled and keep only the data you need.
+2. **Audit.** Keep a complete audit trail, version the reports, log access and track changes.
+3. **Retention.** Keep reports for at least five years. Archive them securely and define how they are retrieved and destroyed.
+4. **Regulatory updates.** Watch for regulatory changes, update thresholds promptly, test new requirements and document the changes.

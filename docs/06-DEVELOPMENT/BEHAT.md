@@ -1,14 +1,16 @@
 # Behat BDD Testing Guide
 
-This guide explains how to use Behat for Behavior-Driven Development (BDD) testing in the FinAegis Core Banking Platform.
+This guide explains how to use Behat for Behavior-Driven Development (BDD) testing in FinAegis.
 
 ## Installation
 
-Behat and its dependencies are already installed. The following packages are included:
-- `behat/behat`: Core BDD framework
-- `behat/mink`: Web acceptance testing framework
-- `behat/mink-browserkit-driver`: Symfony BrowserKit driver for Mink
-- `dmore/behat-chrome-extension`: Chrome/Chromium browser automation
+Behat is already installed as a development dependency. These packages come with it:
+- `behat/behat` is the core BDD framework.
+- `behat/mink` is the web acceptance testing framework.
+- `behat/mink-browserkit-driver` is the Symfony BrowserKit driver for Mink.
+- `dmore/behat-chrome-extension` drives a Chrome or Chromium browser.
+
+`./bin/behat` boots Laravel and then calls `vendor/bin/behat` with your arguments. Feature files live in `features/`.
 
 ## Running Tests
 
@@ -36,10 +38,14 @@ Behat and its dependencies are already installed. The following packages are inc
 
 ### Test Suites
 
-The `behat.yml` configuration defines the following suites:
-- **acceptance**: General acceptance tests with Laravel integration
-- **api**: API-specific tests with REST client integration
-- **basket**: Basket asset management features
+The `behat.yml` configuration defines three suites:
+- `acceptance` runs the feature files in `features/` with `FeatureContext` and `LaravelFeatureContext`. It skips scenarios tagged `@web`, `@wip` or `@api`.
+- `api` runs the feature files in `features/api/` with `ApiContext`.
+- `web` runs the scenarios tagged `@web` with `WebContext` and `SubproductContext`.
+
+Tags decide what runs. A feature tagged `@wip` is a specification that is not implemented yet. To enable it, remove the `@wip` tag. The `ci` profile also skips `@skip`.
+
+Some `@wip` feature files describe features that are not built or were removed. For example, `features/liquidity-pools.feature` still describes adding, removing and rebalancing liquidity, which was removed in v7.18.0.
 
 ## Writing Features
 
@@ -62,20 +68,12 @@ Feature: Feature Name
 
 ### Available Contexts
 
-1. **FeatureContext**: Main context with Laravel integration
-   - Database operations
-   - Asset and account management
-   - Basket operations
+The contexts live in `features/bootstrap/`.
 
-2. **LaravelFeatureContext**: Laravel-specific steps
-   - Authentication
-   - Account operations
-   - Transaction handling
-
-3. **ApiContext**: REST API testing
-   - HTTP requests
-   - Response assertions
-   - JSON validation
+1. `FeatureContext` is the main context with Laravel integration. It covers database setup, assets, accounts and baskets.
+2. `LaravelFeatureContext` holds Laravel-specific steps for authentication, accounts and transactions.
+3. `ApiContext` tests the REST API. It sends HTTP requests and checks responses and JSON.
+4. `WebContext` and `SubproductContext` test web pages, including the promo and sub-product pages.
 
 ## Example Features
 
@@ -131,21 +129,24 @@ public function iHaveAPremiumAccount()
 
 ## Best Practices
 
-1. **Keep scenarios focused**: Each scenario should test one specific behavior
-2. **Use descriptive names**: Scenario names should clearly describe what is being tested
-3. **Avoid implementation details**: Focus on business behavior, not technical implementation
-4. **Reuse step definitions**: Create generic, reusable steps when possible
-5. **Use data tables**: For multiple similar operations, use Gherkin tables
-6. **Tag scenarios**: Use tags (@api, @basket, @slow) to organize and filter tests
+1. Keep each scenario focused on one behaviour.
+2. Give scenarios names that say clearly what is tested.
+3. Describe business behaviour, not technical implementation.
+4. Write generic steps that you can reuse.
+5. Use Gherkin tables for several similar operations.
+6. Use tags such as `@api`, `@web` and `@wip` to organise and filter tests.
 
 ## Integration with CI/CD
 
-Add Behat tests to your GitHub Actions workflow:
+The `.github/workflows/behat-tests.yml` workflow runs Behat in CI. It starts a Laravel server and runs `./bin/behat-ci`. Without arguments, that script runs the `acceptance` suite with the `ci` profile, without interaction, and stops on the first failure. That workflow runs on pull requests that change the Behat files. The Behat job in `.github/workflows/03-test-suite.yml` runs the same suite with `vendor/bin/behat --profile=ci --suite=acceptance` on every pipeline run.
 
 ```yaml
 - name: Run Behat Tests
+  env:
+    BEHAT_BASE_URL: http://127.0.0.1:8000
+    QUEUE_CONNECTION: sync
   run: |
-    ./bin/behat --format=progress --no-colors
+    ./bin/behat-ci
 ```
 
 ## Debugging
@@ -163,7 +164,7 @@ Add Behat tests to your GitHub Actions workflow:
 
 ## Environment Configuration
 
-Behat uses the testing environment by default. Configure test-specific settings in:
-- `.env.testing`: Environment variables for testing
-- `phpunit.xml`: Database and other test configurations
-- `behat.yml`: Behat-specific configuration
+Behat uses the testing environment by default. Configure test settings in these files:
+- `.env.testing` holds the environment variables for testing.
+- `phpunit.xml` holds the database and other test settings.
+- `behat.yml` holds the Behat suites, profiles and the Mink base URL (`BEHAT_BASE_URL`).
