@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 >
 > Entries below describe software changes. Named third-party providers are integration adapters for third-party APIs; no partnership or endorsement implied. Mentions of the Global Currency Unit (GCU) refer to a software demonstration that is not issued, offered or sold to anyone and has no monetary value.
 
+## [7.18.1] - 2026-11-24
+
+**Card pilot fixes.** The card partner answered our open questions. This release makes the identity check in the card pilot start, as their answer requires. Top-ups stay switched off. This release also makes asset transfers and currency conversions move the right amounts, saves the spending limit people give AI assistants, and fixes or removes admin pages that failed to open. The zelta.app and admin texts now describe what the platform does.
+
+### Fixed
+- The card pilot's identity check could never start. Lepo answered that the `accessToken` from `sumsub/kyc-url` is a link to its own hosted page, not a SumSub SDK token, so the v7.18.0 note above was wrong. Our page now gets the SDK token from `POST /users/{id}/kyc/sumsub-access-token` and sends the questionnaire answers on every call. When Lepo answers `KYC_ALREADY_APPROVED`, the check counts as approved and its status is synced, instead of showing an error (#1251).
+- Asset transfers, wallet currency conversions and GCU buy and sell now move money (#1247). They had failed on a missing method since they were written. Underneath were wrong units: an amount compared with a balance in cents, every asset converted with 8 decimals, 1 BTC that would have been booked as 50 billion dollars, and a GCU sale that would have taken 100 times the amount. The debit, the credit and both history rows are written together, a retried conversion is not booked twice, and asset deposits and withdrawals now appear in the transaction history.
+- The daily spending limit a person picks when connecting an AI assistant is now saved, so tools such as `ramp.start` and `payment.transfer` work within it instead of failing with `NO_POLICY`. The limit belongs to the person's approval of the app, so a refreshed token does not reset it (#1252).
+- The admin Settings and Bank Allocations pages crashed on wrong model imports and now open. The Bank Operations and Audit Log pages could never work and are removed (#1249).
+
+### Changed
+- The zelta.app pages describe the wallet as it is: five networks, network fees covered up to a daily limit, AI assistants that can read but not send money, and cards as a small invitation-only pilot. They no longer show FinAegis menus or supplier names. The investor page names Aegis brightsmark capital, MB (company code 307576279), and the site icon draws the Z the right way round (#1250).
+- The admin panel texts describe what the platform does and no longer promise bank backing or deposit insurance for the GCU demonstration (#1248).
+
 ## [7.18.0] - 2026-11-23
 
 **Virtual cards with Lepo Finance.** Virtual cards are built for a closed pilot. People in the pilot who pass the identity check will open a card in the Zelta app, see its details on the card partner's secure page and add money to it from their own wallet. Cards stay off until the pilot is switched on, and adding money stays off until Lepo Finance answers our open questions about how the money moves. This release also stops wallet sends from showing "failed" when the network may have accepted them. It fixes or removes code that newer code checkers showed could never work.

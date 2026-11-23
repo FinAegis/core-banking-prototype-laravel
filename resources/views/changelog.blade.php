@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Changelog | ' . config('brand.name', 'Zelta'),
-        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.18.0.',
+        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.18.1.',
         'keywords' => 'changelog, release notes, updates, ' . config('brand.name', 'Zelta') . ', version history, core banking',
     ])
 
@@ -43,6 +43,21 @@
 
             @php
                 $releases = [
+                    [
+                        'version' => 'v7.18.1',
+                        'date' => 'November 24, 2026',
+                        'label' => 'Card Pilot Fixes',
+                        'label_color' => 'slate',
+                        'badge_color' => 'bg-slate-100 text-slate-700 border-slate-200',
+                        'dot_color' => 'bg-slate-500',
+                        'items' => [
+                            'Identity check for the card pilot. The identity check now starts correctly, because our page asks the card partner for the right kind of access. A check the partner has already approved is shown as approved.',
+                            'Correct amounts in transfers and conversions. Transfers and currency conversions in the FinAegis demo now move the right amounts, and they appear in the transaction history.',
+                            'Spending limit for AI assistants. The daily limit a person picks when connecting an AI assistant is now saved. The assistant can spend up to that limit and no more.',
+                            'Admin panel fixes. Two admin pages that failed to open now work, and two that could never work were removed. The admin texts now describe what the platform does.',
+                            'Clearer website. The Zelta pages describe the wallet as it is today, name the operating company correctly and show the app icon the right way round.',
+                        ],
+                    ],
                     [
                         'version' => 'v7.18.0',
                         'date' => 'November 23, 2026',

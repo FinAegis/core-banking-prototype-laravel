@@ -3252,6 +3252,22 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 
 ---
 
+## Version 7.18.1 — Card Pilot Fixes (November 2026)
+
+**Theme**: The card partner answered our open questions. The pilot's identity check now starts, and money paths in the ledger book the right amounts.
+
+### Delivered Features
+- The identity check gets its SDK token from Lepo's `sumsub-access-token`; an already approved check counts as approved (#1251).
+- Asset transfers, wallet conversions and GCU buy and sell move the right amounts, atomically and without double bookings (#1247).
+- The MCP consent screen's daily spending limit is saved per approval (#1252).
+- Two crashing admin pages fixed and two removed (#1249); zelta.app and admin texts rewritten (#1248, #1250).
+
+### Scope Notes
+- The top-up pipeline changes that follow Lepo's answers (fees, loads, conversions, rate limits, balances, deposit matching) are in #1254 for the next release. Top-ups switch on only after that and one real top-up tested with the pilot user. Lepo still has to confirm deposit minimums, confirmations and whether zelta.app needs SumSub allow-listing.
+- The GCU quote and fee shown by the trading API still differ from what the conversion books; that needs a product decision.
+
+---
+
 ## Version 7.18.0 — Virtual Cards with Lepo Finance (November 2026)
 
 **Theme**: Virtual cards are built for a closed pilot. People in the pilot who pass the identity check will open a card in the Zelta app and see its details on the card partner's secure page. Cards stay off until the pilot is switched on. Adding money from the wallet is built but stays off until Lepo Finance answers the open questions about the money path.
@@ -3477,5 +3493,5 @@ Embeddable JS widget that renders Zelta's 402 payment flow inside the partner's 
 
 ---
 
-*Document Version: 7.18.0*
-*Updated: November 23, 2026 (v7.18.0 virtual cards with Lepo Finance, top-ups built and switched off, 3-D Secure codes, wallet send outcomes, analyzer upgrade)*
+*Document Version: 7.18.1*
+*Updated: November 24, 2026 (v7.18.1 card pilot fixes after the partner's answers, asset transfers, MCP spending limit, admin and site texts)*
