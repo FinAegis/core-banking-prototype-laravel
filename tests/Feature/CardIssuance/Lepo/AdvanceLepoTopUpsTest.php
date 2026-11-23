@@ -24,6 +24,9 @@ beforeEach(function (): void {
         'cardissuance.issuers.lepo.card_type_id_virtual' => '145', 'cardissuance.providers.lepo_topups_enabled' => true,
     ]);
     Event::fake([CardTopUpUpdated::class]);
+    // Unique-job and money locks live in the cache; CI shares one Redis
+    // between tests, so these tests keep their own cache.
+    config(['cache.default' => 'array']);
 });
 
 /**
