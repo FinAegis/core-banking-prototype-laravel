@@ -225,3 +225,24 @@ it('refuses a same-asset transfer to the same account', function (): void {
         ->toThrow(InvalidArgumentException::class, 'The source and destination accounts must be different')
         ->and(assetHistory($account))->toBe([]);
 });
+
+it('converts at a rate the caller gives instead of the rate table', function (): void {
+    // GCU buy and sell pass the quoted basket price; the table has no GCU rate.
+    Asset::query()->updateOrCreate(['code' => 'GCU'], ['name' => 'Global Currency Unit', 'type' => 'custom', 'precision' => 2, 'is_active' => true]);
+    $account = assetAccount();
+    $account->balances()->updateOrCreate(['asset_code' => 'USD'], ['balance' => 10_000]);
+
+    $result = (new ConvertAssetActivity(0, activityTimestamp(), storedWorkflowFor(WalletConvertWorkflow::class), new AccountUuid($account->uuid), 'USD', 'GCU', 10_000, '0.7920000000'))->handle();
+
+    expect($result['converted_amount'])->toBe(7_920)
+        ->and(assetBalance($account, 'USD'))->toBe(0)
+        ->and(assetBalance($account, 'GCU'))->toBe(7_920);
+});
+
+it('refuses a given rate that is not a positive number', function (string $rate): void {
+    $account = assetAccount();
+    $account->balances()->updateOrCreate(['asset_code' => 'USD'], ['balance' => 10_000]);
+
+    expect(fn () => (new ConvertAssetActivity(0, activityTimestamp(), storedWorkflowFor(WalletConvertWorkflow::class), new AccountUuid($account->uuid), 'USD', 'EUR', 1_000, $rate))->handle())
+        ->toThrow(InvalidArgumentException::class);
+})->with(['0', '-1', 'abc', '1e3']);

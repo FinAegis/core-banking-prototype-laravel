@@ -19,7 +19,8 @@ class WalletConvertWorkflow extends Workflow
         AccountUuid $accountUuid,
         string $fromAssetCode,
         string $toAssetCode,
-        int $amount
+        int $amount,
+        ?string $rate = null
     ): Generator {
         try {
             $result = yield ActivityStub::make(
@@ -27,7 +28,8 @@ class WalletConvertWorkflow extends Workflow
                 $accountUuid,
                 $fromAssetCode,
                 $toAssetCode,
-                $amount
+                $amount,
+                $rate
             );
 
             // Add compensation to reverse the conversion
