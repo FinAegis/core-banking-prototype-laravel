@@ -165,9 +165,9 @@ final class AdvanceLepoTopUps implements ShouldQueue, ShouldBeUnique
         $topup = new CardTopUp();
         try {
             $topup->forceFill([
-                'user_id'             => $holder->user_id,
-                'card_id'             => $card instanceof Card ? $card->id : null,
-                'funding_account_id'  => $card instanceof Card && $card->funding_account_id !== null
+                'user_id'            => $holder->user_id,
+                'card_id'            => $card instanceof Card ? $card->id : null,
+                'funding_account_id' => $card instanceof Card && $card->funding_account_id !== null
                     ? $card->funding_account_id
                     : CardFundingAccount::query()->where('cardholder_id', $holder->id)->value('id'),
                 'provider'            => 'lepo',
