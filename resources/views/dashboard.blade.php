@@ -27,7 +27,7 @@
                     </div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-4">Welcome to {{ config('brand.name', 'Zelta') }}!</h3>
                     <p class="text-lg text-gray-600 mb-6">
-                        We're excited to have you onboard. Let's set up your account and explore the platform together.
+                        Your account is ready. These steps help you set it up.
                     </p>
                 </div>
                 
@@ -53,8 +53,8 @@
                             </div>
                         </div>
                         <div class="ml-3">
-                            <h4 class="text-sm font-medium text-gray-900">Complete KYC Verification</h4>
-                            <p class="text-sm text-gray-500">Verify your identity to unlock all features</p>
+                            <h4 class="text-sm font-medium text-gray-900">Confirm your identity</h4>
+                            <p class="text-sm text-gray-500">Some features need an identity check first.</p>
                         </div>
                     </div>
                     
@@ -99,7 +99,8 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Investment Banner -->
-            @if(!session('hide_invest_banner') && !auth()->user()->cgoInvestments()->exists())
+            {{-- The open-source banner is for the FinAegis demo site only. --}}
+            @if(config('brand.show_promo_pages') && !session('hide_invest_banner') && !auth()->user()->cgoInvestments()->exists())
                 <div class="invest-banner-container mb-8">
                     <x-invest-banner />
                 </div>

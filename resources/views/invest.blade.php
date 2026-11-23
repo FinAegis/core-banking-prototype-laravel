@@ -177,8 +177,7 @@
             <section class="text-center mb-16 mt-4">
                 <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-acid bru-border text-sm font-bold mb-6" style="transform: rotate(-1deg);">
                     <span class="w-2 h-2 rounded-full bg-obsidian"></span>
-                    {{-- TODO(regulatory): operator legal entity details pending — see docs/REGULATORY-CLAIMS.md --}}
-                    INVESTOR PAGE &middot; AEGIS BRIGHTSMARK LTD.
+                    INVESTOR PAGE &middot; AEGIS BRIGHTSMARK CAPITAL, MB
                 </div>
                 <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-6 font-heading max-w-5xl mx-auto" style="line-height: 0.95;">
                     FinAegis. <span class="block sm:inline">Two ways to invest.</span> <span class="block">One <span class="bg-z-purple px-2 inline-block" style="box-decoration-break: clone; -webkit-box-decoration-break: clone;">operator</span> who&rsquo;s done this before.</span>
@@ -674,8 +673,7 @@
                         <div class="md:col-span-2 flex items-start gap-3 bg-white p-4 bru-border">
                             <input type="checkbox" id="f-gdpr" name="gdpr_consent" value="1" required class="mt-1 flex-none w-5 h-5">
                             <label for="f-gdpr" class="text-obsidian text-sm font-medium">
-                                {{-- TODO(regulatory): operator legal entity details pending — see docs/REGULATORY-CLAIMS.md --}}
-                                I consent to Aegis Brightsmark Ltd. (operator of FinAegis) storing this submission to contact me about this investment opportunity.
+                                I consent to Aegis brightsmark capital, MB (operator of FinAegis) storing this submission to contact me about this investment opportunity.
                                 <a href="{{ route('legal.privacy') }}" target="_blank" rel="noopener" class="font-bold underline hover:no-underline">Privacy Policy</a>.
                             </label>
                         </div>
@@ -700,10 +698,9 @@
         <div class="mx-auto max-w-6xl bg-white bru-card p-6 md:p-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div>
-                    {{-- TODO(regulatory): operator legal entity details pending — see docs/REGULATORY-CLAIMS.md (legal form, registration and "Registered in Lithuania" unverified) --}}
-                    <div class="font-black font-heading text-base mb-2">Aegis Brightsmark Ltd.</div>
+                    <div class="font-black font-heading text-base mb-2">Aegis brightsmark capital, MB</div>
                     <p class="text-sm text-text-sec font-medium">
-                        Legal entity behind FinAegis &middot; {{ $brand }}. Registered in Lithuania.
+                        Aegis brightsmark capital, MB is the legal entity behind FinAegis and {{ $brand }}. It is registered in Lithuania under company code 307576279.
                         <a href="https://aegisbrightsmark.com/about" target="_blank" rel="noopener" class="font-bold underline hover:no-underline">Company info &rarr;</a>
                     </p>
                 </div>
@@ -723,12 +720,11 @@
                 </div>
             </div>
             <div class="border-t-2 border-obsidian/10 pt-4 text-xs text-text-muted leading-relaxed">
-                {{-- TODO(regulatory): operator legal entity details pending — see docs/REGULATORY-CLAIMS.md --}}
                 <p class="mb-2">
                     <strong class="text-text-sec">For accredited investors only.</strong>
-                    This page is provided for informational purposes and does not constitute an offer to sell or a solicitation to buy any securities. Any investment in Aegis Brightsmark Ltd. (operator of FinAegis &middot; {{ $brand }}) requires a separately executed subscription agreement and is subject to applicable securities laws in your jurisdiction. Past performance is not indicative of future results.
+                    This page is provided for informational purposes and does not constitute an offer to sell or a solicitation to buy any securities. Any investment in Aegis brightsmark capital, MB (operator of FinAegis and {{ $brand }}) requires a separately executed subscription agreement and is subject to applicable securities laws in your jurisdiction. Past performance is not indicative of future results.
                 </p>
-                <p class="font-mono">© {{ date('Y') }} Aegis Brightsmark Ltd. All rights reserved.</p>
+                <p class="font-mono">© {{ date('Y') }} Aegis brightsmark capital, MB. All rights reserved.</p>
             </div>
         </div>
     </footer>

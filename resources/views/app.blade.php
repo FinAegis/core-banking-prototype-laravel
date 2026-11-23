@@ -11,14 +11,14 @@
         $isFinAegisSite = app()->environment('demo') || config('brand.show_promo_pages');
     @endphp
 
-    <title>{{ $brand }} — Non-custodial stablecoin wallet · Passkey sign-in</title>
+    <title>{{ $brand }} stablecoin wallet with passkey sign-in</title>
 
     @include('partials.favicon')
 
     @include('partials.seo', [
-        'title' => $brand . ' — Stablecoins. No seed phrase.',
-        'description' => 'Non-custodial stablecoin wallet software with passkey sign-in and an agent-callable API. Six networks. Open testing on Android.',
-        'keywords' => $brand . ', stablecoin wallet, passkey wallet, non-custodial wallet, agentic payments, MCP wallet',
+        'title' => $brand . ' is a stablecoin wallet without a seed phrase',
+        'description' => $brand . ' is a stablecoin wallet that you control with a passkey instead of a seed phrase. It works on five networks. The Android app is in open testing.',
+        'keywords' => $brand . ', stablecoin wallet, passkey wallet, non-custodial wallet, AI assistant wallet',
     ])
 
     {{-- Fonts: Space Grotesk, JetBrains Mono, DM Sans --}}
@@ -164,7 +164,7 @@
     <a href="#main-content" class="skip-to-content">Skip to content</a>
 
     @php
-    $navLinks = ['Get the App' => '#get-the-app', 'Features' => '#features', 'AI' => '#agentic', 'Security' => '#security', 'FAQ' => '#faq'];
+    $navLinks = ['Get the app' => '#get-the-app', 'Features' => '#features', 'AI assistants' => '#agentic', 'Security' => '#security', 'Questions' => '#faq'];
     @endphp
 
     {{-- ═══════════════════════════════════════════════════════════════
@@ -192,7 +192,7 @@
             {{-- Right CTA --}}
             <div class="flex items-center gap-3">
                 <a href="#cta" class="btn-hover rounded-full px-5 py-2 text-sm font-bold bg-acid bru-border text-obsidian">
-                    Early Access
+                    Get updates
                 </a>
 
                 {{-- Hamburger (mobile) --}}
@@ -226,12 +226,12 @@
             {{-- Left text --}}
             <div class="anim-fade-in-left">
                 <h1 class="text-5xl sm:text-6xl lg:text-7xl font-black leading-[0.95] font-heading tracking-tighter">
-                    No seed phrase. <span class="text-z-purple">Truly yours.</span>
+                    A stablecoin wallet <span class="text-z-purple">without a seed phrase.</span>
                 </h1>
 
                 <p class="mt-6 text-lg md:text-xl max-w-lg font-medium font-body text-text-sec">
-                    {{ $brand }} is the stablecoin wallet that signs in with Face ID and never asks you to trust
-                    anyone with your keys. Now in open testing on Android.
+                    {{ $brand }} is a wallet for stablecoins such as USDC. You sign in with Face ID or your
+                    fingerprint, and only your device can approve a payment. The Android app is in open testing now.
                 </p>
 
                 <div class="mt-8 flex flex-wrap gap-4">
@@ -241,29 +241,29 @@
                     </a>
                     <a href="#cta"
                        class="btn-hover rounded-full px-8 py-3.5 text-base font-bold bru-card bg-white text-obsidian">
-                        Notify me when iOS launches
+                        Notify me when the iPhone app launches
                     </a>
                 </div>
 
                 {{-- App store badges --}}
                 <div class="mt-8">
-                    <p class="mb-3 text-[10px] uppercase tracking-[0.3em] font-mono text-text-muted">Get the App</p>
+                    <p class="mb-3 text-[10px] uppercase tracking-[0.3em] font-mono text-text-muted">Get the app</p>
                     <div class="flex gap-3">
                         {{-- Apple: planned --}}
                         <a href="#cta"
                            class="flex h-10 items-center gap-2 rounded-lg px-4 opacity-70 hover:opacity-100 transition-opacity"
                            style="border: 2px solid rgba(10,10,10,0.25); background: rgba(255,255,255,0.6);"
-                           title="iOS planned — get notified when TestFlight opens"
-                           aria-label="iOS planned — notify me when TestFlight opens">
+                           title="The iPhone app is planned. Leave your email and we will tell you when testing opens."
+                           aria-label="The iPhone app is planned. Get an email when testing opens.">
                             <div>
-                                <p class="text-[8px] uppercase tracking-wider text-text-muted">iOS</p>
-                                <p class="text-xs font-semibold text-text-sec">Planned &middot; Notify me</p>
+                                <p class="text-[8px] uppercase tracking-wider text-text-muted">iPhone</p>
+                                <p class="text-xs font-semibold text-text-sec">Planned. Notify me</p>
                             </div>
                         </a>
                         {{-- Android: live, links to two-step section below --}}
                         <a href="#get-the-app"
                            class="flex h-10 items-center gap-2 rounded-lg px-4 bru-border hs-4 bg-obsidian text-white"
-                           aria-label="Join the Android open testing — how to install Zelta on Android">
+                           aria-label="How to join the Android test and install Zelta">
                             <div>
                                 <p class="text-[8px] uppercase tracking-wider opacity-70">Get it on</p>
                                 <p class="text-xs font-bold">Google Play (beta)</p>
@@ -573,13 +573,13 @@
             <header class="gta-header">
                 <div class="gta-eyebrow">
                     <span class="dot animate-pulse"></span>
-                    Live · Android Open Beta
+                    Android open test
                 </div>
                 <h2 class="gta-title">
                     Get {{ $brand }} on <span class="accent">Android</span> today.
                 </h2>
                 <p class="gta-lead">
-                    Open testing is live. Two quick steps — both required, even on desktop — and you're in.
+                    Anyone can join the Android test. It takes two steps, and you need both, even if you start on a computer.
                 </p>
             </header>
 
@@ -592,12 +592,12 @@
                         <span class="gta-num gta-num-1">1</span>
                         <span class="gta-step-label">Step one</span>
                     </div>
-                    <h3 class="gta-step-title">Become a tester.</h3>
+                    <h3 class="gta-step-title">Join the test.</h3>
                     <p class="gta-step-body">
-                        Tap once on any device — phone or desktop. Without this, the Play listing shows &ldquo;Item not found&rdquo;.
+                        Open the link on your phone or your computer and join the test. Until you join, Google Play shows &ldquo;Item not found&rdquo;.
                     </p>
                     <a href="{{ $androidOptInUrl }}" target="_blank" rel="noopener noreferrer" class="gta-cta">
-                        Join the Android beta
+                        Join the Android test
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M17 7H8M17 7v9"/></svg>
                     </a>
                 </div>
@@ -628,31 +628,10 @@
             <div class="gta-ios">
                 <span class="gta-ios-pill">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    iOS · TestFlight coming soon
+                    The iPhone app comes later
                 </span>
                 <a href="#cta" class="gta-ios-link">Notify me when it opens &rarr;</a>
             </div>
-        </div>
-    </section>
-
-
-    {{-- ═══════════════════════════════════════════════════════════════
-         MARQUEE
-    ═══════════════════════════════════════════════════════════════ --}}
-    <section class="relative py-4 overflow-hidden bg-obsidian"
-             style="border-top: 4px solid #fff; border-bottom: 4px solid #fff; transform: rotate(-1.5deg) scale(1.02);">
-        <div class="flex whitespace-nowrap" style="animation: z-marquee 20s linear infinite;">
-            @for($dup = 0; $dup < 2; $dup++)
-            <span class="text-white text-xl md:text-2xl font-black uppercase tracking-wider font-heading tracking-tighter pr-8">
-                NO SEED PHRASE
-                <span class="text-acid">&#9670;</span> SIX NETWORKS
-                <span class="text-acid">&#9670;</span> AI-CALLABLE
-                <span class="text-acid">&#9670;</span> NON-CUSTODIAL
-                <span class="text-acid">&#9670;</span> ANDROID OPEN BETA
-                <span class="text-acid">&#9670;</span> PASSKEY-NATIVE
-                <span class="text-acid">&#9670;</span>
-            </span>
-            @endfor
         </div>
     </section>
 
@@ -662,19 +641,19 @@
     ═══════════════════════════════════════════════════════════════ --}}
     <section id="features" class="px-5 py-20 md:py-28">
         <div class="mx-auto max-w-6xl">
-            <h2 class="text-4xl md:text-5xl font-black mb-4 font-heading tracking-tighter anim-fade-in-up">Built Different.</h2>
+            <h2 class="text-4xl md:text-5xl font-black mb-4 font-heading tracking-tighter anim-fade-in-up">What {{ $brand }} does</h2>
             <p class="text-lg mb-10 max-w-xl text-text-sec">
-                Everything you need for secure stablecoin payments — nothing you don&apos;t.
+                {{ $brand }} lets you hold, send and receive stablecoins. Only you control the wallet.
             </p>
 
             {{-- Tab bar --}}
             @php
             $featureTabs = [
-                ['id' => 'core', 'label' => 'Core', 'active' => true],
-                ['id' => 'pay', 'label' => 'Pay', 'active' => false],
+                ['id' => 'core', 'label' => 'Passkey', 'active' => true],
+                ['id' => 'pay', 'label' => 'Cards', 'active' => false],
                 ['id' => 'security', 'label' => 'Security', 'active' => false],
-                ['id' => 'shield', 'label' => 'Shield', 'active' => false],
-                ['id' => 'agents', 'label' => 'AI Agents', 'active' => false],
+                ['id' => 'shield', 'label' => 'Privacy', 'active' => false],
+                ['id' => 'agents', 'label' => 'AI assistants', 'active' => false],
                 ['id' => 'identity', 'label' => 'Trust', 'active' => false],
             ];
             @endphp
@@ -697,43 +676,43 @@
             $featurePanels = [
                 [
                     'id' => 'core', 'bg' => 'bg-z-blue', 'active' => true,
-                    'title' => 'Your Passkey is Your Wallet',
-                    'desc' => 'Sign in with Face ID or fingerprint. No 12-word phrase to lose, no shards to manage. Your wallet lives in your device\'s Secure Enclave and recovers through your passkey.',
+                    'title' => 'Your passkey controls the wallet',
+                    'desc' => 'You sign in with Face ID or your fingerprint. There is no twelve-word phrase to write down or lose. Your phone keeps the passkey safe, and you use the same passkey to recover the wallet.',
                     'type' => 'shard-flow',
                 ],
                 [
                     'id' => 'pay', 'bg' => 'bg-z-pink', 'active' => false,
                     'title' => 'Virtual cards',
-                    'badge' => 'Coming soon',
-                    'desc' => '',
+                    'badge' => 'Closed pilot',
+                    'desc' => 'We are preparing a small virtual card pilot, open by invitation only. A licensed card-issuing partner will issue the cards. In the pilot you will top up your card with USDC from your own wallet, and the partner will convert it to US dollars.',
                     'type' => 'card-mockup',
                 ],
                 [
                     'id' => 'security', 'bg' => 'bg-mint', 'active' => false,
-                    'title' => 'Biometric Authentication',
-                    'desc' => 'Face ID and passkey support. Your wallet is protected by the same biometric security as your device — no passwords to remember or lose.',
+                    'title' => 'Face and fingerprint sign-in',
+                    'desc' => 'Your wallet uses the same face or fingerprint check that unlocks your phone. There is no password to remember or lose.',
                     'type' => 'icon-trio',
                     'icons' => ['/icons/fingerprint.svg', '/icons/user.svg', '/icons/shield.svg'],
                 ],
                 [
                     'id' => 'shield', 'bg' => 'bg-lavender', 'active' => false,
-                    'title' => 'Shield Your Transactions',
+                    'title' => 'Private balances',
                     'badge' => 'Coming soon',
-                    'desc' => 'Zero-knowledge proofs (ZK-SNARKs) will make your balance invisible on-chain. Launching after public beta.',
+                    'desc' => 'Private balances are planned for after the public beta. They will use zero-knowledge proofs to hide your balance from other people on the blockchain.',
                     'type' => 'icon-trio',
                     'icons' => ['/icons/ghost.svg', '/icons/incognito.svg', '/icons/globe.svg'],
                 ],
                 [
                     'id' => 'agents', 'bg' => 'bg-z-purple', 'active' => false,
-                    'title' => 'Give AI Agents a Budget',
-                    'desc' => 'Set daily spending limits for autonomous AI agents. They pay for APIs, datasets, and cloud services via x402 micropayments — constrained by per-transaction caps you control. Payments above your threshold require biometric approval.',
+                    'title' => 'Connect your AI assistant',
+                    'desc' => 'You can connect an AI assistant such as Claude to your ' . $brand . ' account. It can check your balances, read your activity and analyse your spending. It cannot send money from your wallet, because only your device can sign a payment.',
                     'type' => 'icon-trio',
                     'icons' => ['/icons/lock.svg', '/icons/credit-card.svg', '/icons/checkmark.svg'],
                 ],
                 [
                     'id' => 'identity', 'bg' => 'bg-z-green', 'active' => false,
                     'title' => 'Zelta Trust levels',
-                    'desc' => 'Trust levels recorded as on-chain attestations: Basic (ID + selfie), Enhanced (proof of address), Premium (source of funds). Zelta Trust levels and on-chain attestations are in-app features. They are not a regulated identity-verification or KYC service, not an eIDAS electronic identification or trust service, and are not intended to satisfy any third party\'s legal KYC or AML obligations.',
+                    'desc' => 'Zelta Trust levels show in the app how much of your identity you have confirmed. Basic needs an identity document and a selfie. Enhanced adds proof of address, and Premium adds your source of funds. Zelta Trust levels and on-chain attestations are in-app features. They are not a regulated identity-verification or KYC service, not an eIDAS electronic identification or trust service, and are not intended to satisfy any third party\'s legal KYC or AML obligations.',
                     'type' => 'icon-trio',
                     'icons' => ['/icons/user.svg', '/icons/shield-check.svg', '/icons/checkmark.svg'],
                 ],
@@ -759,7 +738,7 @@
 
                     @if($panel['type'] === 'shard-flow')
                     <div class="flex items-center justify-center gap-3 md:gap-4 flex-wrap">
-                        @foreach([['icon' => '/icons/smartphone.svg', 'label' => 'Device'], ['icon' => '/icons/lock.svg', 'label' => 'Enclave'], ['icon' => '/icons/server.svg', 'label' => 'Server'], ['icon' => '/icons/checkmark.svg', 'label' => 'Signed']] as $i => $node)
+                        @foreach([['icon' => '/icons/smartphone.svg', 'label' => 'Phone'], ['icon' => '/icons/lock.svg', 'label' => 'Passkey'], ['icon' => '/icons/server.svg', 'label' => 'Network'], ['icon' => '/icons/checkmark.svg', 'label' => 'Done']] as $i => $node)
                         <div class="flex items-center gap-3 md:gap-4">
                             <div class="flex flex-col items-center">
                                 <div class="w-[64px] h-[64px] md:w-[80px] md:h-[80px] rounded-full overflow-hidden bru-card-sm">
@@ -776,7 +755,7 @@
                     @elseif($panel['type'] === 'card-mockup')
                     <div class="flex justify-center">
                         <div class="p-5 w-full max-w-[280px] bg-obsidian rounded-3xl" style="transform: rotate(-2deg);">
-                            <p class="text-white/50 text-xs uppercase tracking-wider">{{ $brand }} Virtual &middot; Coming soon</p>
+                            <p class="text-white/50 text-xs uppercase tracking-wider">{{ $brand }} virtual card</p>
                             <p class="text-white text-lg font-bold mt-1 tracking-widest font-mono">&bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; 4291</p>
                         </div>
                     </div>
@@ -796,10 +775,10 @@
             {{-- 2-column sub-cards --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 @foreach([
-                    ['icon' => '/icons/credit-card.svg', 'title' => 'Virtual cards — coming soon', 'desc' => 'Virtual cards are planned, to be issued by a licensed card-issuing partner. Availability is subject to partner approval and jurisdiction. Adding cards to mobile wallets is planned, subject to the card-issuing partner\'s approval.'],
-                    ['icon' => '/icons/incognito.svg', 'title' => 'ZK Privacy Shield', 'badge' => 'Coming soon', 'desc' => 'Shield and unshield stablecoins with zero-knowledge proofs so your on-chain balance becomes invisible. Launching after public beta.'],
-                    ['icon' => '/icons/lock.svg', 'title' => 'x402 Agent Payments', 'desc' => 'Give AI agents a spending allowance. Daily budgets, per-transaction caps, and biometric approval for over-limit requests. Your agents pay for APIs autonomously — within your rules.'],
-                    ['icon' => '/icons/globe.svg', 'title' => 'Six Networks', 'desc' => 'Solana, Tron, Polygon, Base, Arbitrum, and Ethereum. One wallet address for EVM chains. Sub-cent fees on L2s and Solana. Pay gas in USDC — no ETH required.'],
+                    ['icon' => '/icons/credit-card.svg', 'title' => 'Virtual cards are coming', 'desc' => 'Virtual cards are planned, to be issued by a licensed card-issuing partner. Availability is subject to partner approval and jurisdiction. Adding cards to mobile wallets is planned, subject to the card-issuing partner\'s approval.'],
+                    ['icon' => '/icons/incognito.svg', 'title' => 'Private transfers', 'badge' => 'Coming soon', 'desc' => 'You will be able to move stablecoins into a private balance that other people cannot see on the blockchain. This is planned for after the public beta.'],
+                    ['icon' => '/icons/lock.svg', 'title' => 'Network fees are covered', 'desc' => $brand . ' pays the network fee when you send stablecoins on Polygon, Base, Arbitrum or Solana. There is a daily limit on these free sends. You do not need to hold another coin just to pay fees.'],
+                    ['icon' => '/icons/globe.svg', 'title' => 'Five networks', 'desc' => $brand . ' works on Solana, Polygon, Base, Arbitrum and Ethereum. Polygon, Base, Arbitrum and Ethereum share one wallet address, and Solana has its own. Sending on Ethereum is switched off for now because its fees are high.'],
                 ] as $subCard)
                 <div class="p-8 bg-white bru-card rounded-[2rem]">
                     <div class="rounded-full overflow-hidden mb-4 bru-card-sm" style="width: 56px; height: 56px;">
@@ -824,9 +803,9 @@
         <div class="mx-auto max-w-6xl">
             <div class="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
                 @foreach([
-                    ['value' => '6', 'label' => 'Networks', 'sub' => 'Solana · Tron · Polygon · Base · Arbitrum · Ethereum'],
-                    ['value' => 'No ETH', 'label' => 'Needed', 'sub' => 'Pay gas in USDC'],
-                    ['value' => 'MCP', 'label' => 'Agent-Callable', 'sub' => 'OAuth-scoped tools'],
+                    ['value' => '5', 'label' => 'Networks', 'sub' => 'Solana, Polygon, Base, Arbitrum and Ethereum'],
+                    ['value' => '0', 'label' => 'Extra coins for fees', 'sub' => $brand . ' pays the network fee, up to a daily limit'],
+                    ['value' => 'AI', 'label' => 'Assistant connector', 'sub' => 'Your assistant sees only what you approve'],
                 ] as $stat)
                 <div class="text-center">
                     <p class="text-3xl md:text-4xl font-black text-acid font-heading tracking-tighter">{{ $stat['value'] }}</p>
@@ -853,13 +832,13 @@
             <div class="text-center mb-12 md:mb-16">
                 <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-acid bru-border text-sm font-bold mb-6" style="transform: rotate(-1deg);">
                     <span class="w-2 h-2 rounded-full bg-obsidian animate-pulse"></span>
-                    NEW · v7.11
+                    New
                 </div>
                 <h2 class="text-4xl sm:text-5xl md:text-6xl font-black mb-5 font-heading tracking-tighter">
-                    Use {{ $brand }} from <span class="text-z-purple">your AI</span>
+                    Use {{ $brand }} from <span class="text-z-purple">your AI assistant</span>
                 </h2>
                 <p class="text-lg md:text-xl max-w-2xl mx-auto text-text-sec font-medium">
-                    Connect Claude, Cursor, ChatGPT — any MCP-compatible agent — to your wallet. Send payments, check balances, get spending analysis with a prompt. You set the daily cap; you confirm every move.
+                    You can connect Claude, Cursor or another assistant that supports connectors to your {{ $brand }} account. Then you can ask it about your balances, your recent activity and your spending. The assistant cannot send money from your wallet.
                 </p>
             </div>
 
@@ -873,7 +852,7 @@
                     </div>
                     <h3 class="font-black font-heading tracking-tight text-2xl mt-3 mb-3">Sign in</h3>
                     <p class="text-base font-medium text-text-sec mb-5">
-                        Email-only, passwordless. One minute, no credit card.
+                        You sign in with a code that we send to your email. It takes about a minute, and you do not need a payment card.
                     </p>
                     <div class="bg-white rounded-2xl bru-border p-3 font-mono text-xs text-text-sec">
                         you@example.com
@@ -885,9 +864,9 @@
                     <div class="absolute -top-5 -left-3 w-14 h-14 rounded-2xl bg-z-purple text-obsidian font-black flex items-center justify-center text-3xl bru-border" style="transform: rotate(4deg);">
                         2
                     </div>
-                    <h3 class="font-black font-heading tracking-tight text-2xl mt-3 mb-3">Add to your AI</h3>
+                    <h3 class="font-black font-heading tracking-tight text-2xl mt-3 mb-3">Add it to your assistant</h3>
                     <p class="text-base font-medium text-text-sec mb-5">
-                        Three lines of config in Claude Desktop, Cursor, or Continue.dev.
+                        Add the {{ $brand }} connector address to Claude, Cursor or Continue. It takes a few lines in the settings.
                     </p>
                     <div class="bg-obsidian rounded-2xl p-3 font-mono text-xs text-acid">
                         url: mcp.zelta.app/mcp
@@ -899,15 +878,15 @@
                     <div class="absolute -top-5 -left-3 w-14 h-14 rounded-2xl bg-white text-obsidian font-black flex items-center justify-center text-3xl bru-border" style="transform: rotate(-3deg);">
                         3
                     </div>
-                    <h3 class="font-black font-heading tracking-tight text-2xl mt-3 mb-3">Authorize</h3>
+                    <h3 class="font-black font-heading tracking-tight text-2xl mt-3 mb-3">Approve</h3>
                     <p class="text-base font-medium text-text-sec mb-5">
-                        Pick scopes, set a daily cap, you're done. Token persists per client.
+                        Your assistant opens a page in the browser. You see what it asks for and approve it. You do this once for each app.
                     </p>
                     <div class="flex items-center gap-2 text-xs font-bold text-text-sec">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                         </svg>
-                        DONE — TRY A PROMPT
+                        THEN ASK YOUR FIRST QUESTION
                     </div>
                 </div>
 
@@ -921,15 +900,15 @@
                 <div class="flex flex-wrap justify-center gap-x-8 gap-y-2 text-sm font-medium text-text-sec">
                     <span class="flex items-center gap-2">
                         <svg class="w-4 h-4 text-z-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                        OAuth 2.1 — you approve scopes
+                        You approve what the assistant can see
                     </span>
                     <span class="flex items-center gap-2">
                         <svg class="w-4 h-4 text-z-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                        Daily spending cap
+                        It cannot send money from your wallet
                     </span>
                     <span class="flex items-center gap-2">
                         <svg class="w-4 h-4 text-z-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                        Revoke any time
+                        It works with Claude, Cursor and Continue
                     </span>
                 </div>
             </div>
@@ -943,19 +922,19 @@
     ═══════════════════════════════════════════════════════════════ --}}
     <section id="faq" class="px-5 py-20 md:py-28 bg-bg-tertiary">
         <div class="mx-auto max-w-3xl">
-            <h2 class="text-4xl md:text-5xl font-black mb-10 text-center font-heading tracking-tighter">FAQ</h2>
+            <h2 class="text-4xl md:text-5xl font-black mb-10 text-center font-heading tracking-tighter">Questions and answers</h2>
 
             <div class="flex flex-col gap-4">
                 @php
                 $faqs = [
-                    ['q' => 'What does ' . $brand . ' actually do?', 'a' => $brand . ' is a non-custodial stablecoin wallet that signs in with your passkey and exposes an agent API so AI assistants can pay on your behalf within limits you set. Six networks supported (Solana, Tron, Polygon, Base, Arbitrum, Ethereum). No seed phrase. Virtual cards are planned, to be issued by a licensed card-issuing partner; availability is subject to partner approval and jurisdiction. Converting stablecoins to fiat, where available, will be provided by licensed third parties under their own terms. Open testing on Android now.'],
-                    ['q' => 'Is ' . $brand . ' a custodial wallet?', 'a' => 'No. ' . $brand . ' is fully non-custodial. Wallets are built on Privy\'s embedded-wallet infrastructure (a third-party provider; no partnership or endorsement implied) — a passkey-controlled smart account on EVM (Polygon, Base, Arbitrum, Ethereum) and a device-bound ed25519 keypair on Solana. Private keys never leave the device or Privy\'s secure infrastructure. Every transaction is signed locally by your passkey or device key; ' . $brand . ' only ever sees public addresses and pre-signed payloads. There is no seed phrase to memorize — your passkey is your account, backed by your device\'s Secure Enclave / Keystore and recoverable through Privy\'s cross-device passkey sync.'],
-                    ['q' => 'Is on-chain privacy (ZK shielding) available today?', 'a' => 'Not yet. Zero-knowledge transaction shielding is on the roadmap, after public beta. When it ships, you\'ll be able to make your stablecoin balance invisible on-chain. Today\'s wallet is fully functional without it — privacy is an additive layer, not a prerequisite.'],
-                    ['q' => 'Do I pay gas fees?', 'a' => 'No ETH required. ' . $brand . ' uses ERC-4337 Account Abstraction — gas is either sponsored by us or paid in the stablecoin you\'re spending. You think in dollars, not in gwei. Sub-cent fees on Polygon, Base, Arbitrum, and Solana.'],
-                    ['q' => 'What are Zelta Trust levels?', 'a' => 'Zelta Trust levels are on-chain attestations shown in the app: Basic (ID + selfie), Enhanced (proof of address), Premium (source of funds). Zelta Trust levels and on-chain attestations are in-app features. They are not a regulated identity-verification or KYC service, not an eIDAS electronic identification or trust service, and are not intended to satisfy any third party\'s legal KYC or AML obligations.'],
-                    ['q' => 'Can AI agents use ' . $brand . '?', 'a' => 'Yes — natively. ' . $brand . ' exposes a public Model Context Protocol (MCP) server at mcp.zelta.app with ' . count(\App\Domain\MCP\Server\McpToolCatalog::enabledTools()) . ' OAuth-scoped tools including balances, wallet activity, payment status, and transaction history. Agents operate inside daily budgets and per-transaction caps you control, and you can revoke at any time.'],
-                    ['q' => 'How do I connect Claude or another AI to my ' . $brand . ' wallet?', 'a' => 'Sign in to ' . $brand . ', click Connect to Claude (or paste mcp.zelta.app into your client\'s MCP settings), pick the scopes you want, and set a daily spending cap. The agent gets a token bound to those limits — it can never exceed them, and you can revoke at any time. Works with Claude, Cursor, ChatGPT, Continue.dev, and any other MCP-aware client.'],
-                    ['q' => 'Which networks are supported?', 'a' => $brand . ' supports six networks: Solana, Tron, Polygon, Base, Arbitrum, and Ethereum. EVM networks share a single wallet address. Sub-cent fees on L2s and Solana. Solana offers the fastest settlement (~400ms). Switch networks anytime.'],
+                    ['q' => 'What does ' . $brand . ' do?', 'a' => $brand . ' is a non-custodial stablecoin wallet. You sign in with a passkey instead of a seed phrase, and only your device can approve a payment. It works on Solana, Polygon, Base, Arbitrum and Ethereum. You can also connect an AI assistant that reads your account. Virtual cards are planned, to be issued by a licensed card-issuing partner; availability is subject to partner approval and jurisdiction. Converting stablecoins to fiat, where available, will be provided by licensed third parties under their own terms. The Android app is in open testing now.'],
+                    ['q' => 'Is ' . $brand . ' a custodial wallet?', 'a' => 'No. ' . $brand . ' is non-custodial, which means we never hold your money. On Polygon, Base, Arbitrum and Ethereum your wallet is a smart account that your passkey controls. On Solana your wallet uses a key that is bound to your device. Your keys stay on your device and in the secure systems of our wallet infrastructure provider, and ' . $brand . ' never sees them. Every transaction is signed on your device. ' . $brand . ' only sees your public addresses and transactions that you have already signed. There is no seed phrase to remember. Your phone protects your passkey, and you can recover the wallet with it on another device.'],
+                    ['q' => 'Can I make my balance private today?', 'a' => 'Not yet. Private balances are planned for after the public beta. They will use zero-knowledge proofs to hide your stablecoin balance from other people on the blockchain. The wallet works fully without this feature.'],
+                    ['q' => 'Do I pay network fees?', 'a' => $brand . ' pays the network fee when you send stablecoins on Polygon, Base, Arbitrum or Solana. There is a daily limit on these free sends for each person. You do not need to hold another coin just to pay fees.'],
+                    ['q' => 'What are Zelta Trust levels?', 'a' => 'Zelta Trust levels show in the app how much of your identity you have confirmed. Basic needs an identity document and a selfie. Enhanced adds proof of address, and Premium adds your source of funds. Zelta Trust levels and on-chain attestations are in-app features. They are not a regulated identity-verification or KYC service, not an eIDAS electronic identification or trust service, and are not intended to satisfy any third party\'s legal KYC or AML obligations.'],
+                    ['q' => 'Can an AI assistant use ' . $brand . '?', 'a' => 'Yes. ' . $brand . ' has a public connector for AI assistants at mcp.zelta.app. It uses the Model Context Protocol, an open standard that assistants use to connect to other services. The connector offers ' . count(\App\Domain\MCP\Server\McpToolCatalog::enabledTools()) . ' tools. They cover balances, wallet activity, payment status and transaction history, among other things. You approve each assistant before it can use your account. The assistant cannot send money from your wallet.'],
+                    ['q' => 'How do I connect Claude or another assistant to my ' . $brand . ' wallet?', 'a' => 'Open the connect page and follow its three steps. You sign in to ' . $brand . ', add the address mcp.zelta.app/mcp to your assistant and approve the connection in your browser. It works with Claude, Cursor, Continue and other assistants that support connectors.'],
+                    ['q' => 'Which networks are supported?', 'a' => $brand . ' works on five networks. They are Solana, Polygon, Base, Arbitrum and Ethereum. Polygon, Base, Arbitrum and Ethereum share one wallet address, and Solana has its own. Sending on Ethereum is switched off for now because its fees are high. Solana is the fastest network and settles a payment in about 400 milliseconds.'],
                 ];
                 @endphp
                 @foreach($faqs as $i => $faq)
@@ -987,13 +966,13 @@
     <section id="cta" class="relative px-5 py-20 md:py-28 overflow-hidden bg-acid">
         <div class="relative z-10 mx-auto max-w-3xl text-center">
             <h2 class="text-4xl sm:text-5xl md:text-6xl font-black mb-6 font-heading tracking-tighter" style="transform: rotate(-2deg);">
-                Don&apos;t miss what&apos;s next.
+                Get product news by email
             </h2>
             <p class="text-lg md:text-xl mb-3 max-w-xl mx-auto text-text-sec font-semibold">
-                Android is open right now &mdash; <a href="#get-the-app" class="underline decoration-2 underline-offset-4 hover:text-z-purple">install on Google Play</a>.
+                The Android app is open now. You can <a href="#get-the-app" class="underline decoration-2 underline-offset-4 hover:text-z-purple">install it from Google Play</a>.
             </p>
             <p class="text-base md:text-lg mb-10 max-w-xl mx-auto text-text-sec">
-                Drop your email to be first to know when we ship iOS, ZK Privacy, and the AI Agents console. No spam, no marketing &mdash; just product launches.
+                Leave your email and we will tell you when the iPhone app and private balances launch. We only write when we launch something.
             </p>
 
             <form id="early-access-form" class="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto" aria-label="Product launch waitlist signup">
@@ -1008,7 +987,7 @@
 
             <div id="early-access-success" class="hidden">
                 <div class="inline-block px-8 py-5 rounded-full text-lg font-bold bg-white bru-card text-obsidian">
-                    Almost done! Check your inbox and confirm your email address to subscribe.
+                    Almost done. Check your inbox and confirm your email address.
                 </div>
             </div>
 
@@ -1041,7 +1020,7 @@
 
             {{-- Center CTA --}}
             <a href="#cta" class="btn-hover rounded-full px-6 py-2.5 text-sm font-bold bg-acid bru-border text-obsidian">
-                Early Access
+                Get updates
             </a>
 
             {{-- Links --}}
@@ -1067,8 +1046,8 @@
 
         <div class="relative z-10 mx-auto max-w-6xl mt-6 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4"
              style="border-top: 2px solid #e5e5e5;">
-            {{-- TODO(regulatory): operator legal entity details pending — see docs/REGULATORY-CLAIMS.md --}}
-            <p class="text-sm opacity-40">&copy; {{ date('Y') }} {{ $brand }}. All rights reserved.</p>
+            {{-- zelta.app names the operator from BRAND_LEGAL_ENTITY (see docs/REGULATORY-CLAIMS.md). --}}
+            <p class="text-sm opacity-40">&copy; {{ date('Y') }} {{ $isFinAegisSite ? $brand : config('brand.legal_entity', $brand) }}. All rights reserved.</p>
             <div class="flex gap-6">
                 <a href="mailto:{{ config('brand.support_email', 'info@zelta.app') }}" class="text-sm opacity-40 hover:opacity-100 transition-opacity">Contact</a>
                 <a href="{{ config('brand.docs_url') }}" class="text-sm opacity-40 hover:opacity-100 transition-opacity" rel="noopener">Developers</a>

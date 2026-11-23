@@ -16,7 +16,7 @@ it('exposes copy-paste config for every supported AI client', function (): void 
     $response = $this->get('/connect');
 
     $response->assertOk();
-    foreach (['Claude Desktop', 'Claude.ai', 'Cursor', 'Continue.dev', 'Other (stdio)'] as $client) {
+    foreach (['Claude Desktop', 'Claude.ai', 'Cursor', 'Continue', 'Other assistants'] as $client) {
         $response->assertSeeText($client);
     }
 

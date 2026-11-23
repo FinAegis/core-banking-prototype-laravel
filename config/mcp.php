@@ -26,16 +26,16 @@ return [
     'resource_uri'         => env('MCP_RESOURCE_URI', 'https://mcp.zelta.app'),
 
     'scopes' => [
-        'accounts:read'     => 'Read account profile, balances, wallet addresses and activity',
+        'accounts:read'     => 'See your profile, balances, wallet addresses and activity',
         'accounts:write'    => 'Create new accounts',
-        'payments:read'     => 'Read payment status',
-        'payments:write'    => 'Send payments (subject to spending limit)',
-        'transactions:read' => 'Read transaction history and spending analysis',
+        'payments:read'     => 'See the status of your payments',
+        'payments:write'    => 'Send payments within your daily spending limit',
+        'transactions:read' => 'See your transaction history and spending analysis',
         'exchange:read'     => 'Get exchange rate quotes',
-        'exchange:write'    => 'Execute exchange trades (idempotent; not yet counted against the daily spending limit)',
-        'ramp:read'         => 'Read on/offramp session status',
-        'ramp:write'        => 'Start on/offramp sessions (subject to spending limit)',
-        'sms:send'          => 'Send SMS messages (subject to daily send limits and spending limit)',
+        'exchange:write'    => 'Make exchange trades. Trades do not count toward the daily spending limit yet.',
+        'ramp:read'         => 'See the status of your sessions for buying or selling stablecoins',
+        'ramp:write'        => 'Start a session to buy or sell stablecoins within your daily spending limit',
+        'sms:send'          => 'Send text messages within the daily send limits and your daily spending limit',
     ],
 
     /*

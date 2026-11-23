@@ -15,7 +15,17 @@ return [
     |
     */
 
-    'name' => env('APP_BRAND', env('APP_NAME', 'Zelta')),
+    // The deploy templates set APP_BRAND in lower case (zelta, finaegis). Pages
+    // show the name, so the known brands get their proper spelling here.
+    'name' => (static function (): string {
+        $name = (string) env('APP_BRAND', env('APP_NAME', 'Zelta'));
+
+        return match (strtolower($name)) {
+            'zelta'    => 'Zelta',
+            'finaegis' => 'FinAegis',
+            default    => $name,
+        };
+    })(),
 
     'tagline' => env('BRAND_TAGLINE', 'No seed phrase. Truly yours.'),
 

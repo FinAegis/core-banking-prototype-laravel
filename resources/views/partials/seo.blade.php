@@ -3,7 +3,7 @@
     // Brand-aware default description (finaegis.org demo/promo vs zelta.app) — see docs/REGULATORY-CLAIMS.md
     $defaultDescription = (app()->environment('demo') || config('brand.show_promo_pages'))
         ? $brandName . ' — open-source core banking infrastructure. Apache-2.0 licensed.'
-        : $brandName . ' — Non-custodial stablecoin wallet software with passkey sign-in and an agent-callable MCP API. Six networks.';
+        : $brandName . ' is a stablecoin wallet that you control with a passkey. It works on five networks, and you can connect your AI assistant to it.';
     // TODO(regulatory): stopgap — images/og-default.png and images/og-twitter.png show card artwork;
     // new OG artwork needed (see docs/REGULATORY-CLAIMS.md). Until then the default share image is
     // the neutral square brand icon, shown as a "summary" card.
@@ -27,7 +27,7 @@
 {{-- Open Graph / Facebook --}}
 <meta property="og:type" content="{{ $ogType ?? 'website' }}">
 <meta property="og:url" content="{{ $canonical ?? url()->current() }}">
-<meta property="og:title" content="{{ $title ?? $brandName . ' — Non-custodial stablecoin wallet' }}">
+<meta property="og:title" content="{{ $title ?? $brandName . ' non-custodial stablecoin wallet' }}">
 <meta property="og:description" content="{{ $description ?? $defaultDescription }}">
 <meta property="og:image" content="{{ $ogImage ?? $defaultSocialImage }}">
 <meta property="og:image:width" content="{{ isset($ogImage) ? '1200' : '512' }}">
@@ -38,7 +38,7 @@
 {{-- Twitter Card --}}
 <meta name="twitter:card" content="{{ isset($twitterImage) ? 'summary_large_image' : 'summary' }}">
 <meta name="twitter:url" content="{{ $canonical ?? url()->current() }}">
-<meta name="twitter:title" content="{{ $title ?? $brandName . ' — Non-custodial stablecoin wallet' }}">
+<meta name="twitter:title" content="{{ $title ?? $brandName . ' non-custodial stablecoin wallet' }}">
 <meta name="twitter:description" content="{{ $description ?? $defaultDescription }}">
 <meta name="twitter:image" content="{{ $twitterImage ?? $defaultSocialImage }}">
 <meta name="twitter:domain" content="{{ parse_url(config('app.url'), PHP_URL_HOST) }}">

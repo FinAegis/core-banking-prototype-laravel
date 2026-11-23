@@ -108,7 +108,7 @@ class StatusController extends Controller
                 $checks[$service] = [
                     'status'        => $healthCheck->status,
                     'response_time' => $healthCheck->response_time,
-                    'message'       => $healthCheck->error_message ?? 'Service status from monitoring',
+                    'message'       => $healthCheck->error_message ?? 'Status from the last monitoring check.',
                 ];
             }
         }
@@ -136,13 +136,13 @@ class StatusController extends Controller
             return [
                 'status'        => $status,
                 'response_time' => $time,
-                'message'       => $status === 'operational' ? 'Database connection successful' : 'Database response slow',
+                'message'       => $status === 'operational' ? 'The database is answering normally.' : 'The database is answering slowly.',
             ];
         } catch (Exception $e) {
             return [
                 'status'        => 'down',
                 'response_time' => null,
-                'message'       => 'Database connection failed',
+                'message'       => 'The database is not answering.',
             ];
         }
     }
@@ -157,12 +157,12 @@ class StatusController extends Controller
 
             return [
                 'status'  => $result ? 'operational' : 'degraded',
-                'message' => $result ? 'Cache working properly' : 'Cache issues detected',
+                'message' => $result ? 'The cache is working normally.' : 'The cache has problems.',
             ];
         } catch (Exception $e) {
             return [
                 'status'  => 'down',
-                'message' => 'Cache service unavailable',
+                'message' => 'The cache is not available.',
             ];
         }
     }
@@ -187,12 +187,12 @@ class StatusController extends Controller
                 'status'       => $status,
                 'failed_jobs'  => $failedJobs,
                 'pending_jobs' => $pendingJobs,
-                'message'      => $failedJobs > 0 ? "$failedJobs failed jobs" : 'Queue processing normally',
+                'message'      => $failedJobs > 0 ? "$failedJobs background tasks failed." : 'Background tasks are running normally.',
             ];
         } catch (Exception $e) {
             return [
                 'status'  => 'unknown',
-                'message' => 'Unable to check queue status',
+                'message' => 'We could not check the background tasks.',
             ];
         }
     }
@@ -208,12 +208,12 @@ class StatusController extends Controller
             return [
                 'status'  => $used_percentage > 90 ? 'degraded' : 'operational',
                 'usage'   => $used_percentage . '%',
-                'message' => "Disk usage: $used_percentage%",
+                'message' => "$used_percentage% of the disk is in use.",
             ];
         } catch (Exception $e) {
             return [
                 'status'  => 'unknown',
-                'message' => 'Unable to check storage',
+                'message' => 'We could not check the file storage.',
             ];
         }
     }
@@ -233,59 +233,59 @@ class StatusController extends Controller
     {
         $services = [
             'web' => [
-                'name'        => 'Web Application',
-                'description' => 'Main platform interface',
-                'category'    => 'Core Platform',
+                'name'        => 'Website',
+                'description' => 'The website and the account pages you open in a browser.',
+                'category'    => 'Core services',
             ],
             'auth' => [
-                'name'        => 'Authentication',
-                'description' => 'Login, registration, and session management',
-                'category'    => 'Core Platform',
+                'name'        => 'Sign-in',
+                'description' => 'Signing in, signing up and staying signed in.',
+                'category'    => 'Core services',
             ],
             'api' => [
-                'name'        => 'REST API',
-                'description' => 'REST API endpoints and webhooks',
-                'category'    => 'API Services',
+                'name'        => 'App interface',
+                'description' => 'The interface that the mobile app and partner services call.',
+                'category'    => 'Interfaces',
             ],
             'graphql' => [
-                'name'        => 'GraphQL API',
-                'description' => 'Schema-first API with 34 domain schemas',
-                'category'    => 'API Services',
+                'name'        => 'Query interface',
+                'description' => 'A second interface where apps ask for exactly the data they need.',
+                'category'    => 'Interfaces',
             ],
             'x402' => [
-                'name'        => 'x402 Payment Gate',
-                'description' => 'HTTP-native micropayment protocol',
-                'category'    => 'API Services',
+                'name'        => 'Pay-per-request payments',
+                'description' => 'Lets software pay a small amount for a single web request.',
+                'category'    => 'Interfaces',
             ],
             'database' => [
                 'name'        => 'Database',
-                'description' => 'Primary and replica databases',
+                'description' => 'Stores accounts and their records.',
                 'category'    => 'Infrastructure',
             ],
             'cache' => [
                 'name'        => 'Cache',
-                'description' => 'Redis cache layer',
+                'description' => 'Keeps often used data in fast memory.',
                 'category'    => 'Infrastructure',
             ],
             'queue' => [
-                'name'        => 'Queue',
-                'description' => 'Background job processing',
+                'name'        => 'Background tasks',
+                'description' => 'Runs tasks in the background, such as sending emails and notifications.',
                 'category'    => 'Infrastructure',
             ],
             'storage' => [
-                'name'        => 'Storage',
-                'description' => 'File and object storage',
+                'name'        => 'File storage',
+                'description' => 'Stores uploaded and generated files.',
                 'category'    => 'Infrastructure',
             ],
             'email' => [
                 'name'        => 'Email',
-                'description' => 'Transactional email delivery',
-                'category'    => 'Integrations',
+                'description' => 'Sends account emails, such as sign-in codes and confirmations.',
+                'category'    => 'Connected services',
             ],
             'blockchain' => [
-                'name'        => 'Blockchain (Demo)',
-                'description' => 'On-chain settlement and smart accounts',
-                'category'    => 'Integrations',
+                'name'        => 'Blockchain networks',
+                'description' => 'Connections to the blockchain networks that the wallet uses.',
+                'category'    => 'Connected services',
             ],
         ];
 

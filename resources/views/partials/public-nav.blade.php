@@ -12,6 +12,8 @@
                 <div class="hidden md:ml-10 md:flex md:items-center md:space-x-1">
                     <a href="{{ route('home') }}" class="nav-link {{ request()->routeIs('home') ? 'nav-link-active' : '' }}">Home</a>
 
+                    {{-- The product menus point to marketing pages that exist only on the demo site (SHOW_PROMO_PAGES). zelta.app shows Home and sign-in only. --}}
+                    @if(config('brand.show_promo_pages'))
                     <!-- Products Dropdown -->
                     <div class="relative group" data-dropdown>
                         <button class="nav-link inline-flex items-center {{ request()->routeIs(['platform*', 'features*', 'ai-framework*']) ? 'nav-link-active' : '' }}" aria-haspopup="true" aria-expanded="false">
@@ -125,6 +127,7 @@
 
                     <a href="{{ route('pricing') }}" class="nav-link {{ request()->routeIs('pricing') ? 'nav-link-active' : '' }}">Pricing</a>
                     <a href="{{ route('cgo') }}" class="nav-link {{ request()->routeIs('cgo*') ? 'nav-link-active' : '' }}">CGO concept</a>
+                    @endif
                 </div>
             </div>
 
@@ -161,6 +164,7 @@
         <div class="px-3 pt-3 pb-4 space-y-1">
             <a href="{{ route('home') }}" class="mobile-nav-link {{ request()->routeIs('home') ? 'mobile-nav-link-active' : '' }}">Home</a>
 
+            @if(config('brand.show_promo_pages'))
             <div class="border-t border-white/[0.04] pt-2 mt-2">
                 <div class="px-3 py-1.5 text-[10px] font-semibold text-slate-600 uppercase tracking-widest">Products</div>
                 <a href="{{ route('platform') }}" class="mobile-nav-link">Core Banking</a>
@@ -181,6 +185,7 @@
 
             <a href="{{ route('pricing') }}" class="mobile-nav-link">Pricing</a>
             <a href="{{ route('cgo') }}" class="mobile-nav-link">CGO concept</a>
+            @endif
 
             <div class="border-t border-white/[0.04] pt-3 mt-2 space-y-2">
                 @auth

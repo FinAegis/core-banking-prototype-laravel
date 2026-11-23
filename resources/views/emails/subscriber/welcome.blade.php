@@ -1,18 +1,9 @@
 <x-mail::message>
-# Welcome to {{ company_name() }}!
+# Welcome to {{ company_name() }}
 
-Thank you for subscribing to our updates. We're excited to have you as part of our community!
+Thank you for confirming your subscription.
 
-## What to expect:
-
-- **Latest Updates**: Be the first to know about new features and announcements
-- **Exclusive Content**: Access to insights and educational materials
-- **Community Events**: Invitations to webinars and special events
-- **Product News**: Updates on new products and features
-
-## Stay Connected
-
-Follow us on our social channels to stay up to date with the latest news:
+We will email you when we launch something new or change something important. We do not send these emails often.
 
 <x-mail::button :url="config('app.url')">
 Visit {{ company_name() }}
@@ -22,6 +13,6 @@ Best regards,<br>
 {{ team_signature() }}
 
 <x-mail::subcopy>
-If you no longer wish to receive these emails, you can <a href="{{ $unsubscribeUrl }}">unsubscribe here</a>.
+If you no longer want these emails, you can <a href="{{ $unsubscribeUrl }}">unsubscribe here</a>.
 </x-mail::subcopy>
 </x-mail::message>

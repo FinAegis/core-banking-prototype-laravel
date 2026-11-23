@@ -1,7 +1,7 @@
 {
-    "name": "Zelta — Agentic Payments",
+    "name": "Zelta",
     "short_name": "Zelta",
-    "description": "Stablecoin-powered, non-custodial wallet.",
+    "description": "Zelta is a stablecoin wallet that you control with a passkey.",
     "start_url": "/",
     "display": "standalone",
     "theme_color": "#0a0a0a",

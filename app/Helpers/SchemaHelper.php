@@ -40,7 +40,7 @@ class SchemaHelper
                 'url'         => config('app.url') . '/support/contact',
             ],
             'description' => $isZelta
-                ? $brand . ' — Non-custodial stablecoin wallet software with passkey sign-in and an agent-callable MCP API. Six networks: Solana, Tron, Polygon, Base, Arbitrum, Ethereum.'
+                ? $brand . ' is non-custodial stablecoin wallet software. You sign in with a passkey, and you can connect an AI assistant to your account. It works on Solana, Polygon, Base, Arbitrum and Ethereum.'
                 : $brand . ' — open-source core banking software with multi-asset accounts, payment rails, and developer APIs.',
             'foundingDate' => '2024',
         ];
@@ -107,7 +107,7 @@ class SchemaHelper
             ],
         ];
         $schema['description'] = $isZelta
-            ? 'Non-custodial stablecoin wallet software with passkey sign-in and an agent-callable MCP API. Six networks (Solana, Tron, Polygon, Base, Arbitrum, Ethereum). In open testing on Android.'
+            ? $brand . ' is non-custodial stablecoin wallet software. You sign in with a passkey, and you can connect an AI assistant to your account. It works on Solana, Polygon, Base, Arbitrum and Ethereum. The Android app is in open testing.'
             : $brand . ' — open-source core banking software with multi-asset accounts, payment rails, and developer APIs.';
         $schema['developer'] = [
             '@type' => 'Organization',
