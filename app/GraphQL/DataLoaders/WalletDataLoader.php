@@ -12,8 +12,10 @@ class WalletDataLoader
     /**
      * Batch-load wallets by IDs to prevent N+1 queries.
      *
+     * Wallet ids are UUID strings, so the result is keyed by string.
+     *
      * @param  array<int, int|string>  $ids
-     * @return Collection<int, MultiSigWallet>
+     * @return Collection<string, MultiSigWallet>
      */
     public function resolve(array $ids): Collection
     {

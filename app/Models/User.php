@@ -179,7 +179,7 @@ class User extends Authenticatable implements FilamentUser
      * Get the accounts for the user.
      */
     /**
-     * @return HasMany
+     * @return HasMany<Account, $this>
      */
     public function accounts()
     {
@@ -260,7 +260,7 @@ class User extends Authenticatable implements FilamentUser
      * Get the bank accounts for the user.
      */
     /**
-     * @return HasMany
+     * @return HasMany<BankAccountModel, $this>
      */
     public function bankAccounts()
     {
@@ -281,7 +281,7 @@ class User extends Authenticatable implements FilamentUser
      * Get the KYC documents for the user.
      */
     /**
-     * @return HasMany
+     * @return HasMany<KycDocument, $this>
      */
     public function kycDocuments()
     {

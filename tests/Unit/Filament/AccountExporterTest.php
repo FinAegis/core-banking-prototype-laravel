@@ -2,6 +2,7 @@
 
 use App\Domain\Account\Models\Account;
 use App\Filament\Exports\AccountExporter;
+use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Models\Export;
 use Tests\UnitTestCase;
 
@@ -63,6 +64,7 @@ it('formats balance from cents to dollars', function () {
     }
 
     expect($balanceColumn)->not->toBeNull();
+    assert($balanceColumn instanceof ExportColumn);
 
     // Get the format callback
     $reflection = new ReflectionObject($balanceColumn);
@@ -87,6 +89,7 @@ it('formats frozen status to text', function () {
     }
 
     expect($frozenColumn)->not->toBeNull();
+    assert($frozenColumn instanceof ExportColumn);
 
     // Get the format callback
     $reflection = new ReflectionObject($frozenColumn);

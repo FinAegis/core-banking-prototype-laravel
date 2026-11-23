@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Compliance\Services;
 
+use App\Domain\Account\Models\Account;
+use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Account\Models\BlockchainAddress;
 use App\Domain\Account\Models\TransactionProjection;
 use App\Domain\Auth\Services\PrivyEmailOtpClient;
@@ -443,14 +445,16 @@ class GdprService
     protected function getAccountData(User $user): array
     {
         return $user->accounts->map(
-            function ($account) {
+            function (Account $account): array {
+                // Only the tenant accounts schema has a status column;
+                // on the central schema the attribute is null.
                 return [
                     'uuid'       => $account->uuid,
                     'balance'    => $account->balance,
-                    'status'     => $account->status,
+                    'status'     => $account->getAttribute('status'),
                     'created_at' => $account->created_at,
                     'balances'   => $account->balances->map(
-                        function ($balance) {
+                        function (AccountBalance $balance): array {
                             return [
                                 'asset_code' => $balance->asset_code,
                                 'balance'    => $balance->balance,

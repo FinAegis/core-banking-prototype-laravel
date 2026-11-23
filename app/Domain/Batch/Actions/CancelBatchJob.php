@@ -3,8 +3,8 @@
 namespace App\Domain\Batch\Actions;
 
 use App\Domain\Batch\Events\BatchJobCancelled;
-use App\Domain\Batch\Models\BatchItem;
 use App\Domain\Batch\Models\BatchJob;
+use App\Domain\Batch\Models\BatchJobItem;
 
 class CancelBatchJob
 {
@@ -31,8 +31,9 @@ class CancelBatchJob
             ]
         );
 
-        // Cancel all pending items
-        BatchItem::where('batch_job_id', $batchJob->id)
+        // Cancel all pending items (stored in batch_job_items, like
+        // CreateBatchJob and UpdateBatchItem use)
+        BatchJobItem::where('batch_job_uuid', $batchJob->uuid)
             ->where('status', 'pending')
             ->update(['status' => 'cancelled']);
     }

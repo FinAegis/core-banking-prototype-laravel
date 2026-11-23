@@ -9,6 +9,7 @@ use App\Domain\Ramp\Exceptions\InvalidWebhookSignatureException;
 use App\Domain\Ramp\Exceptions\QuoteExpiredException;
 use App\Models\RampSession;
 use App\Models\User;
+use App\Support\DecimalString;
 use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -118,27 +119,15 @@ class RampService
 
     /**
      * Normalize any numeric scalar to a 2-decimal numeric-string suitable for
-     * bcmath. Provider interfaces declare these as float, so we convert via
-     * the bcmath roundtrip — start from is_numeric() so PHPStan accepts the
-     * input as numeric, then bcadd-normalize down to 2 decimals.
+     * bcmath. Provider interfaces declare these as float. A float that PHP
+     * prints in exponent form is expanded instead of being dropped to 0.00;
+     * a value that is not a finite number still becomes 0.00.
      *
      * @return numeric-string
      */
     private function toNumericMoney(mixed $value): string
     {
-        if (! is_numeric($value)) {
-            return '0.00';
-        }
-
-        // number_format guarantees the literal output is a numeric-string,
-        // but its return type is non-empty-string. Use the value through
-        // bcmath directly: cast to string is already safe (is_numeric).
-        $str = (string) $value;
-        if (! preg_match('/^-?\d+(\.\d+)?$/', $str)) {
-            return '0.00';
-        }
-
-        return bcadd($str, '0', 2);
+        return DecimalString::fromNumeric($value, 2) ?? '0.00';
     }
 
     /**

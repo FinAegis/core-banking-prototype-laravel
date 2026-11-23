@@ -545,9 +545,9 @@ class FinancialInstitutionPartner extends Model
     /**
      * Scope to filter by tier.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Illuminate\Database\Eloquent\Builder<self> $query
      * @param string $tier
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return \Illuminate\Database\Eloquent\Builder<self>
      */
     public function scopeTier($query, string $tier)
     {
@@ -557,8 +557,8 @@ class FinancialInstitutionPartner extends Model
     /**
      * Scope to filter white-label enabled partners.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param \Illuminate\Database\Eloquent\Builder<self> $query
+     * @return \Illuminate\Database\Eloquent\Builder<self>
      */
     public function scopeWhiteLabelEnabled($query)
     {

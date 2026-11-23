@@ -1092,6 +1092,7 @@ describe('REST custodian transfer', function (): void {
         $owner = User::factory()->create();
         $account = Account::factory()->create(['user_uuid' => $owner->uuid]);
         if ($link !== null) {
+            /** @var array<model-property<CustodianAccount>, mixed> $link dataset overrides */
             $custodianAccount = new CustodianAccount();
             $custodianAccount->fill(array_merge([
                 'account_uuid'         => $account->uuid,

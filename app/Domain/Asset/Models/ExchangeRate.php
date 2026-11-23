@@ -188,8 +188,8 @@ class ExchangeRate extends Model
     /**
      * Scope for active rates.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param \Illuminate\Database\Eloquent\Builder<self> $query
+     * @return \Illuminate\Database\Eloquent\Builder<self>
      */
     public function scopeActive($query)
     {
@@ -199,8 +199,8 @@ class ExchangeRate extends Model
     /**
      * Scope for valid rates (active and within time range).
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param \Illuminate\Database\Eloquent\Builder<self> $query
+     * @return \Illuminate\Database\Eloquent\Builder<self>
      */
     public function scopeValid($query)
     {
@@ -219,8 +219,8 @@ class ExchangeRate extends Model
     /**
      * Scope for rates between specific assets.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param \Illuminate\Database\Eloquent\Builder<self> $query
+     * @return \Illuminate\Database\Eloquent\Builder<self>
      */
     public function scopeBetween($query, string $fromAsset, string $toAsset)
     {
@@ -231,8 +231,8 @@ class ExchangeRate extends Model
     /**
      * Scope for rates by source.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param \Illuminate\Database\Eloquent\Builder<self> $query
+     * @return \Illuminate\Database\Eloquent\Builder<self>
      */
     public function scopeBySource($query, string $source)
     {
@@ -242,8 +242,8 @@ class ExchangeRate extends Model
     /**
      * Scope for latest rates first.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param \Illuminate\Database\Eloquent\Builder<self> $query
+     * @return \Illuminate\Database\Eloquent\Builder<self>
      */
     public function scopeLatest($query)
     {

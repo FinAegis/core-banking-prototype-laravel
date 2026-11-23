@@ -327,7 +327,7 @@ class WalletBalanceService implements WalletBalanceProviderInterface
 
         for ($i = 0; $i < $len; $i++) {
             $decimal = bcmul($decimal, '16');
-            $decimal = bcadd($decimal, (string) hexdec($hex[$i]));
+            $decimal = bcadd($decimal, (string) intval($hex[$i], 16));
         }
 
         return $decimal;

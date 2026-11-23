@@ -39,13 +39,13 @@ class RequestRefundAction
 
         // Create refund request
         $refundRequest = new RefundRequest(
-            investmentId: $investment->id,
+            investmentId: (string) $investment->id,
             userId: $investment->user_id,
             amount: $investment->amount,
             currency: $investment->currency,
             reason: $reason,
             reasonDetails: $reasonDetails,
-            initiatedBy: $initiator->id,
+            initiatedBy: (string) $initiator->id,
             autoApproved: $autoApproved,
             metadata: array_merge(
                 $metadata,

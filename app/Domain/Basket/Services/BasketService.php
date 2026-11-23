@@ -149,20 +149,13 @@ class BasketService
 
     /**
      * Rebalance all dynamic baskets.
+     *
+     * BasketRebalancingService owns rebalancing (it is what the
+     * baskets:rebalance command runs): it selects the active dynamic baskets,
+     * skips those within their drift limits and logs per-basket failures.
      */
     public function rebalanceAllDynamicBaskets(): void
     {
-        $dynamicBaskets = BasketAsset::where('rebalancing_enabled', true)->get();
-
-        foreach ($dynamicBaskets as $basket) {
-            try {
-                $this->rebalanceBasket($basket->code);
-            } catch (Exception $e) {
-                Log::error('Failed to rebalance basket', [
-                    'basket_code' => $basket->code,
-                    'error'       => $e->getMessage(),
-                ]);
-            }
-        }
+        app(BasketRebalancingService::class)->rebalanceAllDynamicBaskets();
     }
 }

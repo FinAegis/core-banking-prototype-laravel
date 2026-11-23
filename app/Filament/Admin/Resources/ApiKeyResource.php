@@ -136,7 +136,10 @@ class ApiKeyResource extends Resource
                 [
                     Tables\Filters\TernaryFilter::make('is_active'),
                     Tables\Filters\Filter::make('expired')
-                        ->query(fn (Builder $query): Builder => $query->where('expires_at', '<', now())),
+                        ->query(function (Builder $query): Builder {
+                            /** @var Builder<ApiKey> $query */
+                            return $query->where('expires_at', '<', now());
+                        }),
                     Tables\Filters\Filter::make('never_used')
                         ->query(fn (Builder $query): Builder => $query->whereNull('last_used_at')),
                 ]

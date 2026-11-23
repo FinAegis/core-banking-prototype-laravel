@@ -9,6 +9,7 @@ use App\Domain\Ramp\Contracts\RampProviderInterface;
 use App\Domain\Ramp\Exceptions\OfframpNotAvailableException;
 use App\Infrastructure\Bridge\BridgeClient;
 use App\Infrastructure\Bridge\BridgeWebhookVerifier;
+use App\Support\DecimalString;
 use RuntimeException;
 
 /**
@@ -276,9 +277,7 @@ class BridgeProvider implements RampProviderInterface
             if ($virtualAccountId === '') {
                 return null;
             }
-            $cryptoAmount = isset($object['destination_amount']) && is_numeric($object['destination_amount'])
-                ? bcadd((string) $object['destination_amount'], '0', 8)
-                : null;
+            $cryptoAmount = DecimalString::fromNumeric($object['destination_amount'] ?? null, 8);
 
             return [
                 'session_id'    => 'bridge_va_' . $virtualAccountId,
@@ -293,9 +292,7 @@ class BridgeProvider implements RampProviderInterface
             if ($transferId === '') {
                 return null;
             }
-            $cryptoAmount = isset($object['destination_amount']) && is_numeric($object['destination_amount'])
-                ? bcadd((string) $object['destination_amount'], '0', 8)
-                : null;
+            $cryptoAmount = DecimalString::fromNumeric($object['destination_amount'] ?? null, 8);
 
             return [
                 'session_id'    => $transferId,

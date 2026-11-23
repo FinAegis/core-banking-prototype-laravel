@@ -131,9 +131,9 @@ class PartnerUsageRecord extends Model
     /**
      * Scope to filter by date.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Illuminate\Database\Eloquent\Builder<self> $query
      * @param \Carbon\Carbon $date
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return \Illuminate\Database\Eloquent\Builder<self>
      */
     public function scopeForDate($query, $date)
     {
@@ -143,8 +143,8 @@ class PartnerUsageRecord extends Model
     /**
      * Scope to filter daily records.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param \Illuminate\Database\Eloquent\Builder<self> $query
+     * @return \Illuminate\Database\Eloquent\Builder<self>
      */
     public function scopeDaily($query)
     {
@@ -154,8 +154,8 @@ class PartnerUsageRecord extends Model
     /**
      * Scope to filter billable records.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param \Illuminate\Database\Eloquent\Builder<self> $query
+     * @return \Illuminate\Database\Eloquent\Builder<self>
      */
     public function scopeBillable($query)
     {

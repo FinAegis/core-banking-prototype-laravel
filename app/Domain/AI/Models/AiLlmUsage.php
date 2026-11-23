@@ -104,9 +104,9 @@ class AiLlmUsage extends Model
     /**
      * Scope to filter by provider.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Illuminate\Database\Eloquent\Builder<self> $query
      * @param string $provider
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return \Illuminate\Database\Eloquent\Builder<self>
      */
     public function scopeProvider($query, string $provider)
     {
@@ -116,8 +116,8 @@ class AiLlmUsage extends Model
     /**
      * Scope to filter successful requests.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param \Illuminate\Database\Eloquent\Builder<self> $query
+     * @return \Illuminate\Database\Eloquent\Builder<self>
      */
     public function scopeSuccessful($query)
     {
@@ -127,8 +127,8 @@ class AiLlmUsage extends Model
     /**
      * Scope to filter failed requests.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param \Illuminate\Database\Eloquent\Builder<self> $query
+     * @return \Illuminate\Database\Eloquent\Builder<self>
      */
     public function scopeFailed($query)
     {

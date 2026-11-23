@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Fraud\Services;
 
+use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\Transaction;
 use App\Domain\Fraud\Events\ChallengeRequired;
 use App\Domain\Fraud\Events\FraudDetected;
@@ -15,6 +16,7 @@ use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 class FraudDetectionService
 {
@@ -53,9 +55,8 @@ class FraudDetectionService
     {
         return DB::transaction(
             function () use ($transaction, $context) {
-                // Get user and account
-                $account = $transaction->account;
-                $user = $account->user;
+                // Get the account owner
+                [, $user] = $this->resolveAccountOwner($transaction);
 
                 // Prepare analysis context
                 $analysisContext = $this->prepareContext($transaction, $user, $context);
@@ -247,15 +248,34 @@ class FraudDetectionService
     }
 
     /**
+     * The account a transaction belongs to and that account's owner.
+     *
+     * @return array{0: Account, 1: User}
+     */
+    private function resolveAccountOwner(Transaction $transaction): array
+    {
+        $account = $transaction->account;
+        $user = $account?->user;
+
+        if (! $account instanceof Account || ! $user instanceof User) {
+            throw new RuntimeException("Transaction {$transaction->id} has no account owner to analyse.");
+        }
+
+        return [$account, $user];
+    }
+
+    /**
      * Prepare context for analysis.
      */
     protected function prepareContext(Transaction $transaction, User $user, array $additionalContext): array
     {
+        [$account] = $this->resolveAccountOwner($transaction);
+
         return array_merge(
             [
                 'transaction' => $transaction->toArray(),
                 'user'        => $user->toArray(),
-                'account'     => $transaction->account->toArray(),
+                'account'     => $account->toArray(),
                 'amount'      => $transaction->event_properties['amount'] ?? 0,
                 'currency'    => $transaction->event_properties['assetCode'] ?? 'USD',
                 'type'        => $transaction->meta_data['type'] ?? 'unknown',
@@ -269,7 +289,7 @@ class FraudDetectionService
 
                 // Historical data
                 'user_transaction_count' => (int) $user->transactions()->count(),
-                'account_balance'        => $transaction->account->getBalance(
+                'account_balance'        => $account->getBalance(
                     $transaction->event_properties['assetCode'] ?? 'USD'
                 ),
 
@@ -453,7 +473,7 @@ class FraudDetectionService
                 return Transaction::whereHas(
                     'account',
                     function ($query) use ($user) {
-                        $query->where('user_id', $user->id);
+                        $query->where('user_uuid', $user->uuid);
                     }
                 )
                     ->whereDate('created_at', today())
@@ -474,7 +494,7 @@ class FraudDetectionService
                 return Transaction::whereHas(
                     'account',
                     function ($query) use ($user) {
-                        $query->where('user_id', $user->id);
+                        $query->where('user_uuid', $user->uuid);
                     }
                 )
                     ->whereDate('created_at', today())
@@ -491,7 +511,7 @@ class FraudDetectionService
         return (int) Transaction::whereHas(
             'account',
             function ($query) use ($user) {
-                $query->where('user_id', $user->id);
+                $query->where('user_uuid', $user->uuid);
             }
         )
             ->where('created_at', '>=', now()->subHour())
@@ -506,7 +526,7 @@ class FraudDetectionService
         $lastTransaction = Transaction::whereHas(
             'account',
             function ($query) use ($user) {
-                $query->where('user_id', $user->id);
+                $query->where('user_uuid', $user->uuid);
             }
         )
             ->orderBy('created_at', 'desc')
@@ -524,7 +544,7 @@ class FraudDetectionService
         return Transaction::whereHas(
             'account',
             function ($query) use ($user) {
-                $query->where('user_id', $user->id);
+                $query->where('user_uuid', $user->uuid);
             }
         )
             ->where('created_at', '>=', now()->subDays($days))
@@ -747,7 +767,7 @@ class FraudDetectionService
      */
     public function getFraudIndicators(Transaction $transaction): array
     {
-        $user = $transaction->account->user;
+        [, $user] = $this->resolveAccountOwner($transaction);
 
         return [
             'transaction_indicators' => $this->getTransactionIndicators($transaction),

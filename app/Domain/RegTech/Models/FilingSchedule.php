@@ -127,8 +127,8 @@ class FilingSchedule extends Model
     /**
      * Scope to filter active schedules.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param \Illuminate\Database\Eloquent\Builder<self> $query
+     * @return \Illuminate\Database\Eloquent\Builder<self>
      */
     public function scopeActive($query)
     {
@@ -138,9 +138,9 @@ class FilingSchedule extends Model
     /**
      * Scope to filter by jurisdiction.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Illuminate\Database\Eloquent\Builder<self> $query
      * @param string $jurisdiction
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return \Illuminate\Database\Eloquent\Builder<self>
      */
     public function scopeJurisdiction($query, string $jurisdiction)
     {
@@ -150,9 +150,9 @@ class FilingSchedule extends Model
     /**
      * Scope to find schedules due within N days.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Illuminate\Database\Eloquent\Builder<self> $query
      * @param int $days
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return \Illuminate\Database\Eloquent\Builder<self>
      */
     public function scopeDueWithinDays($query, int $days)
     {

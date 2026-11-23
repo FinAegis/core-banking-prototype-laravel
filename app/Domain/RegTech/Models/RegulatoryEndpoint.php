@@ -142,8 +142,8 @@ class RegulatoryEndpoint extends Model
     /**
      * Scope to filter active endpoints.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param \Illuminate\Database\Eloquent\Builder<self> $query
+     * @return \Illuminate\Database\Eloquent\Builder<self>
      */
     public function scopeActive($query)
     {
@@ -153,8 +153,8 @@ class RegulatoryEndpoint extends Model
     /**
      * Scope to filter production endpoints.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param \Illuminate\Database\Eloquent\Builder<self> $query
+     * @return \Illuminate\Database\Eloquent\Builder<self>
      */
     public function scopeProduction($query)
     {
@@ -164,8 +164,8 @@ class RegulatoryEndpoint extends Model
     /**
      * Scope to filter sandbox endpoints.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param \Illuminate\Database\Eloquent\Builder<self> $query
+     * @return \Illuminate\Database\Eloquent\Builder<self>
      */
     public function scopeSandbox($query)
     {
@@ -175,9 +175,9 @@ class RegulatoryEndpoint extends Model
     /**
      * Scope to filter by jurisdiction.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Illuminate\Database\Eloquent\Builder<self> $query
      * @param string $jurisdiction
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return \Illuminate\Database\Eloquent\Builder<self>
      */
     public function scopeJurisdiction($query, string $jurisdiction)
     {

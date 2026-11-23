@@ -455,11 +455,15 @@ class BehavioralAnalysisService
      */
     protected function updateTransactionStats(BehavioralProfile $profile, Transaction $transaction): void
     {
+        // Accounts link to their owner by users.uuid (accounts.user_uuid);
+        // the profile stores users.id.
+        $ownerUuid = User::query()->whereKey($profile->user_id)->value('uuid');
+
         // Get recent transactions for statistics
         $recentTransactions = Transaction::whereHas(
             'account',
-            function ($query) use ($profile) {
-                $query->where('user_id', $profile->user_id);
+            function ($query) use ($ownerUuid) {
+                $query->where('user_uuid', $ownerUuid);
             }
         )
             ->where('created_at', '>=', now()->subDays(90))
@@ -481,8 +485,8 @@ class BehavioralAnalysisService
         // Update daily counts
         $todayCount = Transaction::whereHas(
             'account',
-            function ($query) use ($profile) {
-                $query->where('user_id', $profile->user_id);
+            function ($query) use ($ownerUuid) {
+                $query->where('user_uuid', $ownerUuid);
             }
         )
             ->whereDate('created_at', today())

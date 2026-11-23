@@ -119,6 +119,7 @@ it('funds demo accounts with multiple assets', function () {
 
     $argentina = User::where('email', 'demo.argentina@gcu.global')->first();
     $account = $argentina->accounts()->first();
+    assert($account instanceof Account);
 
     // Check USD balance
     expect($account->getBalance('USD'))->toBeGreaterThan(0);

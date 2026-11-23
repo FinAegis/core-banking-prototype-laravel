@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V2;
 
+use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Governance\Models\GcuVote;
 use App\Domain\Governance\Models\GcuVotingProposal;
 use App\Http\Controllers\Controller;
@@ -179,13 +180,14 @@ class VotingController extends Controller
 
         $user = $request->user();
 
-        // Get user's GCU balance
-        $gcuAccount = $user->accounts()
-            ->where('currency', 'GCU')
-            ->where('type', 'personal')
-            ->first();
+        // Voting power is the user's GCU holdings across all accounts.
+        // Balances live in account_balances; accounts has no currency column.
+        $gcuBalance = (int) AccountBalance::query()
+            ->whereIn('account_uuid', $user->accounts()->pluck('uuid')->all())
+            ->where('asset_code', 'GCU')
+            ->sum('balance');
 
-        if (! $gcuAccount || $gcuAccount->balance <= 0) {
+        if ($gcuBalance <= 0) {
             return response()->json(
                 [
                     'status'  => 'error',
@@ -196,7 +198,7 @@ class VotingController extends Controller
         }
 
         DB::transaction(
-            function () use ($request, $proposal, $user, $gcuAccount) {
+            function () use ($request, $proposal, $user, $gcuBalance) {
                 // Create or update vote
                 $vote = GcuVote::updateOrCreate(
                     [
@@ -205,7 +207,7 @@ class VotingController extends Controller
                     ],
                     [
                         'vote'         => $request->vote,
-                        'voting_power' => $gcuAccount->balance,
+                        'voting_power' => $gcuBalance,
                     ]
                 );
 
@@ -224,7 +226,7 @@ class VotingController extends Controller
                 'message' => 'Your vote has been recorded',
                 'data'    => [
                     'vote'         => $request->vote,
-                    'voting_power' => $gcuAccount->balance,
+                    'voting_power' => $gcuBalance,
                 ],
             ]
         );

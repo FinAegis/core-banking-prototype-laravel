@@ -25,11 +25,11 @@ class BasketStatsOverview extends BaseWidget
 
         // Get total value across all baskets
         $totalValue = BasketValue::query()
-            ->whereIn('basket_code', BasketAsset::where('is_active', true)->pluck('code'))
+            ->whereIn('basket_values.basket_asset_code', BasketAsset::where('is_active', true)->pluck('code'))
             ->join(
-                DB::raw('(SELECT basket_code, MAX(calculated_at) as latest FROM basket_values GROUP BY basket_code) as latest_values'),
+                DB::raw('(SELECT basket_asset_code, MAX(calculated_at) as latest FROM basket_values GROUP BY basket_asset_code) as latest_values'),
                 function ($join) {
-                    $join->on('basket_values.basket_code', '=', 'latest_values.basket_code')
+                    $join->on('basket_values.basket_asset_code', '=', 'latest_values.basket_asset_code')
                         ->on('basket_values.calculated_at', '=', 'latest_values.latest');
                 }
             )

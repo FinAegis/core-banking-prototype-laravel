@@ -6,9 +6,7 @@ namespace App\Domain\Fraud\Services;
 
 use App\Domain\Fraud\Models\DeviceFingerprint;
 use App\Models\User;
-use Exception;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 
 class DeviceFingerprintService
 {
@@ -196,29 +194,24 @@ class DeviceFingerprintService
         return Cache::remember(
             "ip_data_{$ip}",
             86400,
-            function () use ($ip) {
-                try {
-                    // In production, use services like:
-                    // - IPQualityScore
-                    // - MaxMind
-                    // - IP2Proxy
+            function () {
+                // In production, use services like:
+                // - IPQualityScore
+                // - MaxMind
+                // - IP2Proxy
+                // and log a failed lookup before returning null.
 
-                    // Simulated response
-                    return [
-                        'country'    => 'US',
-                        'region'     => 'California',
-                        'city'       => 'San Francisco',
-                        'isp'        => 'Example ISP',
-                        'is_vpn'     => false,
-                        'is_proxy'   => false,
-                        'is_tor'     => false,
-                        'risk_score' => 10,
-                    ];
-                } catch (Exception $e) {
-                    Log::error('IP data lookup failed', ['ip' => $ip, 'error' => $e->getMessage()]);
-
-                    return null;
-                }
+                // Simulated response
+                return [
+                    'country'    => 'US',
+                    'region'     => 'California',
+                    'city'       => 'San Francisco',
+                    'isp'        => 'Example ISP',
+                    'is_vpn'     => false,
+                    'is_proxy'   => false,
+                    'is_tor'     => false,
+                    'risk_score' => 10,
+                ];
             }
         );
     }
@@ -595,7 +588,7 @@ class DeviceFingerprintService
             "ip_blocked_count_{$ip}",
             300,
             function () use ($ip) {
-                return DeviceFingerprint::where('last_ip', $ip)
+                return DeviceFingerprint::where('ip_address', $ip)
                     ->whereHas(
                         'user',
                         function ($query) {

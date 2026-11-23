@@ -104,8 +104,10 @@ class UpdateMarketMakingCommand extends Command
      */
     private function cancelExistingAMMOrders(string $poolId, OrderService $orderService): void
     {
-        $existingOrders = \App\Domain\Exchange\Projections\Order::where('metadata->pool_id', $poolId)
-            ->where('metadata->source', 'amm')
+        // Larastan checks the column against Order's properties and does not
+        // understand Laravel's JSON-path syntax (orders.metadata is a JSON column).
+        $existingOrders = \App\Domain\Exchange\Projections\Order::where('metadata->pool_id', $poolId) // @phpstan-ignore argument.type (JSON path into orders.metadata)
+            ->where('metadata->source', 'amm') // @phpstan-ignore argument.type (JSON path into orders.metadata)
             ->whereIn('status', ['PENDING', 'PARTIALLY_FILLED'])
             ->get();
 

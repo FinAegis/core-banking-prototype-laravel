@@ -414,8 +414,9 @@ class AssetManagementController extends Controller
     {
         $accountUuids = $user->accounts()->pluck('uuid');
 
+        // transaction_projections stores the asset in asset_code.
         return TransactionProjection::whereIn('account_uuid', $accountUuids)
-            ->where('currency', $asset->symbol)
+            ->where('asset_code', $asset->code)
             ->orderBy('created_at', 'desc')
             ->limit(50)
             ->get();

@@ -51,9 +51,12 @@ class FinCardClientTest extends TestCase
     {
         Http::fake($this->loginFake('jwt-xyz'));
 
-        $this->assertSame('jwt-xyz', $this->client->getAccessToken());
+        $first = $this->client->getAccessToken();
         // Second call must hit the cache, not the network.
-        $this->assertSame('jwt-xyz', $this->client->getAccessToken());
+        $second = $this->client->getAccessToken();
+
+        $this->assertSame('jwt-xyz', $first);
+        $this->assertSame('jwt-xyz', $second);
 
         $adminCalls = collect(Http::recorded())
             ->filter(fn (array $pair): bool => str_contains($pair[0]->url(), '/admin/'))

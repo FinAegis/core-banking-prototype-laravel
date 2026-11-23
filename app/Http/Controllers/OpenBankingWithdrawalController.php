@@ -119,6 +119,10 @@ class OpenBankingWithdrawalController extends Controller
         /** @var User $user */
         $account = $user->accounts()->first();
 
+        if (! $account) {
+            return back()->with('error', 'No account found.');
+        }
+
         // Check balance
         $amountInCents = (int) ($request->amount * 100);
         $balance = $account->getBalance($request->currency);

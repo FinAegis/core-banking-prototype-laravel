@@ -146,7 +146,8 @@ class RewardsService
 
             // Level up check with cap
             while ($profile->xp >= $profile->xpForNextLevel() && $profile->level < self::MAX_LEVEL) {
-                $profile->xp -= $profile->xpForNextLevel();
+                // xp is an unsigned column; the loop condition keeps it >= 0.
+                $profile->xp = max(0, $profile->xp - $profile->xpForNextLevel());
                 $profile->level++;
             }
 
@@ -252,7 +253,8 @@ class RewardsService
                 throw new RuntimeException('Insufficient points balance.');
             }
 
-            $profile->points_balance -= $item->points_cost;
+            // points_balance is an unsigned column; the check above keeps it >= 0.
+            $profile->points_balance = max(0, $profile->points_balance - $item->points_cost);
             $profile->save();
 
             if ($item->stock !== null) {

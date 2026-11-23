@@ -267,7 +267,7 @@ class SponsorshipRequestValidator
         $decimal = '0';
 
         foreach (str_split(ltrim($hex, '0')) as $digit) {
-            $decimal = bcadd(bcmul($decimal, '16', 0), (string) hexdec($digit), 0);
+            $decimal = bcadd(bcmul($decimal, '16', 0), (string) intval($digit, 16), 0);
         }
 
         return $decimal;

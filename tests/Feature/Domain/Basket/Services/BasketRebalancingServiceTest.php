@@ -141,8 +141,8 @@ class BasketRebalancingServiceTest extends ServiceTestCase
         $this->assertEquals('decrease', $eurAdjustment['action']);
 
         // Check components were updated
-        $this->assertEquals(40.0, $component1->fresh()->weight);
-        $this->assertEquals(60.0, $component2->fresh()->weight);
+        $this->assertEquals(40.0, $component1->fresh()?->weight);
+        $this->assertEquals(60.0, $component2->fresh()?->weight);
 
         // Check event was dispatched
         Event::assertDispatched(BasketRebalanced::class, function ($event) use ($basket) {

@@ -34,7 +34,7 @@ class BlockchainWalletTest extends DomainTestCase
     public function it_can_create_custodial_wallet()
     {
         $wallet = $this->walletService->createWallet(
-            userId: $this->user->id,
+            userId: (string) $this->user->id,
             type: 'custodial',
             settings: ['daily_limit' => '1000']
         );
@@ -59,7 +59,7 @@ class BlockchainWalletTest extends DomainTestCase
         $mnemonic = $this->keyManager->generateMnemonic();
 
         $wallet = $this->walletService->createWallet(
-            userId: $this->user->id,
+            userId: (string) $this->user->id,
             type: 'non-custodial',
             mnemonic: $mnemonic
         );
@@ -74,7 +74,7 @@ class BlockchainWalletTest extends DomainTestCase
     public function it_generates_initial_addresses_on_wallet_creation()
     {
         $wallet = $this->walletService->createWallet(
-            userId: $this->user->id,
+            userId: (string) $this->user->id,
             type: 'custodial'
         );
 
@@ -99,7 +99,7 @@ class BlockchainWalletTest extends DomainTestCase
     public function it_can_generate_additional_addresses()
     {
         $wallet = $this->walletService->createWallet(
-            userId: $this->user->id,
+            userId: (string) $this->user->id,
             type: 'custodial'
         );
 
@@ -126,7 +126,7 @@ class BlockchainWalletTest extends DomainTestCase
     public function it_can_update_wallet_settings()
     {
         $wallet = $this->walletService->createWallet(
-            userId: $this->user->id,
+            userId: (string) $this->user->id,
             type: 'custodial'
         );
 
@@ -147,7 +147,7 @@ class BlockchainWalletTest extends DomainTestCase
     public function it_can_freeze_and_unfreeze_wallet()
     {
         $wallet = $this->walletService->createWallet(
-            userId: $this->user->id,
+            userId: (string) $this->user->id,
             type: 'custodial'
         );
 
@@ -179,7 +179,7 @@ class BlockchainWalletTest extends DomainTestCase
     public function it_can_unfreeze_wallet()
     {
         $wallet = $this->walletService->createWallet(
-            userId: $this->user->id,
+            userId: (string) $this->user->id,
             type: 'custodial'
         );
 
@@ -213,7 +213,7 @@ class BlockchainWalletTest extends DomainTestCase
         $this->expectExceptionMessage('Invalid mnemonic phrase');
 
         $this->walletService->createWallet(
-            userId: $this->user->id,
+            userId: (string) $this->user->id,
             type: 'non-custodial',
             mnemonic: 'invalid mnemonic phrase'
         );
@@ -237,7 +237,7 @@ class BlockchainWalletTest extends DomainTestCase
         $mnemonic = $this->keyManager->generateMnemonic();
 
         $wallet = $this->walletService->createWallet(
-            userId: $this->user->id,
+            userId: (string) $this->user->id,
             type: 'non-custodial',
             mnemonic: $mnemonic
         );
@@ -269,7 +269,7 @@ class BlockchainWalletTest extends DomainTestCase
     public function it_can_get_transaction_history()
     {
         $wallet = $this->walletService->createWallet(
-            userId: $this->user->id,
+            userId: (string) $this->user->id,
             type: 'custodial'
         );
 
@@ -300,7 +300,7 @@ class BlockchainWalletTest extends DomainTestCase
 
         BlockchainWallet::create(
             walletId: 'test_wallet',
-            userId: $this->user->id,
+            userId: (string) $this->user->id,
             type: 'invalid-type'
         );
     }

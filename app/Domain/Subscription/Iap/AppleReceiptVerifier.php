@@ -31,6 +31,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Subscription\Iap;
 
+use App\Support\DecimalString;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -632,7 +633,10 @@ final class AppleReceiptVerifier
             // Strip any decimal portion (Apple emits ints in newer payloads;
             // older sandbox payloads emit decimals).
             if (str_contains($raw, '.')) {
-                $raw = bcmul($raw, '100', 0);
+                // A float such as 1.0E-5 prints with a dot and an exponent,
+                // which bcmul() rejects; DecimalString expands it first.
+                $major = DecimalString::fromNumeric($payload['price'], 2);
+                $raw = $major === null ? '0' : bcmul($major, '100', 0);
             }
 
             return [(int) $raw, 2];

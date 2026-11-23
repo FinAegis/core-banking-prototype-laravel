@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\BasketAssetResource\Pages;
 
+use App\Domain\Basket\Models\BasketAsset;
 use App\Filament\Admin\Resources\BasketAssetResource;
 use Filament\Actions;
 use Filament\Resources\Components\Tab;
@@ -34,7 +35,10 @@ class ListBasketAssets extends ListRecords
 
             'active' => Tab::make()
                 ->label('Active')
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('is_active', true))
+                ->modifyQueryUsing(function (Builder $query): Builder {
+                    /** @var Builder<BasketAsset> $query */
+                    return $query->where('is_active', true);
+                })
                 ->badge(BasketAssetResource::getModel()::where('is_active', true)->count())
                 ->badgeColor('success'),
 

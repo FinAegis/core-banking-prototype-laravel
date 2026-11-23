@@ -274,7 +274,8 @@ class KycController extends Controller
             ? KycDocument::query()->findOrFail($documentId)
             : $user->kycDocuments()->findOrFail($documentId);
 
-        if (! Storage::disk('private')->exists($document->file_path)) {
+        $filePath = $document->file_path;
+        if ($filePath === null || ! Storage::disk('private')->exists($filePath)) {
             abort(404, 'Document not found');
         }
 
@@ -291,7 +292,7 @@ class KycController extends Controller
         );
 
         return Storage::disk('private')->download(
-            $document->file_path,
+            $filePath,
             $document->metadata['original_name'] ?? 'document'
         );
     }

@@ -4,6 +4,7 @@ namespace App\Domain\Cgo\Models;
 
 use App\Domain\Shared\Traits\UsesTenantConnection;
 use App\Models\User;
+use App\Support\DecimalString;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -161,9 +162,23 @@ class CgoInvestment extends Model
         };
     }
 
+    /**
+     * The amount with thousands separators and two decimals ("5,000.00"),
+     * built from the decimal string so it never passes through a float.
+     */
+    public function formattedAmount(): string
+    {
+        $normalized = DecimalString::fromNumeric($this->amount, 2) ?? '0.00';
+        [$whole, $fraction] = explode('.', $normalized);
+        $sign = str_starts_with($whole, '-') ? '-' : '';
+        $grouped = strrev(implode(',', str_split(strrev(ltrim($whole, '-')), 3)));
+
+        return $sign . $grouped . '.' . $fraction;
+    }
+
     public function generateCertificateNumber(): string
     {
-        return 'CGO-' . strtoupper($this->tier[0]) . '-' . date('Y') . '-' . str_pad($this->id, 6, '0', STR_PAD_LEFT);
+        return 'CGO-' . strtoupper($this->tier[0]) . '-' . date('Y') . '-' . str_pad((string) $this->id, 6, '0', STR_PAD_LEFT);
     }
 
     public function refunds(): HasMany

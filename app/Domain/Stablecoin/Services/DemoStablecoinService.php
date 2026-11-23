@@ -132,7 +132,6 @@ class DemoStablecoinService
             ];
 
             // Calculate collateral to return
-            $burnAmount = (int) $amount;
             $currentDebt = (int) $position->debt_amount;
             $newDebt = max(0, $currentDebt - $burnAmount);
             $collateralToReturn = $newDebt > 0

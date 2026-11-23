@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Account\Models\Account;
 use App\Domain\Banking\Models\UserBankPreference;
 use App\Domain\Governance\Enums\PollStatus;
 use App\Domain\Governance\Models\Poll;
@@ -81,12 +82,14 @@ it('funds accounts with appropriate balances', function () {
     // Check Argentina user balances
     $argentina = User::where('email', 'demo.argentina@gcu.global')->first();
     $argAccount = $argentina->accounts()->first();
+    assert($argAccount instanceof Account);
     expect($argAccount->getBalance('USD'))->toBe(50000); // $500.00
     expect($argAccount->getBalance('GCU'))->toBe(45000); // 450 GCU
 
     // Check Business user balances
     $business = User::where('email', 'demo.business@gcu.global')->first();
     $bizAccount = $business->accounts()->first();
+    assert($bizAccount instanceof Account);
     expect($bizAccount->getBalance('USD'))->toBe(1000000); // $10,000.00
     expect($bizAccount->getBalance('EUR'))->toBe(800000); // €8,000.00
     expect($bizAccount->getBalance('GBP'))->toBe(500000); // £5,000.00
@@ -95,6 +98,7 @@ it('funds accounts with appropriate balances', function () {
     // Check Investor user has gold
     $investor = User::where('email', 'demo.investor@gcu.global')->first();
     $invAccount = $investor->accounts()->first();
+    assert($invAccount instanceof Account);
     expect($invAccount->getBalance('XAU'))->toBe(100); // 1 oz gold
 });
 
