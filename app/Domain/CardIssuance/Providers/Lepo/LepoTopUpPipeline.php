@@ -380,7 +380,7 @@ final class LepoTopUpPipeline
     }
 
     /**
-     * @param  array<string, mixed>  $extra
+     * @param  array<model-property<CardTopUp>, mixed>  $extra
      */
     private function mark(CardTopUp $topup, string $status, array $extra = []): void
     {

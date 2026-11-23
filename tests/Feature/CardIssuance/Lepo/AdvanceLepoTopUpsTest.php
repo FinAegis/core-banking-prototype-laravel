@@ -51,7 +51,7 @@ function atCard(Cardholder $holder, CardFundingAccount $account, string $status 
 }
 
 /**
- * @param  array<string, mixed>  $overrides
+ * @param  array<model-property<CardTopUp>, mixed>  $overrides
  */
 function atTopUp(Card $card, array $overrides = []): CardTopUp
 {
