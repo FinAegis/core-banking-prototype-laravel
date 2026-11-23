@@ -15,6 +15,7 @@ use App\Domain\Exchange\Sagas\SpreadManagementSaga;
 use App\Domain\Exchange\Services\LiquidityPoolService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
 use Mockery;
 use Mockery\MockInterface;
 use Tests\TestCase;
@@ -167,11 +168,6 @@ class SpreadManagementSagaTest extends TestCase
             ->with($poolId)
             ->andReturn($pool);
 
-        // Since this pool is critically imbalanced, rebalancePool will be called
-        $this->poolService->shouldReceive('rebalancePool')
-            ->with($poolId, '0.5')
-            ->once();
-
         // Act
         $this->saga->onOrderExecuted($event);
 
@@ -179,7 +175,7 @@ class SpreadManagementSagaTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
-    public function test_triggers_rebalancing_on_critical_imbalance(): void
+    public function test_reports_a_critical_imbalance_without_rebalancing(): void
     {
         // Arrange
         $poolId = 'pool-123';
@@ -210,15 +206,19 @@ class SpreadManagementSagaTest extends TestCase
             ->with($poolId)
             ->andReturn($pool);
 
-        $this->poolService->shouldReceive('rebalancePool')
-            ->with($poolId, '0.5')
-            ->once();
+        $log = Log::spy();
 
         // Act
         $this->saga->onOrderExecuted($event);
 
-        // Assert - rebalancePool should be called due to critical imbalance
-        $this->addToAssertionCount(1); // Assertion is in the mock expectation
+        // Assert - pool rebalancing was removed (it never worked), so the
+        // saga reports the imbalance for a person to act on.
+        $log->shouldHaveReceived('warning')
+            ->with('Critical inventory imbalance detected; automatic rebalancing is not available', Mockery::on(
+                fn (array $context): bool => $context['pool_id'] === $poolId
+            ))
+            ->once();
+        $this->addToAssertionCount(1);
     }
 
     public function test_adjusts_spread_for_market_volatility(): void

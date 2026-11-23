@@ -84,9 +84,7 @@
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                                 <a href="{{ route('liquidity.show', $position['pool_id']) }}" 
-                                                   class="text-indigo-600 hover:text-indigo-900 mr-3">Manage</a>
-                                                <a href="{{ route('liquidity.remove', $position['pool_id']) }}" 
-                                                   class="text-red-600 hover:text-red-900">Remove</a>
+                                                   class="text-indigo-600 hover:text-indigo-900">View</a>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -129,10 +127,6 @@
                                     <a href="{{ route('liquidity.show', $pool['id']) }}" 
                                        class="flex-1 text-center px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition">
                                         View Details
-                                    </a>
-                                    <a href="{{ route('liquidity.create', $pool['id']) }}" 
-                                       class="flex-1 text-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
-                                        Add Liquidity
                                     </a>
                                 </div>
                             </div>

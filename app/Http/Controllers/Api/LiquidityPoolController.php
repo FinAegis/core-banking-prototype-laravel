@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Domain\Exchange\Services\LiquidityPoolService;
-use App\Domain\Exchange\ValueObjects\LiquidityAdditionInput;
-use App\Domain\Exchange\ValueObjects\LiquidityRemovalInput;
 use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -125,105 +123,6 @@ class LiquidityPoolController extends Controller
                 ],
                 201
             );
-        } catch (Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 400);
-        }
-    }
-
-        #[OA\Post(
-            path: '/api/liquidity/add',
-            tags: ['Liquidity Pool'],
-            summary: 'Add liquidity to a pool',
-            security: [['bearerAuth' => []]],
-            requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['pool_id', 'base_amount', 'quote_amount'], properties: [
-            new OA\Property(property: 'pool_id', type: 'string', format: 'uuid'),
-            new OA\Property(property: 'base_amount', type: 'string', example: '0.1'),
-            new OA\Property(property: 'quote_amount', type: 'string', example: '4800'),
-            new OA\Property(property: 'min_shares', type: 'string', example: '0'),
-            ]))
-        )]
-    #[OA\Response(
-        response: 200,
-        description: 'Liquidity added'
-    )]
-    public function addLiquidity(Request $request): JsonResponse
-    {
-        $this->middleware('auth:sanctum');
-
-        $validated = $request->validate(
-            [
-                'pool_id'      => 'required|uuid',
-                'base_amount'  => 'required|numeric|min:0.00000001',
-                'quote_amount' => 'required|numeric|min:0.00000001',
-                'min_shares'   => 'nullable|numeric|min:0',
-            ]
-        );
-
-        $pool = $this->liquidityService->getPool($validated['pool_id']);
-        if (! $pool) {
-            return response()->json(['error' => 'Pool not found'], 404);
-        }
-
-        try {
-            $result = $this->liquidityService->addLiquidity(
-                new LiquidityAdditionInput(
-                    poolId: $validated['pool_id'],
-                    providerId: $request->user()->account->id,
-                    baseCurrency: $pool->base_currency,
-                    quoteCurrency: $pool->quote_currency,
-                    baseAmount: $validated['base_amount'],
-                    quoteAmount: $validated['quote_amount'],
-                    minShares: $validated['min_shares'] ?? '0'
-                )
-            );
-
-            return response()->json($result);
-        } catch (Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 400);
-        }
-    }
-
-        #[OA\Post(
-            path: '/api/liquidity/remove',
-            tags: ['Liquidity Pool'],
-            summary: 'Remove liquidity from a pool',
-            security: [['bearerAuth' => []]],
-            requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['pool_id', 'shares'], properties: [
-            new OA\Property(property: 'pool_id', type: 'string', format: 'uuid'),
-            new OA\Property(property: 'shares', type: 'string', example: '100'),
-            new OA\Property(property: 'min_base_amount', type: 'string', example: '0'),
-            new OA\Property(property: 'min_quote_amount', type: 'string', example: '0'),
-            ]))
-        )]
-    #[OA\Response(
-        response: 200,
-        description: 'Liquidity removed'
-    )]
-    public function removeLiquidity(Request $request): JsonResponse
-    {
-        $this->middleware('auth:sanctum');
-
-        $validated = $request->validate(
-            [
-                'pool_id'          => 'required|uuid',
-                'shares'           => 'required|numeric|min:0.00000001',
-                'min_base_amount'  => 'nullable|numeric|min:0',
-                'min_quote_amount' => 'nullable|numeric|min:0',
-            ]
-        );
-
-        try {
-            $result = $this->liquidityService->removeLiquidity(
-                new LiquidityRemovalInput(
-                    poolId: $validated['pool_id'],
-                    providerId: $request->user()->account->id,
-                    shares: $validated['shares'],
-                    minBaseAmount: $validated['min_base_amount'] ?? '0',
-                    minQuoteAmount: $validated['min_quote_amount'] ?? '0'
-                )
-            );
-
-            return response()->json($result);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }

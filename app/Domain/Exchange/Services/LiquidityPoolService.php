@@ -7,15 +7,11 @@ use App\Domain\Exchange\Contracts\LiquidityPoolServiceInterface;
 use App\Domain\Exchange\LiquidityPool\Services\ImpermanentLossProtectionService;
 use App\Domain\Exchange\Projections\LiquidityPool as PoolProjection;
 use App\Domain\Exchange\Projections\LiquidityProvider;
-use App\Domain\Exchange\ValueObjects\LiquidityAdditionInput;
-use App\Domain\Exchange\ValueObjects\LiquidityRemovalInput;
-use App\Domain\Exchange\Workflows\LiquidityManagementWorkflow;
 use Brick\Math\BigDecimal;
 use DomainException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use RuntimeException;
-use Workflow\WorkflowStub;
 
 class LiquidityPoolService implements LiquidityPoolServiceInterface
 {
@@ -54,26 +50,6 @@ class LiquidityPoolService implements LiquidityPoolServiceInterface
             ->persist();
 
         return $poolId;
-    }
-
-    /**
-     * Add liquidity to a pool.
-     */
-    public function addLiquidity(LiquidityAdditionInput $input): array
-    {
-        $workflow = WorkflowStub::make(LiquidityManagementWorkflow::class);
-
-        return $workflow->addLiquidity($input);
-    }
-
-    /**
-     * Remove liquidity from a pool.
-     */
-    public function removeLiquidity(LiquidityRemovalInput $input): array
-    {
-        $workflow = WorkflowStub::make(LiquidityManagementWorkflow::class);
-
-        return $workflow->removeLiquidity($input);
     }
 
     /**
@@ -237,16 +213,6 @@ class LiquidityPoolService implements LiquidityPoolServiceInterface
             'apy'            => $apy->__toString(),
             'provider_count' => $pool->providers_count ?? $pool->providers()->count(),
         ];
-    }
-
-    /**
-     * Rebalance pool to target ratio.
-     */
-    public function rebalancePool(string $poolId, string $targetRatio): array
-    {
-        $workflow = WorkflowStub::make(LiquidityManagementWorkflow::class);
-
-        return $workflow->rebalancePool($poolId, $targetRatio);
     }
 
     /**

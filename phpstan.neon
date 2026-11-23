@@ -32,7 +32,6 @@ parameters:
         - app
         - tests
     excludePaths:
-        - app/Domain/Exchange/Workflows/Policies/LiquidityRetryPolicy.php
         - tests/Browser
         - tests/CreatesApplication.php
         - tests/DuskTestCase.php

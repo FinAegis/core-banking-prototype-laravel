@@ -181,12 +181,6 @@ if (! DomainManager::isDisabledByConfig('Exchange') && config('trading.enabled')
         ->appendOutputTo(storage_path('logs/liquidity-rewards.log'))
         ->withoutOverlapping();
 
-    Schedule::command('liquidity:rebalance')
-        ->everyThirtyMinutes()
-        ->description('Check and rebalance liquidity pools')
-        ->appendOutputTo(storage_path('logs/liquidity-rebalancing.log'))
-        ->withoutOverlapping();
-
     Schedule::command('liquidity:update-market-making --cancel-existing')
         ->everyFiveMinutes()
         ->description('Update automated market making orders')

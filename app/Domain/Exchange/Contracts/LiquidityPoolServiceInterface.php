@@ -3,8 +3,6 @@
 namespace App\Domain\Exchange\Contracts;
 
 use App\Domain\Exchange\Projections\LiquidityPool as PoolProjection;
-use App\Domain\Exchange\ValueObjects\LiquidityAdditionInput;
-use App\Domain\Exchange\ValueObjects\LiquidityRemovalInput;
 use Illuminate\Support\Collection;
 
 interface LiquidityPoolServiceInterface
@@ -18,16 +16,6 @@ interface LiquidityPoolServiceInterface
         string $feeRate = '0.003',
         array $metadata = []
     ): string;
-
-    /**
-     * Add liquidity to a pool.
-     */
-    public function addLiquidity(LiquidityAdditionInput $input): array;
-
-    /**
-     * Remove liquidity from a pool.
-     */
-    public function removeLiquidity(LiquidityRemovalInput $input): array;
 
     /**
      * Execute a swap through a liquidity pool.

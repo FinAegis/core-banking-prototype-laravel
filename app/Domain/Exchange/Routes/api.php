@@ -66,8 +66,6 @@ Route::middleware('api.rate_limit:public')->group(function () {
 
         Route::middleware('auth:sanctum')->group(function () {
             Route::post('/pools', [App\Http\Controllers\Api\LiquidityPoolController::class, 'create'])->middleware('idempotency')->name('pools.create');
-            Route::post('/add', [App\Http\Controllers\Api\LiquidityPoolController::class, 'addLiquidity'])->middleware('idempotency')->name('add');
-            Route::post('/remove', [App\Http\Controllers\Api\LiquidityPoolController::class, 'removeLiquidity'])->middleware('idempotency')->name('remove');
             Route::post('/swap', [App\Http\Controllers\Api\LiquidityPoolController::class, 'swap'])->middleware('idempotency')->name('swap');
             Route::get('/positions', [App\Http\Controllers\Api\LiquidityPoolController::class, 'positions'])->name('positions');
             Route::post('/claim-rewards', [App\Http\Controllers\Api\LiquidityPoolController::class, 'claimRewards'])->middleware('idempotency')->name('claim-rewards');

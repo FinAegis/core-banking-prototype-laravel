@@ -483,14 +483,6 @@ Route::prefix('liquidity')->name('liquidity.')->middleware('feature:trading.enab
     // Public routes
     Route::get('/', [App\Http\Controllers\LiquidityPoolController::class, 'index'])->name('index');
     Route::get('/{poolId}', [App\Http\Controllers\LiquidityPoolController::class, 'show'])->name('show');
-
-    // Authenticated routes
-    Route::middleware(['auth', 'verified'])->group(function () {
-        Route::get('/{poolId}/add', [App\Http\Controllers\LiquidityPoolController::class, 'create'])->name('create');
-        Route::post('/{poolId}/add', [App\Http\Controllers\LiquidityPoolController::class, 'store'])->name('store');
-        Route::get('/{poolId}/remove', [App\Http\Controllers\LiquidityPoolController::class, 'remove'])->name('remove');
-        Route::delete('/{poolId}/remove', [App\Http\Controllers\LiquidityPoolController::class, 'destroy'])->name('destroy');
-    });
 });
 
 // Lending platform routes (Lending domain)
