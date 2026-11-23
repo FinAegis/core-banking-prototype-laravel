@@ -20,6 +20,7 @@ use App\Domain\Rewards\Listeners\TriggerQuestOnShield;
 use App\Domain\User\Events\UserProfileUpdated;
 use App\Domain\VisaCli\Events\VisaCliCardEnrolled;
 use App\Domain\VisaCli\Listeners\SyncVisaCliCardToCardIssuance;
+use App\Listeners\RecordLastLogin;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -38,6 +39,7 @@ class EventServiceProvider extends ServiceProvider
         ],
         Login::class => [
             TriggerQuestOnLogin::class,
+            RecordLastLogin::class,
         ],
         MoneyTransferred::class => [
             SendTransactionPushNotificationListener::class,

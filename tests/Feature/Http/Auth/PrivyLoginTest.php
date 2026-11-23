@@ -142,6 +142,18 @@ it('creates a new user with the linked email from the JWT', function (): void {
         ->and($user->tokens()->count())->toBe(1);
 });
 
+it('records the time of a Privy app sign-in', function (): void {
+    $user = User::factory()->create(['privy_user_id' => 'did:privy:returning0123456789', 'email' => 'back@example.com']);
+    $token = privy_login_jwt([
+        'sub'             => 'did:privy:returning0123456789',
+        'linked_accounts' => [['type' => 'email', 'address' => 'back@example.com', 'verified_at' => time() - 100]],
+    ], $this);
+
+    $this->postJson('/api/v1/auth/privy-login', ['privy_token' => $token])->assertOk();
+
+    expect($user->fresh()?->last_login_at)->not->toBeNull();
+});
+
 it('provisions a personal team for a brand-new Privy mobile signup', function (): void {
     $token = privy_login_jwt([
         'sub'             => 'did:privy:mobileteam',

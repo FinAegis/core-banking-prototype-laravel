@@ -32,6 +32,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property \Illuminate\Support\Carbon|null $free_tx_until
  * @property int $sponsored_tx_used
  * @property int $sponsored_tx_limit
+ * @property \Illuminate\Support\Carbon|null $last_login_at
  */
 class User extends Authenticatable implements FilamentUser
 {
@@ -156,7 +157,20 @@ class User extends Authenticatable implements FilamentUser
             'pro_marketing_opt_out' => 'boolean',
             'lifetime_spend_cents'  => 'integer',
             'kyc_completed_at'      => 'datetime',
+            'last_login_at'         => 'datetime',
         ];
+    }
+
+    /**
+     * Note that the user signed in now. A plain query, so no model events fire
+     * and updated_at stays as it was: a sign-in is not a profile change.
+     */
+    public function recordLogin(): void
+    {
+        $now = now();
+        $this->newQuery()->toBase()->where($this->getKeyName(), $this->getKey())->update(['last_login_at' => $now]);
+        $this->setAttribute('last_login_at', $now);
+        $this->syncOriginalAttribute('last_login_at');
     }
 
     /**
