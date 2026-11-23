@@ -1,17 +1,17 @@
 # HyperSwitch Deposits Operator Runbook
 
-Operator-only runbook for the HyperSwitch card-deposit rail (PRs #1118/#1119). HyperSwitch is **experimental but wired**: opt-in via `HYPERSWITCH_ENABLED`, off by default — Stripe remains the default deposit rail when the flag is off.
+This runbook is for operators. It covers the HyperSwitch rail for card deposits, which was wired in PRs #1118 and #1119. HyperSwitch is **experimental**, but it is connected to the real deposit flow. It is switched on through `HYPERSWITCH_ENABLED` and is off by default. While the flag is off, Stripe stays the deposit rail.
 
 ## When to use this runbook
 
-- A user reports *"my card deposit succeeded but the balance never showed up"* (webhook didn't land, or the credit failed after the claim).
-- An intent is sitting in `completion_failed` (the loud-failure state added in PR #1119 — payment succeeded at HyperSwitch but our credit/audit step threw).
-- Pre-prod sanity check before flipping `HYPERSWITCH_ENABLED=true` on a new environment.
-- Rolling deposits back to Stripe after a HyperSwitch incident.
+- A user says "my card deposit succeeded but the balance never showed up". Either the webhook did not arrive, or the credit failed after the webhook was claimed.
+- An intent is in `completion_failed`. PR #1119 added this state for a payment that succeeded at HyperSwitch while our credit or audit step threw an exception.
+- You are checking a new environment before you set `HYPERSWITCH_ENABLED=true`.
+- You are moving deposits back to Stripe after a HyperSwitch incident.
 
-## Environment & credentials
+## Environment and credentials
 
-Required `.env` keys (see `config/hyperswitch.php`):
+These `.env` keys are required. `config/hyperswitch.php` reads them.
 
 ```ini
 HYPERSWITCH_ENABLED=true                          # off by default; Stripe is the default rail
@@ -23,29 +23,29 @@ HYPERSWITCH_PROFILE_ID=<business profile id>
 HYPERSWITCH_RETURN_URL=https://<domain>/wallet    # falls back to url('/wallet') when empty
 ```
 
-`php artisan ops:verify-env` gates these at deploy time: with `HYPERSWITCH_ENABLED=true` it FAILs when `HYPERSWITCH_API_KEY` or `HYPERSWITCH_WEBHOOK_SECRET` is empty (with the flag off the check reports SKIP and Stripe stays the rail).
+`php artisan ops:verify-env` checks these keys at deploy time. With `HYPERSWITCH_ENABLED=true`, it reports FAIL when `HYPERSWITCH_API_KEY` or `HYPERSWITCH_WEBHOOK_SECRET` is empty. With the flag off, the check reports SKIP and Stripe stays the rail.
 
-**Webhook signature**: HMAC-SHA512 over the raw body, sent in the `x-webhook-signature-512` header, verified with `hash_equals`. An empty `HYPERSWITCH_WEBHOOK_SECRET` **fails closed in production** (every webhook 401s, logged as `HyperSwitch: HYPERSWITCH_WEBHOOK_SECRET not set in production`) and passes open in non-production environments.
+**Webhook signature.** HyperSwitch signs the raw body with HMAC-SHA512 and sends the signature in the `x-webhook-signature-512` header. The controller compares it with `hash_equals`. An empty `HYPERSWITCH_WEBHOOK_SECRET` **fails closed** in every environment except `local` and `testing`, including staging and demo. Every webhook then gets 401, and the log says `HyperSwitch: HYPERSWITCH_WEBHOOK_SECRET is not set; webhook refused`. Only `local` and `testing` accept unsigned webhooks.
 
 ## HyperSwitch dashboard configuration
 
-Point the webhook at (on the `api.` subdomain the `/api` prefix is dropped):
+Point the webhook at this URL. On the `api.` subdomain the `/api` prefix is dropped.
 
 ```
 https://<your-domain>/api/webhooks/hyperswitch
 ```
 
-Route: `routes/api.php` → `HyperSwitchWebhookController::handle`. Handled event types: `payment_succeeded`, `payment_failed` (both mutate state), `payment_processing`, `refund_succeeded`, `refund_failed`, `dispute_opened` (log-only today — refunds and disputes are NOT automated; reconcile manually).
+The route in `routes/api.php` calls `HyperSwitchWebhookController::handle`. Two event types change state, `payment_succeeded` and `payment_failed`. The handler only logs `payment_processing`, `refund_succeeded`, `refund_failed` and `dispute_opened`. Refunds and disputes are not automated, so you reconcile them by hand.
 
 ## How a deposit flows
 
-1. `DepositController::store` validates `amount` (1–10,000) + `currency` (USD/EUR/GBP), converts to integer minor units via `bcmul` (never float), and — when `config('hyperswitch.enabled')` — calls `HyperSwitchPaymentService::startDeposit`. The JSON response shape matches the Stripe path, plus `processor: hyperswitch`.
-2. `startDeposit` (payment-first, so a failed HyperSwitch API call leaves nothing dangling):
-   - creates the HyperSwitch payment (`deposit_uuid` round-trips in payment metadata so the webhook can correlate),
-   - initiates the `PaymentDepositAggregate`,
-   - writes a `hyperswitch_deposit_intents` row (`status = pending`, amount/currency/account captured at creation). The intent lives on the **central/default connection**, not the tenant connection.
-3. The client confirms the payment with HyperSwitch; `DepositController::confirm` is a no-op on this rail (deposits complete asynchronously via the webhook).
-4. `payment_succeeded` webhook credits the account and completes the aggregate (next section).
+1. `DepositController::store` validates `amount` (1 to 10,000) and `currency` (USD, EUR or GBP). It converts the amount to integer minor units with `bcmul` and never uses a float. When `config('hyperswitch.enabled')` is true, it calls `HyperSwitchPaymentService::startDeposit`. The JSON response has the same shape as on the Stripe path, plus `processor: hyperswitch`.
+2. `startDeposit` creates the payment first, so a failed HyperSwitch call leaves nothing behind. It takes three steps.
+   - It creates the HyperSwitch payment. The `deposit_uuid` travels in the payment metadata, so the webhook can match it later.
+   - It starts the `PaymentDepositAggregate`.
+   - It writes a `hyperswitch_deposit_intents` row with `status = pending` and records the amount, currency and account at creation. The intent lives on the **central default connection**, not on the tenant connection.
+3. The client confirms the payment with HyperSwitch. `DepositController::confirm` does nothing on this rail, because the deposit completes later through the webhook.
+4. The `payment_succeeded` webhook credits the account and completes the aggregate, as the next sections explain.
 
 ## Intent lifecycle
 
@@ -56,41 +56,42 @@ pending ──(payment_succeeded claim)──▶ processing ──▶ completed
    └──(payment_failed)──▶ failed
 ```
 
-Statuses on `App\Domain\Payment\Models\HyperSwitchDepositIntent`:
+`App\Domain\Payment\Models\HyperSwitchDepositIntent` has these statuses:
 
 | Status | Meaning |
 |---|---|
-| `pending` | Intent recorded; awaiting the webhook |
-| `processing` | A webhook claimed the intent; tenant-side credit + completion in flight |
-| `completed` | Credit applied AND deposit aggregate completed |
-| `failed` | HyperSwitch reported `payment_failed`; aggregate fail-marked, no credit |
-| `completion_failed` | Payment **succeeded** at HyperSwitch, claim committed, but the credit or the aggregate persist **threw**. Failures are never disguised as completed (PR #1119) — this state exists precisely so you can find them |
+| `pending` | The intent is recorded and waits for the webhook. |
+| `processing` | A webhook claimed the intent, and the credit and completion on the tenant side are running. |
+| `completed` | The credit was applied and the deposit aggregate was completed. |
+| `failed` | HyperSwitch reported `payment_failed`. The aggregate is marked failed and nothing is credited. |
+| `completion_failed` | The payment **succeeded** at HyperSwitch and the claim was committed, but the credit or the aggregate persist **threw**. Failures are never disguised as completed (PR #1119). This state exists so that you can find them. |
+| `reconciled` | An operator settled a `completion_failed` case by hand and marked it in the admin panel. |
 
 ## Webhook idempotency model
 
-`payment_succeeded` processing is two-phase by design (multi-connection deadlock rule from CLAUDE.md — never one transaction spanning the default + tenant connections):
+`payment_succeeded` is processed in two phases on purpose. The multi-connection rule in `CLAUDE.md` forbids one transaction that spans the default and tenant connections, because it would deadlock.
 
-1. **Claim transaction (default connection)**: `processed_webhook_events` `firstOrCreate(provider='hyperswitch', event_id)` — a replayed `event_id` is a no-op. When HyperSwitch omits `event_id`, the dedupe key falls back to `hs_succeeded_<payment_id>` / `hs_failed_<payment_id>`. The intent row is read under `lockForUpdate` and must be `pending`; it is flipped to `processing` inside this transaction, which gates concurrent webhooks for the same payment (two *different* event_ids for one payment still credit exactly once — the second blocks on the row lock, then reads non-pending and bails).
-2. **Credit + audit (tenant connection, after the claim committed)**: `AccountCreditService::credit` (row-locked transaction on the balance's own connection, integer minor units, amount **from the stored intent, never the webhook payload** — a tampered-amount payload changes nothing), then `PaymentDepositAggregate::completeDeposit` persist, then intent → `completed`. Credit-first is deliberate: a persist failure leaves a reconcilable audit gap, never lost money.
+1. **The claim runs in a transaction on the default connection.** `processed_webhook_events` runs `firstOrCreate(provider='hyperswitch', event_id)`, so a replayed `event_id` does nothing. When HyperSwitch leaves out `event_id`, the key falls back to `hs_succeeded_<payment_id>` or `hs_failed_<payment_id>`. The intent row is read with `lockForUpdate` and must be `pending`. The transaction changes it to `processing`, which stops concurrent webhooks for the same payment. Two *different* event ids for one payment still credit exactly once, because the second waits for the row lock, then reads a status that is no longer pending and stops.
+2. **The credit and audit run on the tenant connection after the claim is committed.** `AccountCreditService::credit` runs a row-locked transaction on the balance's own connection in integer minor units. The amount comes **from the stored intent, never from the webhook payload**, so a payload with a changed amount has no effect. Then the `PaymentDepositAggregate::completeDeposit` event is persisted, and the intent becomes `completed`. The credit runs first on purpose. If the persist fails, the result is a gap in the audit trail that can be reconciled, never lost money.
 
-If step 2 throws: intent → `completion_failed`, `Log::error('HyperSwitch: deposit completion failed after claim — intent marked completion_failed', …)`, and the endpoint still returns 200 (the dedupe row is already committed; a HyperSwitch retry would be a no-op — recovery is on the operator, not the provider).
+If step 2 throws, the intent becomes `completion_failed` and the log gets `Log::error('HyperSwitch: deposit completion failed after claim — intent marked completion_failed', …)`. The endpoint still returns 200. The dedupe row is already committed, so a HyperSwitch retry would do nothing, and recovery is the operator's job, not the provider's.
 
 ## Reconciling `completion_failed`
 
-Find them:
+Find the affected intents:
 
 ```sql
 SELECT * FROM hyperswitch_deposit_intents WHERE status = 'completion_failed';
 ```
 
-Then per intent:
+Then work through each intent.
 
-1. **Read the error.** Grep logs for `deposit completion failed after claim` with the `payment_id`. The exception message tells you which step threw.
-2. **Determine whether the credit landed** (credit runs before the aggregate persist):
-   - Exception points at the credit (e.g. an `account_balances` insert / FK violation, SQLSTATE 1452) → **credit did NOT land**. Re-run both steps.
-   - Exception points at the event-store persist / projectors → **credit DID land**. Only complete the aggregate; do **NOT** re-credit (double-credit risk).
-3. **Confirm the dedupe row** in `processed_webhook_events` (`provider='hyperswitch'`) exists for the event — it should; that's why a webhook retry won't fix this for you.
-4. **Manual re-credit / completion** from tinker:
+1. **Read the error.** Search the logs for `deposit completion failed after claim` with the `payment_id`. The exception message tells you which step threw.
+2. **Decide whether the credit landed.** The credit runs before the aggregate persist.
+   - If the exception points at the credit, for example an `account_balances` insert or a foreign key violation with SQLSTATE 1452, the **credit did not land**. Run both steps again.
+   - If the exception points at the event store persist or the projectors, the **credit did land**. Only complete the aggregate. Do **not** credit again, because that would credit twice.
+3. **Confirm the dedupe row.** `processed_webhook_events` should have a row with `provider='hyperswitch'` for the event. That row is the reason a webhook retry will not fix this for you.
+4. **Credit and complete by hand** from tinker:
    ```php
    php artisan tinker
    >>> $i = \App\Domain\Payment\Models\HyperSwitchDepositIntent::where('hyperswitch_payment_id', '<payment_id>')->first();
@@ -100,35 +101,37 @@ Then per intent:
    >>> \App\Domain\Payment\Aggregates\PaymentDepositAggregate::retrieve($i->deposit_uuid)->completeDeposit('hs_' . $i->hyperswitch_payment_id)->persist();
    >>> $i->update(['status' => \App\Domain\Payment\Models\HyperSwitchDepositIntent::STATUS_COMPLETED]);
    ```
-5. **Verify**: the user's `account_balances` row for the intent's currency reflects the amount, and the intent reads `completed`.
+5. **Verify the result.** The user's `account_balances` row for the intent's currency should show the amount, and the intent should read `completed`.
 
-### The `account_balances` FK pitfall
+The admin panel lists the intents under Payments, filtered to `completion_failed` by default. Its "Mark reconciled" action sets the status to `reconciled` and records a note, the operator and the time. The action does not move money. Use it only after you have checked the balance and the deposit aggregate by hand, for example when you settled the case with a refund instead of a credit.
 
-`account_balances.asset_code` has a foreign key to `assets.code`. `AccountCreditService` creates the balance row on first credit for a currency — if the asset (e.g. `EUR`) is not seeded in `assets`, the insert dies with SQLSTATE 1452 and the intent lands in `completion_failed`. This exact failure mode hid behind a swallowed catch ("balance null") during the wire-up; it is now loud. Fix: seed the asset, then re-run step 4. (MultiConnection tests must seed the asset for the same reason.)
+### The `account_balances` foreign key pitfall
 
-## Kill switch / rollback to Stripe
+`account_balances.asset_code` has a foreign key to `assets.code`. `AccountCreditService` creates the balance row on the first credit in a currency. If that asset, for example `EUR`, is not seeded in `assets`, the insert fails with SQLSTATE 1452 and the intent ends in `completion_failed`. During the wire-up this failure hid behind a caught exception that only reported "balance null". It is now reported loudly. Seed the asset and then run step 4 again. The MultiConnection tests must seed the asset for the same reason.
+
+## Switching off HyperSwitch and going back to Stripe
 
 ```ini
 HYPERSWITCH_ENABLED=false
 ```
 
-then `php artisan config:cache` (if config is cached) and restart workers. Effects:
+Then run `php artisan config:cache` if the configuration is cached, and restart the workers. This has three effects.
 
-- New card deposits immediately route through the Stripe path in `DepositController` — no code change, same response shape.
-- The webhook route stays registered and the handlers do **not** check the flag, so in-flight HyperSwitch deposits (intents still `pending`) complete normally when their webhooks arrive. Do not delete pending intents during rollback.
-- Sweep `completion_failed` + stale `pending` intents (pending for hours = webhook never arrived; check the HyperSwitch dashboard delivery log, or `HyperSwitchPaymentService::getPaymentStatus($paymentId)` from tinker) before considering the rollback done.
+- New card deposits go through the Stripe path in `DepositController` at once. No code change is needed, and the response shape stays the same.
+- The webhook route stays registered, and the handlers do **not** check the flag. HyperSwitch deposits in flight, whose intents are still `pending`, therefore complete normally when their webhooks arrive. Do not delete pending intents during a rollback.
+- Before you call the rollback done, sweep the `completion_failed` intents and the stale `pending` ones. An intent that has been pending for hours means the webhook never arrived. Check the delivery log in the HyperSwitch dashboard, or call `HyperSwitchPaymentService::getPaymentStatus($paymentId)` from tinker.
 
 ## Not yet wired
 
-Routing-intelligence/analytics, connector management UI, refund/dispute automation. `HyperSwitchPaymentService::refund()` and `listConnectors()` exist but nothing calls them — refunds are a manual dashboard operation today, and the webhook only logs `refund_*`/`dispute_opened`.
+Routing intelligence, analytics, a connector management screen and refund and dispute automation are not wired. `HyperSwitchPaymentService::refund()` and `listConnectors()` exist, but nothing calls them. Refunds are a manual operation in the HyperSwitch dashboard, and the webhook only logs `refund_*` and `dispute_opened`.
 
 ## Files referenced
 
-- `app/Domain/Payment/Services/HyperSwitch/HyperSwitchPaymentService.php` — orchestration (`startDeposit`, `getPaymentStatus`, `refund`)
-- `app/Domain/Payment/Services/HyperSwitch/HyperSwitchClient.php` — REST wrapper
-- `app/Domain/Payment/Models/HyperSwitchDepositIntent.php` — intent + statuses
-- `app/Domain/Account/Services/AccountCreditService.php` — tenant-connection balance credit
-- `app/Http/Controllers/DepositController.php` — opt-in routing branch
-- `app/Http/Controllers/Api/Webhook/HyperSwitchWebhookController.php` — webhook claim + credit
-- `config/hyperswitch.php`
-- `tests/MultiConnection/` — deadlock + asset-FK regression coverage
+- `app/Domain/Payment/Services/HyperSwitch/HyperSwitchPaymentService.php` orchestrates the rail with `startDeposit`, `getPaymentStatus` and `refund`.
+- `app/Domain/Payment/Services/HyperSwitch/HyperSwitchClient.php` wraps the REST API.
+- `app/Domain/Payment/Models/HyperSwitchDepositIntent.php` holds the intent and its statuses.
+- `app/Domain/Account/Services/AccountCreditService.php` credits the balance on the tenant connection.
+- `app/Http/Controllers/DepositController.php` contains the opt-in routing branch.
+- `app/Http/Controllers/Api/Webhook/HyperSwitchWebhookController.php` claims the webhook and credits the account.
+- `config/hyperswitch.php` holds the configuration.
+- `tests/MultiConnection/` covers the deadlock and the asset foreign key regressions.

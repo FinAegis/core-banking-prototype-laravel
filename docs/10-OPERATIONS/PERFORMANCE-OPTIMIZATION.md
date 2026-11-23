@@ -2,9 +2,11 @@
 
 ## Overview
 
-This guide provides comprehensive performance optimization strategies for the FinAegis platform based on load testing results and production experience.
+This guide explains how to measure and tune the performance of a FinAegis deployment. It covers the load test commands, the CI performance jobs and common optimizations for the database, cache, queues and web server.
 
 ## Performance Targets
+
+These numbers are targets to tune a deployment against. They are not measured results.
 
 ### API Response Times
 - **Account Creation**: < 100ms
@@ -42,25 +44,22 @@ php artisan test:compare-benchmarks \
   --threshold=5
 ```
 
+`test:load --benchmark` saves its results to `storage/app/benchmarks/load-test-<timestamp>.json`. The repository has no `baseline.json`. Copy a run you trust to that name to use it as the baseline. Without a second file argument, `test:compare-benchmarks` compares against the latest run. The default regression threshold is 10 percent.
+
 ### Continuous Performance Monitoring
 
-Performance tests run automatically:
-- On every pull request affecting core code
-- Daily at 2 AM UTC on main branch
-- On-demand via GitHub Actions
+The CI pipeline (`.github/workflows/ci-pipeline.yml`) runs the performance workflow `05-performance.yml` on every push and pull request to `main` and `develop`, and on manual dispatch. There is no daily scheduled run. The workflow runs `./vendor/bin/pest tests/Performance`, Apache Bench checks against `php artisan serve` and an advisory k6 load test from `tests/k6/`.
 
 ## Optimization Strategies
 
 ### 1. Database Optimization
 
 #### Indexing Strategy
+The migrations already create the main lookup indexes. `stored_events` and `transactions` have a unique index on `(aggregate_uuid, aggregate_version)`. `account_balances` has a unique index on `(account_uuid, asset_code)`, and `exchange_rates` has one on `(from_asset_code, to_asset_code, valid_at)`. Add more indexes only for slow queries you have measured, for example:
+
 ```sql
--- Critical indexes for performance
-CREATE INDEX idx_accounts_user_active ON accounts(user_uuid, is_active);
-CREATE INDEX idx_balances_account_asset ON account_balances(account_uuid, asset_code);
-CREATE INDEX idx_events_aggregate_sequence ON stored_events(aggregate_uuid, aggregate_version);
-CREATE INDEX idx_transactions_created ON transactions(created_at DESC);
-CREATE INDEX idx_exchange_rates_lookup ON exchange_rates(from_asset, to_asset, created_at DESC);
+-- Example; check EXPLAIN output first
+CREATE INDEX idx_transactions_created ON transactions(created_at);
 ```
 
 #### Query Optimization
@@ -88,10 +87,8 @@ $accounts = Account::with(['balances' => function ($query) {
         PDO::ATTR_PERSISTENT => true,
         PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true,
     ],
-    'pool' => [
-        'min' => 10,
-        'max' => 100,
-    ],
+    // Laravel's MySQL driver has no connection pool setting.
+    // Use persistent connections, Octane, or a proxy such as ProxySQL.
 ],
 ```
 
@@ -156,26 +153,24 @@ Cache::tags(["user:{$userId}"])->flush();
     'after_commit' => true,
 ],
 
-// Separate queues by priority
-'queues' => [
-    'critical' => ['weight' => 100],
-    'transactions' => ['weight' => 50],
-    'webhooks' => ['weight' => 30],
-    'default' => ['weight' => 10],
+// Queues the workers must cover (config/queue.php managed_queues)
+'managed_queues' => [
+    'default', 'events', 'ledger', 'transactions', 'transfers',
+    'liquidity_pools', 'mobile', 'broadcasts', 'webhooks',
+    'fraud-batch', 'exchange', 'proofs',
 ],
 ```
 
 #### Worker Optimization
 ```bash
-# High-performance worker configuration
+# Worker for the money-moving queues (run several processes under Supervisor)
 php artisan queue:work redis \
-  --queue=critical,transactions,webhooks,default \
+  --queue=transfers,transactions,ledger,events \
   --tries=3 \
   --max-jobs=1000 \
   --max-time=3600 \
   --memory=512 \
-  --sleep=0.1 \
-  --workers=auto
+  --sleep=1
 ```
 
 ### 4. API Optimization
@@ -331,6 +326,9 @@ gzip_min_length 1000;
 ## Monitoring and Alerting
 
 ### Performance Metrics
+
+The app exports its own metrics at `/api/monitoring/prometheus` (see [MONITORING/monitoring.md](MONITORING/monitoring.md)). The class below is an illustration of sending timings to an external StatsD service. It is not part of the codebase.
+
 ```php
 // Track key metrics
 class PerformanceMonitor
@@ -353,6 +351,9 @@ class PerformanceMonitor
 ```
 
 ### Health Checks
+
+The app already has `/api/monitoring/health`, `/api/monitoring/ready` and `/api/monitoring/alive`. The sample below shows the pattern.
+
 ```php
 // Comprehensive health check endpoint
 public function health()
@@ -418,12 +419,12 @@ public function health()
 
 ## Best Practices
 
-1. **Measure First**: Always benchmark before optimizing
-2. **Cache Aggressively**: But invalidate intelligently
-3. **Optimize Queries**: Use explain plans and query profiling
-4. **Monitor Continuously**: Set up alerts for performance degradation
-5. **Load Test Regularly**: Include in CI/CD pipeline
-6. **Document Changes**: Track what optimizations were made and why
+1. Measure before you optimize.
+2. Cache results that are read often, and clear the cache when the data changes.
+3. Use `EXPLAIN` and query profiling to tune queries.
+4. Set up alerts for slower response times.
+5. Run load tests regularly as part of CI.
+6. Record which optimizations you made and why.
 
 ## Tools and Resources
 

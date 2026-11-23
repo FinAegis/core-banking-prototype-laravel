@@ -1,22 +1,22 @@
-# Reviewer / Demo Account Operator Runbook
+# Reviewer and Demo Account Operator Runbook
 
-Operator-only runbook for provisioning scoped demo accounts used by external reviewers (Apple/Google app review, partner demos, internal QA personas). Paired with the security model at `docs/security/account-flags.md`.
+This runbook is for operators. It explains how to provision limited demo accounts for external reviewers, such as Apple and Google app review, partner demos and internal QA personas. The security model behind these accounts is in `docs/security/account-flags.md`.
 
-## When to use
+## When to use it
 
-- App-store review cycles (Apple App Review, Google Play review) where the reviewer cannot complete live KYC or device attestation.
-- Partner demo access for sales or integration walkthroughs against production infrastructure.
-- Internal QA personas that need a realistic seeded account.
+- An app-store review cycle needs an account, because the Apple or Google reviewer cannot complete a live identity check or device attestation.
+- A partner needs demo access for a sales or integration walkthrough on production infrastructure.
+- Internal QA needs a persona with a realistic seeded account.
 
-This is **not** for customer-support impersonation, "login as user" debugging, or any situation where a real user already owns the account. Use the Filament admin audit tools for those flows instead.
+Do **not** use it for customer-support impersonation, for "login as user" debugging or for any account that a real user already owns. Use the audit tools in the Filament admin panel for those cases.
 
 ## Pre-flight checklist
 
-- [ ] You (the operator) have the `admin` Spatie role — `php artisan user:admins` lists the set.
-- [ ] You know the target environment (`local`, `staging`, `production`) and have explicit approval if it is production.
+- [ ] You, the operator, have the `admin` Spatie role. `php artisan user:admins` lists the admins.
+- [ ] You know the target environment (`local`, `staging` or `production`), and you have explicit approval if it is production.
 - [ ] A 1Password vault is open and ready to receive the generated credentials.
-- [ ] The mobile / app / partner team has given you the exact email the reviewer will use.
-- [ ] An expiry date is agreed in advance (default 60 days, hard cap 90 days).
+- [ ] The mobile, app or partner team has given you the exact email the reviewer will use.
+- [ ] An expiry date is agreed in advance. The default is 60 days and the hard cap is 90 days.
 
 ## Provisioning
 
@@ -30,9 +30,9 @@ php artisan account:provision-reviewer \
 #   --allow-production
 ```
 
-The account display name is hardcoded to `App Reviewer`. Additional flags: `--password=…` (rotate an existing account), `--region=US`, `--rotate-password`, `--force-convert` (blocked in production), `--dry-run`.
+The account's display name is always `App Reviewer`. The command has more options. `--password=…` sets a given password instead of a generated one, and `--region` sets the reviewer region (default `US`). `--rotate-password` rotates only the password and skips reseeding. `--force-convert` converts a user that is not a review account and is blocked in production. `--dry-run` prints the intended changes and writes nothing.
 
-Expected JSON output shape:
+The JSON output looks like this:
 
 ```json
 {
@@ -58,21 +58,21 @@ Expected JSON output shape:
 }
 ```
 
-The `mobile_token` field is only present when `--issue-mobile-token` is passed (see "Issuing a mobile reviewer token" below). Without that flag, the key is omitted entirely.
+The `mobile_token` field appears only when you pass `--issue-mobile-token`, as the next section explains. Without that option the key is left out completely.
 
-Re-running the command with the same `--email` is idempotent — `"password": "unchanged"` is emitted instead when no password rotation was requested.
+Running the command again with the same `--email` is idempotent. When you did not ask for a new password, the output says `"password": "unchanged"`.
 
-Copy the full JSON into a new 1Password item titled `reviewer:<email>`; share the vault entry with the mobile team. **Never paste the password (or `mobile_token`) into email, Slack, Linear, Jira, or commit logs.** Both are displayed once and not recoverable.
+Copy the whole JSON into a new 1Password item titled `reviewer:<email>`, and share the vault entry with the mobile team. **Never paste the password or the `mobile_token` into email, Slack, Linear, Jira or commit logs.** Both are shown once and cannot be recovered.
 
 ## Issuing a mobile reviewer token
 
 ### Why this exists
 
-Mobile went Privy-OTP-only on the login screen in v7.12.0. Email + password login is no longer reachable in shipped builds — Privy delivers the OTP, but reviewer emails use the RFC 2606 `.invalid` TLD by policy and never receive mail. App-store reviewers (Apple App Review, Google Play review) therefore cannot complete sign-in unless we hand them a long-lived credential that bypasses OTP.
+Since v7.12.0 the mobile login screen accepts only the Privy email code. Login with email and password is no longer reachable in shipped builds. Privy sends the code by email, but by policy reviewer emails use the RFC 2606 `.invalid` domain and never receive mail. App-store reviewers therefore cannot sign in unless we give them a long-lived credential that skips the code.
 
 ### How it works
 
-The `--issue-mobile-token` flag mints a Sanctum personal-access token (`reviewer-mobile`, abilities `read,write,delete`) with an expiry equal to the reviewer flag's `expires_at`, hard-capped at 90 days. The reviewer pastes the token into a hidden "Reviewer access" gesture on the mobile login screen; the app stores it like any other access token. Mobile owns the gesture; ops owns the token issuance and revocation.
+The `--issue-mobile-token` option creates a Sanctum personal access token named `reviewer-mobile` with the abilities `read,write,delete`. It expires when the reviewer flag's `expires_at` expires, and never later than 90 days. The reviewer pastes the token into a hidden "Reviewer access" gesture on the mobile login screen, and the app stores it like any other access token. The mobile team owns the gesture, and operations owns issuing and revoking the token.
 
 ### Command
 
@@ -87,7 +87,7 @@ php artisan account:provision-reviewer \
 #   --allow-production
 ```
 
-The output adds a `mobile_token` field:
+The output then includes a `mobile_token` field:
 
 ```json
 {
@@ -101,15 +101,15 @@ The output adds a `mobile_token` field:
 }
 ```
 
-Use `--dry-run --issue-mobile-token` to preview without writing — the field renders as `"mobile_token": "(would-be-issued)"`.
+Use `--dry-run --issue-mobile-token` to preview the result without writing anything. The field then shows `"mobile_token": "(would-be-issued)"`.
 
 ### Storage rule
 
-Same as the password: paste into the 1Password item titled `reviewer:<email>`, share the vault entry with the mobile team, never log/Slack/email/commit it. The plaintext token is displayed once and not recoverable.
+Treat the token like the password. Paste it into the 1Password item titled `reviewer:<email>` and share the vault entry with the mobile team. Never log it, post it in Slack, email it or commit it. The plaintext token is shown once and cannot be recovered.
 
 ### Revoking the token
 
-`account:disable-reviewer --email=<email>` revokes the `reviewer-mobile` token alongside the bypasses, atomically. Confirm the line `revoked-tokens: 1` in the output.
+`account:disable-reviewer --email=<email>` revokes the `reviewer-mobile` token together with the bypasses in one step. Check that the output contains the line `revoked-tokens: 1`.
 
 ```bash
 php artisan account:disable-reviewer \
@@ -119,14 +119,14 @@ php artisan account:disable-reviewer \
 # revoked-tokens: 1
 ```
 
-The `--all-expired` sweep does the same per row and reports a total: `Sweep complete. disabled={n} failed={m} tokens-revoked={k}`.
+The `--all-expired` sweep does the same for each expired account and reports a total, `Sweep complete. disabled={n} failed={m} tokens-revoked={k}`.
 
-`--re-enable` deliberately does NOT mint a new token. If the cycle re-opens, run `account:provision-reviewer --rotate-password --issue-mobile-token` to issue a fresh one.
+`--re-enable` deliberately does not create a new token. If a review cycle opens again, run `account:provision-reviewer --rotate-password --issue-mobile-token` to issue a fresh one.
 
 ### Limitations
 
-- The token lives in `personal_access_tokens` and is **not** bound to a device. If it leaks before the cycle ends, run `account:disable-reviewer --email=<email>` immediately to revoke.
-- The reviewer email uses the RFC 2606 `.invalid` TLD — operators do **not** need a real mailbox for the reviewer. The token is the only credential the reviewer ever needs.
+- The token lives in `personal_access_tokens` and is **not** bound to a device. If it leaks before the cycle ends, revoke it at once with `account:disable-reviewer --email=<email>`.
+- The reviewer email uses the RFC 2606 `.invalid` domain, so operators do **not** need a real mailbox for the reviewer. The token is the only credential the reviewer needs.
 
 ## Listing and audit
 
@@ -138,78 +138,83 @@ php artisan account:list-reviewers --json       # machine-readable
 Sample table output:
 
 ```
-+-------+--------------------------------+------------+---------------------+---------------------+----------+
-| id    | email                          | operator   | created_at          | expires_at          | disabled |
-+-------+--------------------------------+------------+---------------------+---------------------+----------+
-| 187   | appreview-2026-q2@...          | ops-admin  | 2026-04-24 12:00:00 | 2026-06-23 12:00:00 |          |
-| 165   | demo-vertex-sms@...            | ops-admin  | 2026-03-01 09:15:00 | 2026-04-30 09:15:00 | Y        |
-+-------+--------------------------------+------------+---------------------+---------------------+----------+
++-----------------------+--------+------------+---------------------------+---------------+-------------------------------------+
+| Email                 | Active | Expires    | Disabled                  | Operator      | Note                                |
++-----------------------+--------+------------+---------------------------+---------------+-------------------------------------+
+| appreview-2026-q2@... | yes    | 2026-06-23 | —                         | ops-admin@... | Apple App Review 2026-Q2 submission |
+| demo-vertex-sms@...   | no     | 2026-04-30 | 2026-04-30T00:10:02+00:00 | ops-admin@... | VertexSMS partner demo              |
++-----------------------+--------+------------+---------------------------+---------------+-------------------------------------+
 ```
 
-Master query for auditors: `SELECT * FROM account_flags WHERE is_review_account = 1`.
+The JSON output has the same fields for each account: `email`, `active`, `expires_at`, `disabled_at`, `operator` and `note`.
 
-## Disable / re-enable
+Auditors can list every review account with `SELECT * FROM account_flags WHERE is_review_account = 1`.
 
-When a review cycle ends:
+## Disable and re-enable
+
+When a review cycle ends, disable the account. `--operator-email` is required with `--email` and with `--re-enable`, and not with `--all-expired`. In production, also add `--allow-production`.
 
 ```bash
-php artisan account:disable-reviewer --email=appreview-2026-q2@example-reviewer.invalid
+php artisan account:disable-reviewer --email=appreview-2026-q2@example-reviewer.invalid --operator-email=ops-admin@finaegis.com
 php artisan account:disable-reviewer --all-expired     # bulk sweep
-php artisan account:disable-reviewer --email=X --re-enable   # if the cycle re-opens
+php artisan account:disable-reviewer --email=X --re-enable --operator-email=ops-admin@finaegis.com   # if the cycle re-opens
 ```
 
-Disable sets `account_flags.disabled_at = now()` and short-circuits every bypass check. The individual `bypass_*` columns and `is_review_account = true` are **preserved** so the historical audit trail stays intact. Re-enable clears `disabled_at` without re-running the provisioning profile — the seeded wallet, card, cert, and rewards remain exactly as they were.
+Disabling sets `account_flags.disabled_at = now()`, and every bypass check then stops early. The individual `bypass_*` columns and `is_review_account = true` are **kept**, so the audit history stays complete. Re-enabling clears `disabled_at` without running the provisioning profile again. The seeded wallet, card, certificate and rewards stay exactly as they were.
 
 ## Purge
 
 ```bash
-php artisan account:purge-reviewer --email=X --confirm
+php artisan account:purge-reviewer --email=X --operator-email=ops-admin@finaegis.com --confirm
+# production only, append:
+#   --allow-production
 ```
 
-Purge in this codebase means:
+In this codebase a purge does four things.
 
-- `AccountFlag.disabled_at = now()` (short-circuits all bypasses)
-- `User.email` is anonymized to `purged+<uuid>@finaegis.invalid`
-- `AccountPurged` domain event is dispatched
+- It disables the account, which sets `AccountFlag.disabled_at = now()` and stops every bypass.
+- It replaces `User.email` with an anonymous address of the form `purged-<id>-<random>@example.invalid`.
+- It replaces the password with a random one.
+- It dispatches the `AccountPurged` domain event.
 
-The User row is **not** dropped. The User model does not use `SoftDeletes`, so the audit trail and referential integrity with cards, certs, and balances are preserved. For full GDPR Article 17 erasure, follow `docs/15-ADMINISTRATION/` erasure flow — do not extend this command.
+The user row is **not** deleted. The User model does not use `SoftDeletes`, so keeping the row preserves the audit trail and the links to cards, certificates and balances. For a full GDPR Article 17 erasure, use the platform's account deletion flow (`POST /api/compliance/gdpr/delete`) instead of extending this command.
 
 ## Expiry sweep
 
-A daily scheduled job defined in `routes/console.php` runs at **00:10 UTC**:
+`routes/console.php` schedules a daily job at **00:10 UTC**:
 
 ```bash
 php artisan account:disable-reviewer --all-expired
 ```
 
-Logs land at `storage/logs/account-expiry-sweep.log`. Verify the sweep ran this morning:
+The scheduled job adds `--allow-production`, because it runs as the system and not as a human operator. Its log is `storage/logs/account-expiry-sweep.log`. To check that the sweep ran this morning:
 
 ```bash
 tail -n 50 storage/logs/account-expiry-sweep.log
 php artisan schedule:list | grep account:disable-reviewer
 ```
 
-If the sweep is missing for >36h, check the Laravel scheduler / cron wiring and the `laravel.schedule` Horizon supervisor.
+If the sweep has not run for more than 36 hours, check the Laravel scheduler and its cron entry (`php artisan schedule:run` every minute).
 
 ## Incident response
 
-Symptom: alert fires on `bypass.fired` log volume spike (>100 events/min from one account).
+The trigger is an alert on a spike of `bypass.fired` log lines, more than 100 events a minute from one account.
 
 1. Identify the account:
    ```bash
    grep '"bypass.fired"' storage/logs/laravel.log | jq 'select(.user_id == <ID>)' | head
    ```
-2. Force-disable in under 60s:
+2. Disable it within 60 seconds:
    ```bash
-   php artisan account:disable-reviewer --email=<email>
+   php artisan account:disable-reviewer --email=<email> --operator-email=<your-admin-email>
    ```
-3. Confirm `account_flags.disabled_at` is populated; confirm next `bypass.fired` is absent within 30s.
-4. Escalate: on-call security engineer → head of platform → incident channel. Attach the `bypass.fired` log slice and the `account:list-reviewers --json` snapshot.
+3. Check that `account_flags.disabled_at` is filled in, and that no new `bypass.fired` line appears within 30 seconds.
+4. Escalate to the on-call security engineer, then the head of platform, then the incident channel. Attach the slice of `bypass.fired` log lines and a snapshot of `account:list-reviewers --json`.
 
-## Limitations (v1)
+## Limitations of the first version
 
-- `bypass_sms_otp` is **reserved** — this codebase has no dedicated SMS OTP flow (phone verification runs via Ondato KYC, already covered by `kyc_override_level`). The column exists so future SMS OTP work can plug in without a migration.
-- No Filament admin UI in v1 — all operations are CLI.
-- Single-tenant provisioning only; multi-tenant reviewer accounts are out of scope for v1.
-- No automated 1Password delivery — operators copy/paste manually.
-- Reviewer emails use RFC 2606 reserved TLDs (`.invalid`, `.example`, `.test`) by policy — operators do **not** need a real mailbox; the password and (when issued) `mobile_token` are the only credentials needed.
+- `bypass_sms_otp` is **reserved**. The codebase has no separate SMS code flow, because phone verification runs through the Ondato identity check, which `kyc_override_level` already covers. The column exists so that future SMS code work can use it without a migration.
+- There is no Filament admin screen in this version. Every operation runs on the command line.
+- Provisioning works for a single tenant only. Reviewer accounts across several tenants are out of scope for this version.
+- 1Password delivery is not automated. Operators copy and paste the credentials by hand.
+- By policy, reviewer emails use RFC 2606 reserved domains (`.invalid`, `.example` and `.test`). Operators do **not** need a real mailbox. The password and, when issued, the `mobile_token` are the only credentials needed.

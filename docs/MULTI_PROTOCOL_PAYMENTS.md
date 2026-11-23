@@ -1,5 +1,7 @@
 # Multi-Protocol Payment Architecture
 
+FinAegis supports three protocols for payments by AI agents. x402 and the Machine Payments Protocol (MPP) carry payments. The Agent Payments Protocol (AP2) authorises them and then hands the payment to x402 or MPP. See [MACHINE_PAYMENTS_PROTOCOL.md](MACHINE_PAYMENTS_PROTOCOL.md) and [AP2_MANDATES.md](AP2_MANDATES.md) for details.
+
 ## Protocol Comparison
 
 | Feature | x402 | MPP | AP2 |
@@ -7,7 +9,7 @@
 | **Type** | Payment protocol | Payment protocol | Authorization protocol |
 | **Maintained by** | Coinbase | Stripe + Tempo | Google |
 | **HTTP mechanism** | Custom headers | Standard HTTP auth | A2A extension |
-| **Payment rails** | USDC on EVM | Stripe, Tempo, Lightning, Card | Wraps x402 + MPP |
+| **Payment rails** | USDC on EVM and Solana | Stripe, Tempo, Lightning, Card | Wraps x402 + MPP |
 | **Fiat support** | No | Yes (Stripe, Card) | Via wrapped methods |
 | **MCP binding** | No | Yes (-32042) | Via A2A |
 | **Human presence** | Not required | Not required | Both modes |
@@ -46,7 +48,7 @@ Agent needs to pay for a service?
 
 ## Configuration
 
-All three protocols are independently toggleable:
+Each protocol can be switched on or off on its own. x402 and MPP are both off by default (`X402_ENABLED=false`, `MPP_ENABLED=false`). Both production templates, `.env.production.example` and `.env.zelta.example`, switch x402 on.
 
 ```env
 # x402 (USDC payments)

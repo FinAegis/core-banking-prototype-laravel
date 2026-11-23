@@ -1,6 +1,6 @@
 # Partner Onboarding Checklist
 
-This checklist covers the end-to-end process for onboarding a new partner to the Zelta payment-protocol SDK and API. Target timeline: 14 days from kickoff to production traffic.
+This checklist covers the whole process of onboarding a new partner to the Zelta payment SDK and API. The target is 14 days from kickoff to production traffic.
 
 For technical details, see [Partner Integration Guide](PARTNER_INTEGRATION_GUIDE.md).
 
@@ -8,24 +8,17 @@ For technical details, see [Partner Integration Guide](PARTNER_INTEGRATION_GUIDE
 
 ## Phase 1: Technical Setup (Day 1-3)
 
-- [ ] Partner receives API credentials (test + production keys)
+- [ ] Partner receives API credentials for testing and for production (API keys start with `fak_`)
 - [ ] Partner installs Zelta SDK v1.0.0 (`composer require finaegis/payment-sdk`)
-- [ ] Partner configures `PaymentConfig` with sandbox base URL and test API key
-- [ ] Partner configures webhook endpoint (HTTPS, publicly accessible)
-- [ ] Partner completes first sandbox test transaction (GET request with 402 auto-pay)
-- [ ] HMAC-SHA256 webhook signature verification confirmed working
-- [ ] Partner can decode and log all webhook event types
+- [ ] Partner configures `PaymentConfig` with the test base URL and test API key
+- [ ] Partner completes a first test transaction (GET request with 402 auto-pay)
+- [ ] If an administrator set up a webhook for the partner: HMAC-SHA256 signature verification of `X-Webhook-Signature` confirmed working
 
 ## Phase 2: Integration (Day 3-7)
 
 - [ ] Partner implements end-to-end payment flow in their product
 - [ ] Partner selects payment protocol(s): x402, MPP, or AutoDetect (both)
-- [ ] Partner handles all webhook event types:
-  - [ ] `payment.completed`
-  - [ ] `payment.failed`
-  - [ ] `payment.refunded`
-  - [ ] `subscription.created`
-  - [ ] `subscription.cancelled`
+- [ ] Partner reads the payment outcome from the SDK's `PaymentResult` (there are no payment webhook events for x402 or MPP payments)
 - [ ] Partner implements idempotency keys for all payment-initiating requests
 - [ ] Error handling tested for:
   - [ ] Network timeouts
@@ -34,7 +27,7 @@ For technical details, see [Partner Integration Guide](PARTNER_INTEGRATION_GUIDE
   - [ ] Payment failures (`PaymentFailedException`)
   - [ ] Missing payment handler (`PaymentRequiredException`)
 - [ ] Rate limit handling implemented with exponential backoff
-- [ ] Retry logic tested (including webhook delivery failures)
+- [ ] Retry logic tested
 
 ## Phase 3: Compliance (Day 7-10)
 
@@ -47,12 +40,11 @@ For technical details, see [Partner Integration Guide](PARTNER_INTEGRATION_GUIDE
 
 ## Phase 4: Go-Live (Day 10-14)
 
-- [ ] Production API credentials issued (`zk_live_` prefix)
+- [ ] Production API credentials issued
 - [ ] Production base URL configured (`https://api.zelta.app`)
 - [ ] DNS configured for production endpoints (if using custom subdomain)
 - [ ] Monitoring and alerting configured:
   - [ ] Payment failure rate alerts (threshold: > 1%)
-  - [ ] Webhook delivery failure alerts
   - [ ] API response time degradation alerts
 - [ ] Runbook for payment incident handling documented
 - [ ] Production test transaction completed end-to-end
@@ -67,7 +59,6 @@ For technical details, see [Partner Integration Guide](PARTNER_INTEGRATION_GUIDE
   - [ ] Transaction volume
   - [ ] Success rate
   - [ ] Average payment completion time
-  - [ ] Webhook delivery rate
 - [ ] Error rate confirmed below 1% threshold
 - [ ] Payment reconciliation verified (amounts match between partner records and rail-provider reports)
 - [ ] Partner success contact assigned for ongoing support
@@ -76,13 +67,13 @@ For technical details, see [Partner Integration Guide](PARTNER_INTEGRATION_GUIDE
 
 ---
 
-## Internal FinAegis Tasks
+## Internal Zelta Tasks
 
-These are completed by the FinAegis partnerships team (not the partner):
+The Zelta partnerships team completes these tasks, not the partner.
 
 - [ ] Partner record created in CRM
 - [ ] API key pair generated and securely delivered
-- [ ] Webhook secret generated and securely delivered
+- [ ] If the agreement includes a webhook: webhook created by a platform administrator and its secret securely delivered
 - [ ] Partner added to status page notification list
 - [ ] Production rate limits configured per agreement
 - [ ] Billing/revenue share terms finalized

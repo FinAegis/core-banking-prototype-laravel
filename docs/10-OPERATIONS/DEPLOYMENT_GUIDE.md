@@ -1,6 +1,8 @@
 # Deployment Guide
 
-This guide covers deploying FinAegis in various environments, from local development to production Kubernetes clusters.
+> FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
+
+This guide explains how to deploy FinAegis, from a local Docker setup to a Kubernetes cluster. It describes the files that ship in this repository: `docker-compose.yml`, `docker/Dockerfile`, the Helm chart in `helm/finaegis` and the environment templates. The release described here is v7.18.1.
 
 ## Table of Contents
 
@@ -9,51 +11,61 @@ This guide covers deploying FinAegis in various environments, from local develop
 3. [Docker Deployment](#docker-deployment)
 4. [Kubernetes Deployment](#kubernetes-deployment)
 5. [Database Setup](#database-setup)
-6. [Queue Workers](#queue-workers)
-7. [Scaling Considerations](#scaling-considerations)
-8. [Health Checks](#health-checks)
-9. [Troubleshooting](#troubleshooting)
+6. [Queue Workers and Scheduler](#queue-workers-and-scheduler)
+7. [Deploying a Release](#deploying-a-release)
+8. [Scaling Considerations](#scaling-considerations)
+9. [Health Checks](#health-checks)
+10. [Troubleshooting](#troubleshooting)
 
 ---
 
 ## Prerequisites
 
-### System Requirements
+### System requirements
 
 | Component | Minimum | Recommended |
 |-----------|---------|-------------|
 | CPU | 2 cores | 4+ cores |
 | Memory | 4 GB | 8+ GB |
 | Storage | 20 GB | 100+ GB SSD |
-| PHP | 8.4+ | 8.4+ |
-| MySQL | 8.0+ | 8.0+ |
-| Redis | 6.0+ | 7.0+ |
-| Node.js | 18+ | 20+ |
+| PHP | 8.4 | 8.4 |
+| Database | MySQL 8.0 or MariaDB | MariaDB 11.4 |
+| Redis | 6.0 | 7.0 |
+| Node.js | 20.19 | 22 |
 
-### Required Services
+CI runs the test suite on MySQL 8.0 and on MariaDB 11.4. The production templates use MariaDB (`DB_CONNECTION=mariadb`). Node.js is needed only to build the frontend assets, and Vite 8 requires Node.js 20.19 or newer.
 
-- **Database**: MySQL 8.0+ or PostgreSQL 13+
-- **Cache/Queue**: Redis 6.0+
-- **Search** (optional): Meilisearch
-- **Object Storage** (optional): S3-compatible
+### Services
+
+- **Database.** MySQL 8.0 or MariaDB.
+- **Cache, queues and sessions.** Redis.
+- **Search (optional).** Laravel Scout uses Meilisearch by default (`SCOUT_DRIVER`).
+- **Object storage (optional).** Any S3-compatible store.
 
 ---
 
 ## Environment Configuration
 
-### Environment Variables
+### Choosing a template
 
-Create `.env` from the appropriate template:
+The repository has several `.env` templates. Pick the one that matches the deployment.
+
+| Template | Use it for |
+|----------|------------|
+| `.env.production.example` | A general production deployment of FinAegis. |
+| `.env.zelta.example` | The hosted Zelta mobile wallet. It switches off the standards and demo modules and lists every key that Zelta needs, including the card and wallet send settings. |
+| `.env.demo` | A demo deployment. `APP_ENV=demo` turns on demo mode. |
+| `.env.example` | Local development. |
 
 ```bash
-# For production
-cp .env.example .env
+# For a production deployment
+cp .env.production.example .env
 
 # For demo/development
 cp .env.demo .env
 ```
 
-### Critical Configuration
+### Critical configuration
 
 ```env
 # Application
@@ -62,7 +74,7 @@ APP_DEBUG=false
 APP_URL=https://your-domain.com
 
 # Database
-DB_CONNECTION=mysql
+DB_CONNECTION=mariadb
 DB_HOST=your-db-host
 DB_PORT=3306
 DB_DATABASE=finaegis
@@ -82,7 +94,7 @@ SESSION_DRIVER=redis
 SESSION_LIFETIME=120
 
 # Cache
-CACHE_DRIVER=redis
+CACHE_STORE=redis
 
 # Mail
 MAIL_MAILER=smtp
@@ -93,134 +105,41 @@ SANCTUM_STATEFUL_DOMAINS=your-domain.com
 SESSION_DOMAIN=.your-domain.com
 ```
 
-### Environment Modes
+### Environments
 
-| Mode | `APP_ENV_MODE` | Use Case |
-|------|----------------|----------|
-| Demo | `demo` | Demonstrations, learning |
-| Sandbox | `sandbox` | Integration testing |
-| Production | `production` | Real transactions |
+`APP_ENV` decides how the platform behaves.
+
+| `APP_ENV` | Use case |
+|-----------|----------|
+| `local` | Development on your own machine. |
+| `demo` | Demonstrations and learning. Demo mode uses simulated deposits, banks, blockchains and exchange rates, which the `DEMO_*` keys in `.env.demo` control. |
+| `staging` | Integration testing before production. |
+| `production` | A live deployment. Production guards are on, for example `ops:verify-env` blocks a deploy on any FAIL. |
+
+### Switches that change what a deployment offers
+
+Several settings decide which features are live. Check them before every production deploy.
+
+| Setting | What it does |
+|---------|--------------|
+| `MODULES_DISABLED` | Switches off whole domain modules. `.env.zelta.example` switches off Banking, Basket, Cgo, CrossChain, DeFi, FinancialInstitution, Governance, ISO20022, ISO8583, Interledger, Ledger, Lending, Microfinance, OpenBanking, PaymentRails, Stablecoin and Treasury. |
+| `TRADING_ENABLED` | Turns the demo trading engine on or off, including order books and liquidity pools. It defaults to on only when `APP_ENV` is `local`, `testing` or `demo`. |
+| `SHOW_PROMO_PAGES` | Shows the feature and promotional pages. Production templates set it to `false`. |
+| `ADMIN_MODULES` | Limits which admin panel groups are visible. |
+| `CARD_PROVIDERS_ENABLED` | Lists the card providers that may be offered. Empty means cards are off. With `lepo`, only the users in `CARD_PROVIDER_LEPO_PILOT_USERS` get cards while `CARD_PROVIDER_LEPO_PILOT_ONLY=true`. |
+| `CARD_TOPUPS_ENABLED` | Turns on topping up a card from the wallet. It stays `false` until the card partner confirms how the money moves. |
+| `HYPERSWITCH_ENABLED` | Turns on the experimental HyperSwitch rail for card deposits. It is off by default, and Stripe stays the deposit rail. |
+| `WALLET_SEND_EVM_NETWORKS` | Lists the EVM networks for sponsored wallet sends. The default is `polygon,base,arbitrum`. |
+
+The [runbooks](../operations/) explain the settings for the ramp, deposits, subscriptions, wallet sponsorship and RAILGUN.
 
 ---
 
 ## Docker Deployment
 
-### Docker Compose (Development)
+### Docker Compose for development
 
-```yaml
-# docker-compose.yml
-version: '3.8'
-
-services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    environment:
-      - APP_ENV=local
-      - DB_HOST=mysql
-      - REDIS_HOST=redis
-    volumes:
-      - .:/var/www/html
-    depends_on:
-      - mysql
-      - redis
-
-  mysql:
-    image: mysql:8.0
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: finaegis
-      MYSQL_USER: finaegis
-      MYSQL_PASSWORD: password
-    volumes:
-      - mysql_data:/var/lib/mysql
-    ports:
-      - "3306:3306"
-
-  redis:
-    image: redis:7-alpine
-    command: redis-server --requirepass password
-    ports:
-      - "6379:6379"
-
-  horizon:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: php artisan horizon
-    environment:
-      - APP_ENV=local
-      - DB_HOST=mysql
-      - REDIS_HOST=redis
-    depends_on:
-      - mysql
-      - redis
-      - app
-
-volumes:
-  mysql_data:
-```
-
-### Dockerfile
-
-```dockerfile
-# Dockerfile
-FROM php:8.4-fpm-alpine
-
-# Install dependencies
-RUN apk add --no-cache \
-    nginx \
-    supervisor \
-    nodejs \
-    npm \
-    git \
-    zip \
-    unzip \
-    libpng-dev \
-    libzip-dev \
-    icu-dev \
-    oniguruma-dev
-
-# Install PHP extensions
-RUN docker-php-ext-install \
-    pdo_mysql \
-    mbstring \
-    zip \
-    pcntl \
-    bcmath \
-    intl \
-    gd
-
-# Install Redis extension
-RUN pecl install redis && docker-php-ext-enable redis
-
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Set working directory
-WORKDIR /var/www/html
-
-# Copy application
-COPY . .
-
-# Install dependencies
-RUN composer install --no-dev --optimize-autoloader
-RUN npm ci && npm run build
-
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-
-# Expose port
-EXPOSE 8000
-
-# Start command
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
-```
-
-### Build and Run
+The repository's `docker-compose.yml` starts four services. `app` is built from `docker/Dockerfile` and listens on port 8000. `mysql` runs MySQL 8.0, `redis` runs Redis 7 and `mailpit` catches outgoing mail on ports 8025 and 1025. The app waits until MySQL and Redis report healthy. `docker-compose.websocket.yml` adds a Soketi WebSocket server.
 
 ```bash
 # Build images
@@ -236,210 +155,53 @@ docker-compose exec app php artisan migrate --seed
 docker-compose logs -f app
 ```
 
+### The production image
+
+`docker/Dockerfile` is a multi-stage build. It installs the PHP dependencies with Composer 2.8 and builds the frontend assets with Node.js 22. The final stage runs on `php:8.4-fpm-alpine`, exposes port 80 and starts nginx and PHP-FPM under supervisord. Its health check calls `/api/monitoring/alive`.
+
+The same file has two more targets. The `horizon` target runs `php artisan horizon`, and the `scheduler` target runs the Laravel scheduler.
+
+```bash
+docker build -f docker/Dockerfile --target production -t finaegis/core-banking:latest .
+docker build -f docker/Dockerfile --target horizon -t finaegis/core-banking-horizon:latest .
+docker build -f docker/Dockerfile --target scheduler -t finaegis/core-banking-scheduler:latest .
+```
+
 ---
 
 ## Kubernetes Deployment
 
-### Namespace and ConfigMap
-
-```yaml
-# k8s/namespace.yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: finaegis
-
----
-# k8s/configmap.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: finaegis-config
-  namespace: finaegis
-data:
-  APP_ENV: "production"
-  APP_DEBUG: "false"
-  LOG_CHANNEL: "stderr"
-  QUEUE_CONNECTION: "redis"
-  CACHE_DRIVER: "redis"
-  SESSION_DRIVER: "redis"
-```
-
-### Secrets
-
-```yaml
-# k8s/secrets.yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: finaegis-secrets
-  namespace: finaegis
-type: Opaque
-stringData:
-  APP_KEY: "base64:your-app-key-here"
-  DB_PASSWORD: "your-db-password"
-  REDIS_PASSWORD: "your-redis-password"
-```
-
-### Deployment
-
-```yaml
-# k8s/deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: finaegis-app
-  namespace: finaegis
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: finaegis
-  template:
-    metadata:
-      labels:
-        app: finaegis
-    spec:
-      containers:
-        - name: app
-          image: finaegis/core-banking:latest
-          ports:
-            - containerPort: 8000
-          envFrom:
-            - configMapRef:
-                name: finaegis-config
-            - secretRef:
-                name: finaegis-secrets
-          resources:
-            requests:
-              memory: "512Mi"
-              cpu: "250m"
-            limits:
-              memory: "1Gi"
-              cpu: "1000m"
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8000
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8000
-            initialDelaySeconds: 5
-            periodSeconds: 5
-```
-
-### Service and Ingress
-
-```yaml
-# k8s/service.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: finaegis-service
-  namespace: finaegis
-spec:
-  selector:
-    app: finaegis
-  ports:
-    - port: 80
-      targetPort: 8000
-  type: ClusterIP
-
----
-# k8s/ingress.yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: finaegis-ingress
-  namespace: finaegis
-  annotations:
-    kubernetes.io/ingress.class: nginx
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-spec:
-  tls:
-    - hosts:
-        - finaegis.example.com
-      secretName: finaegis-tls
-  rules:
-    - host: finaegis.example.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: finaegis-service
-                port:
-                  number: 80
-```
-
-### Horizon Worker
-
-```yaml
-# k8s/horizon.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: finaegis-horizon
-  namespace: finaegis
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: finaegis-horizon
-  template:
-    metadata:
-      labels:
-        app: finaegis-horizon
-    spec:
-      containers:
-        - name: horizon
-          image: finaegis/core-banking:latest
-          command: ["php", "artisan", "horizon"]
-          envFrom:
-            - configMapRef:
-                name: finaegis-config
-            - secretRef:
-                name: finaegis-secrets
-          resources:
-            requests:
-              memory: "256Mi"
-              cpu: "100m"
-            limits:
-              memory: "512Mi"
-              cpu: "500m"
-```
-
-### Deploy to Kubernetes
+The Helm chart in `helm/finaegis` deploys the platform to Kubernetes. It has separate deployments for the web pods, Horizon and the scheduler. It also has a config map, autoscalers for the web pods and for Horizon, a pod disruption budget, an ingress, network policies, a Prometheus `ServiceMonitor` and Istio resources. Secrets can come from a secret store through External Secrets. `values-production.yaml` turns this on and reads from a Vault store.
 
 ```bash
-# Create namespace and configs
-kubectl apply -f k8s/namespace.yaml
-kubectl apply -f k8s/configmap.yaml
-kubectl apply -f k8s/secrets.yaml
+# Add Bitnami repo for dependencies
+helm repo add bitnami https://charts.bitnami.com/bitnami
 
-# Deploy application
-kubectl apply -f k8s/deployment.yaml
-kubectl apply -f k8s/service.yaml
-kubectl apply -f k8s/ingress.yaml
-kubectl apply -f k8s/horizon.yaml
+# Install with staging values
+helm upgrade --install finaegis ./helm/finaegis \
+  --values ./helm/finaegis/values-staging.yaml \
+  --namespace finaegis-staging \
+  --create-namespace
 
-# Run migrations (one-time)
-kubectl exec -it deployment/finaegis-app -n finaegis -- php artisan migrate --force
+# Install with production values
+helm upgrade --install finaegis ./helm/finaegis \
+  --values ./helm/finaegis/values-production.yaml \
+  --namespace finaegis
+
+# Run migrations (one-time per release)
+kubectl exec -it deployment/finaegis-web -n finaegis -- php artisan migrate --force
 
 # Check status
 kubectl get pods -n finaegis
-kubectl get services -n finaegis
 ```
+
+The image comes from `image.repository` and `image.tag` in `values.yaml`, which default to `finaegis/core-banking:latest`. Pin a release tag in production. The liveness probe calls `/api/monitoring/alive`, and the readiness probe calls `/api/monitoring/ready`. Check the deployment names in your release with `kubectl get deployments -n finaegis`, because they depend on the Helm release name.
 
 ---
 
 ## Database Setup
 
-### Initial Setup
+### Initial setup
 
 ```bash
 # Create database
@@ -451,20 +213,25 @@ mysql -u root -p -e "GRANT ALL PRIVILEGES ON finaegis.* TO 'finaegis'@'%';"
 mysql -u root -p -e "FLUSH PRIVILEGES;"
 ```
 
-### Run Migrations
+### Run migrations
 
 ```bash
 # Run all migrations
 php artisan migrate --force
 
-# Seed initial data
-php artisan db:seed --class=ProductionSeeder
-
-# Seed GCU basket
-php artisan db:seed --class=GCUBasketSeeder
+# Seed the base data
+php artisan db:seed --force
 ```
 
-### Backup Strategy
+`db:seed` runs `DatabaseSeeder`. It creates the roles, assets, stablecoins, the GCU demo basket, the settings and the rewards catalogue. It creates no users. For a demo deployment, `php artisan demo:populate` also creates the demo users.
+
+On a deployment that uses separate tenant databases, also run `php artisan tenants:migrate` after `migrate`.
+
+### Backups
+
+In production the scheduler runs `backup:run --only-db` every day at 01:30 UTC and `backup:clean` at 02:30 UTC. `BACKUP_DISK` sets where the dumps go, and both production templates still ship with `BACKUP_DISK=local`. In production, `ops:verify-env` fails and blocks the deploy when the local disk is the only destination, because the dumps would never leave the server. Set `BACKUP_DISK=s3` with the bucket credentials and test a restore at least once.
+
+A plain `mysqldump` also works as an extra copy:
 
 ```bash
 # Daily backup script
@@ -478,34 +245,28 @@ aws s3 cp backup_$DATE.sql.gz s3://your-bucket/backups/
 
 ---
 
-## Queue Workers
+## Queue Workers and Scheduler
 
-### Horizon Configuration
+### Horizon
 
-```php
-// config/horizon.php
-'environments' => [
-    'production' => [
-        'supervisor-1' => [
-            'maxProcesses' => 10,
-            'balanceMaxShift' => 1,
-            'balanceCooldown' => 3,
-        ],
-    ],
-],
-```
+Run the queue workers through Horizon. `config/horizon.php` defines four supervisors for production.
 
-### Queue Priority
+| Supervisor | Queues |
+|------------|--------|
+| `supervisor-1` | `default`, `webhooks`, `fraud-batch`, `exchange`, `proofs` |
+| `event-sourcing-supervisor-1` | `events`, `ledger`, `transactions`, `transfers`, `liquidity_pools` |
+| `broadcasts-supervisor` | `broadcasts` |
+| `mobile-supervisor` | `mobile` |
 
 ```bash
 # Start Horizon (recommended)
 php artisan horizon
 
-# Or manual workers
-php artisan queue:work --queue=events,ledger,transactions,transfers,webhooks
+# Or run plain workers for the same queues
+php artisan queue:work --queue=default,webhooks,fraud-batch,exchange,proofs,events,ledger,transactions,transfers,liquidity_pools,broadcasts,mobile
 ```
 
-### Supervisor Configuration
+### Supervisor configuration on a plain server
 
 ```ini
 # /etc/supervisor/conf.d/horizon.conf
@@ -520,51 +281,62 @@ stdout_logfile=/var/log/horizon.log
 stopwaitsecs=3600
 ```
 
+### Scheduler
+
+Many jobs run on the Laravel scheduler, which `routes/console.php` defines. Examples are the wallet send confirmation polls every minute, the card top-up pipeline every minute, the revenue outbox sweep every five minutes, the Solana sponsor balance check every hour and the reviewer account expiry sweep at 00:10 UTC. Run the scheduler every minute from cron, or use the `scheduler` image target.
+
+```cron
+* * * * * cd /var/www/html && php artisan schedule:run >> /dev/null 2>&1
+```
+
+---
+
+## Deploying a Release
+
+### Preflight check
+
+`php artisan ops:verify-env` checks the environment before a deploy. It covers peppers, bypass flags, webhook credentials, the Apple root certificate pin, the card provider keys and more. It exits with 1 when a check FAILs. FAIL results block only in production, unless you pass `--strict`. Add `--json` for machine-readable output.
+
+The GitHub deploy workflow (`.github/workflows/deploy.yml`) runs `ops:verify-env` while the site is still in maintenance mode, before it runs the migrations.
+
+### Steps for a release
+
+These are the upgrade steps from the v7.18.0 release notes. v7.18.1 adds no migrations and no new settings, so the same steps apply. The [changelog](../../CHANGELOG.md) lists the steps for each release in its "Upgrade" section.
+
+```bash
+php artisan down
+composer install --no-dev --optimize-autoloader
+npm ci && npm run build
+php artisan ops:verify-env
+php artisan migrate --force
+php artisan tenants:migrate          # only with separate tenant databases
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan event:cache
+php artisan horizon:terminate        # Horizon restarts the workers with the new code
+# With plain queue:work workers under Supervisor (etc/supervisor.conf), run instead:
+# php artisan queue:restart
+php artisan up
+```
+
+v7.18.0 adds eight migrations, plus two tenant migrations on a multi-database tenancy setup. Cards stay off until `CARD_PROVIDERS_ENABLED=lepo` is set together with the Lepo keys, and top-ups stay off until `CARD_TOPUPS_ENABLED=true`. `.env.zelta.example` lists every new key.
+
 ---
 
 ## Scaling Considerations
 
-### Horizontal Scaling
+### Horizontal scaling
 
-```yaml
-# Horizontal Pod Autoscaler
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: finaegis-hpa
-  namespace: finaegis
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: finaegis-app
-  minReplicas: 3
-  maxReplicas: 10
-  metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: 70
-```
+The Helm chart includes horizontal pod autoscalers. The web pods scale on CPU and memory. Horizon also scales on queue depth through the external metric `redis_queue_jobs_pending`. `values-production.yaml` sets the replica counts and the limits.
 
-### Database Read Replicas
+### Database read replicas
 
-```env
-# Primary for writes
-DB_HOST=primary.db.example.com
+Laravel can send reads to a replica. Configure the `read` and `write` hosts of the connection in `config/database.php`.
 
-# Read replicas for queries
-DB_HOST_READ=replica.db.example.com
-```
+### Redis cluster
 
-### Redis Cluster
-
-```env
-REDIS_CLUSTER=redis
-REDIS_HOST=redis-cluster.example.com
-```
+`REDIS_CLUSTER` selects the Redis cluster mode (default `redis`).
 
 ---
 
@@ -574,43 +346,27 @@ REDIS_HOST=redis-cluster.example.com
 
 | Endpoint | Purpose |
 |----------|---------|
-| `/health` | Basic health check |
-| `/health/db` | Database connectivity |
-| `/health/redis` | Redis connectivity |
-| `/health/queue` | Queue health |
-
-### Implementation
-
-```php
-// routes/web.php
-Route::get('/health', function () {
-    return response()->json(['status' => 'ok']);
-});
-
-Route::get('/health/db', function () {
-    try {
-        DB::connection()->getPdo();
-        return response()->json(['status' => 'ok']);
-    } catch (\Exception $e) {
-        return response()->json(['status' => 'error'], 503);
-    }
-});
-```
+| `/api/monitoring/alive` | Liveness. The Docker health check and the Helm liveness probe use it. |
+| `/api/monitoring/ready` | Readiness. The Helm readiness probe uses it. |
+| `/api/monitoring/health` | A detailed health report. |
+| `/api/health` | A quick health check. |
+| `/up` | Laravel's built-in health route. |
 
 ---
 
 ## Troubleshooting
 
-### Common Issues
+### Common issues
 
 | Issue | Solution |
 |-------|----------|
-| 500 errors | Check `storage/logs/laravel.log` |
-| Queue not processing | Restart Horizon, check Redis connection |
-| Slow queries | Enable query logging, add indexes |
-| Memory issues | Increase PHP memory limit |
+| 500 errors | Check `storage/logs/laravel.log`. |
+| Queue not processing | Run `php artisan horizon:status`, restart Horizon and check the Redis connection. |
+| Deploy blocked by `ops:verify-env` | Read the FAIL lines, fix the named settings and run the command again. |
+| Slow queries | Turn on query logging and add indexes. |
+| Memory issues | Raise the PHP memory limit. |
 
-### Debug Commands
+### Debug commands
 
 ```bash
 # Clear all caches
@@ -618,6 +374,9 @@ php artisan optimize:clear
 
 # Check queue status
 php artisan horizon:status
+
+# Check the environment
+php artisan ops:verify-env
 
 # Tail logs
 tail -f storage/logs/laravel.log
@@ -632,4 +391,5 @@ php artisan tinker --execute="DB::connection()->getPdo()"
 
 - [SECURITY_AUDIT_CHECKLIST.md](SECURITY_AUDIT_CHECKLIST.md)
 - [OPERATIONAL_RUNBOOK.md](OPERATIONAL_RUNBOOK.md)
-- [CLAUDE.md](../../CLAUDE.md) - Development commands
+- [Runbooks for the hosted Zelta deployment](../operations/)
+- [Infrastructure guide](../06-DEVELOPMENT/INFRASTRUCTURE.md)

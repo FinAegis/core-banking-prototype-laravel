@@ -2,12 +2,14 @@
 
 ## Overview
 
-FinAegis includes an integration adapter for the Ondato identity-verification API (no partnership or endorsement implied), using a mobile SDK flow:
-1. **Backend** creates an identity verification session
-2. **Mobile SDK** captures documents/selfie using the returned `identityVerificationId`
-3. **Ondato** processes the verification
-4. **Webhooks** notify the backend of status changes
-5. **Backend** updates the user's KYC status
+FinAegis includes an integration adapter for the Ondato identity-verification API (no partnership or endorsement implied). The mobile app uses it through the Ondato SDK in five steps:
+1. The app starts a TrustCert application with `POST /api/v1/trustcert/applications`.
+2. The backend creates an Ondato identity verification session for that application.
+3. The Ondato mobile SDK captures the document and the selfie, using the returned `identity_verification_id`.
+4. Ondato processes the verification and notifies the backend through webhooks.
+5. The backend updates the user's Know Your Customer (KYC) status, which the app reads by polling.
+
+This is the Ondato KYC stored in `users.kyc_status`. The Bridge.xyz bank transfer KYC is a separate check, and its state lives in `bridge_customers.kyc_status`.
 
 ---
 
@@ -21,9 +23,11 @@ Authorization: Bearer <access_token>
 Content-Type: application/json
 ```
 
-**Request body** (all fields optional):
+**Request body**: `application_id` and `target_level` are required. `application_id` is the id of the user's open TrustCert application, and `target_level` is the trust level from 0 to 3. `first_name` and `last_name` are optional.
 ```json
 {
+  "application_id": "app_abc123",
+  "target_level": 2,
   "first_name": "John",
   "last_name": "Doe"
 }
@@ -32,15 +36,20 @@ Content-Type: application/json
 **Success response** (200):
 ```json
 {
-  "identity_verification_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "verification_id": "9c1a2b3d-4e5f-6789-abcd-ef0123456789",
-  "status": "pending"
+  "data": {
+    "identity_verification_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "verification_id": "9c1a2b3d-4e5f-6789-abcd-ef0123456789",
+    "status": "pending"
+  }
 }
 ```
 
 **Error responses:**
 - `400` — `{ "error": "KYC already approved" }` (user already verified)
+- `400` — `{ "error": "TrustCert application not found" }` (no open application with this id)
+- `400` — `{ "error": "TrustCert application is already approved" }` (or `cancelled`)
 - `401` — Unauthenticated
+- `422` — Validation error (missing `application_id` or `target_level`)
 - `500` — `{ "error": "Failed to start Ondato verification" }`
 
 ### 2. Check Verification Status
@@ -53,14 +62,17 @@ Authorization: Bearer <access_token>
 **Success response** (200):
 ```json
 {
-  "verification_id": "9c1a2b3d-4e5f-6789-abcd-ef0123456789",
-  "status": "completed",
-  "provider": "ondato",
-  "confidence_score": 95.00,
-  "failure_reason": null,
-  "completed_at": "2026-02-25T14:30:00+00:00"
+  "data": {
+    "verification_id": "9c1a2b3d-4e5f-6789-abcd-ef0123456789",
+    "status": "completed",
+    "completed_at": "2026-02-25T14:30:00+00:00",
+    "failure_reason": null,
+    "trust_cert_level": 2
+  }
 }
 ```
+
+`trust_cert_level` is 1 to 3 once the verification is completed, and `null` before that.
 
 **Status values:** `pending`, `in_progress`, `completed`, `failed`, `expired`
 
@@ -85,7 +97,7 @@ yarn add @ondato/ondato-sdk-react-native
 ```typescript
 import { OndatoSdk, OndatoEnvironment } from '@ondato/ondato-sdk-react-native';
 
-async function startKycVerification(accessToken: string) {
+async function startKycVerification(accessToken: string, applicationId: string, targetLevel: number) {
   // Step 1: Create session via your backend
   const response = await fetch(`${API_BASE_URL}/api/compliance/kyc/ondato/start`, {
     method: 'POST',
@@ -94,6 +106,8 @@ async function startKycVerification(accessToken: string) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
+      application_id: applicationId,
+      target_level: targetLevel,
       first_name: user.firstName,
       last_name: user.lastName,
     }),
@@ -104,7 +118,8 @@ async function startKycVerification(accessToken: string) {
     throw new Error(error.error || 'Failed to start verification');
   }
 
-  const { identity_verification_id, verification_id } = await response.json();
+  const { data } = await response.json();
+  const { identity_verification_id, verification_id } = data;
 
   // Step 2: Initialize Ondato SDK with the identity verification ID
   try {
@@ -147,7 +162,7 @@ async function pollVerificationStatus(
 
     if (!response.ok) throw new Error('Status check failed');
 
-    const result = await response.json();
+    const { data: result } = await response.json();
 
     // Terminal states — stop polling
     if (['completed', 'failed', 'expired'].includes(result.status)) {
@@ -162,12 +177,7 @@ async function pollVerificationStatus(
 }
 ```
 
-**Recommended polling strategy:**
-- Start polling after SDK `onComplete` callback
-- Poll every 2 seconds
-- Max 30 attempts (60 seconds)
-- Show a "Processing..." spinner during polling
-- Ondato typically processes within 5–30 seconds
+**Recommended polling strategy:** start polling after the SDK `onComplete` callback. Poll every 2 seconds, for at most 30 attempts (60 seconds), and show a "Processing..." spinner while polling. Ondato usually finishes within 5 to 30 seconds.
 
 ---
 
@@ -187,6 +197,7 @@ pending → expired                  (session timed out)
 | Scenario | What happens | Mobile action |
 |----------|-------------|---------------|
 | User already KYC approved | `POST /start` returns 400 | Show "Already verified" message |
+| No open TrustCert application | `POST /start` returns 400 | Start a TrustCert application first |
 | Ondato API unavailable | `POST /start` returns 500 | Show retry button |
 | SDK cancelled by user | SDK throws cancellation error | Return to KYC prompt |
 | Verification rejected | Status becomes `failed` with `failure_reason` | Show reason, offer retry |
@@ -204,21 +215,17 @@ pending → expired                  (session timed out)
 
 ### Environment Configuration
 
-The backend defaults to sandbox mode (`ONDATO_SANDBOX=true`). In sandbox:
-- API calls go to `https://sandbox-kycapi.ondato.com`
-- Webhook signature validation is relaxed (passthrough when no secret set)
-- Use Ondato sandbox credentials for SDK initialization
+The backend defaults to sandbox mode (`ONDATO_SANDBOX=true`). In sandbox mode the API calls go to `https://sandbox-kycapi.ondato.com`, and the SDK must be started with Ondato sandbox credentials.
+
+Webhooks are checked against the `X-Ondato-Signature` header, an HMAC-SHA256 of the raw body keyed by `ONDATO_WEBHOOK_SECRET`. Without a secret, unsigned webhooks are accepted only in sandbox mode and only when `APP_ENV` is `local` or `testing`. Every other environment, including staging and demo, rejects them, because a webhook can approve KYC.
 
 ### Test Scenarios
 
-Use Ondato's sandbox test documents:
-- **Approved flow:** Use a valid test document from Ondato's sandbox docs
-- **Rejected flow:** Use an expired or invalid test document
-- **Expired flow:** Start a session and wait for timeout
+Use Ondato's sandbox test documents. A valid test document from Ondato's sandbox documentation gives the approved flow. An expired or invalid test document gives the rejected flow. To test the expired flow, start a session and wait for it to time out.
 
 ### Webhook Testing
 
-Ondato sandbox sends real webhooks. Configure your webhook URL:
+The Ondato sandbox sends real webhooks. Point them at these URLs:
 ```
 POST https://your-ngrok-url.ngrok.io/api/webhooks/ondato/identity-verification
 POST https://your-ngrok-url.ngrok.io/api/webhooks/ondato/identification

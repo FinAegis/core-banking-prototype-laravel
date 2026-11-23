@@ -1,20 +1,16 @@
 # FinAegis Mobile Wallet - Technical Specification
 
-> **Version Context:** This specification was written for the v2.5.0 mobile app launch.
-> The FinAegis backend has since evolved to v5.0.0 with 41 domains, including significant
-> additions such as CrossChain, DeFi, RegTech, Event Streaming, GraphQL API, Plugin
-> Marketplace, and more. Mobile-relevant backend domains (Mobile, MobilePayment, Relayer,
-> Commerce, TrustCert, Privacy, KeyManagement) have all received further enhancements in
-> subsequent releases. See [CLAUDE.md](../CLAUDE.md) for the current version status and
-> full domain listing.
+> **Read this first (reviewed for v7.18.1, 2026-11-24).** This specification was written in February 2026 for the v2.5.0 mobile app launch. It is kept as the original design record. Many parts no longer describe how the backend works today. The current backend version is v7.18.1.
 >
-> **v7.12.0 Supersession (May 2026):** Mobile key management was migrated to Privy
-> embedded wallets — passkey-controlled smart accounts on EVM and device-bound ed25519 on
-> Solana. Sections referencing "Shamir's Secret Sharing", "2-of-3 threshold", or
-> "ShamirService.php" describe the legacy custodial architecture and no longer apply to
-> the mobile app. See the v7.12.0 entry in `docs/VERSION_ROADMAP.md` and the
-> `## Wallet Send` section in `CLAUDE.md` for the current flow. The KeyManagement domain
-> still ships Shamir for non-mobile use cases (institutional custody).
+> These are the main changes since the specification was written:
+>
+> - Since v7.12.0 the mobile wallet is non-custodial. Privy embedded wallets hold the keys, as passkey-controlled smart accounts on EVM and device-bound ed25519 keys on Solana. The device signs every transaction, and the backend never sees private key material. Sections about "Shamir's Secret Sharing", the "2-of-3 threshold" or `ShamirService.php` describe the old custodial design and no longer apply to the mobile app. The KeyManagement domain still ships Shamir for non-mobile uses such as institutional custody.
+> - Wallet send uses `POST /api/v1/wallet/transactions/prepare` and `POST /api/v1/wallet/transactions/submit`. `POST /api/auth/sign-userop`, `POST /api/v1/wallet/transactions/send` and the recovery shard backup endpoints were removed in v7.12.0. The send contract is summarised in [MOBILE_API_COMPATIBILITY.md](MOBILE_API_COMPATIBILITY.md).
+> - Privacy is moving to a non-custodial RAILGUN model in which the device generates its own proofs. The custodial privacy endpoints in sections 3.5 and 5.1.2, including delegated proving, return `501` in production. The current guide is [RAILGUN_MOBILE_INTEGRATION.md](RAILGUN_MOBILE_INTEGRATION.md).
+> - Virtual cards were built in v7.18.0 through Lepo Finance for a closed pilot. In production only the users on the pilot list can get a card, and adding money to a card stays off. The app uses `/api/v1/cards/issued`, not the provisioning design in sections 3.4 and 5.1.0. The OpenAPI document at `/api/documentation` describes the card endpoints under the Cards tag, and [FINCARD_MOBILE_INTEGRATION.md](FINCARD_MOBILE_INTEGRATION.md) covers the FinCard flow.
+> - `POST /api/v1/rewards/quests/{id}/complete` was removed in v7.13.0. Quests now complete automatically.
+>
+> The routes registered by the backend are the source of truth. The OpenAPI document at `/api/documentation` describes the request and response fields.
 
 **Version**: 1.4
 **Date**: February 2, 2026
@@ -25,7 +21,7 @@
 
 ## Executive Summary
 
-FinAegis Mobile is a next-generation embedded wallet application combining traditional banking convenience with blockchain-native privacy and compliance features. Powered by Privy embedded wallets — passkey-controlled smart accounts on EVM and device-bound ed25519 on Solana — it provides non-custodial key management with enterprise-grade security. Backend never sees private key material; the device signs every transaction.
+FinAegis Mobile is an embedded wallet app. It combines everyday banking features with blockchain privacy and compliance features. In production it runs as the Zelta wallet. Since v7.12.0 the keys are held in Privy embedded wallets, as passkey-controlled smart accounts on EVM and device-bound ed25519 keys on Solana. The wallet is non-custodial, so the backend never sees private key material and the device signs every transaction.
 
 ### Unique Value Propositions
 
@@ -50,7 +46,7 @@ FinAegis Mobile is a next-generation embedded wallet application combining tradi
 
 ### 1.2 Core Principles
 
-1. **Self-Custody First**: Users control their keys (Shamir sharding)
+1. **Self-Custody First**: Users control their keys (Privy embedded wallets since v7.12.0; the original design used Shamir sharding)
 2. **Privacy by Default**: Transactions private unless disclosure required
 3. **Compliance Ready**: Proof of Innocence, not surveillance
 4. **Regulatory Friendly**: Works with institutions, not against them
@@ -770,7 +766,7 @@ async function executePrivacyTransaction(
 
 ### 3.4 Card Issuance & Tokenization (planned)
 
-> **Status**: Virtual cards and adding cards to mobile wallets are planned, subject to card-issuing partner approval. This section is a design for a planned feature, not a description of a current one.
+> **Status**: This section is the original design for cards with push provisioning to Apple Pay and Google Pay. Push provisioning is still not built. Since v7.18.0, virtual cards are built through Lepo Finance for a closed pilot. In production only the users on the pilot list can get a card. Any card services will be provided by licensed third parties under their own terms. The OpenAPI document at `/api/documentation` describes the current card endpoints under the Cards tag.
 > **Requirement (planned)**: Users would be able to pay at retail shops with a virtual card funded from stablecoins.
 > **Implementation (planned)**: Just-In-Time (JIT) Funding via Virtual Card with Push Provisioning.
 
@@ -877,9 +873,14 @@ class JitFundingWebhookController
 
 | Issuer | Type | Features | Status |
 |--------|------|----------|--------|
-| **Marqeta** | Virtual/Physical | JIT funding, Webhooks, Apple/Google Pay | Planned |
-| **Lithic** | Virtual/Physical | API-first, Sandbox, Push provisioning | Planned |
-| **Stripe Issuing** | Virtual | Simple API, Stripe ecosystem | Planned |
+| **Lepo Finance** | Virtual | Provider-neutral card layer, 3-D Secure codes, wallet top-ups (built, switched off) | Closed pilot since v7.18.0, for listed users only |
+| **Marqeta** | Virtual/Physical | JIT funding, Webhooks, Apple/Google Pay | Adapter in code (`CARD_ISSUER=marqeta`) |
+| **Rain** | Virtual | JIT funding | Adapter class in code, not selectable through `CARD_ISSUER` |
+| **FinCard** | Virtual | Prefunded cards | Adapter in code (`CARD_ISSUER=fincard`) |
+| **Lithic** | Virtual/Physical | API-first, Sandbox, Push provisioning | Not built |
+| **Stripe Issuing** | Virtual | Simple API, Stripe ecosystem | Not built |
+
+*Named card providers are integration adapters for third-party APIs; no partnership or endorsement implied.*
 
 #### 3.4.5 Mobile Implementation
 
@@ -994,6 +995,8 @@ async function generatePrivacyProof(transaction: PrivacyTransaction): Promise<Zk
 
 #### 3.5.3 Delegated Proving (Fallback for Older Devices)
 
+> **Status (v7.18.1)**: Delegated proving is switched off in production and returns `501`. It will be removed when the non-custodial RAILGUN flow ships, because a server cannot generate the proof without holding the user's spending key. The non-custodial design has no server-side proving fallback. See [RAILGUN_MOBILE_INTEGRATION.md](RAILGUN_MOBILE_INTEGRATION.md).
+
 ```typescript
 // For devices that cannot generate proofs locally (< 4GB RAM)
 interface DelegatedProofRequest {
@@ -1005,7 +1008,7 @@ interface DelegatedProofRequest {
 // The server proves validity WITHOUT knowing the secret
 // Privacy preserved through homomorphic encryption
 async function requestDelegatedProof(params: DelegatedProofRequest): Promise<ZkProof> {
-  const response = await api.post('/api/privacy/delegated-proof', params);
+  const response = await api.post('/api/v1/privacy/delegated-proof', params);
   return response.proof;
 }
 ```
@@ -1442,9 +1445,11 @@ NetInfo.addEventListener(state => {
 
 ### 5.1 New Endpoints Required
 
+> **Status (v7.18.1)**: This section lists the endpoints the v2.5.0 design asked for. The paths were corrected in November 2026 to the routes the backend registers. The request and response fields are still the original design and may differ from the real ones, which are described in the OpenAPI document at `/api/documentation`. Endpoints that were never built are marked as such.
+
 #### 5.1.0 Card Issuance APIs (NEW - v2.5.0)
 
-> **Status**: Card issuance and mobile-wallet provisioning are planned, subject to card-issuing partner approval. These endpoints are integration scaffolding for a planned feature.
+> **Status**: These endpoints are the original card design. They are integration scaffolding, and push provisioning to mobile wallets is not built. The Lepo Finance pilot from v7.18.0 uses `/api/v1/cards/issued` instead, and in production only the users on the pilot list can get a card.
 
 ```yaml
 # Provision Virtual Card
@@ -1581,7 +1586,7 @@ async function verifyCredential(token: string) {
 
 ```yaml
 # Payment Request
-POST /api/commerce/payment-requests
+POST /api/v1/commerce/payment-requests
 Request:
   merchantId: string
   amount: string
@@ -1596,7 +1601,7 @@ Response:
   expiresAt: datetime
 
 # Execute Payment
-POST /api/commerce/payments
+POST /api/v1/commerce/payments
 Request:
   requestId: string
   fromAddress: string
@@ -1610,7 +1615,8 @@ Response:
   shieldedTxId?: string
 
 # Get Payment Status
-GET /api/commerce/payments/{paymentId}
+# Not built as designed. The registered route is GET /api/v1/commerce/payment-requests/{paymentId}.
+GET /api/v1/commerce/payment-requests/{paymentId}
 Response:
   paymentId: string
   status: string
@@ -1620,9 +1626,11 @@ Response:
 
 #### 5.1.2 Privacy Layer APIs
 
+> **Status (v7.18.1)**: `shield`, `unshield`, `transfer` and `proof-of-innocence` are custodial endpoints. They return `501` in production and stay reachable only outside production. See [RAILGUN_MOBILE_INTEGRATION.md](RAILGUN_MOBILE_INTEGRATION.md) for the non-custodial flow.
+
 ```yaml
 # Shield Funds (Deposit to Privacy Pool)
-POST /api/privacy/shield
+POST /api/v1/privacy/shield
 Request:
   token: string
   amount: string
@@ -1633,7 +1641,7 @@ Response:
   auditLogId: string
 
 # Unshield Funds (Withdraw from Privacy Pool)
-POST /api/privacy/unshield
+POST /api/v1/privacy/unshield
 Request:
   token: string
   amount: string
@@ -1645,7 +1653,7 @@ Response:
   status: string
 
 # Private Transfer
-POST /api/privacy/transfer
+POST /api/v1/privacy/transfer
 Request:
   token: string
   amount: string
@@ -1656,7 +1664,7 @@ Response:
   status: string
 
 # Get Shielded Balance
-GET /api/privacy/balance
+GET /api/v1/privacy/balances
 Response:
   balances:
     - token: string
@@ -1665,7 +1673,7 @@ Response:
       pendingUnshield: string
 
 # Generate Proof of Innocence
-POST /api/privacy/proof-of-innocence
+POST /api/v1/privacy/proof-of-innocence
 Request:
   proofType: 'SANCTIONS' | 'ORIGIN' | 'COMPLIANCE'
   sanctionsListVersion: string
@@ -1680,7 +1688,7 @@ Response:
 
 ```yaml
 # Start Certificate Application
-POST /api/trustcert/applications
+POST /api/v1/trustcert/applications
 Request:
   certType: string
   applicantType: 'INDIVIDUAL' | 'BUSINESS'
@@ -1691,7 +1699,7 @@ Response:
   fee: string
 
 # Upload Document
-POST /api/trustcert/applications/{id}/documents
+POST /api/v1/trustcert/applications/{id}/documents
 Request:
   documentType: string
   file: binary
@@ -1700,7 +1708,7 @@ Response:
   verificationStatus: 'pending' | 'verified' | 'rejected'
 
 # Get Application Status
-GET /api/trustcert/applications/{id}
+GET /api/v1/trustcert/applications/{id}
 Response:
   applicationId: string
   status: string
@@ -1710,7 +1718,9 @@ Response:
   estimatedCompletion: datetime
 
 # Get User Certificates
-GET /api/trustcert/certificates
+# Not built as designed. The current certificate is GET /api/v1/trustcert/current,
+# and GET /api/v1/trustcert/{certId}/certificate returns one certificate.
+GET /api/v1/trustcert/current
 Response:
   certificates:
     - tokenId: string
@@ -1721,7 +1731,9 @@ Response:
       onChainUrl: string
 
 # Generate Verification Proof
-POST /api/trustcert/certificates/{tokenId}/verify
+# Not built as designed. Use POST /api/v1/trustcert/{certificateId}/present (section 5.1.0c),
+# and the verifier calls GET /api/v1/trustcert/verify/{token}.
+POST /api/v1/trustcert/{certificateId}/present
 Request:
   proofRequest: object (what to prove)
 Response:
@@ -1730,6 +1742,7 @@ Response:
   verifiablePresentation: string
 
 # Revoke Certificate
+# Not built. There is no API route for revoking a certificate.
 DELETE /api/trustcert/certificates/{tokenId}
 Request:
   reason: string
@@ -1739,6 +1752,8 @@ Response:
 ```
 
 ### 5.2 WebSocket Channels (New)
+
+> **Status (v7.18.1)**: The channels below exist, but the backend broadcasts different event names from the ones in this design. For example, the privacy channel carries `privacy.operation.completed` and `privacy.balance_updated`, and the TrustCert channel carries `trustcert.status.changed`. The table in [MOBILE_API_COMPATIBILITY.md](MOBILE_API_COMPATIBILITY.md#websocket-channels-6) lists the events the backend broadcasts.
 
 ```yaml
 # Privacy Pool Events
@@ -2120,6 +2135,8 @@ Schema::create('certificate_applications', function (Blueprint $table) {
 
 ### 8.2 Compliance Requirements
 
+The table maps each requirement to the module that was designed to support it. These modules are readiness tooling. Using them does not make a deployment compliant, and no certification is held.
+
 | Regulation | Requirement | Implementation |
 |------------|-------------|----------------|
 | GDPR | Data minimization | zkKYC, encrypted storage |
@@ -2352,11 +2369,13 @@ Link: <https://docs.finaegis.com/migration/v1-to-v2>; rel="deprecation"
 *Last Updated: February 2, 2026*
 *Author: FinAegis Architecture Team*
 *Backend Status: v2.5.1 APIs Complete (Card Issuance, Gas Relayer, TrustCert Presentation, Passkey Support)*
+*Reviewed: November 24, 2026, against backend v7.18.1. See the note at the top.*
 
 ### Changelog
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.5 | 2026-11-24 | Review for backend v7.18.1: status notes on cards, privacy and WebSocket events; API paths corrected to the registered routes |
 | 1.4 | 2026-02-02 | Added Passkey/WebAuthn spec (3.2.1), Privacy Protocol decision (RAILGUN-inspired) |
 | 1.3 | 2026-02-01 | Added Card Issuance (3.4), Gas Relayer API (5.1.0b), TrustCert Presentation API (5.1.0c) |
 | 1.2 | 2026-01-31 | Initial privacy layer and TrustCert documentation |

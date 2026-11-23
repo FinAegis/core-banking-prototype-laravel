@@ -4,6 +4,8 @@
 > **Backend Version**: FinAegis v5.2.0 (upcoming)
 > **Protocol**: x402 v2 (HTTP-native micropayments)
 > **Date**: 2026-02-22
+>
+> **Status at v7.18.1**: This handover was written before v5.2.0 shipped and is kept as a record. Check three points against the current backend. Server-side signing is gone. The `/api/auth/sign-userop` endpoint was removed in v7.12.0, and the device signs through Privy. The spending limit routes take an agent id (`/api/v1/x402/spending-limits/{agentId}`), and there is no `/me` route. `/api/v1/ai/query` is only an example of a paid endpoint, and the list of real paid endpoints comes from `GET /api/v1/x402/endpoints`.
 
 ---
 
@@ -394,6 +396,8 @@ export class X402WalletService {
   - The private key can be stored server-side (encrypted with biometric JWT)
   - Signing requests go through the backend's `UserOperationSigningService`
   - This keeps private keys off the device entirely
+
+> Removed in v7.12.0. The backend no longer stores keys or signs for the user, because the sign-userop endpoint was removed with the move to non-custodial wallets. Keys stay with Privy and the device.
 
 ### 4.3 Hardware Wallet Support (Future)
 
@@ -955,6 +959,8 @@ X402_FACILITATOR_URL=mock  // Uses in-memory mock facilitator
 
 This always returns `{ isValid: true }` for verify and `{ success: true, transaction: "0xmock..." }` for settle.
 
+> Not built. At v7.18.1 the only facilitator client is `HttpFacilitatorClient`, and `X402_FACILITATOR_URL=mock` is not recognised.
+
 ---
 
 ## 10. Security Considerations
@@ -962,7 +968,7 @@ This always returns `{ isValid: true }` for verify and `{ success: true, transac
 ### Key Storage
 - **Never** store private keys in AsyncStorage (unencrypted)
 - Use `expo-secure-store` with `requireAuthentication: true`
-- For production, prefer server-side signing via `UserOperationSigningService`
+- For production, prefer server-side signing via `UserOperationSigningService` (removed in v7.12.0; the device signs through Privy)
 
 ### Payment Validation
 - Always verify the `PAYMENT-REQUIRED` header comes from a trusted domain

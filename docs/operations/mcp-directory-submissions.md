@@ -1,6 +1,6 @@
 # MCP directory submissions runbook
 
-Operator runbook for publishing the Zelta MCP server to public directories. Bundled per the design spec (`docs/superpowers/specs/2026-04-27-mcp-server-design.md` §8.5) as a fast-follow after `@finaegis/mcp` reached operational stability.
+This runbook is for operators. It explains how to publish the Zelta MCP server to public directories. The design spec (`docs/superpowers/specs/2026-04-27-mcp-server-design.md` §8.5) planned these listings as a follow-up once `@finaegis/mcp` was stable in operation.
 
 ## Overview
 
@@ -12,17 +12,17 @@ Operator runbook for publishing the Zelta MCP server to public directories. Bund
 | mcp.so | Community | ☐ TODO | `https://mcp.so/server/zelta` |
 | PulseMCP | Community | ☐ TODO | `https://www.pulsemcp.com/servers/zelta` |
 
-Update this file when each listing goes live.
+Update this file when a listing goes live.
 
 ## 1. Official MCP Registry
 
-The official registry at `registry.modelcontextprotocol.io` is the protocol-level discovery surface used by clients such as Claude Code's MCP add-server flow.
+The official registry at `registry.modelcontextprotocol.io` is where MCP clients discover servers at the protocol level. Clients such as Claude Code use it when a user adds a server.
 
 **Manifest:** `packages/finaegis-mcp-stdio/server.json` (committed in this repo).
 
-The namespace `app.zelta/mcp` is the reverse-DNS of `zelta.app` and requires a one-time DNS challenge before the first publish.
+The namespace `app.zelta/mcp` is `zelta.app` written in reverse-DNS form. It needs a one-time DNS challenge before the first publish.
 
-### One-time setup — DNS namespace verification
+### One-time setup to verify the DNS namespace
 
 1. Install the publisher CLI:
    ```bash
@@ -35,14 +35,14 @@ The namespace `app.zelta/mcp` is the reverse-DNS of `zelta.app` and requires a o
    ```
    The CLI prints a TXT record value, e.g. `mcp-verify=<random-token>`.
 
-3. Add the TXT record at the `_mcp-verify.zelta.app` host in Cloudflare. Wait for propagation (typically < 5 minutes — `dig TXT _mcp-verify.zelta.app +short` should return the value).
+3. Add the TXT record at the `_mcp-verify.zelta.app` host in Cloudflare. Wait for it to propagate, which usually takes less than five minutes. `dig TXT _mcp-verify.zelta.app +short` should then return the value.
 
 4. Confirm the challenge:
    ```bash
    mcp-publisher login dns --confirm
    ```
 
-5. Once verified, the TXT record can be removed (the registry caches the verification).
+5. After the verification succeeds, you can remove the TXT record, because the registry remembers the verification.
 
 ### Publishing a version
 
@@ -52,26 +52,26 @@ Run from the repo root:
 mcp-publisher publish packages/finaegis-mcp-stdio/server.json
 ```
 
-The CLI validates the JSON against `https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json`, confirms npm-package ownership of `@finaegis/mcp`, and pushes the entry. New versions overwrite — the `version` field in `server.json` MUST track the npm package version for ownership verification to succeed.
+The CLI validates the JSON against `https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json`, confirms that we own the npm package `@finaegis/mcp` and pushes the entry. A new version replaces the old one. The `version` field in `server.json` MUST match the npm package version, or the ownership check fails.
 
 ### Update procedure on a new release
 
-1. Cut the npm release as usual (`mcp-v*` tag → `mcp-release.yml` workflow → publishes `@finaegis/mcp@<v>`).
+1. Cut the npm release as usual. An `mcp-v*` tag starts the `mcp-release.yml` workflow, which publishes `@finaegis/mcp@<v>`.
 2. Bump `version` in `packages/finaegis-mcp-stdio/server.json` to match the new npm version.
 3. Bump the `version` inside the `packages[0]` entry to the same value.
 4. Re-run `mcp-publisher publish packages/finaegis-mcp-stdio/server.json`.
 
 ## 2. Anthropic Claude Connectors Directory
 
-The Connectors Directory is Anthropic's curated in-product listing — visible to every Claude.ai and Claude Desktop user. Highest reach, slowest review (typically two weeks).
+The Connectors Directory is Anthropic's curated listing inside its products. Every Claude.ai and Claude Desktop user can see it. It reaches the most people and has the slowest review, which usually takes two weeks.
 
 **Submission URL:** `https://clau.de/mcp-directory-submission`
 
-**Escalation contact (firewall blocks etc.):** `mcp-review@anthropic.com`
+**Escalation contact (for example when a firewall blocks the review):** `mcp-review@anthropic.com`
 
 ### Pre-submission checklist
 
-All of these must be true before submitting (rejection rate is high; the form does not save partial drafts):
+All of these must be true before you submit. Many submissions are rejected, and the form does not save partial drafts.
 
 - [ ] `https://mcp.zelta.app/mcp` returns HTTP 200 to a `tools/list` request with a valid Bearer token
 - [ ] `https://mcp.zelta.app/.well-known/oauth-protected-resource` resolves and points at the Passport AS
@@ -92,7 +92,7 @@ All of these must be true before submitting (rejection rate is high; the form do
 | Server name | Zelta |
 | Server URL | `https://mcp.zelta.app/mcp` |
 | Tagline | Connect your AI assistant to your Zelta account. |
-| Description (long) | The Zelta MCP server exposes 10 tools — account balances, wallet addresses and activity, payment status, transaction history and spending analysis, exchange quotes, on/off-ramp sessions, and payment-route discovery — gated by OAuth 2.1 scopes with per-token daily spending limits on ramp sessions, idempotent writes, and a full audit trail. Converting stablecoins to fiat, where available, will be provided by licensed third parties under their own terms. |
+| Description (long) | The Zelta MCP server exposes 10 tools — account balances, wallet addresses and activity, payment status, transaction history and spending analysis, exchange quotes, on/off-ramp sessions, and payment-route discovery — gated by OAuth 2.1 scopes with a daily spending limit on ramp sessions that the user chooses when connecting, idempotent writes, and a full audit trail. Converting stablecoins to fiat, where available, will be provided by licensed third parties under their own terms. |
 | Auth type | OAuth 2.1 (with DCR, RFC 7591) |
 | Transport | streamable-http |
 | Capabilities | tools, resources |
@@ -116,7 +116,7 @@ The 10 tools `mcp.zelta.app` exposes in production:
 | `exchange.quote` | Get an exchange rate quote | readOnlyHint | exchange:read |
 | `ramp.start` | Start an on/offramp session | destructiveHint (idempotent, spending-limited) | ramp:write |
 | `ramp.status` | Check on/offramp session status | readOnlyHint | ramp:read |
-| `mpp.discovery` | Multi-rail payment route discovery | readOnlyHint | (none — public) |
+| `mpp.discovery` | Discover multi-rail payment routes | readOnlyHint | (none — public) |
 | `wallet.addresses` | List wallet addresses | readOnlyHint | accounts:read |
 | `wallet.activity` | Recent wallet activity | readOnlyHint | accounts:read |
 
@@ -139,7 +139,7 @@ Submission is a PR against `https://github.com/smithery-ai/registry`.
 
 ## 4. mcp.so
 
-Open-issue submission.
+Submission is an open issue.
 
 **Procedure:**
 1. Go to `https://github.com/chatmcp/mcp-directory/issues/new` (or the form on `https://mcp.so/submit`).
@@ -153,11 +153,11 @@ Open-issue submission.
 
 `https://www.pulsemcp.com/submit`
 
-Form fields are similar to Anthropic's but the bar is lower — same description, same logo, same docs link suffices. No tool annotation gate.
+The form fields are similar to Anthropic's, but the bar is lower. The same description, logo and documentation link are enough. PulseMCP does not check tool annotations.
 
-## After submission — measurement
+## Checking the listings after submission
 
-Confirm listings are live and discoverable by searching from a fresh shell:
+Search from a fresh shell to confirm that the listings are live and can be found.
 
 ```bash
 # Official registry
@@ -170,7 +170,7 @@ curl -s "https://smithery.ai/api/servers?q=zelta" | jq '.[].name'
 # PulseMCP — visual check at https://www.pulsemcp.com/servers?q=zelta
 ```
 
-Track inbound DCR registrations per directory by tagging the `client_name` prefix during submission (e.g. `Anthropic Connectors:` for Claude in-product flows). Use this query to attribute new clients:
+You can count new Dynamic Client Registration (DCR) registrations for each directory. Give the `client_name` a prefix during submission, for example `Anthropic Connectors:` for the flows inside Claude. This query then attributes new clients:
 
 ```sql
 SELECT client_name, COUNT(*)

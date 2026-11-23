@@ -2,49 +2,63 @@
 
 ## Overview
 
-The FinAegis platform includes comprehensive monitoring and observability features using Prometheus-compatible metrics export and health check endpoints for Kubernetes deployment.
+FinAegis exports metrics in the Prometheus text format and has health endpoints for Kubernetes probes. It also records request traces through OpenTelemetry and reports projector lag. The code is in `app/Domain/Monitoring/` and `app/Http/Controllers/Api/MonitoringController.php`.
 
 ## Architecture
 
-### Event Sourcing with Metrics
+### How metrics are stored
 
-All metrics are recorded as domain events using event sourcing, providing:
-- Complete audit trail of all metrics
-- Time-series data storage
-- Replay capability for historical analysis
-- Alert history tracking
+`MetricsMiddleware` runs on every API request. It counts requests by status and method and keeps a running average of the response time. `MetricsCollector` stores these counters in the application cache. `PrometheusExporter` reads the cache and the database when Prometheus scrapes the endpoint.
+
+The counters are not event-sourced. `MetricsAggregate` is an event-sourced aggregate that can record metrics and alerts as events, but the middleware and the collector do not use it.
 
 ### Components
 
-1. **MetricsAggregate**: Event-sourced aggregate for recording metrics
-2. **PrometheusExporter**: Exports metrics in Prometheus format
-3. **MetricsCollector**: Collects various types of metrics
-4. **HealthChecker**: Provides health, readiness, and liveness checks
-5. **MetricsMiddleware**: Automatically collects HTTP request metrics
+1. **MetricsMiddleware** collects HTTP request metrics. It is in the API middleware group in `bootstrap/app.php`.
+2. **MetricsCollector** records counters, workflow durations and custom metrics in the cache.
+3. **PrometheusExporter** builds the Prometheus text output.
+4. **HealthChecker** runs the health, readiness and liveness checks.
+5. **TracingService** and `TracingMiddleware` create OpenTelemetry spans.
+6. **ProjectorHealthService** reports projectors that lag behind the event store.
+7. **MetricsAggregate** records metrics and alerts as events when code calls it directly.
 
 ## Metrics Types
 
-### Application Metrics
-- HTTP request count and duration
-- Error rates
-- Cache hit/miss rates
-- Memory usage
-- Uptime
+The exporter publishes these metrics.
 
-### Business Metrics
-- Active accounts
-- Transaction volumes
-- Treasury allocations
-- Active loans
-- Exchange order volume
+### Application metrics
+- `http_requests_total`, by status and by method
+- `http_request_duration_seconds`, the average response time as a gauge (not a histogram)
+- `app_cache_hits_total` and `app_cache_misses_total`, plus `cache_operations_total` by result
+- `app_memory_usage_bytes` and `app_uptime_seconds`
 
-### Infrastructure Metrics
-- Database connections
-- Queue size and failed jobs
-- Event sourcing events
-- Redis memory usage
+### Business metrics
+- `app_users_total`
+- `business_accounts_total`
+- `business_transactions_total`
+
+### Infrastructure metrics
+- `infra_db_connections` and `infra_db_queries_total`
+- `infra_queue_size`, `infra_queue_failed_total` and `queue_jobs_total` by status
+- `database_queries_total`
+- `events_processed_total` and `workflow_executions_total`
+- `infra_redis_memory_bytes`, which is always `0` because the exporter does not read Redis yet
 
 ## API Endpoints
+
+| Endpoint | Access | Returns |
+|---|---|---|
+| `GET /api/monitoring/metrics` | Metrics token or IP allowlist | Prometheus text |
+| `GET /api/monitoring/prometheus` | Metrics token or IP allowlist | Prometheus text (same output) |
+| `GET /api/monitoring/health` | Public | Health of all components |
+| `GET /api/monitoring/ready` | Public | Readiness probe (`503` when not ready) |
+| `GET /api/monitoring/alive` | Public | Liveness probe |
+| `GET /api/monitoring/metrics-json` | Sanctum | Cached counters as JSON |
+| `GET /api/monitoring/traces`, `GET /api/monitoring/trace/{traceId}` | Sanctum | Recorded traces |
+| `GET /api/monitoring/alerts`, `PUT /api/monitoring/alerts/{alertId}/acknowledge` | Sanctum | Open alerts from `monitoring_alerts` |
+| `GET /api/monitoring/projector-health`, `GET /api/monitoring/projector-health/stale` | Sanctum | Projector lag |
+
+`MetricsAccessMiddleware` guards the two metrics endpoints. A request passes when it sends `Authorization: Bearer <METRICS_TOKEN>` or comes from an address in `METRICS_ALLOWED_IPS`. When neither is configured, the endpoints answer `403` in production and stay open in other environments.
 
 ### `/api/monitoring/metrics`
 Returns metrics in Prometheus text format.
@@ -55,12 +69,12 @@ Returns metrics in Prometheus text format.
 app_users_total 150
 
 # HELP http_request_duration_seconds HTTP request duration
-# TYPE http_request_duration_seconds histogram
-http_request_duration_seconds{method="GET",route="api.users",status="200"} 0.125
+# TYPE http_request_duration_seconds gauge
+http_request_duration_seconds 0.125
 ```
 
 ### `/api/monitoring/health`
-Returns comprehensive health status of all components.
+Returns the health status of all components.
 
 ```json
 {
@@ -78,7 +92,7 @@ Returns comprehensive health status of all components.
       "message": "Cache is operational"
     }
   ],
-  "timestamp": "2024-09-15T12:00:00Z"
+  "timestamp": "2026-11-23T12:00:00Z"
 }
 ```
 
@@ -98,7 +112,7 @@ Kubernetes readiness probe endpoint.
       "healthy": true
     }
   ],
-  "timestamp": "2024-09-15T12:00:00Z"
+  "timestamp": "2026-11-23T12:00:00Z"
 }
 ```
 
@@ -108,7 +122,7 @@ Kubernetes liveness probe endpoint.
 ```json
 {
   "alive": true,
-  "timestamp": "2024-09-15T12:00:00Z",
+  "timestamp": "2026-11-23T12:00:00Z",
   "uptime": 3600.5,
   "memory_usage": 52428800
 }
@@ -118,18 +132,25 @@ Kubernetes liveness probe endpoint.
 
 ### Prometheus Scraping
 
-Add to your Prometheus configuration:
+Add this to your Prometheus configuration. Set `METRICS_TOKEN` in the app's `.env` and give Prometheus the same token.
 
 ```yaml
 scrape_configs:
   - job_name: 'finaegis'
     static_configs:
       - targets: ['your-app-url:8000']
-    metrics_path: '/api/monitoring/metrics'
+    metrics_path: '/api/monitoring/prometheus'
+    authorization:
+      type: Bearer
+      credentials: '<METRICS_TOKEN>'
     scrape_interval: 30s
 ```
 
+The Helm chart in `helm/finaegis` has a `ServiceMonitor` template that scrapes `/api/monitoring/prometheus`.
+
 ### Kubernetes Probes
+
+The Helm chart already sets these probes in `helm/finaegis/values.yaml`. For a hand-written deployment:
 
 ```yaml
 apiVersion: apps/v1
@@ -155,9 +176,13 @@ spec:
           periodSeconds: 5
 ```
 
-## Grafana Dashboard
+## Grafana Dashboards and Alert Rules
 
-Import the following dashboard configuration for visualization:
+Ready-made Grafana dashboards are in `infrastructure/observability/grafana/dashboards/`. There is one for the platform overview, one for platform health and one each for the accounts, wallet, exchange, compliance, treasury, lending, stablecoin and agent protocol domains, plus a financial reconciliation dashboard.
+
+Prometheus alert rules are in `infrastructure/observability/prometheus/alerting_rules.yml`. Many rules use metric names that the app's exporter does not publish, for example `transaction_settlement_failures_total`, `treasury_nav_deviation` and `horizon_jobs_pending`. Check each rule against the output of `/api/monitoring/prometheus` before you rely on it.
+
+A minimal dashboard built only from exported metrics looks like this:
 
 ```json
 {
@@ -173,10 +198,10 @@ Import the following dashboard configuration for visualization:
         ]
       },
       {
-        "title": "Response Time",
+        "title": "Average Response Time",
         "targets": [
           {
-            "expr": "histogram_quantile(0.95, http_request_duration_seconds)"
+            "expr": "http_request_duration_seconds"
           }
         ]
       },
@@ -208,12 +233,11 @@ $collector->recordHttpRequest('GET', '/api/users', 200, 0.125);
 // Record business event
 $collector->recordBusinessEvent('UserRegistered', ['plan' => 'premium']);
 
-// Record workflow execution
+// Record workflow execution (name, status, duration in seconds)
 $collector->recordWorkflowMetric(
     'LoanApplicationWorkflow',
     'completed',
-    300.5,
-    ['loan_amount' => 50000]
+    300.5
 );
 ```
 
@@ -230,15 +254,15 @@ $collector->setAlertThreshold(
 );
 ```
 
+`setAlertThreshold()` only stores the threshold in the cache. Nothing reads it yet, so it does not raise alerts on its own.
+
 ## Alerts
 
-The system automatically triggers alerts when thresholds are exceeded:
+Alerts come from two places. Prometheus raises alerts from its own rules and sends them through Alertmanager. Inside the app, `MetricsAggregate` records an `AlertTriggered` event when code reports a metric over a threshold, and the `monitoring_alerts` table holds alerts that the API lists and acknowledges.
 
-1. **Warning Level**: Non-critical issues requiring attention
-2. **Critical Level**: Immediate action required
-3. **Emergency Level**: System-wide critical failures
+`AlertLevel` defines four levels. An info alert is for information only. A warning needs attention, a critical alert needs action now and an emergency means a failure of the whole system.
 
-Alerts are recorded as events and can be integrated with external alerting systems.
+Log messages at the `critical` level and above go to Slack when `LOG_SLACK_WEBHOOK_URL` is set. `LOG_SLACK_LEVEL` changes that level.
 
 ## Development
 
@@ -266,12 +290,14 @@ scrape_configs:
   - job_name: 'finaegis'
     static_configs:
       - targets: ['localhost:8000']
-    metrics_path: '/api/monitoring/metrics'
+    metrics_path: '/api/monitoring/prometheus'
 EOF
 
 # Run
 ./prometheus --config.file=prometheus.yml
 ```
+
+In a local environment without `METRICS_TOKEN` or `METRICS_ALLOWED_IPS`, the metrics endpoints are open, so no token is needed.
 
 ### Local Grafana Setup
 
@@ -286,40 +312,38 @@ docker run -d -p 3000:3000 grafana/grafana
 
 ## Best Practices
 
-1. **Use Event Sourcing**: All metrics are recorded as events for complete auditability
-2. **Set Appropriate Thresholds**: Configure alerts based on your SLAs
-3. **Monitor Business Metrics**: Track domain-specific metrics, not just technical ones
-4. **Regular Review**: Periodically review metrics and adjust thresholds
-5. **Dashboard Organization**: Group related metrics for easier analysis
-6. **Alert Fatigue Prevention**: Avoid too many low-priority alerts
-7. **Capacity Planning**: Use metrics for proactive scaling decisions
+1. Set alert thresholds that match your service levels.
+2. Watch business metrics as well as technical ones.
+3. Review the metrics and thresholds regularly.
+4. Group related metrics on one dashboard.
+5. Keep low-priority alerts few, so important ones are not missed.
+6. Use the metrics to plan capacity before you need it.
 
 ## Troubleshooting
 
 ### Metrics Not Appearing
 
-1. Check Redis connection for Prometheus registry
-2. Verify MetricsMiddleware is registered in kernel
-3. Ensure cache driver is configured correctly
+1. Check that the cache store works, because the counters live in the cache.
+2. Check that `MetricsMiddleware` is still in the API middleware group in `bootstrap/app.php`.
+3. Check that Prometheus sends the right `METRICS_TOKEN`, or that its address is in `METRICS_ALLOWED_IPS`. A `403` means neither matched.
 
 ### Health Check Failures
 
-1. Check database connectivity
-2. Verify Redis is running
-3. Ensure all migrations are run
-4. Check storage permissions
+1. Check database connectivity.
+2. Check that Redis is running.
+3. Check that all migrations have run.
+4. Check storage permissions.
 
 ### High Memory Usage
 
-1. Review Prometheus retention settings
-2. Check for metric cardinality explosion
-3. Verify buffer sizes in MetricsCollector
+1. Review the Prometheus retention settings.
+2. Check for too many label combinations in custom metrics.
 
 ## Future Enhancements
 
-- [ ] Distributed tracing with OpenTelemetry
-- [ ] Custom Grafana dashboards per domain
+- [ ] Publish the metrics that the alert rules expect
+- [ ] Read Redis memory for `infra_redis_memory_bytes`
+- [ ] Raise alerts from `setAlertThreshold()` values
 - [ ] Automated anomaly detection
 - [ ] SLA compliance reporting
-- [ ] Cost attribution metrics
 - [ ] Multi-tenant metrics isolation
