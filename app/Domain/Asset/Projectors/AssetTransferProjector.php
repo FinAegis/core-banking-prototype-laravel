@@ -13,7 +13,6 @@ use App\Domain\Asset\Events\AssetTransferInitiated;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Spatie\EventSourcing\EventHandlers\Projectors\Projector;
-use Spatie\SchemalessAttributes\SchemalessAttributes;
 
 class AssetTransferProjector extends Projector
 {
@@ -82,10 +81,6 @@ class AssetTransferProjector extends Projector
      */
     public function onAssetTransferCompleted(AssetTransferCompleted $event): void
     {
-        /** @var \App\Domain\Payment\Models\Transfer|null $transfer */
-        $transfer = null;
-        /** @var \App\Domain\Payment\Models\Transfer|null $transfer */
-        $transfer = null;
         /** @var Account|null $toAccount */
         $toAccount = null;
         /** @var Account|null $fromAccount */
@@ -143,22 +138,6 @@ class AssetTransferProjector extends Projector
 
             $toBalance->credit($event->toAmount->getAmount());
 
-            // Update transfer record status
-            $transfer = Transfer::where('hash', $event->hash->getHash())->first();
-            if ($transfer) {
-                $transfer->update(
-                    [
-                        'metadata' => array_merge(
-                            $this->existingMetadata($transfer),
-                            [
-                                'status'       => 'completed',
-                                'completed_at' => now()->toISOString(),
-                            ]
-                        ),
-                    ]
-                );
-            }
-
             Log::info(
                 'Asset transfer completed successfully',
                 [
@@ -193,26 +172,7 @@ class AssetTransferProjector extends Projector
      */
     public function onAssetTransferFailed(AssetTransferFailed $event): void
     {
-        /** @var \App\Domain\Payment\Models\Transfer|null $transfer */
-        $transfer = null;
         try {
-            // Update transfer record status
-            $transfer = Transfer::where('hash', $event->hash->getHash())->first();
-            if ($transfer) {
-                $transfer->update(
-                    [
-                        'metadata' => array_merge(
-                            $this->existingMetadata($transfer),
-                            [
-                                'status'         => 'failed',
-                                'failure_reason' => $event->reason,
-                                'failed_at'      => now()->toISOString(),
-                            ]
-                        ),
-                    ]
-                );
-            }
-
             Log::warning(
                 'Asset transfer failed',
                 [
@@ -236,19 +196,5 @@ class AssetTransferProjector extends Projector
 
             throw $e;
         }
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function existingMetadata(Transfer $transfer): array
-    {
-        $metadata = $transfer->metadata;
-
-        if ($metadata instanceof SchemalessAttributes) {
-            return $metadata->toArray();
-        }
-
-        return is_array($metadata) ? $metadata : [];
     }
 }
