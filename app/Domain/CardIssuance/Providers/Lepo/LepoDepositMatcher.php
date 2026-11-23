@@ -117,7 +117,7 @@ final class LepoDepositMatcher
      *
      * @return list<array{id: string, amount: string, network: string, address: string}>
      */
-    public function findUnmatched(Cardholder $cardholder): array
+    public function findUnmatched(Cardholder $cardholder, ?Carbon $since = null): array
     {
         $accounts = CardFundingAccount::query()->where('cardholder_id', $cardholder->id);
         $addresses = CardDepositAddress::query()
@@ -131,7 +131,7 @@ final class LepoDepositMatcher
             return [];
         }
 
-        $since = ($opened !== null ? Carbon::parse((string) $opened) : now()->subDays(7))->subDay();
+        $since ??= ($opened !== null ? Carbon::parse((string) $opened) : now()->subDays(7))->subDay();
         $rows = [];
         for ($page = 1; $page <= self::MAX_PAGES; $page++) {
             $batch = $this->deposits($userId, ['startTime' => $since->getTimestampMs(), 'limit' => self::PAGE_SIZE, 'page' => $page], $raw);

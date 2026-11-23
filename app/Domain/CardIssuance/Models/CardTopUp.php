@@ -17,7 +17,7 @@ use Illuminate\Support\Carbon;
  *
  * @property string $id
  * @property int $user_id
- * @property string $card_id
+ * @property string|null $card_id null: no card could take the deposit (operator)
  * @property string|null $funding_account_id
  * @property string $provider
  * @property string $source app|external_deposit
@@ -35,6 +35,8 @@ use Illuminate\Support\Carbon;
  * @property string|null $provider_conversion_id
  * @property string|null $provider_load_id
  * @property Carbon|null $step_started_at
+ * @property Carbon|null $conversion_requested_at
+ * @property Carbon|null $converted_at
  * @property string|null $last_error
  * @property Carbon $expires_at
  * @property Carbon|null $completed_at
@@ -78,20 +80,22 @@ class CardTopUp extends Model
     protected $fillable = [
         'user_id', 'card_id', 'funding_account_id', 'provider', 'source', 'asset', 'network', 'amount', 'received_amount',
         'deposit_address', 'tx_hash', 'status', 'credited_cents', 'fee_cents', 'issuance_fee_cents', 'provider_deposit_id',
-        'provider_conversion_id', 'provider_load_id', 'step_started_at', 'last_error', 'expires_at', 'completed_at',
+        'provider_conversion_id', 'provider_load_id', 'step_started_at', 'conversion_requested_at', 'converted_at', 'last_error', 'expires_at', 'completed_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'amount'             => 'decimal:6',
-            'received_amount'    => 'decimal:6',
-            'credited_cents'     => 'integer',
-            'fee_cents'          => 'integer',
-            'issuance_fee_cents' => 'integer',
-            'step_started_at'    => 'datetime',
-            'expires_at'         => 'datetime',
-            'completed_at'       => 'datetime',
+            'amount'                  => 'decimal:6',
+            'received_amount'         => 'decimal:6',
+            'credited_cents'          => 'integer',
+            'fee_cents'               => 'integer',
+            'issuance_fee_cents'      => 'integer',
+            'step_started_at'         => 'datetime',
+            'conversion_requested_at' => 'datetime',
+            'converted_at'            => 'datetime',
+            'expires_at'              => 'datetime',
+            'completed_at'            => 'datetime',
         ];
     }
 

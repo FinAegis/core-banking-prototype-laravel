@@ -202,6 +202,31 @@ it('refuses to cancel a card with money', function (): void {
     Http::assertNotSent(fn (Request $r): bool => $r->method() === 'DELETE');
 });
 
+it('refuses to cancel a card with a top-up in progress', function (string $status): void {
+    $user = issuedUser();
+    $card = issuedCard(issuedCardholder($user));
+    $topup = new App\Domain\CardIssuance\Models\CardTopUp();
+    $topup->forceFill(['user_id' => $user->id, 'card_id' => $card->id, 'provider' => 'lepo', 'source' => 'app', 'asset' => 'USDC', 'network' => 'arbitrum',
+        'amount'                 => '25.000000', 'deposit_address' => '0xarb', 'status' => $status, 'expires_at' => now()->addHour()])->save();
+    Http::fake(['lepo.test/*' => Http::response(issuedLepoCard(['balance' => ['available' => '0', 'pending' => '0', 'frozen' => '0']]))]);
+
+    $this->withHeader('Idempotency-Key', idem())->postJson("/api/v1/cards/issued/{$card->id}/cancel")
+        ->assertStatus(409)->assertJsonPath('error.code', 'ERR_CARDS_031');
+    Http::assertNotSent(fn (Request $r): bool => $r->method() === 'DELETE');
+})->with(['awaiting_deposit', 'loading', 'needs_attention']);
+
+it('refuses to cancel a card that was never opened while money is moving', function (): void {
+    $user = issuedUser();
+    $card = issuedCard(issuedCardholder($user), 'pending', null);
+    $lock = Illuminate\Support\Facades\Cache::lock("cards:lepo:money:{$user->id}", 60);
+    $lock->get();
+    Http::fake(['lepo.test/*' => Http::response(['cards' => []])]);
+
+    $this->withHeader('Idempotency-Key', idem())->postJson("/api/v1/cards/issued/{$card->id}/cancel")->assertStatus(502);
+    expect($card->fresh()?->status)->toBe('pending');
+    $lock->release();
+});
+
 it('refuses to cancel when Lepo is down', function (): void {
     $user = issuedUser();
     $card = issuedCard(issuedCardholder($user));
