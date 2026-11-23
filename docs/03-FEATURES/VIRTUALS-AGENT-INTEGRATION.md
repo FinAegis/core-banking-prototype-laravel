@@ -1,20 +1,29 @@
 # Virtuals Protocol Agent Integration
 
 **Domain:** `app/Domain/VirtualsAgent/`
-**Status:** v6.3.0
+**Status:** Added in v6.3.0. `VIRTUALS_AGENT_ENABLED` defaults to `false`, but no code reads it at present. The API routes load whenever the VirtualsAgent module is enabled.
 **Depends on:** AgentProtocol, X402, VisaCli, CardIssuance, TrustCert, Relayer (Pimlico)
+
+Virtuals Protocol is a third-party platform for autonomous AI agents. This module is an integration adapter for its Agent Commerce Protocol (ACP). No partnership or endorsement is implied.
 
 ## Business Case
 
+This section is the business case written when the module was designed in v6.3.0. None of the revenue streams below is live.
+
 ### Problem
-Autonomous AI agents on Virtuals Protocol can trade crypto on Base, but cannot:
-- Purchase real-world services (AWS, SaaS, APIs)
-- Hold a verifiable identity attestation
-- Be constrained by enforceable spending budgets
-- Have their financial activity audited by a human employer
+
+AI agents on Virtuals Protocol can trade crypto on Base.
+They cannot buy ordinary services such as cloud hosting, software subscriptions or APIs.
+They have no identity attestation that others can check.
+Their budgets are not enforced, and the person who runs them cannot easily audit their spending.
 
 ### Solution
-Zelta provides software for Virtuals agents: identity attestations via TrustCert, spending limits via X402/Pimlico, card-issuing integration adapters (e.g. Marqeta API), and privacy via ZK shields. Virtual cards are planned, to be issued by a licensed card-issuing partner. Availability is subject to partner approval and jurisdiction.
+
+The module gives each agent a profile linked to the person who employs it.
+It gives the agent a TrustCert subject id that links the agent to that person.
+It sets a daily and a per-transaction spending limit for the agent, stored as a Visa CLI spending limit.
+It can connect the agent to card-issuing integration adapters, such as the Marqeta API.
+Virtual cards are planned, to be issued by a licensed card-issuing partner. Availability is subject to partner approval and jurisdiction.
 
 ### Monetization
 | Revenue Stream | Mechanism | Existing Infrastructure |
@@ -34,25 +43,57 @@ Virtuals G.A.M.E. Engine
 ACP Custom Functions (Node.js sidecar or HTTP)
     │
     ├── Check_Spending_Allowance  → GET  /api/v1/x402/spending-limits/{agentId}
-    ├── Execute_Payment           → POST /api/v1/x402/payments (or visacli.payment MCP tool)
-    ├── Request_Card              → POST /api/v1/cards/create
+    ├── Execute_Payment           → x402 payment flow (HTTP 402 + payment header), or the visacli.payment tool
+    ├── Request_Card              → POST /api/v1/cards
     ├── Get_Agent_Identity        → GET  /api/v1/trustcert/current
-    └── List_Transactions         → GET  /api/v1/wallet/transactions
+    └── List_Transactions         → GET  /api/v1/virtuals-agents/{id}/transactions
 ```
+
+The diagram shows the planned mapping of the ACP functions. No sidecar is part of this repository.
+Onboarding stores the agent's limit as a Visa CLI spending limit, so the x402 spending-limit endpoint does not return it.
 
 ### Domain Structure
 
 ```
 app/Domain/VirtualsAgent/
-  Config/           virtuals-agent.php
-  Contracts/        VirtualsAgentClientInterface
+  DataObjects/      AgentOnboardingRequest, AgentTokenBalance, AgdpMetrics
+  Enums/            AgentStatus (registered, active, suspended, deactivated)
+  Events/           VirtualsAgentRegistered, VirtualsAgentActivated, VirtualsAgentSuspended
+  Models/           VirtualsAgentProfile (links Virtuals agent ID → user + limits)
+  Routes/           api.php
   Services/         VirtualsAgentService (orchestrates ACP ↔ Zelta)
                     AgentOnboardingService (TrustCert + wallet + limits)
-                    AgentSpendingEnforcementService (X402 + Pimlico bridge)
-  DataObjects/      AgentProfile, AgentOnboardingRequest
-  Enums/            AgentStatus (registered, active, suspended, deactivated)
-  Events/           AgentRegistered, AgentActivated, AgentSuspended
-  Models/           VirtualsAgentProfile (links Virtuals agent ID → user + limits)
+                    AgentSpendingEnforcementService (spending check, Pimlico bridge planned)
+                    AcpServiceProviderBridge (maps ACP jobs to service categories)
+                    AgentTokenTrackingService, AgdpReportingService
+config/virtuals-agent.php
+```
+
+### REST endpoints
+
+The routes are in `app/Domain/VirtualsAgent/Routes/api.php`. They need a Sanctum token and allow 60 requests a minute.
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| GET | `/api/v1/virtuals-agents` | List the caller's agents |
+| POST | `/api/v1/virtuals-agents/onboard` | Register an agent |
+| GET | `/api/v1/virtuals-agents/agdp` | Agent activity metrics |
+| GET | `/api/v1/virtuals-agents/{id}` | Show one agent |
+| PUT | `/api/v1/virtuals-agents/{id}/suspend` | Suspend an agent |
+| PUT | `/api/v1/virtuals-agents/{id}/activate` | Reactivate an agent |
+| GET | `/api/v1/virtuals-agents/{id}/transactions` | The agent's transactions |
+
+### Configuration
+
+```env
+VIRTUALS_AGENT_ENABLED=false
+VIRTUALS_ACP_BASE_URL=https://api.virtuals.io
+VIRTUALS_ACP_API_KEY=
+VIRTUALS_AGENT_DAILY_LIMIT=50000        # $500.00/day in cents
+VIRTUALS_AGENT_PER_TX_LIMIT=10000       # $100.00/tx in cents
+VIRTUALS_AGENT_MAX_DAILY_LIMIT=10000000
+VIRTUALS_AGENT_MAX_PER_TX_LIMIT=1000000
+VIRTUALS_AGENT_AUTO_PROVISION_CARD=false
 ```
 
 ### TrustCert Agent Subject Extension
@@ -60,29 +101,38 @@ app/Domain/VirtualsAgent/
 Current: `subjectId = 'user:' . $user->id`
 Extended: `subjectId = 'agent:' . $agentId . ':employer:' . $user->id`
 
-This links each agent to its human employer's account while maintaining distinct identity per agent for audit. Zelta Trust levels and on-chain attestations are in-app features. They are not a regulated identity-verification or KYC service, not an eIDAS electronic identification or trust service, and are not intended to satisfy any third party's legal KYC or AML obligations.
+This links each agent to the account of the person who employs it.
+Each agent still has its own identity for audit.
+`AgentOnboardingService` and `MobileTrustCertController` both build this subject id.
+
+Zelta Trust levels and on-chain attestations are in-app features. They are not a regulated identity-verification or KYC service, not an eIDAS electronic identification or trust service, and are not intended to satisfy any third party's legal KYC or AML obligations.
 
 ### On-Chain Spending Enforcement via Pimlico
 
-X402 spending limits are database-enforced (row locks). For agents requiring trustless enforcement:
+Today the spending limits are enforced in the database with row locks.
+`AgentSpendingEnforcementService::evaluateAgentUserOp()` checks an agent's limit before a sponsored operation.
+`getEnforcementPolicy()` returns the policy values that an on-chain session key would use.
 
-1. Agent's smart account is deployed via Pimlico ERC-4337
-2. A session key module limits the agent's UserOp to approved targets + max value
-3. The paymaster sponsors only UserOps within the spending policy
-4. If the agent exceeds policy, the bundler rejects the UserOp before it hits chain
+On-chain enforcement through Pimlico is planned and not built yet. The bundler and paymaster are injected but unused.
+The planned design has four steps.
 
-This gives cryptographic enforcement without smart contract development — Pimlico's session key infrastructure handles it.
+1. The agent's smart account is deployed through Pimlico (ERC-4337).
+2. A session key module limits the agent's operations to approved targets and a maximum value.
+3. The paymaster only sponsors operations inside the spending policy.
+4. The bundler rejects an operation that breaks the policy before it reaches the chain.
 
 ### Filament Admin: Agent Dashboard
 
-New Filament resource: `VirtualsAgentProfileResource`
-- List all registered agents with status, employer, spending used/remaining
-- View agent transaction history
-- Suspend/reactivate agents
-- Edit spending limits
-- View linked TrustCert and cards
+The Filament resource is `App\Filament\Admin\Resources\VirtualsAgentResource` at `/admin/virtuals-agents`.
+It lists the registered agents with their status, employer, chain, linked spending limit and card.
+Staff can view, create and edit agent profiles there, and suspend or reactivate agents.
 
 ## Implementation Phases
+
+The phases below are the original plan.
+Phases 1 and 2 are built.
+Phase 3 is built as `VirtualsAgentResource`, without the transaction history widget and without editing spending limits from the dashboard.
+Phase 4 is partly built. The spending check exists, but the Pimlico session key enforcement does not.
 
 ### Phase 1: Domain Foundation + Agent Onboarding
 - VirtualsAgentProfile model + migration
@@ -114,9 +164,13 @@ Virtual cards are planned, to be issued by a licensed card-issuing partner. Avai
 | Lithic | Not implemented (config placeholder) | — |
 | Stripe Issuing | Not implemented (config placeholder) | — |
 
+The table lists the `CardIssuerInterface` adapters selected by `CARD_ISSUER`, which defaults to `demo`.
+v7.18.0 added a separate provider-neutral card layer in `app/Domain/CardIssuance/Providers/`, with Lepo Finance as its first provider for a closed pilot.
+Cards stay off until `CARD_PROVIDERS_ENABLED` names a provider, and the agent flow does not use that layer yet.
+
 ## Security Considerations
-- Agent can never exceed X402 daily/per-tx limits (database + optional Pimlico enforcement)
-- TrustCert links agent to human employer for audit
-- Card provisioning requires employer approval (not agent-initiated)
-- All agent financial events are event-sourced (immutable audit trail)
-- SSRF prevention on all agent-initiated payment URLs
+The daily and per-transaction limits are enforced in the database with row locks.
+The TrustCert subject links each agent to the person who employs it, for audit.
+Cards are not created automatically for agents while `VIRTUALS_AGENT_AUTO_PROVISION_CARD=false`.
+Agent registration, activation and suspension are stored as events, which gives an audit trail.
+Visa CLI payment URLs are checked against internal and cloud metadata addresses.

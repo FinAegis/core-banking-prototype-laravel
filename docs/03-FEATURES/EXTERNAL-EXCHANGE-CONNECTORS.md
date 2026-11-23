@@ -2,54 +2,64 @@
 
 ## Overview
 
-FinAegis Exchange integrates with major cryptocurrency exchanges to provide enhanced liquidity, price discovery, and arbitrage opportunities. This feature enables the platform to aggregate market data and potentially execute trades across multiple venues. Integration adapters for third-party APIs; no partnership or endorsement implied.
+The external exchange connectors let the FinAegis demo exchange read market data from outside exchanges.
+They compare outside prices with the internal order book and look for price differences.
+Binance and Kraken are integration adapters for their public APIs.
+
+*Named third-party providers: Integration adapters for third-party APIs; no partnership or endorsement implied.*
+
+The connectors are part of the demo trading engine.
+Their routes use the `feature:trading.enabled` middleware, so they only run with `TRADING_ENABLED=true`.
+Production deployments set `TRADING_ENABLED=false`.
 
 ## Supported Exchanges
 
 ### 1. **Binance**
-- **Features**: Spot trading, market data, order placement
-- **API Version**: v3
-- **Testnet**: Available for development
-- **Configuration**:
-  ```env
-  BINANCE_API_KEY=your_api_key
-  BINANCE_API_SECRET=your_api_secret
-  BINANCE_IS_US=false
-  BINANCE_IS_TESTNET=false
-  ```
+The Binance connector uses the v3 REST API for market data and spot orders.
+It can point at the Binance testnet or at Binance US.
+
+```env
+BINANCE_API_KEY=your_api_key
+BINANCE_API_SECRET=your_api_secret
+BINANCE_IS_US=false
+BINANCE_IS_TESTNET=false
+```
 
 ### 2. **Kraken**
-- **Features**: Spot trading, market data, order placement
-- **API Version**: v0
-- **Configuration**:
-  ```env
-  KRAKEN_API_KEY=your_api_key
-  KRAKEN_API_SECRET=your_api_secret
-  ```
+The Kraken connector uses the v0 REST API for market data and spot orders.
+
+```env
+KRAKEN_API_KEY=your_api_key
+KRAKEN_API_SECRET=your_api_secret
+```
 
 ## Architecture
 
-### Connector Interface
-All exchange connectors implement the `IExternalExchangeConnector` interface:
-- `getTicker()` - Get current bid/ask prices
-- `getOrderBook()` - Get order book depth
-- `getRecentTrades()` - Get recent market trades
-- `placeBuyOrder()` / `placeSellOrder()` - Place orders
-- `getBalance()` - Get account balances
-- `ping()` - Check connectivity
+### Connector interface
 
-### Connector Registry
-The `ExternalExchangeConnectorRegistry` manages all connectors:
-- Automatic registration of enabled connectors
-- Health checking and availability monitoring
-- Best price discovery across exchanges
-- Aggregated order book compilation
+Every connector implements `App\Domain\Exchange\Contracts\IExternalExchangeConnector`.
 
-### Value Objects
-- `ExternalTicker` - Standardized ticker data
-- `ExternalOrderBook` - Normalized order book
-- `ExternalTrade` - Trade information
-- `MarketPair` - Trading pair configuration
+| Method | Purpose |
+|--------|---------|
+| `getTicker()` | Current bid and ask prices |
+| `getOrderBook()` | Order book depth |
+| `getRecentTrades()` | Recent market trades |
+| `placeBuyOrder()`, `placeSellOrder()` | Place an order |
+| `cancelOrder()`, `getOrderStatus()` | Manage an order |
+| `getBalance()`, `getFees()` | Account balances and fees |
+| `getSupportedPairs()`, `isAvailable()`, `ping()` | Pairs and connectivity |
+
+### Connector registry
+
+`App\Domain\Exchange\Services\ExternalExchangeConnectorRegistry` holds the connectors.
+It registers Binance and Kraken when their names are listed in `TRADING_EXTERNAL_CONNECTORS`.
+It finds the best bid and the best ask across the available connectors.
+It also builds one order book from all of them.
+
+### Value objects
+
+The connectors return `ExternalTicker`, `ExternalOrderBook` and `ExternalTrade`.
+`MarketPair` describes a trading pair.
 
 ## Features
 
@@ -63,26 +73,23 @@ $bestAsk = $registry->getBestAsk('BTC', 'EUR');
 $aggregatedBook = $registry->getAggregatedOrderBook('BTC', 'EUR', 20);
 ```
 
-### 2. **Arbitrage Detection**
-The system continuously monitors price differences:
-- Internal vs External prices
-- Cross-exchange opportunities
-- Configurable minimum spread thresholds
-- Automated opportunity logging
+### 2. **Arbitrage detection**
 
-### 3. **External Liquidity Provision**
-When internal order books are thin:
-- Automatically adds liquidity orders
-- Prices based on external market rates
-- Configurable spread markup/markdown
-- Maintains market competitiveness
+`ExternalLiquidityService::findArbitrageOpportunities()` compares the internal best bid and ask with outside prices.
+It reports every outside price that crosses the internal spread, with the profit as a percentage.
+It does not apply `TRADING_ARB_MIN_SPREAD` at v7.18.1.
+It calls `getAllBids()` and `getAllAsks()` on the registry, which the registry does not define, so it fails whenever the internal order book has both bids and asks.
+The scheduled arbitrage job only logs what it finds. It does not trade.
+`ExternalLiquidityService::executeArbitrage()` returns "External exchange trading not yet implemented".
 
-### 4. **Price Alignment**
-Keeps internal prices aligned with external markets:
-- Weighted average price calculation
-- Market making order placement
-- Automatic order cancellation/replacement
-- Configurable spread parameters
+### 3. **External liquidity and price alignment**
+
+`ExternalLiquidityService` also has `provideLiquidity()` and `alignPrices()`.
+They place internal orders priced from the outside markets.
+At v7.18.1 no route or scheduled job calls them.
+The web page `/exchange/external/price-alignment` does not work at v7.18.1.
+Its controller calls `getPriceDiscrepancies()` and `updateAlignmentSettings()`, which `PriceAggregator` does not define.
+Moving funds between exchanges is not implemented.
 
 ## API Endpoints
 
@@ -166,10 +173,11 @@ Response:
       "external_exchange": "binance",
       "external_price": "48100",
       "internal_price": "48200",
-      "spread": "100",
-      "spread_percent": "0.207"
+      "profit_percentage": "0.207900",
+      "action": "Buy on binance at 48100, sell internally at 48200"
     }
-  ]
+  ],
+  "timestamp": "2026-11-23T10:00:00+00:00"
 }
 ```
 
@@ -177,112 +185,59 @@ Response:
 
 ### Environment Variables
 ```env
-# Enable/disable external connectors
+# Connectors the registry loads
 TRADING_EXTERNAL_CONNECTORS=binance,kraken
 
-# Market making configuration
-TRADING_MARKET_MAKING_ENABLED=true
-TRADING_SYSTEM_ACCOUNT_ID=system-account-uuid
-TRADING_MM_SPREAD=0.002
-TRADING_MM_ORDER_SIZE=0.1
-TRADING_MM_MAX_EXPOSURE=10
-
-# Arbitrage configuration
-TRADING_ARBITRAGE_ENABLED=true
-TRADING_ARB_MIN_SPREAD=0.005
+# Arbitrage checking job (read "Scheduling" below before turning it on)
+TRADING_ARBITRAGE_ENABLED=false
 TRADING_ARB_CHECK_INTERVAL=60
-TRADING_ARB_MAX_ORDER=1
 ```
 
-### Trading Configuration
-Located in `config/trading.php`:
-- Order limits per currency
-- Fee structures
-- Supported trading pairs
-- Rate limiting settings
+These three are the only connector settings the code reads at v7.18.1.
+`config/trading.php` also defines `TRADING_ARB_MIN_SPREAD`, `TRADING_ARB_MAX_ORDER`, the market-making settings (`TRADING_MARKET_MAKING_ENABLED`, `TRADING_SYSTEM_ACCOUNT_ID` and `TRADING_MM_*`), order limits, fees, trading pairs and rate limits.
+The code does not read those values, so changing them has no effect.
 
 ## Jobs and Automation
 
-### Arbitrage Checking Job
-Runs periodically to check for opportunities:
-```php
-class CheckArbitrageOpportunitiesJob
-{
-    // Checks all configured pairs
-    // Logs opportunities found
-    // Can trigger automated trades
-}
-```
+### Arbitrage checking job
 
-### Scheduled Tasks
-When arbitrage is enabled:
-- Runs every configured interval (default: 60 seconds)
-- Prevents overlapping executions
-- Runs on single server only
+`App\Domain\Exchange\Jobs\CheckArbitrageOpportunitiesJob` checks every pair of active currencies.
+It logs each opportunity it finds. It does not place trades.
+
+### Scheduling
+
+`ExternalExchangeServiceProvider` schedules the job only when `TRADING_ARBITRAGE_ENABLED=true`.
+The interval is `TRADING_ARB_CHECK_INTERVAL`, which defaults to 60 seconds.
+The job does not overlap with itself and runs on one server only.
+At v7.18.1 the provider calls `everyMinutes()`, which the Laravel 12 scheduler does not have, so turning arbitrage scheduling on fails when the application boots.
 
 ## Security Considerations
 
-1. **API Key Management**
-   - Store credentials in environment variables
-   - Use separate keys for production/testing
-   - Implement IP whitelisting where supported
-
-2. **Rate Limiting**
-   - Respect exchange rate limits
-   - Implement backoff strategies
-   - Cache responses appropriately
-
-3. **Order Validation**
-   - Verify minimum/maximum order sizes
-   - Check tick size requirements
-   - Validate price precision
-
-4. **Error Handling**
-   - Graceful degradation when exchanges unavailable
-   - Comprehensive error logging
-   - Fallback to other exchanges
+1. **API keys.** Keep exchange credentials in environment variables. Use separate keys for testing and for any live use. Restrict keys to known IP addresses where the exchange allows it.
+2. **Rate limits.** Each exchange has its own rate limits. Cache responses and back off when an exchange slows you down.
+3. **Order checks.** Check minimum and maximum order sizes, tick sizes and price precision before placing an order.
+4. **Errors.** The ticker endpoint skips a connector that fails and logs a warning. The other connectors still answer.
 
 ## Testing
 
-### Mock Connectors
-For development and testing:
+### Test connectors
+
+There is no ready-made mock connector class.
+A test can register any `IExternalExchangeConnector` implementation, such as a Mockery mock:
 ```php
-$mockConnector = new MockExchangeConnector([
-    'ticker' => ['bid' => '48000', 'ask' => '48100'],
-    'orderbook' => [/* mock data */]
-]);
+$mockConnector = Mockery::mock(IExternalExchangeConnector::class);
+$mockConnector->shouldReceive('isAvailable')->andReturn(true);
 
 $registry->register('mock', $mockConnector);
 ```
 
-### Integration Tests
-- Test each connector individually
-- Verify data normalization
-- Check error handling
-- Validate aggregation logic
+### Existing tests
+
+`tests/Feature/Http/Controllers/Api/ExternalExchangeControllerTest.php` covers the API endpoints.
 
 ## Future Enhancements
 
-1. **Additional Exchanges**
-   - Coinbase Pro
-   - Bitstamp
-   - Bitfinex
-   - OKEx
-
-2. **Advanced Features**
-   - WebSocket connections for real-time data
-   - Smart order routing
-   - Cross-exchange order execution
-   - Historical data storage
-
-3. **Risk Management**
-   - Position limits per exchange
-   - Exposure monitoring
-   - Automated hedging
-   - Circuit breakers
-
-4. **Analytics**
-   - Arbitrage opportunity tracking
-   - Profitability analysis
-   - Volume statistics
-   - Latency monitoring
+1. More exchange adapters, such as Coinbase, Bitstamp, Bitfinex and OKX
+2. WebSocket market data, order routing and execution across exchanges
+3. Position limits, exposure monitoring and circuit breakers for each exchange
+4. Reports on arbitrage opportunities, volumes and latency

@@ -1,9 +1,12 @@
-# Changelog
+# Early Release History
 
-All notable changes to the FinAegis Core Banking Platform will be documented in this file.
+This file is a historical record of the early development phases. It used an older numbering, so its version numbers do not match the current release line. For example, the "8.0.0" entry below is older than every release of the current v7 line. Some of its dates are also unreliable. The repository history starts in August 2024, and the migration named in the 0.1.0 entry is dated June 2025.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The latest release is v7.18.1 (2026-11-24). Current release notes are kept in [CHANGELOG.md](../../CHANGELOG.md), and this file is no longer updated.
+
+> FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
+>
+> Many of the modules below run only in demo mode at v7.18.1. The exchange and liquidity pools need `TRADING_ENABLED`, and the Basket, Governance, Lending, Stablecoin and Treasury modules are disabled on the production site. See [FEATURES.md](FEATURES.md) for where each feature runs.
 
 > The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
 
@@ -22,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Liquidity provider tokens for tracking shares
   - Dynamic fee distribution to LPs
   - Multi-asset pool support
+  - *Note (v7.18.1): the flow for adding, removing and rebalancing liquidity was removed in v7.18.0 because it never worked. Pool lists, swaps, positions, rewards and impermanent-loss protection remain. Pools have two assets only.*
 - **Stablecoin Framework**: Collateralized stablecoin minting/burning module
   - Multi-collateral support (ETH, BTC, other assets)
   - Health factor monitoring with real-time valuation
@@ -39,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Collateralized and uncollateralized loans
 - **External Exchange Integration**: 
   - Binance, Kraken, and Coinbase connectors
+  - *Note (v7.18.1): only the Binance and Kraken exchange connectors exist in the code today.*
   - Unified interface for all exchanges
   - Arbitrage opportunity detection
 

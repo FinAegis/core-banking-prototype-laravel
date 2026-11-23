@@ -2,29 +2,39 @@
 
 ## Overview
 
-The Treasury Management System provides comprehensive cash and liquidity management capabilities for financial institutions. Built using Domain-Driven Design (DDD) principles with event sourcing, it offers sophisticated allocation strategies, risk management, yield optimization, and regulatory reporting.
+The Treasury domain is a reference module for cash and liquidity management.
+It models treasury accounts, cash allocation strategies, yield optimization, risk assessment and report generation.
+It is built with Domain-Driven Design (DDD) and event sourcing.
+
+The module is a demonstration and runs at the message and data layer.
+It does not connect to any bank, broker or market data feed.
+The production Zelta configuration (`.env.zelta.example`) lists `Treasury` in `MODULES_DISABLED`, so its API routes and GraphQL operations are off on the production site.
+The module runs only on deployments that leave it enabled, such as the FinAegis demo.
+
+> FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
 
 ## Architecture
 
 ### Event Sourcing Implementation
 
-The Treasury domain uses event sourcing with separate storage tables:
-- **treasury_events**: Stores all domain events
-- **treasury_snapshots**: Stores aggregate snapshots for performance
+The Treasury domain stores its events in its own tables.
+`treasury_events` holds the domain events.
+`treasury_snapshots` holds aggregate snapshots so that long histories load faster.
 
 ### Domain Components
 
 #### Aggregates
-- **TreasuryAggregate**: Core aggregate root managing treasury operations
+`TreasuryAggregate` is the aggregate root for treasury accounts.
+`PortfolioAggregate` manages investment portfolios and their rebalancing.
 
 #### Value Objects
-- **AllocationStrategy**: Defines investment allocation strategies
+- **AllocationStrategy** defines four allocation strategies.
   - Conservative: 40% cash, 50% bonds, 10% equities
   - Balanced: 20% cash, 40% bonds, 40% equities
   - Aggressive: 10% cash, 20% bonds, 70% equities
   - Custom: User-defined allocations
 
-- **RiskProfile**: Risk assessment levels
+- **RiskProfile** maps a score from 0 to 100 to a risk level.
   - Low (0-25 score)
   - Medium (26-50 score)
   - High (51-75 score)
@@ -41,21 +51,17 @@ The Treasury domain uses event sourcing with separate storage tables:
 
 ### Yield Optimization Service
 
-Optimizes portfolio yields based on risk constraints and market conditions.
-
-**Features:**
-- Risk-adjusted allocation
-- Instrument filtering by risk score
-- Dynamic rebalancing
-- Performance metrics calculation
-- Sharpe ratio optimization
+`YieldOptimizationService` proposes an allocation across a fixed list of sample instruments.
+It removes instruments whose risk score is too high for the risk profile.
+It then spreads the amount to approach the target yield and reports metrics such as the expected yield and the Sharpe ratio.
+The instrument list and yields are sample data in the class, not market data.
 
 **Example Usage:**
 ```php
 $service = app(YieldOptimizationService::class);
-$result = $service->optimizeYield(
+$result = $service->optimizePortfolio(
     accountId: 'treasury-001',
-    currentAllocations: [...],
+    totalAmount: 5000000.0,
     targetYield: 6.5,
     riskProfile: RiskProfile::fromScore(45.0),
     constraints: ['max_equity_exposure' => 0.4]
@@ -64,14 +70,16 @@ $result = $service->optimizeYield(
 
 ### Regulatory Reporting Service
 
-Generates report formats modelled on regulatory reporting requirements; they do not by themselves make a deployment compliant.
+`RegulatoryReportingService` builds report documents in formats modelled on regulatory reporting requirements.
+The reports do not by themselves make a deployment compliant, and nothing is filed with a regulator.
 
-**Supported Reports:**
-- **BASEL III**: Capital adequacy, liquidity coverage, leverage ratio
-- **FORM 10Q**: Financial statements, treasury positions, risk disclosures
-- **CALL Report**: Balance sheet, income statement, asset quality
-- **Liquidity Coverage Ratio**: HQLA, net cash outflows, LCR calculation
-- **Stress Test**: Baseline, adverse, and severely adverse scenarios
+| Report type | Sections |
+|-------------|----------|
+| `BASEL_III` | Capital adequacy, liquidity coverage, leverage ratio |
+| `FORM_10Q` | Financial statements, treasury positions, risk disclosures |
+| `CALL_REPORT` | Balance sheet, income statement, asset quality |
+| `LIQUIDITY_COVERAGE_RATIO` | High-quality liquid assets, net cash outflows, LCR calculation |
+| `STRESS_TEST` | Baseline, adverse and severely adverse scenarios |
 
 **Example Usage:**
 ```php
@@ -87,52 +95,64 @@ $report = $service->generateReport(
 
 ### Cash Management Workflow
 
-Orchestrates cash allocation with compensation support for failed operations.
+`CashManagementWorkflow` runs a cash allocation as a Laravel Workflow.
+It can undo completed steps when a later step fails.
 
 **Workflow Steps:**
-1. Analyze current liquidity position
-2. Validate allocation strategy
-3. Allocate cash based on strategy
-4. Optimize yield for allocated cash
-5. Update Treasury Aggregate
+1. Analyse the current liquidity position.
+2. Validate the allocation strategy.
+3. Allocate the cash according to the strategy.
+4. Optimise the yield for the allocated cash.
+5. Record the result on the treasury aggregate.
 
 **Activities:**
-- `AnalyzeLiquidityActivity`: Assess current liquidity
-- `ValidateAllocationActivity`: Validate strategy and constraints
-- `AllocateCashActivity`: Execute cash allocation
-- `OptimizeYieldActivity`: Optimize portfolio yield
+
+| Activity | Purpose |
+|----------|---------|
+| `AnalyzeLiquidityActivity` | Assesses the current liquidity |
+| `ValidateAllocationActivity` | Checks the strategy and constraints |
+| `AllocateCashActivity` | Records the cash allocation |
+| `OptimizeYieldActivity` | Proposes the yield allocation |
 
 **Example Usage:**
 ```php
-$workflow = new CashManagementWorkflow();
-$result = $workflow->execute(
-    accountId: 'treasury-001',
-    totalAmount: 5000000.0,
-    strategy: 'balanced',
-    constraints: ['target_yield' => 5.0]
+$workflow = WorkflowStub::make(CashManagementWorkflow::class);
+$workflow->start(
+    'treasury-001',   // accountId
+    5000000.0,        // totalAmount
+    'balanced',       // strategy
+    ['target_yield' => 5.0]
 );
 ```
+
+Other workflows in the domain are `LiquidityForecastingWorkflow`, `PortfolioRebalancingWorkflow` and `PerformanceReportingWorkflow`.
 
 ## Sagas
 
 ### Risk Management Saga
 
-Continuously monitors treasury operations and triggers risk assessments.
-
-**Features:**
-- Automatic risk assessment on account creation
-- Risk monitoring during yield optimization
-- Escalation for high-risk operations
-- Risk mitigation workflows
-- Compensation for failed operations
+`RiskManagementSaga` reacts to treasury events and runs risk assessments.
+It assesses risk when an account is created and when a yield optimization starts.
+For high-risk operations it records an escalation for approval. In the demo this is a log entry.
 
 **Risk Assessment Process:**
-1. Analyze risk factors (market, credit, liquidity, operational, regulatory)
-2. Calculate weighted risk score
-3. Generate recommendations based on risk level
-4. Update aggregate with assessment results
+1. Score the market, credit, liquidity, operational and regulatory risk factors.
+2. Combine them into one weighted risk score.
+3. Produce recommendations for the resulting risk level.
+4. Record the assessment on the aggregate.
 
 ## API Integration
+
+### REST endpoints
+
+The routes are in `app/Domain/Treasury/Routes/api.php` under `/api/treasury`.
+They require a Sanctum token with the `treasury` scope and a platform operator role (`admin`, `super_admin` or `bank_admin`).
+
+| Group | Endpoints |
+|-------|-----------|
+| Portfolios | `/api/treasury/portfolios` with create, read, update, delete, allocate, rebalance, performance, valuation, history and reports |
+| Liquidity forecast | `POST /api/treasury/liquidity-forecast/generate`, `GET /{treasuryId}/current`, `POST /workflow/start`, `GET /{treasuryId}/alerts` |
+| Yield | `POST /api/treasury/yield/optimize`, `GET /api/treasury/yield/{treasuryId}/portfolio` |
 
 ### Creating a Treasury Account
 ```php
@@ -178,67 +198,54 @@ $aggregate->persist();
 
 ### Event Class Mapping
 
-Add to `config/event-sourcing.php`:
+`config/event-sourcing.php` already maps the treasury events:
 ```php
 'event_class_map' => [
-    'treasury_account_created'    => TreasuryAccountCreated::class,
-    'cash_allocated'              => CashAllocated::class,
-    'yield_optimization_started'  => YieldOptimizationStarted::class,
-    'risk_assessment_completed'   => RiskAssessmentCompleted::class,
-    'regulatory_report_generated' => RegulatoryReportGenerated::class,
+    'treasury_account_created'     => TreasuryAccountCreated::class,
+    'cash_allocated'               => CashAllocated::class,
+    'liquidity_forecast_generated' => LiquidityForecastGenerated::class,
+    'regulatory_report_generated'  => RegulatoryReportGenerated::class,
+    'risk_assessment_completed'    => RiskAssessmentCompleted::class,
+    'yield_optimization_started'   => YieldOptimizationStarted::class,
 ];
 ```
 
 ### Service Provider
 
-The `TreasuryServiceProvider` registers:
-- Treasury event repository
-- Treasury snapshot repository
-- Yield optimization service
-- Regulatory reporting service
-- Risk management saga
+`App\Providers\TreasuryServiceProvider` registers the treasury event and snapshot repositories.
+It also registers `YieldOptimizationService`, `RegulatoryReportingService` and `RiskManagementSaga` as singletons.
 
 ## Testing
 
-Comprehensive test coverage is provided in `tests/Feature/Treasury/TreasuryAggregateTest.php`.
-
-**Test Coverage:**
-- Treasury account creation
-- Cash allocation strategies
-- Yield optimization with risk constraints
-- Risk assessment and profiling
-- Regulatory report generation
-- Event sourcing with separate storage
-- Workflow compensation
+The main tests are in `tests/Feature/Treasury/`.
+`TreasuryAggregateTest.php` covers account creation, allocation strategies, yield optimization, risk assessment, report generation and the separate event storage.
+`PortfolioAggregateTest.php` and the `Services/` and `Workflows/` folders cover portfolios and rebalancing.
+`tests/Feature/Domain/Treasury/LiquidityForecastingTest.php` covers liquidity forecasting.
 
 ## Security Considerations
 
-1. **Access Control**: All treasury operations require proper authentication and authorization
-2. **Audit Trail**: Complete event sourcing provides immutable audit log
-3. **Risk Limits**: Automatic enforcement of risk thresholds
-4. **Regulatory reporting modules**: report formats modelled on banking reporting requirements; they do not by themselves make a deployment compliant
-5. **Data Integrity**: Event sourcing ensures data consistency
+1. The API routes need a Sanctum token with the `treasury` scope and an operator role.
+2. Every change is stored as an event, which gives an audit trail.
+3. Each risk level defines a maximum exposure, from 10% for low risk to 75% for very high risk.
+4. The report formats are modelled on banking reporting requirements. They do not by themselves make a deployment compliant.
+5. Amounts in this module are floats. A deployment that uses it for real money must move them to `bcmath` first.
 
 ## Performance Optimization
 
-1. **Snapshot Storage**: Reduces event replay overhead
-2. **Separate Event Tables**: Isolates treasury events for better performance
-3. **Lazy Loading**: Aggregates loaded only when needed
-4. **Caching**: Service results can be cached for repeated queries
+1. Snapshots reduce how many events must be replayed.
+2. Separate event tables keep treasury events apart from other domains.
+3. Aggregates are loaded only when needed.
+4. Service results can be cached for repeated queries.
 
 ## Monitoring and Alerts
 
-The system provides monitoring capabilities for:
-- Risk level changes
-- Allocation deviations
-- Yield target achievement
-- Regulatory report status
-- System performance metrics
+The events and the liquidity alerts can be used to monitor risk level changes, allocation deviations, yield targets and report status.
+`SendLiquidityAlertActivity` raises alerts from the liquidity forecasting workflow.
 
 ## Future Enhancements
 
-1. **Machine Learning**: Predictive analytics for yield optimization
-2. **Real-time Market Data**: Integration with market data feeds
-3. **Advanced Risk Models**: Value at Risk (VaR), Monte Carlo simulations
-4. **Multi-currency Support**: Cross-currency allocation strategies
-5. **Blockchain Integration**: DeFi protocol integration
+1. Predictive models for yield optimization
+2. Real market data feeds instead of the sample instrument list
+3. Value at Risk (VaR) and Monte Carlo risk models
+4. Allocation strategies across currencies
+5. Integration with decentralised finance (DeFi) protocols
