@@ -4,14 +4,15 @@
         <div class="bg-gray-50 border-b">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <h1 class="text-4xl font-bold text-gray-900">Privacy Policy</h1>
-                <p class="mt-4 text-lg text-gray-600">Last updated: December 23, 2025</p>
+                <p class="mt-4 text-lg text-gray-600">Last updated: November 23, 2026</p>
             </div>
         </div>
 
         <!-- Content -->
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div class="prose prose-lg max-w-none">
-                
+                @php $isFinAegisSite = app()->environment('demo') || config('brand.show_promo_pages'); @endphp
+
                 <h2>1. Introduction</h2>
                 <p>{{ config('brand.legal_entity') }} ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform and services.</p>
 
@@ -23,6 +24,9 @@
                     <li><strong>Contact Information:</strong> Email address, phone number, physical address</li>
                     <li><strong>Financial Information:</strong> Bank account details, transaction history, source of funds</li>
                     <li><strong>Verification Documents:</strong> Passport, driver's license, utility bills, employment verification</li>
+                    @unless($isFinAegisSite)
+                    <li><strong>Card application details:</strong> When you apply for a virtual card, your name, date of birth, nationality, address, email, phone number, occupation, yearly income, main use of the card, expected monthly spending and identity document issue date</li>
+                    @endunless
                 </ul>
 
                 <h3>2.2 Automatically Collected Information</h3>
@@ -86,7 +90,17 @@
                     <li>Identity-verification service providers</li>
                     <li>Cloud infrastructure providers for data storage</li>
                     <li>Customer support and communication platforms</li>
+                    @unless($isFinAegisSite)
+                    <li>Our licensed card-issuing partner, the card issuer it works with and the identity-verification service they use, when you apply for or use a virtual card. They receive your card application details and run the identity check under their own privacy notices.</li>
+                    @endunless
                 </ul>
+
+                @unless($isFinAegisSite)
+                <h3>4.4 Virtual Cards</h3>
+                <p>The card partner sends us your card&rsquo;s status, balance and transactions so that we can show them in the app. We do not receive or store your full card number or security code.</p>
+                <p>One-time verification codes for online payments are kept encrypted for at most ten minutes so that the app can show them to you. They are never written to our database or logs.</p>
+                <p>When you add money to a card, we keep a record of the top-up: the amount, the network, the transaction hash and its status.</p>
+                @endunless
 
                 <h3>4.2 Legal Requirements</h3>
                 <p>We may disclose your information when required by law or in response to:</p>
@@ -138,6 +152,9 @@
                     <li>Adequacy decisions recognizing equivalent protection levels</li>
                     <li>Certification schemes and codes of conduct</li>
                 </ul>
+                @unless($isFinAegisSite)
+                <p>If you apply for a virtual card, the card partner and its service providers may process your data outside the European Economic Area. Those transfers rely on the safeguards listed above.</p>
+                @endunless
 
                 <h2>9. Cookies and Tracking Technologies</h2>
                 <p>We use cookies and similar technologies to:</p>
@@ -162,11 +179,12 @@
 
                 <h2>12. Contact Information</h2>
                 <p>For privacy-related questions or to exercise your rights, contact us at:</p>
-                {{-- TODO(regulatory): operator legal entity details pending — see docs/REGULATORY-CLAIMS.md (controller identity/address; confirm whether a DPO is appointed) --}}
+                {{-- TODO(regulatory): confirm whether a Data Protection Officer is appointed — see docs/REGULATORY-CLAIMS.md --}}
                 <div class="bg-gray-50 p-6 rounded-lg mt-6">
                     <p><strong>Data Protection Officer</strong><br>
+                    Data controller: {{ config('brand.legal_entity') }}<br>
                     Email: {{ config('brand.privacy_email') }}<br>
-                    Address: {{ config('brand.legal_jurisdiction') }}</p>
+                    @include('legal.partials.operator')</p>
                 </div>
 
                 <h2>13. Data Processing Legal Bases</h2>

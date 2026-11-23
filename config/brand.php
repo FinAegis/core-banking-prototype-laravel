@@ -25,10 +25,17 @@ return [
 
     'privacy_email' => env('BRAND_PRIVACY_EMAIL', 'privacy@zelta.app'),
 
-    // TODO(regulatory): operator legal entity details pending — see docs/REGULATORY-CLAIMS.md
+    // The operator's legal name as in the register (Zelta: see .env.zelta.example).
     'legal_entity' => env('BRAND_LEGAL_ENTITY', 'Zelta'),
 
     'legal_jurisdiction' => env('BRAND_LEGAL_JURISDICTION', 'Vilnius, Lithuania'),
+
+    // Registry details of the operator, shown on the legal pages when set.
+    'legal_company_code' => env('BRAND_LEGAL_COMPANY_CODE', ''),
+
+    'legal_vat_code' => env('BRAND_LEGAL_VAT_CODE', ''),
+
+    'legal_address' => env('BRAND_LEGAL_ADDRESS', ''),
 
     'github_url' => env('BRAND_GITHUB_URL', 'https://github.com/FinAegis/core-banking-prototype-laravel'),
 
