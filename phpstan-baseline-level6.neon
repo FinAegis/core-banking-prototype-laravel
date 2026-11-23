@@ -34729,18 +34729,6 @@ parameters:
 			path: app/Domain/Webhook/Services/WebhookService.php
 
 		-
-			message: '#^Method App\\Filament\\Admin\\Pages\\BankOperations\:\:getBankOperationsQuery\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Filament/Admin/Pages/BankOperations.php
-
-		-
-			message: '#^Property App\\Filament\\Admin\\Pages\\Settings\:\:\$data type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Filament/Admin/Pages/Settings.php
-
-		-
 			message: '#^Property App\\Filament\\Admin\\Pages\\SubProducts\:\:\$data type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -34843,18 +34831,6 @@ parameters:
 			path: app/Filament/Admin/Resources/ReconciliationReportResource/Pages/ListReconciliationReports.php
 
 		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: app/Filament/Admin/Resources/UserBankPreferenceResource.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: app/Filament/Admin/Resources/UserBankPreferenceResource.php
-
-		-
 			message: '#^Method App\\Filament\\Admin\\Resources\\VoteResource\:\:getGlobalSearchEloquentQuery\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
 			identifier: missingType.generics
 			count: 1
@@ -34865,12 +34841,6 @@ parameters:
 			identifier: missingType.generics
 			count: 1
 			path: app/Filament/Admin/Resources/WebhookResource.php
-
-		-
-			message: '#^Method App\\Filament\\Admin\\Widgets\\BankAllocationWidget\:\:getBankDistribution\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Filament/Admin/Widgets/BankAllocationWidget.php
 
 		-
 			message: '#^Property App\\Filament\\Admin\\Widgets\\BankHealthMonitorWidget\:\:\$healthData type has no value type specified in iterable type array\.$#'
@@ -34901,18 +34871,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: app/Filament/Admin/Widgets/BasketPerformanceStats.php
-
-		-
-			message: '#^Method App\\Filament\\Admin\\Widgets\\MultiBankDistributionWidget\:\:getBankDistributionStats\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Filament/Admin/Widgets/MultiBankDistributionWidget.php
-
-		-
-			message: '#^Method App\\Filament\\Admin\\Widgets\\MultiBankDistributionWidget\:\:getTotalAllocatedFunds\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Filament/Admin/Widgets/MultiBankDistributionWidget.php
 
 		-
 			message: '#^Method App\\Filament\\Admin\\Widgets\\PrimaryBasketWidget\:\:getBasketData\(\) return type has no value type specified in iterable type array\.$#'

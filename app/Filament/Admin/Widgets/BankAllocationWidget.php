@@ -2,8 +2,8 @@
 
 namespace App\Filament\Admin\Widgets;
 
+use App\Domain\Banking\Models\UserBankPreference;
 use App\Filament\Admin\Traits\WidgetRespectsModuleVisibility;
-use App\Models\UserBankPreference;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Number;
 
@@ -19,6 +19,9 @@ class BankAllocationWidget extends Widget
 
     protected static ?int $sort = 2;
 
+    /**
+     * @return list<array<string, mixed>>
+     */
     public function getBankDistribution(): array
     {
         $banks = UserBankPreference::AVAILABLE_BANKS;
@@ -44,7 +47,7 @@ class BankAllocationWidget extends Widget
                 'user_count'        => $allocation->user_count,
                 'avg_allocation'    => Number::percentage($allocation->avg_allocation, 1),
                 'deposit_insurance' => Number::currency($bank['deposit_insurance'], 'EUR'),
-                'features'          => implode(', ', array_map(fn ($f) => ucwords(str_replace('_', ' ', $f)), $bank['features'] ?? [])),
+                'features'          => implode(', ', array_map(fn ($f) => ucwords(str_replace('_', ' ', $f)), $bank['features'])),
             ];
         }
 
@@ -58,7 +61,7 @@ class BankAllocationWidget extends Widget
                     'user_count'        => 0,
                     'avg_allocation'    => '0%',
                     'deposit_insurance' => Number::currency($bank['deposit_insurance'], 'EUR'),
-                    'features'          => implode(', ', array_map(fn ($f) => ucwords(str_replace('_', ' ', $f)), $bank['features'] ?? [])),
+                    'features'          => implode(', ', array_map(fn ($f) => ucwords(str_replace('_', ' ', $f)), $bank['features'])),
                 ];
             }
         }
@@ -70,6 +73,6 @@ class BankAllocationWidget extends Widget
     {
         $maxCoverage = count(UserBankPreference::AVAILABLE_BANKS) * 100000;
 
-        return Number::currency($maxCoverage, 'EUR');
+        return (string) Number::currency($maxCoverage, 'EUR');
     }
 }

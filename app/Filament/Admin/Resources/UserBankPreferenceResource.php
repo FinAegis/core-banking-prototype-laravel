@@ -2,9 +2,9 @@
 
 namespace App\Filament\Admin\Resources;
 
+use App\Domain\Banking\Models\UserBankPreference;
 use App\Filament\Admin\Resources\UserBankPreferenceResource\Pages;
 use App\Models\User;
-use App\Models\UserBankPreference;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -37,7 +37,7 @@ class UserBankPreferenceResource extends Resource
                 [
                     Forms\Components\Select::make('user_uuid')
                         ->label('User')
-                        ->options(User::all()->pluck('name', 'uuid'))
+                        ->options(User::query()->pluck('name', 'uuid'))
                         ->searchable()
                         ->required()
                         ->disabled(fn ($context) => $context === 'edit'),
@@ -162,8 +162,11 @@ class UserBankPreferenceResource extends Resource
                         ->visible(fn (UserBankPreference $record): bool => ! $record->is_primary && $record->status === 'active')
                         ->action(
                             function (UserBankPreference $record) {
-                                $service = app(\App\Domain\Account\Services\BankAllocationService::class);
-                                $service->setPrimaryBank($record->user, $record->bank_code);
+                                if (! $record->user instanceof User) {
+                                    return;
+                                }
+
+                                app(\App\Domain\Account\Services\BankAllocationService::class)->setPrimaryBank($record->user, $record->bank_code);
                             }
                         )
                         ->requiresConfirmation(),
