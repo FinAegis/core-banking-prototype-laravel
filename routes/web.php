@@ -915,8 +915,6 @@ Route::middleware([
         Route::prefix('withdraw')->name('withdraw.')->middleware('feature:ledger.direct_funding_enabled')->group(function () {
             Route::get('/bank', [App\Http\Controllers\WithdrawalController::class, 'create'])->name('create');
             Route::post('/bank', [App\Http\Controllers\WithdrawalController::class, 'store'])->name('store');
-            Route::post('/bank-account', [App\Http\Controllers\WithdrawalController::class, 'addBankAccount'])->name('bank-account.add');
-            Route::delete('/bank-account/{bankAccount}', [App\Http\Controllers\WithdrawalController::class, 'removeBankAccount'])->name('bank-account.remove');
 
             // OpenBanking withdrawal routes
             Route::get('/openbanking', [App\Http\Controllers\OpenBankingWithdrawalController::class, 'create'])->name('openbanking');

@@ -87,76 +87,8 @@
                             </div>
                         </div>
 
-                        <!-- Bank Account Selection -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                                Bank Account
-                            </label>
-                            
-                            <input type="hidden" name="bank_account_type" value="{{ $bankAccounts->count() > 0 ? 'saved' : 'new' }}" id="bank_account_type">
-                            
-                            @if($bankAccounts->count() > 0)
-                                <div class="space-y-2 mb-4">
-                                    @foreach($bankAccounts as $bankAccount)
-                                        <label class="relative block cursor-pointer rounded-lg border bg-white dark:bg-gray-900 px-6 py-4 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:border-gray-400">
-                                            <input type="radio" 
-                                                   name="bank_account_id" 
-                                                   value="{{ $bankAccount->id }}" 
-                                                   class="sr-only"
-                                                   onchange="document.getElementById('bank_account_type').value='saved'; document.getElementById('new-bank-account-fields').classList.add('hidden');"
-                                                   {{ $loop->first ? 'checked' : '' }}>
-                                            <span class="flex items-center justify-between">
-                                                <span class="text-sm flex flex-col">
-                                                    <span class="font-medium text-gray-900 dark:text-white">
-                                                        {{ $bankAccount->display_name }}
-                                                    </span>
-                                                    <span class="text-gray-500 dark:text-gray-400">
-                                                        {{ $bankAccount->account_holder_name }}
-                                                        @if(!$bankAccount->verified)
-                                                            <span class="ml-2 text-yellow-600 text-xs">(Unverified)</span>
-                                                        @endif
-                                                    </span>
-                                                </span>
-                                                @if($bankAccount->is_default)
-                                                    <span class="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded">Default</span>
-                                                @endif
-                                            </span>
-                                            <span class="absolute -inset-px rounded-lg border-2 pointer-events-none" aria-hidden="true"></span>
-                                        </label>
-                                    @endforeach
-                                </div>
-                                <div class="relative">
-                                    <div class="absolute inset-0 flex items-center" aria-hidden="true">
-                                        <div class="w-full border-t border-gray-300 dark:border-gray-700"></div>
-                                    </div>
-                                    <div class="relative flex justify-center text-sm">
-                                        <span class="px-2 bg-white dark:bg-gray-800 text-gray-500">Or</span>
-                                    </div>
-                                </div>
-                            @endif
-                            
-                            <div class="mt-4">
-                                <label class="relative block cursor-pointer rounded-lg border bg-white dark:bg-gray-900 px-6 py-4 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:border-gray-400">
-                                    <input type="radio" 
-                                           name="bank_account_id" 
-                                           value="new" 
-                                           class="sr-only"
-                                           onchange="document.getElementById('bank_account_type').value='new'; document.getElementById('new-bank-account-fields').classList.remove('hidden');"
-                                           {{ $bankAccounts->count() === 0 ? 'checked' : '' }}>
-                                    <span class="flex items-center">
-                                        <span class="text-sm flex flex-col">
-                                            <span class="font-medium text-gray-900 dark:text-white">
-                                                Add new bank account
-                                            </span>
-                                        </span>
-                                    </span>
-                                    <span class="absolute -inset-px rounded-lg border-2 pointer-events-none" aria-hidden="true"></span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- New Bank Account Fields -->
-                        <div id="new-bank-account-fields" class="{{ $bankAccounts->count() > 0 ? 'hidden' : '' }} space-y-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+                        <!-- Bank Account Details -->
+                        <div class="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-4">
                             <div>
                                 <label for="bank_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Bank Name
@@ -223,18 +155,6 @@
                                 </div>
                             </div>
 
-                            <div>
-                                <label class="flex items-center">
-                                    <input type="checkbox" 
-                                           name="save_bank_account" 
-                                           value="1" 
-                                           class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                                           {{ old('save_bank_account') ? 'checked' : '' }}>
-                                    <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                                        Save this bank account for future withdrawals
-                                    </span>
-                                </label>
-                            </div>
                         </div>
 
                         <!-- Fee Notice -->
@@ -268,37 +188,6 @@
                             </button>
                         </div>
                     </form>
-
-                    <!-- Saved Bank Accounts Management -->
-                    @if($bankAccounts->count() > 0)
-                        <div class="mt-8 border-t border-gray-200 dark:border-gray-700 pt-8">
-                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Manage Bank Accounts</h3>
-                            <div class="space-y-3">
-                                @foreach($bankAccounts as $bankAccount)
-                                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                                        <div>
-                                            <div class="font-medium text-gray-900 dark:text-white">
-                                                {{ $bankAccount->display_name }}
-                                            </div>
-                                            <div class="text-sm text-gray-500 dark:text-gray-400">
-                                                {{ $bankAccount->account_holder_name }}
-                                                @if(!$bankAccount->verified)
-                                                    <span class="ml-2 text-yellow-600">(Pending verification)</span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                        <form action="{{ route('wallet.withdraw.bank-account.remove', $bankAccount) }}" method="POST" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-900 text-sm">
-                                                Remove
-                                            </button>
-                                        </form>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
                 </div>
             </div>
         </div>
