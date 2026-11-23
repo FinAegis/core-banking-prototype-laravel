@@ -3265,6 +3265,7 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 - Wallet sends with an unclear network result stay submitted until the chain settles them, and a second concurrent submit gets `409 SUBMIT_IN_PROGRESS` (#1238).
 - The larastan 3.15 and phpstan 2.3.7 upgrade, with every new finding fixed or removed (#1233, #1242, #1244). Sign-ins are recorded in `users.last_login_at`, and fraud cases run on the real table.
 - Security updates for composer, npm and GitHub Actions (#1222, #1226, #1227, #1229, #1239).
+- Legal texts for the card pilot and the operating company, and a legal review of the Zelta terms and privacy policy for EU consumer and data protection law (#1241, #1243).
 
 ### Scope Notes
 - Top-ups switch on only after Lepo confirms that conversions and card loads are final when they return, how the top-up fee is charged, and whether deposits arrive net of fees. These questions are in the private design document.

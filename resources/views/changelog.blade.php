@@ -57,6 +57,7 @@
                             'Clearer send results. A wallet send no longer shows &ldquo;failed&rdquo; when the network may have accepted it. It waits for the blockchain to settle it, so nobody is led to pay twice.',
                             'Fixes found by code checkers. Newer code checkers found faults in fraud checks, compliance reports and several admin pages, and they are fixed. A liquidity feature in the exchange demo that never worked was removed.',
                             'Security updates. Libraries with published security advisories are updated, including the Laravel framework.',
+                            'Clearer legal terms. A legal review brought the Zelta terms and privacy policy in line with EU consumer and data protection law. Disputes now go to the courts or to the consumer rights authority instead of binding arbitration, and we give notice before closing an account or changing the terms.',
                         ],
                     ],
                     [
