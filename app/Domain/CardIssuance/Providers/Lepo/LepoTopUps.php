@@ -99,6 +99,13 @@ final class LepoTopUps
             $conversionFee = bcmul($conversionFee, $rate, 8);
         }
         $topUpFee = $this->decimal($quote['topupfee'] ?? null) ?? '0';
+        // Lepo also answers topupfeepercent and does not say whether topupfee
+        // already includes it. Counting it as well means the estimate never
+        // promises more than the card receives (open question in the design).
+        $topUpFeePercent = $this->decimal($quote['topupfeepercent'] ?? null) ?? '0';
+        if (bccomp($topUpFeePercent, '0', 8) === 1) {
+            $topUpFee = bcadd($topUpFee, bcdiv(bcmul($amount, $topUpFeePercent, 8), '100', 8), 8);
+        }
         $issuance = $card->isOpenAtProvider() ? 0 : self::ISSUANCE_FEE_CENTS;
 
         $net = bcsub(bcsub(bcmul($amount, $rate, 8), $conversionFee, 8), $topUpFee, 8);
