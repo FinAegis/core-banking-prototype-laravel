@@ -51,8 +51,11 @@ class AssetTransferProjector extends Projector
             throw new RuntimeException("Account not found for asset transfer from {$fromUuid} to {$toUuid}");
         }
 
+        // The rows are locked in a fixed order; three attempts cover any
+        // deadlock MySQL still reports, since a failed completion would leave
+        // a stored "completed" event that moved no money.
         AccountBalance::query()->getConnection()->transaction(function () use ($event, $fromUuid, $toUuid, $fromAmount, $toAmount): void {
-            $fromBalance = $this->lockedBalance($fromUuid, $event->fromAssetCode);
+            [$fromBalance, $toBalance] = $this->lockBalances([$fromUuid, $event->fromAssetCode], [$toUuid, $event->toAssetCode]);
 
             if (! $fromBalance->hasSufficientBalance($fromAmount)) {
                 throw new RuntimeException(
@@ -61,10 +64,10 @@ class AssetTransferProjector extends Projector
             }
 
             $fromBalance->debit($fromAmount);
-            $this->lockedBalance($toUuid, $event->toAssetCode)->credit($toAmount);
+            $toBalance->credit($toAmount);
 
             $this->writeHistory($event, $fromUuid, $toUuid, $fromAmount, $toAmount);
-        });
+        }, 3);
 
         Log::info('Asset transfer completed', [
             'from_account' => $fromUuid,
@@ -87,19 +90,31 @@ class AssetTransferProjector extends Projector
         ]);
     }
 
-    private function lockedBalance(string $accountUuid, string $assetCode): AccountBalance
+    /**
+     * Create missing balance rows, then lock both rows in one fixed order
+     * (account, then asset), so two concurrent transfers in opposite
+     * directions wait for each other instead of deadlocking.
+     *
+     * @param  array{string, string}  $from  [account uuid, asset code]
+     * @param  array{string, string}  $to  [account uuid, asset code]
+     * @return array{AccountBalance, AccountBalance}
+     */
+    private function lockBalances(array $from, array $to): array
     {
-        $balance = AccountBalance::query()
-            ->where('account_uuid', $accountUuid)
-            ->where('asset_code', $assetCode)
-            ->lockForUpdate()
-            ->first();
+        $keys = [$from, $to];
+        usort($keys, fn (array $a, array $b): int => [$a[0], $a[1]] <=> [$b[0], $b[1]]);
 
-        return $balance ?? AccountBalance::query()->create([
-            'account_uuid' => $accountUuid,
-            'asset_code'   => $assetCode,
-            'balance'      => 0,
-        ]);
+        $locked = [];
+        foreach ($keys as [$accountUuid, $assetCode]) {
+            AccountBalance::query()->createOrFirst(['account_uuid' => $accountUuid, 'asset_code' => $assetCode], ['balance' => 0]);
+            $locked["{$accountUuid}|{$assetCode}"] = AccountBalance::query()
+                ->where('account_uuid', $accountUuid)
+                ->where('asset_code', $assetCode)
+                ->lockForUpdate()
+                ->firstOrFail();
+        }
+
+        return [$locked["{$from[0]}|{$from[1]}"], $locked["{$to[0]}|{$to[1]}"]];
     }
 
     private function writeHistory(AssetTransferCompleted $event, string $fromUuid, string $toUuid, int $fromAmount, int $toAmount): void

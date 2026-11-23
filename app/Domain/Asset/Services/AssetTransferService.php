@@ -55,6 +55,10 @@ class AssetTransferService implements AssetTransferInterface
             'amount'          => $amount,
         ]);
 
+        if ($fromAccountId === $toAccountId) {
+            throw new InvalidArgumentException('The source and destination accounts must be different');
+        }
+
         $this->validateAsset($assetCode);
         $amountMinor = $this->toMinorUnits($assetCode, $amount, exact: true);
         $this->validateSufficientBalance($fromAccountId, $assetCode, $amountMinor, $amount);

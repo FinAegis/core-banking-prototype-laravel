@@ -9,6 +9,7 @@ use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Account\Models\TransactionProjection;
 use App\Domain\Asset\Aggregates\AssetTransactionAggregate;
 use App\Domain\Asset\Exceptions\InsufficientAssetBalanceException;
+use App\Domain\Asset\Models\Asset;
 use App\Domain\Asset\Models\ExchangeRate;
 use App\Domain\Asset\Services\AssetTransferService;
 use App\Domain\Asset\Workflows\Activities\InitiateAssetTransferActivity;
@@ -178,4 +179,49 @@ it('refuses an amount with more decimals than the asset has', function (): void 
     expect(fn () => app(AssetTransferService::class)->transfer((string) $from->uuid, (string) $to->uuid, 'USD', '10.005'))
         ->toThrow(InvalidArgumentException::class, 'USD amounts can have at most 2 decimal places')
         ->and(assetBalance($from, 'USD'))->toBe(5_000);
+});
+
+it('converts between assets that have different decimal places', function (): void {
+    // Minor units differ per asset: 1 BTC is 100 000 000 units, 1 USD is 100.
+    // Multiplying minor units by the rate alone booked 1 BTC as 50 billion dollars.
+    Asset::query()->updateOrCreate(['code' => 'BTC'], ['name' => 'Bitcoin', 'type' => 'crypto', 'precision' => 8, 'is_active' => true]);
+    foreach ([['BTC', 'USD', '50000'], ['USD', 'BTC', '0.00002']] as [$from, $to, $rate]) {
+        ExchangeRate::query()->create(['from_asset_code' => $from, 'to_asset_code' => $to, 'rate' => $rate, 'source' => 'manual', 'valid_at' => now()->subMinute(), 'is_active' => true]);
+    }
+    $account = assetAccount();
+    $account->balances()->updateOrCreate(['asset_code' => 'BTC'], ['balance' => 100_000_000]);
+    $uuid = new AccountUuid($account->uuid);
+
+    $toUsd = (new ConvertAssetActivity(0, activityTimestamp(), storedWorkflowFor(WalletConvertWorkflow::class), $uuid, 'BTC', 'USD', 100_000_000))->handle();
+    $toBtc = (new ConvertAssetActivity(0, activityTimestamp(), storedWorkflowFor(WalletConvertWorkflow::class), $uuid, 'USD', 'BTC', 10_000))->handle();
+
+    expect($toUsd['converted_amount'])->toBe(5_000_000)
+        ->and($toBtc['converted_amount'])->toBe(200_000)
+        ->and(assetBalance($account, 'BTC'))->toBe(200_000)
+        ->and(assetBalance($account, 'USD'))->toBe(4_990_000);
+});
+
+it('does not convert twice when the same activity runs again', function (): void {
+    // A worker can stop after the conversion is booked but before the
+    // workflow records the result; the retry must not book it again.
+    $account = assetAccount();
+    $account->balances()->updateOrCreate(['asset_code' => 'USD'], ['balance' => 10_000]);
+    $stored = storedWorkflowFor(WalletConvertWorkflow::class);
+    $uuid = new AccountUuid($account->uuid);
+
+    $first = (new ConvertAssetActivity(0, activityTimestamp(), $stored, $uuid, 'USD', 'EUR', 5_000))->handle();
+    $again = (new ConvertAssetActivity(0, activityTimestamp(), $stored, $uuid, 'USD', 'EUR', 5_000))->handle();
+
+    expect($again)->toBe($first)
+        ->and(assetBalance($account, 'USD'))->toBe(5_000)
+        ->and(assetBalance($account, 'EUR'))->toBe(1_450);
+});
+
+it('refuses a same-asset transfer to the same account', function (): void {
+    $account = assetAccount();
+    $account->balances()->updateOrCreate(['asset_code' => 'USD'], ['balance' => 5_000]);
+
+    expect(fn () => app(AssetTransferService::class)->transfer((string) $account->uuid, (string) $account->uuid, 'USD', '10.00'))
+        ->toThrow(InvalidArgumentException::class, 'The source and destination accounts must be different')
+        ->and(assetHistory($account))->toBe([]);
 });

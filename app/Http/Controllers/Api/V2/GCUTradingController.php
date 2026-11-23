@@ -8,11 +8,13 @@ use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Account\Services\AccountService;
+use App\Domain\Asset\Models\Asset;
 use App\Domain\Asset\Services\ExchangeRateService;
 use App\Domain\Basket\Models\BasketAsset;
 use App\Domain\Basket\Models\BasketValue;
 use App\Domain\Wallet\Workflows\WalletConvertWorkflow;
 use App\Http\Controllers\Controller;
+use App\Support\DecimalString;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -112,12 +114,18 @@ class GCUTradingController extends Controller
             );
         }
 
+        // Balances are held in minor units; convert the typed amount exactly.
+        $spentMinor = $this->toMinorUnits($validated['currency'], $request->input('amount'));
+        if ($spentMinor === null) {
+            return response()->json(['error' => 'Invalid Amount', 'message' => 'Enter a valid amount'], 422);
+        }
+
         // Get source currency balance
         $sourceBalance = AccountBalance::where('account_uuid', $accountUuid)
             ->where('asset_code', $validated['currency'])
             ->first();
 
-        if (! $sourceBalance || $sourceBalance->balance < $validated['amount']) {
+        if (! $sourceBalance || $sourceBalance->balance < $spentMinor) {
             return response()->json(
                 [
                     'error'   => 'Insufficient Balance',
@@ -164,7 +172,7 @@ class GCUTradingController extends Controller
                 AccountUuid::fromString($accountUuid),
                 $validated['currency'], // From currency (EUR)
                 'GCU', // To currency (GCU)
-                (int) ($validated['amount'] * 100) // Amount in cents
+                $spentMinor
             );
 
             // Get updated GCU balance
@@ -286,12 +294,18 @@ class GCUTradingController extends Controller
             );
         }
 
+        // Balances are held in minor units; convert the typed amount exactly.
+        $soldMinor = $this->toMinorUnits('GCU', $request->input('amount'));
+        if ($soldMinor === null) {
+            return response()->json(['error' => 'Invalid Amount', 'message' => 'Enter a valid amount'], 422);
+        }
+
         // Get GCU balance
         $gcuBalance = AccountBalance::where('account_uuid', $accountUuid)
             ->where('asset_code', 'GCU')
             ->first();
 
-        if (! $gcuBalance || $gcuBalance->balance < $validated['amount']) {
+        if (! $gcuBalance || $gcuBalance->balance < $soldMinor) {
             return response()->json(
                 [
                     'error'   => 'Insufficient Balance',
@@ -336,7 +350,7 @@ class GCUTradingController extends Controller
                 AccountUuid::fromString($accountUuid),
                 'GCU', // From currency (GCU)
                 $validated['currency'], // To currency (EUR)
-                (int) ($validated['amount'] * 10000) // GCU uses 4 decimal places
+                $soldMinor
             );
 
             // Get updated GCU balance
@@ -587,6 +601,24 @@ class GCUTradingController extends Controller
      * @param  float  $gcuValueInUSD  The current GCU value in USD
      * @return float The exchange rate (how many GCU per 1 unit of currency)
      */
+    /**
+     * Convert a typed amount to the asset's minor units by its precision,
+     * without float arithmetic. Extra decimals are cut. Null when invalid.
+     */
+    private function toMinorUnits(string $assetCode, mixed $amount): ?int
+    {
+        $precision = (int) (Asset::query()->where('code', $assetCode)->value('precision') ?? 2);
+        $decimal = DecimalString::fromNumeric($amount, $precision);
+
+        if ($decimal === null) {
+            return null;
+        }
+
+        $minor = (int) bcmul($decimal, bcpow('10', (string) $precision), 0);
+
+        return $minor > 0 ? $minor : null;
+    }
+
     private function calculateGCUExchangeRate(string $currency, float $gcuValueInUSD): float
     {
         // If currency is USD, direct calculation
