@@ -16810,8 +16810,8 @@
                 "tags": [
                     "Compliance"
                 ],
-                "summary": "Get compliance dashboard overview",
-                "description": "Returns the overall compliance dashboard with scores, KYC rates, pending reviews, violations, and audit dates.",
+                "summary": "Get compliance dashboard overview (placeholder)",
+                "description": "Placeholder endpoint. It returns fixed example values for the score, KYC rate, counts and audit dates. They are not calculated from real data, and no audit took place on those dates.",
                 "operationId": "complianceDashboard",
                 "responses": {
                     "200": {
@@ -16882,8 +16882,8 @@
                 "tags": [
                     "Compliance"
                 ],
-                "summary": "List all compliance violations",
-                "description": "Returns a list of all compliance violations.",
+                "summary": "List compliance violations (placeholder)",
+                "description": "Placeholder endpoint. It always returns an empty list, because violations are not stored yet.",
                 "operationId": "complianceGetViolations",
                 "responses": {
                     "200": {
@@ -16927,8 +16927,8 @@
                 "tags": [
                     "Compliance"
                 ],
-                "summary": "Get violation details",
-                "description": "Returns detailed information about a specific compliance violation.",
+                "summary": "Get violation details (placeholder)",
+                "description": "Placeholder endpoint. It always returns null data, because violations are not stored yet.",
                 "operationId": "complianceGetViolationDetails",
                 "parameters": [
                     {
@@ -16984,8 +16984,8 @@
                 "tags": [
                     "Compliance"
                 ],
-                "summary": "Resolve a compliance violation",
-                "description": "Marks a specific compliance violation as resolved.",
+                "summary": "Resolve a compliance violation (placeholder)",
+                "description": "Placeholder endpoint. It returns a success message but changes nothing.",
                 "operationId": "complianceResolveViolation",
                 "parameters": [
                     {
@@ -17041,8 +17041,8 @@
                 "tags": [
                     "Compliance"
                 ],
-                "summary": "List all compliance rules",
-                "description": "Returns a list of all configured compliance rules.",
+                "summary": "List compliance rules (placeholder)",
+                "description": "Placeholder endpoint. It always returns an empty list.",
                 "operationId": "complianceGetComplianceRules",
                 "responses": {
                     "200": {
@@ -17086,8 +17086,8 @@
                 "tags": [
                     "Compliance"
                 ],
-                "summary": "Get compliance rules by jurisdiction",
-                "description": "Returns compliance rules filtered by a specific jurisdiction.",
+                "summary": "Get compliance rules by jurisdiction (placeholder)",
+                "description": "Placeholder endpoint. It always returns an empty list, whatever the jurisdiction.",
                 "operationId": "complianceGetRulesByJurisdiction",
                 "parameters": [
                     {
@@ -17145,8 +17145,8 @@
                 "tags": [
                     "Compliance"
                 ],
-                "summary": "List all compliance checks",
-                "description": "Returns a list of all compliance checks that have been performed.",
+                "summary": "List compliance checks (placeholder)",
+                "description": "Placeholder endpoint. It always returns an empty list.",
                 "operationId": "complianceGetComplianceChecks",
                 "responses": {
                     "200": {
@@ -17190,8 +17190,8 @@
                 "tags": [
                     "Compliance"
                 ],
-                "summary": "Run a compliance check",
-                "description": "Initiates a new compliance check with the provided parameters.",
+                "summary": "Run a compliance check (placeholder)",
+                "description": "Placeholder endpoint. It returns a success message but starts no check.",
                 "operationId": "complianceRunComplianceCheck",
                 "requestBody": {
                     "required": true,
@@ -17262,8 +17262,8 @@
                 "tags": [
                     "Compliance"
                 ],
-                "summary": "List all compliance certifications",
-                "description": "Returns a list of all compliance certifications and their statuses.",
+                "summary": "List compliance certifications (placeholder)",
+                "description": "Placeholder endpoint. It always returns an empty list. The platform holds no compliance certifications.",
                 "operationId": "complianceGetCertifications",
                 "responses": {
                     "200": {
@@ -17307,8 +17307,8 @@
                 "tags": [
                     "Compliance"
                 ],
-                "summary": "Renew a compliance certification",
-                "description": "Initiates the renewal process for a compliance certification.",
+                "summary": "Renew a compliance certification (placeholder)",
+                "description": "Placeholder endpoint. It returns a success message but starts no renewal. The platform holds no compliance certifications.",
                 "operationId": "complianceRenewCertification",
                 "requestBody": {
                     "required": true,
@@ -17378,8 +17378,8 @@
                 "tags": [
                     "Compliance"
                 ],
-                "summary": "List all compliance policies",
-                "description": "Returns a list of all compliance policies.",
+                "summary": "List compliance policies (placeholder)",
+                "description": "Placeholder endpoint. It always returns an empty list.",
                 "operationId": "complianceGetPolicies",
                 "responses": {
                     "200": {
@@ -17423,8 +17423,8 @@
                 "tags": [
                     "Compliance"
                 ],
-                "summary": "Update a compliance policy",
-                "description": "Updates a specific compliance policy with the provided data.",
+                "summary": "Update a compliance policy (placeholder)",
+                "description": "Placeholder endpoint. It returns a success message but changes nothing.",
                 "operationId": "complianceUpdatePolicy",
                 "parameters": [
                     {
@@ -21459,8 +21459,8 @@
                 "tags": [
                     "Compliance"
                 ],
-                "summary": "Submit a regulatory report to the authority",
-                "description": "Submits a regulatory report for filing with the appropriate regulatory authority. Supports initial, amendment, and correction filing types via API, portal, or email.",
+                "summary": "Record a regulatory report filing (simulated)",
+                "description": "Records a filing of type initial, amendment or correction for the report. No regulator is contacted. The api method needs an endpoint in the regulatory.api_endpoints config, which this codebase does not define, so it fails. The portal and email methods are simulated. They send nothing and return a generated reference, and the portal method fails at random about one time in five.",
                 "operationId": "regulatorySubmitReport",
                 "parameters": [
                     {
@@ -21557,8 +21557,8 @@
                 "tags": [
                     "Compliance"
                 ],
-                "summary": "Check the status of a regulatory filing",
-                "description": "Queries the current status of a previously submitted regulatory filing, returning the latest filing record and any status updates.",
+                "summary": "Check the status of a regulatory filing (simulated)",
+                "description": "Returns the latest filing record and its status. No regulator is contacted. For a portal filing the status is chosen at random from pending, accepted and rejected, and an accepted or rejected status is saved to the filing. An email filing has no status check.",
                 "operationId": "regulatoryCheckFilingStatus",
                 "parameters": [
                     {
@@ -21615,8 +21615,8 @@
                 "tags": [
                     "Compliance"
                 ],
-                "summary": "Retry a failed regulatory filing",
-                "description": "Retries submission of a previously failed regulatory filing.",
+                "summary": "Retry a failed regulatory filing (simulated)",
+                "description": "Retries a failed filing with the same simulated methods as the submit endpoint. No regulator is contacted.",
                 "operationId": "regulatoryRetryFiling",
                 "parameters": [
                     {
@@ -63153,7 +63153,7 @@
         },
         {
             "name": "Compliance Certification",
-            "description": "SOC 2, PCI DSS, data residency, and incident management endpoints"
+            "description": "Audit-readiness tooling for SOC 2 and PCI DSS evidence, data residency and incident management. No SOC 2 or PCI DSS certification is held."
         },
         {
             "name": "Custodians",

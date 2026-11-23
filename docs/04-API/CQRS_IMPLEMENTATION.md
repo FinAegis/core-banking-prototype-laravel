@@ -2,35 +2,43 @@
 
 ## Overview
 
-The FinAegis platform implements CQRS pattern to separate read and write operations, providing better scalability, performance, and maintainability. This document covers the implementation details, usage examples, and best practices.
+CQRS means that writes go through commands and reads go through queries, and each has its own handler. FinAegis has the building blocks for this pattern. They are a command bus, a query bus and the interfaces that commands and queries implement. This document describes those building blocks and shows how a domain would use them.
+
+## Status in v7.18.1
+
+The buses are in place, but no domain uses them yet. No command or query handler is registered in v7.18.1, and no API endpoint dispatches through the command bus. Controllers call domain services, aggregates and workflows directly.
+
+The command and query classes in the examples below show the intended pattern. They are not classes in the codebase. The same is true for the handler registrations, the middleware and the endpoints shown later in this document.
 
 ## Architecture
 
 ### Core Components
 
+These files exist in v7.18.1:
+
 ```
 app/
 ├── Domain/
-│   ├── Shared/
-│   │   ├── Commands/
-│   │   │   └── Command.php              # Base command interface
-│   │   ├── Queries/
-│   │   │   └── Query.php                # Base query interface
-│   │   └── Handlers/
-│   │       ├── CommandHandler.php       # Base command handler
-│   │       └── QueryHandler.php         # Base query handler
-│   └── [Domain]/
-│       ├── Commands/                    # Domain-specific commands
-│       ├── Queries/                     # Domain-specific queries
-│       └── Handlers/                    # Domain handlers
-└── Infrastructure/
-    └── CQRS/
-        ├── CommandBus.php               # Command dispatcher
-        ├── QueryBus.php                 # Query dispatcher
-        └── Middleware/                  # Bus middleware
+│   └── Shared/
+│       └── CQRS/
+│           ├── Command.php              # Command interface
+│           ├── CommandBus.php           # Command bus interface
+│           ├── Query.php                # Query interface
+│           └── QueryBus.php             # Query bus interface
+├── Infrastructure/
+│   └── CQRS/
+│       ├── LaravelCommandBus.php        # Command bus implementation
+│       ├── LaravelQueryBus.php          # Query bus implementation (with cache)
+│       └── AsyncCommandJob.php          # Queued command dispatch
+└── Providers/
+    └── DomainServiceProvider.php        # Binds the buses as singletons
 ```
 
+The command bus offers `dispatch()`, `register()`, `dispatchAsync()` and `dispatchTransaction()`. `dispatchTransaction()` runs several commands inside one database transaction. `DomainServiceProvider` has empty `registerCommandHandlers()` and `registerQueryHandlers()` methods where handlers would be registered.
+
 ## Command Examples
+
+The examples in this section and the next one illustrate the pattern. The classes do not exist in the codebase.
 
 ### 1. Treasury Domain - Cash Allocation Command
 
@@ -39,7 +47,7 @@ app/
 
 namespace App\Domain\Treasury\Commands;
 
-use App\Domain\Shared\Commands\Command;
+use App\Domain\Shared\CQRS\Command;
 
 class AllocateCashCommand implements Command
 {
@@ -96,7 +104,7 @@ class AllocateCashHandler implements CommandHandler
 namespace App\Http\Controllers\Api;
 
 use App\Domain\Treasury\Commands\AllocateCashCommand;
-use App\Infrastructure\CQRS\CommandBus;
+use App\Domain\Shared\CQRS\CommandBus;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -139,7 +147,7 @@ class TreasuryController extends Controller
 
 namespace App\Domain\Account\Commands;
 
-use App\Domain\Shared\Commands\Command;
+use App\Domain\Shared\CQRS\Command;
 
 class CreateAccountCommand implements Command
 {
@@ -196,7 +204,7 @@ class CreateAccountHandler implements CommandHandler
 
 namespace App\Domain\Exchange\Commands;
 
-use App\Domain\Shared\Commands\Command;
+use App\Domain\Shared\CQRS\Command;
 
 class PlaceOrderCommand implements Command
 {
@@ -222,7 +230,7 @@ class PlaceOrderCommand implements Command
 
 namespace App\Domain\Treasury\Queries;
 
-use App\Domain\Shared\Queries\Query;
+use App\Domain\Shared\CQRS\Query;
 
 class GetPortfolioQuery implements Query
 {
@@ -290,7 +298,7 @@ class GetPortfolioHandler implements QueryHandler
 namespace App\Http\Controllers\Api;
 
 use App\Domain\Treasury\Queries\GetPortfolioQuery;
-use App\Infrastructure\CQRS\QueryBus;
+use App\Domain\Shared\CQRS\QueryBus;
 use Illuminate\Http\JsonResponse;
 
 class TreasuryController extends Controller
@@ -320,7 +328,7 @@ class TreasuryController extends Controller
 
 namespace App\Domain\Account\Queries;
 
-use App\Domain\Shared\Queries\Query;
+use App\Domain\Shared\CQRS\Query;
 
 class GetAccountBalanceQuery implements Query
 {
@@ -374,7 +382,7 @@ class GetAccountBalanceHandler implements QueryHandler
 
 namespace App\Domain\Exchange\Queries;
 
-use App\Domain\Shared\Queries\Query;
+use App\Domain\Shared\CQRS\Query;
 
 class GetOrderBookQuery implements Query
 {
@@ -390,13 +398,15 @@ class GetOrderBookQuery implements Query
 
 ### Registration in Service Provider
 
+The example below shows how handlers would be registered. In v7.18.1 the real `DomainServiceProvider` binds `App\Domain\Shared\CQRS\CommandBus` to `LaravelCommandBus` and `QueryBus` to `LaravelQueryBus`, and it registers no handlers.
+
 ```php
 <?php
 
 namespace App\Providers;
 
-use App\Infrastructure\CQRS\CommandBus;
-use App\Infrastructure\CQRS\QueryBus;
+use App\Domain\Shared\CQRS\CommandBus;
+use App\Domain\Shared\CQRS\QueryBus;
 use Illuminate\Support\ServiceProvider;
 
 class DomainServiceProvider extends ServiceProvider
@@ -472,6 +482,8 @@ class DomainServiceProvider extends ServiceProvider
 ```
 
 ## Middleware Support
+
+`LaravelCommandBus` has no middleware pipeline in v7.18.1. The classes below are examples of middleware that could be added.
 
 ### Transaction Middleware
 
@@ -554,106 +566,11 @@ class ValidationMiddleware
 
 ## API Endpoints with CQRS
 
-### Treasury Management Endpoints
-
-```http
-POST /api/treasury/allocate
-Content-Type: application/json
-
-{
-    "account_id": "uuid",
-    "amount": 1000000,
-    "strategy": "balanced",
-    "constraints": {
-        "min_liquidity": 0.2,
-        "max_risk": 0.5
-    }
-}
-```
-
-**Response:**
-```json
-{
-    "success": true,
-    "message": "Cash allocation initiated",
-    "command_id": "uuid"
-}
-```
-
-```http
-GET /api/treasury/{accountId}/portfolio
-```
-
-**Response:**
-```json
-{
-    "account_id": "uuid",
-    "total_value": 1000000,
-    "allocations": [
-        {
-            "asset_type": "cash",
-            "amount": 200000,
-            "percentage": 20,
-            "current_value": 200000
-        },
-        {
-            "asset_type": "bonds",
-            "amount": 400000,
-            "percentage": 40,
-            "current_value": 410000
-        }
-    ],
-    "performance": {
-        "daily_return": 0.15,
-        "monthly_return": 3.2,
-        "yearly_return": 8.5
-    }
-}
-```
-
-### Account Management Endpoints
-
-```http
-POST /api/accounts
-Content-Type: application/json
-
-{
-    "user_id": "uuid",
-    "account_type": "savings",
-    "currency": "USD",
-    "name": "Main Savings Account"
-}
-```
-
-**Response:**
-```json
-{
-    "success": true,
-    "account_id": "uuid",
-    "message": "Account created successfully"
-}
-```
-
-```http
-GET /api/accounts/{accountId}/balance
-```
-
-**Response:**
-```json
-{
-    "balances": [
-        {
-            "asset_code": "USD",
-            "balance": 50000.00,
-            "available": 45000.00,
-            "reserved": 5000.00,
-            "updated_at": "2024-09-15T10:30:00Z"
-        }
-    ]
-}
-```
+No API endpoint goes through the command or query bus in v7.18.1. The account endpoints are described in [REST_API_REFERENCE.md](REST_API_REFERENCE.md#account-management). The Treasury demo module serves its portfolio endpoints under `/api/treasury/portfolios/...` and calls its services directly. Production Zelta disables the Treasury module.
 
 ## Testing CQRS Implementation
+
+These tests show how the example handlers would be tested.
 
 ### Command Handler Test
 
@@ -748,7 +665,7 @@ it('retrieves portfolio information', function () {
 
 ## Integration with Event Sourcing
 
-Commands that modify aggregates automatically generate domain events:
+A command handler that changes an aggregate would record domain events through the aggregate. The example shows the idea:
 
 ```php
 class TreasuryAggregate extends AggregateRoot
@@ -822,14 +739,9 @@ class MetricsMiddleware
 
 ## Conclusion
 
-The CQRS implementation in FinAegis provides:
-- Clear separation of read and write operations
-- Better scalability through independent optimization
-- Simplified testing and maintenance
-- Natural integration with event sourcing
-- Enhanced performance through targeted caching
+The CQRS building blocks in FinAegis are a command bus, a query bus and their interfaces. They are ready for use, but no domain uses them in v7.18.1. When a domain adopts them, it separates writes from reads. That lets each side be tested, cached and scaled on its own, and it fits the event-sourced aggregates the platform already uses.
 
 For more information, see:
-- [Event Sourcing Guide](../05-PATTERNS/EVENT_SOURCING.md)
-- [Domain-Driven Design](../02-ARCHITECTURE/DDD.md)
-- [API Reference](./REST_API_REFERENCE.md)
+- [Event Sourcing Best Practices](../12-PATTERNS/EVENT_SOURCING_BEST_PRACTICES.md)
+- [Architecture](../02-ARCHITECTURE/ARCHITECTURE.md)
+- [ADR 0008: CQRS pattern](../adr/0008-cqrs-pattern.md)

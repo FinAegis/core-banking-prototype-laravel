@@ -1,53 +1,63 @@
 # Webhook Integration Guide
 
-This guide explains how to configure and use webhooks in the FinAegis Core Banking Platform.
+This guide explains how to set up outgoing webhooks in FinAegis and how to receive them.
 
 ## Overview
 
-The webhook system allows you to receive real-time notifications when events occur in the banking platform. This enables seamless integration with external systems, payment gateways, and third-party services.
+A webhook is an HTTPS request that FinAegis sends to your system when something happens to an account, a transaction or a transfer. Your system can then react without polling the API.
+
+This guide covers outgoing webhooks only. Incoming provider webhooks, such as Bridge, Lepo, FinCard, Helius, Alchemy, Apple and Google, are described in the operations runbooks under `docs/operations/`, for example [bridge-ramp.md](../operations/bridge-ramp.md) and [iap-subscriptions.md](../operations/iap-subscriptions.md).
 
 ## Available Events
 
+The admin dashboard offers the events below. They come from `Webhook::EVENTS` in `app/Domain/Webhook/Models/Webhook.php`.
+
 ### Account Events
-- `account.created` - Triggered when a new account is created
-- `account.updated` - Triggered when account details are modified
-- `account.frozen` - Triggered when an account is frozen
-- `account.unfrozen` - Triggered when an account is unfrozen
-- `account.closed` - Triggered when an account is closed
+- `account.created` is sent when a new account is created.
+- `account.updated` is listed, but no code sends it yet.
+- `account.frozen` is sent when an account is frozen.
+- `account.unfrozen` is sent when an account is unfrozen.
+- `account.closed` is sent when an account is closed.
 
 ### Transaction Events
-- `transaction.created` - Triggered when a transaction is created (deposit/withdrawal)
-- `transaction.reversed` - Triggered when a transaction is reversed
+- `transaction.created` is sent when a deposit or withdrawal is recorded.
+- `transaction.reversed` is listed, but no code sends it yet.
 
 ### Transfer Events
-- `transfer.created` - Triggered when a transfer is initiated
-- `transfer.completed` - Triggered when a transfer is successfully completed
-- `transfer.failed` - Triggered when a transfer fails
+- `transfer.created` is sent when a transfer is recorded.
+- `transfer.completed` is sent when a transfer completes. It is sent together with `transfer.created`.
+- `transfer.failed` is listed, but no code sends it yet.
 
 ### Balance Alerts
-- `balance.low` - Triggered when account balance falls below $10.00
-- `balance.negative` - Triggered when account balance becomes negative
+- `balance.low` is sent when a deposit leaves the balance below 1,000 minor units ($10.00).
+- `balance.negative` is sent when a withdrawal leaves the balance below zero.
+
+The v2 API (`GET /api/v2/webhooks/events`) lists a longer set of event names, including basket, poll and rate events. Only the account, transaction, transfer and balance events marked as sent above are sent today. The amounts in the payloads are in minor units, and `currency` is always `USD`.
 
 ## Webhook Configuration
 
 ### Via Admin Dashboard
 
-1. Navigate to `/admin` and log in
-2. Go to **System → Webhooks**
-3. Click **Create Webhook**
-4. Fill in the configuration:
-   - **Name**: A descriptive name for your webhook
-   - **URL**: The HTTPS endpoint that will receive webhook events
-   - **Events**: Select which events should trigger this webhook
-   - **Secret**: (Optional) A secret key for signature verification
-   - **Headers**: (Optional) Custom headers to include in requests
-   - **Retry Attempts**: Number of retry attempts on failure (default: 3)
-   - **Timeout**: Request timeout in seconds (default: 30)
+1. Open `/admin` and sign in as an administrator.
+2. Go to **System → Webhooks**.
+3. Click **Create Webhook**.
+4. Fill in the form:
+   - **Name** is a label for the webhook.
+   - **URL** is the HTTPS endpoint that receives the events.
+   - **Events** are the events that trigger this webhook.
+   - **Secret** is optional. It turns on signature checks.
+   - **Headers** are optional extra headers for each request.
+   - **Retry Attempts** sets how often a failed delivery is retried. The default is 3 and the maximum is 10.
+   - **Timeout** sets the request timeout in seconds. The default is 30, and the allowed range is 5 to 300.
+
+### Through the API
+
+Platform administrators can also manage webhooks through `POST /api/v2/webhooks` and the related v2 endpoints. See [Webhooks in the REST reference](REST_API_REFERENCE.md#webhooks).
 
 ### Programmatically
 
 ```php
-use App\Models\Webhook;
+use App\Domain\Webhook\Models\Webhook;
 
 $webhook = Webhook::create([
     'name' => 'Payment Gateway Integration',
@@ -63,20 +73,11 @@ $webhook = Webhook::create([
 ]);
 ```
 
+The secret is stored encrypted.
+
 ## Webhook Payload Structure
 
-All webhook payloads follow a consistent structure:
-
-```json
-{
-    "event": "account.created",
-    "timestamp": "2024-09-14T10:30:00Z",
-    "account_uuid": "01234567-89ab-cdef-0123-456789abcdef",
-    "data": {
-        // Event-specific data
-    }
-}
-```
+Every payload is a flat JSON object. It holds `event`, `timestamp` and the fields of that event. There is no separate `data` object.
 
 ### Example Payloads
 
@@ -125,7 +126,7 @@ All webhook payloads follow a consistent structure:
 
 ### Signature Verification
 
-If you configure a webhook secret, all requests will include an `X-Webhook-Signature` header containing an HMAC-SHA256 signature of the payload.
+When a webhook has a secret, every request carries an `X-Webhook-Signature` header. The header holds an HMAC-SHA256 signature of the raw request body, prefixed with `sha256=`.
 
 ```php
 // Verify webhook signature in PHP
@@ -158,98 +159,92 @@ function verifyWebhookSignature(payload, signature, secret) {
 
 ### Headers
 
-All webhook requests include the following headers:
+Every webhook request carries these headers:
 - `Content-Type: application/json`
-- `User-Agent: FinAegis-Webhook/1.0`
-- `X-Webhook-ID`: The UUID of the webhook configuration
-- `X-Webhook-Event`: The event type
-- `X-Webhook-Delivery`: The UUID of this specific delivery attempt
-- `X-Webhook-Signature`: HMAC signature (if secret is configured)
+- `User-Agent: {brand}-Webhook/1.0`, where `{brand}` is the configured brand name from `APP_BRAND` or else `APP_NAME` (production Zelta sends `Zelta-Webhook/1.0`)
+- `X-Webhook-ID` with the UUID of the webhook configuration
+- `X-Webhook-Event` with the event type
+- `X-Webhook-Delivery` with the UUID of this delivery
+- `X-Webhook-Signature` with the HMAC signature, when a secret is set
 
 ## Reliability
 
 ### Retry Logic
 
-Failed webhook deliveries are automatically retried with exponential backoff:
-- 1st retry: After 1 minute
-- 2nd retry: After 5 minutes
-- 3rd retry: After 15 minutes
+A failed delivery is retried with growing delays. The first retry comes after 1 minute, the second after 5 minutes and the third after 15 minutes. Retries stop 24 hours after the first attempt.
 
 ### Automatic Disabling
 
-Webhooks are automatically disabled after 10 consecutive failures to prevent endless retries. You can re-enable them through the admin dashboard.
+A webhook is switched off after 10 failures in a row, so it does not retry forever. An administrator can switch it back on and reset the failure count in the admin dashboard.
 
 ### Delivery Monitoring
 
-Monitor webhook deliveries through the admin dashboard:
-1. Go to **System → Webhooks**
-2. Click on a webhook to view details
-3. Check the **Delivery History** tab to see:
-   - Delivery status (pending/delivered/failed)
-   - Response status codes
-   - Response times
-   - Error messages
-   - Retry attempts
+The admin dashboard shows every delivery:
+1. Go to **System → Webhooks**.
+2. Open a webhook.
+3. Open the **Delivery History** list. It shows the delivery status (pending, delivered or failed), the response status code, the response time, the error message and the number of attempts.
+
+`GET /api/v2/webhooks/{id}/deliveries` returns the same list through the API. The older `GET /api/v1/webhooks/deliveries` endpoint is a placeholder that always returns an empty list.
 
 ## Best Practices
 
-1. **Use HTTPS**: Always use HTTPS endpoints for webhook URLs
-2. **Implement Idempotency**: Store and check the delivery UUID to handle duplicate deliveries
-3. **Respond Quickly**: Return a 2xx status code as soon as possible (within 30 seconds)
-4. **Queue Processing**: Queue webhook payloads for asynchronous processing
-5. **Monitor Failures**: Set up alerts for webhook failures in your system
-6. **Validate Payloads**: Always validate the payload structure and data
-7. **Use Signatures**: Configure webhook secrets for production environments
+1. Use an HTTPS endpoint for every webhook URL.
+2. Store the delivery UUID and check it, so that a repeated delivery is processed only once.
+3. Return a `2xx` status quickly, within the configured timeout.
+4. Put the payload on a queue and process it later.
+5. Set up alerts for failed deliveries in your own system.
+6. Check the structure and values of every payload.
+7. Set a secret for every production webhook, so you can check signatures.
 
 ## Testing Webhooks
 
 ### Using the Admin Dashboard
 
-1. Go to **System → Webhooks**
-2. Click the **Test** button next to any webhook
-3. A test payload will be sent immediately
+1. Go to **System → Webhooks**.
+2. Click **Test** next to a webhook.
+3. FinAegis queues a `test.webhook` delivery to that webhook.
+
+`POST /api/v1/webhooks/test/{eventType}` returns a sample payload for an event type. It does not send anything.
 
 ### Using RequestBin or Webhook.site
 
-For development, you can use services like:
+During development, services such as these give you a temporary URL where you can inspect the payloads:
 - [RequestBin](https://requestbin.com)
 - [Webhook.site](https://webhook.site)
 
-These provide temporary URLs to inspect webhook payloads.
-
 ### Local Development with ngrok
 
-For local development, use [ngrok](https://ngrok.com) to expose your local server:
+For local development, [ngrok](https://ngrok.com) exposes your local server on a public HTTPS URL:
 
 ```bash
 ngrok http 3000
 ```
 
-Then use the provided HTTPS URL as your webhook endpoint.
+Use the HTTPS URL that ngrok prints as the webhook endpoint.
 
 ## Troubleshooting
 
 ### Common Issues
 
 1. **Webhook not triggering**
-   - Ensure the webhook is active
-   - Verify the selected events match what's happening
-   - Check queue workers are running
+   - Check that the webhook is active.
+   - Check that the selected events match what is happening.
+   - Check that the queue workers are running.
 
 2. **Signature verification failing**
-   - Ensure you're using the raw request body
-   - Verify the secret matches exactly
-   - Check for encoding issues
+   - Compute the signature over the raw request body.
+   - Check that the secret matches exactly.
+   - Check for encoding changes in the body.
 
 3. **Timeouts**
-   - Process webhooks asynchronously
-   - Return 200 immediately and queue processing
-   - Increase timeout if necessary (max 300 seconds)
+   - Process webhooks in the background.
+   - Return `200` at once and queue the work.
+   - Raise the timeout if needed. The maximum is 300 seconds.
 
 4. **High failure rate**
-   - Check your endpoint availability
-   - Monitor response times
-   - Implement proper error handling
+   - Check that your endpoint is reachable.
+   - Watch your response times.
+   - Handle errors in your endpoint so it still answers.
 
 ## API Reference
 
@@ -259,15 +254,20 @@ Then use the provided HTTPS URL as your webhook endpoint.
 class Webhook extends Model
 {
     protected $fillable = [
+        'uuid',
         'name',
         'description',
         'url',
         'events',          // array
         'headers',         // array
-        'secret',
+        'secret',          // encrypted
         'is_active',
         'retry_attempts',
         'timeout_seconds',
+        'last_triggered_at',
+        'last_success_at',
+        'last_failure_at',
+        'consecutive_failures',
     ];
 }
 ```
@@ -275,6 +275,8 @@ class Webhook extends Model
 ### WebhookService
 
 ```php
+use App\Domain\Webhook\Services\WebhookService;
+
 // Dispatch webhook manually
 app(WebhookService::class)->dispatch('custom.event', [
     'custom_data' => 'value'
@@ -290,7 +292,4 @@ $isValid = app(WebhookService::class)->verifySignature(
 
 ## Support
 
-For webhook-related issues:
-- Check the delivery history in the admin dashboard
-- Review the Laravel logs for detailed error messages
-- Contact support with the delivery UUID for investigation
+When a webhook does not arrive, check the delivery history in the admin dashboard and the Laravel logs. The logs hold the detailed error messages. When you report an issue, include the delivery UUID, because it identifies one delivery attempt.

@@ -12,8 +12,8 @@ class ComplianceController extends Controller
         #[OA\Get(
             path: '/api/compliance/dashboard',
             operationId: 'complianceDashboard',
-            summary: 'Get compliance dashboard overview',
-            description: 'Returns the overall compliance dashboard with scores, KYC rates, pending reviews, violations, and audit dates.',
+            summary: 'Get compliance dashboard overview (placeholder)',
+            description: 'Placeholder endpoint. It returns fixed example values for the score, KYC rate, counts and audit dates. They are not calculated from real data, and no audit took place on those dates.',
             tags: ['Compliance'],
             security: [['sanctum' => []]]
         )]
@@ -60,8 +60,8 @@ class ComplianceController extends Controller
         #[OA\Get(
             path: '/api/compliance/violations',
             operationId: 'complianceGetViolations',
-            summary: 'List all compliance violations',
-            description: 'Returns a list of all compliance violations.',
+            summary: 'List compliance violations (placeholder)',
+            description: 'Placeholder endpoint. It always returns an empty list, because violations are not stored yet.',
             tags: ['Compliance'],
             security: [['sanctum' => []]]
         )]
@@ -94,8 +94,8 @@ class ComplianceController extends Controller
         #[OA\Get(
             path: '/api/compliance/violations/{id}',
             operationId: 'complianceGetViolationDetails',
-            summary: 'Get violation details',
-            description: 'Returns detailed information about a specific compliance violation.',
+            summary: 'Get violation details (placeholder)',
+            description: 'Placeholder endpoint. It always returns null data, because violations are not stored yet.',
             tags: ['Compliance'],
             security: [['sanctum' => []]],
             parameters: [
@@ -135,8 +135,8 @@ class ComplianceController extends Controller
         #[OA\Post(
             path: '/api/compliance/violations/{id}/resolve',
             operationId: 'complianceResolveViolation',
-            summary: 'Resolve a compliance violation',
-            description: 'Marks a specific compliance violation as resolved.',
+            summary: 'Resolve a compliance violation (placeholder)',
+            description: 'Placeholder endpoint. It returns a success message but changes nothing.',
             tags: ['Compliance'],
             security: [['sanctum' => []]],
             parameters: [
@@ -176,8 +176,8 @@ class ComplianceController extends Controller
         #[OA\Get(
             path: '/api/compliance/rules',
             operationId: 'complianceGetComplianceRules',
-            summary: 'List all compliance rules',
-            description: 'Returns a list of all configured compliance rules.',
+            summary: 'List compliance rules (placeholder)',
+            description: 'Placeholder endpoint. It always returns an empty list.',
             tags: ['Compliance'],
             security: [['sanctum' => []]]
         )]
@@ -210,8 +210,8 @@ class ComplianceController extends Controller
         #[OA\Get(
             path: '/api/compliance/rules/{jurisdiction}',
             operationId: 'complianceGetRulesByJurisdiction',
-            summary: 'Get compliance rules by jurisdiction',
-            description: 'Returns compliance rules filtered by a specific jurisdiction.',
+            summary: 'Get compliance rules by jurisdiction (placeholder)',
+            description: 'Placeholder endpoint. It always returns an empty list, whatever the jurisdiction.',
             tags: ['Compliance'],
             security: [['sanctum' => []]],
             parameters: [
@@ -251,8 +251,8 @@ class ComplianceController extends Controller
         #[OA\Get(
             path: '/api/compliance/checks',
             operationId: 'complianceGetComplianceChecks',
-            summary: 'List all compliance checks',
-            description: 'Returns a list of all compliance checks that have been performed.',
+            summary: 'List compliance checks (placeholder)',
+            description: 'Placeholder endpoint. It always returns an empty list.',
             tags: ['Compliance'],
             security: [['sanctum' => []]]
         )]
@@ -285,8 +285,8 @@ class ComplianceController extends Controller
         #[OA\Post(
             path: '/api/compliance/checks/run',
             operationId: 'complianceRunComplianceCheck',
-            summary: 'Run a compliance check',
-            description: 'Initiates a new compliance check with the provided parameters.',
+            summary: 'Run a compliance check (placeholder)',
+            description: 'Placeholder endpoint. It returns a success message but starts no check.',
             tags: ['Compliance'],
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(properties: [
@@ -328,8 +328,8 @@ class ComplianceController extends Controller
         #[OA\Get(
             path: '/api/compliance/certifications',
             operationId: 'complianceGetCertifications',
-            summary: 'List all compliance certifications',
-            description: 'Returns a list of all compliance certifications and their statuses.',
+            summary: 'List compliance certifications (placeholder)',
+            description: 'Placeholder endpoint. It always returns an empty list. The platform holds no compliance certifications.',
             tags: ['Compliance'],
             security: [['sanctum' => []]]
         )]
@@ -362,8 +362,8 @@ class ComplianceController extends Controller
         #[OA\Post(
             path: '/api/compliance/certifications/renew',
             operationId: 'complianceRenewCertification',
-            summary: 'Renew a compliance certification',
-            description: 'Initiates the renewal process for a compliance certification.',
+            summary: 'Renew a compliance certification (placeholder)',
+            description: 'Placeholder endpoint. It returns a success message but starts no renewal. The platform holds no compliance certifications.',
             tags: ['Compliance'],
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(properties: [
@@ -405,8 +405,8 @@ class ComplianceController extends Controller
         #[OA\Get(
             path: '/api/compliance/policies',
             operationId: 'complianceGetPolicies',
-            summary: 'List all compliance policies',
-            description: 'Returns a list of all compliance policies.',
+            summary: 'List compliance policies (placeholder)',
+            description: 'Placeholder endpoint. It always returns an empty list.',
             tags: ['Compliance'],
             security: [['sanctum' => []]]
         )]
@@ -439,8 +439,8 @@ class ComplianceController extends Controller
         #[OA\Put(
             path: '/api/compliance/policies/{id}',
             operationId: 'complianceUpdatePolicy',
-            summary: 'Update a compliance policy',
-            description: 'Updates a specific compliance policy with the provided data.',
+            summary: 'Update a compliance policy (placeholder)',
+            description: 'Placeholder endpoint. It returns a success message but changes nothing.',
             tags: ['Compliance'],
             security: [['sanctum' => []]],
             parameters: [

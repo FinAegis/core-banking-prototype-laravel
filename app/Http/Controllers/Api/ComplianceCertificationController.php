@@ -21,7 +21,7 @@ use Throwable;
 
 #[OA\Tag(
     name: 'Compliance Certification',
-    description: 'SOC 2, PCI DSS, data residency, and incident management endpoints'
+    description: 'Audit-readiness tooling for SOC 2 and PCI DSS evidence, data residency and incident management. No SOC 2 or PCI DSS certification is held.'
 )]
 class ComplianceCertificationController extends Controller
 {

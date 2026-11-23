@@ -1,17 +1,19 @@
 # FinAegis REST API Reference
 
-**Version:** 2.6.0
-**Last Updated:** February 5, 2026
+**Version:** v7.18.1
+**Last Updated:** 2026-11-24
 **Status:** Open-source reference platform
 
-This document consolidates all REST API endpoints for the FinAegis Core Banking Platform, including v2.6.0 privacy and relayer features.
+This page lists the main REST endpoint groups of FinAegis and shows how to call them. It covers the core banking reference API, the demo modules and the Zelta wallet endpoints. The route list (`php artisan route:list`) is the source of truth for which endpoints exist. The OpenAPI document served at `/api/documentation` gives the request and response schemas for each operation.
 
 > FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
 
 ## Table of Contents
+- [Which endpoints are switched on](#which-endpoints-are-switched-on)
 - [Authentication](#authentication)
-- [Hardware Wallet](#hardware-wallet) (v2.1.0)
-- [WebSocket Streaming](#websocket-streaming) (v2.1.0)
+- [Zelta wallet endpoints](#zelta-wallet-endpoints)
+- [Hardware Wallet](#hardware-wallet)
+- [WebSocket Streaming](#websocket-streaming)
 - [Account Management](#account-management)
 - [Asset Management](#asset-management)
 - [Transaction Management](#transaction-management)
@@ -20,49 +22,139 @@ This document consolidates all REST API endpoints for the FinAegis Core Banking 
 - [Governance & Voting](#governance--voting)
 - [GCU demo (simulated conversions)](#gcu-demo-simulated-conversions)
 - [CGO demo module (investment-intake workflow)](#cgo-demo-module-investment-intake-workflow)
+- [Basket API](#basket-api)
+- [Compliance API](#compliance-api)
 - [Custodian Integration](#custodian-integration)
 - [Webhooks](#webhooks)
 - [Bank Allocation](#bank-allocation)
-- [Batch Processing](#batch-processing)
+- [Batch Operations](#batch-operations)
 - [Transaction Reversal](#transaction-reversal)
 - [Regulatory Reporting](#regulatory-reporting)
 - [Daily Reconciliation](#daily-reconciliation)
-- [Bank Alerting](#bank-alerting)
-- [Basket Performance](#basket-performance)
+- [Bank Health and Alerting](#bank-health-and-alerting)
 - [Stablecoin Operations](#stablecoin-operations)
-- [User Voting](#user-voting)
-- [KYC Management](#kyc-management)
-- [GDPR Compliance](#gdpr-compliance)
 - [Exchange & Trading](#exchange--trading)
+- [External Exchange Integration](#external-exchange-integration)
 - [Liquidity Pools](#liquidity-pools)
 - [P2P Lending](#p2p-lending)
 - [Blockchain Wallets](#blockchain-wallets)
-- [External Exchange Integration](#external-exchange-integration)
+- [Error Responses](#error-responses)
+- [Rate Limiting](#rate-limiting)
+- [Pagination](#pagination)
+- [API Versioning](#api-versioning)
+
+## Which endpoints are switched on
+
+Many groups on this page belong to demo modules. A deployment turns a module off with `MODULES_DISABLED`, and the routes of that module then answer `404`. Some groups are also behind a feature flag. A route that a feature flag switches off also answers `404`. `TRADING_ENABLED` and `LEDGER_DIRECT_FUNDING_ENABLED` are on by default when `APP_ENV` is `local`, `testing` or `demo`, and off by default everywhere else.
+
+The production Zelta configuration in `.env.zelta.example` sets these values:
+
+```env
+MODULES_DISABLED="Banking,Basket,Cgo,CrossChain,DeFi,FinancialInstitution,Governance,ISO20022,ISO8583,Interledger,Ledger,Lending,Microfinance,OpenBanking,PaymentRails,Stablecoin,Treasury"
+TRADING_ENABLED=false
+LEDGER_DIRECT_FUNDING_ENABLED=false
+```
+
+| Group on this page | Gate | Production Zelta |
+|--------------------|------|------------------|
+| Voting and polls | `Governance` module | Off |
+| GCU conversions, baskets | `Basket` module | Off |
+| CGO pages | `Cgo` module | Off |
+| Bank allocation, batch operations, the CTR, SAR, KYC and summary reports, reconciliation, bank health | `Banking` module | Off |
+| Stablecoins | `Stablecoin` module | Off |
+| P2P lending | `Lending` module and `sub_product:lending` | Off |
+| Order book, external exchange, liquidity pools | `TRADING_ENABLED` (`feature:trading.enabled`) | Off |
+| Direct deposits, withdrawals, reversals, custodian transfers, `POST /api/exchange/convert` | `LEDGER_DIRECT_FUNDING_ENABLED` (`feature:ledger.direct_funding_enabled`) | Off |
+| Cards | `CARD_PROVIDERS_ENABLED` (empty means cards are not offered) | Closed pilot only |
+| Card top-ups ("Add to card") | `CARD_TOPUPS_ENABLED` | Off |
 
 ## Authentication
 
-All API endpoints require authentication using Laravel Sanctum tokens.
+Most endpoints need a Laravel Sanctum bearer token. Send it in the `Authorization: Bearer {token}` header. A token carries the abilities `read`, `write` and `delete`. A `GET` request needs `read`, a `POST`, `PUT` or `PATCH` request needs `write`, and a `DELETE` request needs `delete`.
 
 ### Login
 ```http
-POST /api/login
+POST /api/auth/login
 Content-Type: application/json
 
 {
   "email": "user@example.com",
-  "password": "password"
+  "password": "password",
+  "device_name": "My laptop"
 }
 ```
 
+`device_name` is optional. The same login is also available at `POST /api/v2/auth/login`.
+
 ### Logout
 ```http
-POST /api/logout
+POST /api/auth/logout
 Authorization: Bearer {token}
 ```
 
+`POST /api/auth/logout-all` revokes every token of the user.
+
+### Other authentication endpoints
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| POST | `/api/auth/register` | Create a user |
+| POST | `/api/auth/refresh` | Refresh a token |
+| GET | `/api/auth/user`, `/api/auth/me` | Current user |
+| POST | `/api/auth/2fa/enable`, `/api/auth/2fa/confirm`, `/api/auth/2fa/verify`, `/api/auth/2fa/disable`, `/api/auth/2fa/recovery-codes` | Two-factor authentication |
+| POST | `/api/auth/passkey/challenge`, `/api/auth/passkey/register`, `/api/auth/passkey/authenticate`, `/api/auth/passkey/verify` | Passkeys |
+| GET | `/api/auth/social/{provider}` | Start a social login |
+| POST | `/api/auth/social/{provider}/callback` | Finish a social login |
+| POST | `/api/v1/auth/privy-login` | Exchange a Privy token for a Sanctum token (mobile app) |
+
+## Zelta wallet endpoints
+
+Zelta is the hosted non-custodial wallet built on FinAegis. These endpoints serve the Zelta mobile app. The device holds the keys and signs every transaction, so the backend never sees private key material.
+
+### Wallet and sending
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/v1/wallet/state` | Wallet home data |
+| GET | `/api/v1/wallet/balances`, `/api/v1/wallet/tokens` | Balances and supported tokens |
+| GET, POST | `/api/v1/wallet/addresses` | List or register the device's public addresses |
+| GET | `/api/v1/wallet/transactions`, `/api/v1/wallet/transactions/{id}` | Wallet activity |
+| POST | `/api/v1/wallet/transactions/quote` | Quote a send |
+| POST | `/api/v1/wallet/transactions/prepare` | Return the unsigned transaction |
+| POST | `/api/v1/wallet/transactions/submit` | Accept the signed transaction |
+| GET | `/api/v1/wallet/transactions/by-intent/{intentId}` | Look up a send by its intent |
+
+Prepare takes an `Idempotency-Key` HTTP header. Submit is matched to its send by `intent_id`. A send whose result is unclear after a timeout stays submitted until the chain settles it. A second submit of the same send while the first is still running gets `409 SUBMIT_IN_PROGRESS`. Sponsored sends are capped per user and per day, and a capped request gets `429 SEND_DAILY_LIMIT_REACHED`. Ethereum mainnet sends are off by default (`WALLET_SEND_EVM_NETWORKS=polygon,base,arbitrum`), and a disabled network gets `422 NETWORK_DISABLED`.
+
+### Bank ramp, subscriptions and cards
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/v1/user/bridge-setup-status` | Bank ramp setup status |
+| POST | `/api/v1/user/bridge-kyc-link` | Start the ramp identity check |
+| POST | `/api/v1/ramp/session` | Start a ramp session (an off-ramp request gets `422 OFFRAMP_NOT_AVAILABLE`) |
+| GET | `/api/v1/ramp/sessions`, `/api/v1/ramp/session/{id}`, `/api/v1/ramp/quotes`, `/api/v1/ramp/supported` | Ramp sessions, quotes and supported options |
+| POST | `/api/v1/subscription/iap/verify` | Verify an App Store or Google Play purchase |
+| GET | `/api/v1/subscription/me` | Current subscription |
+| GET | `/api/v1/cards/onboarding` | Card onboarding form and status |
+| GET, POST | `/api/v1/cards/cardholder` | Cardholder status, or become a cardholder |
+| POST | `/api/v1/cards/kyc/session` | Start the card identity check |
+| GET, POST | `/api/v1/cards/issued` | List or open cards |
+| GET | `/api/v1/cards/issued/{card}`, `/api/v1/cards/issued/{card}/transactions` | Card details and transactions |
+| POST | `/api/v1/cards/issued/{card}/freeze`, `/unfreeze`, `/cancel` | Card controls |
+| GET | `/api/v1/cards/issued/{card}/sensitive` | Link to the card partner's secure page for the card number |
+| GET | `/api/v1/cards/issued/{card}/3ds/code` | 3-D Secure approval code for an online payment |
+| GET, POST | `/api/v1/cards/issued/{card}/topups` | List or start top-ups ("Add to card") |
+| GET | `/api/v1/cards/issued/{card}/topups/estimate` | Top-up estimate |
+| POST | `/api/v1/cards/issued/{card}/topups/{topup}/cancel` | Cancel a waiting top-up |
+
+The ramp session, quote and supported-options endpoints need a completed identity check. Without one they answer `403 ERR_KYC_REQUIRED`. Virtual cards run through Lepo Finance in a closed pilot. Only the users on the pilot list (`CARD_PROVIDER_LEPO_PILOT_USERS`) are offered a card. Any card services will be provided by licensed third parties under their own terms. The 3-D Secure code is kept encrypted for at most ten minutes and is never stored in the database or in logs. Top-ups stay off while `CARD_TOPUPS_ENABLED=false`.
+
+For the full mobile contract, see [MOBILE_API_COMPATIBILITY.md](../MOBILE_API_COMPATIBILITY.md), [FINCARD_MOBILE_INTEGRATION.md](../FINCARD_MOBILE_INTEGRATION.md), [bridge-ramp.md](../operations/bridge-ramp.md), [iap-subscriptions.md](../operations/iap-subscriptions.md) and [RAILGUN_MOBILE_INTEGRATION.md](../RAILGUN_MOBILE_INTEGRATION.md).
+
 ## Hardware Wallet
 
-Hardware wallet integration for Ledger and Trezor devices. Supports Ethereum, Bitcoin, Polygon, and BSC chains.
+The hardware wallet endpoints connect Ledger and Trezor devices. They support the Ethereum, Bitcoin, Polygon and BSC chains. The authenticated endpoints need the `blockchain` sub-product.
 
 ### Register Device
 ```http
@@ -77,7 +169,7 @@ Content-Type: application/json
   "public_key": "04...",
   "address": "0x...",
   "chain": "ethereum",
-  "derivation_path": "44'/60'/0'/0/0"
+  "derivation_path": "m/44'/60'/0'/0/0"
 }
 ```
 
@@ -88,14 +180,18 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "association_uuid": "uuid-of-device-association",
-  "transaction_data": {
+  "association_id": "uuid-of-device-association",
+  "transaction": {
+    "from": "0x...",
     "to": "0x...",
     "value": "1000000000000000000",
+    "chain": "ethereum",
     "data": "0x..."
   }
 }
 ```
+
+`transaction.gas_limit`, `gas_price`, `max_fee_per_gas`, `max_priority_fee_per_gas` and `nonce` are optional.
 
 ### Submit Signature
 ```http
@@ -112,6 +208,12 @@ Content-Type: application/json
 ### Get Signing Request Status
 ```http
 GET /api/hardware-wallet/signing-request/{id}
+Authorization: Bearer {token}
+```
+
+### Cancel Signing Request
+```http
+POST /api/hardware-wallet/signing-request/{id}/cancel
 Authorization: Bearer {token}
 ```
 
@@ -135,14 +237,27 @@ GET /api/hardware-wallet/supported
 **Response:**
 ```json
 {
-  "devices": ["ledger_nano_s", "ledger_nano_x", "trezor_one", "trezor_model_t"],
-  "chains": ["ethereum", "bitcoin", "polygon", "bsc"]
+  "data": {
+    "device_types": {
+      "ledger_nano_s": { "name": "Ledger Nano S", "supported_chains": ["..."] },
+      "ledger_nano_x": { "name": "Ledger Nano X", "supported_chains": ["..."] },
+      "trezor_one": { "name": "Trezor One", "supported_chains": ["..."] },
+      "trezor_model_t": { "name": "Trezor Model T", "supported_chains": ["..."] }
+    },
+    "chains": {
+      "ethereum": { "name": "Ethereum", "coin_type": 60 },
+      "bitcoin": { "name": "Bitcoin", "coin_type": 0 },
+      "polygon": { "name": "Polygon", "coin_type": 60 },
+      "bsc": { "name": "Binance Smart Chain", "coin_type": 60 }
+    },
+    "signing_request_ttl_seconds": 300
+  }
 }
 ```
 
 ## WebSocket Streaming
 
-Real-time event streaming via WebSocket channels. Requires authentication.
+The platform streams events over private WebSocket channels. A client must authenticate before it can subscribe.
 
 ### Connection
 ```javascript
@@ -164,6 +279,11 @@ const echo = new Echo({
 | `tenant.{tenantId}.transactions` | Transaction status updates |
 | `tenant.{tenantId}.exchange` | Order book and trade updates |
 | `tenant.{tenantId}.compliance` | Compliance alerts (admin) |
+| `tenant.{tenantId}.wallet.multi-sig` | Multi-signature wallet updates |
+| `tenant.{tenantId}.mobile` | Mobile app updates |
+| `user.{userId}`, `wallet.{userId}`, `payments.{userId}` | Per-user events |
+
+`routes/channels.php` lists every channel and its authorisation rule.
 
 ### Subscribe to Channel
 ```javascript
@@ -194,11 +314,11 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "name": "Savings Account",
-  "currency": "USD",
-  "type": "savings"
+  "name": "Savings Account"
 }
 ```
+
+An account opens empty. The deprecated `initial_balance` field accepts only `0`, and any other value is rejected with `422`.
 
 ### Get Account Balances (Multi-Asset)
 ```http
@@ -211,16 +331,29 @@ Response:
 {
   "data": {
     "account_uuid": "123e4567-e89b-12d3-a456-426614174000",
-    "balances": {
-      "USD": 150000,
-      "EUR": 50000,
-      "BTC": 100000000,
-      "GCU": 25000
-    },
-    "total_value_usd": 250000
+    "balances": [
+      {
+        "asset_code": "USD",
+        "balance": 150000,
+        "formatted": "1500.00 USD",
+        "asset": {
+          "code": "USD",
+          "name": "US Dollar",
+          "type": "fiat",
+          "symbol": "$",
+          "precision": 2
+        }
+      }
+    ],
+    "summary": {
+      "total_assets": 1,
+      "total_usd_equivalent": "1,500.00"
+    }
   }
 }
 ```
+
+`balance` is in minor units, such as cents.
 
 ### Get Transaction History
 ```http
@@ -228,42 +361,40 @@ GET /api/accounts/{uuid}/transactions?page=1&per_page=20
 Authorization: Bearer {token}
 ```
 
-## Asset Management
-
-### List Assets
+### Freeze and Unfreeze
 ```http
-GET /api/assets
-Authorization: Bearer {token}
-```
-
-### Get Asset Details
-```http
-GET /api/assets/{code}
-Authorization: Bearer {token}
-```
-
-### Create Asset (Admin)
-```http
-POST /api/assets
+POST /api/accounts/{uuid}/freeze
 Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "code": "JPY",
-  "name": "Japanese Yen",
-  "type": "fiat",
-  "precision": 0,
-  "is_active": true
+  "reason": "Card lost"
 }
 ```
 
-### Get Asset Statistics
+`POST /api/accounts/{uuid}/unfreeze` takes the same body. Both need a `reason`. The owner or a platform operator can freeze an account. The owner cannot lift a freeze that staff placed.
+
+## Asset Management
+
+### List Assets
 ```http
-GET /api/assets/{code}/statistics
+GET /api/v2/assets
 Authorization: Bearer {token}
 ```
 
+`GET /api/v1/assets` returns the same list for older clients.
+
+### Get Asset Details
+```http
+GET /api/v2/assets/{code}
+Authorization: Bearer {token}
+```
+
+The routes `POST /api/v2/assets`, `PUT /api/v2/assets/{code}` and `DELETE /api/v2/assets/{code}` are registered, but their controller methods do not exist, so they fail. Operators manage assets in the admin panel.
+
 ## Transaction Management
+
+Direct deposits and withdrawals move ledger balances without a real payment behind them. They exist for the demo and answer `404` while `LEDGER_DIRECT_FUNDING_ENABLED` is off. `amount` is in major units, such as dollars, and the API converts it to minor units by the asset's precision. The same endpoints exist under `/api/v2/accounts/{uuid}/...`.
 
 ### Create Deposit
 ```http
@@ -272,9 +403,9 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "amount": 10000,
+  "amount": 100.00,
   "asset_code": "USD",
-  "reference": "DEP-123456"
+  "description": "Demo deposit"
 }
 ```
 
@@ -285,17 +416,14 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "amount": 5000,
+  "amount": 50.00,
   "asset_code": "USD",
-  "reference": "WTH-123456"
+  "description": "Demo withdrawal"
 }
 ```
 
-### Get Transaction Status
-```http
-GET /api/transactions/{id}
-Authorization: Bearer {token}
-```
+### Transaction History
+`GET /api/accounts/{uuid}/transactions` lists the transactions of an account (see [Account Management](#account-management)). The routes `GET /api/v2/transactions` and `GET /api/v2/transactions/{id}` are registered, but their controller methods do not exist, so they fail.
 
 ## Transfer Operations
 
@@ -308,80 +436,77 @@ Content-Type: application/json
 {
   "from_account_uuid": "123e4567-e89b-12d3-a456-426614174000",
   "to_account_uuid": "987fcdeb-51a2-43d1-b890-123456789012",
-  "amount": 10000,
+  "amount": 100.00,
   "asset_code": "USD",
   "reference": "TRF-123456",
   "description": "Payment for services"
 }
 ```
 
-### Create Cross-Asset Transfer
-```http
-POST /api/transfers/cross-asset
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "from_account_uuid": "123e4567-e89b-12d3-a456-426614174000",
-  "to_account_uuid": "987fcdeb-51a2-43d1-b890-123456789012",
-  "from_asset_code": "USD",
-  "to_asset_code": "EUR",
-  "amount": 10000,
-  "reference": "XTF-123456"
-}
-```
+`amount` is in major units. There is no separate cross-asset transfer endpoint. A transfer moves one asset.
 
 ### Get Transfer Status
 ```http
-GET /api/transfers/{id}
+GET /api/transfers/{uuid}
 Authorization: Bearer {token}
 ```
 
+`GET /api/accounts/{uuid}/transfers` lists the transfers of an account.
+
 ## Exchange Rates
+
+The rate endpoints are public and read-only.
+
+### List Rates
+```http
+GET /api/exchange-rates
+```
 
 ### Get Current Rate
 ```http
 GET /api/exchange-rates/{from}/{to}
-Authorization: Bearer {token}
 ```
 
-### Get Rate History
+### Convert an Amount (quote only)
 ```http
-GET /api/exchange-rates/{from}/{to}/history?days=30
-Authorization: Bearer {token}
+GET /api/exchange-rates/{from}/{to}/convert?amount=100
 ```
 
-### Update Exchange Rate (Admin)
-```http
-POST /api/exchange-rates
-Authorization: Bearer {token}
-Content-Type: application/json
+### Rate Providers
 
-{
-  "from_asset": "USD",
-  "to_asset": "EUR",
-  "rate": 0.85,
-  "provider": "ECB"
-}
-```
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/v1/exchange-providers` | List rate providers |
+| GET | `/api/v1/exchange-providers/{provider}/rate` | Rate from one provider |
+| GET | `/api/v1/exchange-providers/compare` | Compare providers |
+| GET | `/api/v1/exchange-providers/aggregated` | Aggregated rate |
+| GET | `/api/v1/exchange-providers/historical` | Historical rates |
+| POST | `/api/v1/exchange-providers/refresh` | Refresh rates (platform operators only) |
+| POST | `/api/v1/exchange-providers/validate` | Validate a rate |
+
+The route `POST /api/v2/exchange-rates/refresh` is registered, but its controller method does not exist, so it fails. There is no endpoint that writes a rate by hand.
 
 ## Governance & Voting
 
 > Basket-composition polls belong to the GCU demo; any basket "votes" are simulated. See the [GCU demo disclaimer](#gcu-demo-simulated-conversions).
 
-### List Polls
+These endpoints belong to the `Governance` module.
+
+### List Active Polls
 ```http
-GET /api/voting/polls?status=active
+GET /api/voting/polls
 Authorization: Bearer {token}
 ```
+
+`GET /api/voting/polls/upcoming` and `GET /api/voting/polls/history` list upcoming polls and the user's past votes.
 
 ### Get Poll Details
 ```http
-GET /api/voting/polls/{uuid}
+GET /api/polls/{uuid}
 Authorization: Bearer {token}
 ```
 
-### Submit Vote
+### Submit Basket Vote
 ```http
 POST /api/voting/polls/{uuid}/vote
 Authorization: Bearer {token}
@@ -399,15 +524,17 @@ Content-Type: application/json
 }
 ```
 
+The allocations must add up to 100. `POST /api/polls/{uuid}/vote` is the general vote endpoint for other poll types.
+
 ### Get Voting Power
 ```http
-GET /api/voting/polls/{uuid}/voting-power
+GET /api/polls/{uuid}/voting-power
 Authorization: Bearer {token}
 ```
 
 ### Get Poll Results
 ```http
-GET /api/voting/polls/{uuid}/results
+GET /api/polls/{uuid}/results
 Authorization: Bearer {token}
 ```
 
@@ -417,7 +544,33 @@ GET /api/voting/dashboard
 Authorization: Bearer {token}
 ```
 
-### Create Poll (Admin)
+Response:
+```json
+{
+  "data": {
+    "stats": {
+      "active_polls": 1,
+      "votes_cast": 18,
+      "gcu_balance": 25000,
+      "voting_power": 25000
+    },
+    "next_poll": {
+      "title": "Q3 2024 GCU Basket Composition",
+      "starts_in": "5 days before",
+      "start_date": "2024-09-01T00:00:00.000000Z"
+    },
+    "basket_info": {
+      "name": "Global Currency Unit",
+      "code": "GCU",
+      "symbol": "Ǥ"
+    }
+  }
+}
+```
+
+`next_poll` is `null` when no poll is scheduled.
+
+### Create Poll
 ```http
 POST /api/polls
 Authorization: Bearer {token}
@@ -426,18 +579,27 @@ Content-Type: application/json
 {
   "title": "Q3 2024 GCU Basket Composition",
   "description": "Vote on the asset allocation for the next quarter",
-  "type": "basket_composition",
+  "type": "weighted_choice",
+  "options": [
+    {"id": "USD", "label": "US Dollar"},
+    {"id": "EUR", "label": "Euro"}
+  ],
   "start_date": "2024-09-01",
   "end_date": "2024-09-07",
-  "voting_power_strategy": "AssetWeightedVotingStrategy"
+  "voting_power_strategy": "asset_weighted_vote",
+  "metadata": {"template": "monthly_basket"}
 }
 ```
+
+`type` is one of `single_choice`, `multiple_choice`, `weighted_choice`, `yes_no` and `ranked_choice`. A poll needs at least two options, and `start_date` must lie in the future. `voting_power_strategy` is `one_user_one_vote` or `asset_weighted_vote`. Any signed-in user can create a poll. Only platform operators can attach an `execution_workflow`. The basket vote endpoint accepts only polls whose `metadata.template` is `monthly_basket`. `POST /api/polls/{uuid}/activate` opens a poll. The `/api/votes` endpoints list, show and verify individual votes, and the `/api/v2/gcu/voting/proposals` endpoints serve the same polls in the v2 format.
 
 ## GCU demo (simulated conversions)
 
 > The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
 
 GCU endpoints operate on simulated demo balances; GCU is not issued, offered or sold and has no monetary value.
+
+The conversion endpoints need the `Basket` module. The accepted currencies are EUR, USD, GBP and CHF.
 
 ### Simulated GCU conversion (buy side)
 ```http
@@ -543,12 +705,12 @@ Response:
   "data": {
     "daily_buy_limit": 10000.00,
     "daily_sell_limit": 10000.00,
-    "daily_buy_used": 2500.00,
-    "daily_sell_used": 0.00,
+    "daily_buy_used": 0,
+    "daily_sell_used": 0,
     "monthly_buy_limit": 100000.00,
     "monthly_sell_limit": 100000.00,
-    "monthly_buy_used": 15000.00,
-    "monthly_sell_used": 5000.00,
+    "monthly_buy_used": 0,
+    "monthly_sell_used": 0,
     "minimum_buy_amount": 100.00,
     "minimum_sell_amount": 10.00,
     "kyc_level": 2,
@@ -556,6 +718,8 @@ Response:
   }
 }
 ```
+
+The limits depend on the user's KYC level. The `..._used` amounts are not tracked yet and are always `0`.
 
 ### Get GCU Info (Public)
 ```http
@@ -592,342 +756,19 @@ Response:
 }
 ```
 
+`GET /api/v2/gcu/composition`, `GET /api/v2/gcu/value-history` and `GET /api/v2/gcu/supported-banks` are also public.
+
 ## CGO demo module (investment-intake workflow)
 
 > Reference software only; not an offer of securities or tokens.
 
-### Create Investment
-```http
-POST /api/cgo/investments
-Authorization: Bearer {token}
-Content-Type: application/json
+The CGO demo has no REST API. It runs as authenticated web pages under `/cgo` (for example `/cgo/invest`, `/cgo/investments`, `/cgo/agreement/{investment}/download` and `/cgo/certificate/{investment}/download`). The pages need the `Cgo` module, which production Zelta disables. Card and crypto payments for the demo arrive through the shared Stripe webhook (`POST /stripe/webhook`) and `POST /api/webhooks/coinbase-commerce`. See [docs/16-CGO](../16-CGO/) for the demo flow.
 
-{
-  "tier": "explorer",
-  "amount": 10000,
-  "payment_method": "stripe"
-}
-```
-
-Response:
-```json
-{
-  "data": {
-    "uuid": "550e8400-e29b-41d4-a716-446655440000",
-    "user_id": 1,
-    "tier": "explorer",
-    "amount": 10000,
-    "currency": "USD",
-    "payment_method": "stripe",
-    "payment_status": "pending",
-    "kyc_status": "pending",
-    "status": "pending",
-    "round_id": 1,
-    "created_at": "2024-09-07T10:00:00Z"
-  },
-  "message": "Investment created successfully"
-}
-```
-
-### Get Investment Details
-```http
-GET /api/cgo/investments/{uuid}
-Authorization: Bearer {token}
-```
-
-Response:
-```json
-{
-  "data": {
-    "uuid": "550e8400-e29b-41d4-a716-446655440000",
-    "user_id": 1,
-    "tier": "explorer",
-    "amount": 10000,
-    "currency": "USD",
-    "payment_method": "stripe",
-    "payment_status": "completed",
-    "payment_reference": "pi_1234567890",
-    "kyc_status": "approved",
-    "kyc_level": "enhanced",
-    "status": "active",
-    "round": {
-      "id": 1,
-      "name": "Seed Round",
-      "start_date": "2024-09-01",
-      "end_date": "2024-09-30",
-      "target_amount": 5000000,
-      "raised_amount": 1250000
-    },
-    "agreement_path": "cgo/agreements/investment-550e8400.pdf",
-    "certificate_path": "cgo/certificates/certificate-550e8400.pdf",
-    "created_at": "2024-09-07T10:00:00Z",
-    "updated_at": "2024-09-07T10:30:00Z"
-  }
-}
-```
-
-### Create Stripe Checkout Session
-```http
-POST /api/cgo/payments/stripe/checkout
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "investment_uuid": "550e8400-e29b-41d4-a716-446655440000"
-}
-```
-
-Response:
-```json
-{
-  "data": {
-    "checkout_url": "https://checkout.stripe.com/pay/cs_test_a1b2c3d4e5",
-    "session_id": "cs_test_a1b2c3d4e5",
-    "expires_at": "2024-09-07T11:00:00Z"
-  }
-}
-```
-
-### Create Coinbase Commerce Charge
-```http
-POST /api/cgo/payments/coinbase/charge
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "investment_uuid": "550e8400-e29b-41d4-a716-446655440000"
-}
-```
-
-Response:
-```json
-{
-  "data": {
-    "charge_id": "66BEOV2A",
-    "hosted_url": "https://commerce.coinbase.com/charges/66BEOV2A",
-    "code": "66BEOV2A",
-    "pricing": {
-      "bitcoin": {
-        "amount": "0.00236000",
-        "currency": "BTC"
-      },
-      "ethereum": {
-        "amount": "0.039000",
-        "currency": "ETH"
-      },
-      "usdc": {
-        "amount": "10000.000000",
-        "currency": "USDC"
-      }
-    },
-    "expires_at": "2024-09-07T11:00:00Z"
-  }
-}
-```
-
-### Verify Payment
-```http
-POST /api/cgo/payments/verify
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "investment_uuid": "550e8400-e29b-41d4-a716-446655440000"
-}
-```
-
-### Get Investment Agreement
-```http
-GET /api/cgo/investments/{uuid}/agreement
-Authorization: Bearer {token}
-```
-
-Returns PDF file of the investment agreement.
-
-### Get Investment Certificate
-```http
-GET /api/cgo/investments/{uuid}/certificate
-Authorization: Bearer {token}
-```
-
-Returns PDF file of the investment certificate.
-
-### Request Refund
-```http
-POST /api/cgo/investments/{uuid}/refund
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "reason": "changed_mind",
-  "reason_details": "I've decided to invest in a different tier"
-}
-```
-
-Response:
-```json
-{
-  "data": {
-    "refund_id": "770e8400-e29b-41d4-a716-446655440000",
-    "investment_uuid": "550e8400-e29b-41d4-a716-446655440000",
-    "amount": 10000,
-    "currency": "USD",
-    "status": "pending",
-    "reason": "changed_mind",
-    "reason_details": "I've decided to invest in a different tier",
-    "requested_at": "2024-09-07T12:00:00Z"
-  },
-  "message": "Refund request submitted successfully"
-}
-```
-
-### Get Refund Status
-```http
-GET /api/cgo/refunds/{refund_id}
-Authorization: Bearer {token}
-```
-
-### Stripe Webhook Handler
-```http
-POST /api/cgo/webhooks/stripe
-Content-Type: application/json
-Stripe-Signature: {webhook_signature}
-
-{webhook_payload}
-```
-
-### Coinbase Commerce Webhook Handler
-```http
-POST /api/cgo/webhooks/coinbase
-Content-Type: application/json
-X-CC-Webhook-Signature: {webhook_signature}
-
-{webhook_payload}
-```
-
-## Custodian Integration
-
-### List Custodians
-```http
-GET /api/custodians
-Authorization: Bearer {token}
-```
-
-### Get Custodian Balance
-```http
-GET /api/custodians/{id}/balance
-Authorization: Bearer {token}
-```
-
-### Trigger Reconciliation
-```http
-POST /api/custodians/{id}/reconcile
-Authorization: Bearer {token}
-```
-
-### Get Custodian Transactions
-```http
-GET /api/custodians/{id}/transactions?limit=100
-Authorization: Bearer {token}
-```
-
-### Get Custodian Health
-```http
-GET /api/custodians/{id}/health
-Authorization: Bearer {token}
-```
-
-## Webhooks
-
-### Register Webhook
-```http
-POST /api/webhooks
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "url": "https://example.com/webhook",
-  "events": ["transaction.completed", "transfer.failed"],
-  "secret": "webhook-secret-key"
-}
-```
-
-### List Webhooks
-```http
-GET /api/webhooks
-Authorization: Bearer {token}
-```
-
-### Delete Webhook
-```http
-DELETE /api/webhooks/{id}
-Authorization: Bearer {token}
-```
-
-## Error Responses
-
-All endpoints follow a consistent error response format:
-
-```json
-{
-  "message": "Validation failed",
-  "errors": {
-    "amount": ["The amount must be greater than 0"],
-    "asset_code": ["The selected asset code is invalid"]
-  }
-}
-```
-
-Common HTTP status codes:
-- `200 OK` - Successful request
-- `201 Created` - Resource created successfully
-- `400 Bad Request` - Invalid request data
-- `401 Unauthorized` - Missing or invalid authentication
-- `403 Forbidden` - Insufficient permissions
-- `404 Not Found` - Resource not found
-- `422 Unprocessable Entity` - Validation errors
-- `500 Internal Server Error` - Server error
-
-## Rate Limiting
-
-API requests are rate limited to:
-- 60 requests per minute for authenticated users
-- 30 requests per minute for unauthenticated users
-
-Rate limit headers are included in responses:
-- `X-RateLimit-Limit`: Maximum requests per minute
-- `X-RateLimit-Remaining`: Remaining requests
-- `X-RateLimit-Reset`: Unix timestamp when limit resets
-
-## Pagination
-
-List endpoints support pagination with these parameters:
-- `page`: Page number (default: 1)
-- `per_page`: Items per page (default: 15, max: 100)
-
-Paginated responses include metadata:
-```json
-{
-  "data": [...],
-  "links": {
-    "first": "https://your-finaegis-host.example/accounts?page=1",
-    "last": "https://your-finaegis-host.example/accounts?page=10",
-    "prev": null,
-    "next": "https://your-finaegis-host.example/accounts?page=2"
-  },
-  "meta": {
-    "current_page": 1,
-    "from": 1,
-    "last_page": 10,
-    "per_page": 15,
-    "to": 15,
-    "total": 150
-  }
-}
-```
 ## Basket API
 
 > Basket endpoints back the GCU demo; see the [GCU demo disclaimer](#gcu-demo-simulated-conversions).
+
+These endpoints belong to the `Basket` module.
 
 ### List Baskets
 
@@ -936,31 +777,34 @@ GET /api/v2/baskets
 ```
 
 Query parameters:
-- `type` (string): Filter by basket type (fixed/dynamic)
-- `is_active` (boolean): Filter by active status
+- `type` (string): Filter by basket type (`fixed` or `dynamic`)
+- `active` (boolean): Filter by active status
 
-Response:
+Response (a plain array):
 ```json
-{
-  "data": [
-    {
-      "code": "GCU",
-      "name": "Global Currency Unit",
-      "type": "dynamic",
-      "is_active": true,
-      "rebalance_frequency": "monthly",
-      "last_rebalanced_at": "2024-06-21T00:00:00Z",
-      "components": [
-        {
-          "asset_code": "USD",
-          "weight": 35.0,
-          "min_weight": 30.0,
-          "max_weight": 40.0
-        }
-      ]
-    }
-  ]
-}
+[
+  {
+    "code": "GCU",
+    "name": "Global Currency Unit",
+    "description": "Demo basket",
+    "type": "dynamic",
+    "rebalance_frequency": "monthly",
+    "is_active": true,
+    "latest_value": {
+      "value": 1.0234,
+      "calculated_at": "2024-06-21T10:00:00.000000Z"
+    },
+    "components": [
+      {
+        "asset_code": "USD",
+        "asset_name": "US Dollar",
+        "weight": 35.0,
+        "min_weight": 30.0,
+        "max_weight": 40.0
+      }
+    ]
+  }
+]
 ```
 
 ### Get Basket Details
@@ -980,16 +824,8 @@ Response:
 {
   "basket_code": "GCU",
   "value": 1.0234,
-  "currency": "USD",
-  "calculated_at": "2024-06-21T10:00:00Z",
-  "components": [
-    {
-      "asset_code": "USD",
-      "weight": 35.0,
-      "value": 0.3582,
-      "exchange_rate": 1.0
-    }
-  ]
+  "calculated_at": "2024-06-21T10:00:00.000000Z",
+  "component_values": { "...": "..." }
 }
 ```
 
@@ -1023,11 +859,29 @@ Request body:
 }
 ```
 
+`type` is `fixed` or `dynamic`. `rebalance_frequency` is `daily`, `weekly`, `monthly`, `quarterly` or `never`. A basket needs at least two components, and the weights must add up to 100.
+
 ### Rebalance Basket
 
 ```
 POST /api/v2/baskets/{code}/rebalance
 ```
+
+Creating and rebalancing a basket is for platform operators only.
+
+### Basket Performance
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/v2/baskets/{code}/history` | Value history |
+| GET | `/api/v2/baskets/{code}/performance` | Current performance |
+| POST | `/api/v2/baskets/{code}/performance/calculate` | Recalculate performance |
+| GET | `/api/v2/baskets/{code}/performance/summary` | Performance summary |
+| GET | `/api/v2/baskets/{code}/performance/history` | Performance history |
+| GET | `/api/v2/baskets/{code}/performance/components` | Performance per component |
+| GET | `/api/v2/baskets/{code}/performance/compare` | Compare with a benchmark |
+| GET | `/api/v2/baskets/{code}/performance/top-performers` | Best components |
+| GET | `/api/v2/baskets/{code}/performance/worst-performers` | Worst components |
 
 ### Account Basket Operations
 
@@ -1066,6 +920,8 @@ Request body:
 ```
 
 ## Compliance API
+
+The compliance endpoints are readiness tooling. They help an operator build Know Your Customer (KYC) and data protection processes, and they do not certify a deployment.
 
 ### KYC Management
 
@@ -1115,6 +971,18 @@ documents[1][type]=selfie
 documents[1][file]=@selfie.jpg
 ```
 
+#### Other KYC endpoints
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| POST | `/api/compliance/kyc/documents` | Upload one document |
+| GET | `/api/compliance/kyc/documents/{documentId}/download` | Download a document |
+| POST | `/api/compliance/kyc/ondato/start` | Start an Ondato identity check |
+| GET | `/api/compliance/kyc/ondato/status/{verificationId}` | Ondato check status |
+| GET | `/api/v2/compliance/kyc/status` | KYC status in the v2 format |
+| POST | `/api/v2/compliance/kyc/start` | Start a v2 verification |
+| POST | `/api/v2/compliance/kyc/{verificationId}/document`, `/api/v2/compliance/kyc/{verificationId}/selfie` | Upload a document or selfie for a v2 verification |
+
 ### GDPR API
 
 #### Get Consent Status
@@ -1143,6 +1011,8 @@ Request body:
 POST /api/compliance/gdpr/export
 ```
 
+`GET /api/compliance/gdpr/export/{exportId}` shows the export status and `GET /api/compliance/gdpr/export/{exportId}/download` downloads it.
+
 #### Request Account Deletion
 
 ```
@@ -1157,834 +1027,367 @@ Request body:
 }
 ```
 
-## Custodian API
+`GET /api/compliance/gdpr/retention-policy` returns the retention policy. The `/api/compliance/gdpr/v2/...` endpoints manage consent records, breach records, data protection impact assessments, the processing register and retention policies.
+
+## Custodian Integration
+
+Custodian connectors are integration adapters for third-party APIs; no partnership or endorsement implied.
 
 ### List Custodians
-
-```
+```http
 GET /api/custodians
+Authorization: Bearer {token}
+```
+
+### Get Custodian Account Info
+```http
+GET /api/custodians/{custodian}/account-info?account_id={account_id}
+Authorization: Bearer {token}
 ```
 
 ### Get Custodian Balance
+```http
+GET /api/custodians/{custodian}/balance?account_id={account_id}&asset_code={asset}
+Authorization: Bearer {token}
+```
 
+### Get Custodian Transactions
+```http
+GET /api/custodians/{custodian}/transactions?account_id={account_id}&limit=100
+Authorization: Bearer {token}
 ```
-GET /api/custodians/{custodian}/balance?account={account_id}&asset_code={asset}
-```
+
+`GET /api/custodians/{custodian}/transactions/{transactionId}` returns one transaction.
 
 ### Initiate Custodian Transfer
-
-```
+```http
 POST /api/custodians/{custodian}/transfer
-```
+Authorization: Bearer {token}
+Content-Type: application/json
 
-Request body:
-```json
 {
-  "from_account": "account123",
-  "to_account": "account456",
-  "amount": 10000,
+  "internal_account_uuid": "123e4567-e89b-12d3-a456-426614174000",
+  "custodian_account_id": "custodian-account-id",
   "asset_code": "EUR",
-  "reference": "TRANSFER123"
+  "amount": 100.50,
+  "direction": "deposit",
+  "reference": "Invoice payment"
 }
 ```
 
-## Transaction Projections API
+`direction` is `deposit` or `withdraw`, and `amount` is in major units. Only the owner of the internal account can move money in or out of it. The custodian account must be linked to an account the caller owns, and platform operators can read any custodian account. The transfer endpoint answers `404` while `LEDGER_DIRECT_FUNDING_ENABLED` is off. Custodian health is under [Bank Health and Alerting](#bank-health-and-alerting).
 
-### Get Account Transaction History
+## Webhooks
 
-```
-GET /api/v2/accounts/{account}/transaction-projections
-```
+Outgoing webhook subscriptions are managed through the v2 API. Every subscription endpoint except the event list is for platform administrators only.
 
-Query parameters:
-- `asset_code`: Filter by asset
-- `type`: Filter by transaction type
-- `start_date`: Start date for range
-- `end_date`: End date for range
-- `page`: Page number
-- `per_page`: Items per page
-
-### Get Transaction Summary
-
-```
-GET /api/v2/accounts/{account}/transaction-projections/summary
+### List Event Types (Public)
+```http
+GET /api/v2/webhooks/events
 ```
 
-### Get Balance History
+### Register Webhook
+```http
+POST /api/v2/webhooks
+Authorization: Bearer {token}
+Content-Type: application/json
 
-```
-GET /api/v2/accounts/{account}/transaction-projections/balance-history
-```
-
-### Export Transactions
-
-```
-GET /api/v2/accounts/{account}/transaction-projections/export
-```
-
-Returns CSV file with transaction history.
-
-### Search Transactions
-
-```
-GET /api/v2/transaction-projections/search
-```
-
-Query parameters:
-- `q`: Search query
-- `account_uuid`: Filter by account
-- `asset_code`: Filter by asset
-- `types[]`: Filter by transaction types
-- `start_date`: Start date
-- `end_date`: End date
-
-## Stablecoin API
-
-### List Stablecoins
-
-```
-GET /api/v2/stablecoins
-```
-
-### Get Stablecoin Metrics
-
-```
-GET /api/v2/stablecoins/{code}/metrics
-```
-
-### Mint Stablecoins
-
-```
-POST /api/v2/stablecoin-operations/mint
-```
-
-Request body:
-```json
 {
-  "stablecoin_code": "USDX",
-  "account_uuid": "account123",
-  "amount": 100000,
-  "collateral_asset_code": "USD",
-  "collateral_amount": 150000
+  "url": "https://example.com/webhook",
+  "events": ["transaction.created", "transfer.completed"],
+  "description": "Ledger events for the reporting service",
+  "is_active": true
 }
 ```
 
-### Get Liquidation Opportunities
+The URL must use `https://` and must not resolve to a private or internal address. The response shows the signing secret once, at creation. The event list accepts more names than the platform sends today. [WEBHOOK_INTEGRATION.md](WEBHOOK_INTEGRATION.md) lists the events that are actually sent.
 
-```
-GET /api/v2/stablecoin-operations/liquidation/opportunities
-```
-
-## User Voting API
-
-### Get Active Polls
-
-```
-GET /api/voting/polls
+### List Webhooks
+```http
+GET /api/v2/webhooks
+Authorization: Bearer {token}
 ```
 
-### Submit Vote
-
-```
-POST /api/voting/polls/{uuid}/vote
-```
-
-Request body (for basket allocation):
-```json
-{
-  "allocations": {
-    "USD": 35,
-    "EUR": 30,
-    "GBP": 20,
-    "CHF": 10,
-    "JPY": 3,
-    "XAU": 2
-  }
-}
+### Update, Delete and Inspect Deliveries
+```http
+PUT /api/v2/webhooks/{id}
+DELETE /api/v2/webhooks/{id}
+GET /api/v2/webhooks/{id}/deliveries
+Authorization: Bearer {token}
 ```
 
-### Get Voting Dashboard
-
-```
-GET /api/voting/dashboard
-```
-
-Response:
-```json
-{
-  "stats": {
-    "total_polls": 24,
-    "participated": 18,
-    "participation_rate": 75
-  },
-  "active_polls": [...],
-  "voting_history": [...],
-  "next_poll_date": "2024-09-01"
-}
-```
+[WEBHOOK_INTEGRATION.md](WEBHOOK_INTEGRATION.md) explains the payloads and how to check their signatures. Incoming provider webhooks are described in the operations runbooks under `docs/operations/`.
 
 ## Bank Allocation
 
-Integration adapters for third-party APIs; no partnership or endorsement implied. Bank names below are placeholders.
+Bank allocation lets a user spread a balance across several banks in the demo. It belongs to the `Banking` module. Bank connectors are integration adapters for third-party APIs; no partnership or endorsement implied. Bank names below are placeholders.
 
-### Get User Bank Allocation
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/bank-allocations` | Current allocation of the user |
+| PUT | `/api/bank-allocations` | Replace the allocation |
+| POST | `/api/bank-allocations/banks` | Add a bank |
+| DELETE | `/api/bank-allocations/banks/{bankCode}` | Remove a bank |
+| PUT | `/api/bank-allocations/primary/{bankCode}` | Set the primary bank |
+| GET | `/api/bank-allocations/available-banks` | Banks that can be chosen |
+| POST | `/api/bank-allocations/distribution-preview` | Preview how an amount would be split |
+
+### Update Allocation
 ```http
-GET /api/users/{uuid}/bank-allocation
-Authorization: Bearer {token}
-```
-
-Response:
-```json
-{
-  "data": {
-    "allocations": [
-      {
-        "bank_name": "Example Bank A",
-        "allocation_percentage": 40.0,
-        "priority": 1
-      },
-      {
-        "bank_name": "Example Bank B",
-        "allocation_percentage": 35.0,
-        "priority": 2
-      }
-    ]
-  }
-}
-```
-
-### Update User Bank Allocation
-```http
-PUT /api/users/{uuid}/bank-allocation
+PUT /api/bank-allocations
 Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "allocations": [
-    {
-      "bank_name": "Example Bank A",
-      "allocation_percentage": 30.0,
-      "priority": 1
-    },
-    {
-      "bank_name": "Example Bank B",
-      "allocation_percentage": 40.0,
-      "priority": 2
-    },
-    {
-      "bank_name": "Example Bank C",
-      "allocation_percentage": 30.0,
-      "priority": 3
-    }
-  ]
+  "allocations": {
+    "EXAMPLE_BANK_A": 60,
+    "EXAMPLE_BANK_B": 40
+  },
+  "primary_bank": "EXAMPLE_BANK_A"
 }
 ```
 
-### Get Available Banks
+### Add a Bank
 ```http
-GET /api/bank-allocation/banks
-Authorization: Bearer {token}
-```
-
-### Get Bank Health Status
-```http
-GET /api/bank-allocation/health
-Authorization: Bearer {token}
-```
-
-### Get Allocation Strategies
-```http
-GET /api/bank-allocation/strategies
-Authorization: Bearer {token}
-```
-
-### Get User Allocation History
-```http
-GET /api/users/{uuid}/bank-allocation/history
-Authorization: Bearer {token}
-```
-
-## Batch Processing
-
-### Create Batch Transaction
-```http
-POST /api/batch-processing/transactions
+POST /api/bank-allocations/banks
 Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "batch_id": "BATCH_001",
-  "transactions": [
-    {
-      "from_account_uuid": "account1",
-      "to_account_uuid": "account2",
-      "amount": 1000,
-      "asset_code": "USD",
-      "reference": "TXN_001"
-    }
+  "bank_code": "EXAMPLE_BANK_C",
+  "percentage": 20
+}
+```
+
+### Preview Distribution
+```http
+POST /api/bank-allocations/distribution-preview
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "amount": 10000,
+  "asset_code": "EUR"
+}
+```
+
+The `bank_code` values must be keys of `UserBankPreference::AVAILABLE_BANKS`.
+
+## Batch Operations
+
+Batch operations run system jobs such as interest, fee collection and reconciliation in one request. They belong to the `Banking` module and are for platform operators only.
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| POST | `/api/batch-operations/execute` | Start a batch |
+| GET | `/api/batch-operations/{batchId}/status` | Batch status |
+| GET | `/api/batch-operations` | Batch history |
+| POST | `/api/batch-operations/{batchId}/cancel` | Cancel a batch |
+
+### Start a Batch
+```http
+POST /api/batch-operations/execute
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "batch_name": "Month-end run",
+  "operations": [
+    { "type": "fee_collection", "parameters": {} },
+    { "type": "balance_reconciliation", "parameters": {} }
   ]
 }
 ```
 
-### Get Batch Status
-```http
-GET /api/batch-processing/batches/{batch_id}
-Authorization: Bearer {token}
-```
-
-### List User Batches
-```http
-GET /api/batch-processing/batches
-Authorization: Bearer {token}
-```
-
-### Get Batch Statistics
-```http
-GET /api/batch-processing/statistics
-Authorization: Bearer {token}
-```
-
-### Process Pending Batches (Admin)
-```http
-POST /api/batch-processing/process-pending
-Authorization: Bearer {token}
-```
-
-### Cancel Batch
-```http
-DELETE /api/batch-processing/batches/{batch_id}
-Authorization: Bearer {token}
-```
+The allowed operation types are `account_interest`, `fee_collection`, `balance_reconciliation`, `report_generation` and `maintenance_tasks`. `schedule_time` (format `Y-m-d H:i:s`) is optional. Cancelling a batch needs a `reason`.
 
 ## Transaction Reversal
 
-### Create Reversal Request
+A reversal books the opposite of an earlier debit or credit. Creating one answers `404` while `LEDGER_DIRECT_FUNDING_ENABLED` is off.
+
+### Reverse a Transaction
 ```http
-POST /api/transaction-reversal/request
+POST /api/accounts/{uuid}/transactions/reverse
 Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "transaction_id": "txn_123",
-  "reason": "duplicate_payment",
-  "description": "Accidental duplicate transaction"
+  "amount": 100.00,
+  "asset_code": "USD",
+  "transaction_type": "debit",
+  "reversal_reason": "Duplicate charge",
+  "original_transaction_id": "txn_123"
 }
 ```
 
-### Get Reversal Status
+### Reversal History and Status
 ```http
-GET /api/transaction-reversal/requests/{request_id}
-Authorization: Bearer {token}
-```
-
-### List User Reversal Requests
-```http
-GET /api/transaction-reversal/requests
-Authorization: Bearer {token}
-```
-
-### Approve Reversal (Admin)
-```http
-POST /api/transaction-reversal/requests/{request_id}/approve
-Authorization: Bearer {token}
-```
-
-### Reject Reversal (Admin)
-```http
-POST /api/transaction-reversal/requests/{request_id}/reject
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "reason": "Transaction cannot be reversed after 24 hours"
-}
-```
-
-### Get Reversal Statistics (Admin)
-```http
-GET /api/transaction-reversal/statistics
+GET /api/accounts/{uuid}/transactions/reversals
+GET /api/transactions/reversals/{reversalId}/status
 Authorization: Bearer {token}
 ```
 
 ## Regulatory Reporting
 
-### Generate CTR Report
-```http
-POST /api/regulatory-reporting/ctr
-Authorization: Bearer {token}
-Content-Type: application/json
+The regulatory reporting endpoints generate draft reports for an operator's own compliance team. They are for compliance staff only. They do not file anything with a regulator.
 
-{
-  "start_date": "2024-06-01",
-  "end_date": "2024-06-30",
-  "threshold": 10000
-}
-```
+| Method | Path | Purpose |
+|--------|------|---------|
+| POST | `/api/regulatory/reports/ctr` | Generate a currency transaction report |
+| POST | `/api/regulatory/reports/sar-candidates` | List candidates for a suspicious activity report |
+| POST | `/api/regulatory/reports/compliance-summary` | Generate a compliance summary |
+| POST | `/api/regulatory/reports/kyc` | Generate a KYC report |
+| GET | `/api/regulatory/reports` | List generated reports |
+| GET | `/api/regulatory/reports/{filename}/download` | Download a report file |
+| DELETE | `/api/regulatory/reports/{filename}` | Delete a report |
+| GET | `/api/regulatory/metrics` | Reporting metrics |
 
-### Generate SAR Report
-```http
-POST /api/regulatory-reporting/sar
-Authorization: Bearer {token}
-Content-Type: application/json
+`routes/api/regulatory.php` also registers `/api/regulatory/reports/generate`, `/templates`, `/jurisdictions`, `/requirements`, `/deadlines`, `/filings`, `/reports/{id}/submit`, `/reports/{id}/amend` and `/reports/{id}/status`, plus the `/api/sar/...` and `/api/ctr/...` routes. Their controller methods do not exist, so these routes fail. The one exception is `POST /api/ctr/generate`, which runs the same report as `POST /api/regulatory/reports/ctr`. The `GET /api/regulatory/reports/{id}` route from that file also catches requests meant for `GET /api/regulatory/reports/{filename}`, so showing a single report fails. Downloading a report works.
 
-{
-  "user_uuid": "user123",
-  "suspicious_activities": [
-    {
-      "type": "structuring",
-      "description": "Multiple transactions just below reporting threshold"
-    }
-  ]
-}
-```
-
-### Get Compliance Summary
-```http
-GET /api/regulatory-reporting/compliance-summary
-Authorization: Bearer {token}
-```
-
-### Get KYC Report
-```http
-GET /api/regulatory-reporting/kyc-report
-Authorization: Bearer {token}
-```
-
-### List Reports
-```http
-GET /api/regulatory-reporting/reports
-Authorization: Bearer {token}
-```
-
-### Download Report
-```http
-GET /api/regulatory-reporting/reports/{report_id}/download
-Authorization: Bearer {token}
-```
+The `/api/regtech/...` endpoints cover regulation checks such as MiCA, MiFID and the travel rule.
 
 ## Daily Reconciliation
 
-### Trigger Reconciliation
-```http
-POST /api/daily-reconciliation/trigger
-Authorization: Bearer {token}
-Content-Type: application/json
+Daily reconciliation compares ledger balances with custodian balances. It belongs to the `Banking` module and is for platform operators only.
 
-{
-  "date": "2024-06-23",
-  "force": false
-}
-```
+| Method | Path | Purpose |
+|--------|------|---------|
+| POST | `/api/reconciliation/trigger` | Run a reconciliation now |
+| GET | `/api/reconciliation/latest` | Latest report |
+| GET | `/api/reconciliation/reports/{date}` | Report for one date |
+| GET | `/api/reconciliation/history` | Past reports |
+| GET | `/api/reconciliation/metrics` | Reconciliation metrics |
+| GET | `/api/reconciliation/status` | Current status |
 
-### Get Reconciliation Status
-```http
-GET /api/daily-reconciliation/status
-Authorization: Bearer {token}
-```
+## Bank Health and Alerting
 
-### Get Reconciliation Report
-```http
-GET /api/daily-reconciliation/report/{date}
-Authorization: Bearer {token}
-```
+These endpoints check the health of custodian and bank connectors and manage the alerts they raise. They belong to the `Banking` module and are for platform operators only.
 
-### Get Discrepancies
-```http
-GET /api/daily-reconciliation/discrepancies
-Authorization: Bearer {token}
-```
-
-### Resolve Discrepancy
-```http
-POST /api/daily-reconciliation/discrepancies/{id}/resolve
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "resolution": "manual_adjustment",
-  "notes": "Corrected posting error"
-}
-```
-
-### Get Historical Reports
-```http
-GET /api/daily-reconciliation/history
-Authorization: Bearer {token}
-```
-
-## Bank Alerting
-
-### Get Active Alerts
-```http
-GET /api/bank-alerting/alerts
-Authorization: Bearer {token}
-```
-
-### Create Alert Rule
-```http
-POST /api/bank-alerting/rules
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "type": "balance_threshold",
-  "condition": "below",
-  "threshold": 10000,
-  "asset_code": "USD",
-  "notification_channels": ["email", "sms"]
-}
-```
-
-### Get Alert Rules
-```http
-GET /api/bank-alerting/rules
-Authorization: Bearer {token}
-```
-
-### Update Alert Rule
-```http
-PUT /api/bank-alerting/rules/{rule_id}
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "is_active": false
-}
-```
-
-### Acknowledge Alert
-```http
-POST /api/bank-alerting/alerts/{alert_id}/acknowledge
-Authorization: Bearer {token}
-```
-
-### Get Alert Statistics
-```http
-GET /api/bank-alerting/statistics
-Authorization: Bearer {token}
-```
-
-## Basket Performance
-
-### Get Performance Metrics
-```http
-GET /api/basket-performance/{basket_code}/metrics
-Authorization: Bearer {token}
-```
-
-Response:
-```json
-{
-  "basket_code": "GCU",
-  "performance": {
-    "1d": 0.12,
-    "7d": 1.45,
-    "30d": 3.21,
-    "90d": 8.75,
-    "365d": 12.34
-  },
-  "volatility": {
-    "30d": 2.1,
-    "90d": 3.2
-  },
-  "sharpe_ratio": 1.85
-}
-```
-
-### Get Performance History
-```http
-GET /api/basket-performance/{basket_code}/history?period=30d
-Authorization: Bearer {token}
-```
-
-### Get Benchmark Comparison
-```http
-GET /api/basket-performance/{basket_code}/benchmark
-Authorization: Bearer {token}
-```
-
-### Generate Performance Report
-```http
-POST /api/basket-performance/{basket_code}/report
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "start_date": "2024-09-01",
-  "end_date": "2024-06-01",
-  "format": "pdf"
-}
-```
+| Method | Path | Purpose |
+|--------|------|---------|
+| POST | `/api/bank-health/check` | Run a health check |
+| GET | `/api/bank-health/status` | Health of all connectors |
+| GET | `/api/bank-health/custodians/{custodian}` | Health of one custodian |
+| GET | `/api/bank-health/alerts/{custodian}/history` | Alert history of one custodian |
+| GET | `/api/bank-health/alerts/stats` | Alert statistics |
+| GET, PUT | `/api/bank-health/alerts/config` | Read or change the alert settings |
+| POST | `/api/bank-health/alerts/test` | Send a test alert |
+| POST | `/api/bank-health/alerts/{alertId}/acknowledge` | Acknowledge an alert |
 
 ## Stablecoin Operations
 
+These endpoints belong to the `Stablecoin` demo module and need the `stablecoins` sub-product. Minting, burning, adding collateral and running liquidations also need `LEDGER_DIRECT_FUNDING_ENABLED` to be on. The risk and liquidation endpoints, and the endpoints that create or control a stablecoin, are for stablecoin operators only.
+
+### List Stablecoins
+```http
+GET /api/v2/stablecoins
+Authorization: Bearer {token}
+```
+
+`GET /api/v2/stablecoins/{code}`, `GET /api/v2/stablecoins/metrics`, `GET /api/v2/stablecoins/health` and `GET /api/v2/stablecoins/{code}/collateral-distribution` return details, metrics and health.
+
+### Get Stablecoin Metrics
+```http
+GET /api/v2/stablecoins/{code}/metrics
+Authorization: Bearer {token}
+```
+
 ### Mint Stablecoins
 ```http
-POST /api/stablecoin-operations/mint
+POST /api/v2/stablecoin-operations/mint
 Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "stablecoin_code": "FGUSDC",
-  "account_uuid": "account123",
-  "amount": 10000,
+  "account_uuid": "123e4567-e89b-12d3-a456-426614174000",
+  "stablecoin_code": "USDX",
   "collateral_asset_code": "USD",
-  "collateral_amount": 15000
+  "collateral_amount": 150000,
+  "mint_amount": 100000
 }
 ```
 
-### Burn Stablecoins
-```http
-POST /api/stablecoin-operations/burn
-Authorization: Bearer {token}
-Content-Type: application/json
+### Other Stablecoin Operations
 
-{
-  "stablecoin_code": "FGUSDC",
-  "account_uuid": "account123",
-  "amount": 5000
-}
-```
-
-### Add Collateral
-```http
-POST /api/stablecoin-operations/add-collateral
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "position_id": "pos123",
-  "collateral_asset_code": "USD",
-  "amount": 5000
-}
-```
-
-### Get Liquidation Opportunities
-```http
-GET /api/stablecoin-operations/liquidation/opportunities
-Authorization: Bearer {token}
-```
-
-### Execute Liquidation
-```http
-POST /api/stablecoin-operations/liquidation/execute
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "position_id": "pos123",
-  "liquidation_amount": 2000
-}
-```
-
-### Get System Health
-```http
-GET /api/stablecoin-operations/system-health
-Authorization: Bearer {token}
-```
-
-## User Voting
-
-### Get Active Polls
-```http
-GET /api/user-voting/polls
-Authorization: Bearer {token}
-```
-
-### Submit Vote
-```http
-POST /api/user-voting/polls/{poll_uuid}/vote
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "allocations": {
-    "USD": 35,
-    "EUR": 30,
-    "GBP": 20,
-    "CHF": 10,
-    "JPY": 3,
-    "XAU": 2
-  }
-}
-```
-
-### Get Voting Power
-```http
-GET /api/user-voting/polls/{poll_uuid}/voting-power
-Authorization: Bearer {token}
-```
-
-### Get Poll Results
-```http
-GET /api/user-voting/polls/{poll_uuid}/results
-Authorization: Bearer {token}
-```
-
-### Get Voting Dashboard
-```http
-GET /api/user-voting/dashboard
-Authorization: Bearer {token}
-```
-
-## KYC Management
-
-### Get KYC Status
-```http
-GET /api/kyc/status
-Authorization: Bearer {token}
-```
-
-### Submit KYC Documents
-```http
-POST /api/kyc/submit
-Authorization: Bearer {token}
-Content-Type: multipart/form-data
-
-documents[0][type]=passport
-documents[0][file]=@passport.jpg
-documents[1][type]=selfie
-documents[1][file]=@selfie.jpg
-```
-
-### Get KYC Requirements
-```http
-GET /api/kyc/requirements?level=enhanced
-Authorization: Bearer {token}
-```
-
-### Upload Document
-```http
-POST /api/kyc/documents
-Authorization: Bearer {token}
-Content-Type: multipart/form-data
-
-type=passport
-file=@document.jpg
-```
-
-### Get Document Status
-```http
-GET /api/kyc/documents/{document_id}
-Authorization: Bearer {token}
-```
-
-## GDPR Compliance
-
-### Get Consent Status
-```http
-GET /api/gdpr/consent
-Authorization: Bearer {token}
-```
-
-### Update Consent
-```http
-POST /api/gdpr/consent
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "marketing": true,
-  "data_retention": true,
-  "analytics": false
-}
-```
-
-### Request Data Export
-```http
-POST /api/gdpr/export
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "format": "json",
-  "include_transactions": true
-}
-```
-
-### Request Account Deletion
-```http
-POST /api/gdpr/delete
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "confirm": true,
-  "reason": "No longer using the service"
-}
-```
-
-### Get Data Processing Activities
-```http
-GET /api/gdpr/processing-activities
-Authorization: Bearer {token}
-```
-
-### Get Privacy Settings
-```http
-GET /api/gdpr/privacy-settings
-Authorization: Bearer {token}
-```
+| Method | Path | Purpose |
+|--------|------|---------|
+| POST | `/api/v2/stablecoin-operations/burn` | Burn stablecoins and release collateral |
+| POST | `/api/v2/stablecoin-operations/add-collateral` | Add collateral to a position |
+| GET | `/api/v2/stablecoin-operations/accounts/{accountUuid}/positions` | Positions of an account |
+| GET | `/api/v2/stablecoin-operations/positions/{positionUuid}` | One position |
+| GET | `/api/v2/stablecoin-operations/positions/at-risk` | Positions close to liquidation |
+| GET | `/api/v2/stablecoin-operations/liquidation/opportunities` | Positions that can be liquidated |
+| POST | `/api/v2/stablecoin-operations/liquidation/execute` | Run liquidations |
+| POST | `/api/v2/stablecoin-operations/liquidation/positions/{positionUuid}` | Liquidate one position |
+| GET | `/api/v2/stablecoin-operations/liquidation/positions/{positionUuid}/reward` | Liquidation reward of a position |
+| POST | `/api/v2/stablecoin-operations/simulation/{stablecoinCode}/mass-liquidation` | Simulate a mass liquidation |
+| POST, PUT | `/api/v2/stablecoins`, `/api/v2/stablecoins/{code}` | Create or change a stablecoin |
+| POST | `/api/v2/stablecoins/{code}/deactivate`, `/reactivate`, `/execute-stability` | Stablecoin controls |
 
 ## Exchange & Trading
+
+The order book is part of the demo trading engine. It answers `404` while `TRADING_ENABLED` is off, and production Zelta keeps it off. Each response below is the shape the controller returns today. The OpenAPI document at `/api/documentation` has the full schemas.
 
 ### List Trading Pairs
 ```http
 GET /api/exchange/markets
-Authorization: Bearer {token}
 ```
 
 Response:
 ```json
 {
+  "success": true,
   "data": [
     {
-      "symbol": "BTC/USD",
-      "base_currency": "BTC",
-      "quote_currency": "USD",
-      "status": "active",
-      "min_order_size": "0.0001",
-      "max_order_size": "100",
-      "price_precision": 2,
-      "volume_precision": 8,
+      "pair": "BTC/EUR",
+      "last_price": "45678.90",
       "volume_24h": "125.5",
-      "last_price": "45678.90"
+      "change_24h_percentage": "1.2",
+      "high_24h": "46000.00",
+      "low_24h": "45000.00",
+      "base_currency": "BTC",
+      "quote_currency": "EUR"
     }
   ]
 }
 ```
 
+The pairs come from the active liquidity pools. Without an active pool the list falls back to BTC/EUR and ETH/EUR.
+
 ### Get Order Book
 ```http
-GET /api/exchange/orderbook?base=BTC&quote=USD&depth=20
-Authorization: Bearer {token}
+GET /api/exchange/orderbook/{baseCurrency}/{quoteCurrency}?depth=20
 ```
+
+`depth` defaults to 20 and is capped at 100.
 
 Response:
 ```json
 {
-  "data": {
-    "base": "BTC",
-    "quote": "USD",
-    "bids": [
-      {"price": "45600.00", "amount": "0.5", "total": "22800.00"},
-      {"price": "45595.00", "amount": "1.2", "total": "54714.00"}
-    ],
-    "asks": [
-      {"price": "45610.00", "amount": "0.3", "total": "13683.00"},
-      {"price": "45615.00", "amount": "0.8", "total": "36492.00"}
-    ],
-    "spread": "10.00",
-    "timestamp": "2024-09-07T10:00:00Z"
-  }
+  "pair": "BTC/EUR",
+  "bids": [...],
+  "asks": [...],
+  "spread": "10.00",
+  "spread_percentage": "0.02",
+  "mid_price": "45605.00",
+  "last_price": "45600.00",
+  "volume_24h": "125.5",
+  "high_24h": "46000.00",
+  "low_24h": "45000.00",
+  "change_24h": "500.00",
+  "change_24h_percentage": "1.1",
+  "updated_at": "2024-09-07T10:00:00+00:00"
 }
 ```
+
+`bids` and `asks` list the resting orders on each side. For a pair without an order book the price fields are `null` and both lists are empty.
 
 ### Place Order
 ```http
 POST /api/exchange/orders
 Authorization: Bearer {token}
 Content-Type: application/json
+Idempotency-Key: {unique-key}
 
 {
   "type": "buy",
@@ -1992,27 +1395,19 @@ Content-Type: application/json
   "base_currency": "BTC",
   "quote_currency": "USD",
   "amount": "0.5",
-  "price": "45000",
-  "time_in_force": "GTC"
+  "price": "45000"
 }
 ```
+
+`type` is `buy` or `sell`, and `order_type` is `market` or `limit`. `price` is required for a limit order. `stop_price` is optional.
 
 Response:
 ```json
 {
-  "data": {
-    "order_id": "ord_123456",
-    "type": "buy",
-    "order_type": "limit",
-    "status": "open",
-    "base_currency": "BTC",
-    "quote_currency": "USD",
-    "amount": "0.5",
-    "price": "45000",
-    "filled": "0",
-    "remaining": "0.5",
-    "created_at": "2024-09-07T10:00:00Z"
-  }
+  "success": true,
+  "order_id": "ord_123456",
+  "message": "Order placed successfully",
+  "workflow_id": "workflow-id"
 }
 ```
 
@@ -2021,6 +1416,7 @@ Response:
 POST /api/exchange/orders
 Authorization: Bearer {token}
 Content-Type: application/json
+Idempotency-Key: {unique-key}
 
 {
   "type": "sell",
@@ -2033,1060 +1429,297 @@ Content-Type: application/json
 
 ### Cancel Order
 ```http
-DELETE /api/exchange/orders/{order_id}
+DELETE /api/exchange/orders/{orderId}
 Authorization: Bearer {token}
 ```
 
 Response:
 ```json
 {
-  "data": {
-    "order_id": "ord_123456",
-    "status": "cancelled",
-    "cancelled_at": "2024-09-07T10:05:00Z"
-  }
+  "success": true,
+  "message": "Order cancelled successfully"
 }
 ```
 
-### Get Order Status
+### List Orders
 ```http
-GET /api/exchange/orders/{order_id}
+GET /api/exchange/orders?status=open&base_currency=BTC&quote_currency=USD
 Authorization: Bearer {token}
 ```
 
-Response:
-```json
-{
-  "data": {
-    "order_id": "ord_123456",
-    "type": "buy",
-    "order_type": "limit",
-    "status": "partially_filled",
-    "base_currency": "BTC",
-    "quote_currency": "USD",
-    "amount": "0.5",
-    "price": "45000",
-    "filled": "0.3",
-    "remaining": "0.2",
-    "trades": [
-      {
-        "trade_id": "trd_789",
-        "amount": "0.3",
-        "price": "45000",
-        "timestamp": "2024-09-07T10:02:00Z"
-      }
-    ],
-    "created_at": "2024-09-07T10:00:00Z",
-    "updated_at": "2024-09-07T10:02:00Z"
-  }
-}
-```
-
-### List Open Orders
-```http
-GET /api/exchange/orders?status=open&base=BTC&quote=USD
-Authorization: Bearer {token}
-```
+`status` can be `open`, `all` or a single order status. The result is a standard Laravel page of 20 orders. There is no endpoint that returns one order by id.
 
 ### Get Trade History
 ```http
-GET /api/exchange/trades?base=BTC&quote=USD&limit=100
+GET /api/exchange/trades?base_currency=BTC&quote_currency=USD
 Authorization: Bearer {token}
 ```
 
-Response:
-```json
-{
-  "data": [
-    {
-      "trade_id": "trd_789",
-      "order_id": "ord_123456",
-      "type": "buy",
-      "base_currency": "BTC",
-      "quote_currency": "USD",
-      "amount": "0.3",
-      "price": "45000",
-      "total": "13500",
-      "fee": "13.50",
-      "fee_currency": "USD",
-      "timestamp": "2024-09-07T10:02:00Z"
-    }
-  ],
-  "pagination": {
-    "total": 256,
-    "per_page": 100,
-    "current_page": 1
-  }
-}
-```
+The result is a standard Laravel page of 20 trades. Each trade has `trade_id`, `buy_order_id`, `sell_order_id`, `base_currency`, `quote_currency`, `price`, `amount`, `value`, `maker_fee`, `taker_fee` and `maker_side`.
 
-### Get Market Statistics
-```http
-GET /api/exchange/stats?base=BTC&quote=USD&period=24h
-Authorization: Bearer {token}
-```
+The API has no market statistics or candle endpoints.
 
-Response:
-```json
-{
-  "data": {
-    "symbol": "BTC/USD",
-    "period": "24h",
-    "open": "44500.00",
-    "high": "46200.00",
-    "low": "44100.00",
-    "close": "45678.90",
-    "volume": "125.5",
-    "volume_quote": "5734572.50",
-    "change": "1178.90",
-    "change_percent": "2.65",
-    "trades_count": 3456
-  }
-}
-```
+## External Exchange Integration
 
-### Get Price Chart Data
-```http
-GET /api/exchange/candles?base=BTC&quote=USD&interval=1h&limit=24
-Authorization: Bearer {token}
-```
+These endpoints read prices from connected external exchanges. They are integration adapters for third-party APIs; no partnership or endorsement implied. They answer `404` while `TRADING_ENABLED` is off.
 
-Response:
-```json
-{
-  "data": [
-    {
-      "timestamp": "2024-09-07T10:00:00Z",
-      "open": "45600.00",
-      "high": "45750.00",
-      "low": "45550.00",
-      "close": "45700.00",
-      "volume": "5.25"
-    }
-  ]
-}
-```
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/external-exchange/connectors` | Configured connectors and their status |
+| GET | `/api/external-exchange/ticker/{base}/{quote}` | Ticker from each connector |
+| GET | `/api/external-exchange/orderbook/{base}/{quote}` | Order books from each connector |
+| GET | `/api/external-exchange/arbitrage/{base}/{quote}` | Price differences between connectors (authenticated) |
+
+The API reads prices only. It does not execute arbitrage trades and has no manual price sync endpoint.
 
 ## Liquidity Pools
 
 > Reference module. Example values (APY, rewards, fees) are sample data, not an offer of returns.
 
+The liquidity pool endpoints are part of the demo trading engine. They answer `404` while `TRADING_ENABLED` is off, and production Zelta keeps them off.
+
+The add liquidity, remove liquidity and rebalance flow was removed in v7.18.0, because it never worked. Pool lists, pool creation, swaps, positions, rewards, impermanent loss protection and analytics remain.
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/liquidity/pools` | List active pools with metrics |
+| GET | `/api/liquidity/pools/{poolId}` | Pool details |
+| POST | `/api/liquidity/pools` | Create a pool |
+| POST | `/api/liquidity/swap` | Swap through a pool |
+| GET | `/api/liquidity/positions` | Positions of the user |
+| POST | `/api/liquidity/claim-rewards` | Claim rewards in a pool |
+| GET | `/api/liquidity/il-protection/{positionId}` | Impermanent loss of a position |
+| POST | `/api/liquidity/il-protection/enable` | Enable impermanent loss protection for a pool |
+| POST | `/api/liquidity/il-protection/process-claims` | Process protection claims for a pool |
+| GET | `/api/liquidity/il-protection/fund-requirements/{poolId}` | Protection fund requirements |
+| GET | `/api/liquidity/analytics/{poolId}` | Pool analytics |
+
+Everything except the two pool reads needs authentication.
+
 ### List All Pools
 ```http
-GET /api/v2/liquidity/pools
-Authorization: Bearer {token}
+GET /api/liquidity/pools
 ```
 
 Response:
 ```json
 {
-  "data": [
+  "pools": [
     {
-      "id": "pool-uuid",
+      "pool_id": "pool-uuid",
       "base_currency": "BTC",
-      "quote_currency": "USD",
+      "quote_currency": "EUR",
+      "base_reserve": "10",
+      "quote_reserve": "400000",
+      "total_shares": "2000",
       "fee_rate": "0.003",
+      "spot_price": "40000",
       "tvl": "800000",
       "volume_24h": "150000",
+      "fees_24h": "450",
       "apy": "12.5",
-      "provider_count": 45,
-      "is_active": true
+      "provider_count": 45
     }
   ]
 }
-```
-
-### Get Pool Details
-```http
-GET /api/v2/liquidity/pools/{pool_id}
-Authorization: Bearer {token}
 ```
 
 ### Create Pool
 ```http
-POST /api/v2/liquidity/pools
+POST /api/liquidity/pools
 Authorization: Bearer {token}
 Content-Type: application/json
+Idempotency-Key: {unique-key}
 
 {
   "base_currency": "ETH",
   "quote_currency": "USD",
-  "fee_rate": "0.003",
-  "initial_base_amount": "10",
-  "initial_quote_amount": "20000"
+  "fee_rate": "0.003"
 }
 ```
 
-### Add Liquidity
-```http
-POST /api/v2/liquidity/pools/{pool_id}/add
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "base_amount": "1.5",
-  "quote_amount": "3000",
-  "min_shares": "100"
-}
-```
-
-### Remove Liquidity
-```http
-POST /api/v2/liquidity/pools/{pool_id}/remove
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "shares": "250",
-  "min_base_amount": "0.5",
-  "min_quote_amount": "1000"
-}
-```
+`fee_rate` is optional and must be between 0.0001 and 0.01.
 
 ### Execute Swap
 ```http
-POST /api/v2/liquidity/pools/{pool_id}/swap
+POST /api/liquidity/swap
 Authorization: Bearer {token}
 Content-Type: application/json
+Idempotency-Key: {unique-key}
 
 {
+  "pool_id": "pool-uuid",
   "input_currency": "USD",
   "input_amount": "1000",
-  "min_output_amount": "0.45"
+  "min_output_amount": "0.021"
 }
-```
-
-Response:
-```json
-{
-  "data": {
-    "output_amount": "0.48523",
-    "output_currency": "ETH",
-    "fee_amount": "3.00",
-    "price_impact": "0.25",
-    "execution_price": "2062.15"
-  }
-}
-```
-
-### Get Pool Metrics
-```http
-GET /api/v2/liquidity/pools/{pool_id}/metrics
-Authorization: Bearer {token}
-```
-
-Response:
-```json
-{
-  "data": {
-    "pool_id": "pool-uuid",
-    "base_currency": "ETH",
-    "quote_currency": "USD",
-    "base_reserve": "100.5",
-    "quote_reserve": "205000",
-    "total_shares": "10000",
-    "spot_price": "2039.80",
-    "tvl": "410000",
-    "volume_24h": "85000",
-    "fees_24h": "255",
-    "apy": "22.7",
-    "provider_count": 32
-  }
-}
-```
-
-### Get Provider Positions
-```http
-GET /api/v2/liquidity/providers/{provider_id}/positions
-Authorization: Bearer {token}
-```
-
-### Calculate Provider APY
-```http
-GET /api/v2/liquidity/pools/{pool_id}/providers/{provider_id}/apy
-Authorization: Bearer {token}
 ```
 
 ### Claim Rewards
 ```http
-POST /api/v2/liquidity/pools/{pool_id}/rewards/claim
+POST /api/liquidity/claim-rewards
 Authorization: Bearer {token}
+Content-Type: application/json
+Idempotency-Key: {unique-key}
+
+{
+  "pool_id": "pool-uuid"
+}
 ```
 
-### Generate Market Making Orders
+### Enable Impermanent Loss Protection
 ```http
-POST /api/v2/liquidity/pools/{pool_id}/market-make
+POST /api/liquidity/il-protection/enable
 Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "depth": 5,
-  "spread_factor": 1.0,
-  "order_size_multiplier": 1.2,
-  "max_order_value": "10000"
+  "pool_id": "pool-uuid",
+  "protection_threshold": 0.02,
+  "max_coverage": 0.8,
+  "min_holding_hours": 168,
+  "fund_size": 10000
 }
 ```
 
-Response:
-```json
-{
-  "data": {
-    "orders_generated": 10,
-    "buy_orders": [
-      {"price": "2045.00", "quantity": "0.5", "value": "1022.50"},
-      {"price": "2040.00", "quantity": "0.6", "value": "1224.00"}
-    ],
-    "sell_orders": [
-      {"price": "2055.00", "quantity": "0.5", "value": "1027.50"},
-      {"price": "2060.00", "quantity": "0.6", "value": "1236.00"}
-    ],
-    "total_buy_value": "5213.50",
-    "total_sell_value": "5287.50",
-    "spread": "0.0049"
-  }
-}
-```
+Only `pool_id` is required. The analytics endpoint returns the pool metrics. Its `price_history` field is placeholder data that repeats the current spot price.
 
-### Rebalance Pool
-```http
-POST /api/v2/liquidity/pools/{pool_id}/rebalance
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "strategy": "conservative",
-  "threshold": 0.05,
-  "max_slippage": 0.02
-}
-```
-
-Response:
-```json
-{
-  "data": {
-    "rebalance_needed": true,
-    "current_ratio": "0.0489",
-    "target_ratio": "0.0500",
-    "deviation": "0.022",
-    "trades_executed": [
-      {
-        "direction": "buy",
-        "asset": "ETH",
-        "amount": "0.25",
-        "price": "2050.00"
-      }
-    ],
-    "new_ratio": "0.0498",
-    "gas_used": "0.25",
-    "timestamp": "2024-09-07T15:00:00Z"
-  }
-}
-```
-
-### Get Liquidity Provider Position
-```http
-GET /api/v2/liquidity/pools/{pool_id}/position
-Authorization: Bearer {token}
-```
-
-Response:
-```json
-{
-  "data": {
-    "pool_id": "pool-uuid",
-    "shares": "250.00",
-    "share_percent": "2.5",
-    "value": {
-      "base_amount": "2.51",
-      "quote_amount": "5125.50",
-      "total_usd": "10251.00"
-    },
-    "rewards": {
-      "pending": "125.50",
-      "claimed": "250.00",
-      "currency": "USD"
-    },
-    "impermanent_loss": {
-      "amount": "-45.23",
-      "percent": "-0.44"
-    },
-    "position_opened": "2024-09-01T10:00:00Z"
-  }
-}
-```
-
-### Get Pool Analytics
-```http
-GET /api/v2/liquidity/pools/{pool_id}/analytics?period=7d
-Authorization: Bearer {token}
-```
-
-Response:
-```json
-{
-  "data": {
-    "pool_id": "pool-uuid",
-    "period": "7d",
-    "metrics": {
-      "volume": "175000",
-      "fees_collected": "525",
-      "unique_traders": 234,
-      "transactions": 1567,
-      "average_trade_size": "111.66",
-      "tvl_change": "+12.5%",
-      "apy": "22.7%"
-    },
-    "liquidity_changes": [
-      {
-        "date": "2024-09-01",
-        "adds": "25000",
-        "removes": "10000",
-        "net_change": "+15000"
-      }
-    ],
-    "price_history": [
-      {
-        "timestamp": "2024-09-01T00:00:00Z",
-        "price": "2039.80",
-        "volume": "25000"
-      }
-    ]
-  }
-}
-```
-
-### Distribute Rewards (Admin)
-```http
-POST /api/v2/liquidity/pools/{pool_id}/rewards/distribute
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "reward_amount": "1000",
-  "reward_currency": "USD",
-  "distribution_type": "proportional"
-}
-```
-
-### Update Pool Parameters (Admin)
-```http
-PATCH /api/v2/liquidity/pools/{pool_id}
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "fee_rate": "0.002",
-  "is_active": true,
-  "min_liquidity": "1000",
-  "max_price_impact": "0.05"
-}
-```
-
-## Stablecoin Operations
-
-### Mint Stablecoins
-```http
-POST /api/stablecoins/mint
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "stablecoin": "EUSD",
-  "amount": "10000",
-  "collateral": [
-    {
-      "asset": "ETH",
-      "amount": "5"
-    }
-  ]
-}
-```
-
-### Burn Stablecoins
-```http
-POST /api/stablecoins/burn
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "stablecoin": "EUSD",
-  "amount": "5000"
-}
-```
-
-### Get Collateral Positions
-```http
-GET /api/stablecoins/positions
-Authorization: Bearer {token}
-```
-
-### Add Collateral
-```http
-POST /api/stablecoins/positions/{position_id}/collateral
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "asset": "BTC",
-  "amount": "0.1"
-}
-```
-
-### Liquidate Position
-```http
-POST /api/stablecoins/liquidate/{position_id}
-Authorization: Bearer {token}
-```
+Two scheduled commands also act on pools. `liquidity:distribute-rewards` distributes rewards and `liquidity:update-market-making` refreshes market-making orders. They are scheduled only while `TRADING_ENABLED` is on.
 
 ## P2P Lending
 
 > Reference module. Example values (interest rates, repayments) are sample data, not an offer of credit or returns.
 
-### Apply for Loan
-```http
-POST /api/loans/apply
-Authorization: Bearer {token}
-Content-Type: application/json
+The lending endpoints belong to the `Lending` demo module and need the `lending` sub-product.
 
-{
-  "amount": "10000",
-  "currency": "USD",
-  "term_months": 12,
-  "purpose": "business_expansion",
-  "interest_rate": "10.5",
-  "collateral": [
-    {
-      "type": "crypto",
-      "asset": "BTC",
-      "amount": "0.5"
-    }
-  ]
-}
-```
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/lending/applications` | Loan applications of the user |
+| POST | `/api/lending/applications` | Apply for a loan |
+| GET | `/api/lending/applications/{id}` | One application |
+| POST | `/api/lending/applications/{id}/cancel` | Cancel an application |
+| GET | `/api/lending/loans` | Loans of the user |
+| GET | `/api/lending/loans/{id}` | One loan |
+| POST | `/api/lending/loans/{id}/payments` | Make a repayment |
+| GET | `/api/lending/loans/{id}/settlement-quote` | Quote for early settlement |
+| POST | `/api/lending/loans/{id}/settle` | Confirm early settlement |
 
-Response:
-```json
-{
-  "data": {
-    "application_id": "app_123456",
-    "status": "pending",
-    "amount": "10000",
-    "currency": "USD",
-    "term_months": 12,
-    "interest_rate": "10.5",
-    "monthly_payment": "877.84",
-    "total_interest": "534.08",
-    "created_at": "2024-09-07T10:00:00Z"
-  }
-}
-```
-
-### List Available Loans (For Lenders)
-```http
-GET /api/loans/marketplace?min_rate=8&max_term=24&currency=USD
-Authorization: Bearer {token}
-```
-
-Response:
-```json
-{
-  "data": [
-    {
-      "application_id": "app_123456",
-      "borrower_rating": "A",
-      "amount": "10000",
-      "currency": "USD",
-      "term_months": 12,
-      "interest_rate": "10.5",
-      "purpose": "business_expansion",
-      "collateral_ratio": "150%",
-      "credit_score": 750,
-      "funding_progress": "60%",
-      "days_remaining": 5
-    }
-  ]
-}
-```
-
-### List My Loans
-```http
-GET /api/loans?status=active&role=borrower
-Authorization: Bearer {token}
-```
-
-Query parameters:
-- `status`: Filter by loan status (pending, active, completed, defaulted)
-- `role`: Your role in the loan (borrower, lender)
-- `page`: Page number
-- `per_page`: Items per page
-
-Response:
-```json
-{
-  "data": [
-    {
-      "loan_id": "loan_789",
-      "role": "borrower",
-      "status": "active",
-      "principal_amount": "10000",
-      "outstanding_balance": "8234.56",
-      "next_payment_due": "2024-09-01",
-      "next_payment_amount": "877.84",
-      "payments_made": 2,
-      "payments_remaining": 10
-    }
-  ]
-}
-```
-
-### Get Loan Details
-```http
-GET /api/loans/{loan_id}
-Authorization: Bearer {token}
-```
-
-Response:
-```json
-{
-  "data": {
-    "loan_id": "loan_789",
-    "application_id": "app_123456",
-    "status": "active",
-    "borrower": {
-      "id": "user_123",
-      "rating": "A",
-      "loans_completed": 5,
-      "default_rate": "0%"
-    },
-    "lender": {
-      "id": "user_456",
-      "total_funded": "250000",
-      "active_loans": 12
-    },
-    "terms": {
-      "principal_amount": "10000",
-      "currency": "USD",
-      "interest_rate": "10.5",
-      "term_months": 12,
-      "monthly_payment": "877.84"
-    },
-    "balance": {
-      "outstanding_principal": "8234.56",
-      "outstanding_interest": "123.44",
-      "total_outstanding": "8358.00",
-      "paid_principal": "1765.44",
-      "paid_interest": "290.24"
-    },
-    "collateral": [
-      {
-        "type": "crypto",
-        "asset": "BTC",
-        "amount": "0.5",
-        "current_value": "22839.45",
-        "ltv_ratio": "43.8%"
-      }
-    ],
-    "created_at": "2024-06-01T10:00:00Z",
-    "funded_at": "2024-06-05T14:30:00Z"
-  }
-}
-```
-
-### Fund Loan (Lender)
-```http
-POST /api/loans/{application_id}/fund
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "amount": "10000",
-  "accept_terms": true
-}
-```
-
-Response:
-```json
-{
-  "data": {
-    "loan_id": "loan_789",
-    "status": "active",
-    "funded_amount": "10000",
-    "expected_return": "10534.08",
-    "first_payment_date": "2024-09-01",
-    "maturity_date": "2026-07-01"
-  }
-}
-```
-
-### Make Repayment
-```http
-POST /api/loans/{loan_id}/repay
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "amount": "1000",
-  "payment_method": "account_balance"
-}
-```
-
-Response:
-```json
-{
-  "data": {
-    "payment_id": "pay_321",
-    "loan_id": "loan_789",
-    "amount": "1000",
-    "principal_paid": "877.84",
-    "interest_paid": "122.16",
-    "remaining_balance": "7356.72",
-    "next_payment_due": "2024-09-01",
-    "status": "completed",
-    "timestamp": "2024-09-07T10:00:00Z"
-  }
-}
-```
-
-### Get Repayment Schedule
-```http
-GET /api/loans/{loan_id}/schedule
-Authorization: Bearer {token}
-```
-
-Response:
-```json
-{
-  "data": {
-    "loan_id": "loan_789",
-    "schedule": [
-      {
-        "payment_number": 1,
-        "due_date": "2024-09-01",
-        "payment_amount": "877.84",
-        "principal": "794.51",
-        "interest": "83.33",
-        "balance": "9205.49",
-        "status": "paid"
-      },
-      {
-        "payment_number": 2,
-        "due_date": "2024-09-01",
-        "payment_amount": "877.84",
-        "principal": "801.13",
-        "interest": "76.71",
-        "balance": "8404.36",
-        "status": "pending"
-      }
-    ],
-    "total_payments": "10534.08",
-    "total_interest": "534.08"
-  }
-}
-```
-
-### Calculate Early Repayment
-```http
-GET /api/loans/{loan_id}/early-repayment
-Authorization: Bearer {token}
-```
-
-Response:
-```json
-{
-  "data": {
-    "outstanding_principal": "8234.56",
-    "accrued_interest": "45.67",
-    "prepayment_penalty": "82.35",
-    "total_payoff_amount": "8362.58",
-    "savings": "171.42",
-    "penalty_rate": "1%"
-  }
-}
-```
-
-### Request Loan Refinancing
-```http
-POST /api/loans/{loan_id}/refinance
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "new_interest_rate": "8.5",
-  "new_term_months": 18,
-  "reason": "lower_rate"
-}
-```
-
-### Get Credit Score
-```http
-GET /api/loans/credit-score
-Authorization: Bearer {token}
-```
-
-Response:
-```json
-{
-  "data": {
-    "score": 750,
-    "rating": "A",
-    "factors": {
-      "payment_history": 35,
-      "credit_utilization": 25,
-      "account_age": 15,
-      "loan_diversity": 10,
-      "recent_inquiries": 15
-    },
-    "loan_eligibility": {
-      "max_amount": "50000",
-      "min_interest_rate": "8.5%",
-      "max_term_months": 60
-    },
-    "last_updated": "2024-09-01T00:00:00Z"
-  }
-}
-```
-
-### Report Default (Admin)
-```http
-POST /api/loans/{loan_id}/default
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "reason": "missed_payments",
-  "missed_payment_count": 3,
-  "recovery_action": "liquidate_collateral"
-}
-```
+The write endpoints take an `Idempotency-Key` header. The API has no lender marketplace, credit score, refinancing or default reporting endpoints.
 
 ## Blockchain Wallets
 
-### Generate Wallet
-```http
-POST /api/wallets/generate
-Authorization: Bearer {token}
-Content-Type: application/json
+These endpoints manage server-side HD wallets for the FinAegis demo. They need the `blockchain` sub-product. The Zelta app does not use them, because Zelta is non-custodial and the device holds the keys (see [Zelta wallet endpoints](#zelta-wallet-endpoints)).
 
-{
-  "chain": "ethereum",
-  "label": "Trading Wallet"
-}
-```
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/blockchain-wallets` | Wallets of the user |
+| POST | `/api/blockchain-wallets` | Create a wallet |
+| GET | `/api/blockchain-wallets/{walletId}` | One wallet |
+| PUT | `/api/blockchain-wallets/{walletId}` | Update a wallet |
+| GET | `/api/blockchain-wallets/{walletId}/addresses` | Addresses of a wallet |
+| POST | `/api/blockchain-wallets/{walletId}/addresses` | Generate an address |
+| GET | `/api/blockchain-wallets/{walletId}/transactions` | Transactions of a wallet |
+| POST | `/api/blockchain-wallets/{walletId}/backup` | Create a backup |
+| POST | `/api/blockchain-wallets/generate-mnemonic` | Generate a mnemonic |
 
-### Get Wallet Balance
-```http
-GET /api/wallets/{chain}/balance?address={address}
-Authorization: Bearer {token}
-```
-
-### Send Transaction
-```http
-POST /api/wallets/{chain}/send
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "from": "0x1234...",
-  "to": "0x5678...",
-  "amount": "1.5",
-  "gas_price": "fast"
-}
-```
-
-### Get Transaction History
-```http
-GET /api/wallets/{chain}/transactions?address={address}&limit=50
-Authorization: Bearer {token}
-```
-
-### Estimate Gas
-```http
-POST /api/wallets/{chain}/estimate-gas
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "from": "0x1234...",
-  "to": "0x5678...",
-  "amount": "1.5",
-  "data": "0x..."
-}
-```
-
-## External Exchange Integration
-
-### Get Arbitrage Opportunities
-```http
-GET /api/external/arbitrage?base=BTC&quote=USD
-Authorization: Bearer {token}
-```
-
-### Get External Prices
-```http
-GET /api/external/prices?base=ETH&quote=USD
-Authorization: Bearer {token}
-```
-
-### Execute Arbitrage
-```http
-POST /api/external/arbitrage/execute
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "opportunity_id": "arb_123",
-  "amount": "1000"
-}
-```
-
-### Sync External Prices
-```http
-POST /api/external/sync-prices
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "base": "BTC",
-  "quote": "USD",
-  "max_deviation": 0.01
-}
-```
-
-Response:
-```json
-{
-  "data": {
-    "synced": true,
-    "internal_price": "45678.90",
-    "external_prices": {
-      "binance": "45680.00",
-      "kraken": "45677.50",
-      "coinbase": "45679.25"
-    },
-    "average_external": "45678.92",
-    "deviation": "0.00004",
-    "adjustments_made": false
-  }
-}
-```
-
-### Get Exchange Status
-```http
-GET /api/external/exchanges/status
-Authorization: Bearer {token}
-```
-
-Response:
-```json
-{
-  "data": {
-    "exchanges": [
-      {
-        "name": "binance",
-        "status": "connected",
-        "last_sync": "2024-09-07T10:00:00Z",
-        "rate_limit_remaining": 1180,
-        "active_pairs": 125
-      },
-      {
-        "name": "kraken",
-        "status": "connected",
-        "last_sync": "2024-09-07T09:59:45Z",
-        "rate_limit_remaining": 295,
-        "active_pairs": 89
-      },
-      {
-        "name": "coinbase",
-        "status": "rate_limited",
-        "last_sync": "2024-09-07T09:55:00Z",
-        "rate_limit_remaining": 0,
-        "reset_at": "2024-09-07T10:05:00Z",
-        "active_pairs": 67
-      }
-    ]
-  }
-}
-```
+The `/api/multi-sig/...` endpoints manage multi-signature wallets and their approval requests.
 
 ## Error Responses
 
-All API endpoints follow a consistent error response format:
+A validation error returns `422` with the Laravel error format. On API routes the exception handler adds an `error` code, such as `VALIDATION_ERROR`, `UNAUTHENTICATED` or `NOT_FOUND`, and a `request_id` taken from the `X-Request-ID` header:
 
 ```json
 {
+  "message": "The amount field must be at least 0.01. (and 1 more error)",
+  "errors": {
+    "amount": ["The amount field must be at least 0.01."],
+    "asset_code": ["The selected asset code is invalid."]
+  },
+  "error": "VALIDATION_ERROR",
+  "request_id": null
+}
+```
+
+Many newer endpoints, including the Zelta wallet endpoints, return their own machine-readable code:
+
+```json
+{
+  "success": false,
   "error": {
-    "code": "INSUFFICIENT_FUNDS",
-    "message": "Insufficient balance in account",
-    "details": {
-      "required": "1000.00",
-      "available": "750.00",
-      "currency": "USD"
-    }
+    "code": "SUBMIT_IN_PROGRESS",
+    "message": "This transfer is already being submitted."
   }
 }
 ```
 
-### Common Error Codes
-
-| Code | HTTP Status | Description |
-|------|-------------|-------------|
-| `UNAUTHORIZED` | 401 | Authentication required or invalid token |
-| `FORBIDDEN` | 403 | Insufficient permissions |
-| `NOT_FOUND` | 404 | Resource not found |
-| `VALIDATION_ERROR` | 422 | Request validation failed |
-| `INSUFFICIENT_FUNDS` | 422 | Not enough balance |
-| `RATE_LIMITED` | 429 | Too many requests |
-| `INTERNAL_ERROR` | 500 | Server error |
+Common HTTP status codes:
+- `200 OK` - Successful request
+- `201 Created` - Resource created successfully
+- `400 Bad Request` - Invalid request data
+- `401 Unauthorized` - Missing or invalid authentication
+- `403 Forbidden` - Insufficient permissions or token abilities
+- `404 Not Found` - Resource not found, or a feature flag switches the route off
+- `409 Conflict` - The request conflicts with work in progress
+- `422 Unprocessable Entity` - Validation errors
+- `429 Too Many Requests` - Rate limit or daily cap reached
+- `500 Internal Server Error` - Server error
 
 ## Rate Limiting
 
-API requests are rate limited based on your account tier:
+Rate limits are set per endpoint type in `config/rate_limiting.php`. The defaults are shown below, and each value can be changed through the environment variable in the second column.
 
-- **Basic**: 100 requests per minute
-- **Pro**: 1,000 requests per minute
-- **Enterprise**: 10,000 requests per minute
+| Type | Default limit per 60 seconds | Variable |
+|------|------------------------------|----------|
+| `auth` | 3 | `RATE_LIMIT_AUTH` |
+| `transaction` | 30 | `RATE_LIMIT_TRANSACTION` |
+| `query` | 100 | `RATE_LIMIT_QUERY` |
+| `admin` | 200 | `RATE_LIMIT_ADMIN` |
+| `public` | 60 | `RATE_LIMIT_PUBLIC` |
+| `webhook` | 1000 | `RATE_LIMIT_WEBHOOK` |
 
-Rate limit information is included in response headers:
+Transactions such as deposits, withdrawals and transfers also have hourly and daily count and amount limits. Responses carry these headers:
 
 ```
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 95
 X-RateLimit-Reset: 1625097600
+X-RateLimit-Window: 60
 ```
+
+A blocked request also gets `Retry-After`.
 
 ## Pagination
 
-List endpoints support pagination with the following parameters:
-
+List endpoints support pagination with these parameters:
 - `page`: Page number (default: 1)
-- `per_page`: Items per page (default: 20, max: 100)
+- `per_page`: Items per page (default: 15, max: 100)
 
-Pagination metadata is included in responses:
-
+Paginated responses include metadata:
 ```json
 {
   "data": [...],
-  "pagination": {
-    "total": 256,
-    "per_page": 20,
+  "links": {
+    "first": "https://your-finaegis-host.example/accounts?page=1",
+    "last": "https://your-finaegis-host.example/accounts?page=10",
+    "prev": null,
+    "next": "https://your-finaegis-host.example/accounts?page=2"
+  },
+  "meta": {
     "current_page": 1,
-    "last_page": 13,
     "from": 1,
-    "to": 20
+    "last_page": 10,
+    "per_page": 15,
+    "to": 15,
+    "total": 150
   }
 }
 ```
 
-## Webhooks
-
-Webhooks can be configured to receive real-time notifications for events. See the [Webhooks](#webhooks) section for available events and payload formats.
-
 ## API Versioning
 
-The API uses URL-based versioning. The current version is `v2`. Version 1 endpoints are deprecated but still available at `/api/v1/*`.
+The API uses URL prefixes. The original endpoints live under `/api/`, the public developer API under `/api/v2/`, and the mobile and newer product endpoints under `/api/v1/`. The prefixes mark different surfaces rather than a strict old and new order. Older `/api/v1/` aliases such as `/api/v1/assets` and `/api/v1/exchange-rates` stay available.
 
 ---
 
-**Last Updated**: 2024-09-07  
-**API Version**: 2.0  
-**Documentation Version**: 8.0
+**Last Updated**: 2026-11-24
+**Platform Version**: v7.18.1

@@ -1,6 +1,10 @@
 # FinAegis Services Reference
 
-This document provides comprehensive documentation for all backend services in the FinAegis platform.
+This document describes the main backend services behind the core banking reference API. It lists where each service lives and which public methods it offers in v7.18.1. It does not cover every service in the 61 domains under `app/Domain/`.
+
+Several of these services belong to demo modules (Basket, Governance, Stablecoin, Banking and others) that the production Zelta configuration disables through `MODULES_DISABLED`.
+
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
 
 ## Table of Contents
 - [Account Services](#account-services)
@@ -8,295 +12,248 @@ This document provides comprehensive documentation for all backend services in t
 - [Custodian Services](#custodian-services)
 - [Governance Services](#governance-services)
 - [Performance Services](#performance-services)
-- [Banking Services](#banking-services)
-- [Asset Management Services](#asset-management-services)
+- [Basket Services](#basket-services)
+- [Stablecoin Services](#stablecoin-services)
 - [Transaction Services](#transaction-services)
+- [Cache Services](#cache-services)
 
 ## Account Services
 
 ### AccountService
 **Location**: `app/Domain/Account/Services/AccountService.php`
 
-Handles core account operations including creation, balance management, and account lifecycle.
+This service starts the account workflows. Each method starts a Laravel Workflow, and the workflow records the events on the account aggregate.
 
 **Key Methods**:
-- `createAccount()` - Creates new user accounts
-- `getAccountBalance()` - Retrieves multi-asset balances
-- `updateAccountStatus()` - Manages account status changes
-- `linkCustodianAccounts()` - Links external custodian accounts
+- `create()` starts `CreateAccountWorkflow`.
+- `destroy()` starts `DestroyAccountWorkflow`.
+- `deposit()` starts `DepositAccountWorkflow`.
+- `withdraw()` starts `WithdrawAccountWorkflow`.
 
-**Events Emitted**:
-- `AccountCreated`
-- `AccountStatusChanged`
-- `BalanceUpdated`
+**Events Recorded**: `AccountCreated`, `AccountDeleted`, `MoneyAdded`, `MoneySubtracted`, `AccountFrozen` and `AccountUnfrozen`, among others in `app/Domain/Account/Events/`.
 
-### BankAllocationService  
+### BankAllocationService
 **Location**: `app/Domain/Account/Services/BankAllocationService.php`
 
-Manages user bank allocation preferences and distribution strategies.
+This service manages how a user's funds are spread across banks in the demo.
 
 **Key Methods**:
-- `getUserAllocation()` - Gets user's bank allocation preferences
-- `updateAllocation()` - Updates allocation percentages
-- `calculateOptimalAllocation()` - Suggests optimal bank distribution
-- `validateAllocation()` - Ensures allocations sum to 100%
+- `setupDefaultAllocations()` creates the default allocation for a new user.
+- `updateAllocations()` replaces the allocation percentages.
+- `addBank()` and `removeBank()` change the list of banks.
+- `setPrimaryBank()` marks one bank as primary.
+- `getDistributionSummary()` shows how an amount would be split.
 
-**API Endpoints**: `/api/users/{uuid}/bank-allocation/*`
+**API Endpoints**: `/api/bank-allocations/*`
 
 ## Compliance Services
+
+The compliance services are readiness tooling. They help an operator build Know Your Customer (KYC), anti-money-laundering and data protection processes. No certification is held, and nothing is filed with a regulator automatically.
 
 ### RegulatoryReportingService
 **Location**: `app/Domain/Compliance/Services/RegulatoryReportingService.php`
 
-Handles regulatory compliance reporting including CTR, SAR, and KYC reports.
+This service generates draft regulatory reports from the event store.
 
 **Key Methods**:
-- `generateCTR()` - Generates Currency Transaction Reports
-- `generateSAR()` - Creates Suspicious Activity Reports  
-- `getComplianceSummary()` - Provides compliance dashboard data
-- `generateKycReport()` - Creates KYC status reports
+- `generateCTR()` builds a currency transaction report.
+- `generateSARCandidates()` lists transactions that may need a suspicious activity report.
+- `generateComplianceSummary()` builds a compliance summary.
+- `generateKycReport()` builds a KYC status report.
 
-**Reporting Thresholds**:
-- CTR: $10,000+ transactions
-- SAR: Flagged suspicious patterns
-- Enhanced Due Diligence: PEPs and high-risk jurisdictions
+**Reporting Thresholds**: A currency transaction report covers transactions of $10,000 or more. Suspicious activity candidates include patterns such as amounts just below that threshold.
 
-**API Endpoints**: `/api/regulatory-reporting/*`
+**API Endpoints**: `/api/regulatory/reports/*`
 
 ### KycService
 **Location**: `app/Domain/Compliance/Services/KycService.php`
 
-Manages Know Your Customer verification processes and document handling.
+This service runs the internal KYC process and its document handling.
 
 **Key Methods**:
-- `submitDocuments()` - Handles KYC document uploads
-- `verifyIdentity()` - Processes identity verification
-- `getKycStatus()` - Returns current KYC level and status
-- `checkRequirements()` - Validates required documents
+- `submitKyc()` stores the submitted documents.
+- `verifyKyc()` and `rejectKyc()` record the review decision.
+- `checkExpiredKyc()` finds verifications that have expired.
+- `getRequirements()` returns the documents and limits for a level.
+- `getKycStatus()` and `isKycApproved()` report the user's status.
 
 **KYC Levels**:
-- Basic: Email + phone verification
-- Standard: Government ID + address proof
-- Enhanced: Additional documentation for high-value accounts
+- The `basic` level needs a national ID and a selfie. It allows $1,000 a day, $5,000 a month and a $10,000 balance.
+- The `enhanced` level needs a passport, a utility bill and a selfie. It allows $10,000 a day, $50,000 a month and a $100,000 balance.
+- The `full` level adds a bank statement and proof of income, and it has no limits.
+
+The Zelta wallet uses separate identity checks. The bank ramp uses Bridge's own KYC, and cards use the card provider's check.
 
 ### GdprService
 **Location**: `app/Domain/Compliance/Services/GdprService.php`
 
-Handles GDPR compliance including data export, deletion, and consent management.
+This service handles data export, deletion and consent under the General Data Protection Regulation (GDPR).
 
 **Key Methods**:
-- `exportUserData()` - Generates complete data export
-- `deleteUserData()` - Processes account deletion requests
-- `updateConsent()` - Manages user privacy preferences
-- `trackDataProcessing()` - Logs data processing activities
+- `exportUserData()` builds a full data export.
+- `canDeleteUserData()` checks whether an account can be erased.
+- `deleteUserData()` erases or anonymises the user's data.
+- `notifyProcessorsOfErasure()` tells data processors about an erasure.
+- `updateConsent()` records the user's consent choices.
 
 ## Custodian Services
+
+Custodian connectors are integration adapters for third-party APIs; no partnership or endorsement implied.
 
 ### SettlementService
 **Location**: `app/Domain/Custodian/Services/SettlementService.php`
 
-Manages transaction settlement across multiple custodian banks.
+This service settles pending transfers between custodians.
 
 **Key Methods**:
-- `settleTransaction()` - Processes transaction settlement
-- `reconcileSettlements()` - Validates settlement accuracy
-- `handleSettlementFailure()` - Manages failed settlements
-- `getSettlementStatus()` - Tracks settlement progress
+- `processPendingSettlements()` settles the transfers that are waiting.
+- `getSettlementStatistics()` reports settlement figures.
 
 ### MultiCustodianTransferService
 **Location**: `app/Domain/Custodian/Services/MultiCustodianTransferService.php`
 
-Coordinates transfers across multiple custodian banks with failover capabilities.
+This service routes a transfer to a custodian and falls back to another one when the first is not available.
 
 **Key Methods**:
-- `executeTransfer()` - Routes transfers to optimal banks
-- `handleBankFailover()` - Reroutes during bank outages
-- `validateBankHealth()` - Monitors bank availability
-- `optimizeTransferRouting()` - Selects best execution path
+- `transfer()` routes and runs a transfer.
+- `getTransferStatistics()` reports transfer figures.
 
 ### BankAlertingService
 **Location**: `app/Domain/Custodian/Services/BankAlertingService.php`
 
-Monitors bank health and sends alerts for operational issues.
+This service watches custodian health and raises alerts.
 
 **Key Methods**:
-- `monitorBankHealth()` - Continuous health monitoring
-- `sendAlert()` - Dispatches alert notifications
-- `createAlertRule()` - Configures monitoring rules
-- `acknowledgeAlert()` - Manages alert acknowledgment
+- `performHealthCheck()` checks every custodian.
+- `handleHealthChange()` raises an alert when a custodian's health changes.
+- `getAlertHistory()` returns past alerts.
 
-**Alert Types**:
-- Balance thresholds
-- Response time degradation
-- API failure rates
-- Circuit breaker activation
+### DailyReconciliationService
+**Location**: `app/Domain/Custodian/Services/DailyReconciliationService.php`
+
+This service compares internal balances with custodian balances once a day.
+
+**Key Methods**:
+- `performDailyReconciliation()` runs the comparison and records any differences.
+- `getLatestReport()` returns the latest reconciliation report.
+
+**Reconciliation Process**:
+1. The service fetches the balances from all custodians.
+2. It compares them with the internal records.
+3. It flags differences for review.
+4. It writes a report.
+
+### CircuitBreakerService
+**Location**: `app/Domain/Custodian/Services/CircuitBreakerService.php`
+
+This service protects calls to custodian APIs with a circuit breaker. After repeated failures it stops calls for a while, then lets a test call through.
+
+**Key Methods**:
+- `execute()` runs a call through the breaker.
+- `getState()` and `isAvailable()` report the breaker state.
+- `reset()` closes the breaker by hand.
+- `getMetrics()` returns failure and success figures.
+
+**Circuit States**: A closed breaker lets calls through. An open breaker blocks them. A half-open breaker lets a test call through to check recovery.
+
+The Exchange domain has its own `CircuitBreakerService` in `app/Domain/Exchange/Services/`.
 
 ## Governance Services
+
+The governance services run the polls of the GCU demo. Any basket "votes" are simulated.
 
 ### GovernanceService
 **Location**: `app/Domain/Governance/Services/GovernanceService.php`
 
-Manages platform governance including polls, voting, and proposal execution.
+This service manages polls and votes.
 
 **Key Methods**:
-- `createPoll()` - Creates governance polls
-- `executeProposal()` - Implements approved proposals
-- `calculateVotingPower()` - Determines user voting weight
-- `validateProposal()` - Ensures proposal validity
+- `createPoll()`, `activatePoll()`, `completePoll()` and `cancelPoll()` move a poll through its lifecycle.
+- `castVote()` records a vote.
+- `getActivePolls()` and `getPollResults()` read polls and results.
+- `getUserVotingPower()` and `canUserVote()` check a user's voting rights.
+- `getVotingStrategy()` and `getAvailableVotingStrategies()` return the voting power strategies (`one_user_one_vote` and `asset_weighted_vote`).
 
 ### VotingTemplateService
 **Location**: `app/Domain/Governance/Services/VotingTemplateService.php`
 
-Provides templated voting mechanisms for common governance actions.
+This service creates polls from templates.
 
 **Key Methods**:
-- `createBasketCompositionPoll()` - Creates asset allocation votes
-- `createConfigurationPoll()` - System configuration changes
-- `createFeatureTogglePoll()` - Feature enablement votes
-- `applyVoteResults()` - Implements voting outcomes
-
-**Template Types**:
-- Basket composition changes
-- Fee structure updates
-- Feature toggles
-- Asset addition/removal
+- `createMonthlyBasketVotingPoll()` creates the monthly basket composition poll.
+- `createAddCurrencyPoll()` creates a poll on adding a currency.
+- `createEmergencyRebalancingPoll()` creates a poll on an urgent rebalance.
+- `scheduleYearlyVotingPolls()` creates the polls for a year ahead.
 
 ## Performance Services
 
 ### TransferOptimizationService
 **Location**: `app/Domain/Performance/Services/TransferOptimizationService.php`
 
-Optimizes transfer routing and execution for best performance and cost.
+This service speeds up transfers by caching account data and checking transfers before they run.
 
 **Key Methods**:
-- `optimizeTransferRoute()` - Selects optimal transfer path
-- `calculateTransferCost()` - Estimates transfer fees
-- `predictTransferTime()` - Estimates completion time
-- `analyzeTransferPatterns()` - Identifies optimization opportunities
+- `getAccountWithCache()` and `getBalanceWithCache()` read accounts and balances through the cache.
+- `preValidateTransfer()` and `batchValidateTransfers()` check transfers before they run.
+- `warmUpCaches()` and `clearTransferCaches()` fill and clear the caches.
 
-**Optimization Factors**:
-- Transaction costs
-- Settlement time
-- Bank availability
-- Regulatory requirements
+## Basket Services
 
-## Banking Services
+These services back the GCU demo baskets in `app/Domain/Basket/Services/`.
 
-### DailyReconciliationService
-**Location**: `app/Domain/Banking/Services/DailyReconciliationService.php`
+- `BasketService` composes and decomposes basket holdings and calculates the components a basket needs.
+- `BasketRebalancingService` checks whether a basket needs rebalancing, rebalances it and keeps the history.
+- `BasketValueCalculationService` calculates the current and historical value of a basket.
+- `BasketPerformanceService` calculates performance over several periods and compares it with benchmarks.
 
-Performs daily reconciliation of balances across all custodian banks.
+## Stablecoin Services
 
-**Key Methods**:
-- `performDailyReconciliation()` - Executes daily balance checks
-- `identifyDiscrepancies()` - Flags balance mismatches
-- `generateReconciliationReport()` - Creates reconciliation summaries
-- `resolveDiscrepancy()` - Handles balance corrections
+These services back the Stablecoin demo module in `app/Domain/Stablecoin/Services/`.
 
-**Reconciliation Process**:
-1. Fetch balances from all custodians
-2. Compare with internal records
-3. Flag discrepancies for review
-4. Generate detailed reports
-5. Execute corrective actions
-
-### CircuitBreakerService
-**Location**: `app/Domain/Banking/Services/CircuitBreakerService.php`
-
-Implements circuit breaker patterns for bank API reliability.
-
-**Key Methods**:
-- `checkCircuitState()` - Monitors circuit status
-- `recordFailure()` - Logs API failures
-- `openCircuit()` - Activates circuit breaker
-- `attemptReset()` - Tests circuit recovery
-
-**Circuit States**:
-- Closed: Normal operation
-- Open: All traffic blocked
-- Half-Open: Testing recovery
-
-## Asset Management Services
-
-### BasketManagementService
-**Location**: `app/Domain/Asset/Services/BasketManagementService.php`
-
-Manages basket composition, rebalancing, and performance tracking.
-
-**Key Methods**:
-- `rebalanceBasket()` - Adjusts asset weights
-- `calculateBasketValue()` - Computes current basket value
-- `trackPerformance()` - Monitors basket performance
-- `validateComposition()` - Ensures valid asset weights
-
-### StablecoinService
-**Location**: `app/Domain/Asset/Services/StablecoinService.php`
-
-Handles stablecoin operations including minting, burning, and collateral management.
-
-**Key Methods**:
-- `mintStablecoin()` - Creates new stablecoin tokens
-- `burnStablecoin()` - Destroys stablecoin tokens
-- `manageCollateral()` - Handles collateral positions
-- `checkLiquidation()` - Monitors liquidation risks
+- `StablecoinIssuanceService` mints and burns stablecoins and adds collateral (`mint()`, `burn()`, `addCollateral()`).
+- `CollateralService` values collateral and finds positions at risk.
+- `LiquidationService` finds and runs liquidations and can simulate a mass liquidation.
+- `StabilityMechanismService`, `PriceOracleService` and `OracleAggregator` keep the peg and the prices.
 
 ## Transaction Services
 
-### TransactionReversalService
-**Location**: `app/Domain/Transaction/Services/TransactionReversalService.php`
+### Transaction Reversal
+**Location**: `app/Domain/Account/Workflows/TransactionReversalWorkflow.php`
 
-Manages transaction reversal requests and compensation workflows.
-
-**Key Methods**:
-- `requestReversal()` - Initiates reversal request
-- `validateReversalEligibility()` - Checks if reversal is allowed
-- `executeReversal()` - Performs transaction reversal
-- `trackReversalStatus()` - Monitors reversal progress
-
-**Reversal Criteria**:
-- Time limits (typically 24-48 hours)
-- Transaction type restrictions
-- Approval requirements
-- Compliance considerations
+Reversals run as a workflow with `TransactionReversalActivity`, not as a separate service. `TransactionReversalController` starts the workflow. Creating a reversal answers `404` while `LEDGER_DIRECT_FUNDING_ENABLED` is off.
 
 ### BatchProcessingService
-**Location**: `app/Domain/Transaction/Services/BatchProcessingService.php`
+**Location**: `app/Domain/Batch/Services/BatchProcessingService.php`
 
-Handles batch transaction processing for high-volume operations.
+This service runs batch jobs.
 
 **Key Methods**:
-- `createBatch()` - Initializes batch transaction
-- `processBatch()` - Executes batch operations
-- `validateBatchIntegrity()` - Ensures batch consistency
-- `handleBatchFailure()` - Manages partial failures
-
-**Batch Features**:
-- Atomic processing
-- Partial failure handling
-- Progress tracking
-- Rollback capabilities
+- `createBatchJob()` creates a batch job.
+- `processBatch()` runs it.
+- `cancelBatchJob()` cancels it.
+- `retryFailedItems()` retries the items that failed.
 
 ## Cache Services
 
 ### TransactionCacheService
 **Location**: `app/Domain/Account/Services/Cache/TransactionCacheService.php`
 
-Optimizes transaction data access through intelligent caching.
+This service caches recent and paginated transactions and daily summaries.
 
 ### AccountCacheService
 **Location**: `app/Domain/Account/Services/Cache/AccountCacheService.php`
 
-Manages account data caching for improved performance.
+This service caches accounts and their balances.
 
 ### PollCacheService
 **Location**: `app/Domain/Governance/Services/Cache/PollCacheService.php`
 
-Caches governance poll data and voting results.
+This service caches polls, poll results, voting power and vote status.
 
 ## Service Integration Patterns
 
 ### Event Sourcing Integration
-All services emit domain events for audit trails and workflow coordination:
+Account and transfer changes are recorded as events on aggregates. The events give an audit trail and drive the projectors that build the read models. The snippet is a simplified illustration, not code from the repository:
 
 ```php
 // Example service event emission
@@ -308,7 +265,7 @@ $this->eventStore->store(new TransactionCompleted(
 ```
 
 ### Workflow Integration
-Services integrate with Laravel Workflow for complex business processes:
+Multi-step processes run as Laravel Workflow workflows with activities. A failed step can run a compensation, as described in [WORKFLOW_PATTERNS.md](../02-ARCHITECTURE/WORKFLOW_PATTERNS.md). The snippet is a simplified illustration, not the Laravel Workflow API:
 
 ```php
 // Example workflow integration
@@ -319,10 +276,10 @@ $workflow->addStep(new ValidateTransferStep())
 ```
 
 ### API Authentication
-All services respect API authentication and authorization:
+Authorisation is checked in the HTTP layer, through Sanctum token abilities, role middleware and policies, before a service is called. The snippet is a simplified illustration:
 
 ```php
-// Services check permissions
+// Illustration of a permission check
 if (!$this->authService->canPerformAction($user, 'create_transfer')) {
     throw new UnauthorizedException();
 }
@@ -331,86 +288,44 @@ if (!$this->authService->canPerformAction($user, 'create_transfer')) {
 ## Performance Considerations
 
 ### Caching Strategy
-- Redis for session and temporary data
-- Database query result caching
-- API response caching for stable data
+- Redis holds sessions and temporary data.
+- Query results are cached where reads are expensive.
+- Stable data, such as exchange rates, is cached for API responses.
 
 ### Async Processing
-- Queue-based processing for heavy operations
-- Event-driven architecture for loose coupling
-- Background job processing for reports
+- Heavy operations run on queues.
+- Events decouple the domains from each other.
+- Reports are built in background jobs.
 
 ### Monitoring
-- Service health endpoints
-- Performance metrics collection
-- Error rate monitoring
-- Circuit breaker metrics
+- Health endpoints live under `/api/monitoring/...`.
+- Metrics are exported for Prometheus at `/api/monitoring/prometheus`.
+- Circuit breakers report their own metrics.
 
 ## Error Handling
 
 ### Standard Error Responses
-All services follow consistent error handling:
-
-```json
-{
-  "error": {
-    "code": "INSUFFICIENT_BALANCE",
-    "message": "Account balance insufficient for transaction",
-    "details": {
-      "required_amount": 10000,
-      "available_balance": 5000
-    }
-  }
-}
-```
+The error formats that the API returns are described in [REST_API_REFERENCE.md](REST_API_REFERENCE.md#error-responses).
 
 ### Compensation Patterns
-Services implement compensation for failed operations:
-
-- Transaction reversals
-- Balance corrections
-- State rollbacks
-- Notification cleanup
+When an operation fails halfway, the workflow undoes the steps that already ran. Typical compensations are transaction reversals, balance corrections, state rollbacks and the cleanup of notifications.
 
 ## Testing Strategy
 
-### Unit Tests
-Each service has comprehensive unit test coverage:
-- Method-level testing
-- Edge case validation
-- Error condition testing
-- Mock external dependencies
-
-### Integration Tests
-Services are tested in realistic scenarios:
-- Multi-service workflows
-- Database interactions
-- External API integration
-- Event emission verification
-
-### Performance Tests
-Critical services undergo performance testing:
-- Load testing for high-volume operations
-- Memory usage optimization
-- Database query optimization
-- Cache effectiveness measurement
+The services are tested with Pest. Unit tests cover single methods, edge cases and errors with mocked dependencies. Feature and integration tests cover workflows across services, database access and the events that are recorded. The `tests/MultiConnection/` suite runs against real MySQL to catch problems that SQLite hides.
 
 ## Security Considerations
 
 ### Data Protection
-- Sensitive data encryption
-- PII anonymization
-- Secure key management
-- Access logging
+- Sensitive fields are encrypted with Laravel's `encrypted` cast.
+- Personal data is anonymised on erasure.
+- Access to sensitive data is logged.
 
 ### API Security
-- Authentication token validation
-- Rate limiting
-- Input sanitization
-- SQL injection prevention
+- Authenticated endpoints need a token, and the token abilities are checked.
+- Requests are rate limited.
+- Input is validated and sanitised.
+- Database access uses the query builder and Eloquent, which bind parameters.
 
-### Compliance Security
-- GDPR data handling
-- PCI DSS for payment data
-- SOX compliance for financial records
-- Audit trail maintenance
+### Compliance
+The services include tooling for data protection requests and financial record keeping. They do not make a deployment compliant with GDPR, PCI DSS or SOX, and no certification is held. Card data is handled by the licensed card provider, not by FinAegis.
