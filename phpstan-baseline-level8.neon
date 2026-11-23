@@ -1093,24 +1093,6 @@ parameters:
 			path: app/Domain/Fraud/Services/BehavioralAnalysisService.php
 
 		-
-			message: '#^Cannot access property \$user_id on Illuminate\\Database\\Eloquent\\Model\|null\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: app/Domain/Fraud/Services/FraudCaseService.php
-
-		-
-			message: '#^Method App\\Domain\\Fraud\\Services\\FraudCaseService\:\:resolveCase\(\) should return App\\Domain\\Fraud\\Models\\FraudCase but returns App\\Domain\\Fraud\\Models\\FraudCase\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Domain/Fraud/Services/FraudCaseService.php
-
-		-
-			message: '#^Method App\\Domain\\Fraud\\Services\\FraudCaseService\:\:updateInvestigation\(\) should return App\\Domain\\Fraud\\Models\\FraudCase but returns App\\Domain\\Fraud\\Models\\FraudCase\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Domain/Fraud/Services/FraudCaseService.php
-
-		-
 			message: '#^Cannot access property \$user on Illuminate\\Database\\Eloquent\\Model\|null\.$#'
 			identifier: property.nonObject
 			count: 2

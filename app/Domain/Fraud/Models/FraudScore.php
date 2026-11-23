@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
@@ -143,6 +144,16 @@ class FraudScore extends Model
     ];
 
     // Relationships
+    /**
+     * The case this score opened, if any.
+     *
+     * @return HasOne<FraudCase, $this>
+     */
+    public function fraudCase(): HasOne
+    {
+        return $this->hasOne(FraudCase::class, 'fraud_score_id');
+    }
+
     public function entity(): MorphTo
     {
         return $this->morphTo();

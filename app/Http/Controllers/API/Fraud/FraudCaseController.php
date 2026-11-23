@@ -42,16 +42,16 @@ class FraudCaseController extends Controller
     {
         $request->validate(
             [
-                'status'      => 'nullable|in:open,investigating,closed',
-                'priority'    => 'nullable|in:low,medium,high,critical',
-                'risk_level'  => 'nullable|in:very_low,low,medium,high,very_high',
-                'assigned_to' => 'nullable|integer',
+                'status'      => 'nullable|in:pending,investigating,confirmed,false_positive,resolved',
+                'severity'    => 'nullable|in:low,medium,high,critical',
+                'type'        => 'nullable|string|max:50',
+                'assigned_to' => 'nullable|uuid',
                 'date_from'   => 'nullable|date',
                 'date_to'     => 'nullable|date|after_or_equal:date_from',
                 'min_amount'  => 'nullable|numeric|min:0',
                 'max_amount'  => 'nullable|numeric|min:0',
                 'search'      => 'nullable|string|max:100',
-                'sort_by'     => 'nullable|in:created_at,priority,loss_amount,risk_level',
+                'sort_by'     => 'nullable|in:created_at,detected_at,severity,amount,risk_score',
                 'sort_order'  => 'nullable|in:asc,desc',
                 'per_page'    => 'nullable|integer|min:10|max:100',
             ]
@@ -104,7 +104,7 @@ class FraudCaseController extends Controller
                         return [
                             'id'          => $similarCase->id,
                             'case_number' => $similarCase->case_number,
-                            'risk_level'  => $similarCase->risk_level,
+                            'severity'    => $similarCase->severity,
                             'status'      => $similarCase->status,
                             'created_at'  => $similarCase->created_at,
                         ];
@@ -137,17 +137,15 @@ class FraudCaseController extends Controller
     {
         $request->validate(
             [
-                'status'               => 'nullable|in:open,investigating,closed',
-                'priority'             => 'nullable|in:low,medium,high,critical',
-                'assigned_to'          => 'nullable|integer',
+                'status'               => 'nullable|in:pending,investigating,confirmed,false_positive,resolved',
+                'severity'             => 'nullable|in:low,medium,high,critical',
+                'assigned_to'          => 'nullable|uuid',
                 'note'                 => 'nullable|string|max:1000',
                 'note_type'            => 'nullable|in:investigation,analysis,action,resolution',
                 'evidence'             => 'nullable|array',
                 'evidence.type'        => 'required_with:evidence|string',
                 'evidence.description' => 'required_with:evidence|string',
                 'evidence.file_path'   => 'nullable|string',
-                'tags'                 => 'nullable|array',
-                'tags.*'               => 'string|max:50',
             ]
         );
 
@@ -437,33 +435,17 @@ class FraudCaseController extends Controller
             'actor'       => 'System',
         ];
 
-        // Investigation started
-        if ($case->investigation_started_at) {
-            $timeline[] = [
-                'timestamp'   => $case->investigation_started_at,
-                'type'        => 'investigation_started',
-                'description' => 'Investigation started',
-                'actor'       => 'System',
-            ];
-        }
+        // Everything the service logged: notes, status changes, escalations, resolution.
+        foreach ($case->actions_taken ?? [] as $action) {
+            if (! is_array($action) || ($action['action'] ?? null) === 'created') {
+                continue;
+            }
 
-        // Add investigation notes to timeline
-        foreach ($case->investigation_notes ?? [] as $note) {
             $timeline[] = [
-                'timestamp'   => $note['timestamp'],
-                'type'        => $note['type'] ?? 'note',
-                'description' => $note['note'],
-                'actor'       => $note['author'] ?? 'Unknown',
-            ];
-        }
-
-        // Case resolved
-        if ($case->resolved_at) {
-            $timeline[] = [
-                'timestamp'   => $case->resolved_at,
-                'type'        => 'case_resolved',
-                'description' => "Case resolved: {$case->resolution}",
-                'actor'       => $case->resolution_notes['resolved_by'] ?? 'Unknown',
+                'timestamp'   => $action['timestamp'] ?? null,
+                'type'        => $action['action'] ?? 'note',
+                'description' => $action['note'] ?? $action['reason'] ?? (isset($action['to']) ? "Changed to {$action['to']}" : ($action['action'] ?? '')),
+                'actor'       => $action['by'] ?? 'system',
             ];
         }
 
