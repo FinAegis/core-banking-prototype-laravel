@@ -1,6 +1,6 @@
 # FinAegis SDK Developer Guide
 
-Welcome to the FinAegis API SDK documentation. This guide will help you integrate with the FinAegis API (GCU endpoints operate on the GCU software demo; balances are simulated).
+This guide explains how to call the FinAegis version 2 API from your code. It covers the official SDKs for JavaScript, Python and PHP, the payment SDK, the command-line tool and the MCP connector. The GCU endpoints run on the GCU software demo, and their balances are simulated.
 
 > The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
 
@@ -17,35 +17,29 @@ Welcome to the FinAegis API SDK documentation. This guide will help you integrat
 ## Getting Started
 
 ### Base URL
-Use the base URL of your own FinAegis deployment (e.g. `http://localhost:8000/api/v2`).
+Use the base URL of your own FinAegis deployment, for example `http://localhost:8000/api/v2`. On an `api.*` subdomain the same routes are served as `https://api.your-host.example/v2`.
 
 ### API Version
-Current version: `2.0.0`
+`GET /api/v2` reports the API version `2.0.0`.
 
 ### Rate Limits
-- **Requests per minute**: 60
-- **Requests per hour**: 1,000
-- **Burst limit**: 100
+Rate limits depend on the type of endpoint. Sign-in endpoints allow 5 requests per minute, transactions allow 30 per minute and queries allow 100 per minute. A blocked client gets HTTP 429. [API-INTEGRATION-GUIDE.md](API-INTEGRATION-GUIDE.md) lists every limit.
 
 ## Authentication
 
-FinAegis API uses two authentication methods:
+The API accepts two kinds of credentials. Both are sent in the same header:
 
-### 1. API Key Authentication
-For server-to-server integrations:
 ```
-X-API-Key: your_api_key_here
+Authorization: Bearer your_token_or_api_key
 ```
 
-### 2. Bearer Token Authentication
-For user-specific operations:
-```
-Authorization: Bearer your_jwt_token_here
-```
+### 1. API Keys
+API keys suit server-to-server integrations. A signed-in user creates them on the `/api-keys` page, and administrators manage them in the admin panel. API keys start with `fak_`.
 
-### Getting API Credentials
+### 2. Personal Access Tokens
+Sanctum tokens suit user-specific operations. You get one from `POST /api/v2/auth/login`, or you create one on the API tokens page of your profile (`/user/api-tokens`).
 
-Create API keys in your deployment's admin panel.
+The SDKs call this credential `apiKey` (or `api_key`) and send it as a bearer token.
 
 ## API Endpoints
 
@@ -53,30 +47,34 @@ Create API keys in your deployment's admin panel.
 
 #### API Status
 ```http
-GET /v2/status
+GET /api/v2/status
 ```
 
 Response:
 ```json
 {
   "status": "operational",
-  "timestamp": "2024-06-22T10:00:00Z",
+  "timestamp": "2026-11-23T10:00:00Z",
   "components": {
     "api": "operational",
     "database": "operational",
     "redis": "operational",
     "bank_connectors": {
-      "bank_a": "operational",
-      "bank_b": "operational",
-      "bank_c": "degraded"
+      "mock": "operational"
     }
+  },
+  "metrics": {
+    "response_time_ms": 4,
+    "uptime_percentage": 99.95
   }
 }
 ```
 
+The `bank_connectors` list shows the custodian connectors that are registered on the deployment. The `uptime_percentage` value is a fixed placeholder, not a measured figure.
+
 #### GCU Information
 ```http
-GET /v2/gcu
+GET /api/v2/gcu
 ```
 
 Response:
@@ -92,8 +90,8 @@ Response:
       {
         "asset_code": "USD",
         "asset_name": "US Dollar",
-        "weight": 35.0,
-        "value_contribution": 0.35
+        "weight": 40.0,
+        "value_contribution": 0.4
       },
       {
         "asset_code": "EUR",
@@ -110,22 +108,20 @@ Response:
 
 #### Create Account
 ```http
-POST /v2/accounts
+POST /api/v2/accounts
 Content-Type: application/json
 Authorization: Bearer {token}
 
 {
-  "name": "My GCU Account",
-  "type": "savings",
-  "metadata": {
-    "purpose": "international_transfers"
-  }
+  "name": "My Account"
 }
 ```
 
+A new account starts at zero. A non-zero `initial_balance` is rejected with HTTP 422.
+
 #### Get Account Balances
 ```http
-GET /v2/accounts/{account_uuid}/balances
+GET /api/v2/accounts/{account_uuid}/balances
 Authorization: Bearer {token}
 ```
 
@@ -136,45 +132,48 @@ Response:
     "account_uuid": "123e4567-e89b-12d3-a456-426614174000",
     "balances": [
       {
-        "asset_code": "GCU",
-        "balance": 100000,
-        "formatted_balance": "1,000.00"
-      },
-      {
         "asset_code": "USD",
         "balance": 50000,
-        "formatted_balance": "500.00"
+        "formatted": "500.00 USD",
+        "asset": { "code": "USD", "name": "US Dollar", "type": "fiat", "symbol": "$", "precision": 2 }
       }
-    ]
+    ],
+    "summary": {
+      "total_assets": 1,
+      "total_usd_equivalent": "500.00"
+    }
   }
 }
 ```
 
+Balances are returned in minor units, for example cents.
+
 #### Transfer Funds
 ```http
-POST /v2/transfers
+POST /api/v2/transfers
 Content-Type: application/json
 Authorization: Bearer {token}
 
 {
   "from_account": "123e4567-e89b-12d3-a456-426614174000",
   "to_account": "987fcdeb-51a2-43d1-b012-123456789abc",
-  "amount": 10000,
+  "amount": "100.00",
   "asset_code": "GCU",
-  "reference": "Payment for services",
-  "metadata": {
-    "invoice_number": "INV-2024-001"
-  }
+  "reference": "Payment for services"
 }
 ```
+
+The transfer `amount` is in major units. The API converts it with the precision of the asset.
 
 ## Webhooks
 
 ### Setting Up Webhooks
 
+Only administrators can manage webhooks. A webhook is platform-wide, so it receives the subscribed events for every account on the deployment.
+
 #### Create a Webhook
 ```http
-POST /v2/webhooks
+POST /api/v2/webhooks
 Content-Type: application/json
 Authorization: Bearer {token}
 
@@ -182,20 +181,20 @@ Authorization: Bearer {token}
   "url": "https://your-app.com/webhooks/finaegis",
   "events": [
     "account.created",
-    "transaction.completed",
+    "transaction.created",
     "transfer.completed"
   ],
   "description": "Production webhook for transactions"
 }
 ```
 
-Response includes a webhook secret for signature verification:
+The response includes a webhook secret for signature verification. The secret is shown only once:
 ```json
 {
   "data": {
-    "id": "wh_123456",
+    "id": "8d7e6f5a-4b3c-4d2e-9f10-a1b2c3d4e5f6",
     "url": "https://your-app.com/webhooks/finaegis",
-    "events": ["account.created", "transaction.completed", "transfer.completed"],
+    "events": ["account.created", "transaction.created", "transfer.completed"],
     "secret": "whsec_[your_webhook_secret]",
     "is_active": true
   }
@@ -203,29 +202,28 @@ Response includes a webhook secret for signature verification:
 ```
 
 ### Webhook Payload Format
+
+The payload is a flat JSON object. It holds the event fields together with `event` and `timestamp`:
 ```json
 {
-  "event": "transaction.completed",
-  "timestamp": "2024-06-22T10:00:00Z",
-  "data": {
-    "transaction_id": "tx_123456",
-    "account_uuid": "123e4567-e89b-12d3-a456-426614174000",
-    "amount": 10000,
-    "asset_code": "GCU",
-    "type": "deposit",
-    "status": "completed"
-  }
+  "account_uuid": "123e4567-e89b-12d3-a456-426614174000",
+  "type": "deposit",
+  "amount": 10000,
+  "currency": "USD",
+  "balance_after": 160000,
+  "event": "transaction.created",
+  "timestamp": "2026-11-23T10:00:00+00:00"
 }
 ```
 
 ### Signature Verification
 
-All webhooks include a signature header:
+Every webhook includes a signature header:
 ```
 X-Webhook-Signature: sha256=5257a869e7ecebeda32affa62cdca3fa51cad7e8f7fb5d59e
 ```
 
-Verify in Node.js:
+Verify it in Node.js against the raw request body:
 ```javascript
 const crypto = require('crypto');
 
@@ -235,10 +233,11 @@ function verifyWebhookSignature(payload, signature, secret) {
     .update(payload)
     .digest('hex');
   
-  return crypto.timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(expectedSignature)
-  );
+  return signature.length === expectedSignature.length &&
+    crypto.timingSafeEqual(
+      Buffer.from(signature),
+      Buffer.from(expectedSignature)
+    );
 }
 ```
 
@@ -246,28 +245,41 @@ function verifyWebhookSignature(payload, signature, secret) {
 
 ### Official SDKs
 
+| Package | Registry | Source in the monorepo |
+|---------|----------|------------------------|
+| `@finaegis/sdk` | npm | `sdks/javascript/` |
+| `finaegis` | PyPI | `sdks/python/` |
+| `finaegis/php-sdk` | Packagist | `sdks/php/` |
+| `finaegis/payment-sdk` | Packagist | `packages/zelta-sdk/` |
+| `@finaegis/cli` | npm | `packages/zelta-cli/` |
+| `@finaegis/mcp` | npm | `packages/finaegis-mcp-stdio/` |
+
+The PHP packages are published from read-only mirror repositories under the `FinAegis` GitHub organisation. Issues and pull requests belong in the monorepo.
+
+The JavaScript, Python and PHP SDKs choose a base URL from `environment`. The `production` value points to `https://api.zelta.app/v2`, `sandbox` points to `https://api-sandbox.zelta.app/v2` and `local` points to `http://localhost:8000/api/v2`. For a deployment you run yourself, pass its base URL instead.
+
 #### Node.js/TypeScript
 ```bash
 npm install @finaegis/sdk
 ```
 
 ```javascript
-const FinAegis = require('@finaegis/sdk');
+const { FinAegis } = require('@finaegis/sdk');
 
 const client = new FinAegis({
   apiKey: 'your_api_key',
-  environment: 'production' // or 'sandbox'
+  baseURL: 'https://your-finaegis-host.example/api/v2'
 });
 
 // Get GCU information
 const gcuInfo = await client.gcu.getInfo();
 
-// Create a transfer
+// Create a transfer (amount in major units)
 const transfer = await client.transfers.create({
-  fromAccount: 'account_uuid_1',
-  toAccount: 'account_uuid_2',
-  amount: 10000, // Ǥ100.00
-  assetCode: 'GCU'
+  from_account: 'account_uuid_1',
+  to_account: 'account_uuid_2',
+  amount: 100.00,
+  asset_code: 'GCU'
 });
 ```
 
@@ -281,88 +293,94 @@ from finaegis import FinAegis
 
 client = FinAegis(
     api_key='your_api_key',
-    environment='production'
+    base_url='https://your-finaegis-host.example/api/v2'
 )
 
 # Get account balances
 balances = client.accounts.get_balances('account_uuid')
 
-# Create a webhook
+# Create a webhook (administrators only)
 webhook = client.webhooks.create(
+    name='Transactions',
     url='https://your-app.com/webhooks',
-    events=['transaction.completed', 'transfer.completed']
+    events=['transaction.created', 'transfer.completed']
 )
 ```
 
+The Python SDK also reads the key from the `FINAEGIS_API_KEY` environment variable.
+
 #### PHP
 ```bash
-composer require finaegis/sdk
+composer require finaegis/php-sdk
 ```
 
 ```php
 use FinAegis\Client;
 
-$client = new Client([
-    'apiKey' => 'your_api_key',
-    'environment' => 'production'
+$client = new Client('your_api_key', [
+    'base_url' => 'https://your-finaegis-host.example/api/v2',
 ]);
 
 // Get exchange rate
 $rate = $client->exchangeRates->get('EUR', 'GCU');
 
-// Deposit funds
-$transaction = $client->transactions->deposit(
-    accountUuid: 'account_uuid',
-    amount: 50000, // €500.00
-    assetCode: 'EUR'
+// Deposit funds (only where LEDGER_DIRECT_FUNDING_ENABLED is on)
+$transaction = $client->accounts->deposit(
+    'account_uuid',
+    500.00,
+    'EUR'
 );
 ```
 
+#### Payment SDK (x402 and MPP)
+```bash
+composer require finaegis/payment-sdk
+```
+
+The payment SDK handles HTTP 402 responses for you. When an endpoint asks for payment through x402 or MPP, the client pays and retries the request. Its namespace is `Zelta\` and its main class is `Zelta\ZeltaClient`. The package README in `packages/zelta-sdk/README.md` has a full example.
+
+#### Command-line tool
+```bash
+npm install -g @finaegis/cli
+zelta auth:login --key <api-token>
+```
+
+The CLI is called `zelta`. It needs PHP 8.4 or newer on the `PATH`. It manages payments, SMS, wallets and API monetisation from the terminal. Run `zelta list` to see every command.
+
+#### MCP connector
+```bash
+npx -y @finaegis/mcp --login
+```
+
+The MCP connector links Claude Desktop, Cursor and other MCP clients to the hosted MCP server at `https://mcp.zelta.app/mcp`. It signs in through OAuth and stores the token locally.
+
 ### Community SDKs
-- Ruby: [finaegis-ruby](https://github.com/community/finaegis-ruby)
-- Go: [go-finaegis](https://github.com/community/go-finaegis)
-- Java: [finaegis-java-sdk](https://github.com/community/finaegis-java-sdk)
+There are no official Ruby, Go or Java SDKs. Community SDKs are welcome.
 
 ## Code Examples
 
 ### Complete Integration Example (Node.js)
 
 ```javascript
-const FinAegis = require('@finaegis/sdk');
+const { FinAegis } = require('@finaegis/sdk');
 const express = require('express');
 
 const app = express();
 const client = new FinAegis({
   apiKey: process.env.FINAEGIS_API_KEY,
-  environment: 'production'
+  baseURL: process.env.FINAEGIS_BASE_URL
 });
 
-// Create a GCU account for a user
-app.post('/users/:userId/create-gcu-account', async (req, res) => {
+// Create an account. The API always opens it for the owner of the API key or token.
+// The SDK type asks for user_uuid, but the server ignores that field.
+app.post('/accounts', express.json(), async (req, res) => {
   try {
-    // Create account
     const account = await client.accounts.create({
-      name: `User ${req.params.userId} GCU Account`,
-      type: 'savings'
+      user_uuid: process.env.FINAEGIS_USER_UUID,
+      name: req.body.name
     });
 
-    // Set up webhook for this account
-    const webhook = await client.webhooks.create({
-      url: `${process.env.APP_URL}/webhooks/finaegis`,
-      events: [
-        'transaction.completed',
-        'transfer.completed',
-        'basket.rebalanced'
-      ]
-    });
-
-    // Store webhook secret securely
-    await saveWebhookSecret(webhook.secret);
-
-    res.json({
-      accountId: account.uuid,
-      webhookId: webhook.id
-    });
+    res.json({ accountId: account.data.uuid });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -370,7 +388,7 @@ app.post('/users/:userId/create-gcu-account', async (req, res) => {
 
 // Handle incoming webhooks
 app.post('/webhooks/finaegis', express.raw({ type: 'application/json' }), async (req, res) => {
-  const signature = req.headers['x-webhook-signature'];
+  const signature = req.headers['x-webhook-signature'] || '';
   const webhookSecret = await getWebhookSecret();
 
   // Verify signature
@@ -381,47 +399,25 @@ app.post('/webhooks/finaegis', express.raw({ type: 'application/json' }), async 
   const event = JSON.parse(req.body);
 
   switch (event.event) {
-    case 'transaction.completed':
-      await handleTransactionCompleted(event.data);
+    case 'transaction.created':
+      await handleTransactionCreated(event);
       break;
     case 'transfer.completed':
-      await handleTransferCompleted(event.data);
-      break;
-    case 'basket.rebalanced':
-      await handleBasketRebalanced(event.data);
+      await handleTransferCompleted(event);
       break;
   }
 
   res.status(200).send('OK');
 });
 
-// Convert local currency to GCU
-app.post('/convert-to-gcu', async (req, res) => {
+// Quote a conversion to GCU (simulated demo values).
+// The quote endpoint reads the amount in minor units, for example cents.
+app.post('/quote-gcu', express.json(), async (req, res) => {
   const { amount, fromCurrency } = req.body;
 
   try {
-    // Get exchange rate
-    const rate = await client.exchangeRates.get(fromCurrency, 'GCU');
-    
-    // Calculate GCU amount
-    const gcuAmount = Math.floor(amount * rate.rate);
-
-    // Create transaction
-    const transaction = await client.transactions.deposit(
-      accountUuid: req.user.accountId,
-      amount: gcuAmount,
-      assetCode: 'GCU',
-      metadata: {
-        originalAmount: amount,
-        originalCurrency: fromCurrency,
-        exchangeRate: rate.rate
-      }
-    );
-
-    res.json({
-      gcuAmount: gcuAmount / 100,
-      transaction: transaction
-    });
+    const quote = await client.exchangeRates.convert(fromCurrency, 'GCU', amount);
+    res.json(quote.data);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -430,42 +426,40 @@ app.post('/convert-to-gcu', async (req, res) => {
 
 ### Multi-Bank Distribution Example
 
+Bank allocation runs through the version 1 API at `/api/bank-allocations`. It belongs to the Banking demo module, which the production site switches off. The bank connectors are integration adapters for third-party APIs, and no partnership or endorsement is implied.
+
 ```javascript
-// Get user's bank preferences
-const preferences = await client.users.getBankPreferences();
+const baseUrl = 'https://your-finaegis-host.example/api';
+const headers = {
+  'Authorization': `Bearer ${process.env.FINAEGIS_API_KEY}`,
+  'Content-Type': 'application/json'
+};
 
-// Calculate distribution
-const totalAmount = 100000; // Ǥ1,000.00
-const distributions = preferences.map(pref => ({
-  bank: pref.custodian_code,
-  amount: Math.floor(totalAmount * pref.allocation_percentage / 100)
-}));
+// Read the user's bank allocation
+const allocation = await fetch(`${baseUrl}/bank-allocations`, { headers })
+  .then(r => r.json());
 
-// Initiate distributed deposit
-const deposits = await Promise.all(
-  distributions.map(dist => 
-    client.custodians.deposit({
-      custodian: dist.bank,
-      amount: dist.amount,
-      assetCode: 'GCU'
-    })
-  )
-);
+// Preview how an amount would be split across the banks (amount in major units)
+const preview = await fetch(`${baseUrl}/bank-allocations/distribution-preview`, {
+  method: 'POST',
+  headers,
+  body: JSON.stringify({ amount: 1000.00, asset_code: 'USD' })
+}).then(r => r.json());
 ```
 
 ## Best Practices
 
 ### 1. Error Handling
-Always implement proper error handling:
+Always handle errors. The JavaScript SDK throws a `FinAegisError` that carries the HTTP status in `statusCode` and the response body in `data`:
 
 ```javascript
 try {
-  const result = await client.accounts.create({...});
+  const result = await client.transfers.create({...});
 } catch (error) {
-  if (error.code === 'INSUFFICIENT_FUNDS') {
+  if (error.statusCode === 422 && error.data?.error === 'INSUFFICIENT_FUNDS') {
     // Handle insufficient funds
-  } else if (error.code === 'RATE_LIMIT_EXCEEDED') {
-    // Implement exponential backoff
+  } else if (error.statusCode === 429) {
+    // Back off exponentially
     await sleep(Math.pow(2, retryCount) * 1000);
   } else {
     // Log and handle other errors
@@ -475,64 +469,46 @@ try {
 ```
 
 ### 2. Idempotency
-Use idempotency keys for critical operations:
-
-```javascript
-const transfer = await client.transfers.create({
-  fromAccount: 'account1',
-  toAccount: 'account2',
-  amount: 10000,
-  assetCode: 'GCU',
-  idempotencyKey: 'transfer_' + orderId
-});
-```
+The version 2 transfer endpoint does not deduplicate requests. Do not resend a transfer blindly after a timeout. Check the account's transfers first with `client.accounts.getTransfers(accountUuid)`. The JavaScript and Python SDKs retry a `POST` that ends in a server error on their own. In the Python SDK, pass `max_retries=0` to stop that. In the JavaScript SDK, `maxRetries: 0` does not help, because the client treats `0` as unset and falls back to three retries.
 
 ### 3. Webhook Reliability
-- Always respond with 200 OK immediately
-- Process webhook events asynchronously
-- Implement retry logic for failed processing
-- Store processed event IDs to prevent duplicates
+- Respond with 200 OK quickly.
+- Process webhook events asynchronously.
+- Retry failed processing on your side.
+- Store processed delivery IDs from the `X-Webhook-Delivery` header to skip duplicates.
 
 ### 4. Security
-- Never expose API keys in client-side code
-- Use environment variables for sensitive data
-- Implement webhook signature verification
-- Use HTTPS for all API calls
-- Rotate API keys regularly
+- Never expose API keys in client-side code.
+- Keep secrets in environment variables.
+- Verify every webhook signature.
+- Use HTTPS for all API calls.
+- Rotate API keys regularly.
 
 ### 5. Performance
-- Cache exchange rates (5-minute TTL)
-- Batch operations when possible
-- Use webhook events instead of polling
-- Implement connection pooling
+- Cache exchange rates for a few minutes.
+- Use webhook events instead of polling.
+- Reuse one client instance so connections are kept alive.
 
 ## Error Handling
 
 ### Error Response Format
 ```json
 {
-  "error": {
-    "code": "INSUFFICIENT_FUNDS",
-    "message": "Insufficient funds in account",
-    "details": {
-      "available_balance": 5000,
-      "requested_amount": 10000,
-      "asset_code": "GCU"
-    }
-  }
+  "message": "Insufficient funds",
+  "error": "INSUFFICIENT_FUNDS",
+  "current_balance": 5000,
+  "requested_amount": 10000
 }
 ```
 
 ### Common Error Codes
-- `AUTHENTICATION_FAILED`: Invalid or missing API key
-- `AUTHORIZATION_FAILED`: Insufficient permissions
-- `VALIDATION_ERROR`: Invalid request parameters
-- `INSUFFICIENT_FUNDS`: Not enough balance
-- `RATE_LIMIT_EXCEEDED`: Too many requests
-- `ACCOUNT_FROZEN`: Account is frozen
-- `CUSTODIAN_UNAVAILABLE`: Bank connector is down
-- `INVALID_ASSET_CODE`: Unsupported asset
-- `DUPLICATE_REQUEST`: Idempotency key conflict
+- `UNAUTHORIZED_TRANSFER`: The source account belongs to someone else (HTTP 403).
+- `INSUFFICIENT_FUNDS`: The balance is too low (HTTP 422).
+- `SOURCE_ACCOUNT_FROZEN` and `DESTINATION_ACCOUNT_FROZEN`: One of the accounts is frozen (HTTP 422).
+- `ACCOUNT_FROZEN`: A deposit or withdrawal hit a frozen account (HTTP 422).
+- `TRANSFER_FAILED`: The transfer workflow could not start (HTTP 422).
+- Validation errors return HTTP 422 with an `errors` object per field.
+- A missing or invalid credential returns HTTP 401, and too many requests return HTTP 429.
 
 ### Retry Strategy
 ```javascript
@@ -541,8 +517,7 @@ async function apiCallWithRetry(fn, maxRetries = 3) {
     try {
       return await fn();
     } catch (error) {
-      if (error.code === 'RATE_LIMIT_EXCEEDED' || 
-          error.code === 'CUSTODIAN_UNAVAILABLE') {
+      if (error.statusCode === 429 || error.statusCode >= 500) {
         const delay = Math.pow(2, i) * 1000;
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;
@@ -554,33 +529,14 @@ async function apiCallWithRetry(fn, maxRetries = 3) {
 }
 ```
 
+The JavaScript and Python SDKs already retry failed requests up to three times by default. The JavaScript SDK retries network errors and server errors. The Python SDK retries status 429 and server errors. Both retry `POST` requests too, so a transfer that ends in a server error can be sent again by the SDK itself.
+
 ## Support
 
-### Documentation
-- API Reference: [https://docs.finaegis.org/api](https://docs.finaegis.org/api)
-- Developer Portal: [https://developers.finaegis.org](https://developers.finaegis.org)
+- Your deployment serves the interactive API reference at `/api/documentation`.
+- Questions and bug reports go to the GitHub issues of `FinAegis/core-banking-prototype-laravel`.
+- Security issues are reported privately through GitHub Security Advisories, as described in `SECURITY.md`.
 
-### Community
-- Discord: [https://discord.gg/finaegis](https://discord.gg/finaegis)
-- Stack Overflow: Tag `finaegis`
-- GitHub: [https://github.com/finaegis](https://github.com/finaegis)
+## Package Versions
 
-### Contact
-- API Support: api@finaegis.org
-- Security Issues: security@finaegis.org
-- Partnership: partners@finaegis.org
-
-## Changelog
-
-### v2.0.0 (2024-06-22)
-- New V2 API with improved structure
-- Webhook system for real-time events
-- Multi-bank distribution support
-- Enhanced GCU endpoints
-- Improved error handling
-
-### v1.0.0 (2024-09-15)
-- Initial API release
-- Basic account and transaction operations
-- Multi-asset support
-- Exchange rate endpoints
+The package versions in the repository are `@finaegis/sdk` 1.0.5, `finaegis` 1.0.2 for Python and `@finaegis/mcp` 0.1.6. Release tags follow the table in `CLAUDE.md`, for example `js-sdk-v*` for the JavaScript SDK and `py-sdk-v*` for the Python SDK.

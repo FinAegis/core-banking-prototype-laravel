@@ -2,7 +2,11 @@
 
 ## Overview
 
-The FinAegis AI Framework uses event sourcing to maintain a complete audit trail of all AI decisions, tool executions, and interactions. Every state change is captured as an immutable event, providing transparency, auditability, and the ability to replay or analyze AI behavior.
+The AI framework uses event sourcing to keep an audit trail of agent decisions, tool calls and conversations. Each change is stored as an event that is never edited. The stored events show what an agent did and why, and they can be replayed to analyze its behavior.
+
+`AIInteractionAggregate` in `app/Domain/AI/Aggregates/` records the events through Spatie Laravel Event Sourcing. It uses the default `stored_events` table. The event classes are in `app/Domain/AI/Events/`.
+
+The code on this page is simplified. The real event constructors take different fields. For example, `AIDecisionMadeEvent` takes `conversationId`, `agentType`, `decision`, `reasoning`, `confidence`, `requiresApproval`, `userId` and `timestamp`. There is no `HumanOverrideEvent` class. `AIInteractionAggregate::recordHumanOverride()` stores an override as a `HumanInterventionRequestedEvent` with `intervention_type: override`. The projections, the replay service and the reactors on this page are examples to adapt. The AI domain has no projection or reactor classes yet.
 
 ## Core Concepts
 
@@ -32,7 +36,7 @@ The FinAegis AI Framework uses event sourcing to maintain a complete audit trail
 ┌─────────────────────────────────────────┐
 │           Event Store                    │
 ├─────────────────────────────────────────┤
-│  ai_interaction_events table            │
+│  stored_events table                    │
 │  • Event ID                             │
 │  • Aggregate ID                         │
 │  • Event Type                           │
@@ -113,7 +117,7 @@ class HumanOverrideEvent extends ShouldBeStored
 
 ## AIInteractionAggregate
 
-The aggregate root that manages AI interaction state:
+`AIInteractionAggregate` is the aggregate root that holds the state of one AI interaction. The simplified version below shows the pattern.
 
 ```php
 namespace App\Domain\AI\Aggregates;
@@ -592,16 +596,15 @@ class AIInteractionAggregateTest extends TestCase
 
 ## Best Practices
 
-1. **Event Naming**: Use past tense (e.g., `DecisionMade` not `MakeDecision`)
-2. **Event Data**: Include all data needed to rebuild state
-3. **Immutability**: Never modify stored events
-4. **Idempotency**: Ensure event handlers are idempotent
-5. **Performance**: Use projections for read-heavy operations
-6. **Testing**: Test both event recording and projections
-7. **Monitoring**: Track event processing metrics
+1. Name events in the past tense, for example `DecisionMade` rather than `MakeDecision`.
+2. Put all the data needed to rebuild the state into the event.
+3. Never change a stored event.
+4. Make event handlers idempotent, so a replay does not repeat side effects.
+5. Use projections for data that is read often.
+6. Test both the recording of events and the projections.
+7. Track how fast events are processed.
 
 ## Next Steps
 
 - [API Reference](05-API-Reference.md)
-- [Testing Guide](06-Testing.md)
-- [Deployment Guide](07-Deployment.md)
+- [Workflow Development](03-Workflows.md)

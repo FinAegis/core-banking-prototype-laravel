@@ -1,97 +1,61 @@
 # AI Agent Compatibility Guide
 
-FinAegis is designed to be fully compatible with AI coding agents and assistants. We follow the [AGENTS.md specification](https://agents.md/) to provide structured guidance throughout the codebase.
+This guide explains how AI coding agents find guidance in the FinAegis codebase. The project follows the [AGENTS.md format](https://agents.md/), so agents can read structured instructions next to the code they change.
+
+This page is about agents that write code. AI agents that use the platform as customers connect through the MCP server at `https://mcp.zelta.app/mcp` or the `@finaegis/mcp` package instead. [SDK-GUIDE.md](SDK-GUIDE.md) describes those.
 
 ## AGENTS.md Support
 
 ### What is AGENTS.md?
 
-AGENTS.md is an open format created by OpenAI for guiding AI coding agents. Think of it as a README specifically for AI assistants - providing context, instructions, and guidelines to help them work effectively with your code.
+AGENTS.md is an open format for instructions to AI coding agents. It works like a README written for an agent. It gives the context, the commands and the rules the agent needs to work on the code.
 
 ### Our Implementation
 
-We have AGENTS.md files at multiple levels:
+The repository has AGENTS.md files at several levels:
 
-1. **Root Level** (`/AGENTS.md`)
-   - Project overview and quick start
-   - Development environment setup
-   - Testing and code quality guidelines
-   - Security considerations
-   - PR and commit instructions
+1. **Root level** (`/AGENTS.md`) gives a project overview, the development setup, testing and code quality rules, security notes and the commit conventions.
+2. **Domain level** (`/app/Domain/AGENTS.md`) explains the Domain-Driven Design rules, event sourcing, sagas and the service layer.
+3. **Selected domains** have their own file: `app/Domain/Exchange/AGENTS.md`, `app/Domain/Lending/AGENTS.md` and `app/Domain/Stablecoin/AGENTS.md`.
+4. **Test level** (`/tests/AGENTS.md`) covers testing conventions, Pest, event and database tests and common test problems.
 
-2. **Domain Level** (`/app/Domain/AGENTS.md`)
-   - Domain-Driven Design guidelines
-   - Event sourcing patterns
-   - Saga implementation rules
-   - Service layer best practices
-
-3. **Test Level** (`/tests/AGENTS.md`)
-   - Testing conventions
-   - Pest PHP usage
-   - Event and database testing
-   - Common testing issues
+The root `CLAUDE.md` holds the same kind of guidance for Claude Code. It lists the essential commands, the CI pitfalls and the rules for each major feature.
 
 ### How AI Agents Use These Files
 
-When an AI agent works on your code:
-1. It automatically discovers AGENTS.md files in the directory tree
-2. Reads the closest AGENTS.md file for context-specific guidance
-3. Follows the instructions for that specific component
-4. Respects nested AGENTS.md files (more specific ones take precedence)
+An agent that supports the format looks for AGENTS.md files in the directory tree. It reads the file closest to the code it is changing. A more specific file takes precedence over a general one.
 
 ## AI-Friendly Architecture
 
 ### Event Sourcing
-Our event-sourced architecture is highly AI-friendly:
-- Clear event definitions describe what happened
-- Aggregates provide bounded contexts
-- Sagas handle complex workflows explicitly
-- Complete audit trail of all changes
+
+Event sourcing helps an agent understand the code. Each event class describes one thing that happened. Aggregates hold the business rules of one bounded context. Sagas and workflows make multi-step processes explicit. The stored events give a complete history of every change.
 
 ### Domain-Driven Design
-DDD principles make the codebase more understandable:
-- Bounded contexts separate concerns
-- Ubiquitous language reduces ambiguity
-- Value objects enforce business rules
-- Domain services encapsulate logic
+
+The code is split into 61 domain folders under `app/Domain/`. Each one is a bounded context with its own models, events and services. Value objects enforce business rules, and domain services hold the logic. This keeps the context an agent needs small.
 
 ### Structured Patterns
-Consistent patterns throughout:
-- Command/Query separation (CQRS)
-- Repository pattern for data access
-- Factory pattern for object creation
-- Observer pattern for event handling
+
+The same patterns repeat across the code. Commands and queries are separated (CQRS). Repositories handle data access, factories create objects and listeners react to events.
 
 ## Working with AI Assistants
 
-### Recommended AI Tools
+### AI Tools
 
-1. **GitHub Copilot**
-   - Excellent for autocomplete
-   - Understands Laravel patterns
-   - Reads AGENTS.md for context
+Several tools can work with this repository:
 
-2. **Claude (Anthropic)**
-   - Superior for complex refactoring
-   - Excellent at following AGENTS.md
-   - Strong Laravel/PHP knowledge
-
-3. **ChatGPT/GPT-4**
-   - Good for documentation
-   - Helpful for test generation
-   - Understands event sourcing
-
-4. **Cursor IDE**
-   - Native AGENTS.md support
-   - Integrated AI assistance
-   - Context-aware suggestions
+1. **GitHub Copilot** helps with autocomplete and knows common Laravel patterns.
+2. **Claude Code** reads `CLAUDE.md` and handles larger refactoring tasks.
+3. **ChatGPT** helps with documentation and test generation.
+4. **Cursor** reads AGENTS.md files and gives context-aware suggestions.
 
 ### Best Practices for AI Collaboration
 
 #### 1. Provide Clear Context
 ```markdown
 # Good prompt
-"Create a new saga in app/Domain/Trading that handles order matching with compensation for failed trades, following our event sourcing patterns"
+"Create a new saga in app/Domain/Exchange that handles order matching with compensation for failed trades, following our event sourcing patterns"
 
 # Better prompt (references AGENTS.md)
 "Following the patterns in app/Domain/AGENTS.md, create an OrderMatchingSaga that implements compensation for failed trades"
@@ -114,11 +78,14 @@ private MockInterface $orderService;
 "Create tests following tests/AGENTS.md guidelines with >50% coverage"
 ```
 
+#### 5. State the Money Rules
+Agents often use floating-point numbers for money. Ask for `bcmath` (`bcadd`, `bcsub`, `bcmul`, `bcdiv`) on numeric strings. Ask for `DB::transaction()` with `lockForUpdate()` around balance changes.
+
 ## Integration Examples
 
 ### Example 1: Creating a New Domain
 
-When asking an AI to create a new domain:
+When you ask an AI to create a new domain, a prompt like this works well:
 
 ```markdown
 Create a new Compliance domain following app/Domain/AGENTS.md with:
@@ -128,6 +95,8 @@ Create a new Compliance domain following app/Domain/AGENTS.md with:
 - ComplianceSaga for multi-step KYC workflow
 - Tests with >50% coverage following tests/AGENTS.md
 ```
+
+A new domain also needs its GraphQL schema imported in `graphql/schema.graphql`. The domain count in the public pages and in `CLAUDE.md` must be updated too.
 
 ### Example 2: Implementing a Feature
 
@@ -153,93 +122,36 @@ Refactor the PaymentService:
 
 ## AI-Assisted Development Workflow
 
-### 1. Planning Phase
-- Use AI to analyze existing code
-- Generate architecture diagrams
-- Identify patterns and anti-patterns
-
-### 2. Implementation Phase
-- AI generates boilerplate code
-- Follows AGENTS.md guidelines
-- Maintains consistency with existing code
-
-### 3. Testing Phase
-- AI generates test cases
-- Ensures coverage requirements
-- Creates edge case scenarios
-
-### 4. Documentation Phase
-- AI updates documentation
-- Generates API documentation
-- Creates user guides
-
-### 5. Review Phase
-- AI checks code quality
-- Identifies potential issues
-- Suggests improvements
+1. **Planning.** The agent reads the existing code and finds the patterns to follow.
+2. **Implementation.** The agent writes the code within the rules of the nearest AGENTS.md file.
+3. **Testing.** The agent writes tests, including edge cases and failure paths.
+4. **Documentation.** The agent updates the docs and the OpenAPI annotations that the change touches.
+5. **Review.** A person reviews the result. The code quality tools also run: `php-cs-fixer`, PHPStan at level 8 and Pest.
 
 ## Continuous Improvement
 
 ### Updating AGENTS.md Files
 
-As the project evolves, keep AGENTS.md files updated:
-
-1. **When Adding Features**
-   - Update relevant AGENTS.md with new patterns
-   - Document new conventions
-   - Add security considerations
-
-2. **When Changing Architecture**
-   - Update architectural guidelines
-   - Document migration paths
-   - Explain breaking changes
-
-3. **When Finding Issues**
-   - Add common gotchas
-   - Document solutions
-   - Update testing guidelines
+Keep the AGENTS.md files current as the project changes. When you add a feature, add its new patterns, conventions and security notes. When the architecture changes, update the guidelines and explain the migration path. When an agent repeats a mistake, add the pitfall and its fix.
 
 ### Feedback Loop
 
-Help improve AI assistance:
-1. Report unclear AI responses
-2. Update AGENTS.md when AI makes mistakes
-3. Share successful prompts with the team
-4. Document AI-specific workflows
+If an agent makes a mistake that better guidance would prevent, update the AGENTS.md file. Share prompts that work well with the team.
 
 ## Security Considerations
 
-When working with AI assistants:
+When you work with AI assistants, follow three rules:
 
-1. **Never Share Secrets**
-   - Don't paste real API keys
-   - Use example credentials only
-   - Redact sensitive information
-
-2. **Review Generated Code**
-   - Check for security vulnerabilities
-   - Verify input validation
-   - Ensure proper authentication
-
-3. **Validate Dependencies**
-   - Review any suggested packages
-   - Check for known vulnerabilities
-   - Verify licensing compatibility
+1. **Never share secrets.** Do not paste real API keys or credentials, and redact sensitive data.
+2. **Review generated code.** Check it for security flaws, input validation and authentication.
+3. **Check dependencies.** Review any package the agent suggests for known vulnerabilities and a compatible licence.
 
 ## Resources
 
 - [AGENTS.md Specification](https://agents.md/)
-- [OpenAI Codex Best Practices](https://platform.openai.com/docs/guides/code)
 - [GitHub Copilot Documentation](https://docs.github.com/en/copilot)
 - [Anthropic Claude Documentation](https://docs.anthropic.com/)
 
 ## Contributing
 
-To improve AI agent compatibility:
-1. Keep AGENTS.md files updated
-2. Use clear, consistent naming
-3. Document complex logic
-4. Provide examples in comments
-5. Maintain comprehensive tests
-
-Remember: The better our AGENTS.md files, the more effectively AI agents can help with development!
+To improve AI agent compatibility, keep the AGENTS.md files up to date and use clear, consistent names. Document complex logic and keep the tests comprehensive. Better AGENTS.md files help agents do better work.

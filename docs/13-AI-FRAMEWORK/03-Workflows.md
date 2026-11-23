@@ -2,7 +2,9 @@
 
 ## Overview
 
-FinAegis uses Laravel Workflow with Waterline for orchestrating complex AI operations. Workflows provide multi-step orchestration, compensation handling, human-in-the-loop capabilities, and complete event sourcing integration.
+FinAegis runs multi-step AI operations on Laravel Workflow, and Waterline shows their state. A workflow runs steps in order, undoes earlier steps when a later one fails, can wait for a person's approval and records its decisions as events.
+
+The code on this page is simplified to show the patterns. It does not match the real classes line by line. The real code lives in `app/Domain/AI/Workflows/`, `app/Domain/AI/ChildWorkflows/` and `app/Domain/AI/Activities/`. Classes such as `MLPredictionActivity`, `MLService`, `HumanApprovalSignal` and the `Workflow\Saga` base class are examples only. The real child workflows include `FraudDetectionWorkflow`, `CreditRiskWorkflow`, `MarketAnalysisWorkflow` and `StrategyGenerationWorkflow`.
 
 ## Workflow Architecture
 
@@ -33,7 +35,7 @@ FinAegis uses Laravel Workflow with Waterline for orchestrating complex AI opera
 ## Core Workflow Concepts
 
 ### Workflows
-Long-running, stateful processes that orchestrate multiple activities:
+A workflow is a long-running process that keeps state and runs activities in order.
 
 ```php
 namespace App\Domain\AI\Workflows;
@@ -112,7 +114,7 @@ class CustomerServiceWorkflow extends Workflow
 
 ### Child Workflows
 
-Specialized workflows that handle specific domains:
+A child workflow handles one part of a larger task, such as fraud detection or a credit check.
 
 ```php
 namespace App\Domain\AI\Workflows\Children;
@@ -183,7 +185,7 @@ class FraudDetectionWorkflow extends Workflow
 
 ### Activities
 
-Atomic, stateless operations that perform specific tasks:
+An activity is one small task. It keeps no state of its own.
 
 ```php
 namespace App\Domain\AI\Activities;
@@ -232,7 +234,7 @@ class MLPredictionActivity
 
 ## Saga Pattern Implementation
 
-Sagas handle distributed transactions with compensation:
+A saga runs a series of steps and undoes the completed ones when a later step fails.
 
 ```php
 namespace App\Domain\AI\Sagas;
@@ -274,7 +276,7 @@ class RiskAssessmentSaga extends Saga
 
 ## Human-in-the-Loop Integration
 
-Workflows can pause for human input:
+A workflow can stop and wait for a person to approve or reject a decision.
 
 ```php
 namespace App\Domain\AI\Workflows;
@@ -425,7 +427,7 @@ class CustomerServiceWorkflowTest extends TestCase
 ## Workflow Patterns
 
 ### Sequential Processing
-Execute activities in order:
+Run activities one after another.
 
 ```php
 public function execute(): \Generator
@@ -439,7 +441,7 @@ public function execute(): \Generator
 ```
 
 ### Parallel Processing
-Execute activities concurrently:
+Run independent activities at the same time.
 
 ```php
 public function execute(): \Generator
@@ -455,7 +457,7 @@ public function execute(): \Generator
 ```
 
 ### Conditional Execution
-Branch based on conditions:
+Choose the next step based on a condition.
 
 ```php
 public function execute(array $params): \Generator
@@ -473,7 +475,7 @@ public function execute(array $params): \Generator
 ```
 
 ### Retry with Backoff
-Handle transient failures:
+Retry a step that failed for a temporary reason, and wait longer before each retry.
 
 ```php
 public function execute(): \Generator
@@ -497,38 +499,34 @@ public function execute(): \Generator
 
 ## Performance Considerations
 
-### State Management
-- Keep workflow state minimal
-- Use external storage for large data
-- Clean up state after completion
+### State management
 
-### Activity Design
-- Make activities idempotent
-- Keep activities stateless
-- Use caching for expensive operations
+Keep workflow state small. Put large data in external storage and clean up the state when the workflow ends.
+
+### Activity design
+
+Make activities idempotent and stateless, so a retry is safe. Cache the results of expensive operations.
 
 ### Parallelization
-- Identify independent operations
-- Use parallel execution where possible
-- Monitor resource usage
+
+Find the steps that do not depend on each other and run them in parallel. Watch resource use while they run.
 
 ### Monitoring
-- Track workflow execution time
-- Monitor failure rates
-- Alert on compensations
+
+Track how long workflows take and how often they fail. Alert when a compensation runs, because it means a step was undone.
 
 ## Best Practices
 
-1. **Single Responsibility**: Each workflow should handle one business process
-2. **Idempotency**: Design activities to be safely retryable
-3. **Compensation**: Always implement compensation for critical operations
-4. **Testing**: Test both happy path and failure scenarios
-5. **Monitoring**: Track metrics and set up alerts
-6. **Documentation**: Document workflow purpose and flow
-7. **Versioning**: Version workflows for backward compatibility
+1. Give each workflow one business process.
+2. Design activities so they can be retried safely.
+3. Add a compensation step for every critical operation.
+4. Test the failure paths as well as the normal path.
+5. Track metrics and set up alerts.
+6. Document what each workflow is for and how it flows.
+7. Version workflows so running instances stay compatible.
 
 ## Next Steps
 
 - [Event Sourcing Patterns](04-Event-Sourcing.md)
 - [API Reference](05-API-Reference.md)
-- [Testing Guide](06-Testing.md)
+- [AI Agent Workflows](AI_AGENT_WORKFLOWS.md)

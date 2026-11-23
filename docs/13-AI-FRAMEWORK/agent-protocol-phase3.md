@@ -191,11 +191,13 @@ Built-in security features:
 - Rate limiting per agent
 - IP-based access control
 
+> Note (v7.18.1): the message delivery activities do not check message signatures or webhook HMACs. Signature checks exist for agent transactions (`VerifySignatureActivity` in Phase 4), not for A2A messages.
+
 ## Integration Points
 
 ### Laravel Horizon
 
-Ready for queue processing:
+The configuration below is an example. `config/horizon.php` has no `agent_messages` supervisor.
 ```php
 // Queue configuration
 'agent_messages' => [
@@ -230,6 +232,8 @@ MessageFailed::class
 MessageExpired::class
 ```
 
+> Note (v7.18.1): there is no `MessageRouted` event class. The other six events are in `app/Domain/AgentProtocol/Events/`.
+
 ## Testing Coverage
 
 Comprehensive test suite implemented:
@@ -243,7 +247,7 @@ Comprehensive test suite implemented:
 ### Message Throughput
 
 Optimized for high throughput:
-- Redis-based queuing: ~10,000 msg/sec
+- Redis-based queuing (no benchmark in the repository measures message throughput)
 - Parallel workflow execution
 - Connection pooling for webhooks
 - Batch processing for low-priority messages
@@ -285,6 +289,8 @@ Horizontal scaling ready:
 - Production deployment guide
 
 ## Configuration
+
+> Note (v7.18.1): the settings below were the Phase 3 design. `config/agent_protocol.php` has no `messaging` section. Of these variables only `AGENT_PROTOCOL_ENABLED` and `AGENT_WEBHOOK_TIMEOUT` exist.
 
 ### Environment Variables
 ```env
