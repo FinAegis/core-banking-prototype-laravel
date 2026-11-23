@@ -12,21 +12,18 @@
 
 Accepted
 
+> **Implementation status (reviewed for v7.18.1).** The GCU demo runs on the Basket and Governance modules. The production site switches both off through `MODULES_DISABLED`. There is no `config/gcu.php` file. The composition and a minimum and maximum weight for each currency are seeded by `database/seeders/GCUBasketSeeder.php`, with `rebalance_frequency` set to monthly. Rebalancing moves components back inside those weight bands; the 5% drift threshold below is not a configured value. `baskets:rebalance` runs on the first day of each month at 00:05, and `voting:setup` creates the next month's poll on the 20th. `App\Domain\Governance\Workflows\UpdateBasketCompositionWorkflow` reads a finished poll, calculates the new composition from the votes, updates the components and triggers rebalancing. It has no seven-day timer. Version 7.18.0 fixed a lookup that never found GCU basket values and a voting-power query that read a missing column.
+
 ## Context
 
-The GCU demo is designed as a reference implementation of a basket-referenced unit that:
+The GCU demo is a reference implementation of a unit whose value refers to a basket. It has four properties:
 
-1. **Diversified Reference** - Value referenced to a basket rather than a single currency
-2. **Governance Module** - Weighted polls on composition (simulated in the demo)
-3. **Transparent Valuation** - Clear NAV calculation
-4. **Automatic Rebalancing** - Maintains target weights
+1. **Diversified reference.** Its value refers to a basket rather than to a single currency.
+2. **Governance.** Weighted polls decide the composition. In the demo these polls are simulated.
+3. **Transparent valuation.** The net asset value (NAV) calculation is clear.
+4. **Automatic rebalancing.** The basket returns to its target weights.
 
-Design challenges:
-- Currency basket composition and weighting
-- NAV (Net Asset Value) calculation precision
-- Rebalancing triggers and execution
-- Governance integration for composition changes
-- Performance at scale
+The design had to settle the composition and weights of the basket and the precision of the NAV calculation. It also had to decide what triggers rebalancing and how it runs, how governance changes the composition and how the design performs at scale.
 
 ## Decision
 
@@ -211,18 +208,11 @@ return [
 
 ### Positive
 
-- **Diversification** - Basket reference reduces single-currency dependence
-- **Transparency** - Clear, auditable NAV calculation
-- **Governance** - Composition changes go through (simulated) polls
-- **Flexible** - Composition can evolve over time
-- **Educational** - Demonstrates basket currency concepts
+A basket reference depends less on any single currency. The NAV calculation is clear and auditable. Composition changes go through polls, which are simulated in the demo. The composition can change over time, and the demo shows how basket currencies work.
 
 ### Negative
 
-- **Complexity** - Multiple moving parts
-- **Exchange rate dependency** - Needs reliable price feeds
-- **Rebalancing costs** - Trading fees during rebalancing
-- **Governance overhead** - Voting system complexity
+There are many moving parts. The design depends on reliable exchange rate feeds. Rebalancing would cost trading fees in a real deployment, and the voting system adds complexity.
 
 ### Mitigations
 
@@ -248,17 +238,11 @@ return [
 
 ### Why Monthly Rebalancing?
 
-- **Balance**: Between responsiveness and transaction costs
-- **Predictability**: Users know when changes occur
-- **Cost efficiency**: Batched trades reduce fees
-- **Governance**: Time for democratic input
+A monthly cycle balances responsiveness against transaction costs. Users know when changes happen. Batched trades cost less, and a month leaves time for the polls.
 
 ### Why 5% Drift Threshold?
 
-- **Materiality**: Small drifts don't matter
-- **Cost**: Avoid unnecessary transactions
-- **Stability**: Prevents over-trading
-- **Standard**: Common in index funds
+Small drifts do not matter. A threshold avoids unnecessary transactions and prevents over-trading. Thresholds of this size are common in index funds.
 
 ## Alternatives Considered
 
@@ -285,8 +269,7 @@ return [
 
 ## Future Considerations
 
-1. **Additional Components** - Could add CNY, CAD, AUD
-2. **Dynamic Weighting** - Algorithmic adjustment based on volatility
+The basket could add CNY, CAD and AUD as components. Weights could also be adjusted automatically based on volatility.
 
 ## References
 

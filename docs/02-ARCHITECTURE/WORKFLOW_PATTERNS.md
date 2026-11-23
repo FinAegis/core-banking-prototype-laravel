@@ -2,18 +2,22 @@
 
 ## Overview
 
-This document outlines the workflow patterns, saga implementations, and best practices used in the FinAegis core banking platform. The platform uses the Laravel Workflow package to implement the saga pattern for complex business processes.
+This document describes the workflow patterns and sagas that FinAegis uses, and the practices to follow when writing new workflows. The platform uses the Laravel Workflow package to run multi-step business processes as sagas.
+
+The account workflows shown in the "Workflow Categories" section exist in `app/Domain/Account/Workflows/`, and `TransferWorkflow` lives in `app/Domain/Payment/Workflows/`. The examples in the "Best Practices" section are illustrations. Classes such as `ParallelValidationWorkflow`, `LongRunningWorkflow`, `ResilientActivity` and `KycValidationActivity` do not exist in the codebase.
+
+The exchange liquidity workflows and activities for adding, removing and rebalancing liquidity were removed in v7.18.0, together with `PoolRebalancingService` and the `RebalancePoolsCommand`.
 
 ## Saga Pattern Implementation
 
 ### What is a Saga?
 
-A saga is a sequence of transactions that can be individually committed or compensated. In distributed systems like core banking, sagas ensure data consistency across multiple operations that might fail at any point.
+A saga is a sequence of steps, and each step can be committed on its own or undone by a compensating step. A banking operation often touches several accounts or systems, and any step can fail. A saga keeps the data consistent in that case, because it undoes the steps that already ran.
 
 ### Types of Workflows in FinAegis
 
 #### 1. Simple Workflows (Single Activity)
-For straightforward operations that don't require compensation:
+A simple workflow runs one activity and needs no compensation:
 
 ```php
 class DepositAccountWorkflow extends Workflow
@@ -30,7 +34,7 @@ class DepositAccountWorkflow extends Workflow
 ```
 
 #### 2. Compensatable Workflows (Saga Pattern)
-For complex operations that require rollback capabilities:
+A compensatable workflow records how to undo each step, so it can roll back when a later step fails:
 
 ```php
 class TransferWorkflow extends Workflow
@@ -63,7 +67,7 @@ class TransferWorkflow extends Workflow
 ```
 
 #### 3. Bulk Processing Workflows
-For batch operations with partial failure handling:
+A bulk workflow processes many items and handles items that fail one by one:
 
 ```php
 class BulkTransferWorkflow extends Workflow
@@ -338,7 +342,7 @@ class BatchProcessingWorkflow extends Workflow
 ### 1. Workflow Design Principles
 
 #### Idempotency
-All activities should be idempotent - executing them multiple times should have the same effect:
+Every activity should be idempotent. Running it several times must have the same effect as running it once:
 
 ```php
 class DepositAccountActivity extends Activity
@@ -366,7 +370,7 @@ class DepositAccountActivity extends Activity
 ```
 
 #### Compensation Logic
-Always design compensation that undoes the work of the original activity:
+Each compensation should undo exactly the work of the activity it belongs to:
 
 ```php
 // Original: Withdraw money
@@ -416,7 +420,7 @@ class TransferWorkflow extends Workflow
 ### 2. Activity Design Principles
 
 #### Single Responsibility
-Each activity should have a single, well-defined responsibility:
+Each activity should do one clearly defined thing:
 
 ```php
 // Good: Single purpose
@@ -439,7 +443,7 @@ class ValidateAndUpdateAccountActivity extends Activity
 ```
 
 #### Dependency Injection
-Use Laravel's dependency injection in activities:
+Activities should receive their services through Laravel's dependency injection:
 
 ```php
 class CreateAccountActivity extends Activity
@@ -656,4 +660,4 @@ class RetryableActivity extends Activity
 }
 ```
 
-These patterns provide a solid foundation for building robust, scalable, and maintainable workflows in the FinAegis core banking platform. Always consider the specific requirements of your banking operations when implementing these patterns.
+These patterns help keep FinAegis workflows reliable and easy to maintain. Check the needs of each banking operation before you apply them.

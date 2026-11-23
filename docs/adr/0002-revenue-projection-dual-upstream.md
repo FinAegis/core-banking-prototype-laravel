@@ -5,6 +5,8 @@
 **Decision-maker:** Backend engineer
 **Related:** Backend-Q3 in `docs/BACKEND_HANDOVER_PLAN_B_REVIEW_DELTAS.md`; original handover §0.2 (Multi-tenancy / saga pattern), §4 (Revenue attribution); ADR-0001 (Fee collector wallets); ADR-0003 (Pricing bounded context)
 
+> **Implementation status (reviewed for v7.18.1).** The off-chain path is built. The Stripe subscription webhook, the in-app purchase service and the card waitlist deposits write `revenue_outbox_events`. The `ProjectRevenueOutbox` job runs every five minutes to project them into `revenue_events`. Its test is `tests/Feature/Subscription/ProjectRevenueOutboxTest.php`. The on-chain path is not built yet. `HeliusTransactionProcessor` and `AlchemyWebhookManager` have no fee-collector code path, because the collector addresses from ADR-0001 are still empty placeholders.
+
 ---
 
 ## Context
@@ -170,7 +172,7 @@ Original §0.2 required a regression test for the saga's multi-connection deadlo
 - On-chain projection has no multi-connection issue (chain ingestor and revenue_events are both on global). No test required.
 - Off-chain outbox saga: PSP webhook handler writes to `revenue_outbox_events` AND `processed_webhook_events`, both global. The worker writes to `revenue_events`, also global. No tenant connection involved. No test required.
 
-The original `tests/MultiConnection/FeeDeductionMultiConnectionTest` from §11.3 is replaced by an outbox-delivery integration test under `tests/Feature/Revenue/RevenueOutboxDeliveryTest`.
+The original `tests/MultiConnection/FeeDeductionMultiConnectionTest` from §11.3 is replaced by an outbox-delivery integration test. It was built as `tests/Feature/Subscription/ProjectRevenueOutboxTest.php`.
 
 ### §0.2 supersession note
 
@@ -187,5 +189,5 @@ Add to deltas closing — already captured in Backend-Q3:
 - `docs/adr/0001-fee-collector-wallets.md` — collector addresses are the upstream for the on-chain projection path
 - `docs/adr/0003-pricing-bounded-context.md` — `quotes.user_op_hash` is the join key from inbound chain transfer to user/quote
 - `docs/adr/0004-money-on-the-wire.md` — revenue_events stores Money in the smallest-unit-with-decimals shape
-- `app/Domain/Wallet/Helpers/HeliusTransactionProcessor` — existing infrastructure being extended for the on-chain ingestor path
+- `app/Domain/Wallet/Services/HeliusTransactionProcessor` — existing infrastructure to be extended for the on-chain ingestor path
 - `processed_webhook_events` table — existing infrastructure for off-chain webhook dedup; outbox writes alongside it

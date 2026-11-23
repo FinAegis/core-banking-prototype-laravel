@@ -4,6 +4,8 @@
 **Last Updated:** 2024-06-25  
 **Status:** Design Document for Phase 7 Implementation
 
+> **Note (v7.18.1):** This is a historical design document from 2024. It records the plan, not the code that was built. In v7.18.1 the exchange is a demo. Its order book, external exchange reads and liquidity pools run only when the trading engine is on. `TRADING_ENABLED` switches it, it is on by default only in the local, testing and demo environments, and the production Zelta configuration keeps it off. The endpoints that exist are under `/api/exchange/...`, `/api/external-exchange/...` and `/api/liquidity/...`, as listed in [REST_API_REFERENCE.md](../04-API/REST_API_REFERENCE.md#exchange--trading). The add, remove and rebalance liquidity flow, including `PoolRebalancingService` and the `RebalancePoolsCommand`, was removed in v7.18.0. External exchange connectors are integration adapters for third-party APIs; no partnership or endorsement implied.
+
 ## Overview
 
 This document outlines the architecture for extending FinAegis to support cryptocurrency exchanges, enabling both the GCU platform's currency exchanges and the Litas platform's crypto-fiat conversions. The exchange engine is designed as a core FinAegis component that can handle multiple asset types with high performance and reliability.
@@ -264,6 +266,8 @@ class PlaceOrderWorkflow extends Workflow
 ## Liquidity Management
 
 ### Liquidity Pools
+
+The built liquidity pools support pool creation, swaps, positions, rewards and impermanent loss protection. Adding and removing liquidity by hand and rebalancing pools were removed in v7.18.0, so the `addLiquidity()` and `removeLiquidity()` methods in this plan do not exist.
 
 ```php
 interface LiquidityPool
@@ -942,6 +946,8 @@ class OrderProcessingJob implements ShouldQueue
 ---
 
 ## API Endpoints
+
+The endpoints below are the 2024 plan. They were not built under these paths. See the note at the top of this document for the endpoints that exist.
 
 ### Trading API
 ```

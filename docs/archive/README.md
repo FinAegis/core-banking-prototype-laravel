@@ -43,7 +43,7 @@ For up-to-date information, please refer to:
 
 ## Version History
 
-- **v2.4.0** (February 1, 2026): Current - Privacy & Identity (Key Management, TrustCert)
+- **v2.4.0** (February 1, 2026): Privacy & Identity (Key Management, TrustCert). This was the current release when the archive was cleaned up. The current release is listed in [`CHANGELOG.md`](../../CHANGELOG.md).
 - **v2.3.0** (February 1, 2026): Industry Leadership (AI, RegTech, BaaS)
 - **v2.2.0** (January 31, 2026): Mobile Backend Infrastructure
 - **v2.1.0** (January 30, 2026): Security & Enterprise Features

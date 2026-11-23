@@ -1,18 +1,20 @@
 # Database Schema Documentation
 
-**Version:** 1.3  
-**Last Updated:** 2024-06-27  
-**Laravel Version:** 11.x  
-**Database:** MySQL 8.0+
+**Version:** 1.4  
+**Last Updated:** 2026-11-24 (reviewed for v7.18.1)  
+**Laravel Version:** 12.x  
+**Database:** MySQL 8.0+ (MariaDB is also supported)
 
 ## Overview
 
-FinAegis uses a sophisticated database schema designed to support multi-asset banking operations with event sourcing, comprehensive audit trails, and high-performance queries. The schema follows Domain-Driven Design principles with clear separation between different business domains.
+The FinAegis database supports multi-asset accounts, event sourcing and audit trails. The schema follows the Domain-Driven Design split of the code, so each business domain owns its own tables.
+
+This page covers the core tables only. The full schema comes from about 380 migration files in `database/migrations/`, plus tenant migrations in `database/migrations/tenant/`. The migrations are the source of truth. The SQL blocks below are simplified, and column types can differ slightly from the migrations. The tables of most of the 61 domains, such as cards, ramp sessions, subscriptions and wallet addresses, are not described here.
 
 ## Core Banking Tables
 
 ### users
-Primary user accounts for the banking platform.
+This table holds the user accounts. The block below shows only the core columns. Later migrations add many more, such as `last_login_at` (added in v7.18.0 and set on every sign-in), the Privy user id, two-factor fields, `kyc_status` and team fields.
 
 ```sql
 CREATE TABLE `users` (
@@ -37,34 +39,42 @@ CREATE TABLE `users` (
 - Unique index on `email` (authentication)
 
 ### accounts
-Banking accounts owned by users. Each user can have multiple accounts.
+This table holds the accounts that users own. Each user can have several accounts.
 
 ```sql
 CREATE TABLE `accounts` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `uuid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `user_uuid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `balance` bigint NOT NULL DEFAULT '0',
-  `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'active',
+  `user_id` bigint unsigned DEFAULT NULL,
+  `uuid` char(36) DEFAULT NULL,
+  `name` varchar(255) NOT NULL,
+  `user_uuid` char(36) NOT NULL,
+  `team_id` bigint unsigned DEFAULT NULL,
+  `treasury_id` char(36) DEFAULT NULL,
+  `balance` int NOT NULL DEFAULT '0',
+  `available_balance` int NOT NULL DEFAULT '0',
+  `frozen` tinyint(1) NOT NULL DEFAULT '0',
+  `frozen_by_owner` tinyint(1) NOT NULL DEFAULT '0',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `accounts_uuid_unique` (`uuid`),
-  KEY `accounts_user_uuid_index` (`user_uuid`),
-  KEY `accounts_status_index` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  KEY `accounts_frozen_index` (`frozen`),
+  KEY `idx_account_frozen_status` (`uuid`,`frozen`),
+  CONSTRAINT `accounts_user` FOREIGN KEY (`user_uuid`) REFERENCES `users` (`uuid`)
+);
 ```
 
 **Fields:**
 - `balance`: Legacy USD balance in cents (maintained for backward compatibility)
-- `status`: 'active', 'frozen', 'closed'
+- `frozen`: Whether the account is frozen
+- `frozen_by_owner`: Records who placed the freeze. When it is true, the account holder froze the account and may lift the freeze. When it is false, staff or the system froze it, and only staff may lift it.
+- `team_id`: The team that owns the account in a multi-tenant setup
 
 **Indexes:**
 - Primary key on `id`
 - Unique index on `uuid`
-- Index on `user_uuid` (foreign key reference)
-- Index on `status` (for filtering)
+- Foreign key from `user_uuid` to `users.uuid`
+- Index on `frozen` (for filtering)
 
 ## Multi-Asset Support
 
@@ -131,36 +141,40 @@ Exchange rates between different assets.
 ```sql
 CREATE TABLE `exchange_rates` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `from_asset` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `to_asset` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `rate` decimal(20,8) NOT NULL,
-  `source` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'manual',
-  `fetched_at` timestamp NOT NULL,
-  `expires_at` timestamp NULL DEFAULT NULL,
+  `from_asset_code` varchar(10) NOT NULL,
+  `to_asset_code` varchar(10) NOT NULL,
+  `rate` decimal(20,10) NOT NULL,
+  `bid` decimal(20,10) DEFAULT NULL,
+  `ask` decimal(20,10) DEFAULT NULL,
+  `source` varchar(50) NOT NULL DEFAULT 'manual',
+  `valid_at` datetime NOT NULL,
+  `expires_at` datetime DEFAULT NULL,
   `is_active` tinyint(1) NOT NULL DEFAULT '1',
   `metadata` json DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `exchange_rates_from_asset_to_asset_fetched_at_unique` (`from_asset`,`to_asset`,`fetched_at`),
-  KEY `exchange_rates_from_asset_to_asset_index` (`from_asset`,`to_asset`),
-  KEY `exchange_rates_fetched_at_index` (`fetched_at`),
-  KEY `exchange_rates_is_active_index` (`is_active`),
-  CONSTRAINT `exchange_rates_from_asset_foreign` FOREIGN KEY (`from_asset`) REFERENCES `assets` (`code`),
-  CONSTRAINT `exchange_rates_to_asset_foreign` FOREIGN KEY (`to_asset`) REFERENCES `assets` (`code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  UNIQUE KEY (`from_asset_code`,`to_asset_code`,`valid_at`),
+  KEY (`from_asset_code`,`to_asset_code`),
+  KEY (`valid_at`,`expires_at`),
+  KEY (`is_active`,`valid_at`),
+  KEY (`source`),
+  CONSTRAINT FOREIGN KEY (`from_asset_code`) REFERENCES `assets` (`code`),
+  CONSTRAINT FOREIGN KEY (`to_asset_code`) REFERENCES `assets` (`code`)
+);
 ```
 
 **Fields:**
-- `rate`: Exchange rate with 8 decimal precision
-- `source`: 'manual', 'api', 'oracle', 'market'
-- `fetched_at`: When the rate was obtained
+- `rate`: Exchange rate with 10 decimal places
+- `bid`, `ask`: Optional bid and ask prices from the rate source
+- `source`: Where the rate came from, for example 'manual' or a provider name
+- `valid_at`: When the rate became valid
 - `expires_at`: Rate expiration (NULL for permanent rates)
 
 **Indexes:**
-- Unique constraint on (from_asset, to_asset, fetched_at) for historical tracking
-- Composite index on (from_asset, to_asset) for rate lookups
-- Index on fetched_at for time-based queries
+- Unique constraint on (from_asset_code, to_asset_code, valid_at) for historical tracking
+- Composite index on (from_asset_code, to_asset_code) for rate lookups
+- Indexes on (valid_at, expires_at) and (is_active, valid_at) for time-based queries
 
 ## Event Sourcing
 
@@ -188,7 +202,9 @@ CREATE TABLE `stored_events` (
 **Event Types:**
 - Account events: `AccountCreated`, `MoneyAdded`, `MoneySubtracted`
 - Asset events: `AssetBalanceAdded`, `AssetBalanceSubtracted`, `AssetTransferred`
-- Transfer events: `MoneyTransferred`, `TransferInitiated`, `TransferCompleted`
+- Transfer events: `MoneyTransferred`, plus `AssetTransferInitiated`, `AssetTransferCompleted` and `AssetTransferFailed` in the Asset domain
+
+Many domains store their events in their own table instead, for example `exchange_events`, `lending_events`, `treasury_events`, `compliance_events`, `stablecoin_events` and `cgo_events`.
 
 **Indexes:**
 - Unique constraint on (aggregate_uuid, aggregate_version) for consistency
@@ -201,14 +217,14 @@ Event sourcing snapshots for performance optimization.
 ```sql
 CREATE TABLE `snapshots` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `aggregate_uuid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `aggregate_version` int unsigned NOT NULL,
+  `aggregate_uuid` char(36) NOT NULL,
+  `aggregate_version` bigint unsigned NOT NULL,
   `state` json NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `snapshots_aggregate_uuid_unique` (`aggregate_uuid`),
-  KEY `snapshots_aggregate_version_index` (`aggregate_version`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  KEY `snapshots_aggregate_uuid_index` (`aggregate_uuid`)
+);
 ```
 
 ## Read Models & Projections
@@ -219,63 +235,68 @@ Turnover projections for account activity analysis.
 ```sql
 CREATE TABLE `turnovers` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `account_uuid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `period` date NOT NULL,
-  `debit` bigint NOT NULL DEFAULT '0',
-  `credit` bigint NOT NULL DEFAULT '0',
+  `account_uuid` char(36) NOT NULL,
+  `date` date NOT NULL,
+  `count` int NOT NULL DEFAULT '0',
+  `amount` decimal(15,2) NOT NULL DEFAULT '0.00',
+  `debit` decimal(15,2) NOT NULL DEFAULT '0.00',
+  `credit` decimal(15,2) NOT NULL DEFAULT '0.00',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `turnovers_account_uuid_period_unique` (`account_uuid`,`period`),
-  KEY `turnovers_period_index` (`period`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  UNIQUE KEY `account_date` (`account_uuid`,`date`),
+  CONSTRAINT `turnovers_account` FOREIGN KEY (`account_uuid`) REFERENCES `accounts` (`uuid`)
+);
 ```
 
 **Fields:**
-- `debit`: Total debit amount for the period (in cents)
-- `credit`: Total credit amount for the period (in cents)
-- `period`: Date for daily aggregation
+- `date`: The day the row aggregates
+- `count`: Number of transactions on that day
+- `amount`: Net amount for the day
+- `debit`, `credit`: Total debits and credits for the day
 
 ## Governance System
 
 ### polls
-Democratic governance polls for platform decisions.
+Polls for the Governance module. Governance is a demo module, the GCU votes in it are simulated, and the production Zelta configuration disables it.
 
 ```sql
 CREATE TABLE `polls` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `uuid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  `type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `uuid` char(36) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` text,
+  `type` varchar(50) NOT NULL,
   `options` json NOT NULL,
-  `start_date` timestamp NOT NULL,
-  `end_date` timestamp NOT NULL,
-  `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'draft',
+  `start_date` datetime NOT NULL,
+  `end_date` datetime NOT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'draft',
   `required_participation` int DEFAULT NULL,
-  `voting_power_strategy` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'one_user_one_vote',
-  `voting_power_config` json DEFAULT NULL,
-  `execution_workflow` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `created_by` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `voting_power_strategy` varchar(100) NOT NULL DEFAULT 'one_user_one_vote',
+  `execution_workflow` varchar(255) DEFAULT NULL,
+  `created_by` char(36) NOT NULL,
+  `metadata` json DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `polls_uuid_unique` (`uuid`),
-  KEY `polls_status_index` (`status`),
-  KEY `polls_start_date_end_date_index` (`start_date`,`end_date`),
-  KEY `polls_created_by_index` (`created_by`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  UNIQUE KEY (`uuid`),
+  KEY (`status`,`start_date`,`end_date`),
+  KEY (`created_by`),
+  KEY (`voting_power_strategy`),
+  CONSTRAINT FOREIGN KEY (`created_by`) REFERENCES `users` (`uuid`) ON DELETE CASCADE
+);
 ```
 
 **Poll Types:**
 - 'single_choice': Select one option
 - 'multiple_choice': Select multiple options
-- 'weighted': Weighted voting based on holdings
+- 'weighted_choice': Weighted voting
+- 'yes_no': Yes or no
+- 'ranked_choice': Rank the options
 
 **Voting Power Strategies:**
 - 'one_user_one_vote': Equal voting power
-- 'asset_weighted': Voting power based on asset holdings
-- 'sqrt_weighted': Square root of asset holdings
+- 'asset_weighted_vote': Voting power based on asset holdings
 
 ### votes
 Individual votes cast on polls.
@@ -284,19 +305,22 @@ Individual votes cast on polls.
 CREATE TABLE `votes` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `poll_id` bigint unsigned NOT NULL,
-  `user_uuid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_uuid` char(36) NOT NULL,
   `selected_options` json NOT NULL,
   `voting_power` int NOT NULL DEFAULT '1',
-  `voted_at` timestamp NOT NULL,
-  `signature` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `voted_at` datetime NOT NULL,
+  `signature` varchar(255) DEFAULT NULL,
+  `metadata` json DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `votes_poll_id_user_uuid_unique` (`poll_id`,`user_uuid`),
-  KEY `votes_user_uuid_index` (`user_uuid`),
-  KEY `votes_voted_at_index` (`voted_at`),
-  CONSTRAINT `votes_poll_id_foreign` FOREIGN KEY (`poll_id`) REFERENCES `polls` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  UNIQUE KEY `unique_user_poll_vote` (`poll_id`,`user_uuid`),
+  KEY (`poll_id`,`voted_at`),
+  KEY (`user_uuid`),
+  KEY (`voting_power`),
+  CONSTRAINT FOREIGN KEY (`poll_id`) REFERENCES `polls` (`id`) ON DELETE CASCADE,
+  CONSTRAINT FOREIGN KEY (`user_uuid`) REFERENCES `users` (`uuid`) ON DELETE CASCADE
+);
 ```
 
 **Constraints:**
@@ -310,87 +334,104 @@ Webhook endpoints for external integrations.
 
 ```sql
 CREATE TABLE `webhooks` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `uuid` char(36) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` text DEFAULT NULL,
+  `url` varchar(255) NOT NULL,
   `events` json NOT NULL,
   `headers` json DEFAULT NULL,
-  `secret` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `secret` varchar(255) DEFAULT NULL,
   `is_active` tinyint(1) NOT NULL DEFAULT '1',
-  `timeout_seconds` int NOT NULL DEFAULT '30',
   `retry_attempts` int NOT NULL DEFAULT '3',
+  `timeout_seconds` int NOT NULL DEFAULT '30',
+  `last_triggered_at` datetime DEFAULT NULL,
+  `last_success_at` datetime DEFAULT NULL,
+  `last_failure_at` datetime DEFAULT NULL,
+  `consecutive_failures` int NOT NULL DEFAULT '0',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
+  PRIMARY KEY (`uuid`),
   KEY `webhooks_is_active_index` (`is_active`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 ```
 
 **Supported Events:**
-- Account: created, updated, frozen, unfrozen, closed
-- Transaction: created, reversed
-- Transfer: created, completed, failed
-- Balance: low_balance, negative_balance
+- Account: `account.created`, `account.updated`, `account.frozen`, `account.unfrozen`, `account.closed`
+- Transaction: `transaction.created`, `transaction.reversed`
+- Transfer: `transfer.created`, `transfer.completed`, `transfer.failed`
+- Balance: `balance.low`, `balance.negative`
+
+The `webhook_endpoints` table is a different table. It stores the signing keys of incoming provider webhooks, such as Alchemy.
 
 ### webhook_deliveries
 Webhook delivery tracking and retry logic.
 
 ```sql
 CREATE TABLE `webhook_deliveries` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `webhook_id` bigint unsigned NOT NULL,
-  `event_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `uuid` char(36) NOT NULL,
+  `webhook_uuid` char(36) NOT NULL,
+  `event_type` varchar(255) NOT NULL,
   `payload` json NOT NULL,
-  `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
-  `response_code` int DEFAULT NULL,
-  `response_body` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  `attempts` int NOT NULL DEFAULT '0',
-  `delivered_at` timestamp NULL DEFAULT NULL,
-  `failed_at` timestamp NULL DEFAULT NULL,
-  `next_retry_at` timestamp NULL DEFAULT NULL,
+  `attempt_number` int NOT NULL DEFAULT '1',
+  `status` varchar(255) NOT NULL DEFAULT 'pending',
+  `response_status` int DEFAULT NULL,
+  `response_body` text,
+  `response_headers` json DEFAULT NULL,
+  `duration_ms` int DEFAULT NULL,
+  `error_message` text,
+  `delivered_at` datetime DEFAULT NULL,
+  `next_retry_at` datetime DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `webhook_deliveries_webhook_id_foreign` (`webhook_id`),
-  KEY `webhook_deliveries_status_index` (`status`),
-  KEY `webhook_deliveries_next_retry_at_index` (`next_retry_at`),
-  CONSTRAINT `webhook_deliveries_webhook_id_foreign` FOREIGN KEY (`webhook_id`) REFERENCES `webhooks` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  PRIMARY KEY (`uuid`),
+  KEY `webhook_deliveries_webhook_uuid_status_index` (`webhook_uuid`,`status`),
+  KEY `webhook_deliveries_event_type_index` (`event_type`),
+  KEY `webhook_deliveries_created_at_index` (`created_at`),
+  CONSTRAINT `webhook_deliveries_webhook_uuid_foreign` FOREIGN KEY (`webhook_uuid`) REFERENCES `webhooks` (`uuid`) ON DELETE CASCADE
+);
 ```
 
 **Delivery Status:**
-- 'pending': Awaiting delivery
-- 'success': Successfully delivered
+- 'pending': Awaiting delivery or the next retry
+- 'delivered': Successfully delivered
 - 'failed': All retry attempts exhausted
-- 'retrying': Waiting for next retry
 
 ## Platform Configuration
 
 ### settings
-Platform-wide configuration settings with encryption support.
+Platform-wide configuration settings with encryption support. The admin Settings page edits them.
 
 ```sql
 CREATE TABLE `settings` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `value` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  `type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'string',
+  `group` varchar(100) NOT NULL DEFAULT 'general',
+  `key` varchar(255) NOT NULL,
+  `value` json NOT NULL,
+  `type` varchar(50) NOT NULL DEFAULT 'string',
+  `label` varchar(255) NOT NULL,
+  `description` text,
+  `is_public` tinyint(1) NOT NULL DEFAULT '0',
   `is_encrypted` tinyint(1) NOT NULL DEFAULT '0',
-  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `validation_rules` json DEFAULT NULL,
+  `metadata` json DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `settings_key_unique` (`key`),
-  KEY `settings_type_index` (`type`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  UNIQUE KEY (`key`),
+  KEY (`group`),
+  KEY (`is_public`),
+  KEY (`group`,`key`)
+);
 ```
 
 **Fields:**
-- `key`: Unique setting identifier (e.g., 'platform.name', 'features.lending.enabled')
-- `value`: Setting value (encrypted if sensitive)
+- `group`: Setting group, for example 'general' or 'features'
+- `key`: Unique setting identifier
+- `value`: Setting value as JSON (encrypted if sensitive)
 - `type`: Data type (string, boolean, integer, json, array)
+- `label`, `description`: Human-readable name and description
+- `is_public`: Whether the value may be shown outside the admin panel
 - `is_encrypted`: Whether the value is encrypted
-- `description`: Human-readable description of the setting
 
 **Usage:**
 - Platform configuration (name, URL, timezone)
@@ -467,11 +508,13 @@ CREATE TABLE `personal_access_tokens` (
 
 ### Indexing Strategy
 
-1. **Primary Keys**: All tables use `bigint unsigned AUTO_INCREMENT`
-2. **UUIDs**: Indexed for external references and API lookups
-3. **Foreign Keys**: Proper indexing for joins and cascading operations
-4. **Time-based Queries**: Indexes on created_at, fetched_at, etc.
-5. **Composite Indexes**: Multi-column indexes for complex queries
+1. Most tables use a `bigint unsigned AUTO_INCREMENT` primary key. Some, such as `webhooks` and `webhook_deliveries`, use a UUID as the primary key.
+2. UUID columns are indexed, because external references and API lookups use them.
+3. Foreign keys are indexed for joins and cascading deletes.
+4. Columns used in time-based queries, such as `created_at` and `valid_at`, are indexed.
+5. Multi-column indexes support the more complex queries.
+
+MariaDB accepts only RFC 4122 UUIDs (version 4 nibble and variant bits set) in UUID columns. Raw hashes are rejected.
 
 ### Query Optimization
 
@@ -484,9 +527,9 @@ WHERE ab.account_uuid = ? AND ab.balance > 0;
 
 -- Exchange rate lookup with fallback
 SELECT rate FROM exchange_rates 
-WHERE from_asset = ? AND to_asset = ? 
+WHERE from_asset_code = ? AND to_asset_code = ? 
 AND is_active = 1 AND (expires_at IS NULL OR expires_at > NOW())
-ORDER BY fetched_at DESC LIMIT 1;
+ORDER BY valid_at DESC LIMIT 1;
 
 -- Account transaction history
 SELECT event_class, event_properties, created_at
@@ -500,40 +543,32 @@ ORDER BY aggregate_version DESC;
 
 For high-volume deployments, consider partitioning:
 
-1. **stored_events**: Partition by created_at (monthly)
-2. **webhook_deliveries**: Partition by created_at (weekly)
-3. **turnovers**: Partition by period (yearly)
+1. Partition `stored_events` by `created_at`, monthly.
+2. Partition `webhook_deliveries` by `created_at`, weekly.
+3. Partition `turnovers` by `date`, yearly.
 
 ## Data Integrity
 
 ### Constraints and Validations
 
-1. **Foreign Key Constraints**: Enforce referential integrity
-2. **Unique Constraints**: Prevent duplicate records
-3. **Check Constraints**: Validate data ranges and formats
-4. **JSON Schema Validation**: Validate JSON field structures
+Foreign key constraints enforce referential integrity, and unique constraints prevent duplicate records. Value ranges, formats and the structure of JSON fields are validated in the application before data is written.
 
 ### Backup Strategy
 
-1. **Daily Backups**: Full database backup with 30-day retention
-2. **Point-in-Time Recovery**: Binary log enabled for recovery
-3. **Testing**: Regular restore testing on staging environment
+Production runs a database-only backup every night at 01:30 UTC with `spatie/laravel-backup` (`backup:run --only-db`), followed by `backup:clean`. By default all backups are kept for 7 days, daily backups for 16 days and weekly backups for 8 weeks (`BACKUP_KEEP_*` settings). Point-in-time recovery needs the MySQL binary log, which the database host must enable. Restores should be tested regularly on a staging environment.
 
 ## Security Considerations
 
 ### Data Protection
 
-1. **Encryption at Rest**: Database-level encryption for sensitive data
-2. **Access Control**: Role-based database user permissions
-3. **Audit Logging**: Enable MySQL audit plugin for compliance
-4. **Connection Security**: TLS encryption for all connections
+These are recommendations for the database host. Enable encryption at rest and give database users only the permissions they need. Enable the MySQL audit plugin if your audit needs require it, and use TLS for all connections.
 
 ### Sensitive Data Handling
 
-- **Passwords**: Bcrypt hashed in users table
-- **API Tokens**: Hashed in personal_access_tokens
-- **Webhook Secrets**: Encrypted before storage
-- **PII Data**: Minimal storage, encryption where required
+- Passwords are hashed with bcrypt in the `users` table.
+- API tokens are stored as hashes in `personal_access_tokens`.
+- Webhook secrets use Laravel's `encrypted` cast.
+- Personal data is kept to a minimum and encrypted where required.
 
 ---
 

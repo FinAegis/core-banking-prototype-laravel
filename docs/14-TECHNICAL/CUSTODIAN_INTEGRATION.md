@@ -2,26 +2,40 @@
 
 ## Overview
 
-The FinAegis Core Banking Platform provides a comprehensive custodian integration framework that allows seamless connection with external banking and financial institutions. This enables the platform to leverage existing banking infrastructure while maintaining complete control over the core banking logic. Connectors (e.g. Paysera, Santander, Deutsche Bank) are integration adapters for third-party APIs; no partnership or endorsement implied.
+FinAegis has a framework for connecting to external banks and other custodians. A custodian holds the money outside the platform, while FinAegis keeps the core banking logic. Each custodian is reached through a connector class. Connectors (e.g. Paysera, Santander, Deutsche Bank) are integration adapters for third-party APIs; no partnership or endorsement implied.
+
+The connectors are reference code. FinAegis holds no live connection to any bank. A deployment that wants one needs its own agreement and credentials with that bank. Every bank connector is off by default, and the Zelta production setup enables none of them. The Mock Bank connector is never registered when `APP_ENV=production`.
 
 ## Architecture
 
 ### Domain Structure
 
-The custodian integration follows Domain-Driven Design principles and is organized as follows:
+The custodian integration follows Domain-Driven Design and is organized like this:
 
 ```
 app/Domain/Custodian/
 ├── Connectors/
 │   ├── BaseCustodianConnector.php    # Abstract base class
 │   ├── MockBankConnector.php         # Testing connector
-│   ├── PayseraConnector.php          # Paysera implementation
-│   └── SantanderConnector.php        # Santander implementation
+│   ├── DemoBankConnector.php         # Demo-mode connector
+│   ├── PayseraConnector.php          # Paysera adapter
+│   ├── SantanderConnector.php        # Santander adapter
+│   ├── DeutscheBankConnector.php     # Deutsche Bank adapter
+│   └── FlutterwaveConnector.php      # Flutterwave adapter
 ├── Contracts/
 │   └── ICustodianConnector.php       # Interface definition
 ├── Services/
 │   ├── CustodianRegistry.php         # Connector registration
-│   └── CustodianAccountService.php   # Account management
+│   ├── CustodianAccountService.php   # Account management
+│   ├── CustodianHealthMonitor.php    # Health checks per connector
+│   ├── CircuitBreakerService.php     # Circuit breaker
+│   ├── RetryService.php              # Retries with backoff
+│   ├── FallbackService.php           # Fallback routing
+│   ├── BalanceSynchronizationService.php # Balance sync
+│   ├── DailyReconciliationService.php    # Daily reconciliation
+│   ├── MultiCustodianTransferService.php # Transfers across custodians
+│   ├── WebhookVerificationService.php    # Webhook signatures
+│   └── WebhookProcessorService.php       # Webhook processing
 └── ValueObjects/
     ├── AccountInfo.php               # Account information
     ├── TransactionReceipt.php        # Transaction details
@@ -31,7 +45,7 @@ app/Domain/Custodian/
 ### Key Components
 
 #### 1. **ICustodianConnector Interface**
-Defines the contract that all custodian connectors must implement:
+This interface is the contract that every custodian connector implements:
 
 ```php
 interface ICustodianConnector
@@ -45,12 +59,12 @@ interface ICustodianConnector
     public function initiateTransfer(TransferRequest $request): TransactionReceipt;
     public function getTransactionStatus(string $transactionId): TransactionReceipt;
     public function cancelTransaction(string $transactionId): bool;
-    public function getTransactionHistory(string $accountId, ?int $limit, ?int $offset): array;
+    public function getTransactionHistory(string $accountId, ?int $limit = 100, ?int $offset = 0): array;
 }
 ```
 
 #### 2. **CustodianRegistry**
-Manages registration and retrieval of custodian connectors:
+The registry registers connectors and returns them by name:
 
 ```php
 $registry = app(CustodianRegistry::class);
@@ -59,7 +73,7 @@ $connector = $registry->get('paysera');
 ```
 
 #### 3. **CustodianAccountService**
-High-level service for managing custodian account relationships:
+This service manages the links between internal accounts and custodian accounts:
 
 ```php
 $service = app(CustodianAccountService::class);
@@ -94,29 +108,45 @@ $transactionId = $service->initiateTransfer(
 Add the following to your `.env` file:
 
 ```env
+# Default connector
+CUSTODIAN_DEFAULT=mock
+
 # Paysera Integration
 PAYSERA_ENABLED=true
 PAYSERA_CLIENT_ID=your-client-id
 PAYSERA_CLIENT_SECRET=your-client-secret
+PAYSERA_ENVIRONMENT=sandbox
+PAYSERA_WEBHOOK_SECRET=your-webhook-secret
 
-# Mock Bank (for testing)
-MOCK_BANK_ENABLED=true
+# Mock Bank (local and testing: on unless set to false; demo: off unless set to true;
+# production: always off)
+CUSTODIAN_MOCK_ENABLED=true
 
 # Santander Integration
 SANTANDER_ENABLED=false
 SANTANDER_API_KEY=your-api-key
 SANTANDER_API_SECRET=your-api-secret
+SANTANDER_WEBHOOK_SECRET=your-webhook-secret
+
+# Deutsche Bank Integration
+DEUTSCHE_BANK_ENABLED=false
+DEUTSCHE_BANK_CLIENT_ID=your-client-id
+DEUTSCHE_BANK_CLIENT_SECRET=your-client-secret
+
+# Flutterwave Integration
+FLUTTERWAVE_ENABLED=false
+FLUTTERWAVE_SECRET_KEY=your-secret-key
 ```
 
 ### Configuration File
 
-The `config/custodians.php` file defines all available custodians:
+The `config/custodians.php` file defines all available connectors. This is a shortened excerpt:
 
 ```php
 return [
-    'default' => env('DEFAULT_CUSTODIAN', 'mock'),
+    'default' => env('CUSTODIAN_DEFAULT', 'mock'),
     
-    'custodians' => [
+    'connectors' => [
         'paysera' => [
             'class' => \App\Domain\Custodian\Connectors\PayseraConnector::class,
             'enabled' => env('PAYSERA_ENABLED', false),
@@ -127,7 +157,11 @@ return [
         
         'mock' => [
             'class' => \App\Domain\Custodian\Connectors\MockBankConnector::class,
-            'enabled' => env('MOCK_BANK_ENABLED', true),
+            'enabled' => match (env('APP_ENV', 'production')) {
+                'local', 'testing' => (bool) env('CUSTODIAN_MOCK_ENABLED', true),
+                'demo'             => (bool) env('CUSTODIAN_MOCK_ENABLED', false),
+                default            => false,
+            },
             'name' => 'Mock Bank',
         ],
         
@@ -324,7 +358,7 @@ class MyBankConnector extends BaseCustodianConnector
 }
 ```
 
-Register the connector in `config/custodians.php`:
+Register the connector under `connectors` in `config/custodians.php`:
 
 ```php
 'mybank' => [
@@ -337,11 +371,12 @@ Register the connector in `config/custodians.php`:
 
 ## Security Considerations
 
-1. **OAuth2 Authentication**: The Paysera connector uses OAuth2 client credentials flow for secure API access
-2. **API Key Storage**: All sensitive credentials are stored in environment variables
-3. **SSL/TLS**: All API communications use HTTPS
-4. **Transaction Integrity**: Each transaction is tracked with unique identifiers
-5. **Audit Trail**: All custodian operations are logged for compliance
+1. The Paysera connector authenticates with the OAuth2 client credentials flow.
+2. Credentials are kept in environment variables.
+3. All API calls use HTTPS.
+4. Each transaction is tracked with a unique identifier.
+5. Custodian operations are logged, which gives an audit trail.
+6. Incoming custodian webhooks are signature-checked. `POST /api/webhooks/custodian/paysera` and `POST /api/webhooks/custodian/santander` use the `webhook.signature` middleware, as described in [WEBHOOK_SECURITY.md](WEBHOOK_SECURITY.md).
 
 ## Testing
 
@@ -388,15 +423,12 @@ test('can transfer between custodian accounts', function () {
 
 ## Monitoring and Maintenance
 
-1. **Health Checks**: Each connector implements `isAvailable()` for monitoring
-2. **Transaction Status**: Use `getTransactionStatus()` to track transfers
-3. **Account Sync**: Periodically sync account status with `syncAccountStatus()`
-4. **Error Handling**: All operations throw descriptive exceptions for debugging
+1. Each connector implements `isAvailable()`, and `CustodianHealthMonitor` uses it for health checks. `GET /api/v2/status` reports the result per connector.
+2. `getTransactionStatus()` tracks a transfer.
+3. `syncAccountStatus()` refreshes the account status. The scheduled `custodian:sync-balances` command synchronizes balances with the custodians.
+4. Every operation throws a descriptive exception when it fails.
+5. Circuit breaker, retry and fallback settings live under `CUSTODIAN_CB_*`, `CUSTODIAN_RETRY_*` and `CUSTODIAN_FALLBACK_*`.
 
 ## Future Enhancements
 
-1. **Cross-Custodian Transfers**: Enable transfers between different banks
-2. **Webhook Support**: Real-time transaction notifications
-3. **Multi-Currency Conversion**: Automatic FX during transfers
-4. **Batch Operations**: Bulk transfer capabilities
-5. **Additional Connectors**: Revolut, Wise, traditional banks
+Transfers across custodians (`MultiCustodianTransferService`) and custodian webhooks already exist. Possible future work includes automatic currency conversion during transfers, bulk transfers and more connectors, such as Revolut and Wise.

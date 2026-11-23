@@ -199,6 +199,8 @@ Locking this ADR requires three amendments to the handover doc plus a note in th
 
 **Zero shipped endpoints affected.** All endpoints touched by Plan B (`/api/v1/pricing/quote`, `/api/v1/subscription/*`, `/api/v1/me/entitlements`, `/api/v1/wallet/transactions/exports`, etc.) are net-new in v1.3.0. The convention is locked before any of them ship.
 
+> **Status (reviewed for v7.18.1).** `App\Domain\Pricing\ValueObjects\Money` is built with this triple and serializes `currency` or `asset` from the denomination. `App\Domain\Pricing\Validation\MoneyFormRule` validates it on input. Of the planned endpoints, `/api/v1/pricing/quote` and `/api/v1/subscription/*` exist. `/api/v1/me/entitlements` and `/api/v1/wallet/transactions/exports` were not built.
+
 Existing endpoints that pre-date Plan B and use mixed money formats (e.g., `/api/v1/exchange/*`, `/api/v1/ramp/*`) are NOT retrofitted in v1.3.0. They keep their current shape until v1.3.1 has a planned endpoint-by-endpoint migration. Consumers of those endpoints continue using their existing parsing.
 
 ---
@@ -209,6 +211,6 @@ Existing endpoints that pre-date Plan B and use mixed money formats (e.g., `/api
 - `docs/BACKEND_HANDOVER_PLAN_B_COMMERCIAL.md` — original handover §0.2, §1.2, §3 (to be amended per this ADR)
 - Stripe API reference — convention precedent for cents-as-integer-strings in fiat amounts
 - ERC-20 standard — the asset-decimals model this ADR aligns with for tokens
-- `docs/adr/0001-fee-collector-wallets.md` (pending) — sibling ADR; on-chain fee transfers carry Money in this format
-- `docs/adr/0002-revenue-projection-dual-upstream.md` (pending) — `revenue_events` rows store Money in this format
-- `docs/adr/0003-pricing-bounded-context.md` (pending) — `Domain/Pricing` owns the `Money` VO
+- `docs/adr/0001-fee-collector-wallets.md` — sibling ADR; on-chain fee transfers carry Money in this format
+- `docs/adr/0002-revenue-projection-dual-upstream.md` — `revenue_events` rows store Money in this format
+- `docs/adr/0003-pricing-bounded-context.md` — `Domain/Pricing` owns the `Money` VO

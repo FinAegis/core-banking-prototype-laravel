@@ -2,94 +2,83 @@
 
 ## Vision Statement
 
-Transform FinAegis into the **premier open source core banking platform** that:
+FinAegis is an open-source reference platform for core banking software. It is not a production bank. The roadmap aims for a platform that:
 - Provides open-source reference core banking software
 - Demonstrates best practices with the GCU (Global Currency Unit) reference implementation
 - Enables financial institutions to build custom digital banking solutions
 - Includes open-source compliance tooling (KYC/AML modules); using it does not make a deployment compliant
-- Offers cross-chain DeFi, privacy-preserving identity, and Banking-as-a-Service capabilities
+- Offers cross-chain DeFi, privacy-preserving identity, and Banking-as-a-Service capabilities as reference modules
+
+Zelta is the hosted non-custodial wallet product built on FinAegis. The production site runs the Zelta wallet scope and switches the other modules off.
 
 > The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
 
 ---
 
-## Current Architecture Assessment
+## Current Architecture Assessment (v7.18.1)
 
-### Platform Maturity: 95%+ Feature Complete
+### Where each area runs
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                     FINAEGIS CORE BANKING PLATFORM (v7.9.0)              │
-├─────────────────────────────────────────────────────────────────────────┤
-│  CORE BANKING                                                            │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────┐        │
-│  │  Account   │  │  Exchange  │  │ Compliance │  │  Treasury  │        │
-│  │   [95%]    │  │   [95%]    │  │   [95%]    │  │   [90%]    │        │
-│  └────────────┘  └────────────┘  └────────────┘  └────────────┘        │
-│  DIGITAL ASSETS & DeFi                                                   │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────┐        │
-│  │   Wallet   │  │ CrossChain │  │    DeFi    │  │ Stablecoin │        │
-│  │   [95%]    │  │   [90%]    │  │   [90%]    │  │   [90%]    │        │
-│  └────────────┘  └────────────┘  └────────────┘  └────────────┘        │
-│  PRIVACY & IDENTITY                                                      │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────┐        │
-│  │  Privacy   │  │  TrustCert │  │  Commerce  │  │  KeyMgmt   │        │
-│  │   [90%]    │  │   [90%]    │  │   [90%]    │  │   [90%]    │        │
-│  └────────────┘  └────────────┘  └────────────┘  └────────────┘        │
-│  MOBILE & PAYMENTS                                                       │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────┐        │
-│  │   Mobile   │  │ MobilePay  │  │  Relayer   │  │  Payment   │        │
-│  │   [95%]    │  │   [90%]    │  │   [90%]    │  │   [90%]    │        │
-│  └────────────┘  └────────────┘  └────────────┘  └────────────┘        │
-│  PLATFORM & AI                                                           │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────┐        │
-│  │     AI     │  │  RegTech   │  │   Fraud    │  │    BaaS    │        │
-│  │   [90%]    │  │   [90%]    │  │   [90%]    │  │   [85%]    │        │
-│  └────────────┘  └────────────┘  └────────────┘  └────────────┘        │
-├─────────────────────────────────────────────────────────────────────────┤
-│                    INFRASTRUCTURE LAYER                                   │
-│  ┌───────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐    │
-│  │  Event    │ │  CQRS    │ │  Saga    │ │ Workflow │ │  Demo    │    │
-│  │ Sourcing  │ │   Bus    │ │ Pattern  │ │  Engine  │ │  Mode    │    │
-│  │   [100%]  │ │  [100%]  │ │  [100%]  │ │  [100%]  │ │  [100%]  │    │
-│  └───────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘    │
-│  ┌───────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐    │
-│  │Multi-Ten. │ │  K8s     │ │WebSocket │ │  Redis   │ │  MySQL   │    │
-│  │  [100%]   │ │  [100%]  │ │  [100%]  │ │  [100%]  │ │  [100%]  │    │
-│  └───────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘    │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+The platform has many modules, but only part of them runs on the production site. The standards modules, such as ISO 20022, ISO 8583, Open Banking, the payment rails, Interledger, Ledger and Microfinance, work at the message layer and in demo mode. They are not connected to any bank, card scheme or regulator. Production switches them off with `MODULES_DISABLED`, and trading stays off with `TRADING_ENABLED=false`.
 
-### Domain Inventory (56 Bounded Contexts)
-
-| Category | Domains | Status |
-|----------|---------|--------|
-| **Core Banking** | Account, Banking, Asset, Product | Implemented (reference) |
-| **Trading** | Exchange, Basket (GCU demo) | Implemented (reference) |
-| **Compliance & RegTech** | Compliance, Fraud (ML), Regulatory, RegTech (reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements) | Implemented (reference) |
-| **Digital Assets** | Stablecoin, Wallet (HW+Multi-Sig), Governance | Implemented (reference) |
-| **Cross-Chain & DeFi** | CrossChain (Wormhole/LayerZero/Axelar), DeFi (Uniswap/Aave/Curve/Lido) | Implemented (reference) |
-| **Privacy & Identity** | Privacy (ZK-KYC/Merkle), KeyManagement (Shamir/HSM), Commerce (SBT), TrustCert (W3C VC) | Implemented (reference) |
-| **Mobile & Payments** | Mobile, MobilePayment, Relayer (ERC-4337), Payment, X402 (HTTP 402), Rewards | Implemented (reference) |
-| **Financial Services** | Treasury, Lending, Custodian, CardIssuance | Mature |
-| **Platform & AI** | AI (MCP/NLP/ML), AgentProtocol, Monitoring, Performance, Security | Mature |
-| **BaaS** | FinancialInstitution (Partner APIs, SDKs, Widgets, Billing, Marketplace) | Mature |
-| **Supporting** | User, Contact, Newsletter, Webhook, Activity, Batch, Cgo, Shared | Complete |
+| Area | Domains | Production (Zelta) |
+|------|---------|--------------------|
+| Wallet and payments | Wallet, Mobile, MobilePayment, Relayer, Payment, X402, MachinePay, Commerce, Rewards, Referral | Runs. Wallet send is non-custodial. x402 is on (`X402_ENABLED=true`); MPP is off (`MPP_ENABLED` defaults to `false`). |
+| Fiat on-ramp | Ramp | Runs with `RAMP_PROVIDER=bridge` (bank transfer in, USDC out). |
+| Subscriptions and pricing | Subscription, Pricing | Runs (App Store and Google Play subscriptions). |
+| Cards | CardIssuance | Built for a closed pilot with Lepo Finance. Production lists Lepo in `CARD_PROVIDERS_ENABLED` but offers cards only to listed pilot users (`CARD_PROVIDER_LEPO_PILOT_ONLY=true`). Top-ups stay off (`CARD_TOPUPS_ENABLED=false`), and the older card issuer adapter stays on `CARD_ISSUER=demo`. |
+| Privacy | Privacy | Backend groundwork for the non-custodial model. The custodial endpoints return `501` in production. |
+| Identity and compliance | Compliance, TrustCert, Fraud, RegTech, Regulatory | Runs as readiness tooling. No certification is held. |
+| Agents and AI | AI, AgentProtocol, MCP, VirtualsAgent, VisaCli, SMS | The MCP server at `mcp.zelta.app` runs. Its catalog has 14 tools, and production switches off `account.create`, `payment.transfer`, `exchange.trade` and `sms.send`. SMS is off (`SMS_ENABLED=false`). |
+| Core banking and trading | Account, Banking, Asset, Product, Exchange, Basket (GCU demo), Treasury, Lending, Custodian, Stablecoin, Governance, Cgo | Reference and demo only. Most are in `MODULES_DISABLED`, and trading is off. |
+| Standards modules | ISO20022, ISO8583, OpenBanking, PaymentRails, Interledger, Ledger, Microfinance | Message layer and demo only. Disabled in production. |
+| Cross-chain and DeFi | CrossChain, DeFi | Reference and demo only. Disabled in production. |
+| Banking-as-a-Service | FinancialInstitution | Reference and demo only. Disabled in production. |
+| Platform | Auth, User, AccountProvisioning, KeyManagement, Security, Monitoring, Performance, Webhook, Activity, Batch, Contact, Newsletter, Shared | Supporting code used by the areas above. |
 
 *Named third-party protocols and providers: integration adapters for third-party APIs; no partnership or endorsement implied.*
 
-### Key Metrics (as of v7.9.0)
+Asset transfers between accounts, wallet currency conversions and GCU buy and sell work since v7.18.1. Earlier releases stopped on a missing method before any balance moved.
+
+### Infrastructure
+
+The platform uses event sourcing (Spatie, with domain-specific event tables) and a Command and Query Bus in `app/Infrastructure/`. It runs sagas and workflows for multi-step flows. It supports team-based multi-tenancy, Kubernetes deployment through a Helm chart, WebSockets through Soketi, Redis and MySQL. Demo mode replaces outside services with simulated ones.
+
+### Domain Inventory (61 Bounded Contexts)
+
+`app/Domain/` has 61 domain folders.
+
+| Category | Domains |
+|----------|---------|
+| **Core Banking** | Account, Banking, Asset, Product, Ledger, Microfinance |
+| **Trading** | Exchange, Basket (GCU demo) |
+| **Compliance & RegTech** | Compliance, Fraud, Regulatory, RegTech |
+| **Digital Assets** | Stablecoin, Wallet, Governance |
+| **Cross-Chain & DeFi** | CrossChain, DeFi |
+| **Privacy & Identity** | Privacy, KeyManagement, Commerce, TrustCert |
+| **Mobile & Payments** | Mobile, MobilePayment, Relayer, Payment, X402, MachinePay, Ramp, Rewards, Referral |
+| **Standards and payment rails** | ISO20022, ISO8583, OpenBanking, PaymentRails, Interledger |
+| **Financial Services** | Treasury, Lending, Custodian, CardIssuance |
+| **Commercial** | Subscription, Pricing |
+| **Platform & AI** | AI, AgentProtocol, MCP, VirtualsAgent, VisaCli, SMS, Monitoring, Performance, Security |
+| **BaaS** | FinancialInstitution |
+| **Supporting** | Auth, User, AccountProvisioning, Contact, Newsletter, Webhook, Activity, Batch, Cgo, Shared |
+
+The RegTech modules provide reporting and data exchange modelled on MiFID II, MiCA and Travel Rule requirements. They do not by themselves make a deployment compliant.
+
+### Key Metrics (as of v7.18.1)
 
 | Metric | Value |
 |--------|-------|
-| Bounded Contexts | 56 |
-| Services | 340+ |
-| Controllers | 176 |
-| API Routes | 1,400+ |
-| PHPStan Level | **8** |
-| Test Files | 850+ |
-| GraphQL Domains | 45 |
-| GraphQL Schema Files | 45 |
+| Bounded Contexts | 61 |
+| Services (`*Service.php`) | 390+ |
+| Controllers (`*Controller.php`) | 245 |
+| API and web routes | 1,500+ |
+| PHPStan Level | **8** (larastan 3.15, phpstan 2.3.7) |
+| Test Files | about 1,300 |
+| GraphQL domain schemas | 43 |
+| GraphQL `#import` lines | 45 (43 domain schemas plus `directives.graphql` and `subscriptions.graphql`) |
+| MCP tools | 14 |
 
 ---
 
@@ -116,11 +105,11 @@ Transform FinAegis into the **premier open source core banking platform** that:
 #### 1.3 Community Infrastructure
 - [x] Define versioning and release strategy
 - [x] CI/CD pipeline with GitHub Actions
-- [ ] Set up GitHub Discussions for Q&A
-- [ ] Create issue templates for bugs/features
+- [x] Set up GitHub Discussions for Q&A
+- [x] Create issue templates for bugs/features
 - [ ] Establish code review guidelines
 
-### Phase 2: Platform Modularity ✅ COMPLETED (v1.3.0)
+### Phase 2: Platform Modularity (completed in v1.3.0)
 **Goal: Enable pick-and-choose domain installation**
 
 - [x] Domain decoupling with interface-based contracts
@@ -128,15 +117,15 @@ Transform FinAegis into the **premier open source core banking platform** that:
 - [x] Domain installation commands (`php artisan domain:install`)
 - [x] GCU reference separation
 
-### Phase 3: GCU Reference Implementation ✅ COMPLETED
+### Phase 3: GCU Reference Implementation (completed)
 **Goal: Position GCU as the showcase of platform capabilities**
 
 - [x] GCU basket framework with rebalancing
 - [x] NAV calculation methodology
 - [x] Multi-basket support on single platform
 
-### Phase 4: Production Hardening ✅ LARGELY COMPLETED (v2.1.0-v2.9.1)
-**Goal: Enterprise-ready deployment capabilities**
+### Phase 4: Production Hardening (largely completed, v2.1.0 to v2.9.1)
+**Goal: Give operators the tools to deploy and run the platform safely**
 
 - [x] OWASP Top 10 automated security audit (`php artisan security:audit`)
 - [x] Kubernetes Helm charts (v2.1.0)
@@ -147,6 +136,19 @@ Transform FinAegis into the **premier open source core banking platform** that:
 - [ ] Penetration testing
 - [ ] GDPR compliance documentation
 - [ ] PCI-DSS assessment guide
+
+### Phase 5: Zelta Non-Custodial Wallet (v7.12.0 onwards)
+**Goal: Run the hosted Zelta wallet on a non-custodial model**
+
+- [x] Non-custodial wallet send through Privy, with prepare and submit endpoints (v7.12.0)
+- [x] App Store and Google Play subscriptions (v7.13.0)
+- [x] Bank transfer on-ramp through Bridge.xyz (v7.15.0)
+- [x] Backend groundwork for non-custodial RAILGUN privacy (v7.16.0)
+- [x] Security releases for advisories GHSA-385w-q6j4-5qw6 and GHSA-rrfq-93h6-29wj (v7.17.0, v7.17.1)
+- [x] Virtual cards through Lepo Finance for a closed pilot, with wallet top-ups and 3-D Secure codes (v7.18.0; offered only to listed pilot users, with top-ups off)
+- [ ] On-device RAILGUN engine in the mobile app, then removal of the custodial privacy bridge
+- [ ] Move FinCard onto the provider-neutral card layer
+- [ ] Bank transfer off-ramp
 
 ---
 
@@ -171,34 +173,42 @@ Transform FinAegis into the **premier open source core banking platform** that:
 - Delegated proof generation
 - ERC-4337 account abstraction
 
+Privacy is moving to a non-custodial model in which the device generates its own proofs. Delegated proof generation is switched off in production and will be removed in RAILGUN Phase 3.
+
 #### Cross-Chain Architecture (v3.0.0)
 - Multi-provider bridge orchestration
 - DEX aggregation across protocols
 - Multi-chain portfolio tracking
 - Cross-chain yield optimization
 
+The cross-chain and DeFi modules are reference code. They are disabled on the production site.
+
 ### Completed Improvements (v4.0.0-v5.0.0)
 
-#### Event Store v2 (v4.0.0) -- COMPLETED
+#### Event Store v2 (v4.0.0)
 - Domain-specific routing (33 domains) with configurable event tables
 - Upcasting pipeline for event schema evolution
-- Migration tooling for seamless event store upgrades
+- Migration tooling for event store upgrades
 
-#### GraphQL API (v4.0.0-v5.0.0) -- COMPLETED
+#### GraphQL API (v4.0.0-v5.0.0)
 - Schema-first approach with Lighthouse PHP
-- 33 domains exposed via GraphQL (Account, AgentProtocol, AI, Asset, Banking, Basket, Batch, CardIssuance, Cgo, Commerce, Compliance, CrossChain, Custodian, DeFi, Exchange, FinancialInstitution, Fraud, Governance, KeyManagement, Lending, Mobile, MobilePayment, Payment, Privacy, Product, RegTech, Regulatory, Relayer, Stablecoin, Treasury, TrustCert, User, Wallet)
+- 33 domains exposed via GraphQL at the time (Account, AgentProtocol, AI, Asset, Banking, Basket, Batch, CardIssuance, Cgo, Commerce, Compliance, CrossChain, Custodian, DeFi, Exchange, FinancialInstitution, Fraud, Governance, KeyManagement, Lending, Mobile, MobilePayment, Payment, Privacy, Product, RegTech, Regulatory, Relayer, Stablecoin, Treasury, TrustCert, User, Wallet). There are 43 domain schemas at v7.18.1.
 - Real-time subscriptions for live data
 - DataLoaders for N+1 query prevention
 
-#### Plugin Marketplace (v4.0.0) -- COMPLETED
+#### Plugin Marketplace (v4.0.0)
 - Plugin manager and loader architecture
 - Sandbox execution environment for plugin isolation
 - Security scanner for plugin vetting
 
-#### Event Streaming (v5.0.0) -- COMPLETED
+#### Event Streaming (v5.0.0)
 - Redis Streams publisher/consumer for real-time event distribution
 - Live dashboard with 5 metrics endpoints
 - Multi-channel notification system (email, push, in-app, webhook, SMS)
+
+### Removed in v7.18.0 and v7.18.1
+
+The exchange's add, remove and rebalance liquidity flow was removed in v7.18.0, because it never worked. Pool lists, pool creation, swaps, positions, rewards and impermanent-loss protection stay, all behind `TRADING_ENABLED`. The unused contact ticket service and the saved bank accounts on the bank withdrawal page were removed in the same release. Version 7.18.1 removed the admin Bank Operations and Audit Log pages, which could never work.
 
 ### Planned Improvements
 
@@ -216,20 +226,20 @@ interface CachingQueryBus extends QueryBus
 ## Success Metrics
 
 ### Open Source Health
-| Metric | Current | Target |
+| Metric | Current (2026-11-24) | Target |
 |--------|---------|--------|
-| GitHub Stars | 0 | 1,000+ |
-| Contributors | 1 | 20+ |
-| Forks | 0 | 100+ |
+| GitHub Stars | 212 | 1,000+ |
+| Contributors | 3 | 20+ |
+| Forks | 59 | 100+ |
 | Documentation Coverage | 52% | 90% |
 
 ### Code Quality
 | Metric | Current | Target |
 |--------|---------|--------|
 | Test Coverage | 50%+ | 80% |
-| PHPStan Level | **8** | 8 ✅ |
-| Bounded Contexts | 56 | — |
-| CI Pipeline Pass Rate | 99% | 99% ✅ |
+| PHPStan Level | **8** | 8 (met) |
+| Bounded Contexts | 61 | — |
+| CI Pipeline Pass Rate | 99% | 99% (met) |
 
 ### Community Engagement
 | Metric | Current | Target |
@@ -244,43 +254,38 @@ interface CachingQueryBus extends QueryBus
 ## Risk Assessment
 
 ### High Risk
-1. **Regulatory Compliance** - Financial software requires careful compliance
-   - Mitigation: Comprehensive compliance documentation, reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements (they do not by themselves make a deployment compliant)
+1. **Regulatory compliance.** Financial software needs careful compliance work. The platform ships compliance documentation and reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements. They do not by themselves make a deployment compliant.
 
-2. **Security Vulnerabilities** - Banking platform is high-value target
-   - Mitigation: Automated security audit, HSM integration, ZK-KYC, OWASP checks
+2. **Security vulnerabilities.** A banking platform is a valuable target for attackers. The platform runs an automated security audit and OWASP checks, and it supports HSM key storage and zero-knowledge KYC proofs.
 
 ### Medium Risk
-3. **Complexity Barrier** - DDD + Event Sourcing + 56 domains is sophisticated
-   - Mitigation: Excellent documentation, tutorials, developer portal
+3. **Complexity.** Domain-driven design, event sourcing and 61 domains make the code hard to learn. Good documentation, tutorials and the developer portal reduce that barrier.
 
-4. **Maintenance Burden** - Open source requires ongoing support
-   - Mitigation: Build sustainable community, modular architecture
+4. **Maintenance burden.** Open-source software needs ongoing support. A sustainable community and a modular architecture spread that load.
 
 ### Low Risk
-5. **Technology Obsolescence** - Laravel ecosystem is mature
-   - Mitigation: Regular dependency updates (PHP 8.4, Laravel 12)
+5. **Technology obsolescence.** The Laravel ecosystem is mature. Regular dependency updates keep the stack current (PHP 8.4, Laravel 12).
 
 ---
 
 ## Conclusion
 
-The FinAegis platform has evolved from a core banking prototype to a comprehensive financial infrastructure platform spanning 56 domains. Key capabilities now include:
+FinAegis started as a core banking prototype. It now spans 61 domains and serves as an open-source reference platform. Its main capabilities are these:
 
-1. **GraphQL API** - Schema-first Lighthouse PHP across 45 domains with subscriptions and DataLoaders
-2. **Event Streaming** - Redis Streams publisher/consumer, live dashboard, multi-channel notifications
-3. **Plugin Marketplace** - Plugin manager, sandbox execution, security scanning
-4. **Cross-Chain & DeFi** - Bridge protocols, DEX aggregation, multi-chain portfolio
-5. **Privacy & Identity** - ZK-KYC, Merkle trees, Soulbound tokens, Verifiable Credentials
-6. **Mobile Payments** - Payment intents, passkeys, ERC-4337 gas abstraction
-7. **RegTech** - Reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements, multi-jurisdiction adapters
-8. **Banking-as-a-Service** - Partner APIs, SDK generation, embeddable widgets
-9. **AI Framework** - MCP tools, NLP queries, ML anomaly detection
+1. **GraphQL API.** Lighthouse PHP serves 43 domain schemas with subscriptions and DataLoaders.
+2. **Event streaming.** A Redis Streams publisher and consumer feed a live dashboard and multi-channel notifications.
+3. **Plugin marketplace.** A plugin manager runs plugins in a sandbox and scans them for security issues.
+4. **Cross-chain and DeFi.** Reference modules cover bridge protocols, DEX aggregation and multi-chain portfolios.
+5. **Privacy and identity.** The platform has zero-knowledge KYC, Merkle trees, soulbound tokens and verifiable credentials.
+6. **Mobile payments.** The platform has payment intents, passkeys, ERC-4337 gas sponsorship and non-custodial wallet send.
+7. **RegTech.** Reporting and data-exchange modules are modelled on MiFID II, MiCA and Travel Rule requirements, with adapters for several jurisdictions.
+8. **Banking-as-a-Service.** The platform has partner APIs, SDK generation and embeddable widgets.
+9. **AI framework.** The platform has MCP tools, natural language queries and machine learning anomaly detection.
 
-**v5.8.0 Focus**: mobile backend readiness — 13 handover items resolved, privacy calldata persistence, WebSocket mobile channels, and integration adapters for third-party APIs (e.g. Pimlico bundler, Marqeta card API, Chainalysis sanctions API); no partnership or endorsement implied.
+The current focus is the Zelta wallet. Version 7.18.0 added virtual cards through Lepo Finance for a closed pilot, wallet top-ups for those cards and 3-D Secure codes for online card payments. Cards are offered only to listed pilot users, and top-ups stay off. The same release keeps a wallet send in the submitted state when its outcome is unclear, instead of marking it failed. Version 7.18.1 fixed the card pilot's identity check and made asset transfers and currency conversions book the right amounts. Any card services will be provided by licensed third parties under their own terms. The named providers are integration adapters for third-party APIs; no partnership or endorsement implied.
 
 ---
 
-*Document Version: 7.9.0*
-*Last Updated: April 4, 2026*
+*Document Version: 7.18.1*
+*Last Updated: November 24, 2026*
 *Author: Architecture Review*

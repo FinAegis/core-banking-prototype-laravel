@@ -28,6 +28,8 @@ An Architecture Decision Record (ADR) is a document that captures an important a
 | [0010](0010-gcu-basket-design.md) | GCU Basket Currency Design | Accepted | 2024-03 |
 | [0011](0011-demo-mode-architecture.md) | Demo Mode Architecture | Accepted | 2024-06 |
 
+Most ADRs carry an implementation status note from the v7.18.1 review. The note records where the built code differs from the plan in the ADR. The decision and its reasoning stay unchanged.
+
 ## ADR Template
 
 When creating a new ADR, use this template:

@@ -1,10 +1,14 @@
 # FinAegis Platform Architecture
 
-**Version:** 7.9.0
-**Last Updated:** April 2026
+**Version:** v7.18.1
+**Last Updated:** 2026-11-24
 **Status:** Open-source reference platform
 
-This document provides a comprehensive overview of the FinAegis Platform architecture, design patterns, and implementation details. The platform includes a GCU demo (a reference implementation of a basket-referenced unit) alongside modular sub-products: Exchange, Lending, Stablecoins, and Treasury.
+This document describes the architecture of FinAegis and the design patterns it uses. FinAegis is an open-source reference platform, not a production bank. Zelta is the hosted non-custodial wallet product built on it.
+
+The platform is split into 61 domain folders under `app/Domain/`. Some of them run the Zelta wallet in production, such as Wallet, Relayer, CardIssuance, Compliance and Subscription. Others are demo modules, such as the GCU demo (a reference implementation of a basket-referenced unit), Exchange trading, Lending, Stablecoin and Treasury. The production Zelta configuration disables the demo modules through `MODULES_DISABLED` and turns off the trading engine with `TRADING_ENABLED=false`.
+
+The code samples in this document are simplified illustrations of the patterns. They are not copied from the codebase, so class and method names in them can differ from the real code.
 
 ## Table of Contents
 
@@ -31,7 +35,7 @@ This document provides a comprehensive overview of the FinAegis Platform archite
 ┌─────────────────────────────────────────────────────────────────────┐
 │                           Presentation Layer                        │
 ├─────────────────────────────────────────────────────────────────────┤
-│  Web UI (Filament)  │  REST API  │  GraphQL (45 domains)  │  CLI       │
+│  Web UI (Filament)  │  REST API  │  GraphQL (43 schemas)  │  CLI       │
 ├─────────────────────────────────────────────────────────────────────┤
 │                          Application Layer                          │
 ├─────────────────────────────────────────────────────────────────────┤
@@ -46,7 +50,7 @@ This document provides a comprehensive overview of the FinAegis Platform archite
 ├─────────────────────────────────────────────────────────────────────┤
 │                    Sub-Product Domain Layer                         │
 ├─────────────────────────────────────────────────────────────────────┤
-│  Exchange  │  Lending   │ Stablecoin │  Treasury  │  Trading        │
+│  Exchange  │  Lending   │ Stablecoin │  Treasury  │  Basket         │
 │  Domain    │  Domain    │   Domain   │   Domain   │   Domain        │
 ├─────────────────────────────────────────────────────────────────────┤
 │                        Infrastructure Layer                         │
@@ -62,11 +66,11 @@ This document provides a comprehensive overview of the FinAegis Platform archite
 
 ### Core Principles
 
-1. **Domain-Driven Design (DDD)**: Clear domain boundaries and ubiquitous language
-2. **Event Sourcing**: Complete audit trail and system state reconstruction
-3. **CQRS Pattern**: Optimized read and write models
-4. **Saga Pattern**: Distributed transaction coordination
-5. **Clean Architecture**: Dependency inversion and separation of concerns
+1. **Domain-Driven Design (DDD)** gives each domain clear boundaries and its own vocabulary.
+2. **Event Sourcing** stores every change as an event. That gives a full audit trail and lets the system rebuild its state.
+3. **CQRS** separates the write model from the read models. The command and query buses exist, but no domain routes its work through them yet.
+4. **The saga pattern** coordinates steps that span several aggregates and undoes finished steps when a later one fails.
+5. **Clean architecture** keeps dependencies pointing inward and separates concerns.
 
 ---
 
@@ -85,8 +89,8 @@ app/Domain/
 │   └── Services/           # AccountService, CacheServices
 ├── Payment/
 │   ├── Workflows/          # TransferWorkflow, BulkTransfer
-│   ├── Services/           # TransferService
-│   └── Repositories/       # TransferRepository
+│   ├── Services/           # TransferService, PaymentService
+│   └── Repositories/
 ├── Asset/
 │   ├── Models/             # Asset, ExchangeRate
 │   ├── Aggregates/         # AssetTransactionAggregate
@@ -101,46 +105,46 @@ app/Domain/
 ├── Custodian/
 │   ├── Connectors/         # ICustodianConnector, MockBank
 │   ├── Services/           # CustodianRegistry
-│   └── Events/             # CustodianEvents
+│   ├── Events/             # CustodianEvents
+│   ├── ValueObjects/       # TransactionReceipt
+│   └── Workflows/          # CustodianTransferWorkflow
 └── Cgo/
     ├── Models/             # CgoInvestment, CgoPricingRound
     ├── Events/             # InvestmentCreated, RefundRequested
-    ├── Aggregates/         # CgoRefundAggregate
+    ├── Aggregates/         # RefundAggregate
     ├── Projectors/         # RefundProjector
     ├── Repositories/       # CgoEventRepository
     └── Services/           # CgoKycService, InvestmentAgreementService
-    ├── ValueObjects/       # TransactionReceipt
-    └── Workflows/          # CustodianTransferWorkflow
 ```
 
 ### Bounded Contexts
 
 #### Account Context
-- **Purpose**: Core banking account management
+The Account context manages core banking accounts.
 - **Entities**: Account, User, Transaction, Turnover
-- **Aggregates**: LedgerAggregate, TransactionAggregate
-- **Services**: AccountService, BalanceService
+- **Aggregates**: LedgerAggregate, TransactionAggregate, TransferAggregate
+- **Services**: AccountService
 
 #### Payment Context
-- **Purpose**: Money movement and transfers
+The Payment context moves money and handles deposits and withdrawals.
 - **Entities**: Transfer, Transaction
-- **Aggregates**: TransferAggregate
-- **Services**: TransferService, PaymentValidator
+- **Workflows**: TransferWorkflow, ProcessStripeDepositWorkflow, ProcessBankWithdrawalWorkflow
+- **Services**: TransferService, PaymentService
 
 #### Asset Context
-- **Purpose**: Multi-asset support and exchange rates
+The Asset context holds the asset list and the exchange rates for multi-asset balances.
 - **Entities**: Asset, ExchangeRate, AccountBalance
-- **Services**: ExchangeRateService, AssetService
+- **Services**: ExchangeRateService
 
 #### Governance Context
-- **Purpose**: Democratic decision making
-- **Entities**: Poll, Vote, VotingPower
-- **Services**: GovernanceService, VotingService
+The Governance context runs polls and votes for the GCU demo. The votes are simulated.
+- **Entities**: Poll, Vote
+- **Services**: GovernanceService, VotingTemplateService
 
 #### Custodian Context
-- **Purpose**: External custodian integration
+The Custodian context connects external custodians through integration adapters; no partnership or endorsement implied.
 - **Interfaces**: ICustodianConnector
-- **Services**: CustodianRegistry, CustodianService
+- **Services**: CustodianRegistry, MultiCustodianTransferService, DailyReconciliationService
 
 ---
 
@@ -278,25 +282,24 @@ class LedgerAggregate extends AggregateRoot
 
 ### Infrastructure Components
 
-The platform uses a complete CQRS infrastructure with Laravel implementations:
+The platform has command, query and domain event buses with Laravel implementations. No command or query handler is registered in v7.18.1, so controllers still call services, aggregates and workflows directly. See [CQRS_IMPLEMENTATION.md](../04-API/CQRS_IMPLEMENTATION.md).
 
 #### Command Bus (`app/Infrastructure/CQRS/LaravelCommandBus.php`)
-- Synchronous command execution
-- Asynchronous command dispatch via queues
-- Transactional batch command execution
-- Container-based handler resolution
+- It runs a command synchronously or puts it on a queue.
+- It can run several commands in one database transaction.
+- It resolves handlers from the service container.
 
 #### Query Bus (`app/Infrastructure/CQRS/LaravelQueryBus.php`)
-- Cached query execution with TTL support
-- Batch query processing
-- MD5-based cache key generation
-- Container-based handler resolution
+- It can cache a query result for a set time.
+- It can run several queries in one call.
+- It builds cache keys from an MD5 hash of the query.
+- It resolves handlers from the service container.
 
 #### Domain Event Bus (`app/Infrastructure/Events/LaravelDomainEventBus.php`)
-- Priority-based event handler execution
-- Transaction support (record/dispatch/clear)
-- Asynchronous event publishing
-- Integration with Laravel's native event system
+- It runs event handlers in order of priority.
+- It can hold events during a transaction and dispatch or clear them afterwards.
+- It can publish events asynchronously.
+- It builds on Laravel's own event system.
 
 ### Command Side (Write Model)
 
@@ -322,14 +325,11 @@ class CreateAccountHandler
     }
 }
 
-// Registration in DomainServiceProvider
+// Registration (illustration; DomainServiceProvider registers no handlers in v7.18.1)
 $commandBus->register(
     CreateAccountCommand::class,
     CreateAccountHandler::class
 );
-        public readonly ?int $initialBalance = null
-    ) {}
-}
 ```
 
 ### Query Side (Direct Event Store Queries)
@@ -378,7 +378,6 @@ class Turnover extends Model
     // Used for monthly/daily transaction summaries
     // This aggregates events, doesn't duplicate them
 }
-```
 ```
 
 ---
@@ -546,6 +545,8 @@ class TransferWorkflow extends Workflow
 ```
 
 ### Multi-Asset Transfer Workflow
+
+Asset transfers work since v7.18.1. Earlier releases stopped on a missing method before any balance moved (#1247).
 
 ```php
 class AssetTransferWorkflow extends Workflow
@@ -947,6 +948,8 @@ class AccountResource extends JsonResource
 
 ### Production Environment
 
+The compose file below is an example layout for a self-hosted deployment. It is not the configuration of the hosted Zelta service.
+
 ```yaml
 # Docker Compose Structure
 version: '3.8'
@@ -1014,45 +1017,46 @@ class MetricsCollector
 
 ## Conclusion
 
-The FinAegis platform represents a modern, scalable approach to core banking systems with the following key architectural benefits:
+FinAegis combines event sourcing, sagas and domain-driven design in one Laravel application. The sections below sum up what that gives.
 
 ### Strengths
-- ✅ **Event Sourcing**: Complete audit trail and system recovery capabilities
-- ✅ **CQRS Pattern**: Optimized read and write operations
-- ✅ **Multi-Asset Support**: Native support for multiple asset types
-- ✅ **Saga Pattern**: Reliable distributed transaction handling
-- ✅ **Clean Architecture**: Clear separation of concerns and testability
+- Event sourcing keeps a full audit trail and lets the system rebuild its state.
+- Command and query buses are in place for separating writes from reads, although no domain uses them yet.
+- Balances can be held in several asset types.
+- Sagas undo finished steps when a multi-step operation fails.
+- Clear domain boundaries keep concerns apart and make the code easier to test.
 
 ### Scalability Features
-- ✅ **Horizontal Scaling**: Stateless application design
-- ✅ **Caching Strategy**: Multi-layer caching with Redis
-- ✅ **Database Optimization**: Proper indexing and query optimization
-- ✅ **Async Processing**: Queue-based background processing
+- The application is stateless, so it can run on several servers.
+- Redis caches data on several layers.
+- Tables are indexed for the main queries.
+- Heavy work runs in queued background jobs.
 
 ### Security Features
-- ✅ **Cryptographic Integrity**: SHA3-512 transaction hashing
-- ✅ **API Security**: Bearer token authentication with Sanctum
-- ✅ **Authorization**: Role and permission-based access control
-- ✅ **Audit Logging**: Complete operation tracking
+- Ledger events carry a SHA3-512 hash, so a changed event can be detected.
+- API requests are authenticated with Sanctum bearer tokens.
+- Access is controlled by roles and permissions.
+- Operations are recorded in audit logs.
 
-### Implemented (v4.0.0-v5.0.0)
-- **GraphQL API**: Schema-first Lighthouse PHP across 45 domains with subscriptions and DataLoaders
-- **Event Streaming**: Redis Streams publisher/consumer for real-time event distribution (v5.0.0)
-- **Plugin Marketplace**: Plugin manager, sandbox execution, security scanning (v4.0.0)
-- **API Gateway**: Request ID tracing, timing headers, version middleware (v5.0.0)
+### Added in v4.0.0 to v5.0.0
+- The GraphQL API uses Lighthouse PHP. `graphql/schema.graphql` imports 43 domain schemas plus the shared directives and subscriptions, with DataLoaders for batching.
+- Event streaming publishes and consumes events through Redis Streams (v5.0.0).
+- A plugin manager runs plugins in a sandbox and scans them for security problems (v4.0.0).
+- The API gateway middleware adds request IDs, timing headers and version handling (v5.0.0).
 
 ### Future Considerations
-- **Microservices Migration**: Domain boundaries enable service extraction
-- **Multi-Region Deployment**: Geographic distribution support (foundations in v3.5.0)
+- The domain boundaries would allow single domains to move into separate services later.
+- Multi-region deployment has groundwork from v3.5.0 but is not complete.
 
 ---
 
 ## Unified Platform Architecture
 
 ### Overview
-FinAegis serves as a unified platform supporting multiple financial products:
-- **GCU demo**: a reference implementation of a basket-referenced unit built with FinAegis (balances, conversions and basket votes are simulated)
-- **Litas (design concept, not offered)**: Crypto-fiat exchange and P2P lending marketplace
+FinAegis is one code base that can carry several financial products:
+- **Zelta** is the hosted non-custodial wallet built on FinAegis. It is the product that runs in production.
+- **The GCU demo** is a reference implementation of a basket-referenced unit built with FinAegis. Its balances, conversions and basket votes are simulated.
+- **Litas** is a design concept for a crypto-fiat exchange and P2P lending marketplace. It is not offered.
 
 ### Shared Components
 
@@ -1062,15 +1066,16 @@ interface ExchangeEngine {
     // Supports both currency and crypto exchanges
     public function execute(Order $order): Trade;
     public function getOrderBook(AssetPair $pair): OrderBook;
-    public function addLiquidity(LiquidityPool $pool): void;
 }
 ```
 
+The exchange engine is a demo. It is on by default only in the local, testing and demo environments, and an explicit `TRADING_ENABLED` value overrides that. Its liquidity pools support pool creation, swaps, positions, rewards and impermanent loss protection. The add, remove and rebalance liquidity flow was removed in v7.18.0, together with `PoolRebalancingService` and the `RebalancePoolsCommand`.
+
 #### Multi-Asset Ledger
-- Supports fiat currencies (USD, EUR, GBP)
-- Supports cryptocurrencies (BTC, ETH)
-- Supports token asset types (e.g. the GCU demo unit)
-- Unified balance management across all asset types
+- The ledger holds fiat currencies such as USD, EUR and GBP.
+- It holds cryptocurrencies such as BTC and ETH.
+- It holds token asset types, for example the GCU demo unit.
+- One balance model covers all asset types.
 
 #### Stablecoin Framework
 ```php
@@ -1087,16 +1092,16 @@ interface StablecoinManager {
 
 > The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
 
-- Currency basket management
-- Bank allocation modelling (simulated)
-- Basket composition votes (simulated)
-- Basket rebalancing algorithms
+- The demo manages a currency basket.
+- It models how funds would be spread across banks. The allocation is simulated.
+- It runs basket composition votes. The votes are simulated.
+- It rebalances the basket by algorithm.
 
 #### Litas-specific (design concept, not offered)
-- Crypto wallet infrastructure
-- Blockchain integration layer
-- P2P lending marketplace
-- Loan tokenization (Crypto LITAS)
+- The concept covers crypto wallet infrastructure.
+- It covers a blockchain integration layer.
+- It covers a P2P lending marketplace.
+- It covers loan tokenisation (Crypto LITAS).
 
 ### Configuration-Driven Architecture
 
@@ -1121,30 +1126,31 @@ return [
 ### Integration Points
 
 #### Blockchain Layer
-- **Bitcoin Integration**: Full node or API-based
-- **Ethereum Integration**: Web3 provider connection
-- **Smart Contracts**: Token contract integration points (design concept)
-- **Transaction Monitoring**: Block confirmation tracking
+- Bitcoin can be reached through a full node or an API.
+- EVM chains and Solana are reached through RPC providers. The Zelta wallet sends on Polygon, Base, Arbitrum and Solana.
+- Token contract integration points are a design concept.
+- Inbound transactions are tracked through Helius webhooks for Solana and Alchemy webhooks for EVM chains.
 
 #### External Services
-- **Crypto Exchanges**: Exchange API adapters (e.g. Binance, Kraken APIs) — integration adapters for third-party APIs; no partnership or endorsement implied
-- **Credit Scoring**: Third-party risk assessment
-- **KYC Providers**: Identity verification services
-- **Market Data**: Real-time price feeds
+- Crypto exchange adapters read prices from exchange APIs such as Binance and Kraken. They are integration adapters for third-party APIs; no partnership or endorsement implied.
+- Credit scoring can call a third-party risk service.
+- Identity checks run through KYC providers such as Ondato, Bridge and the card provider.
+- Market data comes from price feeds.
 
 ### Security Architecture Extensions
 
 #### Crypto Security
-- **HD Wallets**: Hierarchical deterministic key generation
-- **Multi-Signature**: M-of-N signature requirements
-- **Cold Storage**: Offline key management
-- **HSM Integration**: Hardware security modules
+- The demo blockchain wallets use hierarchical deterministic (HD) key generation.
+- Multi-signature wallets require M of N signatures.
+- Hardware wallets (Ledger and Trezor) keep keys offline.
+- Hardware security modules (HSM) can hold platform keys.
+- The Zelta wallet is non-custodial. Privy manages the user's keys and the device signs every transaction. The backend never sees private key material.
 
 #### Regulatory status
 FinAegis is a software project and does not hold any banking, e-money, payment-institution, crypto-asset service provider or token-issuer licence or authorisation. Licensing and regulatory compliance are the responsibility of the operator of each deployment.
 
 ---
 
-**Architecture Version**: 7.9.0
-**Implementation Status**: Core Complete, 56 Bounded Contexts, 45 GraphQL Domains
-**Last Updated**: 2026-04-04
+**Architecture Version**: v7.18.1
+**Implementation Status**: 61 domain folders, 43 GraphQL domain schemas
+**Last Updated**: 2026-11-24
