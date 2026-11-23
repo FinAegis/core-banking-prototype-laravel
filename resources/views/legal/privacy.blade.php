@@ -144,6 +144,7 @@
                     <li><strong>Objection:</strong> Object to certain types of processing</li>
                     <li><strong>Withdraw Consent:</strong> Withdraw consent for consent-based processing</li>
                 </ul>
+                <p>You can also lodge a complaint with a data protection supervisory authority: in Lithuania the State Data Protection Inspectorate (<a href="https://vdai.lrv.lt" rel="noopener">vdai.lrv.lt</a>), or the authority in the country where you live or work.</p>
 
                 <h2>8. International Transfers</h2>
                 <p>Your information may be processed in countries other than your own. We ensure adequate protection through:</p>
@@ -179,13 +180,15 @@
 
                 <h2>12. Contact Information</h2>
                 <p>For privacy-related questions or to exercise your rights, contact us at:</p>
-                {{-- TODO(regulatory): confirm whether a Data Protection Officer is appointed — see docs/REGULATORY-CLAIMS.md --}}
                 <div class="bg-gray-50 p-6 rounded-lg mt-6">
-                    <p><strong>Data Protection Officer</strong><br>
+                    <p><strong>Data protection contact</strong><br>
                     Data controller: {{ config('brand.legal_entity') }}<br>
                     Email: {{ config('brand.privacy_email') }}<br>
                     @include('legal.partials.operator')</p>
                 </div>
+                @unless($isFinAegisSite)
+                <p>We have not appointed a Data Protection Officer. Our management handles questions about your data directly.</p>
+                @endunless
 
                 <h2>13. Data Processing Legal Bases</h2>
                 <p>We process your personal data based on the following legal grounds:</p>
@@ -198,7 +201,7 @@
 
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mt-8">
                     <p class="text-sm text-blue-800">
-                        <strong>Questions about Privacy?</strong> We're committed to transparency about our data practices. If you have any questions or concerns about how we handle your personal information, please don't hesitate to contact our Data Protection Officer.
+                        <strong>Questions about Privacy?</strong> We're committed to transparency about our data practices. If you have any questions or concerns about how we handle your personal information, please don't hesitate to contact us.
                     </p>
                 </div>
             </div>
