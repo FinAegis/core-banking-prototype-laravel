@@ -125,6 +125,17 @@ final class LepoClient
     }
 
     /**
+     * One internal transfer (for example a crypto-to-quantum conversion) with
+     * its status: PENDING, PROCESSING, COMPLETED, FAILED or CANCELLED.
+     *
+     * @return array<string, mixed>
+     */
+    public function getTransfer(string $transferId): array
+    {
+        return $this->read('/transfers/{id}', ['id' => $transferId]);
+    }
+
+    /**
      * Opens the user's funding (Interlace "Quantum") account.
      *
      * @return array<string, mixed>

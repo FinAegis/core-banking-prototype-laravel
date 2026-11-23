@@ -24,7 +24,7 @@ final class CardTopUpUpdated implements ShouldBroadcast
     public function __construct(
         public readonly int $userId,
         public readonly string $topupId,
-        public readonly string $cardId,
+        public readonly ?string $cardId,
         public readonly string $status,
         public readonly ?int $creditedCents,
     ) {

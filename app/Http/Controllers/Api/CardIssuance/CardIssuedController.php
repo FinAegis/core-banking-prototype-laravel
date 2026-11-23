@@ -298,9 +298,10 @@ final class CardIssuedController extends Controller
     private function providerError(CardProviderException $e): JsonResponse
     {
         return match ($e->reason()) {
-            'holds_money' => ErrorResponse::make('ERR_CARDS_025'),
-            'card_limit'  => ErrorResponse::make('ERR_CARDS_026'),
-            default       => ErrorResponse::make('ERR_CARDS_016'),
+            'holds_money'       => ErrorResponse::make('ERR_CARDS_025'),
+            'card_limit'        => ErrorResponse::make('ERR_CARDS_026'),
+            'topup_in_progress' => ErrorResponse::make('ERR_CARDS_031'),
+            default             => ErrorResponse::make('ERR_CARDS_016'),
         };
     }
 

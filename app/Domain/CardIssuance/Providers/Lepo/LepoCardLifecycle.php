@@ -8,6 +8,7 @@ use App\Domain\CardIssuance\Events\Broadcast\CardStateChanged;
 use App\Domain\CardIssuance\Models\Card;
 use App\Domain\CardIssuance\Models\Cardholder;
 use App\Domain\CardIssuance\Models\CardStaffFreeze;
+use App\Domain\CardIssuance\Models\CardTopUp;
 use App\Domain\CardIssuance\Providers\CardProviderException;
 use App\Infrastructure\Lepo\LepoApiException;
 use App\Infrastructure\Lepo\LepoClient;
@@ -228,15 +229,33 @@ final class LepoCardLifecycle
      */
     public function cancel(Card $card): Card
     {
-        // Never while a top-up moves money for this user: a load landing
-        // between the balance check and the delete would be lost.
-        $lock = Cache::lock(LepoTopUpPipeline::moneyLockKey((int) $card->user_id), 120);
+        return $this->underMoneyLock($card, fn (): Card => $this->cancelUnlocked($card->refresh()));
+    }
+
+    /**
+     * Never while a top-up moves money for this user, and never while the
+     * card has a top-up waiting, moving or unresolved: a load landing on a
+     * deleted card would be lost.
+     *
+     * @param  callable(): Card  $cancel
+     */
+    private function underMoneyLock(Card $card, callable $cancel): Card
+    {
+        $lock = Cache::lock(LepoTopUpPipeline::moneyLockKey((int) $card->user_id), LepoTopUpPipeline::LOCK_SECONDS);
         if (! $lock->get()) {
             throw CardProviderException::providerUnavailable('lepo', 'MONEY_OPERATION_IN_PROGRESS');
         }
 
         try {
-            return $this->cancelUnlocked($card);
+            $busy = CardTopUp::query()
+                ->where('card_id', $card->id)
+                ->whereIn('status', [...CardTopUp::OPEN, CardTopUp::STATUS_NEEDS_ATTENTION])
+                ->exists();
+            if ($busy) {
+                throw CardProviderException::topUp('topup_in_progress');
+            }
+
+            return $cancel();
         } finally {
             $lock->release();
         }
@@ -281,19 +300,22 @@ final class LepoCardLifecycle
      */
     public function cancelUnopened(Card $card): Card
     {
-        if ($card->isOpenAtProvider()) {
-            return $this->cancel($card);
-        }
-
-        $userId = $this->lepoUserId($this->cardholderOf($card));
-        $cards = $this->call(fn (): array => $this->client->listCards($userId))['cards'] ?? [];
-        foreach (is_array($cards) ? $cards : [] as $lepoCard) {
-            if (is_array($lepoCard) && ($lepoCard['externalCardId'] ?? null) === $card->id) {
-                return $this->cancel($this->adopt($card, $lepoCard));
+        return $this->underMoneyLock($card, function () use ($card): Card {
+            $card->refresh();
+            if ($card->isOpenAtProvider()) {
+                return $this->cancelUnlocked($card);
             }
-        }
 
-        return $this->sync($card, ['status' => 'CANCELLED']);
+            $userId = $this->lepoUserId($this->cardholderOf($card));
+            $cards = $this->call(fn (): array => $this->client->listCards($userId))['cards'] ?? [];
+            foreach (is_array($cards) ? $cards : [] as $lepoCard) {
+                if (is_array($lepoCard) && ($lepoCard['externalCardId'] ?? null) === $card->id) {
+                    return $this->cancelUnlocked($this->adopt($card, $lepoCard));
+                }
+            }
+
+            return $this->sync($card, ['status' => 'CANCELLED']);
+        });
     }
 
     /**
