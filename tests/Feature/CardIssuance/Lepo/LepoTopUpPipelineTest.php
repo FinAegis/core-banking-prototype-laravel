@@ -285,7 +285,9 @@ it('tries a rate-limited conversion again later instead of stopping', function (
         ->and($waiting->step_started_at)->toBeNull()
         ->and($waiting->conversion_requested_at)->toBeNull();
 
+    // The slot expires after 15 seconds; Redis counts real time, not the test clock.
     $this->travel(16)->seconds();
+    Cache::lock(LepoTopUpPipeline::CONVERSION_SLOT_KEY)->forceRelease();
 
     expect(app(LepoTopUpPipeline::class)->advance($waiting)->status)->toBe('completed')
         ->and(plCalls('/transfers/crypto-to-quantum-transfer'))->toBe(2);
@@ -303,7 +305,9 @@ it('starts at most one conversion every 15 seconds across users', function (): v
         ->and($queued->last_error)->toBe('CONVERSION_QUEUED')
         ->and(plCalls('/transfers/crypto-to-quantum-transfer'))->toBe(1);
 
+    // The slot expires after 15 seconds; Redis counts real time, not the test clock.
     $this->travel(16)->seconds();
+    Cache::lock(LepoTopUpPipeline::CONVERSION_SLOT_KEY)->forceRelease();
 
     expect(app(LepoTopUpPipeline::class)->advance($queued)->status)->toBe('completed')
         ->and(plCalls('/transfers/crypto-to-quantum-transfer'))->toBe(2);
