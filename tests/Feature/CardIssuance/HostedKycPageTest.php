@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Domain\CardIssuance\Models\Cardholder;
 use App\Models\User;
 use Illuminate\Http\Client\Request;
+use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Routing\Middleware\ThrottleRequestsWithRedis;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\URL;
 
@@ -13,12 +15,12 @@ beforeEach(function (): void {
         'cardissuance.issuers.lepo.base_url'    => 'https://lepo.test/api/v2',
         'cardissuance.issuers.lepo.api_key'     => 'test-key',
         'cardissuance.providers.kyc_return_url' => 'zelta://cards/kyc-done',
-        // The pages are throttled per address (20 a minute). CI keeps the cache
-        // in Redis across tests, so pin this file to a fresh array store.
-        'cache.default' => 'array',
-        'cache.limiter' => 'array',
     ]);
     Http::preventStrayRequests();
+    // The pages are throttled per address (20 a minute). CI keeps that count
+    // in Redis across the tests of this file, so the limit is switched off
+    // here; it is not what these tests check.
+    $this->withoutMiddleware([ThrottleRequests::class, ThrottleRequestsWithRedis::class]);
 });
 
 function hostedCardholder(string $status = 'pending', string $provider = 'lepo'): Cardholder
