@@ -189,7 +189,7 @@ Virtual consumer cards. Lepo Finance is the first provider (issuer Interlace, id
 | Pitfall | Fix |
 |---|---|
 | Retrying a Lepo money call | `crypto-to-quantum-transfer` and `cards/topup` have no idempotency key. Record the step before the call, never retry it, and send any unclear result to `needs_attention` for an operator |
-| `sumsub/kyc-url` treated as a link | It returns a SumSub token. We host the page at `/cards/kyc/{cardholder}` (signed, path-only link); Lepo must allow the site's domain in its SumSub WebSDK domain list |
+| SumSub web SDK fed the `sumsub/kyc-url` accessToken | That accessToken is a link to Lepo's own hosted page, not an SDK token (Lepo, 2026-11-23). Our page at `/cards/kyc/{cardholder}` (signed, path-only link) gets its SDK token from `POST /users/{id}/kyc/sumsub-access-token`, with the five questionnaire answers on every call. After approval both answer 400 `KYC_ALREADY_APPROVED`: sync the status, never show an error |
 | Card number or CVV in our systems | Never. `GET /cards/{id}/widget` returns a short-lived `widgetToken` for Interlace Widget.js on the partner-hosted page |
 | 3-D Secure code storage | Encrypted in the cache for at most 10 minutes, never in the database, logs, push payloads or events; Telescope ignores the webhook, code endpoint and hosted pages |
 | Page numbers | Card transaction pages start from 0; crypto-transaction pages from 1 |

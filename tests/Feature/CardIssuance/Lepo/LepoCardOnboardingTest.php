@@ -130,15 +130,16 @@ it('forgets that the check was sent once Lepo changes the status', function (): 
 });
 
 it('gets a web identity-check token with the questionnaire answers', function (): void {
-    Http::fake(['lepo.test/api/v2/users/12345/sumsub/kyc-url' => Http::response(['success' => true, 'accessToken' => 'web-token', 'status' => 'init'])]);
+    Http::fake(['lepo.test/api/v2/users/12345/kyc/sumsub-access-token' => Http::response(['success' => true, 'token' => 'web-token', 'userId' => '12345'])]);
     $cardholder = lepoCardholderFor(User::factory()->create());
 
     expect(app(LepoCardOnboarding::class)->webKycToken($cardholder))->toBe('web-token');
-    Http::assertSent(fn (Request $request): bool => $request['occupation'] === 'engineer' && $request['documentIssueDate'] === '2020-05-01');
+    Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/users/12345/kyc/sumsub-access-token')
+        && $request['occupation'] === 'engineer' && $request['documentIssueDate'] === '2020-05-01');
 });
 
 it('refuses a web identity-check answer without a token', function (): void {
-    Http::fake(['lepo.test/api/v2/users/12345/sumsub/kyc-url' => Http::response(['success' => true, 'accessToken' => null])]);
+    Http::fake(['lepo.test/api/v2/users/12345/kyc/sumsub-access-token' => Http::response(['success' => true, 'token' => null])]);
     $cardholder = lepoCardholderFor(User::factory()->create());
 
     expect(fn () => app(LepoCardOnboarding::class)->webKycToken($cardholder))->toThrow(CardProviderException::class);

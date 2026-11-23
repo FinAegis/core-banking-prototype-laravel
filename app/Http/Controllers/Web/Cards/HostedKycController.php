@@ -15,7 +15,8 @@ use Illuminate\Support\Facades\URL;
 
 /**
  * The identity-check page the app opens in its browser (KycStart hosted_url).
- * It runs the SumSub web SDK with a token Lepo issues when the page opens.
+ * It runs the SumSub web SDK with an SDK token Lepo issues when the page
+ * opens (sumsub-access-token; kyc-url answers a hosted link instead).
  * The signed link is the only credential: it is short-lived and the page
  * sends no referrer, so the link does not leak to SumSub.
  */
@@ -43,6 +44,11 @@ final class HostedKycController extends Controller
             $token = $this->onboarding->webKycToken($holder);
         } catch (CardProviderException) {
             return $this->page('unavailable', 502);
+        }
+
+        // Lepo says the check is already approved; the status is synced.
+        if ($token === null) {
+            return $this->page('submitted');
         }
 
         return $this->page('ready', 200, [
@@ -80,10 +86,16 @@ final class HostedKycController extends Controller
         }
 
         try {
-            return response()->json(['token' => $this->onboarding->webKycToken($holder)])->header('Cache-Control', 'no-store');
+            $token = $this->onboarding->webKycToken($holder);
         } catch (CardProviderException) {
             return response()->json(['error' => 'unavailable'], 502);
         }
+
+        if ($token === null) {
+            return response()->json(['error' => 'submitted'], 409);
+        }
+
+        return response()->json(['token' => $token])->header('Cache-Control', 'no-store');
     }
 
     private function cardholder(string $id): Cardholder
