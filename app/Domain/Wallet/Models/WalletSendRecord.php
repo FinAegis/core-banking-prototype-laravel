@@ -78,6 +78,13 @@ class WalletSendRecord extends Model
     public const STATUS_FAILED = 'failed';
 
     /**
+     * metadata.submit_outcome when the broadcast call failed in a way that
+     * lets the network have accepted it. The send stays submitted and the
+     * confirmation pollers settle it.
+     */
+    public const SUBMIT_OUTCOME_UNKNOWN = 'unknown';
+
+    /**
      * Map record to the response shape mobile expects (matches PaymentIntent::toApiResponse()).
      *
      * @return array<string, mixed>

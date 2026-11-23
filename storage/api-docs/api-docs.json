@@ -55624,6 +55624,9 @@
                     "404": {
                         "description": "Intent not found for this user"
                     },
+                    "409": {
+                        "description": "Another submit for this intent is still running (SUBMIT_IN_PROGRESS); poll the intent instead"
+                    },
                     "422": {
                         "description": "Bad signature / state"
                     },

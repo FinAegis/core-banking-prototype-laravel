@@ -46,6 +46,9 @@ use Throwable;
 
 class MobileWalletController extends Controller
 {
+    /** Upper bound on one submit: three bundler attempts of 15 seconds plus margin. */
+    private const int SUBMIT_LOCK_SECONDS = 120;
+
     public function __construct(
         private readonly WalletBalanceProviderInterface $balanceService,
         private readonly SmartAccountService $smartAccountService,
@@ -841,6 +844,7 @@ class MobileWalletController extends Controller
     )]
     #[OA\Response(response: 200, description: 'Submitted (or already submitted)')]
     #[OA\Response(response: 404, description: 'Intent not found for this user')]
+    #[OA\Response(response: 409, description: 'Another submit for this intent is still running (SUBMIT_IN_PROGRESS); poll the intent instead')]
     #[OA\Response(response: 422, description: 'Bad signature / state')]
     #[OA\Response(response: 429, description: 'Platform-wide daily sponsorship ceiling reached (SEND_TEMPORARILY_UNAVAILABLE); the intent stays pending')]
     #[OA\Response(response: 401, description: 'Unauthorized')]
@@ -874,6 +878,34 @@ class MobileWalletController extends Controller
             ], 404);
         }
 
+        // One submit per intent at a time. A second submit racing the first
+        // (an app retry while the first still waits on the network) would
+        // broadcast the same transaction again, be told it is already known,
+        // and record the send as failed while the first one lands.
+        $lock = Cache::lock('wallet:send:submit:' . $record->id, self::SUBMIT_LOCK_SECONDS);
+        if (! $lock->get()) {
+            return response()->json([
+                'success' => false,
+                'error'   => ['code' => 'SUBMIT_IN_PROGRESS', 'message' => 'This transfer is already being submitted.'],
+            ], 409);
+        }
+
+        try {
+            // Another submit may have finished between the lookup and the lock.
+            $record->refresh();
+
+            return $this->submitUnderLock($record, (string) $validated['signature']);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    /**
+     * Broadcast a prepared send. Runs while the caller holds the intent's
+     * submit lock.
+     */
+    private function submitUnderLock(WalletSendRecord $record, string $signature): JsonResponse
+    {
         // The shared global sponsorship unit is taken here, right before the
         // platform broadcasts (and pays for) the send — not at prepare, where
         // abandoned intents from throwaway accounts could drain it for
@@ -897,9 +929,9 @@ class MobileWalletController extends Controller
 
         try {
             if ($record->network === 'solana') {
-                $record = $this->solanaSendSubmitter->submit($record, (string) $validated['signature']);
+                $record = $this->solanaSendSubmitter->submit($record, $signature);
             } else {
-                $record = $this->evmUserOpSubmitter->submit($record, (string) $validated['signature']);
+                $record = $this->evmUserOpSubmitter->submit($record, $signature);
             }
         } catch (InvalidSignatureException | InvalidSendStateException $e) {
             if ($tookGlobalUnit) {

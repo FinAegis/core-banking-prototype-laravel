@@ -165,3 +165,61 @@ it('logs and continues when the RPC throws', function (): void {
     $record->refresh();
     expect($record->status)->toBe('submitted');
 });
+
+it('does not drop an unknown send before its blockhash has expired', function (): void {
+    $record = makeSolanaSendRecord(['submitted_at' => now()->subMinutes(10), 'metadata' => ['last_valid_block_height' => 1000]]);
+
+    /** @var HeliusRpcClient&Mockery\MockInterface $rpc */
+    $rpc = Mockery::mock(HeliusRpcClient::class);
+    $rpc->shouldReceive('getBlockHeight')->once()->andReturn(1000);
+    $rpc->shouldReceive('getSignatureStatuses')->once()->andReturn([(string) $record->tx_hash => null]);
+
+    (new PollSolanaWalletSendConfirmations())->handle($rpc);
+
+    expect($record->refresh()->status)->toBe('submitted');
+});
+
+it('drops an unknown send once the chain is past its last valid block height', function (): void {
+    $record = makeSolanaSendRecord(['submitted_at' => now()->subMinutes(10), 'metadata' => ['last_valid_block_height' => 1000]]);
+
+    /** @var HeliusRpcClient&Mockery\MockInterface $rpc */
+    $rpc = Mockery::mock(HeliusRpcClient::class);
+    $rpc->shouldReceive('getBlockHeight')->once()->ordered()->andReturn(1001);
+    $rpc->shouldReceive('getSignatureStatuses')->once()->ordered()->andReturn([(string) $record->tx_hash => null]);
+
+    (new PollSolanaWalletSendConfirmations())->handle($rpc);
+
+    $record->refresh();
+    expect($record->status)->toBe('failed')
+        ->and($record->error_code)->toBe('SOLANA_TX_DROPPED');
+});
+
+it('keeps waiting when the block height cannot be read', function (): void {
+    $record = makeSolanaSendRecord(['submitted_at' => now()->subMinutes(10), 'metadata' => ['last_valid_block_height' => 1000]]);
+
+    /** @var HeliusRpcClient&Mockery\MockInterface $rpc */
+    $rpc = Mockery::mock(HeliusRpcClient::class);
+    $rpc->shouldReceive('getBlockHeight')->once()->andThrow(new RuntimeException('RPC down'));
+    $rpc->shouldReceive('getSignatureStatuses')->once()->andReturn([(string) $record->tx_hash => null]);
+
+    (new PollSolanaWalletSendConfirmations())->handle($rpc);
+
+    expect($record->refresh()->status)->toBe('submitted');
+});
+
+it('keeps checking an uncertain Solana send after the two-hour window', function (): void {
+    $record = makeSolanaSendRecord([
+        'submitted_at' => now()->subHours(3),
+        'metadata'     => ['submit_outcome' => 'unknown', 'last_valid_block_height' => 1000],
+    ]);
+
+    /** @var HeliusRpcClient&Mockery\MockInterface $rpc */
+    $rpc = Mockery::mock(HeliusRpcClient::class);
+    $rpc->shouldReceive('getBlockHeight')->andReturn(5000);
+    $rpc->shouldReceive('getSignatureStatuses')->once()
+        ->andReturn([(string) $record->tx_hash => ['confirmationStatus' => 'finalized', 'err' => null]]);
+
+    (new PollSolanaWalletSendConfirmations())->handle($rpc);
+
+    expect($record->refresh()->status)->toBe('confirmed');
+});

@@ -54,6 +54,36 @@ class PimlicoBundlerServiceTest extends TestCase
         $this->assertEquals($expectedHash, $result);
     }
 
+    public function test_an_unreadable_submit_answer_has_an_unknown_outcome(): void
+    {
+        $userOp = UserOperation::createUnsigned(
+            sender: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
+            nonce: 0,
+            callData: '0xabcdef',
+        );
+
+        $this->rpcClient->shouldReceive('bundlerCall')->once()->andReturn(null);
+
+        $this->expectException(\App\Domain\Relayer\Exceptions\RpcOutcomeUnknownException::class);
+
+        $this->service->submitUserOperation($userOp, SupportedNetwork::POLYGON);
+    }
+
+    public function test_a_submit_answer_that_is_not_a_hash_has_an_unknown_outcome(): void
+    {
+        $userOp = UserOperation::createUnsigned(
+            sender: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
+            nonce: 0,
+            callData: '0xabcdef',
+        );
+
+        $this->rpcClient->shouldReceive('bundlerCall')->once()->andReturn('ok');
+
+        $this->expectException(\App\Domain\Relayer\Exceptions\RpcOutcomeUnknownException::class);
+
+        $this->service->submitUserOperation($userOp, SupportedNetwork::POLYGON);
+    }
+
     public function test_throws_on_bundler_error(): void
     {
         $userOp = UserOperation::createUnsigned(

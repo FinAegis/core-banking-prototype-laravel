@@ -6,6 +6,7 @@ namespace App\Domain\Wallet\Services\Send;
 
 use App\Domain\Relayer\Contracts\BundlerInterface;
 use App\Domain\Relayer\Enums\SupportedNetwork;
+use App\Domain\Relayer\Exceptions\RpcOutcomeUnknownException;
 use App\Domain\Relayer\ValueObjects\UserOperation;
 use App\Domain\Wallet\Exceptions\InvalidSendStateException;
 use App\Domain\Wallet\Exceptions\InvalidSignatureException;
@@ -68,6 +69,25 @@ class EvmUserOpSubmitter
 
         try {
             $bundlerHash = $this->bundler->submitUserOperation($userOp, $network);
+        } catch (RpcOutcomeUnknownException $e) {
+            // The bundler may have accepted the operation although we saw an
+            // error. Calling it failed could lead the user to send again and
+            // pay twice, so it stays submitted under its own hash (the hash
+            // the device signed) and the confirmation poller settles it.
+            $metadata['submit_outcome'] = WalletSendRecord::SUBMIT_OUTCOME_UNKNOWN;
+            $metadata['submit_error'] = SecretRedactor::message($e);
+            $record->metadata = $metadata;
+            $record->status = WalletSendRecord::STATUS_SUBMITTED;
+            $record->submitted_at = now();
+            $record->save();
+
+            Log::warning('EvmUserOpSubmitter: bundler outcome unknown, left for the confirmation poller', [
+                'record_id'    => $record->id,
+                'user_op_hash' => $record->user_op_hash,
+                'network'      => $record->network,
+            ]);
+
+            return $record;
         } catch (Throwable $e) {
             $record->status = WalletSendRecord::STATUS_FAILED;
             $record->error_code = 'BUNDLER_REJECTED';

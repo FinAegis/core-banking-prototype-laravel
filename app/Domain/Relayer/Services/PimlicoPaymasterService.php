@@ -19,6 +19,14 @@ use Illuminate\Support\Facades\Log;
  */
 class PimlicoPaymasterService implements PaymasterInterface
 {
+    /**
+     * How long a Pimlico verifying-paymaster sponsorship stays valid when no
+     * validForSeconds is requested (Pimlico guide "Extending sponsorship
+     * duration"). sponsor() requests none. After this time the EntryPoint
+     * refuses the operation, so it can no longer land.
+     */
+    public const int SPONSORSHIP_VALID_SECONDS = 600;
+
     public function __construct(
         private readonly EthRpcClient $rpcClient,
     ) {
@@ -173,6 +181,32 @@ class PimlicoPaymasterService implements PaymasterInterface
             'maxFeePerGas'         => self::hexToIntOr($result['maxFeePerGas'] ?? null, $userOp->maxFeePerGas),
             'maxPriorityFeePerGas' => self::hexToIntOr($result['maxPriorityFeePerGas'] ?? null, $userOp->maxPriorityFeePerGas),
         ];
+    }
+
+    /**
+     * The sponsorship expiry written in Pimlico's v0.6 verifying-paymaster
+     * data: paymaster address (20 bytes), a mode byte whose upper bits are 0
+     * in verifying mode, then validUntil (6 bytes) and validAfter (6 bytes).
+     *
+     * Returns the Unix time, PHP_INT_MAX when validUntil is 0 (no expiry in
+     * ERC-4337), or null when the data has another layout.
+     */
+    public static function sponsorshipValidUntil(string $paymasterAndData): ?int
+    {
+        $hex = str_starts_with($paymasterAndData, '0x') ? substr($paymasterAndData, 2) : $paymasterAndData;
+
+        // address (40) + mode (2) + validUntil (12) + validAfter (12)
+        if (strlen($hex) < 66 || ctype_xdigit($hex) === false) {
+            return null;
+        }
+
+        if ((hexdec(substr($hex, 40, 2)) >> 1) !== 0) {
+            return null;
+        }
+
+        $validUntil = (int) hexdec(substr($hex, 42, 12));
+
+        return $validUntil === 0 ? PHP_INT_MAX : $validUntil;
     }
 
     /**

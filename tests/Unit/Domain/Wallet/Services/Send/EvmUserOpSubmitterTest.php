@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\Relayer\Contracts\BundlerInterface;
 use App\Domain\Relayer\Enums\SupportedNetwork;
+use App\Domain\Relayer\Exceptions\RpcOutcomeUnknownException;
 use App\Domain\Relayer\ValueObjects\UserOperation;
 use App\Domain\Wallet\Exceptions\InvalidSendStateException;
 use App\Domain\Wallet\Exceptions\InvalidSignatureException;
@@ -179,6 +180,27 @@ it('marks the record failed with BUNDLER_REJECTED when the bundler throws', func
         ->and($updated->error_code)->toBe('BUNDLER_REJECTED')
         ->and($updated->error_message)->toContain('AA10')
         ->and($updated->failed_at)->not->toBeNull();
+});
+
+it('keeps the send submitted when the bundler may have accepted it', function (): void {
+    $record = makePendingEvmRecord('arbitrum', '0xfeedbeef');
+    $signature = '0x' . str_repeat('aa', 64);
+
+    /** @var BundlerInterface&MockInterface $bundler */
+    $bundler = Mockery::mock(BundlerInterface::class);
+    $bundler->shouldReceive('submitUserOperation')
+        ->once()
+        ->andThrow(RpcOutcomeUnknownException::after('eth_sendUserOperation', 'cURL error 28: Operation timed out'));
+
+    $updated = (new EvmUserOpSubmitter($bundler))->submit($record, $signature);
+
+    expect($updated->status)->toBe(WalletSendRecord::STATUS_SUBMITTED)
+        ->and($updated->submitted_at)->not->toBeNull()
+        ->and($updated->failed_at)->toBeNull()
+        ->and($updated->error_code)->toBeNull()
+        ->and($updated->user_op_hash)->toBe('0xfeedbeef')
+        ->and($updated->metadata['submit_outcome'] ?? null)->toBe('unknown')
+        ->and($updated->metadata['submit_error'] ?? '')->toContain('Operation timed out');
 });
 
 it('throws InvalidSendStateException when metadata is missing user_op', function (): void {

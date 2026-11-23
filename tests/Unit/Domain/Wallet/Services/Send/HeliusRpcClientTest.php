@@ -226,3 +226,98 @@ test('rpc client appends api key as query param not header', function (): void {
             && ! $request->hasHeader('Authorization');
     });
 });
+
+test('sendTransaction has an unknown outcome when Helius times out', function (): void {
+    Http::fake([
+        HELIUS_URL_PATTERN => Http::failedConnection('cURL error 28: Operation timed out after 30000 milliseconds with 0 bytes received'),
+    ]);
+
+    try {
+        (new HeliusRpcClient())->sendTransaction('AABB');
+        $this->fail('Expected SolanaRpcException');
+    } catch (SolanaRpcException $e) {
+        expect($e->isOutcomeUnknown())->toBeTrue()
+            ->and($e->getMessage())->toContain('Helius RPC unreachable');
+    }
+});
+
+test('sendTransaction has an unknown outcome when Helius answers with a server error', function (): void {
+    Http::fake([HELIUS_URL_PATTERN => Http::response(null, 503)]);
+
+    try {
+        (new HeliusRpcClient())->sendTransaction('AABB');
+        $this->fail('Expected SolanaRpcException');
+    } catch (SolanaRpcException $e) {
+        expect($e->isOutcomeUnknown())->toBeTrue()
+            ->and($e->getRpcCode())->toBe(503);
+    }
+});
+
+test('a Helius connection that never opened is a definite failure', function (): void {
+    Http::fake([
+        HELIUS_URL_PATTERN => Http::failedConnection('cURL error 7: Failed to connect to mainnet.helius-rpc.com port 443 after 2 ms: Connection refused'),
+    ]);
+
+    try {
+        (new HeliusRpcClient())->sendTransaction('AABB');
+        $this->fail('Expected SolanaRpcException');
+    } catch (SolanaRpcException $e) {
+        expect($e->isOutcomeUnknown())->toBeFalse();
+    }
+});
+
+test('a Helius client error is a definite failure', function (): void {
+    Http::fake([HELIUS_URL_PATTERN => Http::response(null, 429)]);
+
+    try {
+        (new HeliusRpcClient())->sendTransaction('AABB');
+        $this->fail('Expected SolanaRpcException');
+    } catch (SolanaRpcException $e) {
+        expect($e->isOutcomeUnknown())->toBeFalse();
+    }
+});
+
+test('a Helius rejection is a definite failure', function (): void {
+    Http::fake([
+        HELIUS_URL_PATTERN => Http::response([
+            'jsonrpc' => '2.0',
+            'id'      => 1,
+            'error'   => ['code' => -32002, 'message' => 'Transaction simulation failed: insufficient funds'],
+        ]),
+    ]);
+
+    try {
+        (new HeliusRpcClient())->sendTransaction('AABB');
+        $this->fail('Expected SolanaRpcException');
+    } catch (SolanaRpcException $e) {
+        expect($e->isOutcomeUnknown())->toBeFalse();
+    }
+});
+
+test('getBlockHeight returns the current block height', function (): void {
+    Http::fake([HELIUS_URL_PATTERN => Http::response(['jsonrpc' => '2.0', 'id' => 1, 'result' => 312345678])]);
+
+    expect((new HeliusRpcClient())->getBlockHeight())->toBe(312345678);
+});
+
+test('getSignatureStatuses without a value list is an error, not an unknown signature', function (): void {
+    Http::fake([HELIUS_URL_PATTERN => Http::response(['jsonrpc' => '2.0', 'id' => 1, 'result' => ['context' => ['slot' => 1]]])]);
+
+    try {
+        (new HeliusRpcClient())->getSignatureStatuses(['5xSig']);
+        $this->fail('Expected SolanaRpcException');
+    } catch (SolanaRpcException $e) {
+        expect($e->getMessage())->toContain('no value list');
+    }
+});
+
+test('sendTransaction with an unreadable answer has an unknown outcome', function (): void {
+    Http::fake([HELIUS_URL_PATTERN => Http::response(['jsonrpc' => '2.0', 'id' => 1, 'result' => null])]);
+
+    try {
+        (new HeliusRpcClient())->sendTransaction('AABB');
+        $this->fail('Expected SolanaRpcException');
+    } catch (SolanaRpcException $e) {
+        expect($e->isOutcomeUnknown())->toBeTrue();
+    }
+});

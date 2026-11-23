@@ -7,6 +7,7 @@ namespace App\Domain\Relayer\Services;
 use App\Domain\Relayer\Contracts\BundlerInterface;
 use App\Domain\Relayer\Enums\SupportedNetwork;
 use App\Domain\Relayer\Exceptions\RpcException;
+use App\Domain\Relayer\Exceptions\RpcOutcomeUnknownException;
 use App\Domain\Relayer\ValueObjects\UserOperation;
 use Illuminate\Support\Facades\Log;
 
@@ -38,12 +39,17 @@ class PimlicoBundlerService implements BundlerInterface
             'entry_point' => $entryPoint,
         ]);
 
-        /** @var string $userOpHash */
         $userOpHash = $this->rpcClient->bundlerCall(
             $network,
             'eth_sendUserOperation',
             [$userOp->toArray(), $entryPoint]
         );
+
+        // The bundler received the operation but its answer is unreadable:
+        // it may have accepted it, so this is not a rejection.
+        if (! is_string($userOpHash) || preg_match('/^0x[0-9a-fA-F]{64}$/', $userOpHash) !== 1) {
+            throw RpcOutcomeUnknownException::after('eth_sendUserOperation', 'the bundler answered without a user operation hash');
+        }
 
         Log::info('UserOperation submitted successfully', [
             'user_op_hash' => $userOpHash,

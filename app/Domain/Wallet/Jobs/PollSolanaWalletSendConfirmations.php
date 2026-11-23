@@ -42,11 +42,16 @@ class PollSolanaWalletSendConfirmations implements ShouldQueue
     public int $timeout = 60;
 
     /**
-     * A submitted send still unknown to the cluster after this many minutes
-     * can never land — its blockhash validity window (~60-90s) has long since
-     * expired — so it is marked failed.
+     * A submitted send still unknown to the cluster may be marked dropped only
+     * after this many minutes. When the send records the last block height
+     * its blockhash is valid for, the chain must also be past that height:
+     * a slow or halted cluster can take longer than five minutes to get there,
+     * and until then the transaction can still land.
      */
     private const int DROPPED_AFTER_MINUTES = 5;
+
+    /** Sends with an unknown broadcast outcome are watched this long instead of the usual two hours. */
+    private const int UNKNOWN_OUTCOME_WATCH_DAYS = 7;
 
     public function handle(HeliusRpcClient $rpc): void
     {
@@ -54,7 +59,14 @@ class PollSolanaWalletSendConfirmations implements ShouldQueue
             ->where('status', WalletSendRecord::STATUS_SUBMITTED)
             ->where('network', 'solana')
             ->whereNotNull('tx_hash')
-            ->where('submitted_at', '>=', now()->subHours(2))
+            ->where(function ($query): void {
+                $query->where('submitted_at', '>=', now()->subHours(2))
+                    ->orWhere(function ($uncertain): void {
+                        // @phpstan-ignore argument.type (a JSON path, which larastan does not accept as a model column)
+                        $uncertain->where('metadata->submit_outcome', WalletSendRecord::SUBMIT_OUTCOME_UNKNOWN)
+                            ->where('submitted_at', '>=', now()->subDays(self::UNKNOWN_OUTCOME_WATCH_DAYS));
+                    });
+            })
             ->limit(100)
             ->get();
 
@@ -68,6 +80,25 @@ class PollSolanaWalletSendConfirmations implements ShouldQueue
         $signature = (string) $record->tx_hash;
         if ($signature === '') {
             return;
+        }
+
+        $oldEnoughToDrop = $record->submitted_at !== null
+            && $record->submitted_at->lt(now()->subMinutes(self::DROPPED_AFTER_MINUTES));
+        $lastValidBlockHeight = $this->lastValidBlockHeight($record);
+
+        // The height is read before the status: once the chain is past the
+        // last valid height, a transaction the cluster does not know can never
+        // land, and reading in this order leaves no gap for it to land unseen.
+        $blockHeight = null;
+        if ($oldEnoughToDrop && $lastValidBlockHeight !== null) {
+            try {
+                $blockHeight = $rpc->getBlockHeight();
+            } catch (Throwable $e) {
+                Log::warning('PollSolanaWalletSendConfirmations: could not read the block height', [
+                    'record_id' => $record->id,
+                    'error'     => SecretRedactor::message($e),
+                ]);
+            }
         }
 
         try {
@@ -85,13 +116,14 @@ class PollSolanaWalletSendConfirmations implements ShouldQueue
         $entry = $statuses[$signature] ?? null;
 
         if ($entry === null) {
-            // Unknown to the cluster. Once the blockhash-validity window has
-            // long passed, the transaction can never land — mark it failed so
-            // the user sees the send did not go through.
-            if (
-                $record->submitted_at !== null
-                && $record->submitted_at->lt(now()->subMinutes(self::DROPPED_AFTER_MINUTES))
-            ) {
+            // Unknown to the cluster. Once the blockhash can no longer be used,
+            // the transaction can never land, so mark it failed and the user
+            // sees the send did not go through. Older sends without a recorded
+            // last valid height fall back to the age rule alone.
+            $blockhashExpired = $lastValidBlockHeight === null
+                || ($blockHeight !== null && $blockHeight > $lastValidBlockHeight);
+
+            if ($oldEnoughToDrop && $blockhashExpired) {
                 $record->update([
                     'status'        => WalletSendRecord::STATUS_FAILED,
                     'failed_at'     => now(),
@@ -122,5 +154,16 @@ class PollSolanaWalletSendConfirmations implements ShouldQueue
         }
 
         // 'processed' or '' → still in flight; poll again next tick.
+    }
+
+    private function lastValidBlockHeight(WalletSendRecord $record): ?int
+    {
+        $value = ($record->metadata ?? [])['last_valid_block_height'] ?? null;
+
+        if (is_int($value)) {
+            return $value;
+        }
+
+        return is_string($value) && ctype_digit($value) ? (int) $value : null;
     }
 }

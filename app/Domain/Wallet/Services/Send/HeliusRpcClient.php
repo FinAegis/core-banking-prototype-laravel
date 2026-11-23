@@ -6,6 +6,7 @@ namespace App\Domain\Wallet\Services\Send;
 
 use App\Domain\Wallet\Exceptions\SolanaRpcException;
 use App\Support\SecretRedactor;
+use App\Support\TransportFailure;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
@@ -84,7 +85,24 @@ class HeliusRpcClient
         ]);
 
         if (! is_string($result)) {
-            throw SolanaRpcException::fromRpcError(0, 'sendTransaction returned non-string result');
+            // The node received the transaction but answered unreadably: it
+            // may still land, so this is not a rejection.
+            throw SolanaRpcException::fromRpcError(0, 'sendTransaction returned non-string result', outcomeUnknown: true);
+        }
+
+        return $result;
+    }
+
+    /**
+     * The current block height. A transaction whose last valid block height
+     * is below it can no longer be processed.
+     */
+    public function getBlockHeight(): int
+    {
+        $result = $this->call('getBlockHeight', [['commitment' => $this->commitment()]]);
+
+        if (! is_int($result)) {
+            throw SolanaRpcException::fromRpcError(0, 'getBlockHeight returned non-integer result');
         }
 
         return $result;
@@ -103,9 +121,13 @@ class HeliusRpcClient
             ['searchTransactionHistory' => true],
         ]);
 
-        $value = is_array($result) && isset($result['value']) && is_array($result['value'])
-            ? $result['value']
-            : [];
+        // Without the value list nothing is known about the signatures; reading
+        // that as "unknown signature" would let a poller drop a landed send.
+        if (! is_array($result) || ! isset($result['value']) || ! is_array($result['value'])) {
+            throw SolanaRpcException::fromRpcError(0, 'getSignatureStatuses returned no value list');
+        }
+
+        $value = $result['value'];
 
         /** @var array<string, array{confirmationStatus: string, err: array<int|string, mixed>|null}|null> $out */
         $out = [];
@@ -196,14 +218,16 @@ class HeliusRpcClient
         } catch (RequestException $e) {
             throw SolanaRpcException::fromRpcError(
                 $e->response->status(),
-                "HTTP {$e->response->status()} from Helius RPC ({$method})"
+                "HTTP {$e->response->status()} from Helius RPC ({$method})",
+                outcomeUnknown: TransportFailure::mayHaveBeenProcessed($e),
             );
         } catch (ConnectionException $e) {
             // Transport errors embed the request URL, which carries the
             // api-key query parameter.
             throw SolanaRpcException::fromRpcError(
                 0,
-                "Helius RPC unreachable ({$method}): " . SecretRedactor::message($e)
+                "Helius RPC unreachable ({$method}): " . SecretRedactor::message($e),
+                outcomeUnknown: TransportFailure::mayHaveBeenProcessed($e),
             );
         }
 
