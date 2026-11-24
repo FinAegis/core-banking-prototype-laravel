@@ -1,7 +1,7 @@
 <?php
 
+use App\Livewire\Profile\DeleteUserForm;
 use App\Models\User;
-use Laravel\Jetstream\Http\Livewire\DeleteUserForm;
 use Livewire\Livewire;
 
 test('user accounts can be deleted', function () {
@@ -11,7 +11,9 @@ test('user accounts can be deleted', function () {
         ->set('password', 'password')
         ->call('deleteUser');
 
-    expect($user->fresh())->toBeNull();
+    // The account is erased through GdprService: the row stays as an
+    // anonymous entry so the records the law requires stay linked to it.
+    expect($user->fresh()?->name)->toStartWith('ANONYMIZED_');
 });
 
 test('correct password must be provided before account can be deleted', function () {

@@ -2,51 +2,28 @@
 
 namespace App\Actions\Jetstream;
 
-use App\Models\Team;
+use App\Domain\Compliance\Services\AccountClosureService;
 use App\Models\User;
-use App\Traits\HandlesNestedTransactions;
-use Laravel\Jetstream\Contracts\DeletesTeams;
 use Laravel\Jetstream\Contracts\DeletesUsers;
 
 class DeleteUser implements DeletesUsers
 {
-    use HandlesNestedTransactions;
-
     /**
      * Create a new action instance.
      */
-    public function __construct(protected DeletesTeams $deletesTeams)
+    public function __construct(protected AccountClosureService $accountClosure)
     {
     }
 
     /**
-     * Delete the given user.
+     * Delete the given user from the web profile page, the same way the app
+     * and the GDPR endpoint do: the personal data is erased through
+     * GdprService, the records the law requires are kept and every sign-in
+     * ends afterwards. The user row stays as an anonymous entry, and so do
+     * the user's teams, because accounts and their records point at them.
      */
     public function delete(User $user): void
     {
-        $this->executeInTransaction(
-            function () use ($user) {
-                $this->deleteTeams($user);
-                $user->deleteProfilePhoto();
-                $user->tokens->each->delete();
-                $user->delete();
-            }
-        );
-    }
-
-    /**
-     * Delete the teams and team associations attached to the user.
-     */
-    protected function deleteTeams(User $user): void
-    {
-        $user->teams()->detach();
-
-        /** @var \Illuminate\Support\Collection<int, Team> $ownedTeams */
-        $ownedTeams = $user->ownedTeams;
-        $ownedTeams->each(
-            function (Team $team) {
-                $this->deletesTeams->delete($team);
-            }
-        );
+        $this->accountClosure->close($user, AccountClosureService::SOURCE_WEB);
     }
 }
