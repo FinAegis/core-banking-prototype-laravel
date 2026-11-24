@@ -305,7 +305,7 @@ class GCUController extends Controller
                 $currentPriceUSD = 1.0;
                 if ($component->asset_code !== 'USD') {
                     $rate = $exchangeRateService->getRate($component->asset_code, 'USD');
-                    $currentPriceUSD = $rate ? $rate->rate : 0;
+                    $currentPriceUSD = $rate ? (float) $rate->rate : 0.0; // stored as a decimal string
                 }
 
                 // Calculate value contribution
@@ -550,7 +550,7 @@ class GCUController extends Controller
         $currentRate = 1.0;
         if ($assetCode !== 'USD') {
             $rate = $exchangeRateService->getRate($assetCode, 'USD');
-            $currentRate = $rate ? $rate->rate : 0;
+            $currentRate = $rate ? (float) $rate->rate : 0.0;
         }
 
         // Get historical rate
