@@ -42,7 +42,9 @@ it('runs idempotency before the transaction rate limiter', function (string $uri
 ]);
 
 it('does not count a replayed transfer against the rate and amount limits', function (): void {
-    config(['rate_limiting.enabled' => true, 'rate_limiting.force_in_tests' => true]);
+    // The array store keeps the counters as integers and starts empty; the
+    // Redis store some CI jobs use returns strings and keeps other tests' keys.
+    config(['rate_limiting.enabled' => true, 'rate_limiting.force_in_tests' => true, 'cache.default' => 'array']);
     WorkflowStub::fake();
     WorkflowStub::mock(WalletWithdrawWorkflow::class, true);
     WorkflowStub::mock(WalletDepositWorkflow::class, true);
