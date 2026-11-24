@@ -230,3 +230,57 @@ it('saves nothing when the approval is not a valid Passport approval', function 
     expect(DB::table('mcp_token_policies')->count())->toBe(0)
         ->and(consentPolicy($clientId, $user))->toBeNull();
 });
+
+/**
+ * An earlier approval: a live token for the app with the requested scope, which
+ * makes Passport approve again without showing the consent screen.
+ */
+function grantedBefore(User $user, string $clientId): void
+{
+    DB::table('oauth_access_tokens')->insert([
+        'id'         => Str::random(80), 'user_id' => $user->id, 'client_id' => $clientId, 'name' => null,
+        'scopes'     => (string) json_encode(['payments:write']), 'revoked' => false,
+        'created_at' => now(), 'updated_at' => now(), 'expires_at' => now()->addMonth(),
+    ]);
+}
+
+/**
+ * @return Illuminate\Testing\TestResponse<Symfony\Component\HttpFoundation\Response>
+ */
+function authorizeAgain(PHPUnit\Framework\TestCase $test, User $user, string $clientId, ?string $prompt = null): Illuminate\Testing\TestResponse
+{
+    $query = ['client_id' => $clientId, 'response_type' => 'code', 'redirect_uri' => 'http://localhost:9999/callback', 'scope' => 'payments:write', 'state' => 'again'];
+    if ($prompt !== null) {
+        $query['prompt'] = $prompt;
+    }
+
+    return $test->actingAs($user, 'web')->get('/oauth/authorize?' . http_build_query($query));
+}
+
+it('shows the consent screen again for an approval that has no saved limit', function () {
+    // Approvals made before limits were saved keep live tokens, so Passport
+    // skipped the screen and spending tools failed with NO_POLICY for good.
+    $user = User::factory()->create();
+    [$clientId] = approveConsent($this, $user, '50000');
+    DB::table('mcp_token_policies')->delete();
+    grantedBefore($user, $clientId);
+
+    authorizeAgain($this, $user, $clientId)->assertOk()->assertSee('Daily spending limit');
+});
+
+it('skips the consent screen once the approval has a saved limit', function () {
+    $user = User::factory()->create();
+    [$clientId] = approveConsent($this, $user, '50000');
+    grantedBefore($user, $clientId);
+
+    authorizeAgain($this, $user, $clientId)->assertRedirect();
+});
+
+it('leaves a prompt=none request alone', function () {
+    $user = User::factory()->create();
+    [$clientId] = approveConsent($this, $user, '50000');
+    DB::table('mcp_token_policies')->delete();
+    grantedBefore($user, $clientId);
+
+    authorizeAgain($this, $user, $clientId, 'none')->assertRedirect();
+});
