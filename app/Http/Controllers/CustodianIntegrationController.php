@@ -305,9 +305,9 @@ class CustodianIntegrationController extends Controller
         $pending = CustodianWebhook::where('status', 'pending')->count();
 
         $recentWebhooks = CustodianWebhook::where('created_at', '>=', now()->subHours(24))
-            ->select('custodian', 'event_type')
+            ->select('custodian_name', 'event_type')
             ->get()
-            ->groupBy('custodian')
+            ->groupBy('custodian_name')
             ->map(
                 function ($group) {
                     return $group->groupBy('event_type')->map->count();

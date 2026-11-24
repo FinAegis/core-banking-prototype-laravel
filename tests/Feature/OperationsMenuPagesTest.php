@@ -46,6 +46,14 @@ it('renders the stablecoin operation pages for a stablecoin operator', function 
 
 it('renders the custodian integration pages for an operations manager', function (): void {
     $user = operationsMenuUser('operations_manager');
+    // A webhook from the last day feeds the statistics grouped by custodian.
+    App\Domain\Custodian\Models\CustodianWebhook::query()->create([
+        'uuid'           => (string) Illuminate\Support\Str::uuid(),
+        'custodian_name' => 'mock',
+        'event_type'     => 'transaction.completed',
+        'payload'        => ['id' => 'evt-1'],
+        'status'         => 'processed',
+    ]);
 
     // The pages list the connectors from config('custodians.connectors').
     $this->actingAs($user)
