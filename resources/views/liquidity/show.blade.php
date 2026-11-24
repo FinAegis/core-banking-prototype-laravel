@@ -25,27 +25,31 @@
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg p-4">
                     <p class="text-sm text-gray-600 dark:text-gray-400">Total Value Locked</p>
                     <p class="text-2xl font-bold">${{ number_format($metrics['tvl'] / 1000000, 2) }}M</p>
-                    <p class="text-sm {{ $metrics['tvl_24h_change'] >= 0 ? 'text-green-600' : 'text-red-600' }}">
-                        {{ $metrics['tvl_24h_change'] >= 0 ? '+' : '' }}{{ number_format($metrics['tvl_24h_change'], 2) }}%
-                    </p>
+                    @isset($metrics['tvl_24h_change'])
+                        <p class="text-sm {{ $metrics['tvl_24h_change'] >= 0 ? 'text-green-600' : 'text-red-600' }}">
+                            {{ $metrics['tvl_24h_change'] >= 0 ? '+' : '' }}{{ number_format($metrics['tvl_24h_change'], 2) }}%
+                        </p>
+                    @endisset
                 </div>
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg p-4">
                     <p class="text-sm text-gray-600 dark:text-gray-400">24h Volume</p>
                     <p class="text-2xl font-bold">${{ number_format($metrics['volume_24h'] / 1000, 0) }}k</p>
-                    <p class="text-sm {{ $metrics['volume_24h_change'] >= 0 ? 'text-green-600' : 'text-red-600' }}">
-                        {{ $metrics['volume_24h_change'] >= 0 ? '+' : '' }}{{ number_format($metrics['volume_24h_change'], 2) }}%
-                    </p>
+                    @isset($metrics['volume_24h_change'])
+                        <p class="text-sm {{ $metrics['volume_24h_change'] >= 0 ? 'text-green-600' : 'text-red-600' }}">
+                            {{ $metrics['volume_24h_change'] >= 0 ? '+' : '' }}{{ number_format($metrics['volume_24h_change'], 2) }}%
+                        </p>
+                    @endisset
                 </div>
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg p-4">
                     <p class="text-sm text-gray-600 dark:text-gray-400">24h Fees</p>
                     <p class="text-2xl font-bold">${{ number_format($metrics['fees_24h'], 0) }}</p>
                     <p class="text-sm text-gray-600 dark:text-gray-400">
-                        {{ number_format($metrics['fee_apy'], 2) }}% simulated fee rate (demo)
+                        {{ number_format($metrics['apy'], 2) }}% simulated fee rate (demo)
                     </p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg p-4">
                     <p class="text-sm text-gray-600 dark:text-gray-400">Current Price</p>
-                    <p class="text-2xl font-bold">{{ number_format($metrics['current_price'], 4) }}</p>
+                    <p class="text-2xl font-bold">{{ number_format($metrics['spot_price'], 4) }}</p>
                     <p class="text-sm text-gray-600 dark:text-gray-400">
                         {{ $pool['quote_currency'] }} per {{ $pool['base_currency'] }}
                     </p>
@@ -121,18 +125,24 @@
                                 <span class="text-sm text-gray-600 dark:text-gray-400">Total Liquidity Providers</span>
                                 <span class="font-medium">{{ number_format($metrics['provider_count'], 0) }}</span>
                             </div>
-                            <div class="flex justify-between">
-                                <span class="text-sm text-gray-600 dark:text-gray-400">Total Transactions</span>
-                                <span class="font-medium">{{ number_format($metrics['total_transactions'], 0) }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-sm text-gray-600 dark:text-gray-400">Average Trade Size</span>
-                                <span class="font-medium">${{ number_format($metrics['avg_trade_size'], 0) }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-sm text-gray-600 dark:text-gray-400">Price Impact (1%)</span>
-                                <span class="font-medium">{{ number_format($metrics['price_impact_1_percent'], 2) }}%</span>
-                            </div>
+                            @isset($metrics['total_transactions'])
+                                <div class="flex justify-between">
+                                    <span class="text-sm text-gray-600 dark:text-gray-400">Total Transactions</span>
+                                    <span class="font-medium">{{ number_format($metrics['total_transactions'], 0) }}</span>
+                                </div>
+                            @endisset
+                            @isset($metrics['avg_trade_size'])
+                                <div class="flex justify-between">
+                                    <span class="text-sm text-gray-600 dark:text-gray-400">Average Trade Size</span>
+                                    <span class="font-medium">${{ number_format($metrics['avg_trade_size'], 0) }}</span>
+                                </div>
+                            @endisset
+                            @isset($metrics['price_impact_1_percent'])
+                                <div class="flex justify-between">
+                                    <span class="text-sm text-gray-600 dark:text-gray-400">Price Impact (1%)</span>
+                                    <span class="font-medium">{{ number_format($metrics['price_impact_1_percent'], 2) }}%</span>
+                                </div>
+                            @endisset
                         </div>
                     </div>
                 </div>
