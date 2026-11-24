@@ -102,6 +102,10 @@ describe('Status page', function (): void {
     });
 
     it('reuses the live check results for 60 seconds', function (): void {
+        // The array store follows travel(); Redis (used in some CI jobs)
+        // keeps its own clock and may hold results from an earlier test.
+        config(['cache.default' => 'array']);
+
         $pings = 0;
         DB::listen(function ($query) use (&$pings): void {
             if (strtolower(trim($query->sql)) === 'select 1') {
