@@ -108,6 +108,13 @@ if (! DomainManager::isDisabledByConfig('Basket')) {
 
 // Authenticated endpoints (supports both Sanctum and API Key authentication)
 Route::middleware(['auth.api_or_sanctum:read'])->group(function () {
+    // POST routes that the JavaScript, PHP and Python SDKs call carry the
+    // `idempotency` middleware. The SDKs send an Idempotency-Key header on
+    // every POST and repeat it when they retry after a network error or a
+    // 5xx, so a retry replays the first response instead of running again.
+    // Requests without the header are not affected. It runs before the
+    // transaction rate limiter, so a replay does not count as a new transfer.
+
     // User profile endpoint
     Route::get('/profile', function (Illuminate\Http\Request $request) {
         $user = $request->user();
@@ -128,7 +135,7 @@ Route::middleware(['auth.api_or_sanctum:read'])->group(function () {
     // webhook, so they are platform configuration (GHSA-385w-q6j4-5qw6).
     Route::prefix('webhooks')->middleware('is_admin')->group(function () {
         Route::get('/', [WebhookController::class, 'index']);
-        Route::post('/', [WebhookController::class, 'store'])->middleware('auth.api_or_sanctum:write');
+        Route::post('/', [WebhookController::class, 'store'])->middleware(['idempotency', 'auth.api_or_sanctum:write']);
         Route::get('/{id}', [WebhookController::class, 'show']);
         Route::put('/{id}', [WebhookController::class, 'update'])->middleware('auth.api_or_sanctum:write');
         Route::delete('/{id}', [WebhookController::class, 'destroy'])->middleware('auth.api_or_sanctum:delete');
@@ -138,16 +145,16 @@ Route::middleware(['auth.api_or_sanctum:read'])->group(function () {
     // Include existing V2 endpoints from main api.php
     Route::prefix('accounts')->group(function () {
         Route::get('/', [App\Http\Controllers\Api\AccountController::class, 'index']);
-        Route::post('/', [App\Http\Controllers\Api\AccountController::class, 'store'])->middleware('auth.api_or_sanctum:write');
+        Route::post('/', [App\Http\Controllers\Api\AccountController::class, 'store'])->middleware(['idempotency', 'auth.api_or_sanctum:write']);
         Route::get('/{uuid}', [App\Http\Controllers\Api\AccountController::class, 'show']);
         Route::delete('/{uuid}', [App\Http\Controllers\Api\AccountController::class, 'destroy'])->middleware('auth.api_or_sanctum:delete');
-        Route::post('/{uuid}/freeze', [App\Http\Controllers\Api\AccountController::class, 'freeze'])->middleware('auth.api_or_sanctum:write');
-        Route::post('/{uuid}/unfreeze', [App\Http\Controllers\Api\AccountController::class, 'unfreeze'])->middleware('auth.api_or_sanctum:write');
+        Route::post('/{uuid}/freeze', [App\Http\Controllers\Api\AccountController::class, 'freeze'])->middleware(['idempotency', 'auth.api_or_sanctum:write']);
+        Route::post('/{uuid}/unfreeze', [App\Http\Controllers\Api\AccountController::class, 'unfreeze'])->middleware(['idempotency', 'auth.api_or_sanctum:write']);
 
         // Multi-asset operations
         Route::get('/{uuid}/balances', [App\Http\Controllers\Api\AccountBalanceController::class, 'show']);
-        Route::post('/{uuid}/deposit', [App\Http\Controllers\Api\TransactionController::class, 'deposit'])->middleware(['feature:ledger.direct_funding_enabled', 'auth.api_or_sanctum:write']);
-        Route::post('/{uuid}/withdraw', [App\Http\Controllers\Api\TransactionController::class, 'withdraw'])->middleware(['feature:ledger.direct_funding_enabled', 'auth.api_or_sanctum:write']);
+        Route::post('/{uuid}/deposit', [App\Http\Controllers\Api\TransactionController::class, 'deposit'])->middleware(['feature:ledger.direct_funding_enabled', 'idempotency', 'auth.api_or_sanctum:write']);
+        Route::post('/{uuid}/withdraw', [App\Http\Controllers\Api\TransactionController::class, 'withdraw'])->middleware(['feature:ledger.direct_funding_enabled', 'idempotency', 'auth.api_or_sanctum:write']);
         Route::get('/{uuid}/transactions', [App\Http\Controllers\Api\TransactionController::class, 'history']);
         Route::get('/{uuid}/transfers', [App\Http\Controllers\Api\TransferController::class, 'history']);
 
@@ -155,8 +162,8 @@ Route::middleware(['auth.api_or_sanctum:read'])->group(function () {
         if (! DomainManager::isDisabledByConfig('Basket')) {
             Route::prefix('{uuid}/baskets')->group(function () {
                 Route::get('/', [App\Http\Controllers\Api\BasketAccountController::class, 'getBasketHoldings']);
-                Route::post('/decompose', [App\Http\Controllers\Api\BasketAccountController::class, 'decompose'])->middleware('auth.api_or_sanctum:write');
-                Route::post('/compose', [App\Http\Controllers\Api\BasketAccountController::class, 'compose'])->middleware('auth.api_or_sanctum:write');
+                Route::post('/decompose', [App\Http\Controllers\Api\BasketAccountController::class, 'decompose'])->middleware(['idempotency', 'auth.api_or_sanctum:write']);
+                Route::post('/compose', [App\Http\Controllers\Api\BasketAccountController::class, 'compose'])->middleware(['idempotency', 'auth.api_or_sanctum:write']);
             });
         }
     });
@@ -177,15 +184,15 @@ Route::middleware(['auth.api_or_sanctum:read'])->group(function () {
 
     // Transfers
     Route::prefix('transfers')->group(function () {
-        Route::post('/', [App\Http\Controllers\Api\TransferController::class, 'store'])->middleware(['transaction.rate_limit:transfer', 'auth.api_or_sanctum:write']);
+        Route::post('/', [App\Http\Controllers\Api\TransferController::class, 'store'])->middleware(['idempotency', 'transaction.rate_limit:transfer', 'auth.api_or_sanctum:write']);
         Route::get('/{uuid}', [App\Http\Controllers\Api\TransferController::class, 'show']);
     });
 
     // Basket assets (protected operations, Basket domain)
     if (! DomainManager::isDisabledByConfig('Basket')) {
         Route::prefix('baskets')->group(function () {
-            Route::post('/', [App\Http\Controllers\Api\BasketController::class, 'store'])->middleware('auth.api_or_sanctum:write');
-            Route::post('/{code}/rebalance', [App\Http\Controllers\Api\BasketController::class, 'rebalance'])->middleware('auth.api_or_sanctum:write');
+            Route::post('/', [App\Http\Controllers\Api\BasketController::class, 'store'])->middleware(['idempotency', 'auth.api_or_sanctum:write']);
+            Route::post('/{code}/rebalance', [App\Http\Controllers\Api\BasketController::class, 'rebalance'])->middleware(['idempotency', 'auth.api_or_sanctum:write']);
         });
     }
 

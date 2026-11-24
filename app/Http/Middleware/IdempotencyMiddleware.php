@@ -16,6 +16,13 @@ class IdempotencyMiddleware
     private const CACHE_DURATION = 86400; // 24 hours
 
     /**
+     * How long a running request holds its key (in seconds). The SDKs time a
+     * request out after 30 seconds and then retry it with the same key, so the
+     * lock must outlive that. A finished request releases the lock at once.
+     */
+    private const LOCK_DURATION = 120;
+
+    /**
      * Handle an incoming request.
      */
     public function handle(Request $request, Closure $next): Response
@@ -47,38 +54,12 @@ class IdempotencyMiddleware
         $cachedData = Cache::get($cacheKey);
 
         if ($cachedData) {
-            // Check if the request matches the cached request
-            if ($this->requestMatches($request, $cachedData['request'])) {
-                // Return the cached response
-                $response = response()->json(
-                    $cachedData['response']['content'],
-                    $cachedData['response']['status']
-                );
-
-                // Add idempotency headers
-                $response->headers->set('X-Idempotency-Key', $idempotencyKey);
-                $response->headers->set('X-Idempotency-Replayed', 'true');
-
-                // Restore original headers
-                foreach ($cachedData['response']['headers'] as $key => $value) {
-                    if (! in_array($key, ['X-Idempotency-Key', 'X-Idempotency-Replayed'])) {
-                        $response->headers->set($key, $value);
-                    }
-                }
-
-                return $response;
-            } else {
-                // Different request with same idempotency key
-                return response()->json([
-                    'error'   => 'Idempotency key already used',
-                    'message' => 'The provided idempotency key has already been used with different request parameters',
-                ], 409);
-            }
+            return $this->replayOrReject($request, $cachedData, $idempotencyKey);
         }
 
         // Lock the idempotency key to prevent race conditions
         $lockKey = $cacheKey . ':lock';
-        $lock = Cache::lock($lockKey, 30);
+        $lock = Cache::lock($lockKey, self::LOCK_DURATION);
 
         if (! $lock->get()) {
             return response()->json([
@@ -88,6 +69,15 @@ class IdempotencyMiddleware
         }
 
         try {
+            // Read again now that we hold the lock. Another request with this
+            // key may have finished and released the lock after the read
+            // above; running this one as well would repeat its effect.
+            $cachedData = Cache::get($cacheKey);
+
+            if ($cachedData) {
+                return $this->replayOrReject($request, $cachedData, $idempotencyKey);
+            }
+
             // Process the request
             $response = $next($request);
 
@@ -104,6 +94,42 @@ class IdempotencyMiddleware
         } finally {
             $lock->release();
         }
+    }
+
+    /**
+     * Replay the stored response when the request matches the one that was
+     * stored under this key, or refuse a different request with the same key.
+     *
+     * @param  array<string, mixed>  $cachedData
+     */
+    private function replayOrReject(Request $request, array $cachedData, string $idempotencyKey): Response
+    {
+        if (! $this->requestMatches($request, $cachedData['request'])) {
+            // Different request with same idempotency key
+            return response()->json([
+                'error'   => 'Idempotency key already used',
+                'message' => 'The provided idempotency key has already been used with different request parameters',
+            ], 409);
+        }
+
+        // Return the cached response
+        $response = response()->json(
+            $cachedData['response']['content'],
+            $cachedData['response']['status']
+        );
+
+        // Add idempotency headers
+        $response->headers->set('X-Idempotency-Key', $idempotencyKey);
+        $response->headers->set('X-Idempotency-Replayed', 'true');
+
+        // Restore original headers
+        foreach ($cachedData['response']['headers'] as $key => $value) {
+            if (! in_array($key, ['X-Idempotency-Key', 'X-Idempotency-Replayed'])) {
+                $response->headers->set($key, $value);
+            }
+        }
+
+        return $response;
     }
 
     /**

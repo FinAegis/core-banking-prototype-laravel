@@ -25,8 +25,11 @@ class TransferController extends Controller
             operationId: 'createTransfer',
             tags: ['Transfers'],
             summary: 'Create a money transfer',
-            description: 'Transfers money from one account to another',
+            description: 'Transfers money from one account to another. Send an Idempotency-Key header to make a retry safe: a repeat with the same key and the same body returns the first response and does not move money again.',
             security: [['sanctum' => []]],
+            parameters: [
+                new OA\Parameter(name: 'Idempotency-Key', in: 'header', required: false, description: 'A key you choose for this transfer, such as a UUID. Send the same key when you retry the same transfer. The server keeps it for 24 hours.', schema: new OA\Schema(type: 'string', minLength: 16, maxLength: 64, example: '7f1c2a9e-4b1d-4c8e-9a51-2d3f6b7e8c90')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['from_account_uuid', 'to_account_uuid', 'amount'], properties: [
             new OA\Property(property: 'from_account_uuid', type: 'string', format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000'),
             new OA\Property(property: 'to_account_uuid', type: 'string', format: 'uuid', example: '660e8400-e29b-41d4-a716-446655440000'),
@@ -47,6 +50,14 @@ class TransferController extends Controller
         ]),
         new OA\Property(property: 'message', type: 'string', example: 'Transfer initiated successfully'),
         ])
+    )]
+    #[OA\Response(
+        response: 400,
+        description: 'The Idempotency-Key header has an invalid format. It must be a UUID or 16 to 64 letters, digits, dashes or underscores.'
+    )]
+    #[OA\Response(
+        response: 409,
+        description: 'The Idempotency-Key was already used with a different body, or a request with the same key is still running.'
     )]
     #[OA\Response(
         response: 422,
