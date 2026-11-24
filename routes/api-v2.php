@@ -58,12 +58,14 @@ Route::prefix('gcu')->group(function () {
     }
     Route::get('/supported-banks', [GCUController::class, 'supportedBanks']);
 
-    // Trading endpoints (authenticated, Basket domain — GCU is a basket asset)
+    // Trading endpoints (authenticated, Basket domain — GCU is a basket asset).
+    // Buy and sell move money, so they dedupe on an optional Idempotency-Key
+    // before the rate limiter, like the other money routes.
     Route::middleware(['module.enabled:Basket', 'auth:sanctum'])->group(function () {
         Route::post('/buy', [App\Http\Controllers\Api\V2\GCUTradingController::class, 'buy'])
-            ->middleware(['transaction.rate_limit:convert']);
+            ->middleware(['idempotency', 'transaction.rate_limit:convert']);
         Route::post('/sell', [App\Http\Controllers\Api\V2\GCUTradingController::class, 'sell'])
-            ->middleware(['transaction.rate_limit:convert']);
+            ->middleware(['idempotency', 'transaction.rate_limit:convert']);
         Route::get('/quote', [App\Http\Controllers\Api\V2\GCUTradingController::class, 'quote']);
         Route::get('/trading-limits', [App\Http\Controllers\Api\V2\GCUTradingController::class, 'tradingLimits']);
     });
@@ -228,7 +230,7 @@ Route::middleware(['auth.api_or_sanctum:read'])->group(function () {
 
             // Balances and transfers
             Route::get('/balance/aggregate', [BankIntegrationController::class, 'getAggregatedBalance']);
-            Route::post('/transfer', [BankIntegrationController::class, 'initiateTransfer'])->middleware('transaction.rate_limit:transfer');
+            Route::post('/transfer', [BankIntegrationController::class, 'initiateTransfer'])->middleware(['idempotency', 'transaction.rate_limit:transfer']);
         });
     }
 });

@@ -103,3 +103,16 @@ it('books a GCU sale at the quoted price after the fee', function (): void {
         fn (AccountUuid $uuid, string $from, string $to, int $amount, ?string $rate = null): bool => $amount === 1_000 && $rate === '1.2375000000'
     );
 });
+
+it('starts one conversion when a GCU buy is repeated with the same Idempotency-Key', function (): void {
+    [, $account] = gcuTrader(['USD' => 50_000]);
+    $key = (string) Str::uuid();
+    $body = ['amount' => '100.00', 'currency' => 'USD', 'account_uuid' => $account->uuid];
+
+    $first = $this->postJson('/api/v2/gcu/buy', $body, ['Idempotency-Key' => $key])->assertOk();
+    $second = $this->postJson('/api/v2/gcu/buy', $body, ['Idempotency-Key' => $key])->assertOk();
+
+    $second->assertHeader('X-Idempotency-Replayed', 'true');
+    expect($second->json())->toBe($first->json());
+    WorkflowStub::assertDispatchedTimes(ConvertAssetActivity::class, 1);
+});

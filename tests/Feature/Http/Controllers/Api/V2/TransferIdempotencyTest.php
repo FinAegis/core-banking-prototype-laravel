@@ -200,3 +200,21 @@ it('deduplicates every v2 POST route that the SDKs call', function (string $uri)
     'webhook create'   => ['api/v2/webhooks'],
     'rates refresh'    => ['api/v2/exchange-rates/refresh'],
 ]);
+
+it('deduplicates the money-moving v2 POST routes that no SDK calls', function (string $uri, string $limiter): void {
+    $route = collect(Illuminate\Support\Facades\Route::getRoutes()->getRoutes())
+        ->first(fn (Illuminate\Routing\Route $route): bool => $route->uri() === $uri && in_array('POST', $route->methods(), true));
+
+    expect($route)->not->toBeNull();
+    assert($route instanceof Illuminate\Routing\Route);
+
+    $position = array_flip(array_filter($route->gatherMiddleware(), 'is_string'));
+
+    // A replay must not count against the transaction limits a second time.
+    expect($position)->toHaveKeys(['idempotency', $limiter])
+        ->and($position['idempotency'])->toBeLessThan($position[$limiter]);
+})->with([
+    'GCU buy'       => ['api/v2/gcu/buy', 'transaction.rate_limit:convert'],
+    'GCU sell'      => ['api/v2/gcu/sell', 'transaction.rate_limit:convert'],
+    'bank transfer' => ['api/v2/banks/transfer', 'transaction.rate_limit:transfer'],
+]);
