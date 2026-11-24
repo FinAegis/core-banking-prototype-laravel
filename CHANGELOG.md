@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 >
 > Entries below describe software changes. Named third-party providers are integration adapters for third-party APIs; no partnership or endorsement implied. Mentions of the Global Currency Unit (GCU) refer to a software demonstration that is not issued, offered or sold to anyone and has no monetary value.
 
+## [7.18.2] - 2026-11-24
+
+**Top-up path, GCU prices and clearer texts.** The card top-up pipeline now follows the card partner's answers, and top-ups stay switched off until a real top-up is tested. GCU trades book the price they quote, and the demo site gets fixed demonstration exchange rates so conversions work there. AI assistant connections made before v7.18.1 are asked for a spending limit once. The demo site pages and the project documentation describe what the platform does today.
+
+### Fixed
+- The top-up pipeline follows Lepo's answers (#1254). Top-ups stay off.
+  - The estimate reads `topupfeepercent` as a fraction of the loaded amount, and the fixed fee is no longer added on top.
+  - A card load is checked against `requestedValue` and credits `value`, because the fee comes out of the loaded amount. The load sends the token `USD`.
+  - A conversion that answers success is final, so the pipeline no longer waits on a transfer lookup.
+  - Conversions are spaced 15 seconds apart for all users, and Lepo's rate limit (429) is retried instead of stopping the top-up.
+  - Only the account's USD balance counts, not the card's own balance.
+  - A deposit row that names a transaction hash must name ours, and a row without one must also match the amount.
+- GCU buy and sell book the quoted basket price less the 1 % fee, and the answer reports what was booked. The conversion used to read the rate table, which has no GCU price (#1256).
+- AI assistant approvals made before v7.18.1 saved spending limits now see the consent screen once, so they get a limit instead of failing with `NO_POLICY` until their token expires (#1259).
+
+### Added
+- `DemoExchangeRateSeeder` adds fixed, illustrative exchange rates that do not expire, for the demo site, which has no scheduler to refresh rates. It refuses to run in production (#1256).
+
+### Changed
+- The finaegis.org demo pages are rewritten in plain sentences for v7.18.1. Two claims no longer overstate the code: risk scoring is rule-based, and provider certificates are only checked for format (#1257).
+- The project documentation describes v7.18.1. The API reference lists only routes that exist, removed features are described as removed, and the operations runbooks follow the current deploy (#1258).
+
 ## [7.18.1] - 2026-11-24
 
 **Card pilot fixes.** The card partner answered our open questions. This release makes the identity check in the card pilot start, as their answer requires. Top-ups stay switched off. This release also makes asset transfers and currency conversions move the right amounts, saves the spending limit people give AI assistants, and fixes or removes admin pages that failed to open. The zelta.app and admin texts now describe what the platform does.

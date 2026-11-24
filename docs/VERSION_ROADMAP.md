@@ -3252,6 +3252,21 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 
 ---
 
+## Version 7.18.2 — Top-up Path and Clearer Texts (November 2026)
+
+**Theme**: The top-up pipeline follows the card partner's answers, GCU trades book the price they quote, and the demo site and documentation describe the platform as it is.
+
+### Delivered Features
+- The top-up pipeline follows Lepo's answers on fees, loads, conversions, rate limits, balances and deposit matching (#1254). Top-ups stay off.
+- GCU buy and sell book the quoted price; fixed demonstration exchange rates for the demo site (#1256).
+- Older AI assistant approvals are asked for a spending limit once (#1259).
+- The demo site pages and the project documentation are rewritten for v7.18.1 (#1257, #1258).
+
+### Scope Notes
+- Top-ups switch on only after one real top-up is tested with the pilot user.
+
+---
+
 ## Version 7.18.1 — Card Pilot Fixes (November 2026)
 
 **Theme**: The card partner answered our open questions. The pilot's identity check now starts, and money paths in the ledger book the right amounts.
@@ -3493,5 +3508,5 @@ Embeddable JS widget that renders Zelta's 402 payment flow inside the partner's 
 
 ---
 
-*Document Version: 7.18.1*
-*Updated: November 24, 2026 (v7.18.1 card pilot fixes after the partner's answers, asset transfers, MCP spending limit, admin and site texts)*
+*Document Version: 7.18.2*
+*Updated: November 24, 2026 (v7.18.2 top-up path after the partner's answers, GCU quoted prices, demo exchange rates, clearer demo pages and documentation)*
