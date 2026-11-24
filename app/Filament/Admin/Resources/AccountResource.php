@@ -5,6 +5,7 @@ namespace App\Filament\Admin\Resources;
 use App\Domain\Account\Models\Account;
 use App\Filament\Admin\Resources\AccountResource\Pages;
 use App\Filament\Admin\Resources\AccountResource\RelationManagers;
+use App\Support\DecimalString;
 use Exception;
 use Filament\Forms;
 use Filament\Forms\Components\Section;
@@ -217,11 +218,21 @@ class AccountResource extends Resource
                         )
                         ->action(
                             function (Account $record, array $data): void {
+                                // Exact cents (the form has no asset field; the
+                                // account ledger is USD cents). A float product
+                                // truncates amounts such as 128.14 to 12813.
+                                $amount = DecimalString::fromNumeric($data['amount'] ?? null, 2);
+                                if ($amount === null) {
+                                    Notification::make()->title('Deposit Failed')->danger()->body('Enter a valid amount.')->send();
+
+                                    return;
+                                }
+
                                 try {
                                     DB::beginTransaction();
 
                                     $accountService = app(\App\Domain\Account\Services\AccountService::class);
-                                    $accountService->deposit($record->uuid, (int) ($data['amount'] * 100));
+                                    $accountService->deposit($record->uuid, (int) bcmul($amount, '100', 0));
 
                                     DB::commit();
 
@@ -261,11 +272,19 @@ class AccountResource extends Resource
                         )
                         ->action(
                             function (Account $record, array $data): void {
+                                // Exact cents, as in the deposit action above.
+                                $amount = DecimalString::fromNumeric($data['amount'] ?? null, 2);
+                                if ($amount === null) {
+                                    Notification::make()->title('Withdrawal Failed')->danger()->body('Enter a valid amount.')->send();
+
+                                    return;
+                                }
+
                                 try {
                                     DB::beginTransaction();
 
                                     $accountService = app(\App\Domain\Account\Services\AccountService::class);
-                                    $accountService->withdraw($record->uuid, (int) ($data['amount'] * 100));
+                                    $accountService->withdraw($record->uuid, (int) bcmul($amount, '100', 0));
 
                                     DB::commit();
 

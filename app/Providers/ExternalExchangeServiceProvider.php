@@ -45,13 +45,14 @@ class ExternalExchangeServiceProvider extends ServiceProvider
                 function () {
                     $schedule = $this->app->make(\Illuminate\Console\Scheduling\Schedule::class);
 
-                    $interval = config('trading.arbitrage.check_interval', 60);
+                    // check_interval is in seconds; cron runs at most once a minute.
+                    $minutes = max(1, min(59, intdiv((int) config('trading.arbitrage.check_interval', 60), 60)));
 
+                    // A queued job is a callback event, so runInBackground() would throw here.
                     $schedule->job(new CheckArbitrageOpportunitiesJob())
-                        ->everyMinutes($interval / 60)
+                        ->cron($minutes === 1 ? '* * * * *' : "*/{$minutes} * * * *")
                         ->withoutOverlapping()
-                        ->onOneServer()
-                        ->runInBackground();
+                        ->onOneServer();
                 }
             );
         }

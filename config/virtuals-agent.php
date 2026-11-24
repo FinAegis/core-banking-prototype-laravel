@@ -16,7 +16,14 @@ return [
     |
     */
 
-    'enabled' => (bool) env('VIRTUALS_AGENT_ENABLED', false),
+    /*
+    | Gates the /api/v1/virtuals-agents routes (404 while off). The routes
+    | also need the VirtualsAgent module enabled (not in MODULES_DISABLED).
+    | Secure by default: on only for APP_ENV=local, testing or demo, off for
+    | every other value (production, staging, unset). An explicit
+    | VIRTUALS_AGENT_ENABLED value always wins.
+    */
+    'enabled' => (bool) env('VIRTUALS_AGENT_ENABLED', in_array(env('APP_ENV', 'production'), ['local', 'testing', 'demo'], true)),
 
     'acp_base_url' => env('VIRTUALS_ACP_BASE_URL', 'https://api.virtuals.io'),
 

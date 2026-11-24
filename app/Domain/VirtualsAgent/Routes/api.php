@@ -5,8 +5,9 @@ declare(strict_types=1);
 use App\Http\Controllers\Api\VirtualsAgent\VirtualsAgentController;
 use Illuminate\Support\Facades\Route;
 
+// 404 unless VIRTUALS_AGENT_ENABLED (off by default under APP_ENV=production).
 Route::prefix('v1/virtuals-agents')->name('api.virtuals-agents.')
-    ->middleware(['auth:sanctum', 'throttle:60,1'])
+    ->middleware(['feature:virtuals-agent.enabled', 'auth:sanctum', 'throttle:60,1'])
     ->group(function () {
         Route::get('/', [VirtualsAgentController::class, 'index'])->name('index');
         Route::post('/onboard', [VirtualsAgentController::class, 'onboard'])->name('onboard');
