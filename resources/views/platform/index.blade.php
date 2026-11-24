@@ -5,8 +5,8 @@
 @section('seo')
     @include('partials.seo', [
         'title' => config('brand.name', 'Zelta') . ' Platform - Open Banking for Developers',
-        'description' => config('brand.name', 'Zelta') . ' Platform: open-source core banking with 61 DDD domains, ISO 20022, PSD2, multi-rail payments, cross-chain DeFi, and a public MCP server. Apache-2.0 licensed, built for developers.',
-        'keywords' => config('brand.name', 'Zelta') . ' platform, banking infrastructure, open source banking, developer API, ISO 20022, PSD2, payment rails, Interledger, microfinance, ledger, Apache-2.0 license, core banking API, fintech development, DDD, event sourcing',
+        'description' => config('brand.name', 'Zelta') . ' is open-source core banking software for developers. It has 61 domain modules, REST and GraphQL APIs and client libraries, and you run it on your own servers.',
+        'keywords' => config('brand.name', 'Zelta') . ' platform, banking infrastructure, open source banking, developer API, ISO 20022, open banking, payment rails, Interledger, microfinance, ledger, Apache-2.0 license, core banking API, fintech development, DDD, event sourcing',
     ])
 
     {{-- Schema.org Markup --}}
@@ -104,11 +104,11 @@
                                     <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
                                     <div class="w-3 h-3 bg-green-500 rounded-full"></div>
                                 </div>
-                                <div class="ml-4 text-gray-400 text-sm code-font">zelta@terminal</div>
+                                <div class="ml-4 text-gray-400 text-sm code-font">{{ \Illuminate\Support\Str::lower(config('brand.name', 'Zelta')) }}@terminal</div>
                             </div>
                             <div class="p-6 code-font text-sm">
                                 <div class="text-gray-400 mb-2">$ whoami</div>
-                                <div class="text-green-400 mb-4">developer@zelta</div>
+                                <div class="text-green-400 mb-4">developer&#64;{{ \Illuminate\Support\Str::lower(config('brand.name', 'Zelta')) }}</div>
                                 
                                 <div class="text-gray-400 mb-2">$ git clone {{ config('brand.github_url') }}</div>
                                 <div class="text-white mb-2">Cloning into 'core-banking-prototype-laravel'...</div>
@@ -119,7 +119,7 @@
                                 <div class="text-white mb-2">Installing dependencies...</div>
                                 <div class="text-gray-400 mb-2">$ php artisan serve</div>
                                 <div class="text-blue-400 mb-2">Starting Laravel development server...</div>
-                                <div class="text-green-400">🚀 Platform running on http://127.0.0.1:8000</div>
+                                <div class="text-green-400">Server running on [http://127.0.0.1:8000]</div>
                                 
                                 <div class="mt-4">
                                     <span class="text-gray-400">$</span>
@@ -142,17 +142,17 @@
                         
                         <h1 class="text-5xl md:text-6xl font-bold mb-6">
                             <span class="bg-clip-text text-transparent bg-gradient-to-r from-green-400 via-blue-400 to-purple-400">
-                                Build Banking APIs
+                                Build on Open-Source
                             </span>
                             <br />
                             <span class="text-3xl text-gray-300">
-                                That Actually Scale
+                                Core Banking
                             </span>
                         </h1>
                         
                         <p class="text-xl text-gray-400 mb-8">
-                            Open-source banking infrastructure with everything you need. 
-                            No vendor lock-in. No licensing fees. Fork it, self-host it, and own your stack.
+                            {{ config('brand.name', 'Zelta') }} is open-source core banking software. There are no license fees, and you run it on your own servers.
+                            You can fork the code and change any part of it.
                         </p>
                         
                         <div class="flex flex-col sm:flex-row gap-4">
@@ -181,7 +181,7 @@
                                 <div class="text-sm text-gray-500">Domains</div>
                             </div>
                             <div>
-                                <div class="text-2xl font-bold text-purple-400 code-font">1,400+</div>
+                                <div class="text-2xl font-bold text-purple-400 code-font">1,000+</div>
                                 <div class="text-sm text-gray-500">API Routes</div>
                             </div>
                         </div>
@@ -197,8 +197,8 @@
         <section class="py-16 bg-white">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-12">
-                    <h2 class="font-display text-3xl font-bold text-slate-900 mb-4">Get Started in 3 Commands</h2>
-                    <p class="text-xl text-slate-500">From zero to running banking API in under 5 minutes</p>
+                    <h2 class="font-display text-3xl font-bold text-slate-900 mb-4">Run It on Your Computer</h2>
+                    <p class="text-xl text-slate-500">These three commands are the core of a local install. The README lists the other setup steps, such as copying the demo settings and running the migrations.</p>
                 </div>
                 
                 <div class="grid md:grid-cols-3 gap-8">
@@ -228,7 +228,7 @@
                     <div class="relative">
                         <div class="absolute -top-1 -left-1 w-10 h-10 bg-gray-900 text-white rounded-full flex items-center justify-center font-bold z-10">3</div>
                         <div class="pl-12">
-                            <h3 class="text-lg font-semibold mb-2">Start Building</h3>
+                            <h3 class="text-lg font-semibold mb-2">Start the Server</h3>
                             <div class="bg-gray-900 rounded-lg p-4 code-font text-sm">
                                 <span class="text-gray-400">$</span> <span class="text-green-400">php</span> <span class="text-purple-400">artisan</span> <span class="text-blue-400">serve</span>
                             </div>
@@ -242,8 +242,8 @@
         <section class="py-16 bg-gray-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-12">
-                    <h2 class="font-display text-3xl font-bold text-slate-900 mb-4">Built for Developers, By Developers</h2>
-                    <p class="text-xl text-slate-500">Every feature designed with DX in mind</p>
+                    <h2 class="font-display text-3xl font-bold text-slate-900 mb-4">Developer Tools</h2>
+                    <p class="text-xl text-slate-500">These tools help you build and test against the platform.</p>
                 </div>
                 
                 <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -254,8 +254,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-semibold mb-2">RESTful APIs</h3>
-                        <p class="text-slate-500 mb-4">Clean, intuitive API design following REST principles</p>
+                        <h3 class="text-xl font-semibold mb-2">REST APIs</h3>
+                        <p class="text-slate-500 mb-4">The API follows common REST conventions and uses versioned paths.</p>
                         <div class="code-font text-sm bg-gray-100 rounded p-3">
                             <span class="text-blue-600">GET</span> /api/v1/accounts<br>
                             <span class="text-green-600">POST</span> /api/v1/transfers<br>
@@ -270,15 +270,12 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-semibold mb-2">SDK Everything</h3>
-                        <p class="text-slate-500 mb-4">Official SDKs for your favorite language</p>
+                        <h3 class="text-xl font-semibold mb-2">Client Libraries</h3>
+                        <p class="text-slate-500 mb-4">Official libraries exist for JavaScript, Python and PHP.</p>
                         <div class="flex flex-wrap gap-2">
                             <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">JavaScript</span>
                             <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">Python</span>
                             <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">PHP</span>
-                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">Go</span>
-                            <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">Ruby</span>
-                            <span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">More...</span>
                         </div>
                     </div>
                     
@@ -289,8 +286,8 @@
                                 <path d="M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.185.185 0 00-.185.185v1.888c0 .102.083.185.185.185m-2.954-5.43h2.118a.186.186 0 00.186-.186V3.574a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m0 2.716h2.118a.187.187 0 00.186-.186V6.29a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.887c0 .102.082.185.185.186m-2.93 0h2.12a.186.186 0 00.184-.186V6.29a.185.185 0 00-.185-.185H8.1a.185.185 0 00-.185.185v1.887c0 .102.083.185.185.186m-2.964 0h2.119a.186.186 0 00.185-.186V6.29a.185.185 0 00-.185-.185H5.136a.186.186 0 00-.186.185v1.887c0 .102.084.185.186.186m5.893 2.715h2.118a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m-2.93 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.083.185.185.185m-2.964 0h2.119a.185.185 0 00.185-.185V9.006a.185.185 0 00-.184-.186h-2.12a.186.186 0 00-.186.186v1.887c0 .102.084.185.186.185m-2.92 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.082.185.185.185M23.763 9.89c-.065-.051-.672-.51-1.954-.51-.338.001-.676.03-1.01.087-.248-1.7-1.653-2.53-1.716-2.566l-.344-.199-.226.327c-.284.438-.49.922-.612 1.43-.23.97-.09 1.882.403 2.661-.595.332-1.55.413-1.744.42H.751a.751.751 0 00-.75.748 11.376 11.376 0 00.692 4.062c.545 1.428 1.355 2.48 2.41 3.124 1.18.723 3.1 1.137 5.275 1.137.983.003 1.963-.086 2.93-.266a12.248 12.248 0 003.823-1.389c.98-.567 1.86-1.288 2.61-2.136 1.252-1.418 1.998-2.997 2.553-4.4h.221c1.372 0 2.215-.549 2.68-1.009.309-.293.55-.65.707-1.046l.098-.288Z"/>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-semibold mb-2">Container First</h3>
-                        <p class="text-slate-500 mb-4">Docker & Kubernetes ready out of the box</p>
+                        <h3 class="text-xl font-semibold mb-2">Containers</h3>
+                        <p class="text-slate-500 mb-4">The repository includes Docker files and a Helm chart for Kubernetes.</p>
                         <div class="code-font text-sm bg-gray-100 rounded p-3">
                             <span class="text-gray-500">$</span> docker-compose up -d
                         </div>
@@ -303,8 +300,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-semibold mb-2">Real-time Events</h3>
-                        <p class="text-slate-500 mb-4">Webhooks for every important event</p>
+                        <h3 class="text-xl font-semibold mb-2">Webhooks</h3>
+                        <p class="text-slate-500 mb-4">Webhooks tell your systems when important events happen.</p>
                         <div class="space-y-1 text-sm">
                             <div class="flex items-center text-slate-600">
                                 <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
@@ -328,8 +325,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-semibold mb-2">Test Everything</h3>
-                        <p class="text-slate-500 mb-4">Comprehensive test suite included</p>
+                        <h3 class="text-xl font-semibold mb-2">Test Suite</h3>
+                        <p class="text-slate-500 mb-4">The repository includes about 1,300 test files written with Pest.</p>
                         <div class="code-font text-sm bg-gray-100 rounded p-3">
                             <span class="text-gray-500">$</span> <span class="text-green-400">./vendor/bin/pest</span><br>
                             <span class="text-green-500">✓</span> All tests passed
@@ -343,8 +340,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-semibold mb-2">Developer-First Docs</h3>
-                        <p class="text-slate-500 mb-4">OpenAPI specs, GraphQL playground, and example-driven guides</p>
+                        <h3 class="text-xl font-semibold mb-2">Documentation</h3>
+                        <p class="text-slate-500 mb-4">The documentation has an OpenAPI reference, a GraphQL guide and worked examples.</p>
                         <div class="flex items-center justify-between text-sm">
                             <span class="text-gray-500">API Reference</span>
                             <span class="text-indigo-600 font-semibold">View →</span>
@@ -360,7 +357,7 @@
                 <div class="text-center mb-16">
                     <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Modular Architecture</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        Pick what you need, leave what you don't. Every module works independently.
+                        You can switch each module on or off. Each module keeps its own routes, data and events.
                     </p>
                 </div>
 
@@ -369,7 +366,7 @@
                     <h3 class="text-2xl font-bold text-white mb-8 text-center">Core Banking Engine</h3>
                     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                         @foreach([
-                            ['Identity & KYC', 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z', 'from-indigo-500 to-purple-600'],
+                            ['Identity Checks', 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z', 'from-indigo-500 to-purple-600'],
                             ['Payments', 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z', 'from-blue-500 to-cyan-600'],
                             ['Security', 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'from-green-500 to-emerald-600'],
                             ['Compliance', 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', 'from-yellow-500 to-orange-600'],
@@ -392,7 +389,7 @@
                 <div class="text-center py-12">
                     <h2 class="text-3xl font-bold text-slate-900 mb-4">61 Domain Modules</h2>
                     <p class="text-lg text-slate-600 mb-8 max-w-2xl mx-auto">
-                        From ISO 20022 messaging to microfinance lending — every banking capability in one codebase.
+                        One codebase holds every module, from ISO 20022 messaging to microfinance lending.
                     </p>
                     <a href="{{ route('features') }}" class="inline-flex items-center px-6 py-3 bg-fa-navy text-white rounded-lg hover:bg-opacity-90 transition font-semibold">
                         Explore All Features &rarr;
@@ -411,9 +408,9 @@
                     </svg>
                 </div>
                 
-                <h2 class="font-display text-4xl font-bold mb-6">Start Building Today</h2>
+                <h2 class="font-display text-4xl font-bold mb-6">Fork the Code</h2>
                 <p class="text-xl text-gray-300 mb-8">
-                    Fork the repo, explore the architecture, and build your fintech product on an open-source reference platform
+                    Fork the repository and study the architecture. Then build your own product on this open-source reference platform.
                 </p>
                 
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
@@ -439,8 +436,8 @@
                         <div class="text-gray-400">Open Source</div>
                     </div>
                     <div>
-                        <div class="text-3xl font-bold">∞</div>
-                        <div class="text-gray-400">Possibilities</div>
+                        <div class="text-3xl font-bold">61</div>
+                        <div class="text-gray-400">Domain Modules</div>
                     </div>
                 </div>
             </div>

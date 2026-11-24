@@ -15,22 +15,22 @@ class SubproductPagesTest extends TestCase
         $subproducts = [
             '/subproducts/exchange' => [
                 'title'       => 'FinAegis Exchange',
-                'description' => 'Exchange module demo: order matching',
+                'description' => 'The exchange module matches buy and sell orders',
                 'status'      => 'Sandbox Demo',
             ],
             '/subproducts/lending' => [
                 'title'       => 'FinAegis Lending',
-                'description' => 'P2P lending module demo',
+                'description' => 'The lending module handles peer-to-peer loans',
                 'status'      => 'Sandbox Demo',
             ],
             '/subproducts/stablecoins' => [
                 'title'       => 'FinAegis Stablecoins',
-                'description' => 'Stablecoin module: model issuance',
+                'description' => 'The stablecoin module models how a token is minted',
                 'status'      => 'Sandbox Demo',
             ],
             '/subproducts/treasury' => [
                 'title'       => 'FinAegis Treasury',
-                'description' => 'Treasury module demo: cash management',
+                'description' => 'The treasury module models cash allocation',
                 'status'      => 'Sandbox Demo',
             ],
         ];

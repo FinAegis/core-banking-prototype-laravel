@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'FAQ - Frequently Asked Questions | ' . config('brand.name', 'Zelta'),
-        'description' => 'Frequently asked questions about ' . config('brand.name', 'Zelta') . ' core banking platform, the GCU demo, architecture, and getting started.',
+        'description' => 'Answers to common questions about ' . config('brand.name', 'Zelta') . ', the open-source core banking platform. They cover the current version, the sandbox, the GCU demo, the technology and how to get started.',
     ])
     
     {{-- Schema.org FAQ Markup: built from the same strings as the visible answers below --}}
@@ -14,48 +14,47 @@
     $faqText = [
         'status' => [
             'question' => 'What is the current status of ' . $faqBrand . '?',
-            'intro' => $faqBrand . ' is a fully-featured open-source core banking platform at v7.13.2. The sandbox environment lets you:',
+            'intro' => $faqBrand . ' is an open-source reference platform for core banking software. The current version is v7.18.1. You can try it for free in the sandbox.',
             'items' => [
-                'Explore 61 domain modules including DeFi, cross-chain, privacy, MCP, and rewards',
-                'Test 1,400+ API routes and a 45-domain GraphQL API',
-                'Try KYC/AML workflow modules, the card-issuing integration adapter (sandbox), and mobile payments',
-                'All transactions use test data — no real funds are involved',
-                'Community feedback drives the roadmap forward',
+                'The platform has 61 domain modules. They include decentralised finance, cross-chain transfers, privacy, rewards and a Model Context Protocol server for AI agents.',
+                'It offers more than 1,000 API routes and a GraphQL API that covers 43 domains.',
+                'In the sandbox you can try the identity check and anti-money laundering modules, the card issuing layer in demo mode and the mobile payment features.',
+                'Every transaction in the sandbox uses test data, so no real money is involved.',
             ],
-            'outro' => 'Follow our GitHub repository for release notes and upcoming milestones.',
+            'outro' => 'The changelog and the GitHub repository list the changes in each release.',
         ],
         'money' => [
             'question' => 'Can I use real money on the platform now?',
-            'intro' => 'No. The sandbox environment is designed for evaluation and testing only:',
+            'intro' => 'No. The sandbox is for evaluation and testing only.',
             'items' => [
-                'All balances and transactions use test data',
-                'Bank and card-issuing integration adapters use sandbox endpoints',
-                'Currency conversions use reference rates, not live markets',
-                'Payment flows are fully functional but process no real funds',
+                'All balances and transactions use test data.',
+                'The bank and card issuing adapters connect to sandbox or demo endpoints.',
+                'Currency conversions use reference rates, not live market prices.',
+                'You can try the payment flows, but they move no real money.',
             ],
-            'outro' => 'This lets you explore every feature safely while we refine the platform.',
+            'outro' => 'This way you can try each feature without putting real funds at risk.',
         ],
         'start' => [
             'question' => 'How do I get started with ' . $faqBrand . '?',
-            'intro' => 'Getting started takes just a few minutes:',
+            'intro' => 'You can start in a few minutes.',
             'items' => [
-                'Register for a free account on the platform',
-                'Explore the sandbox features and test transactions',
-                'Report bugs and issues on our GitHub repository',
-                'Provide feedback via email at ' . config('brand.support_email', 'info@zelta.app'),
-                'Join discussions on our GitHub community forum',
+                'Register for a free sandbox account.',
+                'Try the sandbox features with test transactions.',
+                'Report bugs and problems on GitHub.',
+                'Send feedback by email to ' . config('brand.support_email', 'info@zelta.app') . '.',
+                'Ask questions in GitHub Discussions.',
             ],
-            'outro' => 'Your feedback helps us build a better platform for everyone.',
+            'outro' => 'You can also install the code on your own server. The README file on GitHub explains how.',
         ],
         'gcu' => [
             'question' => 'What is the Global Currency Unit (GCU)?',
-            'intro' => 'GCU demo — a reference implementation of a basket-referenced unit built with FinAegis, valued against a demo basket of USD, EUR, GBP, CHF, JPY and XAU (no reserves held).',
+            'intro' => 'The Global Currency Unit demo is a reference implementation of a basket-referenced unit built with FinAegis. Its value is calculated from a demo basket of US dollars, euros, British pounds, Swiss francs, Japanese yen and gold. No reserves are held.',
             'items' => [],
             'outro' => 'The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.',
         ],
         'voting' => [
             'question' => 'How does voting work in the GCU demo?',
-            'intro' => 'The GCU demo includes simulated basket "votes" with monthly cycles, proposals and transparent tallying. All votes and balances are simulated.',
+            'intro' => 'The GCU demo includes a simulated vote on the basket composition. Proposals run in monthly cycles, and everyone can see the tally. All votes and balances are simulated and have no monetary effect.',
             'items' => [],
             'outro' => '',
         ],
@@ -64,7 +63,7 @@
         'question' => $f['question'],
         'answer' => trim(implode(' ', array_filter([
             $f['intro'],
-            $f['items'] === [] ? '' : implode('; ', $f['items']) . '.',
+            $f['items'] === [] ? '' : implode(' ', $f['items']),
             $f['outro'],
         ], fn ($part) => $part !== ''))),
     ], $faqText));
@@ -102,7 +101,7 @@
             <div class="text-center">
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Frequently Asked Questions</h1>
                 <p class="text-xl text-slate-400 max-w-3xl mx-auto">
-                    Find answers to common questions about the {{ config('brand.name', 'Zelta') }} platform and the GCU demo.
+                    This page answers common questions about the {{ config('brand.name', 'Zelta') }} platform and the GCU demo.
                 </p>
 
                 <!-- Search Bar -->
@@ -236,17 +235,16 @@
                     </button>
                     <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-slate-500">
-                            Yes! {{ config('brand.name', 'Zelta') }} is fully open source under the Apache 2.0 license. This means:
+                            Yes. {{ config('brand.name', 'Zelta') }} is open source under the Apache 2.0 license.
                         </p>
                         <ul class="list-disc list-inside mt-2 text-slate-500 space-y-1">
-                            <li>You can view all source code on GitHub</li>
-                            <li>You can contribute improvements and features</li>
-                            <li>You can fork and modify the code for your needs</li>
-                            <li>You can use it for commercial purposes (with commercial license when available)</li>
-                            <li>The community helps drive development</li>
+                            <li>You can read all of the source code on GitHub.</li>
+                            <li>You can send improvements and new features as pull requests.</li>
+                            <li>You can fork the code and change it for your own needs.</li>
+                            <li>You can use it in commercial products under the terms of the license.</li>
                         </ul>
                         <p class="text-slate-500 mt-3">
-                            Visit our GitHub repository at: {{ config('brand.github_url') }}
+                            The repository is at {{ config('brand.github_url') }}.
                         </p>
                     </div>
                 </div>
@@ -299,19 +297,18 @@
                     </button>
                     <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-slate-500">
-                            {{ config('brand.name', 'Zelta') }} is built with modern, scalable technologies:
+                            {{ config('brand.name', 'Zelta') }} is a Laravel 12 application written in PHP 8.4.
                         </p>
                         <ul class="list-disc list-inside mt-2 text-slate-500 space-y-1">
-                            <li><strong>Backend:</strong> Laravel (PHP framework)</li>
-                            <li><strong>Frontend:</strong> Blade templates, Alpine.js, Tailwind CSS</li>
-                            <li><strong>Database:</strong> MySQL/PostgreSQL compatible</li>
-                            <li><strong>Queue:</strong> Laravel Queue with Redis</li>
-                            <li><strong>API:</strong> RESTful JSON API</li>
-                            <li><strong>Testing:</strong> PHPUnit and Pest</li>
-                            <li><strong>Admin:</strong> Laravel Filament</li>
+                            <li>The web pages use Blade templates, Livewire, Alpine.js and Tailwind CSS.</li>
+                            <li>The data is stored in MySQL, MariaDB or PostgreSQL.</li>
+                            <li>Redis runs the cache, the queues and the event streams.</li>
+                            <li>The platform offers a REST API with an OpenAPI description and a GraphQL API.</li>
+                            <li>The tests are written with Pest.</li>
+                            <li>The admin panel is built with Filament.</li>
                         </ul>
                         <p class="text-slate-500 mt-3">
-                            View the full tech stack on our GitHub repository.
+                            The README file on GitHub lists the full technology stack.
                         </p>
                     </div>
                 </div>
@@ -327,17 +324,15 @@
                     </button>
                     <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-slate-500">
-                            Currently, we have {{ config('platform.statistics.api_endpoints') }} core API endpoints available:
+                            The platform registers more than 1,000 API routes.
                         </p>
                         <ul class="list-disc list-inside mt-2 text-slate-500 space-y-1">
-                            <li>Authentication endpoints (login, register, logout)</li>
-                            <li>Account management endpoints</li>
-                            <li>Transaction endpoints (sandbox)</li>
-                            <li>Currency conversion endpoints</li>
-                            <li>User profile endpoints</li>
+                            <li>They cover sign-in, accounts, transactions, wallets and currency conversion.</li>
+                            <li>They also cover compliance checks, exchange, cards, AI agents and the other domain modules.</li>
+                            <li>The GraphQL API covers 43 domains.</li>
                         </ul>
                         <p class="text-slate-500 mt-3">
-                            More endpoints will be added as we develop additional features. Check our API documentation for the latest information.
+                            The API reference on the developer pages describes the main routes and their parameters.
                         </p>
                     </div>
                 </div>
@@ -354,17 +349,18 @@
                     </button>
                     <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-slate-500">
-                            We have an exciting roadmap ahead:
+                            Version 7.18.1 is the latest release.
                         </p>
                         <ul class="list-disc list-inside mt-2 text-slate-500 space-y-1">
-                            <li><strong>Delivered:</strong> 61 domain modules, 1,400+ API routes, GraphQL (45 domains), public MCP server, event sourcing</li>
-                            <li><strong>Delivered:</strong> Mobile app backend, passkey auth, card-issuing integration adapter, KYC/AML workflow modules</li>
-                            <li><strong>Delivered:</strong> Cross-chain bridges, DeFi connectors, X402 micropayments</li>
-                            <li><strong>Delivered:</strong> GCU demo (simulated voting), bank connector adapters (reference implementations)</li>
-                            <li><strong>Upcoming:</strong> Expanded mobile features</li>
+                            <li>Version 7.18.1 made asset transfers, wallet currency conversions and Global Currency Unit demo trades book the right amounts. It also lets the identity check in the card pilot start, and it saves the spending limit a person gives an AI assistant.</li>
+                            <li>Version 7.18.0 added virtual cards for a closed pilot. People in the pilot will be able to top up a card from their wallet, and the app shows approval codes for online card payments. Cards stay switched off until the pilot starts. Top-ups also stay switched off for now.</li>
+                            <li>Version 7.18.0 also removed two features that never worked. These are the liquidity pool add, remove and rebalance flow and saved bank accounts on the withdrawal page.</li>
+                            <li>Versions 7.17.0 and 7.17.1 were security releases.</li>
+                            <li>Earlier releases added the mobile wallet backend, passkey sign-in, wallet sends where the device holds the keys, the public Model Context Protocol server and x402 payments for APIs.</li>
+                            <li>Next, we plan to extend the mobile features.</li>
                         </ul>
                         <p class="text-slate-500 mt-3">
-                            Follow our GitHub repository for detailed progress updates.
+                            The changelog and the GitHub repository show what each release changed.
                         </p>
                     </div>
                 </div>
@@ -380,17 +376,18 @@
                     </button>
                     <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-slate-500">
-                            Yes! A cross-platform mobile app (Expo/React Native) is already available:
+                            Yes. The Zelta mobile wallet is built on this platform with Expo and React Native.
                         </p>
                         <ul class="list-disc list-inside mt-2 text-slate-500 space-y-1">
-                            <li>iOS and Android via a single Expo codebase</li>
-                            <li>Passkey and biometric authentication</li>
-                            <li>Push notifications via Firebase Cloud Messaging</li>
-                            <li>Payment intents, activity feed, and receipt management</li>
-                            <li>Privacy relayer and ERC-4337 smart account integration</li>
+                            <li>One codebase serves both iOS and Android.</li>
+                            <li>The Android version is in open testing on Google Play, and the iOS version is planned.</li>
+                            <li>People sign in with a passkey or with biometrics.</li>
+                            <li>Push notifications are sent through Firebase Cloud Messaging.</li>
+                            <li>The app shows payment requests, an activity feed and receipts.</li>
+                            <li>Sends on Ethereum-compatible networks use ERC-4337 smart accounts.</li>
                         </ul>
                         <p class="text-slate-500 mt-3">
-                            The web platform is also fully responsive and works well on mobile browsers.
+                            The web platform also works in mobile browsers.
                         </p>
                     </div>
                 </div>
@@ -399,14 +396,14 @@
                 <div class="mt-12 bg-indigo-50 rounded-xl p-8 text-center">
                     <h3 class="text-xl font-semibold text-slate-900 mb-4">Can't find what you're looking for?</h3>
                     <p class="text-slate-500 mb-6">
-                        Our team is here to help. Reach out any time.
+                        You can send us a message or ask the community on GitHub.
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
                         <a href="{{ route('support.contact') }}" class="btn-primary">
                             Contact Support
                         </a>
                         <a href="{{ config('brand.github_url') }}/discussions" class="btn-outline-dark">
-                            Community Forum
+                            GitHub Discussions
                         </a>
                     </div>
                 </div>

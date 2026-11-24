@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Cross-Chain & DeFi - ' . config('brand.name', 'Zelta'))
+@section('title', 'Cross-Chain and Decentralised Finance - ' . config('brand.name', 'Zelta'))
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Cross-Chain & DeFi Integration',
-        'description' => 'Bridge assets across blockchains and access DeFi protocols with ' . config('brand.name', 'Zelta') . '. Wormhole, LayerZero, Axelar bridges with Uniswap, Aave, Curve, and Lido connectors. Integration adapters for third-party APIs; no partnership or endorsement implied.',
-        'keywords' => 'cross-chain, DeFi, bridge protocol, Wormhole, LayerZero, Axelar, Uniswap, Aave, Curve, Lido, DEX aggregation, flash loans, multi-chain portfolio',
+        'title' => 'Cross-Chain and Decentralised Finance Integration',
+        'description' => 'The cross-chain module moves assets between blockchains through bridge adapters for Wormhole, Circle\'s Cross-Chain Transfer Protocol, LayerZero and Axelar. The decentralised finance module has connectors for Uniswap, Aave, Curve and Lido. Integration adapters for third-party APIs; no partnership or endorsement implied.',
+        'keywords' => 'cross-chain, DeFi, bridge protocol, Wormhole, Circle CCTP, LayerZero, Axelar, Uniswap, Aave, Curve, Lido, decentralised exchange, flash loans, multi-chain portfolio',
     ])
 
     {{-- Schema.org Markup --}}
@@ -14,7 +14,7 @@
     <x-schema type="breadcrumb" :data="[
         ['name' => 'Home', 'url' => url('/')],
         ['name' => 'Features', 'url' => url('/features')],
-        ['name' => 'Cross-Chain & DeFi', 'url' => url('/features/crosschain-defi')]
+        ['name' => 'Cross-Chain and Decentralised Finance', 'url' => url('/features/crosschain-defi')]
     ]" />
 @endsection
 
@@ -45,9 +45,9 @@
         <div class="absolute inset-0 bg-grid-pattern"></div>
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-24">
             <div class="text-center">
-                <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Cross-Chain & DeFi Integration</h1>
+                <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Cross-Chain and Decentralised Finance Integration</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    Bridge adapters and DeFi protocol connectors: DEX aggregation, lending and staking adapters for third-party protocols (e.g. Wormhole, LayerZero, Axelar). Integration adapters for third-party APIs; no partnership or endorsement implied.
+                    The cross-chain module moves assets from one blockchain to another through bridge adapters. The decentralised finance module connects to decentralised exchanges, lending protocols and staking protocols. Integration adapters for third-party APIs; no partnership or endorsement implied.
                 </p>
                 <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('register') }}" class="bg-white text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">
@@ -67,7 +67,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">Bridge Protocols</h2>
             <p class="text-lg text-slate-500 text-center max-w-2xl mx-auto mb-12">
-                Transfer assets between chains using adapters with ABI encoding and RPC integration for Wormhole, Circle CCTP, LayerZero, and Axelar, with automatic fee comparison.
+                The module has bridge adapters for Wormhole, Circle's Cross-Chain Transfer Protocol, LayerZero and Axelar. Each adapter builds the contract calls and sends them through a blockchain node. The module compares the fees of all bridges before a transfer.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -80,26 +80,26 @@
                     </div>
                     <h3 class="text-2xl font-bold mb-3">Wormhole</h3>
                     <p class="text-slate-500 mb-4">
-                        Adapter with EthRpcClient integration and ABI-encoded contract calls. Generic message-passing protocol supporting 30+ chains with guardian-validated security.
+                        Wormhole is a message-passing protocol. A network of guardians confirms each message. The adapter encodes the contract calls and sends them through the platform's blockchain client.
                     </p>
                     <ul class="space-y-2 text-sm text-gray-500">
                         <li class="flex items-center">
                             <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            30+ supported chains
+                            Message passing between chains
                         </li>
                         <li class="flex items-center">
                             <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Guardian network validation
+                            Messages confirmed by guardians
                         </li>
                         <li class="flex items-center">
                             <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Token and NFT bridging
+                            Token transfers between chains
                         </li>
                     </ul>
                 </div>
@@ -113,26 +113,26 @@
                     </div>
                     <h3 class="text-2xl font-bold mb-3">LayerZero</h3>
                     <p class="text-slate-500 mb-4">
-                        Ultra-light node protocol for omnichain interoperability. Low-cost messaging with configurable security via oracles and relayers.
+                        LayerZero is a messaging protocol that links many blockchains. Its security is set through oracles and relayers. The adapter uses LayerZero's token standard to move tokens.
                     </p>
                     <ul class="space-y-2 text-sm text-gray-500">
                         <li class="flex items-center">
                             <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Omnichain messaging
+                            Messages across many chains
                         </li>
                         <li class="flex items-center">
                             <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Configurable security model
+                            Security settings you can choose
                         </li>
                         <li class="flex items-center">
                             <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Low-latency transfers
+                            Token transfers between chains
                         </li>
                     </ul>
                 </div>
@@ -146,14 +146,14 @@
                     </div>
                     <h3 class="text-2xl font-bold mb-3">Axelar</h3>
                     <p class="text-slate-500 mb-4">
-                        Universal overlay network connecting all blockchains. Proof-of-stake security with General Message Passing for complex cross-chain logic.
+                        Axelar is a network that connects blockchains. Validators secure it through proof of stake. Its General Message Passing can carry contract calls from one chain to another.
                     </p>
                     <ul class="space-y-2 text-sm text-gray-500">
                         <li class="flex items-center">
                             <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            PoS-validated security
+                            Secured by proof of stake
                         </li>
                         <li class="flex items-center">
                             <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -165,7 +165,7 @@
                             <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            EVM, Solana, and Cosmos support
+                            Contract calls across chains
                         </li>
                     </ul>
                 </div>
@@ -173,12 +173,12 @@
         </div>
     </section>
 
-    <!-- DeFi Protocols -->
+    <!-- Decentralised Finance Protocols -->
     <section class="py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">DeFi Protocol Connectors</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">Decentralised Finance Protocol Connectors</h2>
             <p class="text-lg text-slate-500 text-center max-w-2xl mx-auto mb-12">
-                Connect to third-party DeFi protocols through a unified API. Swap, lend and stake via protocol adapters without managing multiple integrations.
+                One API connects to several third-party decentralised finance protocols. You can swap, lend and stake through it without building a separate integration for each protocol.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -190,9 +190,9 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-2">Uniswap V3</h3>
-                    <span class="inline-block bg-pink-100 text-pink-800 text-xs font-medium px-2 py-1 rounded mb-3">DEX</span>
+                    <span class="inline-block bg-pink-100 text-pink-800 text-xs font-medium px-2 py-1 rounded mb-3">Exchange</span>
                     <p class="text-slate-500 text-sm">
-                        Adapter with ABI-encoded swaps and RPC price quoting. Concentrated liquidity DEX with optimal price execution and multi-hop routing with slippage protection.
+                        Uniswap is a decentralised exchange. The adapter gets price quotes and builds swap transactions. It can route a swap through several pools and stops when the price moves past your slippage limit.
                     </p>
                 </div>
 
@@ -206,7 +206,7 @@
                     <h3 class="text-xl font-bold mb-2">Aave V3</h3>
                     <span class="inline-block bg-cyan-100 text-cyan-800 text-xs font-medium px-2 py-1 rounded mb-3">Lending</span>
                     <p class="text-slate-500 text-sm">
-                        Adapter with ABI-encoded supply, borrow, and repay operations via EthRpcClient, with flash loan support.
+                        Aave is a lending protocol. The adapter can supply, borrow and repay assets. It also supports flash loans.
                     </p>
                 </div>
 
@@ -220,7 +220,7 @@
                     <h3 class="text-xl font-bold mb-2">Curve Finance</h3>
                     <span class="inline-block bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-1 rounded mb-3">Stableswap</span>
                     <p class="text-slate-500 text-sm">
-                        Optimized AMM adapter for stablecoin and pegged-asset swaps.
+                        Curve is an exchange built for stablecoins and other pegged assets. The adapter swaps between them.
                     </p>
                 </div>
 
@@ -234,7 +234,7 @@
                     <h3 class="text-xl font-bold mb-2">Lido</h3>
                     <span class="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded mb-3">Liquid Staking</span>
                     <p class="text-slate-500 text-sm">
-                        Liquid-staking adapter for the Lido protocol (stETH).
+                        Lido is a liquid staking protocol. The adapter stakes ether and receives stETH in return.
                     </p>
                 </div>
             </div>
@@ -246,14 +246,14 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">API Endpoints</h2>
             <p class="text-lg text-slate-500 text-center max-w-2xl mx-auto mb-12">
-                A unified REST API for cross-chain bridging and DeFi operations. All endpoints require Bearer token authentication.
+                One REST API covers bridging and decentralised finance. Every endpoint needs a bearer token.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <!-- Cross-Chain Endpoints -->
                 <div class="protocol-card card-feature !p-8">
                     <h3 class="text-2xl font-bold mb-4">Cross-Chain Bridging</h3>
-                    <p class="text-slate-500 mb-6">Discover chains, get quotes, and initiate bridge transfers across networks.</p>
+                    <p class="text-slate-500 mb-6">These endpoints list the chains, return quotes and start bridge transfers.</p>
                     <div class="space-y-3">
                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                             <div class="flex items-center">
@@ -276,10 +276,10 @@
                     </div>
                 </div>
 
-                <!-- DeFi Endpoints -->
+                <!-- Decentralised Finance Endpoints -->
                 <div class="protocol-card card-feature !p-8">
-                    <h3 class="text-2xl font-bold mb-4">DeFi Operations</h3>
-                    <p class="text-slate-500 mb-6">Swap tokens and track portfolios.</p>
+                    <h3 class="text-2xl font-bold mb-4">Decentralised Finance Operations</h3>
+                    <p class="text-slate-500 mb-6">These endpoints quote swaps and show portfolios.</p>
                     <div class="space-y-3">
                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                             <div class="flex items-center">
@@ -343,26 +343,26 @@ console.log('ETA:', quotes[0].estimated_time);</code></pre>
                         <h3 class="text-2xl font-bold">Multi-Chain Portfolio</h3>
                     </div>
                     <p class="text-slate-500 mb-4">
-                        Unified view of assets across all supported blockchains. Real-time balance aggregation, historical performance tracking, and chain-specific analytics.
+                        The portfolio view shows assets from all supported blockchains in one place. It adds up the balances and tracks how they change over time.
                     </p>
                     <ul class="space-y-2 text-sm text-gray-500">
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Aggregate balances from Ethereum, Polygon, Arbitrum, Solana, BSC, and more
+                            Balances from Ethereum, Polygon, Arbitrum, Optimism, Base, BNB Smart Chain, Solana and Tron
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Real-time USD valuation with price feeds
+                            Values in US dollars from price feeds
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Chain distribution and exposure analysis
+                            How much is held on each chain
                         </li>
                     </ul>
                 </div>
@@ -378,26 +378,26 @@ console.log('ETA:', quotes[0].estimated_time);</code></pre>
                         <h3 class="text-2xl font-bold">Cross-Chain Swaps</h3>
                     </div>
                     <p class="text-slate-500 mb-4">
-                        Swap tokens across different blockchains in a single transaction. Bridge and DEX operations are orchestrated automatically for the best execution price.
+                        A cross-chain swap moves a token to another blockchain and swaps it there. The module runs the bridge step and the swap step as one saga. If a step fails, the saga undoes the steps before it.
                     </p>
                     <ul class="space-y-2 text-sm text-gray-500">
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Atomic bridge-and-swap in one API call
+                            Bridge and swap in one API call
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Automatic slippage protection and MEV resistance
+                            Slippage limits on every swap
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Multi-provider routing for optimal fees
+                            Fee comparison across bridges
                         </li>
                     </ul>
                 </div>
@@ -413,26 +413,26 @@ console.log('ETA:', quotes[0].estimated_time);</code></pre>
                         <h3 class="text-2xl font-bold">Flash Loans</h3>
                     </div>
                     <p class="text-slate-500 mb-4">
-                        Execute uncollateralized loans within a single transaction. Ideal for arbitrage, collateral swaps, and liquidation strategies with zero upfront capital.
+                        A flash loan is borrowed and repaid within one transaction, so it needs no collateral. Developers use it for collateral swaps and similar strategies.
                     </p>
                     <ul class="space-y-2 text-sm text-gray-500">
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Aave V3 flash loan integration
+                            Flash loans through Aave V3
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Multi-asset flash loan batching
+                            Fee estimate before each loan
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Built-in arbitrage opportunity detection
+                            Availability check for each chain
                         </li>
                     </ul>
                 </div>
@@ -445,7 +445,7 @@ console.log('ETA:', quotes[0].estimated_time);</code></pre>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">How It Works</h2>
             <p class="text-lg text-slate-500 text-center max-w-2xl mx-auto mb-12">
-                A unified orchestration layer routes operations through the optimal bridge and DeFi protocols based on cost, speed, and security requirements.
+                An orchestration layer chooses the bridge or protocol for each operation. It compares cost, speed and security.
             </p>
 
             <div class="max-w-4xl mx-auto">
@@ -479,9 +479,9 @@ console.log('ETA:', quotes[0].estimated_time);</code></pre>
     <section class="bg-fa-navy relative overflow-hidden">
         <div class="absolute inset-0 bg-dot-pattern"></div>
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Go Multi-Chain Today</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Try Cross-Chain Operations</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                Bridge assets and connect to DeFi protocols across blockchains with a single API integration.
+                The sandbox runs these operations with demo adapters and test data. One API integration covers bridging and decentralised finance.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">

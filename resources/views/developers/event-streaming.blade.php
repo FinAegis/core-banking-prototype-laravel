@@ -7,8 +7,8 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Event Streaming - ' . $brand . ' Developer Documentation',
-        'description' => $brand . ' Event Streaming — Redis Streams publisher/consumer for real-time domain event processing across 15 domains.',
-        'keywords' => $brand . ', event streaming, Redis Streams, pub/sub, domain events, consumer groups',
+        'description' => 'Event streaming in ' . $brand . ' publishes domain events to Redis Streams for 15 domains. Workers in consumer groups read the events as they arrive.',
+        'keywords' => $brand . ', event streaming, Redis Streams, publish and subscribe, domain events, consumer groups',
     ])
 @endsection
 
@@ -36,7 +36,7 @@
             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-white/80 border border-white/20 mb-4">15 Domain Streams</span>
             <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Event Streaming</h1>
             <p class="text-xl text-white/80 max-w-2xl mx-auto">
-                Redis Streams-based pub/sub for real-time domain event processing with consumer group support.
+                Event streaming sends domain events through Redis Streams as they happen. Workers in consumer groups share the reading and processing.
             </p>
         </div>
     </div>
@@ -51,17 +51,17 @@
             <div class="border border-slate-200 rounded-xl p-5 text-center">
                 <div class="text-3xl mb-2">1</div>
                 <h3 class="font-semibold mb-2">Publish</h3>
-                <p class="text-sm text-slate-600">Domain services publish events to isolated Redis Streams per domain.</p>
+                <p class="text-sm text-slate-600">Domain services publish their events. Each domain has its own Redis Stream.</p>
             </div>
             <div class="border border-slate-200 rounded-xl p-5 text-center">
                 <div class="text-3xl mb-2">2</div>
                 <h3 class="font-semibold mb-2">Stream</h3>
-                <p class="text-sm text-slate-600">Redis Streams stores events with consumer group support and automatic trimming.</p>
+                <p class="text-sm text-slate-600">Redis Streams keeps the events for the consumer groups. It trims old entries when a stream reaches its maximum length.</p>
             </div>
             <div class="border border-slate-200 rounded-xl p-5 text-center">
                 <div class="text-3xl mb-2">3</div>
                 <h3 class="font-semibold mb-2">Consume</h3>
-                <p class="text-sm text-slate-600">Workers read batches, process events, and acknowledge. Failed messages auto-redeliver.</p>
+                <p class="text-sm text-slate-600">Workers read events in batches, process them and confirm each one. A message that is not confirmed is delivered again.</p>
             </div>
         </div>
 
@@ -120,25 +120,25 @@
 <section class="bg-slate-50 py-16">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-3xl font-bold mb-4">Available Streams</h2>
-        <p class="text-slate-600 mb-8">Each domain publishes to an isolated Redis Stream. Stream keys are prefixed with <code class="code-font bg-slate-200 px-1.5 py-0.5 rounded">EVENT_STREAMING_PREFIX</code> (default: <code class="code-font bg-slate-200 px-1.5 py-0.5 rounded">{{ config('event-streaming.prefix', 'events') }}</code>).</p>
+        <p class="text-slate-600 mb-8">Each domain publishes to its own Redis Stream. The stream keys start with the value of <code class="code-font bg-slate-200 px-1.5 py-0.5 rounded">EVENT_STREAMING_PREFIX</code>, which is <code class="code-font bg-slate-200 px-1.5 py-0.5 rounded">{{ config('event-streaming.prefix', 'finaegis:events') }}</code> here.</p>
 
         @php
         $streams = [
-            ['domain' => 'account', 'stream' => 'account-events', 'desc' => 'Account created, updated, frozen, balance changes'],
-            ['domain' => 'exchange', 'stream' => 'exchange-events', 'desc' => 'Orders placed, matched, cancelled, trades'],
-            ['domain' => 'wallet', 'stream' => 'wallet-events', 'desc' => 'Wallet created, transfers, multi-sig approvals'],
-            ['domain' => 'compliance', 'stream' => 'compliance-events', 'desc' => 'KYC submissions, AML alerts, sanctions screens'],
+            ['domain' => 'account', 'stream' => 'account-events', 'desc' => 'Accounts created, updated and frozen, balance changes'],
+            ['domain' => 'exchange', 'stream' => 'exchange-events', 'desc' => 'Orders placed, matched and cancelled, trades'],
+            ['domain' => 'wallet', 'stream' => 'wallet-events', 'desc' => 'Wallets created, transfers, multi-signature approvals'],
+            ['domain' => 'compliance', 'stream' => 'compliance-events', 'desc' => 'Identity check submissions, anti-money laundering alerts, sanctions screening'],
             ['domain' => 'lending', 'stream' => 'lending-events', 'desc' => 'Loan applications, approvals, disbursements'],
-            ['domain' => 'treasury', 'stream' => 'treasury-events', 'desc' => 'Portfolio rebalancing, NAV calculations'],
+            ['domain' => 'treasury', 'stream' => 'treasury-events', 'desc' => 'Portfolio rebalancing, net asset value calculations'],
             ['domain' => 'payment', 'stream' => 'payment-events', 'desc' => 'Deposits, withdrawals, transfer completions'],
             ['domain' => 'fraud', 'stream' => 'fraud-events', 'desc' => 'Fraud alerts, case escalations, pattern detections'],
             ['domain' => 'mobile', 'stream' => 'mobile-events', 'desc' => 'Device registrations, session events'],
             ['domain' => 'mobile-payment', 'stream' => 'mobile-payment-events', 'desc' => 'Payment intents, receipt generation'],
             ['domain' => 'trust-cert', 'stream' => 'trust-cert-events', 'desc' => 'Certificate issuance, revocation'],
             ['domain' => 'cross-chain', 'stream' => 'cross-chain-events', 'desc' => 'Bridge transfers, completions'],
-            ['domain' => 'defi', 'stream' => 'defi-events', 'desc' => 'Position opens/closes, yield claims'],
+            ['domain' => 'defi', 'stream' => 'defi-events', 'desc' => 'Positions opened and closed, swaps'],
             ['domain' => 'stablecoin', 'stream' => 'stablecoin-events', 'desc' => 'Minting, redemption, collateral changes'],
-            ['domain' => 'privacy', 'stream' => 'privacy-events', 'desc' => 'Shield/unshield, proof generation'],
+            ['domain' => 'privacy', 'stream' => 'privacy-events', 'desc' => 'Identity proofs, delegated proof progress'],
         ];
         @endphp
 
@@ -187,14 +187,14 @@
                 <div class="space-y-2 text-sm">
                     @php
                     $configs = [
-                        ['EVENT_STREAMING_ENABLED', 'false', 'Enable/disable streaming'],
+                        ['EVENT_STREAMING_ENABLED', 'false', 'Turns streaming on or off'],
                         ['EVENT_STREAMING_REDIS_CONNECTION', 'default', 'Redis connection name'],
-                        ['EVENT_STREAMING_PREFIX', '{{ config('event-streaming.prefix', 'events') }}', 'Stream key prefix'],
-                        ['EVENT_STREAMING_MAX_LENGTH', '100000', 'Max entries per stream'],
-                        ['EVENT_STREAMING_CONSUMER_GROUP', '{{ config('event-streaming.consumer_group', 'consumers') }}', 'Consumer group name'],
-                        ['EVENT_STREAMING_BLOCK_TIMEOUT', '5000', 'Read block timeout (ms)'],
+                        ['EVENT_STREAMING_PREFIX', (string) config('event-streaming.prefix', 'finaegis:events'), 'Stream key prefix'],
+                        ['EVENT_STREAMING_MAX_LENGTH', '100000', 'Maximum entries per stream'],
+                        ['EVENT_STREAMING_CONSUMER_GROUP', (string) config('event-streaming.consumer_group', 'finaegis-consumers'), 'Consumer group name'],
+                        ['EVENT_STREAMING_BLOCK_TIMEOUT', '5000', 'Read wait time in milliseconds'],
                         ['EVENT_STREAMING_BATCH_SIZE', '100', 'Messages per read'],
-                        ['EVENT_STREAMING_IDLE_TIMEOUT', '30000', 'Idle message reclaim (ms)'],
+                        ['EVENT_STREAMING_IDLE_TIMEOUT', '30000', 'Idle time in milliseconds before another worker can claim a message'],
                         ['EVENT_STREAMING_TTL_HOURS', '168', 'Retention period (7 days)'],
                     ];
                     @endphp
@@ -225,7 +225,7 @@ php artisan event-stream:monitor --json             <span class="text-slate-500"
 <section class="bg-slate-50 py-16">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-2xl font-bold mb-4">Consumer Group Operations</h2>
-        <p class="text-slate-600 mb-6">Consumer groups enable fault-tolerant parallel processing. Multiple workers share the load; failed messages are automatically reclaimed.</p>
+        <p class="text-slate-600 mb-6">A consumer group lets several workers share one stream. If a worker stops, another worker claims its unconfirmed messages.</p>
 
         <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
             <table class="w-full text-sm">
@@ -236,12 +236,12 @@ php artisan event-stream:monitor --json             <span class="text-slate-500"
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">createConsumerGroup($domain, $startId)</code></td><td class="px-4 py-2.5 text-slate-600">Create group. <code class="code-font">'0'</code> = from beginning, <code class="code-font">'$'</code> = new only</td></tr>
-                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">consume($domain, $consumerName)</code></td><td class="px-4 py-2.5 text-slate-600">Block-read batch of messages for this consumer</td></tr>
-                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">acknowledge($domain, $messageId)</code></td><td class="px-4 py-2.5 text-slate-600">Mark message processed (prevents redelivery)</td></tr>
-                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">getPending($domain)</code></td><td class="px-4 py-2.5 text-slate-600">List unacknowledged messages</td></tr>
-                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">claimIdleMessages($domain, $consumer)</code></td><td class="px-4 py-2.5 text-slate-600">Reclaim messages from dead consumers</td></tr>
-                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">getConsumerGroupInfo($domain)</code></td><td class="px-4 py-2.5 text-slate-600">Group metadata: consumers, pending count</td></tr>
+                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">createConsumerGroup($domain, $startId)</code></td><td class="px-4 py-2.5 text-slate-600">Creates the group. Start at <code class="code-font">'0'</code> to read from the beginning, or at <code class="code-font">'$'</code> to read only new messages.</td></tr>
+                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">consume($domain, $consumerName)</code></td><td class="px-4 py-2.5 text-slate-600">Waits for and reads a batch of messages for this consumer</td></tr>
+                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">acknowledge($domain, $messageId)</code></td><td class="px-4 py-2.5 text-slate-600">Marks a message as processed, so it is not delivered again</td></tr>
+                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">getPending($domain)</code></td><td class="px-4 py-2.5 text-slate-600">Lists messages that are not confirmed yet</td></tr>
+                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">claimIdleMessages($domain, $consumer)</code></td><td class="px-4 py-2.5 text-slate-600">Takes over messages from consumers that stopped</td></tr>
+                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">getConsumerGroupInfo($domain)</code></td><td class="px-4 py-2.5 text-slate-600">Shows the group's consumers and the number of waiting messages</td></tr>
                 </tbody>
             </table>
         </div>

@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'API Documentation - ' . config('brand.name', 'Zelta'),
-        'description' => 'Complete reference documentation for the ' . config('brand.name', 'Zelta') . ' REST API with interactive examples and code samples.',
+        'description' => 'Reference for the ' . config('brand.name', 'Zelta') . ' REST API. Each endpoint has a short description and a sample request.',
         'keywords' => config('brand.name', 'Zelta') . ' API, REST API, API documentation, developer reference',
     ])
 @endsection
@@ -20,7 +20,7 @@
                         API Documentation
                     </h1>
                     <p class="mt-6 text-xl text-gray-300 max-w-3xl mx-auto">
-                        Complete reference documentation for the {{ config('brand.name', 'Zelta') }} REST API with interactive examples and code samples.
+                        This is the reference for the {{ config('brand.name', 'Zelta') }} REST API. Each endpoint has a short description and a sample request.
                     </p>
                 </div>
             </div>
@@ -38,10 +38,10 @@
                     <a href="#gcu" class="text-gray-600 hover:text-gray-900">GCU</a>
                     <a href="#baskets" class="text-gray-600 hover:text-gray-900">Baskets</a>
                     <a href="#crosschain" class="text-cyan-600 hover:text-cyan-800">CrossChain</a>
-                    <a href="#defi" class="text-emerald-600 hover:text-emerald-800">DeFi</a>
+                    <a href="#defi" class="text-emerald-600 hover:text-emerald-800">Decentralised Finance</a>
                     <a href="#regtech" class="text-amber-600 hover:text-amber-800">RegTech</a>
                     <a href="#mobile-payment" class="text-violet-600 hover:text-violet-800">Mobile Payment</a>
-                    <a href="#partner-baas" class="text-rose-600 hover:text-rose-800">Partner BaaS</a>
+                    <a href="#partner-baas" class="text-rose-600 hover:text-rose-800">Partner API</a>
                     <a href="#sms" class="text-orange-600 hover:text-orange-800">SMS</a>
                     <a href="#ai" class="text-gray-600 hover:text-gray-900">AI</a>
                     <a href="#graphql" class="text-sky-600 hover:text-sky-800">GraphQL</a>
@@ -55,7 +55,6 @@
                     <a href="#microfinance" class="text-green-600 hover:text-green-800">Microfinance</a>
                     <a href="#webhooks" class="text-gray-600 hover:text-gray-900">Webhooks</a>
                     <a href="#rate-limits" class="text-gray-600 hover:text-gray-900">Rate Limits</a>
-                    <a href="#errors" class="text-gray-600 hover:text-gray-900">Errors</a>
                 </nav>
             </div>
         </div>
@@ -66,7 +65,7 @@
                 <svg class="w-6 h-6 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                 <div>
                     <p class="font-semibold text-blue-900">OpenAPI 3.0 Specification</p>
-                    <p class="text-sm text-blue-700">Import into Postman, Insomnia, or any OpenAPI-compatible tool.</p>
+                    <p class="text-sm text-blue-700">You can import it into Postman, Insomnia or any tool that reads OpenAPI.</p>
                 </div>
                 <a href="/api/documentation" target="_blank" class="ml-auto px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition">
                     View Swagger UI &rarr;
@@ -83,15 +82,17 @@
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Getting Started</h2>
                         
                         <div class="prose prose-lg max-w-none">
-                            <p>The {{ config('brand.name', 'Zelta') }} API provides programmatic access to our multi-asset banking platform spanning 61 DDD domains with over 1,400 routes. Our API is organized around REST principles with predictable, resource-oriented URLs. Domains include core banking, CrossChain bridging, DeFi protocols, RegTech compliance, Mobile Payment, Partner BaaS, ISO 20022, Open Banking, US Payment Rails, and AI-powered queries.</p>
+                            <p>The {{ config('brand.name', 'Zelta') }} API gives programs access to the platform. The platform has 61 domain modules and more than 1,000 API routes. The API follows REST conventions, so each resource has its own predictable address.</p>
+                            <p>The API covers core banking, cross-chain transfers, decentralised finance, reporting modules, mobile payments, the Partner API, ISO 20022, open banking, United States payment rails and AI queries.</p>
                             
                             <h3>Base URL</h3>
+                            <p>Core banking endpoints live under <code>/api/v2</code>. Newer modules live under <code>/api/v1</code> or under their own prefix, as each section below shows.</p>
                             <x-code-block language="plaintext">
 {{ config('app.url') }}/api/v2
                             </x-code-block>
                             
                             <h3>Response Format</h3>
-                            <p>All API responses are returned in JSON format with a consistent structure:</p>
+                            <p>Every response is JSON. Most responses use this structure.</p>
                             
                             <x-code-block language="json">
 {
@@ -108,18 +109,18 @@
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Authentication</h2>
                         
                         <div class="prose prose-lg max-w-none">
-                            <p>The {{ config('brand.name', 'Zelta') }} API uses API keys to authenticate requests. You can generate and manage your API keys in your dashboard.</p>
+                            <p>The {{ config('brand.name', 'Zelta') }} API checks an API key on each request. You create and manage your API keys in your dashboard.</p>
                             
                             <h3>Creating API Keys</h3>
                             <ol>
-                                <li>Log in to your {{ config('brand.name', 'Zelta') }} account</li>
-                                <li>Navigate to <a href="{{ route('api-keys.index') }}" class="text-blue-600 hover:text-blue-800">API Keys</a> in your dashboard</li>
-                                <li>Click "Create New Key" and configure permissions</li>
-                                <li>Copy the generated key immediately (it won't be shown again)</li>
+                                <li>Sign in to your {{ config('brand.name', 'Zelta') }} account.</li>
+                                <li>Navigate to <a href="{{ route('api-keys.index') }}" class="text-blue-600 hover:text-blue-800">API Keys</a> in your dashboard.</li>
+                                <li>Click "Create New Key" and choose its permissions.</li>
+                                <li>Copy the key right away, because it is shown only once.</li>
                             </ol>
                             
                             <h3>API Key Authentication</h3>
-                            <p>Include your API key in the Authorization header:</p>
+                            <p>Send your API key in the Authorization header.</p>
                             
                             <x-code-block language="bash">
 curl -H "Authorization: Bearer fak_your_api_key_here" \
@@ -129,19 +130,19 @@ curl -H "Authorization: Bearer fak_your_api_key_here" \
                             
                             <h3>API Key Security</h3>
                             <ul>
-                                <li><strong>Permissions:</strong> Grant only the minimum required permissions (read, write, delete)</li>
-                                <li><strong>IP Whitelist:</strong> Restrict API key usage to specific IP addresses</li>
-                                <li><strong>Expiration:</strong> Set expiration dates for temporary keys</li>
-                                <li><strong>Rotation:</strong> Regularly rotate your API keys</li>
-                                <li><strong>Storage:</strong> Never commit API keys to version control</li>
+                                <li><strong>Permissions:</strong> Give a key only the permissions it needs, from read, write and delete.</li>
+                                <li><strong>Allowed addresses:</strong> Limit a key to the network addresses you name.</li>
+                                <li><strong>Expiry:</strong> Set an expiry date for a temporary key.</li>
+                                <li><strong>Rotation:</strong> Replace your keys at regular intervals.</li>
+                                <li><strong>Storage:</strong> Never commit an API key to version control.</li>
                             </ul>
                             
-                            <h3>Sandbox vs Production</h3>
+                            <h3>Demo and Self-Hosted Servers</h3>
                             <div class="mb-2">
                                 <span class="font-semibold text-slate-700">Base URL:</span>
                                 <code class="bg-slate-100 px-2 py-1 rounded text-sm">{{ config('app.url') }}/api/v2</code>
                             </div>
-                            <p class="text-sm text-slate-500">Sandbox and production use the same base URL. Your API key determines the environment. Sandbox keys start with <code>sk_sandbox_</code>, production keys start with <code>sk_live_</code>.</p>
+                            <p class="text-sm text-slate-500">Each deployment has its own base URL. The public demo uses test data only. API keys start with <code>fak_</code>.</p>
                         </div>
                     </section>
 
@@ -158,7 +159,7 @@ curl -H "Authorization: Bearer fak_your_api_key_here" \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Retrieve a list of all accounts for the authenticated user.</p>
+                                <p class="text-gray-600 mb-4">This endpoint lists the accounts of the signed-in user.</p>
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
@@ -175,7 +176,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Retrieve detailed information about a specific account.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns one account.</p>
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
@@ -192,7 +193,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Get current balances for all assets in an account.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns the balance of each asset in an account.</p>
                                 
                                 <x-code-block language="json">
 {
@@ -236,7 +237,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Get a paginated list of all transactions.</p>
+                                <p class="text-gray-600 mb-4">This endpoint lists transactions, one page at a time.</p>
                                 
                                 <h4 class="font-semibold mb-2">Query Parameters:</h4>
                                 <ul class="list-disc list-inside text-gray-600 mb-4 space-y-1">
@@ -261,7 +262,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Deposit funds into an account.</p>
+                                <p class="text-gray-600 mb-4">This endpoint adds funds to an account.</p>
                                 
                                 <x-code-block language="bash">
 curl -X POST \
@@ -285,7 +286,7 @@ curl -X POST \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Withdraw funds from an account.</p>
+                                <p class="text-gray-600 mb-4">This endpoint takes funds out of an account.</p>
                                 
                                 <x-code-block language="bash">
 curl -X POST \
@@ -315,7 +316,7 @@ curl -X POST \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Create a new transfer between accounts.</p>
+                                <p class="text-gray-600 mb-4">This endpoint creates a transfer between two accounts.</p>
                                 
                                 <x-code-block language="bash">
 curl -X POST \
@@ -342,7 +343,7 @@ curl -X POST \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Get transfer history for a specific account.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns the transfer history of one account.</p>
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
@@ -360,7 +361,7 @@ curl -H "Authorization: Bearer your_api_key" \
                         </div>
 
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>The GCU endpoints provide access to real-time data about the Global Currency Unit, including its composition, value history, and governance information. The GCU is a software demonstration; values, balances and votes returned by these endpoints are simulated and have no monetary value.</p>
+                            <p>The GCU endpoints return data about the Global Currency Unit demo. They cover its composition, its value history and its simulated governance. The GCU is a software demonstration. The values, balances and votes these endpoints return are simulated and have no monetary value.</p>
                         </div>
                         
                         <div class="space-y-8">
@@ -373,7 +374,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Get current information about the Global Currency Unit including composition and value.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns the current composition and value of the GCU demo.</p>
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
@@ -382,7 +383,7 @@ curl -H "Authorization: Bearer your_api_key" \
                             </div>
 
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">Get Real-time GCU Composition</h3>
+                                <h3 class="text-xl font-semibold mb-4">Get GCU Composition</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
@@ -390,7 +391,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Get detailed real-time composition data including current weights, values, and recent changes for each component asset.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns each component asset of the demo basket. It shows the current weight, the value and recent changes.</p>
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
@@ -456,7 +457,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Get historical value data for the Global Currency Unit.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns the value history of the GCU demo.</p>
                                 
                                 <h4 class="font-semibold mb-2">Query Parameters:</h4>
                                 <ul class="list-disc list-inside text-gray-600 mb-4 space-y-1">
@@ -473,7 +474,7 @@ curl -H "Authorization: Bearer your_api_key" \
                             <!-- Voting Endpoints -->
                             <div class="mt-12 mb-6">
                                 <h3 class="text-2xl font-semibold text-gray-900">Basket Voting (Simulated)</h3>
-                                <p class="text-gray-600 mt-2">The GCU demo voting endpoints simulate monthly basket "votes".</p>
+                                <p class="text-gray-600 mt-2">The voting endpoints of the GCU demo simulate monthly basket "votes".</p>
                             </div>
 
                             <div class="border rounded-lg p-6 mb-6">
@@ -485,7 +486,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Get all voting proposals with optional status filtering.</p>
+                                <p class="text-gray-600 mb-4">This endpoint lists the voting proposals. You can filter them by status.</p>
                                 
                                 <h4 class="font-semibold mb-2">Query Parameters:</h4>
                                 <ul class="list-disc list-inside text-gray-600 mb-4 space-y-1">
@@ -507,7 +508,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Get detailed information about a specific voting proposal.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns one voting proposal.</p>
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
@@ -527,7 +528,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Cast your vote on a proposal. Voting weight is computed from simulated demo balances.</p>
+                                <p class="text-gray-600 mb-4">This endpoint casts a vote on a proposal. The voting weight comes from simulated demo balances.</p>
                                 
                                 <h4 class="font-semibold mb-2">Request Body:</h4>
                                 <x-code-block language="json">
@@ -557,7 +558,7 @@ curl -X POST \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Get your voting history across all proposals.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns your votes on all proposals.</p>
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
@@ -571,7 +572,7 @@ curl -H "Authorization: Bearer your_api_key" \
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Baskets</h2>
                         
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>Baskets are multi-asset currency units that can be composed and decomposed. The GCU demo is the reference basket.</p>
+                            <p>A basket is a unit made of several assets. You can compose a basket from its assets and decompose it back. The GCU demo is the reference basket.</p>
                         </div>
                         
                         <div class="space-y-8">
@@ -584,7 +585,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Get a list of all available baskets.</p>
+                                <p class="text-gray-600 mb-4">This endpoint lists the available baskets.</p>
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
@@ -601,7 +602,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Get detailed information about a specific basket.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns one basket.</p>
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
@@ -618,7 +619,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Convert individual assets into basket units.</p>
+                                <p class="text-gray-600 mb-4">This endpoint turns individual assets into basket units.</p>
                                 
                                 <x-code-block language="bash">
 curl -X POST \
@@ -641,7 +642,7 @@ curl -X POST \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Convert basket units back to individual assets.</p>
+                                <p class="text-gray-600 mb-4">This endpoint turns basket units back into individual assets.</p>
                                 
                                 <x-code-block language="bash">
 curl -X POST \
@@ -661,7 +662,7 @@ curl -X POST \
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Webhooks</h2>
                         
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>Webhooks allow you to receive real-time notifications when events occur in your {{ config('brand.name', 'Zelta') }} account.</p>
+                            <p>A webhook sends a notification to your server when an event happens on the platform. Only platform administrators can manage webhooks, because a webhook receives every subscribed event.</p>
                         </div>
                         
                         <div class="space-y-8">
@@ -674,7 +675,7 @@ curl -X POST \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Get a list of all available webhook event types.</p>
+                                <p class="text-gray-600 mb-4">This endpoint lists the event types you can subscribe to.</p>
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
@@ -691,7 +692,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Create a new webhook endpoint.</p>
+                                <p class="text-gray-600 mb-4">This endpoint creates a webhook. The address must use HTTPS.</p>
                                 
                                 <x-code-block language="bash">
 curl -X POST \
@@ -715,7 +716,7 @@ curl -X POST \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Get all webhook endpoints for your account.</p>
+                                <p class="text-gray-600 mb-4">This endpoint lists the configured webhooks.</p>
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
@@ -732,7 +733,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                     </div>
                                 </div>
                                 
-                                <p class="text-gray-600 mb-4">Get delivery history for a specific webhook.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns the delivery history of one webhook.</p>
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
@@ -747,98 +748,118 @@ curl -H "Authorization: Bearer your_api_key" \
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">CrossChain API</h2>
 
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>The CrossChain API enables multi-chain operations including bridge transfers via Wormhole, LayerZero, and Axelar protocols. Compare bridge fees, execute cross-chain swaps, and track portfolios across multiple blockchains. Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
-                            <p class="text-sm text-gray-500">7 routes &middot; <a href="/api/documentation#/CrossChain" target="_blank" class="text-cyan-600 hover:text-cyan-800">View in Swagger UI</a></p>
+                            <p>The cross-chain API moves tokens between networks. It quotes and starts bridge transfers through adapters for Wormhole, LayerZero and Axelar, and it quotes and runs swaps between networks. Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
+                            <p class="text-sm text-gray-500">6 routes &middot; <a href="/api/documentation#/CrossChain" target="_blank" class="text-cyan-600 hover:text-cyan-800">View in Swagger UI</a></p>
                         </div>
 
                         <div class="space-y-8">
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">Initiate Bridge Transfer</h3>
+                                <h3 class="text-xl font-semibold mb-4">Bridge Quote</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
-                                        <span class="ml-2 font-mono text-sm">/crosschain/bridge</span>
+                                        <span class="ml-2 font-mono text-sm">/v1/crosschain/bridge/quote</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Initiate a cross-chain bridge transfer through Wormhole, LayerZero, or Axelar.</p>
+                                <p class="text-gray-600 mb-4">This endpoint asks every available bridge adapter for a quote. You can compare their fees and times.</p>
                                 <x-code-block language="bash">
 curl -X POST \
   -H "Authorization: Bearer your_api_key" \
   -H "Content-Type: application/json" \
   -d '{
-    "source_chain": "ethereum",
-    "destination_chain": "polygon",
+    "from_chain": "ethereum",
+    "to_chain": "arbitrum",
     "token": "USDC",
-    "amount": "1000.00",
-    "protocol": "wormhole"
+    "amount": "5000.00"
   }' \
-  {{ config('app.url') }}/api/v2/crosschain/bridge
+  {{ config('app.url') }}/api/v1/crosschain/bridge/quote
                                 </x-code-block>
                             </div>
-
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">Compare Bridge Fees</h3>
+                                <h3 class="text-xl font-semibold mb-4">Start a Bridge Transfer</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
+                                        <span class="ml-2 font-mono text-sm">/v1/crosschain/bridge/initiate</span>
+                                    </div>
+                                </div>
+                                <p class="text-gray-600 mb-4">This endpoint starts a bridge transfer from one network to another.</p>
+                                <x-code-block language="bash">
+curl -X POST \
+  -H "Authorization: Bearer your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "from_chain": "ethereum",
+    "to_chain": "polygon",
+    "token": "USDC",
+    "amount": "1000.00",
+    "sender_address": "0x...",
+    "recipient_address": "0x..."
+  }' \
+  {{ config('app.url') }}/api/v1/crosschain/bridge/initiate
+                                </x-code-block>
+                            </div>
+                            <div class="border rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Bridge Transfer Status</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
-                                        <span class="ml-2 font-mono text-sm">/crosschain/bridge/fees</span>
+                                        <span class="ml-2 font-mono text-sm">/v1/crosschain/bridge/{id}/status</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Compare fees and estimated times across all supported bridge protocols for a given route.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns the status of a bridge transfer.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     "{{ config('app.url') }}/api/v2/crosschain/bridge/fees?from=ethereum&to=arbitrum&token=USDC&amount=5000"
+     {{ config('app.url') }}/api/v1/crosschain/bridge/{id}/status
                                 </x-code-block>
                             </div>
-
                             <div class="border rounded-lg p-6">
                                 <h3 class="text-xl font-semibold mb-4">Cross-Chain Swap</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
-                                        <span class="ml-2 font-mono text-sm">/crosschain/swap</span>
+                                        <span class="ml-2 font-mono text-sm">/v1/crosschain/swap/execute</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Execute a token swap that bridges and swaps in a single atomic operation.</p>
+                                <p class="text-gray-600 mb-4">This endpoint bridges a token and swaps it on the destination network. Ask for a quote first at <code>/v1/crosschain/swap/quote</code>.</p>
                                 <x-code-block language="bash">
 curl -X POST \
   -H "Authorization: Bearer your_api_key" \
   -H "Content-Type: application/json" \
   -d '{
-    "source_chain": "ethereum",
-    "destination_chain": "polygon",
-    "from_token": "ETH",
-    "to_token": "MATIC",
-    "amount": "1.5",
-    "slippage_bps": 50
+    "from_chain": "ethereum",
+    "to_chain": "polygon",
+    "from_token": "USDC",
+    "to_token": "WETH",
+    "amount": "1500.00",
+    "wallet_address": "0x..."
   }' \
-  {{ config('app.url') }}/api/v2/crosschain/swap
+  {{ config('app.url') }}/api/v1/crosschain/swap/execute
                                 </x-code-block>
                             </div>
-
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">Multi-Chain Portfolio</h3>
+                                <h3 class="text-xl font-semibold mb-4">Supported Networks</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
-                                        <span class="ml-2 font-mono text-sm">/crosschain/portfolio</span>
+                                        <span class="ml-2 font-mono text-sm">/v1/crosschain/chains</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Retrieve an aggregated portfolio view across all supported chains.</p>
+                                <p class="text-gray-600 mb-4">This endpoint lists the supported networks and the bridges available for each.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     {{ config('app.url') }}/api/v2/crosschain/portfolio
+     {{ config('app.url') }}/api/v1/crosschain/chains
                                 </x-code-block>
                             </div>
                         </div>
                     </section>
 
-                    <!-- DeFi API -->
+                    <!-- Decentralised Finance API -->
                     <section id="defi" class="mb-16">
-                        <h2 class="text-3xl font-bold text-gray-900 mb-8">DeFi API</h2>
+                        <h2 class="text-3xl font-bold text-gray-900 mb-8">Decentralised Finance API</h2>
 
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>The DeFi API provides access to decentralized finance protocols including DEX aggregation (Uniswap, Curve), lending (Aave), staking (Lido), and flash loan execution. Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
+                            <p>The decentralised finance API quotes and runs token swaps across decentralised exchanges. It also lists lending markets, staking positions and protocol rates through adapters for Uniswap, Curve, Aave and Lido. Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
                             <p class="text-sm text-gray-500">8 routes &middot; <a href="/api/documentation#/DeFi" target="_blank" class="text-emerald-600 hover:text-emerald-800">View in Swagger UI</a></p>
                         </div>
 
@@ -847,78 +868,69 @@ curl -H "Authorization: Bearer your_api_key" \
                                 <h3 class="text-xl font-semibold mb-4">Get Swap Quote</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
-                                        <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
-                                        <span class="ml-2 font-mono text-sm">/defi/swap/quote</span>
+                                        <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
+                                        <span class="ml-2 font-mono text-sm">/v1/defi/swap/quote</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Get the best swap quote aggregated across Uniswap, Curve, and other supported DEXes.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns the best swap quote across the supported decentralised exchanges.</p>
                                 <x-code-block language="bash">
-curl -H "Authorization: Bearer your_api_key" \
-     "{{ config('app.url') }}/api/v2/defi/swap/quote?from=ETH&to=USDC&amount=2.0&chain=ethereum"
+curl -X POST \
+  -H "Authorization: Bearer your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{"chain": "ethereum", "from_token": "WETH", "to_token": "USDC", "amount": "2.0"}' \
+  {{ config('app.url') }}/api/v1/defi/swap/quote
                                 </x-code-block>
                             </div>
-
                             <div class="border rounded-lg p-6">
                                 <h3 class="text-xl font-semibold mb-4">Execute Swap</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
-                                        <span class="ml-2 font-mono text-sm">/defi/swap/execute</span>
+                                        <span class="ml-2 font-mono text-sm">/v1/defi/swap/execute</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Execute a token swap through the optimal DEX route.</p>
+                                <p class="text-gray-600 mb-4">This endpoint runs a swap through the best route it found.</p>
                                 <x-code-block language="bash">
 curl -X POST \
   -H "Authorization: Bearer your_api_key" \
   -H "Content-Type: application/json" \
   -d '{
-    "from_token": "ETH",
+    "chain": "ethereum",
+    "from_token": "WETH",
     "to_token": "USDC",
     "amount": "2.0",
-    "slippage_bps": 50,
-    "chain": "ethereum"
+    "wallet_address": "0x...",
+    "slippage": 0.5
   }' \
-  {{ config('app.url') }}/api/v2/defi/swap/execute
+  {{ config('app.url') }}/api/v1/defi/swap/execute
                                 </x-code-block>
                             </div>
-
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">DeFi Portfolio Positions</h3>
+                                <h3 class="text-xl font-semibold mb-4">Decentralised Finance Portfolio</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
-                                        <span class="ml-2 font-mono text-sm">/defi/portfolio</span>
+                                        <span class="ml-2 font-mono text-sm">/v1/defi/portfolio</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Retrieve all DeFi positions including lending, staking, and liquidity-pool positions.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns your decentralised finance positions across networks. It covers lending, staking and pool positions.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     {{ config('app.url') }}/api/v2/defi/portfolio
+     {{ config('app.url') }}/api/v1/defi/portfolio
                                 </x-code-block>
                             </div>
-
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">Flash Loan</h3>
+                                <h3 class="text-xl font-semibold mb-4">Lending Markets</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
-                                        <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
-                                        <span class="ml-2 font-mono text-sm">/defi/flash-loan</span>
+                                        <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
+                                        <span class="ml-2 font-mono text-sm">/v1/defi/lending/markets</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Execute a flash loan with a sequence of operations that must complete atomically.</p>
+                                <p class="text-gray-600 mb-4">This endpoint lists the lending markets the adapters can read.</p>
                                 <x-code-block language="bash">
-curl -X POST \
-  -H "Authorization: Bearer your_api_key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "token": "USDC",
-    "amount": "100000.00",
-    "operations": [
-      {"type": "swap", "from": "USDC", "to": "ETH", "dex": "uniswap"},
-      {"type": "swap", "from": "ETH", "to": "USDC", "dex": "curve"}
-    ]
-  }' \
-  {{ config('app.url') }}/api/v2/defi/flash-loan
+curl -H "Authorization: Bearer your_api_key" \
+     {{ config('app.url') }}/api/v1/defi/lending/markets
                                 </x-code-block>
                             </div>
                         </div>
@@ -929,91 +941,87 @@ curl -X POST \
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">RegTech API</h2>
 
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>The RegTech API provides reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements, with jurisdiction-specific adapter configuration. They do not by themselves make a deployment compliant.</p>
-                            <p class="text-sm text-gray-500">12 routes &middot; <a href="/api/documentation#/RegTech" target="_blank" class="text-amber-600 hover:text-amber-800">View in Swagger UI</a></p>
+                            <p>The RegTech API holds reporting and data-exchange modules. They are modelled on the European markets in financial instruments rules, the European markets in crypto-assets rules and the Travel Rule, and each jurisdiction has its own adapter settings. They do not by themselves make a deployment compliant.</p>
+                            <p class="text-sm text-gray-500">11 routes &middot; <a href="/api/documentation#/RegTech" target="_blank" class="text-amber-600 hover:text-amber-800">View in Swagger UI</a></p>
                         </div>
 
                         <div class="space-y-8">
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">Submit MiFID II Report</h3>
+                                <h3 class="text-xl font-semibold mb-4">Submit a Report</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
-                                        <span class="ml-2 font-mono text-sm">/regtech/mifid/reports</span>
+                                        <span class="ml-2 font-mono text-sm">/regtech/reports</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Generate a transaction report in a format modelled on MiFID II and send it to the configured reporting endpoint.</p>
+                                <p class="text-gray-600 mb-4">This endpoint builds a report for a jurisdiction and sends it to the configured reporting adapter. The supported jurisdictions are the United States, the European Union, the United Kingdom and Singapore. The request uses the codes US, EU, UK and SG.</p>
                                 <x-code-block language="bash">
 curl -X POST \
   -H "Authorization: Bearer your_api_key" \
   -H "Content-Type: application/json" \
   -d '{
-    "transaction_id": "txn_abc123",
-    "report_type": "transaction",
-    "jurisdiction": "EU"
+    "report_type": "transaction_report",
+    "jurisdiction": "EU",
+    "report_data": {"transactions": []}
   }' \
-  {{ config('app.url') }}/api/v2/regtech/mifid/reports
+  {{ config('app.url') }}/api/regtech/reports
                                 </x-code-block>
                             </div>
-
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">MiCA-Modelled Check</h3>
+                                <h3 class="text-xl font-semibold mb-4">Check a Crypto-Asset White Paper</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
-                                        <span class="ml-2 font-mono text-sm">/regtech/mica/check</span>
+                                        <span class="ml-2 font-mono text-sm">/regtech/mica/whitepaper/validate</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Run checks modelled on MiCA requirements against a crypto-asset or token issuance.</p>
+                                <p class="text-gray-600 mb-4">This endpoint checks a crypto-asset white paper against a list modelled on the European markets in crypto-assets rules.</p>
                                 <x-code-block language="bash">
 curl -X POST \
   -H "Authorization: Bearer your_api_key" \
   -H "Content-Type: application/json" \
   -d '{
-    "asset_type": "e-money-token",
-    "issuer_id": "issuer_xyz",
-    "whitepaper_hash": "sha256:abc..."
+    "issuer_legal_name": "Example Issuer",
+    "publication_date": "2026-01-15",
+    "sections": ["issuer", "rights", "risks"]
   }' \
-  {{ config('app.url') }}/api/v2/regtech/mica/check
+  {{ config('app.url') }}/api/regtech/mica/whitepaper/validate
                                 </x-code-block>
                             </div>
-
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">Travel Rule Transfer</h3>
+                                <h3 class="text-xl font-semibold mb-4">Travel Rule Check</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
-                                        <span class="ml-2 font-mono text-sm">/regtech/travel-rule/transfers</span>
+                                        <span class="ml-2 font-mono text-sm">/regtech/travel-rule/check</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Submit originator and beneficiary information via the data-exchange module modelled on the FATF Travel Rule.</p>
+                                <p class="text-gray-600 mb-4">This endpoint tells you which sender and recipient details a transfer needs. The data-exchange module is modelled on the Travel Rule of the Financial Action Task Force.</p>
                                 <x-code-block language="bash">
 curl -X POST \
   -H "Authorization: Bearer your_api_key" \
   -H "Content-Type: application/json" \
   -d '{
-    "transfer_id": "xfer_789",
-    "originator": {"name": "Alice Smith", "account": "acc_123"},
-    "beneficiary": {"name": "Bob Jones", "vasp_id": "vasp_456"},
-    "amount": "15000.00",
-    "currency": "USDC"
+    "amount": 2500,
+    "currency": "EUR",
+    "originator": {"name": "Alice Example"},
+    "beneficiary": {"name": "Bob Example"}
   }' \
-  {{ config('app.url') }}/api/v2/regtech/travel-rule/transfers
+  {{ config('app.url') }}/api/regtech/travel-rule/check
                                 </x-code-block>
                             </div>
-
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">Module Status</h3>
+                                <h3 class="text-xl font-semibold mb-4">Compliance Summary</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
-                                        <span class="ml-2 font-mono text-sm">/regtech/status</span>
+                                        <span class="ml-2 font-mono text-sm">/regtech/compliance/summary</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Get the status of all configured regulatory reporting modules.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns the status of the configured reporting modules and adapters.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     {{ config('app.url') }}/api/v2/regtech/status
+     {{ config('app.url') }}/api/regtech/compliance/summary
                                 </x-code-block>
                             </div>
                         </div>
@@ -1024,8 +1032,8 @@ curl -H "Authorization: Bearer your_api_key" \
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Mobile Payment API</h2>
 
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>The Mobile Payment API powers the {{ config('brand.name', 'Zelta') }} mobile wallet experience with payment intents, digital receipts, activity feeds, receive addresses, P2P transfers, passkey authentication, and biometric JWT sessions.</p>
-                            <p class="text-sm text-gray-500">25+ routes &middot; <a href="/api/documentation#/MobilePayment" target="_blank" class="text-violet-600 hover:text-violet-800">View in Swagger UI</a></p>
+                            <p>The mobile payment API serves the Zelta mobile wallet. It covers payment intents, receipts, the activity feed, receive addresses, non-custodial wallet sends and passkey sign-in.</p>
+                            <p class="text-sm text-gray-500">More than 25 routes &middot; <a href="/api/documentation#/MobilePayment" target="_blank" class="text-violet-600 hover:text-violet-800">View in Swagger UI</a></p>
                         </div>
 
                         <div class="space-y-8">
@@ -1034,190 +1042,154 @@ curl -H "Authorization: Bearer your_api_key" \
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
-                                        <span class="ml-2 font-mono text-sm">/mobile/payments/intents</span>
+                                        <span class="ml-2 font-mono text-sm">/v1/payments/intents</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Create a new payment intent for mobile wallet transactions.</p>
+                                <p class="text-gray-600 mb-4">This endpoint creates a payment intent for a merchant payment in USDC or USDT.</p>
                                 <x-code-block language="bash">
 curl -X POST \
   -H "Authorization: Bearer your_api_key" \
   -H "Content-Type: application/json" \
   -d '{
-    "amount": "25.00",
-    "currency": "USD",
-    "recipient": "user_456",
-    "description": "Coffee payment"
+    "merchantId": "merchant_123",
+    "amount": 25.00,
+    "asset": "USDC",
+    "preferredNetwork": "SOLANA"
   }' \
-  {{ config('app.url') }}/api/v2/mobile/payments/intents
+  {{ config('app.url') }}/api/v1/payments/intents
                                 </x-code-block>
                             </div>
-
                             <div class="border rounded-lg p-6">
                                 <h3 class="text-xl font-semibold mb-4">Activity Feed</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
-                                        <span class="ml-2 font-mono text-sm">/mobile/activity</span>
+                                        <span class="ml-2 font-mono text-sm">/v1/activity</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Retrieve the mobile wallet activity feed with payments, transfers, and notifications.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns the wallet activity feed with payments and transfers.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     "{{ config('app.url') }}/api/v2/mobile/activity?page=1&per_page=20"
+     {{ config('app.url') }}/api/v1/activity
                                 </x-code-block>
                             </div>
-
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">P2P Transfer</h3>
+                                <h3 class="text-xl font-semibold mb-4">Prepare a Wallet Send</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
-                                        <span class="ml-2 font-mono text-sm">/mobile/transfers/p2p</span>
+                                        <span class="ml-2 font-mono text-sm">/v1/wallet/transactions/prepare</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Send a peer-to-peer transfer to another mobile wallet user.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns an unsigned transaction. The device signs it and sends it to <code>/v1/wallet/transactions/submit</code>. The server never sees the private key.</p>
                                 <x-code-block language="bash">
 curl -X POST \
   -H "Authorization: Bearer your_api_key" \
   -H "Content-Type: application/json" \
-  -d '{
-    "to_user": "user_789",
-    "amount": "50.00",
-    "currency": "USD",
-    "note": "Dinner split"
-  }' \
-  {{ config('app.url') }}/api/v2/mobile/transfers/p2p
+  -H "Idempotency-Key: 5f0c..." \
+  -d '{"quote_id": "..."}' \
+  {{ config('app.url') }}/api/v1/wallet/transactions/prepare
                                 </x-code-block>
                             </div>
-
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">Passkey Authentication</h3>
+                                <h3 class="text-xl font-semibold mb-4">Passkey Sign-In</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
-                                        <span class="ml-2 font-mono text-sm">/mobile/auth/passkey/verify</span>
+                                        <span class="ml-2 font-mono text-sm">/v1/auth/passkey/authenticate</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Verify a FIDO2/WebAuthn passkey for passwordless mobile authentication.</p>
-                                <x-code-block language="bash">
-curl -X POST \
-  -H "Content-Type: application/json" \
-  -d '{
-    "credential_id": "cred_abc",
-    "authenticator_data": "base64...",
-    "client_data_json": "base64...",
-    "signature": "base64..."
-  }' \
-  {{ config('app.url') }}/api/v2/mobile/auth/passkey/verify
-                                </x-code-block>
+                                <p class="text-gray-600 mb-4">This endpoint checks a passkey assertion and signs the user in without a password. Ask for a challenge first at <code>/v1/auth/passkey/challenge</code>.</p>
                             </div>
                         </div>
                     </section>
 
                     <!-- Partner BaaS API -->
                     <section id="partner-baas" class="mb-16">
-                        <h2 class="text-3xl font-bold text-gray-900 mb-8">Partner / BaaS API</h2>
+                        <h2 class="text-3xl font-bold text-gray-900 mb-8">Partner API</h2>
 
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>The Partner BaaS (Banking-as-a-Service) API enables third-party partners to provision tenants, generate branded SDKs, configure white-label deployments, and manage their partner integrations. Requires a Partner API key (<code>fpk_</code> prefix) in addition to standard authentication.</p>
-                            <p class="text-sm text-gray-500">24 routes &middot; <a href="/api/documentation#/Partner" target="_blank" class="text-rose-600 hover:text-rose-800">View in Swagger UI</a></p>
+                            <p>The Partner API serves institutions that build on the platform. It covers the partner profile, usage and billing, branding, embeddable widgets, the integration marketplace and the SDK generator. Each request carries the partner client ID and client secret in the <code>X-Partner-Client-Id</code> and <code>X-Partner-Client-Secret</code> headers.</p>
+                            <p class="text-sm text-gray-500">27 routes &middot; <a href="/api/documentation#/Partner" target="_blank" class="text-rose-600 hover:text-rose-800">View in Swagger UI</a></p>
                         </div>
 
                         <div class="space-y-8">
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">Provision Tenant</h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                    <div>
-                                        <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
-                                        <span class="ml-2 font-mono text-sm">/partner/tenants</span>
-                                    </div>
-                                    <div class="text-right">
-                                        <span class="inline-block bg-rose-100 text-rose-800 text-xs font-medium px-2.5 py-0.5 rounded">Partner Key Required</span>
-                                    </div>
-                                </div>
-                                <p class="text-gray-600 mb-4">Provision a new tenant for a BaaS partner with isolated data and configuration.</p>
-                                <x-code-block language="bash">
-curl -X POST \
-  -H "Authorization: Bearer your_api_key" \
-  -H "X-Partner-Key: fpk_your_partner_key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Acme Bank",
-    "plan": "enterprise",
-    "domain": "acme.finaegis.io"
-  }' \
-  {{ config('app.url') }}/api/v2/partner/tenants
-                                </x-code-block>
-                            </div>
-
-                            <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">Generate SDK</h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                    <div>
-                                        <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
-                                        <span class="ml-2 font-mono text-sm">/partner/sdk/generate</span>
-                                    </div>
-                                    <div class="text-right">
-                                        <span class="inline-block bg-rose-100 text-rose-800 text-xs font-medium px-2.5 py-0.5 rounded">Partner Key Required</span>
-                                    </div>
-                                </div>
-                                <p class="text-gray-600 mb-4">Generate a branded SDK package for the partner's platform and language.</p>
-                                <x-code-block language="bash">
-curl -X POST \
-  -H "Authorization: Bearer your_api_key" \
-  -H "X-Partner-Key: fpk_your_partner_key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "language": "javascript",
-    "branding": {"name": "AcmeSDK", "color": "#3B82F6"},
-    "modules": ["accounts", "transfers", "payments"]
-  }' \
-  {{ config('app.url') }}/api/v2/partner/sdk/generate
-                                </x-code-block>
-                            </div>
-
-                            <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">White-Label Configuration</h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                    <div>
-                                        <span class="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">PUT</span>
-                                        <span class="ml-2 font-mono text-sm">/partner/config/whitelabel</span>
-                                    </div>
-                                    <div class="text-right">
-                                        <span class="inline-block bg-rose-100 text-rose-800 text-xs font-medium px-2.5 py-0.5 rounded">Partner Key Required</span>
-                                    </div>
-                                </div>
-                                <p class="text-gray-600 mb-4">Update white-label branding, theming, and feature toggles for the partner deployment.</p>
-                                <x-code-block language="bash">
-curl -X PUT \
-  -H "Authorization: Bearer your_api_key" \
-  -H "X-Partner-Key: fpk_your_partner_key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "logo_url": "https://acme.com/logo.svg",
-    "primary_color": "#3B82F6",
-    "features": {"defi": true, "crosschain": true, "lending": false}
-  }' \
-  {{ config('app.url') }}/api/v2/partner/config/whitelabel
-                                </x-code-block>
-                            </div>
-
-                            <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">List Partner Tenants</h3>
+                                <h3 class="text-xl font-semibold mb-4">Partner Profile</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
-                                        <span class="ml-2 font-mono text-sm">/partner/tenants</span>
+                                        <span class="ml-2 font-mono text-sm">/partner/v1/profile</span>
                                     </div>
                                     <div class="text-right">
-                                        <span class="inline-block bg-rose-100 text-rose-800 text-xs font-medium px-2.5 py-0.5 rounded">Partner Key Required</span>
+                                        <span class="inline-block bg-rose-100 text-rose-800 text-xs font-medium px-2.5 py-0.5 rounded">Partner Credentials Required</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">List all tenants provisioned under this partner account.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns the partner profile and its tier.</p>
                                 <x-code-block language="bash">
-curl -H "Authorization: Bearer your_api_key" \
-     -H "X-Partner-Key: fpk_your_partner_key" \
-     {{ config('app.url') }}/api/v2/partner/tenants
+curl -H "X-Partner-Client-Id: your_client_id" \
+     -H "X-Partner-Client-Secret: your_client_secret" \
+     {{ config('app.url') }}/api/partner/v1/profile
+                                </x-code-block>
+                            </div>
+                            <div class="border rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Generate a Starter SDK</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
+                                        <span class="ml-2 font-mono text-sm">/partner/v1/sdk/generate</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="inline-block bg-rose-100 text-rose-800 text-xs font-medium px-2.5 py-0.5 rounded">Partner Credentials Required</span>
+                                    </div>
+                                </div>
+                                <p class="text-gray-600 mb-4">This endpoint builds a starter client in one language from templates. It needs the Growth or Enterprise tier.</p>
+                                <x-code-block language="bash">
+curl -X POST \
+  -H "X-Partner-Client-Id: your_client_id" \
+  -H "X-Partner-Client-Secret: your_client_secret" \
+  -H "Content-Type: application/json" \
+  -d '{"language": "typescript"}' \
+  {{ config('app.url') }}/api/partner/v1/sdk/generate
+                                </x-code-block>
+                            </div>
+                            <div class="border rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Update Branding</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">PUT</span>
+                                        <span class="ml-2 font-mono text-sm">/partner/v1/branding</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="inline-block bg-rose-100 text-rose-800 text-xs font-medium px-2.5 py-0.5 rounded">Partner Credentials Required</span>
+                                    </div>
+                                </div>
+                                <p class="text-gray-600 mb-4">This endpoint updates the colours, logo and company name used in the partner widgets.</p>
+                                <x-code-block language="bash">
+curl -X PUT \
+  -H "X-Partner-Client-Id: your_client_id" \
+  -H "X-Partner-Client-Secret: your_client_secret" \
+  -H "Content-Type: application/json" \
+  -d '{"company_name": "Acme Finance", "primary_color": "#1E40AF"}' \
+  {{ config('app.url') }}/api/partner/v1/branding
+                                </x-code-block>
+                            </div>
+                            <div class="border rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Usage Summary</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
+                                        <span class="ml-2 font-mono text-sm">/partner/v1/usage</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="inline-block bg-rose-100 text-rose-800 text-xs font-medium px-2.5 py-0.5 rounded">Partner Credentials Required</span>
+                                    </div>
+                                </div>
+                                <p class="text-gray-600 mb-4">This endpoint returns the API usage for the current billing period.</p>
+                                <x-code-block language="bash">
+curl -H "X-Partner-Client-Id: your_client_id" \
+     -H "X-Partner-Client-Secret: your_client_secret" \
+     {{ config('app.url') }}/api/partner/v1/usage
                                 </x-code-block>
                             </div>
                         </div>
@@ -1228,8 +1200,8 @@ curl -H "Authorization: Bearer your_api_key" \
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">SMS API</h2>
 
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>Send SMS messages globally via VertexSMS with per-message payment gating through the Machine Payment Protocol (MPP). AI agents and applications pay per-SMS using USDC, Stripe, or Lightning — no prepaid credits, no invoicing. Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
-                            <p class="text-sm text-gray-500">5 routes &middot; <a href="/api/documentation#/SMS" target="_blank" class="text-orange-600 hover:text-orange-800">View in Swagger UI</a></p>
+                            <p>The SMS API sends text messages through VertexSMS. Each message is paid for separately through the Machine Payments Protocol, so you need no prepaid credit and no invoice. The protocol offers several payment rails, such as USDC, Stripe and Lightning. Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
+                            <p class="text-sm text-gray-500">4 routes &middot; <a href="/api/documentation#/SMS" target="_blank" class="text-orange-600 hover:text-orange-800">View in Swagger UI</a></p>
                         </div>
 
                         <div class="space-y-8">
@@ -1241,7 +1213,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                         <span class="ml-2 font-mono text-sm">/v1/sms/send</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Send an SMS message to any phone number. This endpoint is gated by MPP — the first request returns <code>402 Payment Required</code> with available payment rails and pricing. After payment, the SMS is sent and a receipt is returned.</p>
+                                <p class="text-gray-600 mb-4">This endpoint sends a text message to a phone number. The first request returns <code>402 Payment Required</code> with the payment rails and the price. After you pay, the message is sent and you get a receipt.</p>
                                 <x-code-block language="bash">
 # Step 1: Get payment challenge (returns 402)
 curl -X POST \
@@ -1286,7 +1258,7 @@ curl -X POST \
                                         <span class="ml-2 font-mono text-sm">/v1/sms/rates?country=LT</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Returns per-message USDC pricing for a given ISO 3166-1 alpha-2 country code. Rates are sourced from VertexSMS and converted from EUR to atomic USDC (6 decimals, e.g. 48000 = $0.048).</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns the price of one message to a country, given as a two-letter ISO 3166-1 country code. The rate comes from VertexSMS in euros. It is converted to USDC in its smallest unit, with six decimals, so 48000 means $0.048.</p>
                                 <x-code-block language="bash">
 curl "{{ config('app.url') }}/api/v1/sms/rates?country=LT"
 
@@ -1310,7 +1282,7 @@ curl "{{ config('app.url') }}/api/v1/sms/rates?country=LT"
                                         <span class="ml-2 font-mono text-sm">/v1/sms/status/{messageId}</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Returns the current delivery status of a previously sent SMS. Requires authentication. Statuses: <code>pending</code>, <code>sent</code>, <code>delivered</code>, <code>failed</code>.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns the delivery status of a message you sent. You must be signed in. The status is <code>pending</code>, <code>sent</code>, <code>delivered</code> or <code>failed</code>.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
      "{{ config('app.url') }}/api/v1/sms/status/1281532560"
@@ -1336,7 +1308,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                         <span class="ml-2 font-mono text-sm">/v1/sms/info</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Returns SMS service status, active provider, test mode flag, and supported payment networks.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns the service status, the active provider, whether test mode is on and the supported payment networks.</p>
                                 <x-code-block language="bash">
 curl "{{ config('app.url') }}/api/v1/sms/info"
 
@@ -1353,12 +1325,11 @@ curl "{{ config('app.url') }}/api/v1/sms/info"
                             </div>
 
                             <div class="border rounded-lg p-6 bg-blue-50 border-blue-200">
-                                <h3 class="text-xl font-semibold mb-4">MCP Tool: send_sms</h3>
-                                <p class="text-gray-600 mb-4">AI agents can discover and use SMS through the Model Context Protocol. The <code>send_sms</code> tool is automatically available to any MCP-compatible client connected to {{ config('brand.name', 'Zelta') }}. Payment is handled transparently by the {{ config('brand.name', 'Zelta') }} SDK.</p>
+                                <h3 class="text-xl font-semibold mb-4">MCP Tool: sms.send</h3>
+                                <p class="text-gray-600 mb-4">AI agents can send text messages through the Model Context Protocol server. The <code>sms.send</code> tool costs a fixed amount per message, and that amount counts against the token's daily spending limit. The tool is off by default outside demo and test environments.</p>
                                 <x-code-block language="json">
 {
-  "tool": "send_sms",
-  "description": "Send SMS via VertexSMS. Pay per-message via USDC, Stripe, or Lightning.",
+  "tool": "sms.send",
   "input": {
     "to": "+37069912345",
     "from": "Zelta",
@@ -1375,44 +1346,43 @@ curl "{{ config('app.url') }}/api/v1/sms/info"
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">AI Query API</h2>
 
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>The AI Query API provides natural language access to transaction data and financial insights. Ask questions in plain English and receive structured, actionable responses.</p>
+                            <p>The AI query API answers questions about your transactions. You ask in plain language, and the API turns the question into filters and returns the matching transactions.</p>
                             <p class="text-sm text-gray-500">2 routes &middot; <a href="/api/documentation#/AI" target="_blank" class="text-gray-600 hover:text-gray-800">View in Swagger UI</a></p>
                         </div>
 
                         <div class="space-y-8">
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">Natural Language Query</h3>
+                                <h3 class="text-xl font-semibold mb-4">Transaction Query</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
-                                        <span class="ml-2 font-mono text-sm">/ai/query</span>
+                                        <span class="ml-2 font-mono text-sm">/ai/query/transactions</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Submit a natural language question about your transactions, balances, or financial activity.</p>
+                                <p class="text-gray-600 mb-4">This endpoint takes a question in plain language about your transactions.</p>
                                 <x-code-block language="bash">
 curl -X POST \
   -H "Authorization: Bearer your_api_key" \
   -H "Content-Type: application/json" \
-  -d '{
-    "query": "What were my largest transactions last month?",
-    "context": {"account_id": "acc_123"}
-  }' \
-  {{ config('app.url') }}/api/v2/ai/query
+  -d '{"query": "What were my largest transactions last month?"}' \
+  {{ config('app.url') }}/api/ai/query/transactions
                                 </x-code-block>
                             </div>
-
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">AI Query History</h3>
+                                <h3 class="text-xl font-semibold mb-4">Spending Analysis</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
-                                        <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
-                                        <span class="ml-2 font-mono text-sm">/ai/queries</span>
+                                        <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
+                                        <span class="ml-2 font-mono text-sm">/ai/query/spending-analysis</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Retrieve your past AI query history with cached results.</p>
+                                <p class="text-gray-600 mb-4">This endpoint groups your spending by category, merchant and time.</p>
                                 <x-code-block language="bash">
-curl -H "Authorization: Bearer your_api_key" \
-     {{ config('app.url') }}/api/v2/ai/queries
+curl -X POST \
+  -H "Authorization: Bearer your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{}' \
+  {{ config('app.url') }}/api/ai/query/spending-analysis
                                 </x-code-block>
                             </div>
                         </div>
@@ -1423,8 +1393,8 @@ curl -H "Authorization: Bearer your_api_key" \
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">GraphQL API</h2>
 
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>Schema-first GraphQL API powered by Lighthouse PHP. Provides queries, mutations, and subscriptions across 45 domain schemas with DataLoader-optimized resolvers and WebSocket-based real-time subscriptions.</p>
-                            <p class="text-sm text-gray-500">45 domain schemas &middot; Queries, Mutations, Subscriptions</p>
+                            <p>The GraphQL API is built with Lighthouse PHP from a written schema. It offers queries and mutations for 43 domains. Subscriptions send live updates over WebSocket, and DataLoaders batch the database reads.</p>
+                            <p class="text-sm text-gray-500">45 schema files for 43 domains &middot; Queries, Mutations, Subscriptions</p>
                         </div>
 
                         <div class="space-y-8">
@@ -1436,7 +1406,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                         <span class="ml-2 font-mono text-sm">/graphql</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Execute a GraphQL query or mutation against the unified schema. Supports all 45 domain schemas including Account, AgentProtocol, Basket, Batch, CardIssuance, Cgo, Compliance, CrossChain, DeFi, Exchange, FinancialInstitution, ISO20022, OpenBanking, PaymentRails, Microfinance, Interledger, Ledger, Regulatory, User, Wallet, and more.</p>
+                                <p class="text-gray-600 mb-4">This endpoint runs a GraphQL query or mutation against the combined schema. The schema files are listed in <code>graphql/schema.graphql</code>.</p>
                                 <x-code-block language="bash">
 curl -X POST \
   -H "Authorization: Bearer your_api_key" \
@@ -1471,28 +1441,28 @@ query {
                             </div>
 
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">GraphQL Playground</h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                    <div>
-                                        <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
-                                        <span class="ml-2 font-mono text-sm">/graphql-playground</span>
-                                    </div>
-                                </div>
-                                <p class="text-gray-600 mb-4">Interactive GraphQL explorer with schema introspection, auto-complete, and query history. Use this to explore available types, queries, mutations, and subscriptions.</p>
+                                <h3 class="text-xl font-semibold mb-4">Exploring the Schema</h3>
+                                <p class="text-gray-600 mb-4">The server does not host a GraphQL playground. You can send an introspection query from any GraphQL client to see the types, queries, mutations and subscriptions.</p>
                                 <x-code-block language="bash">
-# Open in your browser
-{{ config('app.url') }}/api/graphql-playground
+curl -X POST \
+  -H "Authorization: Bearer your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ __schema { types { name } } }"}' \
+  {{ config('app.url') }}/graphql
                                 </x-code-block>
                             </div>
 
                             <div class="border rounded-lg p-6 bg-sky-50 border-sky-200">
                                 <h3 class="text-xl font-semibold mb-4">Available Subscriptions</h3>
-                                <p class="text-gray-600 mb-4">Real-time WebSocket subscriptions are available for the following events:</p>
+                                <p class="text-gray-600 mb-4">These subscriptions send live updates over WebSocket.</p>
                                 <ul class="list-disc list-inside text-gray-600 space-y-1">
-                                    <li><code class="bg-gray-100 px-1">accountUpdated(id: ID!)</code> - Account balance and status changes</li>
-                                    <li><code class="bg-gray-100 px-1">transactionCreated(accountId: ID!)</code> - New transactions on an account</li>
-                                    <li><code class="bg-gray-100 px-1">transferCompleted(id: ID!)</code> - Transfer completion notifications</li>
-                                    <li><code class="bg-gray-100 px-1">orderMatched(pair: String!)</code> - Exchange order match events</li>
+                                    <li><code class="bg-gray-100 px-1">orderBookUpdated(pair: String!)</code> sends order book changes for a trading pair.</li>
+                                    <li><code class="bg-gray-100 px-1">tradeExecuted(pair: String!)</code> sends each trade on a trading pair.</li>
+                                    <li><code class="bg-gray-100 px-1">orderMatched(pair: String)</code> sends matched orders.</li>
+                                    <li><code class="bg-gray-100 px-1">walletBalanceUpdated(wallet_id: ID!)</code> sends wallet balance changes.</li>
+                                    <li><code class="bg-gray-100 px-1">portfolioRebalanced(portfolio_id: String)</code> sends treasury portfolio rebalancing.</li>
+                                    <li><code class="bg-gray-100 px-1">paymentStatusChanged(payment_id: ID)</code> sends payment status changes.</li>
+                                    <li><code class="bg-gray-100 px-1">bridgeTransferCompleted(transfer_id: ID)</code> sends completed bridge transfers.</li>
                                 </ul>
                             </div>
                         </div>
@@ -1500,86 +1470,82 @@ query {
 
                     <!-- Event Streaming & Live Dashboard -->
                     <section id="event-streaming" class="mb-16">
-                        <h2 class="text-3xl font-bold text-gray-900 mb-8">Event Streaming & Live Dashboard</h2>
+                        <h2 class="text-3xl font-bold text-gray-900 mb-8">Event Streaming and Live Dashboard</h2>
 
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>Real-time event streaming via Redis Streams with a live metrics dashboard. Monitor system health, domain status, event throughput, stream connectivity, and projector lag across all event-sourced domains.</p>
-                            <p class="text-sm text-gray-500">5 endpoints &middot; Redis Streams &middot; Real-time Metrics</p>
+                            <p>Event streaming publishes domain events to Redis Streams. The live dashboard endpoints report on domain health, event throughput, stream status and how far each projector lags behind.</p>
+                            <p class="text-sm text-gray-500">5 endpoints &middot; Redis Streams</p>
                         </div>
 
                         <div class="space-y-8">
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">System Metrics</h3>
+                                <h3 class="text-xl font-semibold mb-4">Dashboard Overview</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
-                                        <span class="ml-2 font-mono text-sm">/v1/live-dashboard/metrics</span>
+                                        <span class="ml-2 font-mono text-sm">/v1/monitoring/live-dashboard</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Retrieve aggregated system metrics including event counts, processing rates, error rates, and uptime statistics.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns all dashboard figures in one response.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     {{ config('app.url') }}/api/v1/live-dashboard/metrics
+     {{ config('app.url') }}/api/v1/monitoring/live-dashboard
                                 </x-code-block>
                             </div>
-
                             <div class="border rounded-lg p-6">
                                 <h3 class="text-xl font-semibold mb-4">Domain Health</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
-                                        <span class="ml-2 font-mono text-sm">/v1/live-dashboard/domain-health</span>
+                                        <span class="ml-2 font-mono text-sm">/v1/monitoring/live-dashboard/domain-health</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Get health status for each event-sourced domain including event store connectivity, projector status, and recent error counts.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns the health of each event-sourced domain.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     {{ config('app.url') }}/api/v1/live-dashboard/domain-health
+     {{ config('app.url') }}/api/v1/monitoring/live-dashboard/domain-health
                                 </x-code-block>
                             </div>
-
                             <div class="border rounded-lg p-6">
                                 <h3 class="text-xl font-semibold mb-4">Event Throughput</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
-                                        <span class="ml-2 font-mono text-sm">/v1/live-dashboard/event-throughput</span>
+                                        <span class="ml-2 font-mono text-sm">/v1/monitoring/live-dashboard/event-throughput</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Monitor real-time event throughput rates per domain and aggregate, including events per second and processing latency.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns how many events each domain processes.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     {{ config('app.url') }}/api/v1/live-dashboard/event-throughput
+     {{ config('app.url') }}/api/v1/monitoring/live-dashboard/event-throughput
                                 </x-code-block>
                             </div>
-
                             <div class="border rounded-lg p-6">
                                 <h3 class="text-xl font-semibold mb-4">Stream Status</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
-                                        <span class="ml-2 font-mono text-sm">/v1/live-dashboard/stream-status</span>
+                                        <span class="ml-2 font-mono text-sm">/v1/monitoring/live-dashboard/stream-status</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Check Redis Streams connectivity, consumer group status, pending message counts, and stream memory usage.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns the state of the Redis Streams and their consumer groups.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     {{ config('app.url') }}/api/v1/live-dashboard/stream-status
+     {{ config('app.url') }}/api/v1/monitoring/live-dashboard/stream-status
                                 </x-code-block>
                             </div>
-
                             <div class="border rounded-lg p-6">
                                 <h3 class="text-xl font-semibold mb-4">Projector Lag</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
-                                        <span class="ml-2 font-mono text-sm">/v1/live-dashboard/projector-lag</span>
+                                        <span class="ml-2 font-mono text-sm">/v1/monitoring/live-dashboard/projector-lag</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Monitor projector lag across all event-sourced domains showing how far behind each read model projector is from the latest events.</p>
+                                <p class="text-gray-600 mb-4">This endpoint shows how far each read model projector is behind the latest events.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     {{ config('app.url') }}/api/v1/live-dashboard/projector-lag
+     {{ config('app.url') }}/api/v1/monitoring/live-dashboard/projector-lag
                                 </x-code-block>
                             </div>
                         </div>
@@ -1589,7 +1555,7 @@ curl -H "Authorization: Bearer your_api_key" \
                     <section id="iso20022" class="mb-16">
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">ISO 20022 API</h2>
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>Parse, generate, and validate ISO 20022 financial messages. Supports 8 message types (pacs.008, pacs.002, pain.001, pain.002, camt.053, camt.054, camt.056, admi.002) with full REST and GraphQL coverage. XML is validated against official XSD schemas.</p>
+                            <p>The ISO 20022 module reads, writes and checks ISO 20022 payment messages. It supports eight message types: pain.001, pain.008, pacs.008, pacs.002, pacs.003, pacs.004, camt.053 and camt.054. The checks cover well-formed XML and the required fields of each type. These modules are reference implementations at the message and logic layer. They run in demo mode, are switched off on the production site and have no live scheme connection or settlement.</p>
                         </div>
                         <div class="space-y-8">
                             <div class="border rounded-lg p-6">
@@ -1598,12 +1564,12 @@ curl -H "Authorization: Bearer your_api_key" \
                                     <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
                                     <span class="font-mono text-sm">/api/v1/iso20022/parse</span>
                                 </div>
-                                <p class="text-gray-600 mb-4">Parse an ISO 20022 XML message and return a structured JSON representation.</p>
+                                <p class="text-gray-600 mb-4">This endpoint reads an ISO 20022 XML message and returns it as structured JSON.</p>
                                 <x-code-block language="bash">
 curl -X POST \
   -H "Authorization: Bearer your_api_key" \
-  -H "Content-Type: application/xml" \
-  --data-binary @payment.xml \
+  -H "Content-Type: application/json" \
+  -d '{"xml": "<Document>...</Document>"}' \
   {{ config('app.url') }}/api/v1/iso20022/parse
                                 </x-code-block>
                             </div>
@@ -1613,12 +1579,12 @@ curl -X POST \
                                     <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
                                     <span class="font-mono text-sm">/api/v1/iso20022/generate</span>
                                 </div>
-                                <p class="text-gray-600 mb-4">Generate a schema-valid ISO 20022 XML message from a JSON payload.</p>
+                                <p class="text-gray-600 mb-4">This endpoint builds an ISO 20022 XML message from JSON data.</p>
                                 <x-code-block language="bash">
 curl -X POST \
   -H "Authorization: Bearer your_api_key" \
   -H "Content-Type: application/json" \
-  -d '{"type":"pacs.008","amount":"1000.00","currency":"EUR","debtor":"...","creditor":"..."}' \
+  -d '{"message_type":"pacs.008","data":{"amount":"1000.00","currency":"EUR","debtor":"...","creditor":"..."}}' \
   {{ config('app.url') }}/api/v1/iso20022/generate
                                 </x-code-block>
                             </div>
@@ -1628,7 +1594,7 @@ curl -X POST \
                                     <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
                                     <span class="font-mono text-sm">/api/v1/iso20022/validate</span>
                                 </div>
-                                <p class="text-gray-600 mb-4">Validate an ISO 20022 XML message against the official XSD schema and business rules.</p>
+                                <p class="text-gray-600 mb-4">This endpoint checks that an ISO 20022 XML message is well formed and has the required fields for its type.</p>
                             </div>
                         </div>
                     </section>
@@ -1637,7 +1603,7 @@ curl -X POST \
                     <section id="open-banking" class="mb-16">
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Open Banking API</h2>
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>PSD2 consent-lifecycle modules modelled on AISP (Account Information Service Provider) and PISP (Payment Initiation Service Provider) flows. Supports Berlin Group NextGenPSD2 and UK Open Banking adapters. TPP eIDAS certificate validation.</p>
+                            <p>The open banking module manages consents for account information and payment initiation services. It is modelled on the European Union's second Payment Services Directive. It has adapters for the Berlin Group NextGenPSD2 standard and for the United Kingdom Open Banking standard. It also stores the certificates that third-party providers register with and checks that they are well formed. These modules are reference implementations at the message and logic layer. They run in demo mode, are switched off on the production site and have no live bank connections.</p>
                         </div>
                         <div class="space-y-8">
                             <div class="border rounded-lg p-6">
@@ -1646,30 +1612,30 @@ curl -X POST \
                                     <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
                                     <span class="font-mono text-sm">/api/v1/open-banking/consents</span>
                                 </div>
-                                <p class="text-gray-600 mb-4">Initiate a PSD2 consent request for account access or payment initiation.</p>
+                                <p class="text-gray-600 mb-4">This endpoint creates a consent request for account access or payment initiation.</p>
                                 <x-code-block language="bash">
 curl -X POST \
   -H "Authorization: Bearer your_api_key" \
   -H "Content-Type: application/json" \
-  -d '{"access":{"accounts":"all","balances":"all","transactions":"all"},"recurringIndicator":false,"validUntil":"2026-12-31","frequencyPerDay":4}' \
+  -d '{"tpp_id":"tpp_123","permissions":["ReadAccountsBasic","ReadBalances","ReadTransactionsBasic"]}' \
   {{ config('app.url') }}/api/v1/open-banking/consents
                                 </x-code-block>
                             </div>
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">Get Account Information (AISP)</h3>
+                                <h3 class="text-xl font-semibold mb-4">Get Account Information</h3>
                                 <div class="flex items-center gap-3 mb-4">
                                     <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
                                     <span class="font-mono text-sm">/api/v1/open-banking/accounts</span>
                                 </div>
-                                <p class="text-gray-600 mb-4">Retrieve account list under an active AISP consent.</p>
+                                <p class="text-gray-600 mb-4">This endpoint lists the accounts covered by an active account information consent.</p>
                             </div>
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">Initiate Payment (PISP)</h3>
+                                <h3 class="text-xl font-semibold mb-4">Initiate Payment</h3>
                                 <div class="flex items-center gap-3 mb-4">
                                     <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
                                     <span class="font-mono text-sm">/api/v1/open-banking/payments</span>
                                 </div>
-                                <p class="text-gray-600 mb-4">Initiate a payment under an active PISP consent.</p>
+                                <p class="text-gray-600 mb-4">This endpoint starts a payment under an active payment initiation consent.</p>
                             </div>
                         </div>
                     </section>
@@ -1677,40 +1643,54 @@ curl -X POST \
                     <!-- Payment Rails API -->
                     <section id="payment-rails" class="mb-16">
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Payment Rails API</h2>
+
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>Message-format and routing modules for ACH (NACHA file generation), Fedwire, RTP, FedNow (ISO 20022 native), SEPA Direct Debit, and SCT Inst. Intelligent routing selects the optimal rail based on amount, currency, and counterparty (reference implementation — no live scheme settlement).</p>
+                            <p>The payment rails module holds message formats and routing logic for United States and European rails. It covers Automated Clearing House files in the NACHA format, Fedwire, Real-Time Payments, FedNow, SEPA Direct Debit and SEPA Instant Credit Transfer. The router picks a rail from the amount, the currency, the country and the urgency. These modules are reference implementations at the message and logic layer. They run in demo mode, are switched off on the production site and have no live scheme connection or settlement.</p>
                         </div>
+
                         <div class="space-y-8">
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">Initiate Payment</h3>
-                                <div class="flex items-center gap-3 mb-4">
-                                    <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
-                                    <span class="font-mono text-sm">/api/v1/payment-rails/payments</span>
+                                <h3 class="text-xl font-semibold mb-4">Send a Payment</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
+                                        <span class="ml-2 font-mono text-sm">/api/v1/payment-rails/send</span>
+                                    </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Initiate a payment via the specified rail, or let intelligent routing select the optimal rail automatically.</p>
+                                <p class="text-gray-600 mb-4">This endpoint sends a payment through the rail the router picks.</p>
                                 <x-code-block language="bash">
 curl -X POST \
   -H "Authorization: Bearer your_api_key" \
   -H "Content-Type: application/json" \
-  -d '{"amount":"500.00","currency":"USD","rail":"auto","creditor_account":"...","memo":"Invoice #1234"}' \
-  {{ config('app.url') }}/api/v1/payment-rails/payments
+  -d '{
+    "amount": "500.00",
+    "currency": "USD",
+    "country": "US",
+    "urgency": "normal",
+    "beneficiary": {"name": "Acme Inc", "account_number": "...", "routing_number": "..."}
+  }' \
+  {{ config('app.url') }}/api/v1/payment-rails/send
                                 </x-code-block>
                             </div>
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">List Supported Rails</h3>
-                                <div class="flex items-center gap-3 mb-4">
-                                    <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
-                                    <span class="font-mono text-sm">/api/v1/payment-rails/rails</span>
+                                <h3 class="text-xl font-semibold mb-4">Supported Rails</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
+                                        <span class="ml-2 font-mono text-sm">/api/v1/payment-rails/supported/{country}</span>
+                                    </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">List all available payment rails with current availability and cut-off times.</p>
+                                <p class="text-gray-600 mb-4">This endpoint lists the rails available for a country.</p>
                             </div>
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">Generate ACH File</h3>
-                                <div class="flex items-center gap-3 mb-4">
-                                    <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
-                                    <span class="font-mono text-sm">/api/v1/payment-rails/ach/files</span>
+                                <h3 class="text-xl font-semibold mb-4">Payment Status</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
+                                        <span class="ml-2 font-mono text-sm">/api/v1/payment-rails/transactions/{id}</span>
+                                    </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Generate a NACHA-format ACH batch file from a list of payment entries.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns the status of a payment.</p>
                             </div>
                         </div>
                     </section>
@@ -1718,32 +1698,38 @@ curl -X POST \
                     <!-- Interledger API -->
                     <section id="interledger" class="mb-16">
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Interledger API</h2>
+
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>Cross-network value transfer with ILP connector, Open Payments (GNAP authorization), and cross-currency quotes. The quote, payment and connection endpoints are available to platform operators only.</p>
+                            <p>The Interledger module moves value between networks. It includes an Interledger connector, Open Payments with authorisation through the Grant Negotiation and Authorization Protocol, and quotes between currencies. Only platform operators can use the quote, payment and connection endpoints. These modules are reference implementations at the message and logic layer. They run in demo mode, are switched off on the production site and have no live scheme connection or settlement.</p>
                         </div>
+
                         <div class="space-y-8">
                             <div class="border rounded-lg p-6">
                                 <h3 class="text-xl font-semibold mb-4">Get Quote</h3>
-                                <div class="flex items-center gap-3 mb-4">
-                                    <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
-                                    <span class="font-mono text-sm">/api/v1/interledger/quotes</span>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
+                                        <span class="ml-2 font-mono text-sm">/api/v1/interledger/quotes</span>
+                                    </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Get a cross-currency quote for an Interledger payment including fees and FX rate.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns a quote between two currencies, including fees and the exchange rate.</p>
                                 <x-code-block language="bash">
 curl -X POST \
   -H "Authorization: Bearer your_api_key" \
   -H "Content-Type: application/json" \
-  -d '{"send_amount":"100.00","send_currency":"USD","receive_currency":"EUR","receiver":"$wallet.example.com/alice"}' \
+  -d '{"send_asset": "USD", "receive_asset": "EUR", "send_amount": 100.00}' \
   {{ config('app.url') }}/api/v1/interledger/quotes
                                 </x-code-block>
                             </div>
                             <div class="border rounded-lg p-6">
                                 <h3 class="text-xl font-semibold mb-4">Send Payment</h3>
-                                <div class="flex items-center gap-3 mb-4">
-                                    <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
-                                    <span class="font-mono text-sm">/api/v1/interledger/payments</span>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
+                                        <span class="ml-2 font-mono text-sm">/api/v1/interledger/payments/outgoing</span>
+                                    </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Execute an Interledger payment using a previously obtained quote.</p>
+                                <p class="text-gray-600 mb-4">This endpoint sends an Interledger payment with a quote you got earlier. Incoming payments use <code>/api/v1/interledger/payments/incoming</code>.</p>
                             </div>
                         </div>
                     </section>
@@ -1752,7 +1738,7 @@ curl -X POST \
                     <section id="ledger" class="mb-16">
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Ledger API</h2>
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>Double-entry accounting engine. Manage chart of accounts, post journal entries, run trial balances, and configure GL auto-posting rules. Supports an optional TigerBeetle driver for extreme throughput workloads.</p>
+                            <p>The ledger module does double-entry accounting. It keeps a chart of accounts, posts journal entries, produces trial balances and applies posting rules to the general ledger. An optional TigerBeetle driver handles very high volumes.</p>
                         </div>
                         <div class="space-y-8">
                             <div class="border rounded-lg p-6">
@@ -1761,7 +1747,7 @@ curl -X POST \
                                     <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
                                     <span class="font-mono text-sm">/api/v1/ledger/accounts</span>
                                 </div>
-                                <p class="text-gray-600 mb-4">Retrieve the full chart of accounts with balances.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns the chart of accounts.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
      {{ config('app.url') }}/api/v1/ledger/accounts
@@ -1773,7 +1759,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                     <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
                                     <span class="font-mono text-sm">/api/v1/ledger/entries</span>
                                 </div>
-                                <p class="text-gray-600 mb-4">Post a balanced double-entry journal entry. Debits must equal credits.</p>
+                                <p class="text-gray-600 mb-4">This endpoint posts a journal entry with at least two lines. The debits must equal the credits.</p>
                             </div>
                             <div class="border rounded-lg p-6">
                                 <h3 class="text-xl font-semibold mb-4">Trial Balance</h3>
@@ -1781,7 +1767,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                     <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
                                     <span class="font-mono text-sm">/api/v1/ledger/trial-balance</span>
                                 </div>
-                                <p class="text-gray-600 mb-4">Generate a trial balance report for a given date range.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns a trial balance.</p>
                             </div>
                         </div>
                     </section>
@@ -1789,40 +1775,48 @@ curl -H "Authorization: Bearer your_api_key" \
                     <!-- Microfinance API -->
                     <section id="microfinance" class="mb-16">
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Microfinance API</h2>
+
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>Complete inclusion banking infrastructure: group lending with joint liability, IFRS 9 loan provisioning, cooperative share accounts, teller cash operations, field officer tools, and savings products with dormancy tracking.</p>
+                            <p>The microfinance module supports lending to small groups. It covers groups with joint liability, loan provisioning by days overdue, cooperative share accounts, teller cash work, field officer tools and savings products that track dormant accounts. These modules are reference implementations at the message and logic layer. They run in demo mode, are switched off on the production site and have no live scheme connection or settlement.</p>
                         </div>
+
                         <div class="space-y-8">
                             <div class="border rounded-lg p-6">
                                 <h3 class="text-xl font-semibold mb-4">Create Loan Group</h3>
-                                <div class="flex items-center gap-3 mb-4">
-                                    <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
-                                    <span class="font-mono text-sm">/api/v1/microfinance/groups</span>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
+                                        <span class="ml-2 font-mono text-sm">/api/v1/microfinance/groups</span>
+                                    </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Create a group lending entity with joint liability configuration.</p>
+                                <p class="text-gray-600 mb-4">This endpoint creates a lending group. Members are added afterwards at <code>/api/v1/microfinance/groups/{id}/members</code>.</p>
                                 <x-code-block language="bash">
 curl -X POST \
   -H "Authorization: Bearer your_api_key" \
   -H "Content-Type: application/json" \
-  -d '{"name":"Village Savings Group A","members":["user_1","user_2","user_3"],"liability_type":"joint"}' \
+  -d '{"name": "Village Savings Group A", "frequency": "weekly", "meeting_day": "Tuesday"}' \
   {{ config('app.url') }}/api/v1/microfinance/groups
                                 </x-code-block>
                             </div>
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">IFRS Loan Provisioning</h3>
-                                <div class="flex items-center gap-3 mb-4">
-                                    <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
-                                    <span class="font-mono text-sm">/api/v1/microfinance/loans/{id}/provision</span>
+                                <h3 class="text-xl font-semibold mb-4">Loan Provisioning</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
+                                        <span class="ml-2 font-mono text-sm">/api/v1/microfinance/provisioning</span>
+                                    </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Calculate IFRS 9 expected credit loss (ECL) provision for a loan.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns the loan loss provisions. Each loan falls into a category by how many days it is overdue, and each category has its own rate.</p>
                             </div>
                             <div class="border rounded-lg p-6">
-                                <h3 class="text-xl font-semibold mb-4">Teller Operations</h3>
-                                <div class="flex items-center gap-3 mb-4">
-                                    <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
-                                    <span class="font-mono text-sm">/api/v1/microfinance/teller/transactions</span>
+                                <h3 class="text-xl font-semibold mb-4">Share Accounts</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
+                                        <span class="ml-2 font-mono text-sm">/api/v1/microfinance/share-accounts</span>
+                                    </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Post a teller cash transaction (deposit, withdrawal, or currency exchange).</p>
+                                <p class="text-gray-600 mb-4">This endpoint opens a cooperative share account for a member. Members buy and redeem shares through the purchase and redeem endpoints.</p>
                             </div>
                         </div>
                     </section>
@@ -1832,8 +1826,8 @@ curl -X POST \
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">x402 Protocol API</h2>
 
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>The x402 Protocol enables HTTP-native micropayments using USDC on Base. Monetize any API endpoint by returning HTTP 402 responses with payment requirements. Supports AI agent autonomous payments, spending limits, and multi-network settlement.</p>
-                            <p class="text-sm text-gray-500">15+ endpoints &middot; <a href="/api/documentation#/X402" target="_blank" class="text-emerald-600 hover:text-emerald-800">View in Swagger UI</a></p>
+                            <p>The x402 protocol lets an API charge small payments in USDC over plain HTTP. A paid endpoint answers an unpaid request with HTTP 402 and the payment terms. AI agents can pay on their own within spending limits, and payments can settle on several networks.</p>
+                            <p class="text-sm text-gray-500">15 endpoints &middot; <a href="/api/documentation#/X402" target="_blank" class="text-emerald-600 hover:text-emerald-800">View in Swagger UI</a></p>
                         </div>
 
                         <div class="space-y-8">
@@ -1845,7 +1839,7 @@ curl -X POST \
                                         <span class="ml-2 font-mono text-sm">/x402/status</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Get the current x402 protocol status including supported networks, assets, and facilitator connectivity.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns the x402 status, the supported networks and assets, and whether the facilitator is reachable.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
      {{ config('app.url') }}/api/v2/x402/status
@@ -1860,7 +1854,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                         <span class="ml-2 font-mono text-sm">/x402/supported</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">List all supported blockchain networks and payment assets for x402 settlement.</p>
+                                <p class="text-gray-600 mb-4">This endpoint lists the networks and assets that x402 payments can settle on.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
      {{ config('app.url') }}/api/v2/x402/supported
@@ -1875,7 +1869,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                         <span class="ml-2 font-mono text-sm">/x402/endpoints</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Register an API endpoint for x402 monetization with pricing configuration.</p>
+                                <p class="text-gray-600 mb-4">This endpoint registers an API endpoint as paid and sets its price.</p>
                                 <x-code-block language="bash">
 curl -X POST \
   -H "Authorization: Bearer your_api_key" \
@@ -1899,7 +1893,7 @@ curl -X POST \
                                         <span class="ml-2 font-mono text-sm">/x402/payments</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">Retrieve payment history and settlement status for x402 transactions.</p>
+                                <p class="text-gray-600 mb-4">This endpoint returns the x402 payment history and the settlement status of each payment.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
      "{{ config('app.url') }}/api/v2/x402/payments?page=1&per_page=20"
@@ -1914,7 +1908,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                         <span class="ml-2 font-mono text-sm">/x402/spending-limits</span>
                                     </div>
                                 </div>
-                                <p class="text-gray-600 mb-4">View and manage spending limits for automated x402 payments including AI agent budgets.</p>
+                                <p class="text-gray-600 mb-4">This endpoint shows and manages the spending limits for automatic x402 payments, including AI agent budgets.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
      {{ config('app.url') }}/api/v2/x402/spending-limits
@@ -1923,43 +1917,36 @@ curl -H "Authorization: Bearer your_api_key" \
 
                             <div class="border rounded-lg p-6 bg-emerald-50 border-emerald-200">
                                 <h3 class="text-xl font-semibold mb-4">Handling 402 Responses</h3>
-                                <p class="text-gray-600 mb-4">When a client hits a monetized endpoint without payment, it receives an HTTP 402 with payment requirements in headers:</p>
+                                <p class="text-gray-600 mb-4">A client that calls a paid endpoint without paying gets HTTP 402. The <code>PAYMENT-REQUIRED</code> header holds the payment terms, encoded in base64. The client signs a payment and sends it back in the <code>PAYMENT-SIGNATURE</code> header. After settlement, the response carries a <code>PAYMENT-RESPONSE</code> header.</p>
                                 <x-code-block language="plaintext">
 HTTP/1.1 402 Payment Required
-X-Payment-Required: true
-X-Payment-Network: eip155:8453
-X-Payment-Asset: USDC
-X-Payment-Amount: 0.01
-X-Payment-Receiver: 0x...
-X-Payment-Facilitator: https://x402.org/facilitator
-                                </x-code-block>
+PAYMENT-REQUIRED: eyJ4NDAyVmVyc2lvbiI6Mi...  (base64-encoded payment terms)
+X-Payment-Protocol: x402
+X-Payment-Version: 2
+</x-code-block>
 
                                 <h4 class="font-semibold mb-2 mt-6">JavaScript Client Example:</h4>
                                 <x-code-block language="javascript">
-const response = await fetch('{{ config('app.url') }}/api/v2/premium/data', {
+// /api/v1/paid/data stands for any endpoint you registered as paid
+const response = await fetch('{{ config('app.url') }}/api/v1/paid/data', {
   headers: { 'Authorization': 'Bearer YOUR_API_KEY' }
 });
 
 if (response.status === 402) {
-  const paymentInfo = {
-    network: response.headers.get('X-Payment-Network'),
-    asset: response.headers.get('X-Payment-Asset'),
-    amount: response.headers.get('X-Payment-Amount'),
-    receiver: response.headers.get('X-Payment-Receiver'),
-  };
+  // Decode the payment terms
+  const terms = JSON.parse(atob(response.headers.get('PAYMENT-REQUIRED')));
 
-  // Sign and submit payment, then retry with proof
-  const proof = await signPayment(paymentInfo);
-  const paid = await fetch('{{ config('app.url') }}/api/v2/premium/data', {
+  // Sign a payment that matches the terms, then retry with it
+  const signed = await signPayment(terms);
+  const paid = await fetch('{{ config('app.url') }}/api/v1/paid/data', {
     headers: {
       'Authorization': 'Bearer YOUR_API_KEY',
-      'X-Payment-Signature': proof.signature,
-      'X-Payment-Payload': proof.payload,
+      'PAYMENT-SIGNATURE': signed
     }
   });
-  const data = await paid.json(); // 200 + data
+  const data = await paid.json(); // 200 and the data
 }
-                                </x-code-block>
+</x-code-block>
                             </div>
                         </div>
                     </section>
@@ -1967,7 +1954,7 @@ if (response.status === 402) {
                     <section id="rate-limits" class="mb-16">
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Rate Limits</h2>
                         <div class="prose prose-lg max-w-none mb-6">
-                            <p>All API requests are rate limited. Limits apply per API key and are enforced on a sliding window.</p>
+                            <p>Every API request is rate limited. Each type of endpoint has its own limit per user in a 60-second window. These are the default values, and an operator can change them.</p>
                         </div>
                         <div class="border rounded-lg overflow-hidden mb-6">
                             <table class="w-full text-sm">
@@ -1978,20 +1965,23 @@ if (response.status === 402) {
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200">
-                                    <tr><td class="px-4 py-3 text-gray-700">REST API</td><td class="px-4 py-3"><code class="bg-gray-100 px-2 py-0.5 rounded">1,000 requests/hour per API key</code></td></tr>
-                                    <tr><td class="px-4 py-3 text-gray-700">GraphQL (authenticated)</td><td class="px-4 py-3"><code class="bg-gray-100 px-2 py-0.5 rounded">120 queries/minute</code></td></tr>
-                                    <tr><td class="px-4 py-3 text-gray-700">GraphQL (guest)</td><td class="px-4 py-3"><code class="bg-gray-100 px-2 py-0.5 rounded">30 queries/minute</code></td></tr>
-                                    <tr><td class="px-4 py-3 text-gray-700">Webhooks</td><td class="px-4 py-3"><code class="bg-gray-100 px-2 py-0.5 rounded">100 deliveries/minute per endpoint</code></td></tr>
-                                    <tr><td class="px-4 py-3 text-gray-700">Burst (sliding window)</td><td class="px-4 py-3"><code class="bg-gray-100 px-2 py-0.5 rounded">100 requests/minute</code></td></tr>
+                                    <tr><td class="px-4 py-3 text-gray-700">Read requests</td><td class="px-4 py-3"><code class="bg-gray-100 px-2 py-0.5 rounded">100 requests/minute</code></td></tr>
+                                    <tr><td class="px-4 py-3 text-gray-700">Transactions</td><td class="px-4 py-3"><code class="bg-gray-100 px-2 py-0.5 rounded">30 requests/minute</code></td></tr>
+                                    <tr><td class="px-4 py-3 text-gray-700">Sign-in</td><td class="px-4 py-3"><code class="bg-gray-100 px-2 py-0.5 rounded">3 requests/minute</code></td></tr>
+                                    <tr><td class="px-4 py-3 text-gray-700">Public endpoints</td><td class="px-4 py-3"><code class="bg-gray-100 px-2 py-0.5 rounded">60 requests/minute</code></td></tr>
+                                    <tr><td class="px-4 py-3 text-gray-700">Administration</td><td class="px-4 py-3"><code class="bg-gray-100 px-2 py-0.5 rounded">200 requests/minute</code></td></tr>
+                                    <tr><td class="px-4 py-3 text-gray-700">Incoming webhooks</td><td class="px-4 py-3"><code class="bg-gray-100 px-2 py-0.5 rounded">1,000 requests/minute</code></td></tr>
+                                    <tr><td class="px-4 py-3 text-gray-700">GraphQL, signed in</td><td class="px-4 py-3"><code class="bg-gray-100 px-2 py-0.5 rounded">120 queries/minute</code></td></tr>
+                                    <tr><td class="px-4 py-3 text-gray-700">GraphQL, guest</td><td class="px-4 py-3"><code class="bg-gray-100 px-2 py-0.5 rounded">30 queries/minute</code></td></tr>
                                 </tbody>
                             </table>
                         </div>
                         <div class="bg-gray-50 rounded-lg p-4">
-                            <p class="text-sm font-semibold text-gray-700 mb-2">Rate limit headers included in every response:</p>
+                            <p class="text-sm font-semibold text-gray-700 mb-2">Rate-limited responses carry these headers.</p>
                             <div class="space-y-1 font-mono text-sm text-gray-600">
-                                <div><code>X-RateLimit-Limit</code> — Maximum requests allowed in the window</div>
-                                <div><code>X-RateLimit-Remaining</code> — Requests remaining in the current window</div>
-                                <div><code>X-RateLimit-Reset</code> — Unix timestamp when the window resets</div>
+                                <div><code>X-RateLimit-Limit</code> is the number of requests allowed in the window.</div>
+                                <div><code>X-RateLimit-Remaining</code> is the number of requests left in the current window.</div>
+                                <div><code>X-RateLimit-Reset</code> is the Unix time when the window starts again.</div>
                             </div>
                         </div>
                     </section>
@@ -2013,19 +2003,19 @@ if (response.status === 402) {
                         <div class="bg-white border rounded-lg p-6 mb-8">
                             <h3 class="text-lg font-semibold mb-4">Platform API Areas</h3>
                             <ul class="space-y-2 text-sm">
-                                <li><a href="#crosschain" class="text-cyan-600 hover:text-cyan-800 flex justify-between"><span>CrossChain</span><span class="text-gray-400">7 routes</span></a></li>
-                                <li><a href="#defi" class="text-emerald-600 hover:text-emerald-800 flex justify-between"><span>DeFi</span><span class="text-gray-400">8 routes</span></a></li>
-                                <li><a href="#regtech" class="text-amber-600 hover:text-amber-800 flex justify-between"><span>RegTech</span><span class="text-gray-400">12 routes</span></a></li>
-                                <li><a href="#mobile-payment" class="text-violet-600 hover:text-violet-800 flex justify-between"><span>Mobile Payment</span><span class="text-gray-400">25+ routes</span></a></li>
-                                <li><a href="#partner-baas" class="text-rose-600 hover:text-rose-800 flex justify-between"><span>Partner BaaS</span><span class="text-gray-400">24 routes</span></a></li>
+                                <li><a href="#crosschain" class="text-cyan-600 hover:text-cyan-800 flex justify-between"><span>CrossChain</span><span class="text-gray-400">6 routes</span></a></li>
+                                <li><a href="#defi" class="text-emerald-600 hover:text-emerald-800 flex justify-between"><span>Decentralised Finance</span><span class="text-gray-400">8 routes</span></a></li>
+                                <li><a href="#regtech" class="text-amber-600 hover:text-amber-800 flex justify-between"><span>RegTech</span><span class="text-gray-400">11 routes</span></a></li>
+                                <li><a href="#mobile-payment" class="text-violet-600 hover:text-violet-800 flex justify-between"><span>Mobile Payment</span><span class="text-gray-400">More than 25 routes</span></a></li>
+                                <li><a href="#partner-baas" class="text-rose-600 hover:text-rose-800 flex justify-between"><span>Partner API</span><span class="text-gray-400">27 routes</span></a></li>
                                 <li><a href="#ai" class="text-gray-600 hover:text-gray-800 flex justify-between"><span>AI Query</span><span class="text-gray-400">2 routes</span></a></li>
-                                <li><a href="#graphql" class="text-sky-600 hover:text-sky-800 flex justify-between"><span>GraphQL</span><span class="text-gray-400">45 domains</span></a></li>
+                                <li><a href="#graphql" class="text-sky-600 hover:text-sky-800 flex justify-between"><span>GraphQL</span><span class="text-gray-400">43 domains</span></a></li>
                                 <li><a href="#event-streaming" class="text-lime-600 hover:text-lime-800 flex justify-between"><span>Event Streaming</span><span class="text-gray-400">5 endpoints</span></a></li>
-                                <li><a href="#x402" class="text-emerald-600 hover:text-emerald-800 flex justify-between"><span>x402 Protocol</span><span class="text-gray-400">15+ endpoints</span></a></li>
+                                <li><a href="#x402" class="text-emerald-600 hover:text-emerald-800 flex justify-between"><span>x402 Protocol</span><span class="text-gray-400">15 endpoints</span></a></li>
                                 <li><a href="#iso20022" class="text-blue-600 hover:text-blue-800 flex justify-between"><span>ISO 20022</span><span class="text-gray-400">8 msg types</span></a></li>
-                                <li><a href="#open-banking" class="text-teal-600 hover:text-teal-800 flex justify-between"><span>Open Banking</span><span class="text-gray-400">AISP + PISP</span></a></li>
+                                <li><a href="#open-banking" class="text-teal-600 hover:text-teal-800 flex justify-between"><span>Open Banking</span><span class="text-gray-400">Consents and payments</span></a></li>
                                 <li><a href="#payment-rails" class="text-orange-600 hover:text-orange-800 flex justify-between"><span>Payment Rails</span><span class="text-gray-400">ACH/Fedwire/SEPA</span></a></li>
-                                <li><a href="#interledger" class="text-purple-600 hover:text-purple-800 flex justify-between"><span>Interledger</span><span class="text-gray-400">ILP + GNAP</span></a></li>
+                                <li><a href="#interledger" class="text-purple-600 hover:text-purple-800 flex justify-between"><span>Interledger</span><span class="text-gray-400">Quotes and payments</span></a></li>
                                 <li><a href="#ledger" class="text-slate-600 hover:text-slate-800 flex justify-between"><span>Ledger</span><span class="text-gray-400">Double-entry</span></a></li>
                                 <li><a href="#microfinance" class="text-green-600 hover:text-green-800 flex justify-between"><span>Microfinance</span><span class="text-gray-400">Group lending</span></a></li>
                             </ul>
@@ -2033,7 +2023,7 @@ if (response.status === 402) {
 
                         <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
                             <h3 class="text-lg font-semibold text-blue-900 mb-4">OpenAPI Specification</h3>
-                            <p class="text-blue-800 mb-4">Download the OpenAPI specification file or view it in your preferred API client.</p>
+                            <p class="text-blue-800 mb-4">You can download the OpenAPI specification or open it in the interactive explorer.</p>
                             <div class="flex gap-3">
                                 <a href="/docs/api-docs.json" download="zelta-api-v2.json" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-200">
                                     Download OpenAPI JSON
@@ -2042,7 +2032,7 @@ if (response.status === 402) {
                                     Interactive API Explorer
                                 </a>
                             </div>
-                            <p class="text-xs text-gray-600 mt-3">Import the JSON file into Postman, Insomnia, or any OpenAPI-compatible tool</p>
+                            <p class="text-xs text-gray-600 mt-3">You can import the JSON file into Postman, Insomnia or any tool that reads OpenAPI.</p>
                         </div>
                     </div>
                 </div>

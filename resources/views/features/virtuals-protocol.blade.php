@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Virtuals Protocol - AI Agent Commerce | ' . config('brand.name', 'Zelta'))
+@section('title', 'Virtuals Protocol Adapter for AI Agent Commerce | ' . config('brand.name', 'Zelta'))
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Virtuals Protocol - AI Agent Commerce',
-        'description' => 'Virtuals Protocol ACP integration adapter: agent token tracking, spending limits and Pimlico-based enforcement. Integration adapters for third-party APIs; no partnership or endorsement implied.',
-        'keywords' => 'virtuals protocol, acp, ai agent commerce, agent token, agdp, pimlico, autonomous agents, agent banking, zelta',
+        'title' => 'Virtuals Protocol Adapter for AI Agent Commerce',
+        'description' => 'An integration adapter for the Agent Commerce Protocol of the Virtuals Protocol. It tracks agent tokens, enforces spending limits and pays for services on behalf of agents. Integration adapters for third-party APIs; no partnership or endorsement implied.',
+        'keywords' => 'virtuals protocol, agent commerce protocol, ai agent commerce, agent token, agent economic output, pimlico, autonomous agents, agent banking, zelta',
     ])
 
     {{-- Schema.org Markup --}}
@@ -29,7 +29,7 @@
                 <div class="flex justify-center mb-6">
                     <span class="inline-flex items-center gap-2 px-4 py-2 bg-violet-500/10 border border-violet-500/20 rounded-full text-sm text-violet-300 font-medium">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                        New &mdash; Virtuals Protocol Integration
+                        Virtuals Protocol adapter
                     </span>
                 </div>
                 @include('partials.breadcrumb', ['items' => [
@@ -40,25 +40,24 @@
                     AI Agent <span class="text-gradient">Commerce</span>
                 </h1>
                 <p class="text-lg text-slate-400 max-w-2xl mx-auto mb-10">
-                    Give autonomous agents programmable wallets with spending limits. {{ config('brand.name', 'Zelta') }} includes an integration adapter for the Virtuals Protocol
-                    Agent Commerce Protocol (ACP); no partnership or endorsement implied.
+                    {{ config('brand.name', 'Zelta') }} includes an integration adapter for the Agent Commerce Protocol of the Virtuals Protocol. Agents from that network can use it to pay for services within spending limits. No partnership or endorsement is implied.
                 </p>
                 <div class="flex flex-wrap justify-center gap-4 mb-8">
                     <div class="flex items-center gap-2 text-sm text-slate-400">
                         <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        ACP Adapter Operations
+                        Adapter operations
                     </div>
                     <div class="flex items-center gap-2 text-sm text-slate-400">
                         <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        Agent Token Tracking
+                        Agent token tracking
                     </div>
                     <div class="flex items-center gap-2 text-sm text-slate-400">
                         <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        aGDP Reporting
+                        Agent economic output reports
                     </div>
                     <div class="flex items-center gap-2 text-sm text-slate-400">
                         <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        Pimlico Enforcement
+                        Spending limits
                     </div>
                 </div>
             </div>
@@ -71,29 +70,29 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
                 <h2 class="font-display text-3xl font-bold text-slate-900">How It Works</h2>
-                <p class="text-slate-500 mt-4 max-w-xl mx-auto">From agent intent to settled payment in three steps.</p>
+                <p class="text-slate-500 mt-4 max-w-xl mx-auto">A request from an agent becomes a payment in three steps.</p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="text-center p-8 bg-slate-50 rounded-2xl">
                     <div class="w-16 h-16 bg-violet-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
                         <span class="text-2xl font-bold text-violet-600">1</span>
                     </div>
-                    <h3 class="font-display text-lg font-semibold text-slate-900 mb-3">Agent Hires {{ config('brand.name', 'Zelta') }} via ACP</h3>
-                    <p class="text-slate-500 text-sm">An autonomous agent browses the ACP marketplace, finds the adapter's services, and initiates a job &mdash; a spending-limit check or payment execution.</p>
+                    <h3 class="font-display text-lg font-semibold text-slate-900 mb-3">The agent starts a job</h3>
+                    <p class="text-slate-500 text-sm">An agent searches the Agent Commerce Protocol marketplace and finds the adapter's services. It then starts a job, such as a compliance check or a payment.</p>
                 </div>
                 <div class="text-center p-8 bg-slate-50 rounded-2xl">
                     <div class="w-16 h-16 bg-violet-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
                         <span class="text-2xl font-bold text-violet-600">2</span>
                     </div>
-                    <h3 class="font-display text-lg font-semibold text-slate-900 mb-3">Spending Limits Enforced</h3>
-                    <p class="text-slate-500 text-sm">{{ config('brand.name', 'Zelta') }} verifies the agent's TrustCert identity, checks sanctions lists, and applies per-agent daily budgets and per-transaction caps via Pimlico smart-account rules.</p>
+                    <h3 class="font-display text-lg font-semibold text-slate-900 mb-3">Limits are checked</h3>
+                    <p class="text-slate-500 text-sm">{{ config('brand.name', 'Zelta') }} checks the agent's TrustCert identity and status. It then applies the agent's daily budget and its limit for each payment. The limits are enforced in the database. The adapter can also describe them as a spending policy for a Pimlico smart account, and enforcement through Pimlico is planned.</p>
                 </div>
                 <div class="text-center p-8 bg-slate-50 rounded-2xl">
                     <div class="w-16 h-16 bg-violet-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
                         <span class="text-2xl font-bold text-violet-600">3</span>
                     </div>
-                    <h3 class="font-display text-lg font-semibold text-slate-900 mb-3">Payment Settles via x402</h3>
-                    <p class="text-slate-500 text-sm">The approved transaction settles via x402 for crypto-native APIs. Every step is event-sourced for full auditability.</p>
+                    <h3 class="font-display text-lg font-semibold text-slate-900 mb-3">The payment is made</h3>
+                    <p class="text-slate-500 text-sm">The adapter pays for the requested service through the card-payment adapter. Every step is stored as an event, so it can be audited later.</p>
                 </div>
             </div>
         </div>
@@ -104,29 +103,29 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
                 <h2 class="font-display text-3xl font-bold text-slate-900">Example adapter operations (sandbox)</h2>
-                <p class="text-slate-500 mt-4 max-w-xl mx-auto">Operations exposed to Virtuals agents through the Agent Commerce Protocol adapter.</p>
+                <p class="text-slate-500 mt-4 max-w-xl mx-auto">Agents from the Virtuals Protocol can call these operations through the adapter.</p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <div class="card-feature">
                     <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
                         <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
                     </div>
-                    <h3 class="text-lg font-semibold mb-2">Sanctions Screen</h3>
-                    <p class="text-slate-500 text-sm">Screen agent wallet addresses and counterparties against OFAC, EU, and UN sanctions lists in real time before any payment executes.</p>
+                    <h3 class="text-lg font-semibold mb-2">Compliance Check</h3>
+                    <p class="text-slate-500 text-sm">The adapter confirms the agent's TrustCert identity and reports whether the agent is active. Payments only run for agents that are registered and active.</p>
                 </div>
                 <div class="card-feature">
                     <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-4">
                         <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                     </div>
-                    <h3 class="text-lg font-semibold mb-2">Shield Assets</h3>
-                    <p class="text-slate-500 text-sm">Move agent funds into a Pimlico-enforced smart account with configurable spend policies, time locks, and multi-sig recovery.</p>
+                    <h3 class="text-lg font-semibold mb-2">Fraud Shield</h3>
+                    <p class="text-slate-500 text-sm">An agent can ask the adapter to assess a payment for fraud. In this version the request is recorded and returns a neutral risk score.</p>
                 </div>
                 <div class="card-feature">
                     <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
                         <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     </div>
                     <h3 class="text-lg font-semibold mb-2">Execute Payment</h3>
-                    <p class="text-slate-500 text-sm">Authorize and settle a payment via x402 USDC. Budget atomically reserved under database row lock before execution.</p>
+                    <p class="text-slate-500 text-sm">The adapter pays for a web address on behalf of the agent. Before it pays, it reserves the amount from the budget while it holds a lock on the database row.</p>
                 </div>
             </div>
         </div>
@@ -137,7 +136,7 @@
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
                 <h2 class="font-display text-3xl font-bold text-slate-900">For Agent Developers</h2>
-                <p class="text-slate-500 mt-4">Call the {{ config('brand.name', 'Zelta') }} adapter operations from any Virtuals agent in a few lines of TypeScript.</p>
+                <p class="text-slate-500 mt-4">A Virtuals agent can call the {{ config('brand.name', 'Zelta') }} adapter with a few lines of TypeScript.</p>
             </div>
             <div class="bg-slate-900 rounded-xl p-6 font-mono text-sm text-slate-300 overflow-x-auto">
 <pre><span class="text-slate-500">// Install: npm i @virtuals-protocol/acp-node</span>
@@ -162,7 +161,7 @@
 <span class="text-blue-400">const</span> status = <span class="text-violet-400">await</span> acpClient.getJobStatus(job.id);
 console.log(status);</pre>
             </div>
-            <p class="text-sm text-slate-400 mt-4 text-center">The ACP SDK handles discovery, negotiation, and payment between agents. {{ config('brand.name', 'Zelta') }} fulfils adapter jobs on the provider side.</p>
+            <p class="text-sm text-slate-400 mt-4 text-center">The Agent Commerce Protocol SDK finds services, negotiates and handles payment between agents. {{ config('brand.name', 'Zelta') }} carries out the jobs on the provider side.</p>
         </div>
     </section>
 
@@ -170,8 +169,8 @@ console.log(status);</pre>
     <section class="py-20 bg-slate-50">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
-                <h2 class="font-display text-3xl font-bold text-slate-900">Virtuals x {{ config('brand.name', 'Zelta') }}</h2>
-                <p class="text-slate-500 mt-4">Two protocols, complementary strengths. Virtuals provides the agent runtime &mdash; {{ config('brand.name', 'Zelta') }} provides wallet and spending-limit tooling.</p>
+                <h2 class="font-display text-3xl font-bold text-slate-900">Virtuals and {{ config('brand.name', 'Zelta') }}</h2>
+                <p class="text-slate-500 mt-4">The two systems do different jobs. The Virtuals Protocol runs the agents. {{ config('brand.name', 'Zelta') }} provides the wallet and the spending limits.</p>
             </div>
             <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
                 <table class="w-full text-sm">
@@ -185,11 +184,11 @@ console.log(status);</pre>
                     <tbody class="divide-y divide-slate-100">
                         <tr>
                             <td class="py-3 px-6 text-slate-700">Core role</td>
-                            <td class="py-3 px-6 text-center text-slate-600">Agent brain &amp; cognition</td>
-                            <td class="py-3 px-6 text-center text-slate-600">Wallet &amp; spending-limit tooling</td>
+                            <td class="py-3 px-6 text-center text-slate-600">Runs the agents and their logic</td>
+                            <td class="py-3 px-6 text-center text-slate-600">Wallet and spending limits</td>
                         </tr>
                         <tr>
-                            <td class="py-3 px-6 text-slate-700">Tokenization</td>
+                            <td class="py-3 px-6 text-slate-700">Agent tokens</td>
                             <td class="py-3 px-6 text-center"><svg class="w-5 h-5 text-emerald-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></td>
                             <td class="py-3 px-6 text-center text-slate-400">&mdash;</td>
                         </tr>
@@ -204,7 +203,7 @@ console.log(status);</pre>
                             <td class="py-3 px-6 text-center"><svg class="w-5 h-5 text-emerald-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></td>
                         </tr>
                         <tr>
-                            <td class="py-3 px-6 text-slate-700">aGDP reporting</td>
+                            <td class="py-3 px-6 text-slate-700">Agent economic output reports</td>
                             <td class="py-3 px-6 text-center"><svg class="w-5 h-5 text-emerald-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></td>
                             <td class="py-3 px-6 text-center"><svg class="w-5 h-5 text-emerald-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></td>
                         </tr>
@@ -217,11 +216,11 @@ console.log(status);</pre>
     <!-- CTA -->
     <section class="py-16 bg-fa-navy">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="font-display text-3xl font-bold text-white mb-4">Build agent-native payments</h2>
-            <p class="text-slate-400 mb-8 max-w-xl mx-auto">Connect your Virtuals agent to {{ config('brand.name', 'Zelta') }} via ACP and give it a programmable wallet with spending limits.</p>
+            <h2 class="font-display text-3xl font-bold text-white mb-4">Connect a Virtuals agent</h2>
+            <p class="text-slate-400 mb-8 max-w-xl mx-auto">Connect your Virtuals agent to {{ config('brand.name', 'Zelta') }} through the Agent Commerce Protocol. The agent then gets a wallet with spending limits.</p>
             <div class="flex flex-wrap justify-center gap-4">
                 <a href="{{ url('/developers') }}" class="btn-primary px-8 py-4 text-lg">Developer Docs</a>
-                <a href="{{ route('features.show', 'visa-cli') }}" class="btn-outline px-8 py-4 text-lg">Card-Payment CLI Adapter</a>
+                <a href="{{ route('features.show', 'visa-cli') }}" class="btn-outline px-8 py-4 text-lg">Card-Payment Adapter</a>
             </div>
         </div>
     </section>

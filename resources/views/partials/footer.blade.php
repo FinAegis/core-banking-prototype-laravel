@@ -10,7 +10,7 @@
                 </a>
                 <p class="text-slate-500 text-sm leading-relaxed max-w-xs mb-6">
                     @if(app()->environment('demo') || config('brand.show_promo_pages'))
-                        Open-source core banking infrastructure for the next generation of financial services. Apache-2.0 licensed.
+                        {{ config('brand.name', 'Zelta') }} is open-source core banking software for developers. It is free to use under the Apache 2.0 license.
                     @else
                         {{ config('brand.name', 'Zelta') }} is a stablecoin wallet that you control with a passkey.
                     @endif

@@ -112,7 +112,7 @@
                                 </span>
                             </label>
                             <p class="mt-1 text-sm text-gray-500">
-                                If checked, collateral will be released back to your account (minus fees)
+                                If you tick this box, the collateral goes back to your account after fees are taken.
                             </p>
                         </div>
 
@@ -180,8 +180,8 @@
                                         Important Notice
                                     </h3>
                                     <p class="mt-1 text-sm text-red-700 dark:text-red-300">
-                                        This action will permanently burn {{ $stablecoin }} tokens, reducing the total supply. 
-                                        This operation cannot be undone. Ensure all parameters are correct before proceeding.
+                                        This action permanently burns {{ $stablecoin }} tokens and reduces the total supply. 
+                                        You cannot undo it. Check every value before you continue.
                                     </p>
                                 </div>
                             </div>

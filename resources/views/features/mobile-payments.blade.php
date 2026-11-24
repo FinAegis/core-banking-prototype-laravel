@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Mobile Payments — Passkeys, P2P & Solana Wallets | ' . config('brand.name', 'Zelta'))
+@section('title', 'Mobile Payments with Passkeys and Solana Wallets | ' . config('brand.name', 'Zelta'))
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Mobile Payments — Passkeys, P2P & Solana Wallets | ' . config('brand.name', 'Zelta'),
-        'description' => 'Next-generation mobile payment infrastructure with Payment Intents, Passkey Authentication, P2P transfers, and ERC-4337 gasless transactions.',
-        'keywords' => 'mobile payments, payment intents, passkey authentication, FIDO2, WebAuthn, P2P transfers, QR code, gasless transactions, ERC-4337, ' . config('brand.name', 'Zelta'),
+        'title' => 'Mobile Payments with Passkeys and Solana Wallets | ' . config('brand.name', 'Zelta'),
+        'description' => 'The mobile payments backend serves a non-custodial wallet app. It covers payment intents, passkey sign-in, wallet-to-wallet sends and gas-free ERC-4337 transactions on Ethereum-compatible networks and Solana.',
+        'keywords' => 'mobile payments, payment intents, passkey authentication, FIDO2, WebAuthn, peer-to-peer transfers, QR code, gas-free transactions, ERC-4337, Solana, ' . config('brand.name', 'Zelta'),
     ])
 
     {{-- Schema.org Markup --}}
@@ -28,7 +28,7 @@
             <div class="text-center">
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Mobile Payments</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    A complete mobile payment infrastructure built for the next generation of finance. From Payment Intents to gasless ERC-4337 transactions and native Solana wallet support, everything your users need in the palm of their hand.
+                    This backend serves a non-custodial mobile wallet. The user's device holds the keys and signs every transaction. The backend handles payment intents, sends on Ethereum-compatible networks and Solana, receipts and the activity feed.
                 </p>
             </div>
         </div>
@@ -46,7 +46,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3">Payment Intents</h3>
-                    <p class="text-slate-500">Full lifecycle management with create, submit, and cancel flows. Track every payment from initiation to settlement.</p>
+                    <p class="text-slate-500">A payment intent records a payment from start to finish. The app can create it, submit it or cancel it.</p>
                 </div>
 
                 <div class="card-feature !p-8 text-center">
@@ -56,7 +56,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3">Passkey Authentication</h3>
-                    <p class="text-slate-500">FIDO2/WebAuthn-based passwordless authentication. Biometric login with hardware-backed security for every transaction.</p>
+                    <p class="text-slate-500">Users sign in with a passkey instead of a password. The passkey follows the FIDO2 and WebAuthn standards and stays on the device.</p>
                 </div>
 
                 <div class="card-feature !p-8 text-center">
@@ -65,8 +65,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">Gasless Transactions</h3>
-                    <p class="text-slate-500">ERC-4337 account abstraction enables gas-free blockchain transactions. Users never need to hold ETH for fees.</p>
+                    <h3 class="text-xl font-bold mb-3">Sponsored Transactions</h3>
+                    <p class="text-slate-500">ERC-4337 smart accounts let the platform pay the network fee. Users do not need to hold ETH to send on Polygon, Base or Arbitrum.</p>
                 </div>
             </div>
         </div>
@@ -80,7 +80,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                 <div>
                     <p class="text-lg text-slate-500 mb-6">
-                        The Payment Intent system provides a structured, auditable approach to mobile payments. Every transaction moves through clearly defined states, enabling robust error handling, compliance checks, and user confirmation flows.
+                        Payment intents give each mobile payment a clear record. Every payment moves through defined states. This makes errors easy to handle and leaves room for compliance checks and user confirmation.
                     </p>
                     <div class="space-y-4">
                         <div class="flex items-start">
@@ -89,7 +89,7 @@
                             </div>
                             <div>
                                 <h4 class="font-semibold mb-1">Create Intent</h4>
-                                <p class="text-slate-500">Initialize a payment with amount, currency, recipient, and metadata. The system validates parameters and reserves funds.</p>
+                                <p class="text-slate-500">The app starts a payment with the amount, currency and recipient. The backend validates these details first.</p>
                             </div>
                         </div>
                         <div class="flex items-start">
@@ -98,7 +98,7 @@
                             </div>
                             <div>
                                 <h4 class="font-semibold mb-1">Submit Payment</h4>
-                                <p class="text-slate-500">User confirms the payment with biometric or passkey authentication. The system processes the transfer atomically.</p>
+                                <p class="text-slate-500">The user confirms the payment on the device, and the device signs it. The backend then submits the signed transaction.</p>
                             </div>
                         </div>
                         <div class="flex items-start">
@@ -107,7 +107,7 @@
                             </div>
                             <div>
                                 <h4 class="font-semibold mb-1">Settlement or Cancellation</h4>
-                                <p class="text-slate-500">Payment settles instantly or can be cancelled before submission. Full receipt generation with digital signatures.</p>
+                                <p class="text-slate-500">The payment settles on the network, or the user cancels it before submission. The backend then creates a receipt as a web page and as a PDF.</p>
                             </div>
                         </div>
                     </div>
@@ -117,8 +117,8 @@
                     <h3 class="text-2xl font-bold mb-6 text-slate-900">Payment Capabilities</h3>
                     <div class="space-y-4">
                         <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                            <span class="text-slate-500">P2P Transfers</span>
-                            <span class="text-lg font-bold text-indigo-600">Instant</span>
+                            <span class="text-slate-500">Wallet Sends</span>
+                            <span class="text-lg font-bold text-indigo-600">Device-signed</span>
                         </div>
                         <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                             <span class="text-slate-500">QR Code Payments</span>
@@ -126,11 +126,11 @@
                         </div>
                         <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                             <span class="text-slate-500">Receipt Generation</span>
-                            <span class="text-lg font-bold text-green-600">Automatic</span>
+                            <span class="text-lg font-bold text-green-600">Web and PDF</span>
                         </div>
                         <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                             <span class="text-slate-500">Activity Feed</span>
-                            <span class="text-lg font-bold text-pink-600">Real-time</span>
+                            <span class="text-lg font-bold text-pink-600">Live</span>
                         </div>
                     </div>
                 </div>
@@ -145,15 +145,15 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="card-feature !p-8">
-                    <h3 class="text-2xl font-bold mb-6 text-indigo-900">P2P Transfer System</h3>
+                    <h3 class="text-2xl font-bold mb-6 text-indigo-900">Wallet-to-Wallet Sends</h3>
                     <ul class="space-y-4">
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-indigo-600 mr-3 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"></path>
                             </svg>
                             <div>
-                                <h4 class="font-semibold mb-1">Contact-Based Sending</h4>
-                                <p class="text-slate-600">Send to contacts by username, email, or phone number with instant resolution</p>
+                                <h4 class="font-semibold mb-1">Address Checks</h4>
+                                <p class="text-slate-600">The backend checks that a wallet address is valid for the chosen network before the send.</p>
                             </div>
                         </li>
                         <li class="flex items-start">
@@ -161,8 +161,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"></path>
                             </svg>
                             <div>
-                                <h4 class="font-semibold mb-1">Split Payments</h4>
-                                <p class="text-slate-600">Divide bills among multiple recipients with automatic calculations</p>
+                                <h4 class="font-semibold mb-1">Fee Quotes</h4>
+                                <p class="text-slate-600">The user sees the fee and the final amount before confirming a send.</p>
                             </div>
                         </li>
                         <li class="flex items-start">
@@ -170,8 +170,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"></path>
                             </svg>
                             <div>
-                                <h4 class="font-semibold mb-1">Payment Requests</h4>
-                                <p class="text-slate-600">Request money from other users with customizable messages and amounts</p>
+                                <h4 class="font-semibold mb-1">Daily Limits</h4>
+                                <p class="text-slate-600">Sponsored sends have a daily limit for each user and for the whole platform.</p>
                             </div>
                         </li>
                     </ul>
@@ -186,7 +186,7 @@
                             </svg>
                             <div>
                                 <h4 class="font-semibold mb-1">Dynamic QR Codes</h4>
-                                <p class="text-slate-600">Generate unique receive addresses with embedded amount and metadata</p>
+                                <p class="text-slate-600">The backend builds a QR code for the user's receive address. The code can carry an amount.</p>
                             </div>
                         </li>
                         <li class="flex items-start">
@@ -194,8 +194,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"></path>
                             </svg>
                             <div>
-                                <h4 class="font-semibold mb-1">Merchant Integration</h4>
-                                <p class="text-slate-600">Point-of-sale compatible QR codes for in-store payments</p>
+                                <h4 class="font-semibold mb-1">Merchant QR Codes</h4>
+                                <p class="text-slate-600">The app can read a merchant's QR code. The merchant lookup in the sandbox uses demo data.</p>
                             </div>
                         </li>
                         <li class="flex items-start">
@@ -204,7 +204,7 @@
                             </svg>
                             <div>
                                 <h4 class="font-semibold mb-1">Multi-Chain Support</h4>
-                                <p class="text-slate-600">QR addresses supporting EVM chains and Solana with multi-token support</p>
+                                <p class="text-slate-600">QR codes work for Ethereum-compatible networks and Solana, for USDC and USDT.</p>
                             </div>
                         </li>
                     </ul>
@@ -226,91 +226,91 @@
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>FIDO2/WebAuthn passkey registration and verification</span>
+                            <span>Passkey registration and checks under FIDO2 and WebAuthn</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Biometric JWT tokens for transaction signing</span>
+                            <span>The device signs every transaction, and the backend never sees the private key</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Device binding and hardware-backed key storage</span>
+                            <span>Device binding, with keys kept in the device's secure hardware</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Multi-factor authentication with passkey fallback</span>
+                            <span>Two-factor authentication, with passkeys as another option</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Session management with secure token rotation</span>
+                            <span>Sessions with tokens that are replaced regularly</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Network status monitoring and offline resilience</span>
+                            <span>Network status checks, so the app knows when a network is down</span>
                         </li>
                     </ul>
                 </div>
 
                 <div class="card-feature !p-8">
-                    <h3 class="text-2xl font-bold mb-6">ERC-4337, Gas Abstraction & Solana</h3>
+                    <h3 class="text-2xl font-bold mb-6">ERC-4337 Smart Accounts and Solana</h3>
                     <ul class="space-y-3">
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Smart Account creation and management</span>
+                            <span>Smart accounts created and managed through Privy</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>UserOperation signing with biometric JWT</span>
+                            <span>User operations signed with a passkey on the device</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Gas Station network for fee sponsorship</span>
+                            <span>A paymaster pays the gas on Polygon, Base and Arbitrum</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Bundler integration for batched operations</span>
+                            <span>A bundler submits the signed operations</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Wallet balance aggregation across EVM chains and Solana</span>
+                            <span>Wallet balances from Ethereum-compatible networks and Solana in one view</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Activity feed with real-time push notifications and Solana transaction history</span>
+                            <span>Activity feed with push notifications for incoming and outgoing transfers</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Real ed25519 Solana address generation</span>
+                            <span>Solana addresses held by a key that stays on the device</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Helius webhook monitoring for real-time Solana balance updates</span>
+                            <span>Helius webhooks report Solana transfers as they happen</span>
                         </li>
                     </ul>
                 </div>
@@ -322,9 +322,9 @@
     <section class="bg-fa-navy relative overflow-hidden">
         <div class="absolute inset-0 bg-dot-pattern"></div>
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Build Mobile-First Finance</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Build a Mobile Wallet</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                Integrate our mobile payment APIs and deliver frictionless financial experiences to your users today.
+                You can use these APIs to build your own non-custodial wallet app. The sandbox lets you try them with test data.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">

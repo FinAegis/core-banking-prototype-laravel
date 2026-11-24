@@ -16,7 +16,7 @@ class FinancialInstitutionApplicationTest extends TestCase
         $response->assertSee('Partner Institution Application');
         $response->assertSee('Partnership Requirements');
         $response->assertSee('Technical Requirements');
-        $response->assertSee('Juridical Requirements');
+        $response->assertSee('Legal Requirements');
         $response->assertSee('Financial Requirements');
         $response->assertSee('Insurance Requirements');
     }

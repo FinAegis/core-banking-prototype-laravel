@@ -41,7 +41,7 @@ class SchemaHelper
             ],
             'description' => $isZelta
                 ? $brand . ' is non-custodial stablecoin wallet software. You sign in with a passkey, and you can connect an AI assistant to your account. It works on Solana, Polygon, Base, Arbitrum and Ethereum.'
-                : $brand . ' — open-source core banking software with multi-asset accounts, payment rails, and developer APIs.',
+                : $brand . ' is open-source core banking software. It has modules for multi-asset accounts, payment rails and developer APIs.',
             'foundingDate' => '2024',
         ];
 
@@ -108,7 +108,7 @@ class SchemaHelper
         ];
         $schema['description'] = $isZelta
             ? $brand . ' is non-custodial stablecoin wallet software. You sign in with a passkey, and you can connect an AI assistant to your account. It works on Solana, Polygon, Base, Arbitrum and Ethereum. The Android app is in open testing.'
-            : $brand . ' — open-source core banking software with multi-asset accounts, payment rails, and developer APIs.';
+            : $brand . ' is open-source core banking software. It has modules for multi-asset accounts, payment rails and developer APIs.';
         $schema['developer'] = [
             '@type' => 'Organization',
             'name'  => $brand,

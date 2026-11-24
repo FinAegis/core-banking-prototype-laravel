@@ -12,7 +12,7 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">Liquidity demo module (simulated figures).</p>
+            <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">This is the liquidity demo module. All figures are simulated.</p>
 
             <!-- Market Overview -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">

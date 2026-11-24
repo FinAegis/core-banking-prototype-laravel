@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Privacy & Identity - ' . config('brand.name', 'Zelta'))
+@section('title', 'Privacy and Identity - ' . config('brand.name', 'Zelta'))
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Privacy & Identity',
-        'description' => 'Privacy-preserving identity verification with zero-knowledge proofs, verifiable credentials, Merkle trees, and ERC-4337 gas abstraction. Privacy-preserving identity tooling.',
-        'keywords' => 'privacy identity, zero knowledge proofs, ZK-KYC, verifiable credentials, Merkle trees, soulbound tokens, ERC-4337, gas abstraction, key management, ' . config('brand.name', 'Zelta'),
+        'title' => 'Privacy and Identity',
+        'description' => 'The privacy and identity modules let a person prove facts about themselves without showing the underlying data. They use zero-knowledge proofs, verifiable credentials and Merkle trees, and ERC-4337 smart accounts let users send without holding gas.',
+        'keywords' => 'privacy identity, zero knowledge proofs, zero-knowledge identity checks, verifiable credentials, Merkle trees, soulbound tokens, ERC-4337, gas sponsorship, key management, ' . config('brand.name', 'Zelta'),
     ])
 
     {{-- Schema.org Markup --}}
@@ -35,7 +35,7 @@
                 </div>
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Privacy-Preserving Identity</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    Prove who you are without revealing what you are. Harness zero-knowledge proofs, W3C verifiable credentials, and advanced cryptographic primitives to verify identity while keeping personal data private.
+                    These modules let a person prove a fact about themselves without showing the data behind it. They use zero-knowledge proofs and verifiable credentials that follow the World Wide Web Consortium standard. Personal data stays private during the check.
                 </p>
             </div>
         </div>
@@ -47,7 +47,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">Core Technologies</h2>
             <p class="text-lg text-slate-500 text-center max-w-2xl mx-auto mb-12">
-                A privacy stack built on proven cryptographic foundations for privacy-preserving identity verification.
+                The identity checks are built from well-known cryptographic methods.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -58,9 +58,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-bold mb-3 text-slate-900">ZK-KYC</h3>
+                    <h3 class="text-xl font-bold mb-3 text-slate-900">Zero-Knowledge Identity Checks</h3>
                     <p class="text-slate-500 mb-4">
-                        Zero-knowledge proof modules for identity attributes without exposing personal documents. Not a regulated KYC service; not intended to satisfy any third party's legal KYC or AML obligations.
+                        These modules prove an identity attribute, such as an age range, without showing the personal documents. It is not a regulated identity-check service. It is not meant to meet anyone's legal know your customer or anti-money laundering duties.
                     </p>
                     <ul class="space-y-2 text-sm text-gray-500">
                         <li class="flex items-center">
@@ -73,7 +73,7 @@
                             <svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Age range proofs without birthdate
+                            Age range proofs without the birth date
                         </li>
                         <li class="flex items-center">
                             <svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,7 +93,7 @@
                     </div>
                     <h3 class="text-xl font-bold mb-3 text-slate-900">Merkle Trees</h3>
                     <p class="text-slate-500 mb-4">
-                        Privacy-preserving data structures that enable efficient proof of membership and data integrity without revealing the full dataset. Anchor proofs on-chain for public verifiability.
+                        A Merkle tree proves that an item is in a set without showing the whole set. It also shows that the data has not changed. The tree's root can be anchored on a blockchain, so anyone can check a proof.
                     </p>
                     <ul class="space-y-2 text-sm text-gray-500">
                         <li class="flex items-center">
@@ -112,7 +112,7 @@
                             <svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Logarithmic verification complexity
+                            Fast checks, even for large sets
                         </li>
                     </ul>
                 </div>
@@ -126,7 +126,7 @@
                     </div>
                     <h3 class="text-xl font-bold mb-3 text-slate-900">Soulbound Tokens</h3>
                     <p class="text-slate-500 mb-4">
-                        Non-transferable on-chain attestations that bind credentials permanently to an identity. Perfect for certifications, attestations, and reputation that should not be sold or transferred.
+                        A soulbound token is an attestation on a blockchain that cannot be transferred. It ties a credential to one identity. It suits certificates and reputation that should never be sold.
                     </p>
                     <ul class="space-y-2 text-sm text-gray-500">
                         <li class="flex items-center">
@@ -159,26 +159,26 @@
                     </div>
                     <h3 class="text-xl font-bold mb-3 text-slate-900">Verifiable Credentials</h3>
                     <p class="text-slate-500 mb-4">
-                        W3C-standard verifiable credentials that enable portable, tamper-evident digital identity. Issue, hold, and verify credentials across platforms with cryptographic assurance.
+                        Verifiable credentials follow the World Wide Web Consortium standard. A signature shows whether a credential was changed. The module issues credentials and verifies them.
                     </p>
                     <ul class="space-y-2 text-sm text-gray-500">
                         <li class="flex items-center">
                             <svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            W3C VC Data Model support
+                            Verifiable Credentials Data Model
                         </li>
                         <li class="flex items-center">
                             <svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            JSON-LD and JWT proof formats
+                            JSON-LD credentials with signed proofs
                         </li>
                         <li class="flex items-center">
                             <svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Cross-platform credential portability
+                            Credentials that work on other platforms
                         </li>
                     </ul>
                 </div>
@@ -194,20 +194,20 @@
                         <div>
                             <h3 class="text-xl font-bold mb-3 text-slate-900">Key Management</h3>
                             <p class="text-slate-500 mb-4">
-                                Key management using Shamir's Secret Sharing for key sharding and HSM integration for hardware-backed security. Split private keys across multiple custodians with configurable threshold recovery, ensuring no single point of compromise.
+                                The key management module splits a secret key into shares with Shamir's Secret Sharing. A set number of shares can rebuild the key, so no single holder can use it alone. Keys can also be kept in hardware security modules.
                             </p>
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div class="bg-amber-50 rounded-lg p-4">
                                     <h4 class="font-semibold text-amber-900 mb-1">Shamir's Secret Sharing</h4>
-                                    <p class="text-sm text-slate-500">M-of-N threshold key recovery with configurable shard distribution</p>
+                                    <p class="text-sm text-slate-500">You choose how many shares exist and how many rebuild the key.</p>
                                 </div>
                                 <div class="bg-amber-50 rounded-lg p-4">
-                                    <h4 class="font-semibold text-amber-900 mb-1">HSM Integration</h4>
-                                    <p class="text-sm text-slate-500">Hardware Security Module support for tamper-resistant key storage</p>
+                                    <h4 class="font-semibold text-amber-900 mb-1">Hardware Security Modules</h4>
+                                    <p class="text-sm text-slate-500">Keys can be stored in hardware that resists tampering.</p>
                                 </div>
                                 <div class="bg-amber-50 rounded-lg p-4">
                                     <h4 class="font-semibold text-amber-900 mb-1">Key Rotation</h4>
-                                    <p class="text-sm text-slate-500">Automated key lifecycle management and rotation policies</p>
+                                    <p class="text-sm text-slate-500">Keys are replaced on a schedule that you set.</p>
                                 </div>
                             </div>
                         </div>
@@ -222,7 +222,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">Privacy Layer</h2>
             <p class="text-lg text-slate-500 text-center max-w-2xl mx-auto mb-12">
-                Advanced cryptographic protocols that let users prove statements about their data without revealing the underlying information.
+                These protocols let users prove a statement about their data. The data itself is not revealed.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -235,14 +235,14 @@
                     </div>
                     <h3 class="text-xl font-bold mb-3 text-slate-900">Delegated Proofs</h3>
                     <p class="text-slate-500 mb-4">
-                        Allow trusted third parties to generate proofs on a user's behalf without accessing raw data. Enables institutional verification workflows while preserving individual privacy.
+                        A trusted service can generate a proof for a user without seeing the raw data. Institutions can use this to run checks while the person's data stays private.
                     </p>
                     <div class="border-t pt-4 mt-4">
                         <h4 class="font-semibold text-sm text-slate-900 mb-2">Use Cases</h4>
                         <ul class="space-y-1 text-sm text-gray-500">
                             <li class="flex items-start">
                                 <span class="text-indigo-400 mr-2 mt-0.5">--</span>
-                                Corporate compliance delegation
+                                Compliance checks run for a company
                             </li>
                             <li class="flex items-start">
                                 <span class="text-indigo-400 mr-2 mt-0.5">--</span>
@@ -250,7 +250,7 @@
                             </li>
                             <li class="flex items-start">
                                 <span class="text-indigo-400 mr-2 mt-0.5">--</span>
-                                Multi-party verification chains
+                                Checks that pass through several parties
                             </li>
                         </ul>
                     </div>
@@ -265,7 +265,7 @@
                     </div>
                     <h3 class="text-xl font-bold mb-3 text-slate-900">Proof of Innocence</h3>
                     <p class="text-slate-500 mb-4">
-                        Sanctions-list non-membership proof modules that work without revealing full transaction history or balances.
+                        These modules prove that an address is not on a sanctions list. They do not reveal the transaction history or the balances.
                     </p>
                     <div class="border-t pt-4 mt-4">
                         <h4 class="font-semibold text-sm text-slate-900 mb-2">Capabilities</h4>
@@ -285,16 +285,16 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-bold mb-3 text-slate-900">ZK Production Prover</h3>
+                    <h3 class="text-xl font-bold mb-3 text-slate-900">Zero-Knowledge Prover</h3>
                     <p class="text-slate-500 mb-4">
-                        Zero-knowledge proof infrastructure with 5 Circom circuit sources, TrustedSetupService for ceremony management, CircuitCompilationService, and auto-generated Solidity verifier contracts. Run <code class="text-xs bg-gray-100 px-1.5 py-0.5 rounded">php artisan zk:setup</code> to bootstrap the full proving pipeline.
+                        The prover ships with five Circom circuits for age, income range, identity tier, residency and sanctions checks. Services manage the trusted setup ceremony and compile the circuits. Solidity verifier contracts are generated from them. Run <code class="text-xs bg-gray-100 px-1.5 py-0.5 rounded">php artisan zk:setup</code> to set up the proving pipeline.
                     </p>
                     <div class="border-t pt-4 mt-4">
                         <h4 class="font-semibold text-sm text-slate-900 mb-2">Features</h4>
                         <ul class="space-y-1 text-sm text-gray-500">
                             <li class="flex items-start">
                                 <span class="text-violet-400 mr-2 mt-0.5">--</span>
-                                Verifiable trusted setup with SRS manifests
+                                Trusted setup that can be checked
                             </li>
                             <li class="flex items-start">
                                 <span class="text-violet-400 mr-2 mt-0.5">--</span>
@@ -316,7 +316,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">Trust Framework</h2>
             <p class="text-lg text-slate-500 text-center max-w-2xl mx-auto mb-12">
-                A layered trust architecture that establishes verifiable chains of authority from root certificate authorities to individual credential holders.
+                The trust framework links each credential holder back to a root certificate authority. Every link in that chain can be checked.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -332,7 +332,7 @@
                             <div>
                                 <h3 class="text-xl font-bold mb-2 text-slate-900">Certificate Authority</h3>
                                 <p class="text-slate-500">
-                                    Built-in Certificate Authority for issuing and managing digital certificates. Supports hierarchical PKI with root and intermediate CAs, certificate revocation lists, and OCSP responders for real-time status checking.
+                                    The built-in certificate authority issues and manages digital certificates. A root authority signs the certificates below it. A revocation registry shows whether a credential is still valid.
                                 </p>
                             </div>
                         </div>
@@ -347,7 +347,7 @@
                             <div>
                                 <h3 class="text-xl font-bold mb-2 text-slate-900">Trust Chains</h3>
                                 <p class="text-slate-500">
-                                    Establish cryptographically verifiable chains of trust from issuers to holders. Every credential can be traced back through a chain of signed attestations to a trusted root authority, enabling instant verification.
+                                    A chain of trust runs from the issuer to the holder. Each credential can be traced through signed attestations to a trusted root. A verifier only needs to check that chain.
                                 </p>
                             </div>
                         </div>
@@ -360,9 +360,9 @@
                                 </svg>
                             </div>
                             <div>
-                                <h3 class="text-xl font-bold mb-2 text-slate-900">Credential Export</h3>
+                                <h3 class="text-xl font-bold mb-2 text-slate-900">Credential Formats</h3>
                                 <p class="text-slate-500">
-                                    Export verifiable credentials in interoperable formats including JSON-LD, JWT, and CBOR. Credentials are portable across platforms and can be verified offline with embedded proof chains.
+                                    Credentials are issued as JSON-LD documents with a signed proof. Other platforms can read them. Certificates can also be exported as PDF documents.
                                 </p>
                             </div>
                         </div>
@@ -378,7 +378,7 @@
                             </div>
                             <div>
                                 <h4 class="font-semibold text-slate-900">Root Certificate Authority</h4>
-                                <p class="text-sm text-gray-500">Self-signed root of trust</p>
+                                <p class="text-sm text-gray-500">The root of trust signs itself</p>
                             </div>
                         </div>
                         <div class="flex justify-center">
@@ -392,7 +392,7 @@
                             </div>
                             <div>
                                 <h4 class="font-semibold text-slate-900">Intermediate Certificates</h4>
-                                <p class="text-sm text-gray-500">Domain-specific signing authority</p>
+                                <p class="text-sm text-gray-500">Signing authority for one area</p>
                             </div>
                         </div>
                         <div class="flex justify-center">
@@ -406,7 +406,7 @@
                             </div>
                             <div>
                                 <h4 class="font-semibold text-slate-900">Verifiable Credentials</h4>
-                                <p class="text-sm text-gray-500">User-held portable credentials</p>
+                                <p class="text-sm text-gray-500">Credentials the user holds</p>
                             </div>
                         </div>
                         <div class="flex justify-center">
@@ -420,7 +420,7 @@
                             </div>
                             <div>
                                 <h4 class="font-semibold text-slate-900">Zero-Knowledge Proofs</h4>
-                                <p class="text-sm text-gray-500">Privacy-preserving verification</p>
+                                <p class="text-sm text-gray-500">Checks that keep data private</p>
                             </div>
                         </div>
                     </div>
@@ -432,9 +432,9 @@
     <!-- ERC-4337 Gas Abstraction -->
     <section class="py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">ERC-4337 Gas Abstraction</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">ERC-4337 Smart Accounts and Gas Sponsorship</h2>
             <p class="text-lg text-slate-500 text-center max-w-2xl mx-auto mb-12">
-                Account abstraction eliminates the gas barrier for users. Sponsored transactions, smart accounts, and meta-transactions make blockchain interactions seamless.
+                Users of a blockchain normally pay a fee, called gas, for each transaction. With ERC-4337 smart accounts, the platform can pay that fee for them. Users can then send stablecoins without holding the network's own coin.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -449,7 +449,7 @@
                         <h3 class="text-xl font-bold text-slate-900">Smart Accounts</h3>
                     </div>
                     <p class="text-slate-500 mb-6">
-                        Contract-based accounts with programmable logic for spending limits, multi-signature requirements, social recovery, and session keys. Users operate smart accounts instead of basic externally-owned accounts.
+                        A smart account is a contract that holds the user's assets. Its rules can set spending limits, require several signatures or allow recovery through trusted contacts. Users get a smart account instead of a plain key-based account.
                     </p>
                     <div class="grid grid-cols-2 gap-3">
                         <div class="bg-blue-50 rounded-lg p-3 text-center">
@@ -475,14 +475,14 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-bold text-slate-900">UserOp Signing</h3>
+                        <h3 class="text-xl font-bold text-slate-900">Device Signing</h3>
                     </div>
                     <p class="text-slate-500 mb-6">
-                        Sign user operations with biometric JWT authentication for mobile-first transaction authorization. The signing pipeline validates biometric proofs, constructs ERC-4337 UserOperations, and submits them to bundlers.
+                        The wallet is non-custodial, so the user's device signs every transaction with its passkey. The backend prepares the ERC-4337 user operation and never sees the private key. A bundler then submits the signed operation to the network.
                     </p>
                     <div class="grid grid-cols-2 gap-3">
                         <div class="bg-teal-50 rounded-lg p-3 text-center">
-                            <p class="text-sm font-semibold text-teal-900">Biometric JWT</p>
+                            <p class="text-sm font-semibold text-teal-900">Passkey Signing</p>
                         </div>
                         <div class="bg-teal-50 rounded-lg p-3 text-center">
                             <p class="text-sm font-semibold text-teal-900">Bundler Submit</p>
@@ -507,17 +507,17 @@
                         <h3 class="text-xl font-bold text-slate-900">Gas Station</h3>
                     </div>
                     <p class="text-slate-500 mb-6">
-                        A paymaster service that sponsors transaction gas fees for users. Supports policy-based sponsorship rules, per-user gas budgets, and real-time gas price optimization across networks.
+                        A paymaster is a service that pays the gas fee for the user. Sponsorship rules and a daily limit for each user control what it pays. It reads the current gas price on each network.
                     </p>
                     <div class="grid grid-cols-2 gap-3">
                         <div class="bg-orange-50 rounded-lg p-3 text-center">
                             <p class="text-sm font-semibold text-orange-900">Fee Sponsorship</p>
                         </div>
                         <div class="bg-orange-50 rounded-lg p-3 text-center">
-                            <p class="text-sm font-semibold text-orange-900">Gas Budgets</p>
+                            <p class="text-sm font-semibold text-orange-900">Daily Limits</p>
                         </div>
                         <div class="bg-orange-50 rounded-lg p-3 text-center">
-                            <p class="text-sm font-semibold text-orange-900">Price Optimization</p>
+                            <p class="text-sm font-semibold text-orange-900">Gas Price Reading</p>
                         </div>
                         <div class="bg-orange-50 rounded-lg p-3 text-center">
                             <p class="text-sm font-semibold text-orange-900">Multi-Network</p>
@@ -536,20 +536,20 @@
                         <h3 class="text-xl font-bold text-slate-900">Meta-Transactions</h3>
                     </div>
                     <p class="text-slate-500 mb-6">
-                        Users sign transaction intents off-chain while relayers submit and pay gas on-chain. This decouples the signer from the gas payer, enabling gasless user experiences and batch transaction processing.
+                        The user signs what they want to do. A relayer then submits the transaction and pays the gas. The person who signs and the party who pays are separate, so the user needs no gas.
                     </p>
                     <div class="grid grid-cols-2 gap-3">
                         <div class="bg-rose-50 rounded-lg p-3 text-center">
-                            <p class="text-sm font-semibold text-rose-900">Gasless UX</p>
+                            <p class="text-sm font-semibold text-rose-900">No Gas for Users</p>
                         </div>
                         <div class="bg-rose-50 rounded-lg p-3 text-center">
                             <p class="text-sm font-semibold text-rose-900">Batch Processing</p>
                         </div>
                         <div class="bg-rose-50 rounded-lg p-3 text-center">
-                            <p class="text-sm font-semibold text-rose-900">Relayer Network</p>
+                            <p class="text-sm font-semibold text-rose-900">Relayer</p>
                         </div>
                         <div class="bg-rose-50 rounded-lg p-3 text-center">
-                            <p class="text-sm font-semibold text-rose-900">EIP-712 Signing</p>
+                            <p class="text-sm font-semibold text-rose-900">Typed-Data Signing</p>
                         </div>
                     </div>
                 </div>
@@ -562,7 +562,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">Technical Features</h2>
             <p class="text-lg text-slate-500 text-center max-w-2xl mx-auto mb-12">
-                Built on established cryptographic libraries and standards.
+                The modules use established cryptographic libraries and standards.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
@@ -572,7 +572,7 @@
                     </svg>
                     <div>
                         <h4 class="font-semibold text-slate-900">Zero-Knowledge Proof Generation</h4>
-                        <p class="text-sm text-gray-500">Groth16 and PLONK proving systems</p>
+                        <p class="text-sm text-gray-500">Groth16 and PLONK proof systems</p>
                     </div>
                 </div>
 
@@ -581,8 +581,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
                     <div>
-                        <h4 class="font-semibold text-slate-900">W3C DID Resolution</h4>
-                        <p class="text-sm text-gray-500">Decentralized identifier support</p>
+                        <h4 class="font-semibold text-slate-900">Decentralised Identifiers</h4>
+                        <p class="text-sm text-gray-500">Identifiers that follow the World Wide Web Consortium standard</p>
                     </div>
                 </div>
 
@@ -591,8 +591,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
                     <div>
-                        <h4 class="font-semibold text-slate-900">Shamir Secret Sharing (SSS)</h4>
-                        <p class="text-sm text-gray-500">Threshold key recovery with M-of-N</p>
+                        <h4 class="font-semibold text-slate-900">Shamir Secret Sharing</h4>
+                        <p class="text-sm text-gray-500">A set number of shares rebuilds a key</p>
                     </div>
                 </div>
 
@@ -601,8 +601,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
                     <div>
-                        <h4 class="font-semibold text-slate-900">HSM-Backed Key Storage</h4>
-                        <p class="text-sm text-gray-500">Hardware security module integration</p>
+                        <h4 class="font-semibold text-slate-900">Hardware Key Storage</h4>
+                        <p class="text-sm text-gray-500">Keys kept in hardware security modules</p>
                     </div>
                 </div>
 
@@ -611,8 +611,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
                     <div>
-                        <h4 class="font-semibold text-slate-900">Biometric JWT Authentication</h4>
-                        <p class="text-sm text-gray-500">Mobile biometric proof tokens</p>
+                        <h4 class="font-semibold text-slate-900">Passkey Authentication</h4>
+                        <p class="text-sm text-gray-500">The device confirms the user with a passkey</p>
                     </div>
                 </div>
 
@@ -622,7 +622,7 @@
                     </svg>
                     <div>
                         <h4 class="font-semibold text-slate-900">ERC-4337 Bundler Integration</h4>
-                        <p class="text-sm text-gray-500">UserOperation bundling and submission</p>
+                        <p class="text-sm text-gray-500">Signed user operations are bundled and submitted</p>
                     </div>
                 </div>
 
@@ -632,7 +632,7 @@
                     </svg>
                     <div>
                         <h4 class="font-semibold text-slate-900">Merkle Proof Verification</h4>
-                        <p class="text-sm text-gray-500">On-chain anchored inclusion proofs</p>
+                        <p class="text-sm text-gray-500">Inclusion proofs anchored on a blockchain</p>
                     </div>
                 </div>
 
@@ -642,7 +642,7 @@
                     </svg>
                     <div>
                         <h4 class="font-semibold text-slate-900">Selective Disclosure</h4>
-                        <p class="text-sm text-gray-500">Reveal only required attributes</p>
+                        <p class="text-sm text-gray-500">Only the needed attributes are shown</p>
                     </div>
                 </div>
 
@@ -652,7 +652,7 @@
                     </svg>
                     <div>
                         <h4 class="font-semibold text-slate-900">Credential Revocation</h4>
-                        <p class="text-sm text-gray-500">Real-time status list management</p>
+                        <p class="text-sm text-gray-500">A status list shows revoked credentials</p>
                     </div>
                 </div>
 
@@ -662,7 +662,7 @@
                     </svg>
                     <div>
                         <h4 class="font-semibold text-slate-900">Paymaster Policies</h4>
-                        <p class="text-sm text-gray-500">Configurable gas sponsorship rules</p>
+                        <p class="text-sm text-gray-500">Rules for which gas fees are paid</p>
                     </div>
                 </div>
 
@@ -671,8 +671,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
                     <div>
-                        <h4 class="font-semibold text-slate-900">Multi-Format Export</h4>
-                        <p class="text-sm text-gray-500">JSON-LD, JWT, and CBOR outputs</p>
+                        <h4 class="font-semibold text-slate-900">Credential Export</h4>
+                        <p class="text-sm text-gray-500">JSON-LD credentials and PDF certificates</p>
                     </div>
                 </div>
 
@@ -682,7 +682,7 @@
                     </svg>
                     <div>
                         <h4 class="font-semibold text-slate-900">Audit Trail Logging</h4>
-                        <p class="text-sm text-gray-500">Immutable verification event logs</p>
+                        <p class="text-sm text-gray-500">Every check is logged and cannot be changed</p>
                     </div>
                 </div>
             </div>
@@ -695,7 +695,7 @@
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Privacy-Preserving Identity Tooling</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                Zero-knowledge proofs, verifiable credentials, and gasless transactions — open-source modules for operators to build on.
+                These open-source modules cover zero-knowledge proofs, verifiable credentials and sponsored transactions. Operators can build their own identity services on them.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">

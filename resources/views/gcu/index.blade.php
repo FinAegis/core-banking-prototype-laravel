@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Global Currency Unit (GCU) Demo',
-        'description' => 'GCU demo — a reference implementation of a basket-referenced unit built with FinAegis. Explore the illustrative basket composition and how the demo works.',
+        'description' => 'The Global Currency Unit is a software demonstration built with FinAegis. It shows how a unit valued against a weighted basket of reference assets could work. The basket values and votes in the demo are simulated.',
         'keywords' => 'GCU demo, global currency unit, basket-referenced unit, reference implementation, FinAegis',
     ])
 
@@ -50,7 +50,7 @@
                         Global Currency <span class="text-gradient">Unit (GCU)</span>
                     </h1>
                     <p class="text-lg text-slate-400 mb-6 max-w-xl">
-                        GCU demo — a reference implementation of a basket-referenced unit built with FinAegis.
+                        The Global Currency Unit is a software demonstration built with FinAegis. It shows how a unit valued against a weighted basket of reference assets could work.
                     </p>
                     {{-- F4 GCU disclaimer (see docs/REGULATORY-CLAIMS.md) --}}
                     <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 mb-8 max-w-xl text-sm text-slate-300" role="note">
@@ -66,7 +66,7 @@
                     <div class="grid grid-cols-1 gap-6 max-w-xs">
                         <div class="bg-white/5 border border-white/[0.06] rounded-xl p-4">
                             <div class="text-3xl font-bold text-white">{{ count($compositionData['composition'] ?? config('platform.gcu.composition')) }}</div>
-                            <div class="text-slate-400 text-sm mt-1">Currencies</div>
+                            <div class="text-slate-400 text-sm mt-1">Reference assets</div>
                         </div>
                     </div>
                 </div>
@@ -87,7 +87,7 @@
                                 $gcuValueEUR = $gcuValueUSD * $usdToEur;
                             @endphp
                             <p class="text-2xl font-bold text-indigo-600 text-center">1 Ǥ = €{{ number_format($gcuValueEUR, 4) }}</p>
-                            <p class="text-xs text-slate-400 mt-1 text-center">No monetary value — demo only</p>
+                            <p class="text-xs text-slate-400 mt-1 text-center">This demo unit has no monetary value.</p>
                         </div>
                     </div>
                 </div>
@@ -101,7 +101,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
                 <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Demo Basket Composition</h2>
-                <p class="text-lg text-slate-500 max-w-2xl mx-auto">Demo composition — weights and values are illustrative</p>
+                <p class="text-lg text-slate-500 max-w-2xl mx-auto">The weights and values below are illustrative.</p>
             </div>
 
             <!-- Performance Metrics -->
@@ -273,15 +273,15 @@
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Explore the GCU demo</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                GCU demo — a reference implementation of a basket-referenced unit built with FinAegis.
+                The demo shows how the FinAegis basket, valuation and governance modules work together.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('platform') }}" class="btn-outline px-8 py-4 text-base">
-                    Learn About Platform
+                    Learn About the Platform
                 </a>
             </div>
             <div class="mt-10 text-sm text-slate-500">
-                Questions? Contact our team at <a href="mailto:{{ config('brand.support_email', 'info@zelta.app') }}" class="underline hover:text-slate-300 transition-colors">{{ config('brand.support_email', 'info@zelta.app') }}</a>
+                If you have questions, write to us at <a href="mailto:{{ config('brand.support_email', 'info@zelta.app') }}" class="underline hover:text-slate-300 transition-colors">{{ config('brand.support_email', 'info@zelta.app') }}</a>
             </div>
         </div>
     </section>

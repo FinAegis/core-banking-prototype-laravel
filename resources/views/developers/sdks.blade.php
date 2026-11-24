@@ -1,11 +1,11 @@
 @extends('layouts.public')
 
-@section('title', 'Build with ' . config('brand.name', 'Zelta') . ' - Integration Guide')
+@section('title', 'SDKs and Integration Guide - ' . config('brand.name', 'Zelta'))
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Build with ' . config('brand.name', 'Zelta') . ' - Integration Guide',
-        'description' => 'Multiple ways to integrate ' . config('brand.name', 'Zelta') . ' core banking infrastructure into your applications. REST API, native SDKs, webhooks, and more.',
+        'title' => 'SDKs and Integration Guide - ' . config('brand.name', 'Zelta'),
+        'description' => 'You can connect your application to ' . config('brand.name', 'Zelta') . ' through the REST API or the official SDKs for JavaScript, Python and PHP. This guide shows both, plus the AI and partner tools.',
         'keywords' => config('brand.name', 'Zelta') . ', integration, API, SDK, webhooks, banking infrastructure, fintech, development',
     ])
 @endsection
@@ -187,15 +187,15 @@
                         </span>
                         <span class="inline-flex items-center px-4 py-2 bg-green-500/20 backdrop-blur-sm rounded-full text-sm">
                             <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
-                            <span>Cross-Chain &amp; DeFi</span>
+                            <span>Cross-Chain and Decentralised Finance</span>
                         </span>
                         <span class="inline-flex items-center px-4 py-2 bg-green-500/20 backdrop-blur-sm rounded-full text-sm">
                             <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
-                            <span>BaaS Partner SDKs</span>
+                            <span>Partner SDK Generator</span>
                         </span>
                         <span class="inline-flex items-center px-4 py-2 bg-green-500/20 backdrop-blur-sm rounded-full text-sm">
                             <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
-                            <span>RegTech Tooling</span>
+                            <span>Reporting Modules</span>
                         </span>
                         <span class="inline-flex items-center px-4 py-2 bg-green-500/20 backdrop-blur-sm rounded-full text-sm">
                             <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
@@ -203,10 +203,10 @@
                         </span>
                     </div>
                     <h1 class="text-5xl md:text-7xl font-bold mb-6">
-                        Build with {{ config('brand.name', 'Zelta') }}
+                        SDKs and Integration
                     </h1>
                     <p class="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto">
-                        Multiple ways to integrate our core banking infrastructure into your applications. Choose the approach that fits your needs.
+                        You can connect your application through the REST API or through an official SDK. Pick the approach that suits your project.
                     </p>
                     <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
                         <a href="#integration-methods" class="bg-white text-slate-900 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition shadow-lg hover:shadow-xl">
@@ -225,7 +225,7 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-start gap-3">
                     <svg class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    <p class="text-sm text-amber-800"><strong>The FinAegis SDKs are published to public registries.</strong> Install from npm, Packagist, or PyPI with the commands below — or build from the monorepo source.</p>
+                    <p class="text-sm text-amber-800"><strong>The FinAegis SDKs are published to public registries.</strong> You can install them from npm, Packagist or PyPI with the commands below. You can also build them from the source in the main repository.</p>
                 </div>
             </div>
         </div>
@@ -236,7 +236,7 @@
                 <div class="text-center mb-12">
                     <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Integration Approaches</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        Choose the integration method that best suits your application architecture and development needs
+                        Both approaches use the same API. The SDKs save you from writing the HTTP calls yourself.
                     </p>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
@@ -251,11 +251,11 @@
                             </div>
                             <div>
                                 <h3 class="text-2xl font-bold text-slate-900">REST API</h3>
-                                <p class="text-slate-500">Direct HTTP/JSON integration</p>
+                                <p class="text-slate-500">Direct HTTP and JSON calls</p>
                             </div>
                         </div>
                         
-                        <p class="text-slate-600 mb-6">Integrate directly with our RESTful API using any programming language. Full OpenAPI 3.0 specification available.</p>
+                        <p class="text-slate-600 mb-6">You can call the REST API from any programming language. An OpenAPI 3.0 specification describes every documented endpoint.</p>
                         
                         <div class="space-y-3 mb-6">
                             <div class="flex items-start">
@@ -268,13 +268,13 @@
                                 <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                 </svg>
-                                <span class="text-slate-600">Comprehensive API documentation</span>
+                                <span class="text-slate-600">API documentation for every endpoint</span>
                             </div>
                             <div class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                 </svg>
-                                <span class="text-slate-600">Sandbox environment for testing</span>
+                                <span class="text-slate-600">A public demo environment with test data</span>
                             </div>
                             <div class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -315,7 +315,7 @@
                             </div>
                         </div>
                         
-                        <p class="text-slate-600 mb-6">Available for JavaScript/TypeScript, Python, and PHP. Official SDKs with idiomatic APIs and comprehensive type safety.</p>
+                        <p class="text-slate-600 mb-6">Official SDKs exist for JavaScript and TypeScript, Python and PHP. They cover accounts, transactions, transfers, assets, exchange rates, baskets, the GCU demo and webhooks.</p>
 
                         <div class="grid grid-cols-2 gap-3 mb-6">
                             <div class="flex items-center">
@@ -352,7 +352,7 @@
                                 <svg class="w-5 h-5 text-gray-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-9a1 1 0 012 0v4a1 1 0 11-2 0V9zm0-4a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd"/>
                                 </svg>
-                                <span class="text-slate-500">Java</span>
+                                <span class="text-slate-500">Java (soon)</span>
                             </div>
                         </div>
 
@@ -364,10 +364,10 @@
                                 <code>pip install finaegis</code>
                             </div>
                             <div class="bg-gray-900 rounded-lg px-4 py-2 font-mono text-green-400 text-sm">
-                                <code>composer require finaegis/payment-sdk</code>
+                                <code>composer require finaegis/php-sdk</code>
                             </div>
                         </div>
-                        <p class="text-xs text-slate-400 mt-3">Published to public registries — install with a single command.</p>
+                        <p class="text-xs text-slate-400 mt-3">Each SDK installs with one command from its public registry.</p>
                     </div>
 
 
@@ -380,7 +380,7 @@
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-12">
                     <h2 class="font-display text-3xl font-bold text-slate-900 mb-4">AI Agent Integration</h2>
-                    <p class="text-xl text-slate-500">Connect to our AI-powered banking agents with simple API calls</p>
+                    <p class="text-xl text-slate-500">The AI endpoints are part of the REST API. The official SDKs do not wrap them yet, so you call them over HTTP.</p>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -392,18 +392,17 @@
                                 <span>JavaScript Example</span>
                                 <button class="copy-button" onclick="copyCode(this)">Copy</button>
                             </div>
-                            <pre class="code-block p-4"><code class="language-javascript"><span style="color: #c792ea;">const</span> <span style="color: #82aaff;">agent</span> = <span style="color: #c792ea;">new</span> <span style="color: #ffcb6b;">{{ config('brand.name', 'Zelta') }}AI</span>({
-  <span style="color: #f07178;">apiKey</span>: <span style="color: #c3e88d;">'your-api-key'</span>
+                            <pre class="code-block p-4"><code class="language-javascript"><span style="color: #546e7a;">// Send a message to the AI agent</span>
+<span style="color: #c792ea;">const</span> <span style="color: #82aaff;">response</span> = <span style="color: #c792ea;">await</span> <span style="color: #82aaff;">fetch</span>(<span style="color: #c3e88d;">'{{ config('app.url') }}/api/ai/chat'</span>, {
+  <span style="color: #f07178;">method</span>: <span style="color: #c3e88d;">'POST'</span>,
+  <span style="color: #f07178;">headers</span>: {
+    <span style="color: #c3e88d;">'Authorization'</span>: <span style="color: #c3e88d;">'Bearer your-api-token'</span>,
+    <span style="color: #c3e88d;">'Content-Type'</span>: <span style="color: #c3e88d;">'application/json'</span>
+  },
+  <span style="color: #f07178;">body</span>: <span style="color: #82aaff;">JSON</span>.<span style="color: #89ddff;">stringify</span>({ <span style="color: #f07178;">message</span>: <span style="color: #c3e88d;">'What is my account balance?'</span> })
 });
 
-<span style="color: #546e7a;">// Send a message to the AI agent</span>
-<span style="color: #c792ea;">const</span> <span style="color: #82aaff;">response</span> = <span style="color: #c792ea;">await</span> <span style="color: #82aaff;">agent</span>.<span style="color: #89ddff;">chat</span>({
-  <span style="color: #f07178;">message</span>: <span style="color: #c3e88d;">'What is my account balance?'</span>,
-  <span style="color: #f07178;">context</span>: { <span style="color: #f07178;">accountId</span>: <span style="color: #c3e88d;">'acc_123'</span> }
-});
-
-console.<span style="color: #89ddff;">log</span>(<span style="color: #82aaff;">response</span>.<span style="color: #f07178;">message</span>);
-<span style="color: #546e7a;">// "Your current balance is $12,456.78"</span></code></pre>
+console.<span style="color: #89ddff;">log</span>(<span style="color: #c792ea;">await</span> <span style="color: #82aaff;">response</span>.<span style="color: #89ddff;">json</span>());</code></pre>
                         </div>
                     </div>
 
@@ -412,23 +411,18 @@ console.<span style="color: #89ddff;">log</span>(<span style="color: #82aaff;">r
                         <h3 class="text-xl font-semibold mb-4">MCP Tool Integration</h3>
                         <div class="code-container">
                             <div class="code-header">
-                                <span>Python Example</span>
+                                <span>Claude Desktop configuration</span>
                                 <button class="copy-button" onclick="copyCode(this)">Copy</button>
                             </div>
-                            <pre class="code-block p-4"><code class="language-python"><span style="color: #546e7a;"># Install: pip install finaegis</span>
-<span style="color: #c792ea;">from</span> <span style="color: #ffcb6b;">zelta</span> <span style="color: #c792ea;">import</span> <span style="color: #82aaff;">MCPClient</span>
-
-<span style="color: #546e7a;"># Initialize MCP client</span>
-<span style="color: #82aaff;">mcp</span> = <span style="color: #ffcb6b;">MCPClient</span>(<span style="color: #f07178;">api_key</span>=<span style="color: #c3e88d;">'your-api-key'</span>)
-
-<span style="color: #546e7a;"># Use banking tools directly</span>
-<span style="color: #82aaff;">balance</span> = <span style="color: #82aaff;">mcp</span>.<span style="color: #89ddff;">tools</span>.<span style="color: #89ddff;">get_account_balance</span>(
-    <span style="color: #f07178;">account_id</span>=<span style="color: #c3e88d;">'acc_123'</span>,
-    <span style="color: #f07178;">currency</span>=<span style="color: #c3e88d;">'USD'</span>
-)
-
-<span style="color: #c792ea;">print</span>(<span style="color: #c792ea;">f</span><span style="color: #c3e88d;">"Balance: {balance.amount} {balance.currency}"</span>)</code></pre>
+                            <pre class="code-block p-4"><code class="language-json">{
+  <span style="color: #f07178;">"mcpServers"</span>: {
+    <span style="color: #f07178;">"zelta"</span>: {
+      <span style="color: #f07178;">"url"</span>: <span style="color: #c3e88d;">"https://{{ config('mcp.host', 'mcp.zelta.app') }}/mcp"</span>
+    }
+  }
+}</code></pre>
                         </div>
+                        <p class="text-sm text-slate-500 mt-3">An AI client connects to the Model Context Protocol server and calls its tools. You do not need an SDK for this.</p>
                     </div>
                 </div>
 
@@ -447,8 +441,8 @@ console.<span style="color: #89ddff;">log</span>(<span style="color: #82aaff;">r
         <section class="py-20 bg-white">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-12">
-                    <h2 class="font-display text-3xl font-bold text-slate-900 mb-4">Model Context Protocol (MCP)</h2>
-                    <p class="text-xl text-slate-500">Standard protocol for AI model integration with banking tools</p>
+                    <h2 class="font-display text-3xl font-bold text-slate-900 mb-4">Model Context Protocol</h2>
+                    <p class="text-xl text-slate-500">The Model Context Protocol is an open standard that lets AI models use outside tools. The public server offers banking tools to any client that follows it.</p>
                 </div>
 
                 <div class="bg-gray-50 rounded-xl p-8">
@@ -459,8 +453,8 @@ console.<span style="color: #89ddff;">log</span>(<span style="color: #82aaff;">r
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"></path>
                                 </svg>
                             </div>
-                            <h3 class="font-semibold mb-2">15+ Banking Tools</h3>
-                            <p class="text-sm text-slate-500">Account, transaction, compliance, and analytics tools</p>
+                            <h3 class="font-semibold mb-2">{{ count((array) config('mcp.tools')) }} Banking Tools</h3>
+                            <p class="text-sm text-slate-500">The tools read balances and transactions, send payments, quote exchange rates and start on-ramp sessions.</p>
                         </div>
                         <div class="text-center">
                             <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -468,8 +462,8 @@ console.<span style="color: #89ddff;">log</span>(<span style="color: #82aaff;">r
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                                 </svg>
                             </div>
-                            <h3 class="font-semibold mb-2">Built-in Security</h3>
-                            <p class="text-sm text-slate-500">Authentication, authorization, and audit logging</p>
+                            <h3 class="font-semibold mb-2">OAuth and Audit Log</h3>
+                            <p class="text-sm text-slate-500">The user approves each connection with OAuth. The server records every tool call.</p>
                         </div>
                         <div class="text-center">
                             <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -477,33 +471,26 @@ console.<span style="color: #89ddff;">log</span>(<span style="color: #82aaff;">r
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                                 </svg>
                             </div>
-                            <h3 class="font-semibold mb-2">Real-time Processing</h3>
-                            <p class="text-sm text-slate-500">Stream responses with WebSocket support</p>
+                            <h3 class="font-semibold mb-2">Spending Limits</h3>
+                            <p class="text-sm text-slate-500">Each token has a daily spending limit for the payment tools. The user sets it on the consent screen.</p>
                         </div>
                     </div>
 
                     <div class="code-container">
                         <div class="code-header">
-                            <span>MCP Server Configuration</span>
+                            <span>Tool names</span>
                             <button class="copy-button" onclick="copyCode(this)">Copy</button>
                         </div>
                         <pre class="code-block p-4"><code class="language-json">{
-  <span style="color: #f07178;">"name"</span>: <span style="color: #c3e88d;">"zelta-mcp-server"</span>,
-  <span style="color: #f07178;">"version"</span>: <span style="color: #c3e88d;">"1.0.0"</span>,
+  <span style="color: #f07178;">"server"</span>: <span style="color: #c3e88d;">"https://{{ config('mcp.host', 'mcp.zelta.app') }}/mcp"</span>,
   <span style="color: #f07178;">"tools"</span>: [
-    <span style="color: #c3e88d;">"GetAccountBalance"</span>,
-    <span style="color: #c3e88d;">"TransferMoney"</span>,
-    <span style="color: #c3e88d;">"KycVerification"</span>,
-    <span style="color: #c3e88d;">"AmlScreening"</span>,
-    <span style="color: #c3e88d;">"SpendingAnalysis"</span>
-  ],
-  <span style="color: #f07178;">"capabilities"</span>: {
-    <span style="color: #f07178;">"streaming"</span>: <span style="color: #f78c6c;">true</span>,
-    <span style="color: #f07178;">"authentication"</span>: <span style="color: #c3e88d;">"bearer"</span>,
-    <span style="color: #f07178;">"rateLimit"</span>: <span style="color: #f78c6c;">1000</span>
-  }
+@foreach(array_keys((array) config('mcp.tools')) as $toolName)
+    <span style="color: #c3e88d;">"{{ $toolName }}"</span>{{ $loop->last ? '' : ',' }}
+@endforeach
+  ]
 }</code></pre>
                     </div>
+                    <p class="text-sm text-slate-500 mt-4">The <a href="{{ route('developers.show', 'mcp-tools') }}" class="text-purple-600 hover:text-purple-700 font-semibold">MCP tools reference</a> lists the scope and the type of each tool.</p>
                 </div>
             </div>
         </section>
@@ -514,7 +501,7 @@ console.<span style="color: #89ddff;">log</span>(<span style="color: #82aaff;">r
                 <div class="bg-gray-50 rounded-2xl p-8 text-center">
                     <h2 class="font-display text-2xl font-bold text-slate-900 mb-4">Official SDKs</h2>
                     <p class="text-slate-500 mb-6">
-                        Official SDKs are available for JavaScript/TypeScript, Python, and PHP. Additional language SDKs are planned.
+                        Official SDKs are available for JavaScript and TypeScript, Python and PHP. SDKs for more languages are planned. A separate PHP package, finaegis/payment-sdk, pays for x402 and Machine Payments Protocol requests automatically.
                     </p>
                     <div class="flex flex-wrap gap-3 justify-center text-sm">
                         <span class="bg-green-50 px-4 py-2 rounded-lg border border-green-200 text-green-700">JavaScript/TypeScript</span>
@@ -534,11 +521,11 @@ console.<span style="color: #89ddff;">log</span>(<span style="color: #82aaff;">r
                 <div class="text-center mb-12">
                     <span class="inline-flex items-center px-4 py-2 bg-green-100 rounded-full text-sm font-medium text-green-700 mb-4">
                         <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                        Available Now via Partner API
+                        Partner API
                     </span>
-                    <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">BaaS SDK Generation</h2>
+                    <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Partner SDK Generator</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        Generate type-safe, versioned SDKs for your partner integration in TypeScript, Python, and PHP -- directly through the Partner API. Java and Go SDKs are planned.
+                        Partners on the Growth or Enterprise tier can ask the Partner API for a starter client. Today the generator builds it from templates, one language per request. The result has a README, a client class, an authentication helper and a package file.
                     </p>
                 </div>
 
@@ -551,8 +538,8 @@ console.<span style="color: #89ddff;">log</span>(<span style="color: #82aaff;">r
                             </svg>
                         </div>
                         <h4 class="font-semibold text-slate-900 mb-1">TypeScript</h4>
-                        <p class="text-xs text-gray-500">@finaegis/payment-sdk</p>
-                        <span class="inline-block mt-2 px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">Available</span>
+                        <p class="text-xs text-gray-500">typescript</p>
+                        <span class="inline-block mt-2 px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">Starter client</span>
                     </div>
                     <div class="sdk-card bg-white rounded-xl shadow-lg p-6 text-center">
                         <div class="w-14 h-14 bg-yellow-100 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -561,8 +548,8 @@ console.<span style="color: #89ddff;">log</span>(<span style="color: #82aaff;">r
                             </svg>
                         </div>
                         <h4 class="font-semibold text-slate-900 mb-1">Python</h4>
-                        <p class="text-xs text-gray-500">finaegis</p>
-                        <span class="inline-block mt-2 px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">Available</span>
+                        <p class="text-xs text-gray-500">python</p>
+                        <span class="inline-block mt-2 px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">Starter client</span>
                     </div>
                     <div class="sdk-card bg-white rounded-xl shadow-lg p-6 text-center">
                         <div class="w-14 h-14 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -571,8 +558,8 @@ console.<span style="color: #89ddff;">log</span>(<span style="color: #82aaff;">r
                             </svg>
                         </div>
                         <h4 class="font-semibold text-slate-900 mb-1">Java</h4>
-                        <p class="text-xs text-gray-500">zelta:sdk</p>
-                        <span class="inline-block mt-2 px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-medium">Planned</span>
+                        <p class="text-xs text-gray-500">java</p>
+                        <span class="inline-block mt-2 px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">Starter client</span>
                     </div>
                     <div class="sdk-card bg-white rounded-xl shadow-lg p-6 text-center">
                         <div class="w-14 h-14 bg-cyan-100 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -581,8 +568,8 @@ console.<span style="color: #89ddff;">log</span>(<span style="color: #82aaff;">r
                             </svg>
                         </div>
                         <h4 class="font-semibold text-slate-900 mb-1">Go</h4>
-                        <p class="text-xs text-gray-500">zelta-go</p>
-                        <span class="inline-block mt-2 px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-medium">Planned</span>
+                        <p class="text-xs text-gray-500">go</p>
+                        <span class="inline-block mt-2 px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">Starter client</span>
                     </div>
                     <div class="sdk-card bg-white rounded-xl shadow-lg p-6 text-center">
                         <div class="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -591,75 +578,40 @@ console.<span style="color: #89ddff;">log</span>(<span style="color: #82aaff;">r
                             </svg>
                         </div>
                         <h4 class="font-semibold text-slate-900 mb-1">PHP</h4>
-                        <p class="text-xs text-gray-500">finaegis/payment-sdk</p>
-                        <span class="inline-block mt-2 px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">Available</span>
+                        <p class="text-xs text-gray-500">php</p>
+                        <span class="inline-block mt-2 px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">Starter client</span>
                     </div>
                 </div>
 
                 <!-- SDK Generation Code Example -->
                 <div class="max-w-4xl mx-auto">
-                    <h3 class="text-xl font-semibold text-slate-900 mb-4">Generate Your SDK via Partner API</h3>
+                    <h3 class="text-xl font-semibold text-slate-900 mb-4">Ask the Partner API for a Starter Client</h3>
                     <p class="text-slate-500 mb-6">
-                        When you onboard as a BaaS partner, SDKs are automatically generated for your requested languages.
-                        You can also regenerate or request additional language SDKs at any time.
+                        Send one request for each language you need. The generator also supports C# and .NET. The Partner API signs you in with your partner client ID and client secret.
                     </p>
 
                     <div class="bg-gray-900 rounded-lg p-6 font-mono text-green-400 text-sm overflow-x-auto mb-8">
-<pre><span class="text-gray-500"># Request SDK generation for your partner account</span>
-curl -X POST {{ config('app.url') }}/api/v2/partner/sdk/generate \
-  -H "Authorization: Bearer YOUR_PARTNER_API_KEY" \
+<pre><span class="text-gray-500"># Ask for a starter client in one language</span>
+curl -X POST {{ config('app.url') }}/api/partner/v1/sdk/generate \
+  -H "X-Partner-Client-Id: YOUR_CLIENT_ID" \
+  -H "X-Partner-Client-Secret: YOUR_CLIENT_SECRET" \
   -H "Content-Type: application/json" \
-  -d '{
-    "languages": ["typescript", "python", "java", "go", "php"],
-    "api_version": "v2",
-    "include_modules": ["accounts", "transfers", "crosschain", "defi", "compliance"],
-    "options": {
-      "include_types": true,
-      "include_examples": true,
-      "include_tests": true
-    }
-  }'
+  -d '{"language": "typescript"}'
 
-<span class="text-gray-500"># Response includes download URLs for each SDK</span>
-{
-  "data": {
-    "generation_id": "sdkgen_abc123",
-    "status": "completed",
-    "packages": [
-      {
-        "language": "typescript",
-        "version": "1.0.0",
-        "package_name": "@finaegis/payment-sdk",
-        "download_url": "{{ config('app.url') }}/developers/sdks/packages/typescript/zelta-payment-sdk-1.0.0.tgz",
-        "install_command": "npm install @finaegis/payment-sdk"
-      },
-      {
-        "language": "python",
-        "version": "1.0.0",
-        "package_name": "finaegis",
-        "download_url": "{{ config('app.url') }}/developers/sdks/packages/python/zelta-payment-sdk-1.0.0.tar.gz",
-        "install_command": "pip install finaegis"
-      },
-      {
-        "language": "php",
-        "version": "1.0.0",
-        "package_name": "finaegis/payment-sdk",
-        "download_url": "{{ config('app.url') }}/developers/sdks/packages/php/zelta-payment-sdk-1.0.0.zip",
-        "install_command": "composer require finaegis/payment-sdk:^1.0"
-      }
-    ]
-  }
-}</pre>
+<span class="text-gray-500"># List the supported languages</span>
+curl {{ config('app.url') }}/api/partner/v1/sdk/languages \
+  -H "X-Partner-Client-Id: YOUR_CLIENT_ID" \
+  -H "X-Partner-Client-Secret: YOUR_CLIENT_SECRET"</pre>
                     </div>
 
                     <!-- Install Commands Grid -->
                     <h4 class="text-lg font-semibold text-slate-900 mb-4">Quick Install</h4>
-                    <p class="text-sm text-slate-500 mb-4">Install directly from public registries — Packagist, npm, and PyPI.</p>
+                    <p class="text-sm text-slate-500 mb-4">The official SDKs install from Packagist, npm and PyPI.</p>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                         <div>
                             <p class="text-sm font-medium text-slate-600 mb-2">PHP (Composer)</p>
                             <div class="bg-gray-900 rounded-lg p-4 font-mono text-green-400 text-sm overflow-x-auto">
-                                <code>composer require finaegis/payment-sdk</code>
+                                <code>composer require finaegis/php-sdk</code>
                             </div>
                         </div>
                         <div>
@@ -679,14 +631,13 @@ curl -X POST {{ config('app.url') }}/api/v2/partner/sdk/generate \
             </div>
         </section>
 
-        <!-- Partner SDK Integration Guide -->
+        <!-- SDK Integration Guide -->
         <section id="partner-sdk-guide" class="py-20 bg-gradient-to-br from-amber-50 to-orange-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-12">
-                    <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Partner SDK Integration Guide</h2>
+                    <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">SDK Integration Guide</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        Step-by-step guide to integrating the {{ config('brand.name', 'Zelta') }} BaaS SDK into your partner application,
-                        covering authentication, module access, and advanced features like Cross-Chain and DeFi.
+                        This guide starts with the official SDK. It then shows the REST calls for the modules the SDK does not cover yet, such as cross-chain transfers, decentralised finance, the Travel Rule check and AI queries.
                     </p>
                 </div>
 
@@ -696,179 +647,118 @@ curl -X POST {{ config('app.url') }}/api/v2/partner/sdk/generate \
                         <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
                             <div class="flex items-center">
                                 <span class="w-8 h-8 bg-white text-blue-600 rounded-full flex items-center justify-center font-bold text-sm mr-3">1</span>
-                                <h3 class="text-lg font-semibold text-white">Initialize the SDK with Your Partner Credentials</h3>
+                                <h3 class="text-lg font-semibold text-white">Set Up the SDK with Your API Key</h3>
                             </div>
                         </div>
                         <div class="p-6">
                             <p class="text-slate-500 mb-4">
-                                Use the API key and partner ID from your onboarding response. The SDK auto-configures based on your enabled modules.
+                                Create an API token in your dashboard. Point the SDK at the server you want to use.
                             </p>
                             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 <div>
                                     <p class="text-sm font-medium text-slate-600 mb-2">TypeScript</p>
                                     <div class="bg-gray-900 rounded-lg p-6 font-mono text-green-400 text-sm overflow-x-auto">
 <pre>// Install: npm install @finaegis/sdk
-import { {{ config('brand.name', 'Zelta') }} } from '@finaegis/sdk';
+import { FinAegis } from '@finaegis/sdk';
 
-const client = new {{ config('brand.name', 'Zelta') }}({
-  apiKey: process.env.ZELTA_PARTNER_KEY,
-  partnerId: 'partner_acme_abc123',
-  environment: 'production', // or 'sandbox'
-  modules: ['accounts', 'transfers',
-    'crosschain', 'defi', 'compliance']
-});</pre>
+const client = new FinAegis({
+  apiKey: process.env.FINAEGIS_API_KEY,
+  baseURL: '{{ config('app.url') }}/api/v2'
+});
+
+const accounts = await client.accounts.list();</pre>
                                     </div>
                                 </div>
                                 <div>
                                     <p class="text-sm font-medium text-slate-600 mb-2">Python</p>
                                     <div class="bg-gray-900 rounded-lg p-6 font-mono text-green-400 text-sm overflow-x-auto">
 <pre># Install: pip install finaegis
-from zelta import {{ config('brand.name', 'Zelta') }}
+import os
+from finaegis import FinAegis
 
-client = {{ config('brand.name', 'Zelta') }}(
-    api_key=os.environ['ZELTA_PARTNER_KEY'],
-    partner_id='partner_acme_abc123',
-    environment='production',
-    modules=['accounts', 'transfers',
-        'crosschain', 'defi', 'compliance']
-)</pre>
+client = FinAegis(
+    api_key=os.environ['FINAEGIS_API_KEY'],
+    base_url='{{ config('app.url') }}/api/v2'
+)
+
+accounts = client.accounts.list()</pre>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Step 2: Use Cross-Chain & DeFi Modules -->
+                    <!-- Step 2: Cross-Chain and Decentralised Finance through REST -->
                     <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
                         <div class="bg-gradient-to-r from-cyan-600 to-teal-600 px-6 py-4">
                             <div class="flex items-center">
                                 <span class="w-8 h-8 bg-white text-cyan-600 rounded-full flex items-center justify-center font-bold text-sm mr-3">2</span>
-                                <h3 class="text-lg font-semibold text-white">Access Cross-Chain and DeFi Modules</h3>
+                                <h3 class="text-lg font-semibold text-white">Call the Cross-Chain and Decentralised Finance Endpoints</h3>
                             </div>
                         </div>
                         <div class="p-6">
                             <p class="text-slate-500 mb-4">
-                                The SDK provides typed interfaces for bridge operations (Wormhole, LayerZero, Axelar), DEX aggregation (Uniswap, Aave, Curve, Lido),
-                                cross-chain swaps, and multi-chain portfolio management. Integration adapters for third-party APIs; no partnership or endorsement implied.
+                                The cross-chain endpoints quote and start bridge transfers through adapters for Wormhole, LayerZero and Axelar. The decentralised finance endpoints quote swaps through adapters for Uniswap, Aave, Curve and Lido. Integration adapters for third-party APIs; no partnership or endorsement implied.
                             </p>
                             <div class="bg-gray-900 rounded-lg p-6 font-mono text-green-400 text-sm overflow-x-auto">
-<pre><span class="text-gray-500">// TypeScript -- Cross-Chain Bridge + DeFi Swap in one workflow</span>
-async function crossChainSwapWorkflow() {
-  <span class="text-gray-500">// Bridge USDC from Ethereum to Polygon</span>
-  const bridgeQuote = await client.crosschain.bridge.quote({
-    source_chain: 'ethereum',
-    destination_chain: 'polygon',
-    token: 'USDC',
-    amount: '5000.00'
-  });
+<pre><span class="text-gray-500"># Quote a bridge transfer of USDC from Ethereum to Polygon</span>
+curl -X POST {{ config('app.url') }}/api/v1/crosschain/bridge/quote \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"from_chain": "ethereum", "to_chain": "polygon", "token": "USDC", "amount": "5000.00"}'
 
-  const bridgeTx = await client.crosschain.bridge.initiate({
-    quote_id: bridgeQuote.data.quote_id,
-    sender_address: '0x1234...abcd',
-    recipient_address: '0x1234...abcd'
-  });
-
-  <span class="text-gray-500">// Wait for bridge completion, then swap on Polygon</span>
-  await client.crosschain.bridge.waitForCompletion(bridgeTx.data.bridge_tx_id);
-
-  const swapQuote = await client.defi.swap.quote({
-    chain: 'polygon',
-    token_in: 'USDC',
-    token_out: 'WMATIC',
-    amount_in: '5000.00'
-  });
-
-  const swap = await client.defi.swap.execute({
-    quote_id: swapQuote.data.quote_id,
-    wallet_address: '0x1234...abcd'
-  });
-
-  <span class="text-gray-500">// Get multi-chain portfolio overview</span>
-  const portfolio = await client.crosschain.portfolio.get({
-    wallet_address: '0x1234...abcd',
-    chains: ['ethereum', 'polygon', 'arbitrum']
-  });
-
-  console.log('Portfolio total value:', portfolio.data.total_value_usd);
-}</pre>
+<span class="text-gray-500"># Quote a swap on Polygon</span>
+curl -X POST {{ config('app.url') }}/api/v1/defi/swap/quote \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"chain": "polygon", "from_token": "USDC", "to_token": "WETH", "amount": "5000.00"}'</pre>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Step 3: RegTech Compliance Integration -->
+                    <!-- Step 3: RegTech -->
                     <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
                         <div class="bg-gradient-to-r from-emerald-600 to-green-600 px-6 py-4">
                             <div class="flex items-center">
                                 <span class="w-8 h-8 bg-white text-emerald-600 rounded-full flex items-center justify-center font-bold text-sm mr-3">3</span>
-                                <h3 class="text-lg font-semibold text-white">Integrate RegTech Modules</h3>
+                                <h3 class="text-lg font-semibold text-white">Run a Travel Rule Check</h3>
                             </div>
                         </div>
                         <div class="p-6">
                             <p class="text-slate-500 mb-4">
-                                Reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements, applied according to your jurisdiction configuration; they do not by themselves make a deployment compliant.
+                                The reporting modules are modelled on European markets and crypto-asset rules and on the Travel Rule. The Travel Rule check tells you which sender and recipient details a transfer needs. These modules do not by themselves make a deployment compliant.
                             </p>
                             <div class="bg-gray-900 rounded-lg p-6 font-mono text-green-400 text-sm overflow-x-auto">
-<pre><span class="text-gray-500">// TypeScript -- Compliance-aware transfer</span>
-async function compliantTransfer(transferParams) {
-  <span class="text-gray-500">// Travel Rule check is automatic for transfers above threshold</span>
-  const complianceResult = await client.regtech.travelRule.check({
-    transfer_id: transferParams.id,
-    originator: transferParams.originator,
-    beneficiary: transferParams.beneficiary,
-    transfer_details: {
-      amount: transferParams.amount,
-      currency: transferParams.currency
-    }
-  });
-
-  if (!complianceResult.data.is_compliant) {
-    throw new Error(
-      `Compliance failed: ${complianceResult.data.compliance_issues
-        .map(i => i.description).join(', ')}`
-    );
-  }
-
-  <span class="text-gray-500">// MiCA compliance for crypto assets</span>
-  const micaCheck = await client.regtech.mica.validate({
-    asset_type: 'crypto',
-    transaction_type: 'transfer',
-    amount: transferParams.amount,
-    jurisdiction: 'EU'
-  });
-
-  <span class="text-gray-500">// Proceed with transfer only if all checks pass</span>
-  return await client.transfers.create(transferParams);
-}</pre>
+<pre>curl -X POST {{ config('app.url') }}/api/regtech/travel-rule/check \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 2500,
+    "currency": "EUR",
+    "originator": {"name": "Alice Example", "account_number": "LT00 0000 0000 0000 0000"},
+    "beneficiary": {"name": "Bob Example", "account_number": "DE00 0000 0000 0000 0000 00"}
+  }'</pre>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Step 4: AI-Powered Queries -->
+                    <!-- Step 4: AI Queries -->
                     <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
                         <div class="bg-gradient-to-r from-violet-600 to-purple-600 px-6 py-4">
                             <div class="flex items-center">
                                 <span class="w-8 h-8 bg-white text-violet-600 rounded-full flex items-center justify-center font-bold text-sm mr-3">4</span>
-                                <h3 class="text-lg font-semibold text-white">Use AI Transaction Queries</h3>
+                                <h3 class="text-lg font-semibold text-white">Ask About Transactions in Plain Language</h3>
                             </div>
                         </div>
                         <div class="p-6">
                             <p class="text-slate-500 mb-4">
-                                The SDK includes AI-powered transaction search that accepts natural language queries and returns structured, filterable results with risk scoring.
+                                The AI query endpoint turns a question in plain language into transaction filters. It returns the matching transactions.
                             </p>
                             <div class="bg-gray-900 rounded-lg p-6 font-mono text-green-400 text-sm overflow-x-auto">
-<pre><span class="text-gray-500">// TypeScript -- AI-powered transaction intelligence</span>
-const insights = await client.ai.transactions({
-  query: 'Large DeFi swaps on Ethereum this month with high slippage',
-  account_id: 'acct_primary',
-  options: {
-    include_analytics: true,
-    include_risk_scores: true
-  }
-});
-
-console.log('Interpreted as:', insights.data.interpreted_query);
-console.log('Found:', insights.data.total_results, 'transactions');
-console.log('Total volume:', insights.data.analytics.total_volume);</pre>
+<pre>curl -X POST {{ config('app.url') }}/api/ai/query/transactions \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Payments over 500 euros last month"}'</pre>
                             </div>
                         </div>
                     </div>
@@ -877,53 +767,40 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
                     <div class="bg-white rounded-2xl shadow-lg p-8">
                         <h3 class="text-xl font-bold text-slate-900 mb-6">SDK Module Reference</h3>
                         <p class="text-slate-500 mb-6">
-                            Each BaaS partner SDK includes the following modules, based on the modules enabled during onboarding.
+                            The official SDKs have these modules. The names are the same in JavaScript, Python and PHP, written in each language's style.
                         </p>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div class="border border-gray-200 rounded-lg p-4">
                                 <h4 class="font-semibold text-slate-900 mb-1">client.accounts</h4>
-                                <p class="text-sm text-slate-500">Account creation, balances, transactions</p>
-                                <span class="text-xs text-gray-400">v1.0+</span>
+                                <p class="text-sm text-slate-500">Accounts, balances, deposits, withdrawals, freeze and unfreeze</p>
+                            </div>
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <h4 class="font-semibold text-slate-900 mb-1">client.transactions</h4>
+                                <p class="text-sm text-slate-500">Transaction lists and details</p>
                             </div>
                             <div class="border border-gray-200 rounded-lg p-4">
                                 <h4 class="font-semibold text-slate-900 mb-1">client.transfers</h4>
-                                <p class="text-sm text-slate-500">Payments, P2P transfers, bulk operations</p>
-                                <span class="text-xs text-gray-400">v1.0+</span>
+                                <p class="text-sm text-slate-500">Transfers between accounts</p>
                             </div>
                             <div class="border border-gray-200 rounded-lg p-4">
-                                <h4 class="font-semibold text-slate-900 mb-1">client.wallets</h4>
-                                <p class="text-sm text-slate-500">Blockchain wallets, hardware wallet support</p>
-                                <span class="text-xs text-gray-400">v2.1+</span>
+                                <h4 class="font-semibold text-slate-900 mb-1">client.assets</h4>
+                                <p class="text-sm text-slate-500">Supported assets</p>
                             </div>
                             <div class="border border-gray-200 rounded-lg p-4">
-                                <h4 class="font-semibold text-slate-900 mb-1">client.compliance</h4>
-                                <p class="text-sm text-slate-500">KYC/AML, sanctions screening</p>
-                                <span class="text-xs text-gray-400">v1.0+</span>
+                                <h4 class="font-semibold text-slate-900 mb-1">client.exchangeRates</h4>
+                                <p class="text-sm text-slate-500">Exchange rates and conversions</p>
                             </div>
                             <div class="border border-gray-200 rounded-lg p-4">
-                                <h4 class="font-semibold text-slate-900 mb-1">client.regtech</h4>
-                                <p class="text-sm text-slate-500">MiFID II, MiCA, Travel Rule modules</p>
-                                <span class="text-xs text-gray-400">v2+</span>
+                                <h4 class="font-semibold text-slate-900 mb-1">client.baskets</h4>
+                                <p class="text-sm text-slate-500">Currency baskets</p>
                             </div>
                             <div class="border border-gray-200 rounded-lg p-4">
-                                <h4 class="font-semibold text-slate-900 mb-1">client.crosschain</h4>
-                                <p class="text-sm text-slate-500">Bridge protocols, multi-chain portfolio</p>
-                                <span class="text-xs text-gray-400">v5.2+</span>
+                                <h4 class="font-semibold text-slate-900 mb-1">client.gcu</h4>
+                                <p class="text-sm text-slate-500">The GCU software demo</p>
                             </div>
                             <div class="border border-gray-200 rounded-lg p-4">
-                                <h4 class="font-semibold text-slate-900 mb-1">client.defi</h4>
-                                <p class="text-sm text-slate-500">DEX aggregation, lending, staking</p>
-                                <span class="text-xs text-gray-400">v5.2+</span>
-                            </div>
-                            <div class="border border-gray-200 rounded-lg p-4">
-                                <h4 class="font-semibold text-slate-900 mb-1">client.ai</h4>
-                                <p class="text-sm text-slate-500">Transaction queries, spending insights</p>
-                                <span class="text-xs text-gray-400">v2+</span>
-                            </div>
-                            <div class="border border-gray-200 rounded-lg p-4">
-                                <h4 class="font-semibold text-slate-900 mb-1">client.partner</h4>
-                                <p class="text-sm text-slate-500">SDK generation, tenant management, config</p>
-                                <span class="text-xs text-gray-400">v2+</span>
+                                <h4 class="font-semibold text-slate-900 mb-1">client.webhooks</h4>
+                                <p class="text-sm text-slate-500">Webhook setup and deliveries</p>
                             </div>
                         </div>
                     </div>
@@ -937,7 +814,7 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
                 <div class="text-center mb-12">
                     <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Built for Your Use Case</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        Whether you're building a fintech app, marketplace, or enterprise platform, {{ config('brand.name', 'Zelta') }} provides the banking infrastructure you need
+                        These are examples of products you can model with the {{ config('brand.name', 'Zelta') }} modules. Each one still needs your own licences, partners and compliance work before it serves real customers.
                     </p>
                 </div>
                 
@@ -951,7 +828,7 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
                         </div>
                         <h3 class="text-2xl font-bold text-slate-900 mb-3">Digital Wallets</h3>
                         <p class="text-slate-600 mb-6">
-                            Create secure digital wallets with multi-currency support, instant transfers, and comprehensive transaction history.
+                            You can build a wallet with accounts in several currencies. It can move money between users and keep a full transaction history.
                         </p>
                         <ul class="space-y-2 text-slate-500">
                             <li class="flex items-start">
@@ -964,7 +841,7 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
                                 <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                 </svg>
-                                Instant peer-to-peer transfers
+                                Peer-to-peer transfers
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -984,26 +861,26 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
                         </div>
                         <h3 class="text-2xl font-bold text-slate-900 mb-3">Marketplace Banking</h3>
                         <p class="text-slate-600 mb-6">
-                            Enable split payments, escrow services, and automated payouts for your marketplace platform.
+                            You can model payments between buyers, sellers and AI agents. The agent protocol module covers split payments, escrow and disputes.
                         </p>
                         <ul class="space-y-2 text-slate-500">
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                 </svg>
-                                Automated split payments
+                                Split payments
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                 </svg>
-                                Escrow services
+                                Escrow
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                 </svg>
-                                Seller payouts
+                                Dispute handling
                             </li>
                         </ul>
                     </div>
@@ -1017,7 +894,7 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
                         </div>
                         <h3 class="text-2xl font-bold text-slate-900 mb-3">Neobanking</h3>
                         <p class="text-slate-600 mb-6">
-                            Launch a complete digital banking solution with accounts, cards, and lending capabilities.
+                            You can prototype a digital bank with accounts, cards and loans. Card issuing runs through adapters for third-party card issuers.
                         </p>
                         <ul class="space-y-2 text-slate-500">
                             <li class="flex items-start">
@@ -1036,7 +913,7 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
                                 <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                 </svg>
-                                Personal finance tools
+                                Spending analysis
                             </li>
                         </ul>
                     </div>
@@ -1050,14 +927,14 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
                         </div>
                         <h3 class="text-2xl font-bold text-slate-900 mb-3">Corporate Banking</h3>
                         <p class="text-slate-600 mb-6">
-                            Streamline business banking with bulk payments, expense management, and team permissions.
+                            You can model business banking with bulk payments and team permissions.
                         </p>
                         <ul class="space-y-2 text-slate-500">
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                 </svg>
-                                Bulk payment processing
+                                Bulk payments
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -1069,7 +946,7 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
                                 <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                 </svg>
-                                Expense management
+                                Batch jobs
                             </li>
                         </ul>
                     </div>
@@ -1083,20 +960,20 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
                         </div>
                         <h3 class="text-2xl font-bold text-slate-900 mb-3">Lending Platform</h3>
                         <p class="text-slate-600 mb-6">
-                            Build lending products with automated underwriting, loan management, and repayment processing.
+                            You can model loan products. The lending module covers applications, credit scoring, disbursement and repayments.
                         </p>
                         <ul class="space-y-2 text-slate-500">
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                 </svg>
-                                Credit scoring integration
+                                Credit scoring
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                 </svg>
-                                Automated disbursements
+                                Disbursements
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -1116,14 +993,14 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
                         </div>
                         <h3 class="text-2xl font-bold text-slate-900 mb-3">Investment Platform</h3>
                         <p class="text-slate-600 mb-6">
-                            Enable investment accounts, portfolio management, and automated investing features.
+                            You can model portfolio tracking. The treasury module manages portfolios and rebalances them to target weights.
                         </p>
                         <ul class="space-y-2 text-slate-500">
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                 </svg>
-                                Fractional investing
+                                Net asset value calculation
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -1147,8 +1024,8 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
         <section class="py-20 bg-white">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-12">
-                    <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Get Started in Minutes</h2>
-                    <p class="text-xl text-slate-500">Three simple steps to integrate {{ config('brand.name', 'Zelta') }} into your application</p>
+                    <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Getting Started</h2>
+                    <p class="text-xl text-slate-500">These three steps connect your application to {{ config('brand.name', 'Zelta') }}.</p>
                 </div>
                 
                 <div class="max-w-4xl mx-auto">
@@ -1160,9 +1037,9 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
                             </div>
                         </div>
                         <div class="ml-6 flex-1">
-                            <h3 class="text-xl font-bold text-slate-900 mb-3">Sign Up & Get API Keys</h3>
+                            <h3 class="text-xl font-bold text-slate-900 mb-3">Sign Up and Create an API Key</h3>
                             <p class="text-slate-600">
-                                Create your free account and generate API keys from your dashboard. You'll get instant access to our sandbox environment.
+                                Create a free account and create an API key in your dashboard. The demo environment uses test data only.
                             </p>
                         </div>
                     </div>
@@ -1177,7 +1054,7 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
                         <div class="ml-6 flex-1">
                             <h3 class="text-xl font-bold text-slate-900 mb-3">Create Your First Account</h3>
                             <p class="text-slate-600">
-                                Use our API to create customer accounts. Each account can hold multiple currencies and support various transaction types.
+                                Use the API to create an account. Each account can hold balances in several currencies.
                             </p>
                         </div>
                     </div>
@@ -1192,7 +1069,7 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
                         <div class="ml-6 flex-1">
                             <h3 class="text-xl font-bold text-slate-900 mb-3">Process Transactions</h3>
                             <p class="text-slate-600">
-                                Start processing payments, transfers, and other transactions. Monitor everything in real-time through webhooks or API polling.
+                                Send deposits, withdrawals and transfers. Follow their status through webhooks or by asking the API.
                             </p>
                         </div>
                     </div>
@@ -1205,7 +1082,7 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
                             </svg>
                         </a>
                         <p class="text-slate-500 mt-4">
-                            See full code examples with syntax highlighting for all operations
+                            The examples page has code for the common operations.
                         </p>
                     </div>
                 </div>
@@ -1216,9 +1093,9 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
         <section class="bg-fa-navy relative overflow-hidden">
             <div class="absolute inset-0 bg-dot-pattern"></div>
             <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
-                <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Ready to integrate?</h2>
+                <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Start building</h2>
                 <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                    Choose your preferred language and start building with {{ config('brand.name', 'Zelta') }} today
+                    Pick your language and connect to {{ config('brand.name', 'Zelta') }}.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">
@@ -1231,7 +1108,6 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
             </div>
         </section>
 
-        @include('partials.footer')
         
         <script>
             function copyCode(button, code) {

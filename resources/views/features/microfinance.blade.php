@@ -5,8 +5,8 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Microfinance Suite',
-        'description' => 'Complete inclusion banking with group lending, IFRS loan provisioning, share accounts, teller operations, field officer tools, and savings products.',
-        'keywords' => 'microfinance, group lending, joint liability, IFRS provisioning, cooperative shares, teller operations, field officer, savings products, financial inclusion, MFI software',
+        'description' => 'A reference microfinance module with group lending, loan-loss provisions set by days overdue, cooperative share accounts, teller cash, field officer collection sheets and savings interest. It runs in demo mode.',
+        'keywords' => 'microfinance, group lending, joint liability, loan loss provisioning, cooperative shares, teller operations, field officer, savings products, financial inclusion, microfinance software, reference implementation',
     ])
 
     {{-- Schema.org Markup --}}
@@ -42,7 +42,7 @@
                 </div>
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Microfinance Suite</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    Financial inclusion modules. MFI software with group lending, IFRS loan provisioning, cooperative share accounts, teller operations, field officer tools, and savings products — all in one API.
+                    This module models the work of a microfinance institution. It covers group lending, loan-loss provisions, cooperative share accounts, teller cash, field officers and savings products in one API. It is a reference implementation at the logic layer. It runs in demo mode and is switched off on the production site.
                 </p>
                 <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('register') }}" class="bg-white text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">
@@ -60,9 +60,9 @@
     <!-- Module Overview -->
     <section id="modules" class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">Complete MFI Platform</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">Six Parts of Microfinance</h2>
             <p class="text-lg text-slate-500 text-center max-w-2xl mx-auto mb-12">
-                Six integrated modules covering every aspect of microfinance operations — from field collection to regulatory provisioning.
+                The module has six parts that work together. They range from collections in the field to provisions for overdue loans.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -74,29 +74,29 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3">Group Lending</h3>
-                    <p class="text-slate-500 text-sm mb-4">Joint liability lending groups with center hierarchy. Meeting scheduling, attendance tracking, and group loan disbursement with shared guarantee structure.</p>
+                    <p class="text-slate-500 text-sm mb-4">In group lending, members share responsibility for each other's loans. The module manages the groups and their centres. It also schedules meetings and records who attended.</p>
                     <ul class="space-y-1 text-xs text-gray-500">
-                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Joint liability group structure</li>
-                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Center and village hierarchy</li>
-                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Meeting management and attendance</li>
-                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Group loan cycle tracking</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Groups of 5 to 30 members by default</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Each group can belong to a centre</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Meetings and attendance</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Groups are created, activated and closed</li>
                     </ul>
                 </div>
 
-                <!-- IFRS Provisioning -->
+                <!-- Loan-Loss Provisioning -->
                 <div class="module-card card-feature !p-8">
                     <div class="w-14 h-14 bg-red-50 rounded-lg flex items-center justify-center mb-5">
                         <svg class="w-7 h-7 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">IFRS Loan Provisioning</h3>
-                    <p class="text-slate-500 text-sm mb-4">Loan loss provisioning modelled on IFRS 9, with four classification stages. Configurable provision rates per stage with automatic staging based on days past due.</p>
+                    <h3 class="text-xl font-bold mb-3">Loan-Loss Provisioning</h3>
+                    <p class="text-slate-500 text-sm mb-4">A provision sets money aside for loans that may not be repaid. The module puts each loan in one of four categories by how many days it is overdue. Each category has its own provision rate, which you can change.</p>
                     <ul class="space-y-1 text-xs text-gray-500">
                         <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Standard / Substandard / Doubtful / Loss</li>
-                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Configurable provision rates per stage</li>
-                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Automatic DPD-based reclassification</li>
-                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Provision expense GL posting</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>A provision rate for each category</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>All loans reclassified by days overdue</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Write-off with a recorded reason</li>
                     </ul>
                 </div>
 
@@ -108,12 +108,12 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3">Share Accounts</h3>
-                    <p class="text-slate-500 text-sm mb-4">Cooperative member share accounts with share certificate management. Dividend calculation at period close and distribution to member accounts.</p>
+                    <p class="text-slate-500 text-sm mb-4">Members of a cooperative hold shares in it. The module opens share accounts and handles share purchases and redemptions. It also calculates dividends and credits them to the share account.</p>
                     <ul class="space-y-1 text-xs text-gray-500">
-                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Member share certificates</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Nominal value of 100 for each share by default</li>
                         <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Share purchase and redemption</li>
-                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Dividend calculation per period</li>
-                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Automatic distribution to savings</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Dividend calculation</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Dividend credited to the share account</li>
                     </ul>
                 </div>
 
@@ -125,12 +125,12 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3">Teller Operations</h3>
-                    <p class="text-slate-500 text-sm mb-4">Branch vault management with teller cash allocation. Cash-in and cash-out transactions with balance guards preventing over-disbursement.</p>
+                    <p class="text-slate-500 text-sm mb-4">Each teller has a cash vault with a balance. The module records cash coming in and going out. It refuses a payout that is larger than the vault balance.</p>
                     <ul class="space-y-1 text-xs text-gray-500">
-                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Vault and till management</li>
-                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Cash-in / cash-out with balance guard</li>
-                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Teller opening and closing entries</li>
-                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Denomination tracking</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Vault balance for each teller</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Cash in and cash out with a balance check</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Teller registration and deactivation</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Vault reconciliation</li>
                     </ul>
                 </div>
 
@@ -143,12 +143,12 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3">Field Officer Tools</h3>
-                    <p class="text-slate-500 text-sm mb-4">Territory assignment and collection sheet generation for field agents. Sync collections made in the field back to core with offline-first mobile support.</p>
+                    <p class="text-slate-500 text-sm mb-4">Field officers visit groups and collect repayments. The module assigns each officer a territory and generates collection sheets. Officers record what they collected, and a sync updates their client count.</p>
                     <ul class="space-y-1 text-xs text-gray-500">
-                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Territory and route assignment</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Territory assignment</li>
                         <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Daily collection sheet generation</li>
-                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Mobile sync for offline collections</li>
-                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Performance dashboard per officer</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Collections recorded against the sheet</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Client count and last sync time for each officer</li>
                     </ul>
                 </div>
 
@@ -160,24 +160,24 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3">Savings Products</h3>
-                    <p class="text-slate-500 text-sm mb-4">Flexible savings product engine with simple and compound interest calculation. Dormancy tracking with auto-notification and configurable reactivation fees.</p>
+                    <p class="text-slate-500 text-sm mb-4">The savings part calculates simple and compound interest. It also marks accounts as dormant after a period without activity.</p>
                     <ul class="space-y-1 text-xs text-gray-500">
                         <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Simple and compound interest</li>
-                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Dormancy detection and notification</li>
-                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Minimum balance enforcement</li>
-                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Tiered interest rate schedules</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Dormant after 180 days without activity by default</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Compounding daily, weekly, monthly, quarterly or yearly</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Simple interest calculated with exact decimals</li>
                     </ul>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- IFRS Provisioning Detail -->
+    <!-- Provisioning Detail -->
     <section class="py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">IFRS Loan Classification</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">Loan Classification</h2>
             <p class="text-lg text-slate-500 text-center max-w-2xl mx-auto mb-12">
-                Automatically classify loans into four IFRS stages based on days past due (DPD) and calculate provision amounts using configurable rates.
+                The module puts each loan in a category by how many days it is overdue. It then calculates the provision with the rate for that category. This is a simple days-overdue model. It does not calculate expected credit losses under international financial reporting standards.
             </p>
 
             <div class="max-w-3xl mx-auto">
@@ -185,8 +185,8 @@
                     <table class="w-full text-sm">
                         <thead class="bg-gray-800 text-white">
                             <tr>
-                                <th class="text-left px-6 py-4 font-semibold">Stage</th>
-                                <th class="text-left px-6 py-4 font-semibold">DPD Trigger</th>
+                                <th class="text-left px-6 py-4 font-semibold">Category</th>
+                                <th class="text-left px-6 py-4 font-semibold">Days overdue</th>
                                 <th class="text-left px-6 py-4 font-semibold">Default Rate</th>
                                 <th class="text-left px-6 py-4 font-semibold">Status</th>
                             </tr>
@@ -194,32 +194,32 @@
                         <tbody class="bg-white divide-y divide-gray-100">
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-4 font-medium">Standard</td>
-                                <td class="px-6 py-4 text-gray-500">0–30 days</td>
+                                <td class="px-6 py-4 text-gray-500">Under 90 days</td>
                                 <td class="px-6 py-4 font-mono text-green-700">1%</td>
                                 <td class="px-6 py-4"><span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">Performing</span></td>
                             </tr>
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-4 font-medium">Substandard</td>
-                                <td class="px-6 py-4 text-gray-500">31–90 days</td>
-                                <td class="px-6 py-4 font-mono text-yellow-700">10%</td>
+                                <td class="px-6 py-4 text-gray-500">90 to 179 days</td>
+                                <td class="px-6 py-4 font-mono text-yellow-700">5%</td>
                                 <td class="px-6 py-4"><span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-1 rounded">Watch</span></td>
                             </tr>
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-4 font-medium">Doubtful</td>
-                                <td class="px-6 py-4 text-gray-500">91–180 days</td>
+                                <td class="px-6 py-4 text-gray-500">180 to 364 days</td>
                                 <td class="px-6 py-4 font-mono text-orange-700">50%</td>
                                 <td class="px-6 py-4"><span class="bg-orange-100 text-orange-800 text-xs font-medium px-2 py-1 rounded">Non-performing</span></td>
                             </tr>
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-4 font-medium">Loss</td>
-                                <td class="px-6 py-4 text-gray-500">181+ days</td>
+                                <td class="px-6 py-4 text-gray-500">365 days or more</td>
                                 <td class="px-6 py-4 font-mono text-red-700">100%</td>
                                 <td class="px-6 py-4"><span class="bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded">Write-off</span></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-                <p class="text-sm text-gray-400 text-center mt-4">All provision rates are configurable per product type and jurisdiction.</p>
+                <p class="text-sm text-gray-400 text-center mt-4">You can change every threshold and provision rate in the settings.</p>
             </div>
         </div>
     </section>
@@ -227,10 +227,10 @@
     <!-- CTA -->
     <section class="py-20 bg-fa-navy">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Build Your MFI on Open-Source Software</h2>
-            <p class="text-lg text-slate-400 mb-8">Everything from group loan disbursement to regulatory provisioning — API-first and built for the field.</p>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Study Microfinance in Open-Source Code</h2>
+            <p class="text-lg text-slate-400 mb-8">The module covers group lending, provisions, shares, tellers, field officers and savings. Every part is available through the API.</p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="{{ route('register') }}" class="bg-white text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">Start Free Trial</a>
+                <a href="{{ route('register') }}" class="bg-white text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">Create a Sandbox Account</a>
                 <a href="{{ route('developers') }}" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-indigo-600 transition">View API Docs</a>
             </div>
         </div>

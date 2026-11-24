@@ -1,13 +1,13 @@
 <x-guest-layout :title="'Blog — ' . config('app.name', config('brand.name', 'Zelta'))">
     @push('meta')
-        <meta name="description" content="Insights, updates, and thought leadership on multi-asset banking, financial technology, and the future of open-source core banking from the {{ config('brand.name', 'Zelta') }} team.">
+        <meta name="description" content="The {{ config('brand.name', 'Zelta') }} blog explains how the open-source core banking platform works. It covers new releases, architecture, security and compliance tooling.">
         <meta property="og:title" content="Blog — {{ config('app.name', config('brand.name', 'Zelta')) }}">
-        <meta property="og:description" content="Insights, updates, and thought leadership on multi-asset banking, financial technology, and the future of open-source core banking.">
+        <meta property="og:description" content="The blog explains how the open-source core banking platform works. It covers new releases, architecture, security and compliance tooling.">
         <meta property="og:type" content="website">
         <meta property="og:url" content="{{ url('/blog') }}">
         <meta name="twitter:card" content="summary">
         <meta name="twitter:title" content="Blog — {{ config('app.name', config('brand.name', 'Zelta')) }}">
-        <meta name="twitter:description" content="Insights, updates, and thought leadership on multi-asset banking, financial technology, and open-source core banking.">
+        <meta name="twitter:description" content="The blog explains how the open-source core banking platform works. It covers new releases, architecture, security and compliance tooling.">
         <link rel="canonical" href="{{ url('/blog') }}">
     @endpush
 
@@ -20,7 +20,7 @@
                         {{ config('brand.name', 'Zelta') }} Blog
                     </h1>
                     <p class="mt-6 text-xl text-gray-300 max-w-3xl mx-auto">
-                        Insights, updates, and thought leadership on the future of multi-asset banking and financial technology.
+                        The blog explains how the open-source platform works. It covers new releases, architecture, security and compliance tooling.
                     </p>
                 </div>
             </div>
@@ -90,7 +90,7 @@
                             </svg>
                         </div>
                         <h3 class="font-semibold text-gray-900 mb-2">Platform Updates</h3>
-                        <p class="text-gray-600 text-sm mb-3">Latest features and improvements</p>
+                        <p class="text-gray-600 text-sm mb-3">New features and improvements in each release.</p>
                         <span class="text-blue-600 text-sm font-medium">{{ $categories['platform'] }} posts</span>
                     </div>
 
@@ -101,7 +101,7 @@
                             </svg>
                         </div>
                         <h3 class="font-semibold text-gray-900 mb-2">Security</h3>
-                        <p class="text-gray-600 text-sm mb-3">Security insights and best practices</p>
+                        <p class="text-gray-600 text-sm mb-3">How the platform is secured, and good security practice.</p>
                         <span class="text-blue-600 text-sm font-medium">{{ $categories['security'] }} posts</span>
                     </div>
 
@@ -112,7 +112,7 @@
                             </svg>
                         </div>
                         <h3 class="font-semibold text-gray-900 mb-2">Developer Resources</h3>
-                        <p class="text-gray-600 text-sm mb-3">API guides and integration tutorials</p>
+                        <p class="text-gray-600 text-sm mb-3">Guides for the API and for integrations.</p>
                         <span class="text-blue-600 text-sm font-medium">{{ $categories['developer'] }} posts</span>
                     </div>
 
@@ -123,7 +123,7 @@
                             </svg>
                         </div>
                         <h3 class="font-semibold text-gray-900 mb-2">Industry Insights</h3>
-                        <p class="text-gray-600 text-sm mb-3">Market trends and financial analysis</p>
+                        <p class="text-gray-600 text-sm mb-3">Articles about trends in financial technology.</p>
                         <span class="text-blue-600 text-sm font-medium">{{ $categories['industry'] }} posts</span>
                     </div>
 
@@ -134,7 +134,7 @@
                             </svg>
                         </div>
                         <h3 class="font-semibold text-gray-900 mb-2">Compliance</h3>
-                        <p class="text-gray-600 text-sm mb-3">Regulatory updates and guidelines</p>
+                        <p class="text-gray-600 text-sm mb-3">Articles about regulation and the compliance tooling.</p>
                         <span class="text-blue-600 text-sm font-medium">{{ $categories['compliance'] }} posts</span>
                     </div>
                 </div>
@@ -196,7 +196,7 @@
         <div class="bg-blue-900 py-16">
             <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
                 <h2 class="text-3xl font-bold text-white mb-4">Stay Updated</h2>
-                <p class="text-xl text-blue-100 mb-8">Get the latest insights and updates delivered to your inbox.</p>
+                <p class="text-xl text-blue-100 mb-8">Get new articles and release news by email.</p>
                 <form id="newsletter-form" class="max-w-md mx-auto" onsubmit="handleSubscribe(event)">
                     @csrf
                     <div class="flex">

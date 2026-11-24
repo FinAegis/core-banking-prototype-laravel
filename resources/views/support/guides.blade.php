@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Support Guides - ' . config('brand.name', 'Zelta'),
-        'description' => config('brand.name', 'Zelta') . ' platform guides and documentation. Learn how to use, deploy, and contribute to our open-source core banking platform with 61 domain modules.',
+        'description' => 'Guides for ' . config('brand.name', 'Zelta') . ', the open-source core banking platform with 61 domain modules. They explain how to try the sandbox, run the code on your own machine and send feedback.',
         'keywords' => config('brand.name', 'Zelta') . ' guides, documentation, tutorials, open source banking, core banking platform',
     ])
 @endsection
@@ -28,7 +28,7 @@
                         Platform Guides
                     </h1>
                     <p class="text-xl md:text-2xl mb-8 text-slate-400 max-w-4xl mx-auto">
-                        Learn how to explore the {{ config('brand.name', 'Zelta') }} platform and contribute to our open-source project.
+                        These guides explain how to try the {{ config('brand.name', 'Zelta') }} sandbox and how to contribute to the open-source project.
                     </p>
                     <div class="max-w-2xl mx-auto">
                         <div class="relative">
@@ -49,7 +49,7 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-12">
                     <h2 class="font-display text-3xl font-bold text-slate-900">Popular Guides</h2>
-                    <p class="mt-4 text-xl text-slate-500">Start with these essential guides to get up and running</p>
+                    <p class="mt-4 text-xl text-slate-500">Start with these four guides.</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -90,7 +90,7 @@
                             </svg>
                         </div>
                         <h3 class="font-semibold text-slate-900 mb-2">Providing Feedback</h3>
-                        <p class="text-slate-500 text-sm">Reporting issues & suggestions</p>
+                        <p class="text-slate-500 text-sm">Reporting issues and ideas</p>
                     </a>
                 </div>
             </div>
@@ -103,49 +103,49 @@
                 <section id="getting-started" class="mb-16">
                     <div class="border-b border-gray-200 pb-6 mb-8">
                         <h2 class="text-2xl font-bold text-slate-900">Getting Started</h2>
-                        <p class="mt-2 text-slate-500">Understanding the {{ config('brand.name', 'Zelta') }} platform and how to explore it</p>
+                        <p class="mt-2 text-slate-500">This section explains what the sandbox is and how to use it.</p>
                     </div>
                     
                     <div class="space-y-6">
                         <div class="card-feature">
                             <h3 class="text-lg font-semibold text-slate-900 mb-3">About the Sandbox</h3>
-                            <p class="text-slate-500 mb-4">The public {{ config('brand.name', 'Zelta') }} instance runs in sandbox mode, which means:</p>
+                            <p class="text-slate-500 mb-4">The public {{ config('brand.name', 'Zelta') }} site runs in sandbox mode.</p>
                             <ul class="list-disc list-inside text-slate-500 space-y-2">
-                                <li>All transactions and balances use test data (no real money)</li>
-                                <li>Every feature is available for you to explore</li>
-                                <li>New features are added regularly as the platform evolves</li>
-                                <li>Your feedback helps shape the platform</li>
+                                <li>All transactions and balances use test data, so no real money is involved.</li>
+                                <li>Most modules can be tried in demo mode. Some features, such as virtual cards, stay switched off until their pilot starts.</li>
+                                <li>The sandbox runs the latest release, which is v7.18.1.</li>
+                                <li>Your feedback tells us what to fix and build next.</li>
                             </ul>
                             <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                                 <p class="text-blue-800 text-sm">
-                                    <strong>Note:</strong> The sandbox uses test data only. No real financial transactions are processed in this environment.
+                                    The sandbox uses test data only. It processes no real financial transactions.
                                 </p>
                             </div>
                         </div>
 
                         <div class="card-feature">
                             <h3 class="text-lg font-semibold text-slate-900 mb-3">Creating Your Test Account</h3>
-                            <p class="text-slate-500 mb-4">Follow these steps to create your account:</p>
+                            <p class="text-slate-500 mb-4">You can create a test account in four steps.</p>
                             <ol class="list-decimal list-inside text-slate-500 space-y-2">
-                                <li>Click "Register" on the homepage</li>
-                                <li>Use a test email address (can be your real email)</li>
-                                <li>Create a password (this is for testing only)</li>
-                                <li>Explore the dashboard with sandbox data</li>
+                                <li>Click "Register" on the homepage.</li>
+                                <li>Enter an email address. It can be a test address or your real one.</li>
+                                <li>Choose a password that you use only for testing.</li>
+                                <li>Open the dashboard and look around with sandbox data.</li>
                             </ol>
                             <p class="text-slate-500 mt-4">
-                                <strong>Note:</strong> No real identity verification is required for the sandbox.
+                                The sandbox does not ask for a real identity check.
                             </p>
                         </div>
 
                         <div class="card-feature">
                             <h3 class="text-lg font-semibold text-slate-900 mb-3">Available Features</h3>
-                            <p class="text-slate-500 mb-4">Available to explore in the sandbox:</p>
+                            <p class="text-slate-500 mb-4">The sandbox lets you try these parts of the platform.</p>
                             <ul class="list-disc list-inside text-slate-500 space-y-2">
-                                <li>User registration and authentication</li>
-                                <li>Dashboard with simulated account data</li>
-                                <li>GCU demo (simulated)</li>
-                                <li>Basic API endpoints ({{ config('platform.statistics.api_endpoints') }} endpoints)</li>
-                                <li>Admin panel (for authorized testers)</li>
+                                <li>You can register and sign in.</li>
+                                <li>The dashboard shows simulated account data.</li>
+                                <li>The GCU demo shows a simulated currency basket.</li>
+                                <li>More than 1,000 API routes and a GraphQL API are available with test data.</li>
+                                <li>Testers with an administrator role can open the admin panel.</li>
                             </ul>
                         </div>
                     </div>
@@ -155,13 +155,13 @@
                 <section id="development" class="mb-16">
                     <div class="border-b border-gray-200 pb-6 mb-8">
                         <h2 class="text-2xl font-bold text-slate-900">Development Setup</h2>
-                        <p class="mt-2 text-slate-500">Contributing to the {{ config('brand.name', 'Zelta') }} open source project</p>
+                        <p class="mt-2 text-slate-500">This section explains how to run the code and send changes.</p>
                     </div>
                     
                     <div class="space-y-6">
                         <div class="card-feature">
                             <h3 class="text-lg font-semibold text-slate-900 mb-3">Local Development Environment</h3>
-                            <p class="text-slate-500 mb-4">Set up {{ config('brand.name', 'Zelta') }} locally for development:</p>
+                            <p class="text-slate-500 mb-4">These commands install {{ config('brand.name', 'Zelta') }} on your own machine. The README file on GitHub has the full steps, including demo mode.</p>
                             <div class="bg-slate-50 rounded-lg p-4 font-mono text-sm">
                                 <p class="text-slate-600"># Clone the repository</p>
                                 <p class="text-green-600">git clone {{ config('brand.github_url') }}.git</p>
@@ -185,15 +185,15 @@
 
                         <div class="card-feature">
                             <h3 class="text-lg font-semibold text-slate-900 mb-3">Tech Stack Overview</h3>
-                            <p class="text-slate-500 mb-4">{{ config('brand.name', 'Zelta') }} is built with:</p>
+                            <p class="text-slate-500 mb-4">{{ config('brand.name', 'Zelta') }} is a Laravel 12 application written in PHP 8.4.</p>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <h4 class="font-semibold text-slate-800 mb-2">Backend</h4>
                                     <ul class="text-sm text-slate-500 space-y-1">
-                                        <li>• Laravel (PHP framework)</li>
-                                        <li>• MySQL/PostgreSQL</li>
-                                        <li>• Redis for queues</li>
-                                        <li>• Laravel Sanctum for API auth</li>
+                                        <li>• Laravel 12</li>
+                                        <li>• MySQL, MariaDB or PostgreSQL</li>
+                                        <li>• Redis for cache, queues and event streams</li>
+                                        <li>• Laravel Sanctum for API sign-in</li>
                                     </ul>
                                 </div>
                                 <div>
@@ -210,14 +210,14 @@
 
                         <div class="card-feature">
                             <h3 class="text-lg font-semibold text-slate-900 mb-3">Contributing Guidelines</h3>
-                            <p class="text-slate-500 mb-4">How to contribute to {{ config('brand.name', 'Zelta') }}:</p>
+                            <p class="text-slate-500 mb-4">You can contribute to {{ config('brand.name', 'Zelta') }} in six steps.</p>
                             <ol class="list-decimal list-inside text-slate-500 space-y-2">
-                                <li>Fork the repository on GitHub</li>
-                                <li>Create a feature branch (<code class="bg-slate-100 px-2 py-1 rounded">git checkout -b feature/your-feature</code>)</li>
-                                <li>Make your changes and test thoroughly</li>
-                                <li>Run tests (<code class="bg-slate-100 px-2 py-1 rounded">./vendor/bin/pest</code>)</li>
-                                <li>Commit with clear messages</li>
-                                <li>Push to your fork and create a pull request</li>
+                                <li>Fork the repository on GitHub.</li>
+                                <li>Create a feature branch with <code class="bg-slate-100 px-2 py-1 rounded">git checkout -b feature/your-feature</code>.</li>
+                                <li>Make your changes and add tests for them.</li>
+                                <li>Run the tests with <code class="bg-slate-100 px-2 py-1 rounded">./vendor/bin/pest</code>.</li>
+                                <li>Commit with clear messages.</li>
+                                <li>Push to your fork and open a pull request.</li>
                             </ol>
                         </div>
                     </div>
@@ -227,32 +227,32 @@
                 <section id="testing" class="mb-16">
                     <div class="border-b border-gray-200 pb-6 mb-8">
                         <h2 class="text-2xl font-bold text-slate-900">Testing Platform Features</h2>
-                        <p class="mt-2 text-slate-500">How to test and explore the demo functionality</p>
+                        <p class="mt-2 text-slate-500">This section explains how to try the demo features.</p>
                     </div>
                     
                     <div class="space-y-6">
                         <div class="card-feature">
                             <h3 class="text-lg font-semibold text-slate-900 mb-3">Simulated Transactions</h3>
-                            <p class="text-slate-500 mb-4">Testing transaction flows:</p>
+                            <p class="text-slate-500 mb-4">Every transaction in the sandbox is simulated.</p>
                             <ul class="list-disc list-inside text-slate-500 space-y-2">
-                                <li>All balances are simulated (starting with demo funds)</li>
-                                <li>Transactions don't involve real money or banks</li>
-                                <li>Currency conversions use demo exchange rates</li>
-                                <li>Transaction history is for demonstration only</li>
+                                <li>All balances are simulated, and new accounts start with demo funds.</li>
+                                <li>Transactions involve no real money and no real banks.</li>
+                                <li>Currency conversions use demo exchange rates.</li>
+                                <li>The transaction history is for demonstration only.</li>
                             </ul>
                             <p class="text-slate-500 mt-4">
-                                Feel free to test all transaction types without worry - nothing is real!
+                                You can try any transaction type, because nothing in the sandbox is real.
                             </p>
                         </div>
 
                         <div class="card-feature">
                             <h3 class="text-lg font-semibold text-slate-900 mb-3">API Testing</h3>
-                            <p class="text-slate-500 mb-4">Testing the REST API:</p>
+                            <p class="text-slate-500 mb-4">You can call the REST API with your sandbox account.</p>
                             <ol class="list-decimal list-inside text-slate-500 space-y-2">
-                                <li>Register for an account to get API access</li>
-                                <li>Use the API documentation at <code class="bg-slate-100 px-2 py-1 rounded">/developers/api-docs</code></li>
-                                <li>Test with tools like Postman or curl</li>
-                                <li>All API responses use simulated data</li>
+                                <li>Register for an account to get API access.</li>
+                                <li>Read the API documentation at <code class="bg-slate-100 px-2 py-1 rounded">/developers/api-docs</code>.</li>
+                                <li>Send requests with a tool such as Postman or curl.</li>
+                                <li>All API responses use simulated data.</li>
                             </ol>
                             <div class="mt-4 bg-slate-50 rounded-lg p-4 font-mono text-sm">
                                 <p class="text-slate-600"># Example API call</p>
@@ -263,15 +263,14 @@
 
                         <div class="card-feature">
                             <h3 class="text-lg font-semibold text-slate-900 mb-3">GCU Demo Features</h3>
-                            <p class="text-slate-500 mb-4">Exploring the GCU demo:</p>
+                            <p class="text-slate-500 mb-4">The GCU demo shows how a currency basket works.</p>
                             <ul class="list-disc list-inside text-slate-500 space-y-2">
-                                <li>View the current GCU composition (demonstration values)</li>
-                                <li>See how simulated basket "votes" work (UI preview only)</li>
-                                <li>Try simulated conversions with GCU demo balances</li>
-                                <li>Understand the multi-currency basket concept</li>
+                                <li>You can see the current GCU composition with demonstration values.</li>
+                                <li>You can see how the simulated basket "votes" work.</li>
+                                <li>You can try simulated conversions with GCU demo balances.</li>
                             </ul>
                             <p class="text-slate-500 mt-4">
-                                <strong>Note:</strong> GCU balances, conversions and basket "votes" in the demo are simulated; GCU is not issued, offered or sold and has no monetary value.
+                                GCU balances, conversions and basket "votes" in the demo are simulated. GCU is not issued, offered or sold, and it has no monetary value.
                             </p>
                         </div>
                     </div>
@@ -281,19 +280,19 @@
                 <section id="feedback" class="mb-16">
                     <div class="border-b border-gray-200 pb-6 mb-8">
                         <h2 class="text-2xl font-bold text-slate-900">Providing Feedback</h2>
-                        <p class="mt-2 text-slate-500">Help us improve {{ config('brand.name', 'Zelta') }} with your feedback</p>
+                        <p class="mt-2 text-slate-500">Your feedback helps us improve {{ config('brand.name', 'Zelta') }}.</p>
                     </div>
                     
                     <div class="space-y-6">
                         <div class="card-feature">
                             <h3 class="text-lg font-semibold text-slate-900 mb-3">Reporting Bugs</h3>
-                            <p class="text-slate-500 mb-4">Found a bug? Here's how to report it:</p>
+                            <p class="text-slate-500 mb-4">Please report a bug as a GitHub issue.</p>
                             <ol class="list-decimal list-inside text-slate-500 space-y-2">
-                                <li>Check if the issue already exists on GitHub</li>
-                                <li>Create a new issue with a clear title</li>
-                                <li>Provide steps to reproduce the bug</li>
-                                <li>Include error messages or screenshots</li>
-                                <li>Mention your environment (OS, browser, etc.)</li>
+                                <li>Check whether the issue already exists on GitHub.</li>
+                                <li>Create a new issue with a clear title.</li>
+                                <li>Describe the steps that reproduce the bug.</li>
+                                <li>Add error messages or screenshots.</li>
+                                <li>Name your operating system and browser.</li>
                             </ol>
                             <div class="mt-4">
                                 <a href="{{ config('brand.github_url') }}/issues/new" class="text-indigo-600 font-medium hover:text-indigo-700">
@@ -304,24 +303,22 @@
 
                         <div class="card-feature">
                             <h3 class="text-lg font-semibold text-slate-900 mb-3">Feature Requests</h3>
-                            <p class="text-slate-500 mb-4">Have an idea for a new feature?</p>
+                            <p class="text-slate-500 mb-4">You can suggest a new feature on GitHub.</p>
                             <ul class="list-disc list-inside text-slate-500 space-y-2">
-                                <li>Check our roadmap to see if it's planned</li>
-                                <li>Create a GitHub issue with [Feature Request] tag</li>
-                                <li>Describe the feature and its benefits</li>
-                                <li>Provide use cases and examples</li>
-                                <li>Join the discussion on existing requests</li>
+                                <li>Check the existing issues to see whether someone has asked for it.</li>
+                                <li>Create a GitHub issue that starts with "[Feature Request]".</li>
+                                <li>Describe the feature and what it would give users.</li>
+                                <li>Add use cases and examples.</li>
+                                <li>Comment on existing requests that you also need.</li>
                             </ul>
                         </div>
 
                         <div class="card-feature">
                             <h3 class="text-lg font-semibold text-slate-900 mb-3">Community Discussion</h3>
-                            <p class="text-slate-500 mb-4">Join our community:</p>
+                            <p class="text-slate-500 mb-4">You can talk to the project team and other users in two places.</p>
                             <ul class="list-disc list-inside text-slate-500 space-y-2">
-                                <li>GitHub Discussions for general topics</li>
-                                <li>Email {{ config('brand.support_email', 'info@zelta.app') }} for direct feedback</li>
-                                <li>Star the repository to show support</li>
-                                <li>Share the project with other developers</li>
+                                <li>GitHub Discussions is for general questions and ideas.</li>
+                                <li>You can email {{ config('brand.support_email', 'info@zelta.app') }} with direct feedback.</li>
                             </ul>
                             <div class="mt-4 flex gap-4">
                                 <a href="{{ config('brand.github_url') }}/discussions" class="text-indigo-600 font-medium hover:text-indigo-700">
@@ -339,7 +336,7 @@
                 <div class="bg-indigo-50 rounded-xl p-8 text-center">
                     <h3 class="text-xl font-semibold text-slate-900 mb-4">Need More Help?</h3>
                     <p class="text-slate-500 mb-6">
-                        Can't find what you're looking for? Check out these additional resources.
+                        The frequently asked questions may answer your question. If not, send us a message.
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
                         <a href="{{ route('support.faq') }}" class="btn-outline-dark">
@@ -353,52 +350,6 @@
             </div>
         </section>
 
-        <!-- Footer -->
-        <footer class="bg-gray-900 text-gray-400 py-12">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="grid md:grid-cols-4 gap-8">
-                    <div>
-                        <h4 class="text-white font-semibold mb-4">Platform</h4>
-                        <ul class="space-y-2">
-                            <li><a href="/platform" class="hover:text-white transition">Overview</a></li>
-                            <li><a href="/gcu" class="hover:text-white transition">GCU demo</a></li>
-                            <li><a href="/sub-products" class="hover:text-white transition">Modules</a></li>
-                            <li><a href="/pricing" class="hover:text-white transition">Pricing</a></li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 class="text-white font-semibold mb-4">Developers</h4>
-                        <ul class="space-y-2">
-                            <li><a href="/developers" class="hover:text-white transition">Documentation</a></li>
-                            <li><a href="/developers/api-docs" class="hover:text-white transition">API Reference</a></li>
-                            <li><a href="/developers/sdks" class="hover:text-white transition">SDKs</a></li>
-                            <li><a href="/status" class="hover:text-white transition">System Status</a></li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 class="text-white font-semibold mb-4">Resources</h4>
-                        <ul class="space-y-2">
-                            <li><a href="/support" class="hover:text-white transition">Support</a></li>
-                            <li><a href="/blog" class="hover:text-white transition">Blog</a></li>
-                            <li><a href="/partners" class="hover:text-white transition">Bank Connectors</a></li>
-                            <li><a href="/about" class="hover:text-white transition">About</a></li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 class="text-white font-semibold mb-4">Legal</h4>
-                        <ul class="space-y-2">
-                            <li><a href="/legal/terms" class="hover:text-white transition">Terms</a></li>
-                            <li><a href="/legal/privacy" class="hover:text-white transition">Privacy</a></li>
-                            <li><a href="/legal/cookies" class="hover:text-white transition">Cookies</a></li>
-                            <li><a href="/support/faq" class="hover:text-white transition">FAQ</a></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="mt-8 pt-8 border-t border-gray-800 text-center">
-                    <p>&copy; {{ date('Y') }} {{ config('brand.name', 'Zelta') }}. All rights reserved. Open Source Project.</p>
-                </div>
-            </div>
-        </footer>
 
         <script>
             // Smooth scrolling for anchor links

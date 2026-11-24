@@ -4,9 +4,9 @@
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'AI Framework Documentation - Architecture & Integration Guide',
-        'description' => 'Technical documentation for the ' . config('brand.name', 'Zelta') . ' AI Agent Framework. Learn about MCP tools, A2A protocol, x402 agent payments, spending controls, and integration patterns.',
-        'keywords' => 'AI framework docs, MCP integration, A2A protocol, agent payments, x402, financial AI documentation, LLM integration',
+        'title' => 'AI Framework Documentation - ' . config('brand.name', 'Zelta'),
+        'description' => 'Technical documentation for the ' . config('brand.name', 'Zelta') . ' AI agent framework. It explains the Model Context Protocol tools, the Agent2Agent protocol, x402 agent payments, spending limits and transaction questions in plain language.',
+        'keywords' => 'AI framework documentation, Model Context Protocol, Agent2Agent protocol, agent payments, x402, spending limits, large language models'
     ])
 @endsection
 
@@ -30,7 +30,7 @@
             </div>
             <h1 class="text-4xl font-bold mb-4">AI Framework Documentation</h1>
             <p class="text-xl text-gray-300 max-w-3xl">
-                Architecture guide, integration patterns, and API reference for the {{ config('brand.name', 'Zelta') }} AI Agent Framework.
+                This page explains how the {{ config('brand.name', 'Zelta') }} AI agent framework is built. It also shows how agents connect to it and pay for API calls.
             </p>
         </div>
     </section>
@@ -47,7 +47,7 @@
                         <a href="#overview" class="block text-slate-500 hover:text-indigo-600 py-1 text-sm">Overview</a>
                         <a href="#architecture" class="block text-slate-500 hover:text-indigo-600 py-1 text-sm">Architecture</a>
                         <a href="#mcp-tools" class="block text-slate-500 hover:text-indigo-600 py-1 text-sm">MCP Tools</a>
-                        <a href="#a2a-protocol" class="block text-slate-500 hover:text-indigo-600 py-1 text-sm">A2A Protocol</a>
+                        <a href="#a2a-protocol" class="block text-slate-500 hover:text-indigo-600 py-1 text-sm">Agent2Agent Protocol</a>
                         <a href="#x402-payments" class="block text-slate-500 hover:text-indigo-600 py-1 text-sm">x402 Agent Payments</a>
                         <a href="#spending-controls" class="block text-slate-500 hover:text-indigo-600 py-1 text-sm">Spending Controls</a>
                         <a href="#transaction-query" class="block text-slate-500 hover:text-indigo-600 py-1 text-sm">Transaction Query</a>
@@ -61,26 +61,26 @@
                     <section id="overview" class="doc-section mb-16">
                         <h2 class="font-display text-3xl font-bold text-slate-900 mb-6">Overview</h2>
                         <p>
-                            The {{ config('brand.name', 'Zelta') }} AI Framework enables autonomous agents to interact with the full banking platform. It provides Model Context Protocol (MCP) tools for LLM integration, Google A2A protocol for agent-to-agent communication, and x402-based micropayments for pay-per-request API access.
+                            The {{ config('brand.name', 'Zelta') }} AI framework lets autonomous agents work with the banking platform. Large language models reach the platform through Model Context Protocol (MCP) tools. Agents talk to each other through Google's Agent2Agent protocol. They pay for single API requests with x402 micropayments.
                         </p>
                         <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 not-prose mt-6">
                             <h4 class="font-semibold text-blue-900 mb-2">Key Capabilities</h4>
                             <ul class="space-y-2 text-blue-800">
                                 <li class="flex items-start">
                                     <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    <span><strong>MCP Tools:</strong> TransactionQueryTool, X402PaymentTool for direct LLM integration</span>
+                                    <span>The tool registry holds 24 tools, including TransactionQueryTool and X402PaymentTool.</span>
                                 </li>
                                 <li class="flex items-start">
                                     <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    <span><strong>A2A Protocol:</strong> Google Agent-to-Agent for multi-agent collaboration</span>
+                                    <span>The Agent2Agent protocol lets several agents share tasks.</span>
                                 </li>
                                 <li class="flex items-start">
                                     <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    <span><strong>x402 Payments:</strong> Autonomous USDC micropayments with spending limits</span>
+                                    <span>Agents pay in USDC with x402, within their spending limits.</span>
                                 </li>
                                 <li class="flex items-start">
                                     <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    <span><strong>Full API Surface:</strong> 1,400+ REST endpoints and 45 GraphQL domains</span>
+                                    <span>Agents can use more than 1,000 REST API routes and a GraphQL API across 43 domains.</span>
                                 </li>
                             </ul>
                         </div>
@@ -90,21 +90,21 @@
                     <section id="architecture" class="doc-section mb-16">
                         <h2 class="font-display text-3xl font-bold text-slate-900 mb-6">Architecture</h2>
                         <p>
-                            The AI Framework spans three domain modules: <code>AgentProtocol</code> for A2A communication, <code>X402</code> for payment gating, and <code>AI</code> for MCP tool definitions.
+                            The AI framework spans three domain modules. <code>AgentProtocol</code> handles communication between agents. <code>X402</code> handles paid API access. <code>AI</code> holds the agents, the workflows and the tool definitions.
                         </p>
                         <div class="bg-gray-900 rounded-lg p-6 font-mono text-sm text-gray-300 not-prose mt-4">
 <pre>app/
 ├── Domain/
 │   ├── AgentProtocol/     # Google A2A protocol implementation
 │   │   ├── Services/      # AgentPaymentIntegrationService
-│   │   └── Models/        # AgentCard, AgentTask
+│   │   └── Models/        # Agent, A2ATask, Escrow
 │   ├── X402/              # HTTP 402 payment gate
-│   │   ├── Services/      # Settlement, Verification, Pricing
-│   │   └── Middleware/     # X402PaymentGateMiddleware
-│   └── AI/                # MCP tool definitions
-│       └── Tools/         # TransactionQueryTool, X402PaymentTool
+│   │   └── Services/      # Settlement, Verification, Pricing
+│   └── AI/                # Agents, workflows, MCP tools
+│       └── MCP/Tools/     # TransactionQueryTool, X402PaymentTool
+├── Http/Middleware/       # X402PaymentGateMiddleware
 └── Infrastructure/
-    └── AI/                # Provider adapters</pre>
+    └── AI/                # OpenAI, Claude and Pinecone adapters</pre>
                         </div>
                     </section>
 
@@ -112,31 +112,31 @@
                     <section id="mcp-tools" class="doc-section mb-16">
                         <h2 class="font-display text-3xl font-bold text-slate-900 mb-6">MCP Tools</h2>
                         <p>
-                            {{ config('brand.name', 'Zelta') }} implements Model Context Protocol tools that LLMs like Claude can use to interact with the banking platform. Tools are registered as MCP-compatible endpoints.
+                            {{ config('brand.name', 'Zelta') }} implements Model Context Protocol tools. Large language models such as Claude use them to work with the banking platform. Each tool is registered in the tool registry with a name and an input schema.
                         </p>
                         <h3>TransactionQueryTool</h3>
                         <p>
-                            Translates natural language questions about transactions, balances, and portfolios into structured database queries. Supports filtering by date range, amount, asset type, and counterparty.
+                            This tool turns a plain-language question about transactions into a structured database query. It can filter by account, date range, amount, category and asset.
                         </p>
                         <h3>X402PaymentTool</h3>
                         <p>
-                            Enables agents to make USDC payments for API access using the x402 protocol. Handles payment negotiation, execution, and verification in a single tool call.
+                            This tool lets an agent pay for API access in USDC with the x402 protocol. One tool call reads the price, signs the payment and checks the result.
                         </p>
                     </section>
 
                     <!-- A2A Protocol -->
                     <section id="a2a-protocol" class="doc-section mb-16">
-                        <h2 class="font-display text-3xl font-bold text-slate-900 mb-6">A2A Protocol</h2>
+                        <h2 class="font-display text-3xl font-bold text-slate-900 mb-6">Agent2Agent Protocol</h2>
                         <p>
-                            The Agent-to-Agent (A2A) protocol, based on Google's specification, enables agents to discover each other's capabilities, negotiate tasks, and collaborate on multi-step financial workflows.
+                            The Agent2Agent protocol follows Google's specification. Agents use it to find each other, hand over tasks and work together on financial workflows with several steps.
                         </p>
                         <h3>Agent Cards</h3>
                         <p>
-                            Each agent publishes a capability card describing its skills, input/output schemas, and pricing. Other agents can discover these cards and delegate appropriate tasks.
+                            Each agent publishes a card that describes its skills and capabilities. Other agents read these cards to decide which agent should get a task.
                         </p>
                         <h3>Task Lifecycle</h3>
                         <p>
-                            Tasks follow a lifecycle: <code>created → assigned → in_progress → completed</code>. Agents report progress and intermediate results through the A2A message channel.
+                            A task starts as <code>submitted</code> and moves to <code>working</code>. It can wait in <code>input-required</code>, and it ends as <code>completed</code>, <code>failed</code> or <code>canceled</code>. Agents report progress through protocol messages.
                         </p>
                     </section>
 
@@ -144,22 +144,19 @@
                     <section id="x402-payments" class="doc-section mb-16">
                         <h2 class="font-display text-3xl font-bold text-slate-900 mb-6">x402 Agent Payments</h2>
                         <p>
-                            The x402 protocol enables HTTP-native micropayments. When an agent hits a payment-gated endpoint, it receives a <code>402 Payment Required</code> response with pricing details. The agent then submits a USDC payment and retries the request.
+                            The x402 protocol adds payments to normal HTTP requests. When an agent calls a paid endpoint, it gets a <code>402 Payment Required</code> response with the price. The agent signs a USDC payment and sends the request again with the signature.
                         </p>
                         <div class="bg-gray-900 rounded-lg p-6 font-mono text-sm text-gray-300 not-prose mt-4">
 <pre><span class="text-gray-500"># 1. Agent calls a gated endpoint</span>
 <span class="text-green-400">GET</span> /api/v2/premium/data
 <span class="text-yellow-400">→ 402 Payment Required</span>
-<span class="text-gray-500"># X-Payment-Required: {"amount": "0.01", "currency": "USDC", "network": "base"}</span>
-
-<span class="text-gray-500"># 2. Agent submits payment</span>
-<span class="text-green-400">POST</span> /api/v2/x402/pay
-<span class="text-gray-500"># {"endpoint": "/api/v2/premium/data", "tx_hash": "0x..."}</span>
-
-<span class="text-gray-500"># 3. Agent retries with payment proof</span>
+<span class="text-gray-500"># PAYMENT-REQUIRED: base64 JSON with amount, asset and network</span>
+<span class="text-gray-500"># 2. Agent signs the payment and retries</span>
 <span class="text-green-400">GET</span> /api/v2/premium/data
-<span class="text-gray-500"># X-Payment-Proof: 0x...</span>
-<span class="text-green-400">→ 200 OK</span></pre>
+<span class="text-gray-500"># PAYMENT-SIGNATURE: base64 signed payment payload</span>
+<span class="text-gray-500"># 3. Server verifies and settles the payment</span>
+<span class="text-green-400">→ 200 OK</span>
+<span class="text-gray-500"># PAYMENT-RESPONSE: base64 settlement result</span></pre>
                         </div>
                     </section>
 
@@ -167,13 +164,12 @@
                     <section id="spending-controls" class="doc-section mb-16">
                         <h2 class="font-display text-3xl font-bold text-slate-900 mb-6">Spending Controls</h2>
                         <p>
-                            Safety rails for autonomous agents. Configure per-agent daily and monthly spending limits, per-request caps, and approval thresholds. The <code>X402PricingService</code> enforces limits before any payment is authorized.
+                            Spending limits keep an autonomous agent from paying more than its owner allows. Each agent can have a daily limit and a limit per payment. The platform checks both limits before it signs a payment.
                         </p>
                         <ul>
-                            <li>Per-agent daily and monthly spending caps</li>
-                            <li>Per-request maximum amount</li>
-                            <li>Approval workflows for high-value transactions</li>
-                            <li>Real-time spending dashboards</li>
+                            <li>Each agent has its own daily limit.</li>
+                            <li>A limit per payment caps a single request.</li>
+                            <li>The <code>/spending-limits</code> API routes read and change the limits.</li>
                         </ul>
                     </section>
 
@@ -181,15 +177,14 @@
                     <section id="transaction-query" class="doc-section mb-16">
                         <h2 class="font-display text-3xl font-bold text-slate-900 mb-6">Transaction Query</h2>
                         <p>
-                            The <code>TransactionQueryTool</code> enables natural language interaction with transaction data. Agents can ask questions and receive structured results.
+                            The <code>TransactionQueryTool</code> answers questions about transaction data in plain language. An agent asks a question and gets a structured result.
                         </p>
                         <div class="bg-gray-50 border rounded-lg p-6 not-prose mt-4">
                             <h4 class="font-semibold text-slate-900 mb-3">Example Queries</h4>
                             <ul class="space-y-2 text-slate-600 text-sm">
                                 <li><code class="bg-gray-200 px-2 py-1 rounded">"Show my top 5 transactions this week"</code></li>
-                                <li><code class="bg-gray-200 px-2 py-1 rounded">"What's my total spending on DeFi protocols?"</code></li>
-                                <li><code class="bg-gray-200 px-2 py-1 rounded">"List all cross-chain bridge transactions over $100"</code></li>
-                                <li><code class="bg-gray-200 px-2 py-1 rounded">"Calculate my portfolio allocation by asset class"</code></li>
+                                <li><code class="bg-gray-200 px-2 py-1 rounded">"Show transactions over $100 last week"</code></li>
+                                <li><code class="bg-gray-200 px-2 py-1 rounded">"How much did I spend on groceries last month?"</code></li>
                             </ul>
                         </div>
                     </section>
@@ -197,7 +192,7 @@
                     <!-- CTA -->
                     <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-8 not-prose text-center">
                         <h3 class="text-2xl font-bold text-indigo-900 mb-3">Start Building</h3>
-                        <p class="text-indigo-700 mb-6">Ready to integrate AI agents with {{ config('brand.name', 'Zelta') }}? Start with the sandbox.</p>
+                        <p class="text-indigo-700 mb-6">You can connect your first AI agent to {{ config('brand.name', 'Zelta') }} in the sandbox. It uses test data only.</p>
                         <div class="flex flex-col sm:flex-row gap-4 justify-center">
                             <a href="{{ route('ai-framework.demo') }}" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
                                 Try the Demo

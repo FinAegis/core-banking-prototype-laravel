@@ -7,7 +7,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'GraphQL API - ' . $brand . ' Developer Documentation',
-        'description' => $brand . ' GraphQL API — 45 domain schemas, real-time subscriptions, Lighthouse PHP powered.',
+        'description' => 'The ' . $brand . ' GraphQL API answers queries for 43 domains through one endpoint. It is built with Lighthouse PHP and sends live updates through subscriptions.',
         'keywords' => $brand . ', GraphQL, API, Lighthouse, subscriptions, queries, mutations',
     ])
 @endsection
@@ -33,10 +33,10 @@
     </div>
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
         <div class="text-center">
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-white/80 border border-white/20 mb-4">45 Domain Schemas</span>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-white/80 border border-white/20 mb-4">43 Domain Schemas</span>
             <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">GraphQL API</h1>
             <p class="text-xl text-white/80 max-w-2xl mx-auto">
-                Query 45 domains with a single endpoint. Real-time subscriptions, Sanctum auth, and Lighthouse-powered schema composition.
+                One GraphQL endpoint answers queries for 43 domains. Subscriptions send live updates, and a Sanctum token signs each request in. Lighthouse joins the domain schemas into one schema.
             </p>
         </div>
     </div>
@@ -68,7 +68,7 @@
         <!-- Example queries -->
         <div class="space-y-6">
             <div class="code-container">
-                <div class="code-header"><span>Query — Fetch account with balance</span></div>
+                <div class="code-header"><span>Query that reads an account and its balance</span></div>
                 <pre class="code-block p-4 text-slate-300"><span class="text-pink-400">query</span> {
   <span class="text-blue-300">account</span>(<span class="text-orange-300">id</span>: <span class="text-green-400">"abc-123"</span>) {
     id
@@ -82,7 +82,7 @@
             </div>
 
             <div class="code-container">
-                <div class="code-header"><span>Query — Paginated accounts list</span></div>
+                <div class="code-header"><span>Query that lists accounts page by page</span></div>
                 <pre class="code-block p-4 text-slate-300"><span class="text-pink-400">query</span> {
   <span class="text-blue-300">accounts</span>(<span class="text-orange-300">first</span>: <span class="text-green-400">10</span>, <span class="text-orange-300">page</span>: <span class="text-green-400">1</span>) {
     data {
@@ -100,7 +100,7 @@
             </div>
 
             <div class="code-container">
-                <div class="code-header"><span>Mutation — Place exchange order</span></div>
+                <div class="code-header"><span>Mutation that places an exchange order</span></div>
                 <pre class="code-block p-4 text-slate-300"><span class="text-pink-400">mutation</span> {
   <span class="text-blue-300">placeOrder</span>(<span class="text-orange-300">input</span>: {
     pair: <span class="text-green-400">"USDC/EUR"</span>
@@ -132,61 +132,70 @@
 <section class="bg-slate-50 py-16">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-3xl font-bold mb-4">Domain Schemas</h2>
-        <p class="text-slate-600 mb-8">45 domain-specific schemas composed into one unified GraphQL endpoint. Each domain provides queries, mutations, and types scoped to its bounded context.</p>
+        <p class="text-slate-600 mb-8">The endpoint is built from 45 schema files. Forty-three of them belong to domains, and the other two hold shared directives and the subscriptions. Each domain schema brings its own queries, mutations and types.</p>
 
         @php
         $schemaGroups = [
             'Core Banking' => [
-                ['name' => 'Account', 'file' => 'account', 'ops' => 'Queries + Mutations', 'desc' => 'Account CRUD, balances, freeze/unfreeze'],
-                ['name' => 'Payment', 'file' => 'payment', 'ops' => 'Mutations', 'desc' => 'Initiate deposits, withdrawals'],
-                ['name' => 'Banking', 'file' => 'banking', 'ops' => 'Queries + Mutations', 'desc' => 'Bank connections, transfers, sync'],
-                ['name' => 'Asset', 'file' => 'asset', 'ops' => 'Queries', 'desc' => 'Exchange rates, asset definitions'],
-                ['name' => 'Product', 'file' => 'product', 'ops' => 'Queries + Mutations', 'desc' => 'Product activation, catalog'],
+                ['name' => 'Account', 'file' => 'account', 'ops' => 'Queries + Mutations', 'desc' => 'Accounts and balances, freeze and unfreeze'],
+                ['name' => 'Payment', 'file' => 'payment', 'ops' => 'Queries + Mutations + Subs', 'desc' => 'Start payments and look up their status'],
+                ['name' => 'Banking', 'file' => 'banking', 'ops' => 'Queries + Mutations', 'desc' => 'Bank connection adapters, bank transfers, account sync'],
+                ['name' => 'Asset', 'file' => 'asset', 'ops' => 'Queries + Mutations', 'desc' => 'Asset definitions and exchange rates'],
+                ['name' => 'Product', 'file' => 'product', 'ops' => 'Queries + Mutations', 'desc' => 'Product catalog and activation'],
             ],
             'Trading & Exchange' => [
                 ['name' => 'Exchange', 'file' => 'exchange', 'ops' => 'Queries + Mutations + Subs', 'desc' => 'Orders, order book, trades'],
-                ['name' => 'Basket', 'file' => 'basket', 'ops' => 'Queries + Mutations', 'desc' => 'GCU basket composition, rebalance'],
-                ['name' => 'Stablecoin', 'file' => 'stablecoin', 'ops' => 'Queries + Mutations', 'desc' => 'Mint, redeem, collateral'],
+                ['name' => 'Basket', 'file' => 'basket', 'ops' => 'Queries + Mutations', 'desc' => 'GCU demo basket composition and simulated rebalancing'],
+                ['name' => 'Stablecoin', 'file' => 'stablecoin', 'ops' => 'Queries + Mutations', 'desc' => 'Modelled minting, redemption and collateral'],
             ],
             'Wallet & Payments' => [
-                ['name' => 'Wallet', 'file' => 'wallet', 'ops' => 'Queries + Mutations + Subs', 'desc' => 'Multi-sig wallets, transfers, balances'],
+                ['name' => 'Wallet', 'file' => 'wallet', 'ops' => 'Queries + Mutations + Subs', 'desc' => 'Multi-signature wallets, transfers, balances'],
                 ['name' => 'Mobile Payment', 'file' => 'mobile-payment', 'ops' => 'Queries + Mutations', 'desc' => 'Payment intents, receipts'],
-                ['name' => 'Card Issuance', 'file' => 'card-issuance', 'ops' => 'Queries + Mutations', 'desc' => 'Virtual/physical card provisioning'],
-                ['name' => 'Relayer', 'file' => 'relayer', 'ops' => 'Mutations', 'desc' => 'Smart accounts, gas sponsorship'],
-                ['name' => 'X402', 'file' => 'x402', 'ops' => 'Queries + Mutations', 'desc' => 'Monetized endpoints, spending limits'],
+                ['name' => 'Card Issuance', 'file' => 'card-issuance', 'ops' => 'Queries + Mutations', 'desc' => 'Cards, cardholders, freeze, unfreeze and cancel'],
+                ['name' => 'Relayer', 'file' => 'relayer', 'ops' => 'Queries + Mutations', 'desc' => 'Smart accounts and sponsored network fees'],
+                ['name' => 'X402', 'file' => 'x402', 'ops' => 'Queries + Mutations', 'desc' => 'Paid endpoints and spending limits'],
             ],
             'Compliance & Security' => [
-                ['name' => 'Compliance', 'file' => 'compliance', 'ops' => 'Queries + Mutations', 'desc' => 'KYC, AML checks, alerts'],
-                ['name' => 'Fraud', 'file' => 'fraud', 'ops' => 'Queries + Mutations', 'desc' => 'Fraud cases, detection, escalation'],
-                ['name' => 'RegTech', 'file' => 'regtech', 'ops' => 'Queries', 'desc' => 'Regulatory reporting, health checks'],
-                ['name' => 'Regulatory', 'file' => 'regulatory', 'ops' => 'Queries + Mutations', 'desc' => 'Filing submissions, reports'],
+                ['name' => 'Compliance', 'file' => 'compliance', 'ops' => 'Queries + Mutations', 'desc' => 'Identity checks, anti-money laundering checks, alerts'],
+                ['name' => 'Fraud', 'file' => 'fraud', 'ops' => 'Queries + Mutations', 'desc' => 'Fraud cases, detection and escalation'],
+                ['name' => 'RegTech', 'file' => 'regtech', 'ops' => 'Queries + Mutations', 'desc' => 'Report formats, filing schedules, endpoint health checks'],
+                ['name' => 'Regulatory', 'file' => 'regulatory', 'ops' => 'Queries + Mutations', 'desc' => 'Report generation and filing records'],
             ],
-            'DeFi & Cross-Chain' => [
-                ['name' => 'DeFi', 'file' => 'defi', 'ops' => 'Queries + Mutations', 'desc' => 'Positions, lending, staking'],
-                ['name' => 'CrossChain', 'file' => 'crosschain', 'ops' => 'Queries + Mutations + Subs', 'desc' => 'Bridge transfers across chains'],
-                ['name' => 'Lending', 'file' => 'lending', 'ops' => 'Queries + Mutations', 'desc' => 'Loan applications, approval'],
-                ['name' => 'Treasury', 'file' => 'treasury', 'ops' => 'Queries + Mutations + Subs', 'desc' => 'Portfolios, rebalancing, NAV'],
+            'Decentralised Finance and Cross-Chain' => [
+                ['name' => 'Decentralised Finance', 'file' => 'defi', 'ops' => 'Queries + Mutations', 'desc' => 'Positions, lending and staking adapters'],
+                ['name' => 'CrossChain', 'file' => 'crosschain', 'ops' => 'Queries + Mutations + Subs', 'desc' => 'Bridge transfers between networks'],
+                ['name' => 'Lending', 'file' => 'lending', 'ops' => 'Queries + Mutations', 'desc' => 'Loan applications and approval'],
+                ['name' => 'Treasury', 'file' => 'treasury', 'ops' => 'Queries + Mutations + Subs', 'desc' => 'Portfolios, portfolio rebalancing, net asset value'],
             ],
             'Identity & Privacy' => [
-                ['name' => 'Privacy', 'file' => 'privacy', 'ops' => 'Queries + Mutations', 'desc' => 'ZK proofs, Merkle trees, delegated proofs'],
-                ['name' => 'Key Management', 'file' => 'key-management', 'ops' => 'Queries + Mutations', 'desc' => 'Key shards, Shamir splitting, recovery'],
-                ['name' => 'Trust Cert', 'file' => 'trust-cert', 'ops' => 'Queries + Mutations', 'desc' => 'Verifiable credentials, certificates'],
-                ['name' => 'Commerce', 'file' => 'commerce', 'ops' => 'Queries + Mutations', 'desc' => 'Soulbound tokens, merchant onboarding'],
+                ['name' => 'Privacy', 'file' => 'privacy', 'ops' => 'Queries + Mutations', 'desc' => 'Zero-knowledge proofs, Merkle trees, delegated proofs'],
+                ['name' => 'Key Management', 'file' => 'key-management', 'ops' => 'Queries + Mutations', 'desc' => 'Key shares, Shamir secret sharing, recovery'],
+                ['name' => 'Trust Cert', 'file' => 'trust-cert', 'ops' => 'Queries', 'desc' => 'Certificates and verifiable credentials'],
+                ['name' => 'Commerce', 'file' => 'commerce', 'ops' => 'Queries + Mutations', 'desc' => 'Soulbound tokens and merchant onboarding'],
             ],
             'AI & Agents' => [
-                ['name' => 'AI', 'file' => 'ai', 'ops' => 'Queries + Mutations', 'desc' => 'Conversations, prompt templates, LLM'],
-                ['name' => 'Agent Protocol', 'file' => 'agent-protocol', 'ops' => 'Queries + Mutations', 'desc' => 'DID, A2A messaging, reputation'],
+                ['name' => 'AI', 'file' => 'ai', 'ops' => 'Queries + Mutations', 'desc' => 'Conversations, prompt templates, language models'],
+                ['name' => 'Agent Protocol', 'file' => 'agent-protocol', 'ops' => 'Queries + Mutations', 'desc' => 'Agent identities, messages between agents, reputation'],
+            ],
+            'Payment Standards & Ledger' => [
+                ['name' => 'ISO 20022', 'file' => 'iso20022', 'ops' => 'Queries + Mutations', 'desc' => 'Supported message types and message validation'],
+                ['name' => 'Open Banking', 'file' => 'open-banking', 'ops' => 'Queries + Mutations', 'desc' => 'Consents to create, authorise and revoke'],
+                ['name' => 'Payment Rails', 'file' => 'payment-rails', 'ops' => 'Queries + Mutations', 'desc' => 'Supported rails, payment lookup and send'],
+                ['name' => 'Interledger', 'file' => 'interledger', 'ops' => 'Queries + Mutations', 'desc' => 'Quotes, incoming and outgoing payments'],
+                ['name' => 'Ledger', 'file' => 'ledger', 'ops' => 'Queries + Mutations', 'desc' => 'Ledger accounts, balances, trial balance, journal entries'],
+                ['name' => 'Microfinance', 'file' => 'microfinance', 'ops' => 'Queries + Mutations', 'desc' => 'Lending groups, share accounts, loan provisioning'],
             ],
             'Platform' => [
                 ['name' => 'User', 'file' => 'user', 'ops' => 'Queries + Mutations', 'desc' => 'Profiles, preferences, analytics'],
-                ['name' => 'Mobile', 'file' => 'mobile', 'ops' => 'Queries + Mutations', 'desc' => 'Device management, sessions'],
+                ['name' => 'Mobile', 'file' => 'mobile', 'ops' => 'Queries', 'desc' => 'Registered mobile devices'],
+                ['name' => 'SMS', 'file' => 'sms', 'ops' => 'Queries', 'desc' => 'Text message status, rates and service details'],
                 ['name' => 'Governance', 'file' => 'governance', 'ops' => 'Queries + Mutations', 'desc' => 'Polls, voting, proposals'],
-                ['name' => 'Rewards', 'file' => 'rewards', 'ops' => 'Queries + Mutations', 'desc' => 'Quests, XP, shop, streaks'],
-                ['name' => 'Plugin', 'file' => 'plugin', 'ops' => 'Queries + Mutations', 'desc' => 'Plugin management, marketplace'],
+                ['name' => 'Rewards', 'file' => 'rewards', 'ops' => 'Queries + Mutations', 'desc' => 'Quests, experience points, shop, streaks'],
+                ['name' => 'Plugin', 'file' => 'plugin', 'ops' => 'Queries + Mutations', 'desc' => 'Plugin management and marketplace'],
                 ['name' => 'Batch', 'file' => 'batch', 'ops' => 'Queries + Mutations', 'desc' => 'Batch job operations'],
-                ['name' => 'CGO', 'file' => 'cgo', 'ops' => 'Queries + Mutations', 'desc' => 'Investment operations'],
-                ['name' => 'Custodian', 'file' => 'custodian', 'ops' => 'Queries', 'desc' => 'Custodian account info'],
-                ['name' => 'Financial Institution', 'file' => 'financial-institution', 'ops' => 'Queries + Mutations', 'desc' => 'Partner onboarding, BaaS'],
+                ['name' => 'CGO', 'file' => 'cgo', 'ops' => 'Queries + Mutations', 'desc' => 'Continuous growth offering concept demo'],
+                ['name' => 'Custodian', 'file' => 'custodian', 'ops' => 'Queries + Mutations', 'desc' => 'Custodian account adapters, balances, transfers'],
+                ['name' => 'Financial Institution', 'file' => 'financial-institution', 'ops' => 'Queries + Mutations', 'desc' => 'Partner institution applications'],
             ],
         ];
         @endphp
@@ -219,17 +228,17 @@
 <section class="bg-white py-16">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-3xl font-bold mb-4">Real-Time Subscriptions</h2>
-        <p class="text-slate-600 mb-8">Subscribe to live data streams via WebSocket. Powered by Pusher/Soketi protocol.</p>
+        <p class="text-slate-600 mb-8">A subscription keeps a WebSocket connection open and sends each change as it happens. The server uses the Pusher protocol through Soketi.</p>
 
         @php
         $subs = [
-            ['name' => 'orderBookUpdated', 'args' => 'pair: String!', 'desc' => 'Live order book changes for a trading pair'],
-            ['name' => 'tradeExecuted', 'args' => 'pair: String!', 'desc' => 'Trade executions for a pair'],
-            ['name' => 'orderMatched', 'args' => 'pair: String', 'desc' => 'Order matching events'],
+            ['name' => 'orderBookUpdated', 'args' => 'pair: String!', 'desc' => 'Order book changes for a trading pair'],
+            ['name' => 'tradeExecuted', 'args' => 'pair: String!', 'desc' => 'Trades for a trading pair'],
+            ['name' => 'orderMatched', 'args' => 'pair: String', 'desc' => 'Matched orders'],
             ['name' => 'walletBalanceUpdated', 'args' => 'wallet_id: ID!', 'desc' => 'Wallet balance changes'],
-            ['name' => 'portfolioRebalanced', 'args' => 'portfolio_id: String', 'desc' => 'Portfolio rebalancing events'],
+            ['name' => 'portfolioRebalanced', 'args' => 'portfolio_id: String', 'desc' => 'Treasury portfolio rebalancing'],
             ['name' => 'paymentStatusChanged', 'args' => 'payment_id: ID', 'desc' => 'Payment status updates'],
-            ['name' => 'bridgeTransferCompleted', 'args' => 'transfer_id: ID', 'desc' => 'Cross-chain bridge completions'],
+            ['name' => 'bridgeTransferCompleted', 'args' => 'transfer_id: ID', 'desc' => 'Completed bridge transfers between networks'],
         ];
         @endphp
 
@@ -268,7 +277,7 @@
                     <div class="flex justify-between"><span class="text-slate-600">Guest requests</span><code class="code-font bg-slate-100 px-2 py-0.5 rounded">30 / min</code></div>
                     <div class="flex justify-between"><span class="text-slate-600">Authenticated requests</span><code class="code-font bg-slate-100 px-2 py-0.5 rounded">120 / min</code></div>
                 </div>
-                <p class="text-xs text-slate-500 mt-3">See <a href="{{ route('developers.show', 'api-docs') }}#rate-limits" class="text-pink-600 hover:text-pink-800">API Docs &rarr; Rate Limits</a> for full details including REST and webhook limits.</p>
+                <p class="text-xs text-slate-500 mt-3">The <a href="{{ route('developers.show', 'api-docs') }}#rate-limits" class="text-pink-600 hover:text-pink-800">rate limits section of the API docs</a> also covers the REST and webhook limits.</p>
             </div>
             <div class="bg-white rounded-xl border border-slate-200 p-6">
                 <h3 class="font-semibold text-lg mb-4">Query Limits</h3>
@@ -287,7 +296,7 @@
             </div>
             <div class="bg-white rounded-xl border border-slate-200 p-6">
                 <h3 class="font-semibold text-lg mb-4">Multi-Tenancy</h3>
-                <p class="text-sm text-slate-600">Operations are scoped to the authenticated user's team via the <code class="code-font bg-slate-100 px-1 rounded">@tenant</code> directive. No cross-tenant data leakage.</p>
+                <p class="text-sm text-slate-600">The <code class="code-font bg-slate-100 px-1 rounded">@tenant</code> directive limits each operation to the signed-in user's team. A team cannot read another team's data.</p>
             </div>
         </div>
     </div>

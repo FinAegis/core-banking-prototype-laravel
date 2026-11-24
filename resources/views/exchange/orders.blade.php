@@ -7,7 +7,7 @@
     <div class="container mx-auto px-4">
         <div class="mb-8">
             <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">My Orders</h1>
-            <p class="text-gray-600 dark:text-gray-400 mt-2">View and manage your exchange orders</p>
+            <p class="text-gray-600 dark:text-gray-400 mt-2">View and manage your exchange orders.</p>
         </div>
 
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">

@@ -9,7 +9,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             {{-- F4 GCU demo notice (see docs/REGULATORY-CLAIMS.md) --}}
             <div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-200" role="note">
-                <p class="font-semibold">Simulated demo — no real value; not an offered token.</p>
+                <p class="font-semibold">This is a simulated demo. The unit has no real value and is not an offered token.</p>
                 <p class="mt-1">The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.</p>
             </div>
 
@@ -22,7 +22,7 @@
                         <div class="p-6">
                             <h3 class="text-lg font-semibold mb-4">GCU/USD Illustrative Demo Value</h3>
                             <div class="bg-gray-100 dark:bg-gray-700 rounded h-64 flex items-center justify-center">
-                                <p class="text-gray-500 dark:text-gray-400">Price chart is not yet available</p>
+                                <p class="text-gray-500 dark:text-gray-400">The price chart is not available yet.</p>
                             </div>
                             <div class="mt-4 grid grid-cols-4 gap-4 text-sm">
                                 <div>

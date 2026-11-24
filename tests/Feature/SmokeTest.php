@@ -14,7 +14,7 @@ describe('Smoke Tests — Critical Pages', function (): void {
         $response = $this->get('/features');
 
         $response->assertOk();
-        $response->assertSee('61 modules spanning payments');
+        $response->assertSee('The platform has 61 modules in one open-source codebase.');
     });
 
     it('loads the zelta cli feature page', function (): void {

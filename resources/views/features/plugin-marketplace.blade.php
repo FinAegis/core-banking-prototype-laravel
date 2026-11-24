@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Plugin Marketplace',
-        'description' => 'Extend ' . config('brand.name', 'Zelta') . ' with a secure plugin ecosystem. Sandbox execution, static security scanning, hook-based integration, and a full management UI.',
+        'description' => 'Plugins add features to ' . config('brand.name', 'Zelta') . ' without changing its core code. They run in a sandbox with declared permissions, are scanned for unsafe code and connect through 17 hooks. Administrators manage them in the admin panel or through the API.',
         'keywords' => 'plugin marketplace, extensibility, sandbox execution, security scanner, plugin hooks, ' . config('brand.name', 'Zelta'),
     ])
 
@@ -35,7 +35,7 @@
             <div class="text-center">
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Plugin Marketplace</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    Extend {{ config('brand.name', 'Zelta') }} with a secure, sandboxed plugin system. Discover, install, and manage plugins with built-in security scanning and permission enforcement.
+                    Plugins add features to {{ config('brand.name', 'Zelta') }} without changing its core code. Each plugin runs in a sandbox and may only use the permissions it declares. The platform scans plugin code before it is switched on, and administrators find, install and manage plugins in one place.
                 </p>
             </div>
         </div>
@@ -54,7 +54,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3">Plugin Manager</h3>
-                    <p class="text-slate-500">Install, enable, disable, update, and remove plugins with semver-aware dependency resolution. Full lifecycle management via API or admin UI.</p>
+                    <p class="text-slate-500">The plugin manager installs, enables, disables, updates and removes plugins. It checks version rules between plugins before it installs one. You can use it through the API or the admin panel.</p>
                 </div>
                 <div class="plugin-card card-feature !p-8 text-center">
                     <div class="w-16 h-16 bg-amber-50 rounded-lg flex items-center justify-center mx-auto mb-6">
@@ -63,7 +63,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3">Sandbox Execution</h3>
-                    <p class="text-slate-500">Plugins run in a permission-enforced sandbox. Each plugin declares required permissions and is restricted from accessing unauthorized resources.</p>
+                    <p class="text-slate-500">Each plugin declares the permissions it needs. The sandbox then blocks it from anything it did not declare.</p>
                 </div>
                 <div class="plugin-card card-feature !p-8 text-center">
                     <div class="w-16 h-16 bg-red-50 rounded-lg flex items-center justify-center mx-auto mb-6">
@@ -72,7 +72,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3">Security Scanner</h3>
-                    <p class="text-slate-500">Static analysis scans plugin code for dangerous patterns before activation. Severity classification (critical, high, medium, low) with detailed reporting.</p>
+                    <p class="text-slate-500">The scanner reads plugin code for dangerous patterns before the plugin is switched on. It rates each finding as critical, high, medium or low and writes a detailed report.</p>
                 </div>
             </div>
         </div>
@@ -85,28 +85,28 @@
                 <div>
                     <h2 class="text-3xl font-bold mb-6">17 Integration Hooks</h2>
                     <p class="text-slate-500 mb-6">
-                        Plugins integrate via a hook-based system that fires at key points in the platform lifecycle. Hooks are type-safe and support priority ordering.
+                        A hook is a point where the platform tells plugins that something happened. There are 17 hooks, for example when an account is created or a payment completes. Hooks are typed, and plugins can set the order in which they run.
                     </p>
                     <div class="space-y-3">
                         <div class="flex items-center gap-3">
                             <span class="hook-badge bg-violet-100 text-violet-700 text-xs px-2.5 py-1 rounded-full font-medium">account.*</span>
-                            <span class="text-slate-500 text-sm">Account creation, updates, deletion</span>
+                            <span class="text-slate-500 text-sm">Account created or updated</span>
                         </div>
                         <div class="flex items-center gap-3">
-                            <span class="hook-badge bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded-full font-medium">transaction.*</span>
-                            <span class="text-slate-500 text-sm">Pre/post transaction processing</span>
+                            <span class="hook-badge bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded-full font-medium">payment.*</span>
+                            <span class="text-slate-500 text-sm">Payment started, completed or failed</span>
                         </div>
                         <div class="flex items-center gap-3">
                             <span class="hook-badge bg-green-100 text-green-700 text-xs px-2.5 py-1 rounded-full font-medium">compliance.*</span>
-                            <span class="text-slate-500 text-sm">KYC/AML verification triggers</span>
+                            <span class="text-slate-500 text-sm">Compliance alerts and changes to identity check status</span>
                         </div>
                         <div class="flex items-center gap-3">
                             <span class="hook-badge bg-amber-100 text-amber-700 text-xs px-2.5 py-1 rounded-full font-medium">wallet.*</span>
-                            <span class="text-slate-500 text-sm">Wallet operations and balance changes</span>
+                            <span class="text-slate-500 text-sm">Wallet created or transfer made</span>
                         </div>
                         <div class="flex items-center gap-3">
-                            <span class="hook-badge bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-medium">security.*</span>
-                            <span class="text-slate-500 text-sm">Authentication and authorization events</span>
+                            <span class="hook-badge bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-medium">order.* loan.* bridge.* defi.*</span>
+                            <span class="text-slate-500 text-sm">Exchange orders, loans, cross-chain transfers and decentralised finance positions</span>
                         </div>
                     </div>
                 </div>
@@ -116,7 +116,7 @@
                     <div>{</div>
                     <div class="ml-4"><span class="text-purple-400">public string</span> <span class="text-blue-300">$name</span> = <span class="text-green-400">'webhook-notifier'</span>;</div>
                     <div class="ml-4"><span class="text-purple-400">public array</span> <span class="text-blue-300">$hooks</span> = [</div>
-                    <div class="ml-8"><span class="text-green-400">'transaction.completed'</span>,</div>
+                    <div class="ml-8"><span class="text-green-400">'payment.completed'</span>,</div>
                     <div class="ml-8"><span class="text-green-400">'account.created'</span>,</div>
                     <div class="ml-4">];</div>
                     <div class="ml-4"><span class="text-purple-400">public array</span> <span class="text-blue-300">$permissions</span> = [</div>
@@ -167,7 +167,7 @@
                             <tr>
                                 <td class="px-6 py-3"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-bold">POST</span></td>
                                 <td class="px-6 py-3 font-mono text-xs">/api/v2/plugins/{id}/scan</td>
-                                <td class="px-6 py-3 text-slate-500">Run security scan</td>
+                                <td class="px-6 py-3 text-slate-500">Run a security scan</td>
                             </tr>
                             <tr>
                                 <td class="px-6 py-3"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-bold">POST</span></td>
@@ -192,7 +192,7 @@
             <div class="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl p-12 text-center text-white">
                 <h2 class="text-3xl font-bold mb-4">Manage Plugins in the Admin Panel</h2>
                 <p class="text-violet-100 text-lg mb-8 max-w-2xl mx-auto">
-                    The full plugin management UI is available in the Filament admin dashboard. Browse installed plugins, run security scans, enable/disable plugins, and discover new ones.
+                    The Filament admin panel has a page for managing plugins. There you can see the installed plugins, run security scans, switch plugins on and off, and find new ones.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
                     <a href="/admin/plugin-marketplace" class="inline-flex items-center px-8 py-3 bg-white text-violet-700 font-semibold rounded-lg hover:bg-violet-50 transition">
@@ -202,7 +202,7 @@
                         Open Plugin Marketplace
                     </a>
                 </div>
-                <p class="text-violet-200 text-sm mt-4">Requires admin authentication</p>
+                <p class="text-violet-200 text-sm mt-4">You need an administrator account. Changing plugins while the platform runs must also be switched on, and it is on by default only in demo and development setups.</p>
             </div>
         </div>
     </section>
@@ -211,7 +211,7 @@
     <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="text-3xl font-bold text-center mb-4">Built-in Plugins</h2>
-            <p class="text-slate-500 text-center mb-12 max-w-2xl mx-auto">{{ config('brand.name', 'Zelta') }} ships with reference plugins that demonstrate the hook system and serve as templates for custom development.</p>
+            <p class="text-slate-500 text-center mb-12 max-w-2xl mx-auto">{{ config('brand.name', 'Zelta') }} comes with example plugins that show how the hooks work. You can copy them as a starting point for your own plugins. Besides the two below, there is a dashboard widget, a compliance notifier and a payment analytics plugin.</p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                 <div class="plugin-card border border-gray-200 rounded-xl p-8">
                     <div class="flex items-center gap-3 mb-4">
@@ -225,7 +225,7 @@
                             <span class="text-xs text-gray-500">webhook-notifier</span>
                         </div>
                     </div>
-                    <p class="text-slate-500 text-sm">Sends HTTP webhooks on platform events. Supports configurable endpoints, retry logic, and payload signing.</p>
+                    <p class="text-slate-500 text-sm">This plugin sends an HTTP webhook when a platform event happens. You set the target address, and each message is signed with HMAC-SHA256.</p>
                 </div>
                 <div class="plugin-card border border-gray-200 rounded-xl p-8">
                     <div class="flex items-center gap-3 mb-4">
@@ -239,7 +239,7 @@
                             <span class="text-xs text-gray-500">audit-exporter</span>
                         </div>
                     </div>
-                    <p class="text-slate-500 text-sm">Exports audit trail events to external systems. Supports CSV, JSON, and direct database export with scheduled runs.</p>
+                    <p class="text-slate-500 text-sm">This plugin adds a console command that exports audit log entries to a file. You can choose JSON or CSV.</p>
                 </div>
             </div>
         </div>
@@ -249,7 +249,7 @@
     <section class="py-16 bg-fa-navy">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 class="font-display text-3xl font-bold text-white mb-4">Extend the platform your way</h2>
-            <p class="text-slate-400 mb-8 max-w-xl mx-auto">17 integration hooks, sandboxed execution, and a security scanner. Build plugins that ship with confidence.</p>
+            <p class="text-slate-400 mb-8 max-w-xl mx-auto">The plugin system has 17 hooks, a sandbox and a security scanner. Together they keep plugins apart from the core platform.</p>
             <div class="flex flex-wrap justify-center gap-4">
                 <a href="{{ url('/developers') }}" class="btn-primary px-8 py-4 text-lg">Developer Docs</a>
                 <a href="{{ route('features.show', 'api') }}" class="btn-outline px-8 py-4 text-lg">View APIs</a>

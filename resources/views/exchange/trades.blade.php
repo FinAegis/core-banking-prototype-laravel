@@ -7,7 +7,7 @@
     <div class="container mx-auto px-4">
         <div class="mb-8">
             <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">My Trades</h1>
-            <p class="text-gray-600 dark:text-gray-400 mt-2">Your complete trading history</p>
+            <p class="text-gray-600 dark:text-gray-400 mt-2">This is your complete trading history.</p>
         </div>
 
         <!-- Summary Card -->
@@ -107,7 +107,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                                     </svg>
                                     <p class="mt-2">No trades found</p>
-                                    <p class="text-sm mt-1">Start trading to see your trade history here</p>
+                                    <p class="text-sm mt-1">Your trades will appear here after your first order is filled.</p>
                                     <a href="{{ route('exchange.index') }}" class="mt-4 inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg">
                                         Start Trading
                                     </a>

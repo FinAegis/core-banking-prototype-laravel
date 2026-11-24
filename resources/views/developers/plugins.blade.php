@@ -7,7 +7,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Plugin Development - ' . $brand . ' Developer Documentation',
-        'description' => $brand . ' Plugin Development Guide — build extensions with hooks, permissions, sandbox security, and the full plugin lifecycle.',
+        'description' => 'This guide shows how to build a plugin for ' . $brand . '. A plugin listens to platform hooks, declares the permissions it needs and runs inside a sandbox.',
         'keywords' => $brand . ', plugins, development, hooks, marketplace, extensions, API',
     ])
 @endsection
@@ -58,7 +58,7 @@
             </span>
             <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Plugin Development</h1>
             <p class="text-xl text-white/80 max-w-2xl mx-auto">
-                Extend the {{ $brand }} platform with hooks, permissions, and sandboxed execution.
+                A plugin adds features to {{ $brand }} without changing the core code. It listens to hooks, declares its permissions and runs inside a sandbox.
             </p>
         </div>
     </div>
@@ -80,7 +80,7 @@
                     <div class="code-header"><span>Terminal</span></div>
                     <pre class="code-block p-4 text-green-400">php artisan plugin:create my-company payment-analytics</pre>
                 </div>
-                <p class="mt-3 text-slate-600 text-sm">Creates the following structure:</p>
+                <p class="mt-3 text-slate-600 text-sm">The command creates this structure.</p>
                 <div class="code-container mt-2">
                     <div class="code-header"><span>Directory Structure</span></div>
                     <pre class="code-block p-4 text-slate-300">plugins/my-company/payment-analytics/
@@ -178,8 +178,8 @@
                 </div>
                 <div class="code-container">
                     <div class="code-header"><span>Terminal</span></div>
-                    <pre class="code-block p-4 text-green-400">php artisan plugin:install plugins/my-company/payment-analytics/plugin.json
-php artisan plugin:enable my-company payment-analytics
+                    <pre class="code-block p-4 text-green-400">php artisan plugin:install plugins/my-company/payment-analytics
+php artisan plugin:enable my-company/payment-analytics
 php artisan plugin:list</pre>
                 </div>
             </div>
@@ -191,42 +191,42 @@ php artisan plugin:list</pre>
 <section class="bg-slate-50 py-16">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-3xl font-bold mb-8">Available Hooks</h2>
-        <p class="text-slate-600 mb-6">Register listeners for these events. Hooks fire asynchronously — exceptions in one listener don't prevent others from executing.</p>
+        <p class="text-slate-600 mb-6">A plugin registers listeners for these hook points. The listeners run one after another. If one listener throws an exception, the platform logs it and still runs the others. Today the platform fires five of these hooks: <code class="code-font bg-slate-200 px-1.5 py-0.5 rounded">account.created</code>, <code class="code-font bg-slate-200 px-1.5 py-0.5 rounded">payment.completed</code> and <code class="code-font bg-slate-200 px-1.5 py-0.5 rounded">payment.failed</code> for deposits, <code class="code-font bg-slate-200 px-1.5 py-0.5 rounded">order.placed</code> and <code class="code-font bg-slate-200 px-1.5 py-0.5 rounded">order.matched</code>. The other hook points are defined but not fired yet.</p>
 
         @php
         $hookGroups = [
             'Account' => [
-                ['name' => 'account.created', 'desc' => 'New account created'],
-                ['name' => 'account.updated', 'desc' => 'Account details updated'],
+                ['name' => 'account.created', 'desc' => 'An account was created'],
+                ['name' => 'account.updated', 'desc' => 'Account details changed'],
             ],
             'Payments' => [
-                ['name' => 'payment.initiated', 'desc' => 'Payment started'],
-                ['name' => 'payment.completed', 'desc' => 'Payment confirmed'],
-                ['name' => 'payment.failed', 'desc' => 'Payment failed'],
+                ['name' => 'payment.initiated', 'desc' => 'A payment started'],
+                ['name' => 'payment.completed', 'desc' => 'A deposit completed'],
+                ['name' => 'payment.failed', 'desc' => 'A deposit failed'],
             ],
             'Wallet' => [
-                ['name' => 'wallet.created', 'desc' => 'New wallet created'],
-                ['name' => 'wallet.transfer', 'desc' => 'Token transfer occurred'],
+                ['name' => 'wallet.created', 'desc' => 'A wallet was created'],
+                ['name' => 'wallet.transfer', 'desc' => 'A wallet transfer happened'],
             ],
             'Compliance' => [
-                ['name' => 'compliance.alert', 'desc' => 'Compliance alert triggered'],
-                ['name' => 'compliance.kyc', 'desc' => 'KYC verification status changed'],
+                ['name' => 'compliance.alert', 'desc' => 'A compliance alert was raised'],
+                ['name' => 'compliance.kyc', 'desc' => 'An identity check changed status'],
             ],
             'Exchange' => [
-                ['name' => 'order.placed', 'desc' => 'Exchange order submitted'],
-                ['name' => 'order.matched', 'desc' => 'Order matched/filled'],
+                ['name' => 'order.placed', 'desc' => 'An exchange order was placed'],
+                ['name' => 'order.matched', 'desc' => 'An order was matched'],
             ],
             'Lending' => [
-                ['name' => 'loan.applied', 'desc' => 'Loan application submitted'],
-                ['name' => 'loan.approved', 'desc' => 'Loan approved'],
+                ['name' => 'loan.applied', 'desc' => 'A loan application was sent'],
+                ['name' => 'loan.approved', 'desc' => 'A loan was approved'],
             ],
             'Cross-Chain' => [
-                ['name' => 'bridge.initiated', 'desc' => 'Bridge transfer started'],
-                ['name' => 'bridge.completed', 'desc' => 'Bridge transfer completed'],
+                ['name' => 'bridge.initiated', 'desc' => 'A bridge transfer started'],
+                ['name' => 'bridge.completed', 'desc' => 'A bridge transfer completed'],
             ],
-            'DeFi' => [
-                ['name' => 'defi.position.opened', 'desc' => 'DeFi position opened'],
-                ['name' => 'defi.position.closed', 'desc' => 'DeFi position closed'],
+            'Decentralised Finance' => [
+                ['name' => 'defi.position.opened', 'desc' => 'A decentralised finance position was opened'],
+                ['name' => 'defi.position.closed', 'desc' => 'A decentralised finance position was closed'],
             ],
         ];
         @endphp
@@ -253,7 +253,7 @@ php artisan plugin:list</pre>
 <section class="bg-white py-16">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-3xl font-bold mb-4">Permission Model</h2>
-        <p class="text-slate-600 mb-8">Plugins declare required permissions in <code class="code-font bg-slate-100 px-1.5 py-0.5 rounded">plugin.json</code>. The sandbox enforces these at runtime — undeclared access throws a <code class="code-font bg-slate-100 px-1.5 py-0.5 rounded">RuntimeException</code>.</p>
+        <p class="text-slate-600 mb-8">Plugins declare required permissions in <code class="code-font bg-slate-100 px-1.5 py-0.5 rounded">plugin.json</code>. The sandbox checks them while the plugin runs. Access that the plugin did not declare throws a <code class="code-font bg-slate-100 px-1.5 py-0.5 rounded">RuntimeException</code>.</p>
 
         @php
         $permGroups = [
@@ -311,30 +311,30 @@ php artisan plugin:list</pre>
 <section class="bg-slate-50 py-16">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-3xl font-bold mb-4">Security Scanner</h2>
-        <p class="text-slate-600 mb-8">All plugins are automatically scanned for dangerous patterns before installation. The scanner detects four severity levels:</p>
+        <p class="text-slate-600 mb-8">The security scanner checks a plugin's code for dangerous patterns. You run it with <code class="code-font bg-slate-200 px-1.5 py-0.5 rounded">plugin:verify</code>, from the admin panel or through the API. It sorts what it finds into four levels.</p>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="bg-white rounded-xl border-l-4 border-red-500 p-5">
                 <h3 class="font-bold text-red-700 mb-2">Critical</h3>
-                <p class="text-sm text-slate-600">Blocks installation. <code class="code-font bg-red-50 px-1 rounded">eval()</code>, <code class="code-font bg-red-50 px-1 rounded">exec()</code>, <code class="code-font bg-red-50 px-1 rounded">shell_exec()</code>, <code class="code-font bg-red-50 px-1 rounded">system()</code>, backtick execution, dynamic includes.</p>
+                <p class="text-sm text-slate-600">These are the most serious findings. They include <code class="code-font bg-red-50 px-1 rounded">eval()</code>, <code class="code-font bg-red-50 px-1 rounded">exec()</code>, <code class="code-font bg-red-50 px-1 rounded">shell_exec()</code>, <code class="code-font bg-red-50 px-1 rounded">system()</code>, backtick execution and dynamic includes.</p>
             </div>
             <div class="bg-white rounded-xl border-l-4 border-orange-500 p-5">
                 <h3 class="font-bold text-orange-700 mb-2">High</h3>
-                <p class="text-sm text-slate-600">Review required. <code class="code-font bg-orange-50 px-1 rounded">DB::raw()</code>, <code class="code-font bg-orange-50 px-1 rounded">unserialize()</code>, <code class="code-font bg-orange-50 px-1 rounded">extract()</code>, direct <code class="code-font bg-orange-50 px-1 rounded">env()</code> access.</p>
+                <p class="text-sm text-slate-600">These findings need a careful review. They include <code class="code-font bg-orange-50 px-1 rounded">DB::raw()</code>, <code class="code-font bg-orange-50 px-1 rounded">unserialize()</code>, <code class="code-font bg-orange-50 px-1 rounded">extract()</code> and direct <code class="code-font bg-orange-50 px-1 rounded">env()</code> access.</p>
             </div>
             <div class="bg-white rounded-xl border-l-4 border-yellow-500 p-5">
                 <h3 class="font-bold text-yellow-700 mb-2">Medium</h3>
-                <p class="text-sm text-slate-600">Warning. Remote <code class="code-font bg-yellow-50 px-1 rounded">file_get_contents()</code>, <code class="code-font bg-yellow-50 px-1 rounded">curl_exec()</code> — declare <code class="code-font bg-yellow-50 px-1 rounded">api:external</code> permission instead.</p>
+                <p class="text-sm text-slate-600">These findings are warnings. They include remote <code class="code-font bg-yellow-50 px-1 rounded">file_get_contents()</code> and <code class="code-font bg-yellow-50 px-1 rounded">curl_exec()</code> calls. Declare the <code class="code-font bg-yellow-50 px-1 rounded">api:external</code> permission instead.</p>
             </div>
             <div class="bg-white rounded-xl border-l-4 border-blue-500 p-5">
                 <h3 class="font-bold text-blue-700 mb-2">Low</h3>
-                <p class="text-sm text-slate-600">Informational. Non-standard patterns that may indicate code quality issues.</p>
+                <p class="text-sm text-slate-600">These findings are for information. They point to unusual code that may need a second look.</p>
             </div>
         </div>
 
         <div class="mt-6 code-container">
             <div class="code-header"><span>Run scanner manually</span></div>
-            <pre class="code-block p-4 text-green-400">php artisan plugin:verify my-company payment-analytics</pre>
+            <pre class="code-block p-4 text-green-400">php artisan plugin:verify my-company/payment-analytics</pre>
         </div>
     </div>
 </section>
@@ -366,13 +366,13 @@ php artisan plugin:list</pre>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">plugin:create {vendor} {name}</code></td><td class="px-4 py-2.5 text-slate-600">Scaffold plugin directory and manifest</td></tr>
-                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">plugin:install {manifest.json}</code></td><td class="px-4 py-2.5 text-slate-600">Validate, resolve deps, register plugin (inactive)</td></tr>
-                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">plugin:enable {vendor} {name}</code></td><td class="px-4 py-2.5 text-slate-600">Activate plugin, boot ServiceProvider, register hooks</td></tr>
-                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">plugin:disable {vendor} {name}</code></td><td class="px-4 py-2.5 text-slate-600">Deactivate plugin, unregister hooks</td></tr>
-                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">plugin:remove {vendor} {name}</code></td><td class="px-4 py-2.5 text-slate-600">Delete plugin (system plugins cannot be removed)</td></tr>
-                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">plugin:list</code></td><td class="px-4 py-2.5 text-slate-600">List all plugins with status</td></tr>
-                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">plugin:verify {vendor} {name}</code></td><td class="px-4 py-2.5 text-slate-600">Run security scanner on plugin code</td></tr>
+                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">plugin:create {vendor} {name}</code></td><td class="px-4 py-2.5 text-slate-600">Creates the plugin folder and its manifest</td></tr>
+                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">plugin:install {path}</code></td><td class="px-4 py-2.5 text-slate-600">Checks the manifest, resolves dependencies and registers the plugin as inactive</td></tr>
+                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">plugin:enable {vendor/name}</code></td><td class="px-4 py-2.5 text-slate-600">Turns the plugin on, boots its service provider and registers its hooks</td></tr>
+                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">plugin:disable {vendor/name}</code></td><td class="px-4 py-2.5 text-slate-600">Turns the plugin off and removes its hooks</td></tr>
+                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">plugin:remove {vendor/name}</code></td><td class="px-4 py-2.5 text-slate-600">Deletes the plugin. System plugins cannot be removed.</td></tr>
+                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">plugin:list</code></td><td class="px-4 py-2.5 text-slate-600">Lists all plugins and their status</td></tr>
+                    <tr><td class="px-4 py-2.5"><code class="code-font text-sm">plugin:verify {vendor/name}</code></td><td class="px-4 py-2.5 text-slate-600">Runs the security scanner on the plugin code</td></tr>
                 </tbody>
             </table>
         </div>
@@ -383,7 +383,7 @@ php artisan plugin:list</pre>
 <section class="bg-slate-50 py-16">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-3xl font-bold mb-4">Manifest Reference</h2>
-        <p class="text-slate-600 mb-6">Complete <code class="code-font bg-slate-200 px-1.5 py-0.5 rounded">plugin.json</code> schema:</p>
+        <p class="text-slate-600 mb-6">These are all the fields of <code class="code-font bg-slate-200 px-1.5 py-0.5 rounded">plugin.json</code>.</p>
 
         <div class="overflow-hidden rounded-xl border border-slate-200">
             <table class="w-full text-sm">
@@ -406,7 +406,7 @@ php artisan plugin:list</pre>
                     <tr><td class="px-4 py-2"><code class="code-font">entry_point</code></td><td class="px-4 py-2 text-slate-500">string</td><td class="px-4 py-2 text-slate-400">No</td><td class="px-4 py-2 text-slate-600">ServiceProvider class name (default: ServiceProvider)</td></tr>
                     <tr><td class="px-4 py-2"><code class="code-font">permissions</code></td><td class="px-4 py-2 text-slate-500">string[]</td><td class="px-4 py-2 text-slate-400">No</td><td class="px-4 py-2 text-slate-600">Required permissions (see table above)</td></tr>
                     <tr><td class="px-4 py-2"><code class="code-font">dependencies</code></td><td class="px-4 py-2 text-slate-500">object</td><td class="px-4 py-2 text-slate-400">No</td><td class="px-4 py-2 text-slate-600">Semver constraints: <code class="code-font">{"vendor/name": "^1.0"}</code></td></tr>
-                    <tr><td class="px-4 py-2"><code class="code-font">extra</code></td><td class="px-4 py-2 text-slate-500">object</td><td class="px-4 py-2 text-slate-400">No</td><td class="px-4 py-2 text-slate-600">Custom metadata (dashboard URLs, settings schema, etc.)</td></tr>
+                    <tr><td class="px-4 py-2"><code class="code-font">extra</code></td><td class="px-4 py-2 text-slate-500">object</td><td class="px-4 py-2 text-slate-400">No</td><td class="px-4 py-2 text-slate-600">Custom metadata, such as dashboard links and a settings schema</td></tr>
                 </tbody>
             </table>
         </div>
@@ -417,7 +417,7 @@ php artisan plugin:list</pre>
 <section class="bg-white py-16">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-3xl font-bold mb-4">REST & GraphQL APIs</h2>
-        <p class="text-slate-600 mb-8">Manage plugins programmatically via REST or GraphQL.</p>
+        <p class="text-slate-600 mb-8">You can also manage plugins through the REST API or through GraphQL.</p>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- REST -->
@@ -426,12 +426,13 @@ php artisan plugin:list</pre>
                 <div class="space-y-2">
                     @php
                     $endpoints = [
-                        ['GET', '/api/plugins', 'List all plugins'],
-                        ['GET', '/api/plugins/{id}', 'Get plugin details'],
-                        ['POST', '/api/plugins/{id}/enable', 'Enable plugin'],
-                        ['POST', '/api/plugins/{id}/disable', 'Disable plugin'],
-                        ['POST', '/api/plugins/{id}/scan', 'Security scan'],
-                        ['GET', '/api/plugins/marketplace/stats', 'Marketplace stats'],
+                        ['GET', '/api/v2/plugins', 'List all plugins'],
+                        ['GET', '/api/v2/plugins/{id}', 'Get plugin details'],
+                        ['POST', '/api/v2/plugins/{id}/enable', 'Enable plugin'],
+                        ['POST', '/api/v2/plugins/{id}/disable', 'Disable plugin'],
+                        ['POST', '/api/v2/plugins/{id}/scan', 'Security scan'],
+                        ['POST', '/api/v2/plugins/discover', 'Find new plugins'],
+                        ['DELETE', '/api/v2/plugins/{id}', 'Remove plugin'],
                     ];
                     @endphp
                     @foreach($endpoints as $ep)

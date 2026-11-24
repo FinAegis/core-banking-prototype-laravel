@@ -15,54 +15,53 @@ class BlogPostSeeder extends Seeder
         $posts = [
             // Platform Updates
             [
-                'title'   => 'Event Sourcing Architecture: Building a Bulletproof Financial Platform',
+                'title'   => 'Event Sourcing: How FinAegis Keeps a Full History of Every Change',
                 'slug'    => 'event-sourcing-architecture-financial-platform',
-                'excerpt' => 'Discover how our event-sourced architecture provides unparalleled audit trails, data integrity, and system reliability for critical financial operations.',
+                'excerpt' => 'FinAegis stores every change to an account as an event. This article explains how that works and what it gives you.',
                 'content' => <<<'EOT'
-## The Foundation of Trust: Event Sourcing in Finance
+## Every Change Is an Event
 
-At FinAegis, we've built our entire platform on event sourcing principles, creating an immutable audit trail for every financial operation. This architectural decision provides unprecedented transparency and reliability.
+FinAegis is built on event sourcing. The platform does not overwrite the current state of an account. It stores every change as an event that is never edited afterwards.
 
 ### Why Event Sourcing?
 
-Traditional databases store current state, losing historical context. In finance, this is unacceptable. Event sourcing stores every state change as an immutable event, allowing us to:
+A normal database keeps only the latest state. You can see the balance, but not every step that led to it. Event sourcing keeps every step.
 
-- Reconstruct any account state at any point in time
-- Provide complete audit trails for regulators
-- Implement complex compliance rules with confidence
-- Enable advanced analytics and reporting
+This gives you four things:
 
-### Implementation Details
+- You can rebuild the state of an account at any point in time.
+- You have a complete audit trail of what happened and when.
+- You can test compliance rules against real history.
+- You can build reports from the full history.
 
-Our event sourcing implementation includes:
+### How It Works in the Code
 
-**Aggregate Roots**: Each financial entity (Account, Transaction, Asset) is modeled as an aggregate root that processes commands and emits events.
+FinAegis uses the Spatie event sourcing package for Laravel.
 
-**Event Store**: Using PostgreSQL with optimized indexing, we store millions of events with sub-millisecond query performance.
+**Aggregates**: An aggregate is an object such as an account or a transfer. It receives a command, checks the rules and records events.
 
-**Projections**: Read models are built from events, providing optimized views for different use cases without compromising the source of truth.
+**Event tables**: Each domain writes its events to its own table. Event Store v2 routes events to the right table and can upgrade old event formats.
 
-**Sagas and Workflows**: Complex multi-step operations are coordinated through sagas, ensuring consistency across distributed operations.
+**Projectors**: A projector reads events and builds the tables that the application queries. These read models can be rebuilt from the events at any time.
 
-### Real-World Benefits
+**Sagas and workflows**: Some operations have several steps. A saga or workflow runs the steps in order and undoes the finished steps when a later step fails.
 
-1. **Regulatory Compliance**: Auditors can trace every cent through the system with cryptographic proof of authenticity.
+### What This Gives You
 
-2. **Dispute Resolution**: Any transaction dispute can be resolved by replaying the exact sequence of events.
+1. **Audits**: An auditor can follow every change to an account in the order it happened.
+2. **Disputes**: You can replay the events of a transaction to see exactly what happened.
+3. **Recovery**: You can rebuild the read models from the event log.
+4. **Reporting**: Historical analysis is simpler because every change is recorded.
 
-3. **System Recovery**: In case of issues, we can rebuild the entire system state from the event log.
+### Read the Code
 
-4. **Business Intelligence**: Historical data analysis becomes trivial when you have every state change recorded.
-
-### Open Source Contribution
-
-We're proud to contribute back to the community. Check out our event sourcing utilities package on GitHub.
+The platform is open source under the Apache 2.0 licence. You can read the aggregates, projectors and sagas in the repository on GitHub.
 EOT,
                 'category'        => 'platform',
                 'author_name'     => 'Tech Team',
                 'author_role'     => 'Engineering',
                 'author_initials' => 'TT',
-                'reading_time'    => 12,
+                'reading_time'    => 2,
                 'gradient_from'   => 'green-500',
                 'gradient_to'     => 'blue-600',
                 'is_published'    => true,
@@ -70,82 +69,47 @@ EOT,
             ],
 
             [
-                'title'   => 'Batch Processing 2.0: Handling Millions of Transactions Efficiently',
+                'title'   => 'Batch Processing: Running Many Transactions as One Job',
                 'slug'    => 'batch-processing-efficient-transactions',
-                'excerpt' => 'Learn how our new batch processing system is designed to handle large transaction volumes with built-in validation, reconciliation, and automatic retry mechanisms.',
+                'excerpt' => 'The batch module runs many transfers, payments or conversions as one job. It validates the job first and undoes finished items when the job fails.',
                 'content' => <<<'EOT'
-## Next-Generation Batch Processing
+## What the Batch Module Does
 
-FinAegis Batch Processing 2.0 represents a quantum leap in transaction processing efficiency. It is built from the ground up to handle enterprise-scale operations.
+The batch module lets you submit many transactions as one job. A job can contain transfers, payments and currency conversions.
 
-### Key Features
+### How a Batch Job Runs
 
-**Intelligent Validation**: Every transaction undergoes multi-stage validation:
-- Format and schema validation
-- Business rule verification
-- Duplicate detection
-- Fraud screening
-- Regulatory compliance checks
+A batch job runs as a workflow with three stages.
 
-**Smart Scheduling**: Our AI-powered scheduler optimizes processing times based on:
-- Historical processing patterns
-- System load predictions
-- Cut-off time requirements
-- Cross-border settlement windows
+1. **Validation**: The workflow checks the whole job before anything moves.
+2. **Processing**: The workflow processes each item in turn and records the result of each one.
+3. **Completion**: The workflow marks the job as complete and records a summary.
 
-**Automatic Reconciliation**: Built-in reconciliation ensures every batch balances perfectly:
-- Real-time balance tracking
-- Automatic discrepancy detection
-- Self-healing mechanisms for common issues
-- Detailed reconciliation reports
+If a step fails, the workflow runs compensation. Compensation undoes the items that were already processed.
 
-### Technical Architecture
+### Events and History
 
-The system leverages:
-- Apache Kafka for reliable message queuing
-- Kubernetes for auto-scaling processing pods
-- Redis for high-speed transaction caching
-- PostgreSQL for persistent storage
+The batch module is event-sourced like the rest of the platform. It records an event when a job is created, started, completed or cancelled. It also records an event for every processed item. You can follow the history of any job from these events.
 
-### Use Cases
+### Using the API
 
-**Payroll Processing**: Process entire company payrolls in minutes, with automatic tax calculations and multi-currency support.
+The API has endpoints to list batch operations, start a batch, check its status and cancel it.
 
-**Bill Payments**: Handle recurring payments for millions of customers with intelligent retry logic and failure notifications.
-
-**Investment Distributions**: Distribute dividends and returns to thousands of investors simultaneously with precise decimal handling.
-
-### API Integration
-
-```json
-POST /api/v2/batches
-{
-  "batch_type": "payroll",
-  "transactions": [...],
-  "processing_date": "2024-01-15",
-  "options": {
-    "validation_level": "strict",
-    "auto_retry": true,
-    "notification_webhook": "https://..."
-  }
-}
+```http
+POST /api/batch-operations/execute
+GET  /api/batch-operations/{batchId}/status
+POST /api/batch-operations/{batchId}/cancel
 ```
 
-### Security and Compliance
+### Things to Know
 
-Every batch is:
-- Encrypted end-to-end
-- Digitally signed for integrity
-- Archived for 7 years
-- Fully auditable with detailed logs
-
-Start using Batch Processing 2.0 today through our API or web interface.
+The batch module is a reference implementation. Payment items are currently processed in the same way as transfers. Conversions use a simplified rate calculation. Test the module with your own data and rules before you rely on it.
 EOT,
                 'category'        => 'platform',
                 'author_name'     => 'Product Manager',
                 'author_role'     => 'Product',
                 'author_initials' => 'PM',
-                'reading_time'    => 10,
+                'reading_time'    => 2,
                 'gradient_from'   => 'red-400',
                 'gradient_to'     => 'pink-500',
                 'is_published'    => true,
@@ -154,66 +118,45 @@ EOT,
 
             // Security
             [
-                'title'   => 'Quantum-Resistant Cryptography: Preparing for the Future',
+                'title'   => 'Post-Quantum Encryption in FinAegis',
                 'slug'    => 'quantum-resistant-cryptography-implementation',
-                'excerpt' => 'FinAegis adds quantum-resistant cryptography modules to its open-source platform.',
+                'excerpt' => 'The security module includes encryption and signatures that combine classical algorithms with a post-quantum layer. This article explains what is there today.',
                 'content' => <<<'EOT'
-## Leading the Quantum-Safe Revolution
+## Why Post-Quantum Encryption Matters
 
-As quantum computing advances threaten traditional cryptography, FinAegis adds quantum-resistant cryptography modules to its open-source platform.
+Large quantum computers could one day break the public key algorithms that most systems use today. Data that is stolen now could be decrypted later. Post-quantum algorithms are designed to resist that attack.
 
-### The Quantum Threat
+### What FinAegis Includes
 
-Quantum computers pose a significant threat to current cryptographic standards:
-- RSA encryption could be broken in hours instead of millennia
-- Elliptic curve cryptography becomes vulnerable
-- Digital signatures lose their security guarantees
+The security module has three services.
 
-### Our Solution
+**Key encapsulation**: This service is modelled on ML-KEM-768. It combines X25519 key agreement with a post-quantum key derivation layer.
 
-We've implemented NIST-approved post-quantum algorithms:
+**Signatures**: This service is modelled on ML-DSA-65. It combines Ed25519 signatures with a hash-based signature layer. A signature is accepted only when both parts verify.
 
-**CRYSTALS-Kyber**: For key encapsulation and secure communications
-- 256-bit quantum security level
-- Minimal performance overhead
-- Backward compatible with existing systems
+**Hybrid encryption and key rotation**: This service encrypts data with the combined keys. A separate service rotates the keys.
 
-**CRYSTALS-Dilithium**: For digital signatures
-- Provably secure against quantum attacks
-- Efficient verification process
-- Suitable for high-volume transaction signing
+### Why a Hybrid Construction?
 
-**SHA3-512**: For hashing operations
-- Quantum-resistant by design
-- Superior performance on modern hardware
-- Future-proof security margins
+A hybrid construction uses a classical algorithm and a post-quantum layer together. The data stays protected if one of the two layers is broken.
 
-### Implementation Strategy
+### What Is Not There Yet
 
-Our rollout follows a careful migration path:
+The post-quantum layer is not yet a certified implementation of the standards from the US National Institute of Standards and Technology. Those standards are FIPS 203 for ML-KEM and FIPS 204 for ML-DSA. The code says that the layer will move to the standard algorithms when PHP supports them natively. Do not treat the current layer as a certified implementation.
 
-1. **Hybrid Mode**: Currently running both classical and quantum-resistant algorithms in parallel
-2. **Testing Phase**: Extensive testing
-3. **Full Migration**: Complete transition planned for Q2 2024
+### Handling Key Material
 
-### Performance Impact
+The services clear sensitive key material from memory after use. They use the libsodium library for the classical algorithms.
 
-Despite the additional complexity, we maintain:
-- <10ms additional latency for encrypted operations
-- No noticeable impact on user experience
-- Optimized implementations for all major platforms
+### Read the Code
 
-### Open Source Contribution
-
-Our quantum-resistant library is available on GitHub, helping the entire financial industry prepare for the quantum era.
-
-Security isn't just about today—it's about ensuring your financial data remains protected for decades to come.
+You can read the services in the repository on GitHub. They live in the security domain under the post-quantum services.
 EOT,
                 'category'        => 'security',
                 'author_name'     => 'Security Lead',
                 'author_role'     => 'Security Team',
                 'author_initials' => 'SL',
-                'reading_time'    => 15,
+                'reading_time'    => 2,
                 'gradient_from'   => 'green-400',
                 'gradient_to'     => 'blue-500',
                 'is_published'    => true,
@@ -222,118 +165,59 @@ EOT,
 
             // Developer
             [
-                'title'   => 'API v2.0: Powerful Tools for Modern Financial Applications',
+                'title'   => 'The FinAegis API: REST, GraphQL, Webhooks and Development Kits',
                 'slug'    => 'api-v2-launch-developer-tools',
-                'excerpt' => 'Our completely redesigned API v2.0 brings GraphQL support, real-time webhooks, and comprehensive SDKs for building next-generation financial applications.',
+                'excerpt' => 'FinAegis has a REST API with an OpenAPI reference, a GraphQL API, signed webhooks and software development kits for JavaScript, Python and PHP. This article explains how they fit together.',
                 'content' => <<<'EOT'
-## FinAegis API v2.0: Built for Developers, Designed for Scale
+## How You Talk to FinAegis
 
-We're excited to announce the general availability of FinAegis API v2.0, a complete reimagining of our developer platform.
+FinAegis offers several ways to work with the platform. You can use the REST API, the GraphQL API, webhooks and the official software development kits.
 
-### What's New
+### REST API
 
-**GraphQL Support**: Request exactly the data you need
-```graphql
-query {
-  account(id: "acc_123") {
-    balance
-    transactions(last: 10) {
-      amount
-      description
-      status
-    }
-  }
-}
-```
+The REST API has versioned endpoints under `/api/v1` and `/api/v2`. The OpenAPI reference documents every endpoint. You can open it at `/api/documentation`.
 
-**Real-time Webhooks**: Never miss an event
-- Guaranteed delivery with exponential backoff
-- Cryptographic signatures for security
-- Detailed event metadata
-- Replay capabilities for testing
+### GraphQL API
 
-**Comprehensive SDKs**: Get started in minutes
-- TypeScript/JavaScript with full type safety
-- Python with async support
-- Go with connection pooling
-- PHP with PSR compliance
-- Java with Spring Boot integration
+The GraphQL API uses Lighthouse for Laravel. It has 45 schema files that cover 43 domains. It also supports subscriptions for real-time updates.
 
-### Performance Improvements
+### Webhooks
 
-API v2.0 delivers:
-- **50% faster response times** through optimized queries
-- **10x higher rate limits** for verified applications
-- **Regional endpoints** for reduced latency
+Webhooks tell your system when something happens. Each delivery is signed so that you can check it came from the platform. A failed delivery is retried with growing delays for up to 24 hours. You can also replay a delivery.
 
-### Developer Experience
+### Software Development Kits
 
-**Interactive Documentation**: Try every endpoint directly in our docs
-- Live API console with your test data
-- Code generation in 10+ languages
-- Comprehensive error explanations
-- Video tutorials for complex operations
+There are official software development kits for JavaScript, Python and PHP. There is also a payment kit for PHP and a command-line tool.
 
-**Sandbox Environment**: Test without limits
-- Unlimited test transactions
-- Simulated edge cases and errors
-- Time travel for testing recurring operations
-- Webhook testing tools
+### Idempotency
 
-**Developer Dashboard**: Monitor everything
-- Real-time API usage metrics
-- Error tracking and debugging tools
-- Performance analytics
-- Cost optimization recommendations
+Some write endpoints accept an `Idempotency-Key` header. If you send the same request twice with the same key, the platform does not run it twice.
 
-### Advanced Features
-
-**Idempotency**: Built-in request deduplication
 ```http
-POST /api/v2/transactions
-Idempotency-Key: unique-request-id
+POST /api/v1/...
+Idempotency-Key: <a new UUID for each request>
 ```
 
-**Pagination**: Efficient data retrieval
-```http
-GET /api/v2/transactions?cursor=eyJpZCI6MTAwfQ&limit=50
-```
+### Access Tokens
 
-**Filtering**: Powerful query capabilities
-```http
-GET /api/v2/transactions?filter[status]=completed&filter[amount][gte]=1000
-```
+API tokens carry abilities. A read request needs the read ability, and a write request needs the write ability. The platform also limits how many requests a client can send.
 
-### Security First
+### Sandbox
 
-Every API request includes:
-- OAuth 2.0 authentication
-- Request signing with HMAC-SHA256
-- End-to-end encryption
-- Rate limiting and DDoS protection
-- IP whitelisting options
+The public sandbox at finaegis.org uses test data only. You can create an account there and try the API without real money.
 
 ### Getting Started
 
-1. Sign up for a developer account
-2. Generate your API credentials
-3. Install your preferred SDK
-4. Make your first API call in minutes
-
-### Community and Support
-
-Join our thriving developer community:
-- Monthly developer webinars
-- Hackathon sponsorships
-- Priority support for integration partners
-
-Start building the future of finance with FinAegis API v2.0 today!
+1. Create a sandbox account.
+2. Create an API token.
+3. Install the software development kit for your language.
+4. Make your first request.
 EOT,
                 'category'        => 'developer',
                 'author_name'     => 'DevRel Team',
                 'author_role'     => 'Developer Relations',
                 'author_initials' => 'DR',
-                'reading_time'    => 12,
+                'reading_time'    => 2,
                 'gradient_from'   => 'purple-400',
                 'gradient_to'     => 'pink-500',
                 'is_published'    => true,
@@ -342,105 +226,46 @@ EOT,
 
             // Industry
             [
-                'title'   => 'The Future of European Banking: Open Finance and Beyond',
+                'title'   => 'Open Banking and Open Finance: What FinAegis Models Today',
                 'slug'    => 'future-european-banking-open-finance',
-                'excerpt' => 'An in-depth analysis of how Open Finance regulations will reshape the European financial landscape and what it means for consumers and businesses.',
+                'excerpt' => 'European rules are opening financial data beyond payment accounts. This article explains what that means and which parts FinAegis models in software.',
                 'content' => <<<'EOT'
-## Open Finance: The Next Evolution of European Banking
+## From Open Banking to Open Finance
 
-As PSD2 transformed payments, Open Finance promises to revolutionize the entire financial services industry. FinAegis is at the forefront of this transformation, building infrastructure for the open financial ecosystem of tomorrow.
+The EU's second Payment Services Directive opened payment accounts to licensed third parties. A customer can let another provider read account data or start a payment. Open Finance is the idea of extending this to other financial products.
 
-### Beyond Open Banking
+### What Open Finance Would Cover
 
-While Open Banking focused on payment accounts, Open Finance extends to:
-- Investment accounts and portfolios
-- Pension and retirement savings
-- Insurance policies
-- Mortgages and loans
-- Cryptocurrency holdings
+Open Finance would reach beyond payment accounts. It could include:
 
-### The European Vision
+- investment accounts,
+- pensions,
+- insurance,
+- loans and mortgages.
 
-The European Commission's Open Finance framework aims to:
-- Create a single market for financial data
-- Enhance competition and innovation
-- Improve financial inclusion
-- Strengthen consumer protection
+The European Commission has proposed a regulation on financial data access for this. It is a proposal, and its final form may change.
 
-### Technical Standards
+### What FinAegis Models Today
 
-Emerging standards we're implementing:
+The open banking module models the consent lifecycle of the Payment Services Directive. It includes account information and payment initiation flows. It has adapters for the Berlin Group NextGenPSD2 standard and the UK Open Banking standard. It also checks the eIDAS certificates of third-party providers.
 
-**FIDA (Financial Data Access)**: The proposed regulation covering:
-- Standardized APIs across all financial sectors
-- Enhanced consent management
-- Data portability rights
-- Value-added service provisions
+The module is a reference implementation at the message and logic layer. It runs in demo mode and is switched off on the production site. It has no live bank connections.
 
-**Digital Euro Integration**: Preparing for:
-- CBDC wallet infrastructure
-- Instant settlement capabilities
-- Privacy-preserving transactions
-- Cross-border interoperability
+### What This Gives You
 
-### Market Opportunities
+You can study how consent, account access and payment initiation work in code. You can also use the module as a starting point for your own integration.
 
-Open Finance enables new business models:
+### Before You Build on It
 
-**Holistic Financial Management**: Aggregate all financial assets in one view
-**Smart Recommendations**: AI-powered insights across entire portfolios
-**Automated Optimization**: Rebalancing and tax optimization
-**Embedded Finance**: Financial services integrated into any application
+A real Open Banking service needs a licence, agreements with banks and a security review. FinAegis does not provide any of these.
 
-### Challenges and Solutions
-
-**Data Privacy**: Implementing privacy-enhancing technologies
-- Homomorphic encryption for computations on encrypted data
-- Zero-knowledge proofs for verification without disclosure
-- Federated learning for AI without data centralization
-
-**Interoperability**: Building universal connectors
-- Real-time data synchronization
-- Standardized data models
-- Error handling and reconciliation
-
-### FinAegis Platform Advantages
-
-Our infrastructure provides:
-- Integration adapters for financial-institution APIs (reference implementations; no partnership or endorsement implied)
-- Compliance tooling modelled on EU regulations
-- Scalable architecture for millions of connections
-- Developer tools for rapid integration
-
-### Looking Ahead
-
-By 2025, we expect:
-- 80% of EU citizens using Open Finance services
-- €500 billion in assets under management through platforms
-- 10,000+ fintech applications built on Open Finance
-- Seamless cross-border financial services
-
-### Getting Ready
-
-For financial institutions:
-1. Audit your data architecture
-2. Implement standardized APIs
-3. Enhance consent management
-4. Prepare for new competitors
-
-For fintechs:
-1. Explore new use cases
-2. Build on existing infrastructure
-3. Focus on user experience
-4. Ensure regulatory compliance
-
-The future of finance is open, and FinAegis is building the infrastructure to make it accessible to everyone.
+FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
 EOT,
                 'category'        => 'industry',
                 'author_name'     => 'Research Team',
                 'author_role'     => 'Market Analysis',
                 'author_initials' => 'RT',
-                'reading_time'    => 18,
+                'reading_time'    => 2,
                 'gradient_from'   => 'yellow-400',
                 'gradient_to'     => 'orange-500',
                 'is_published'    => true,
@@ -449,121 +274,47 @@ EOT,
 
             // Compliance
             [
-                'title'   => 'MiCA Compliance Tooling for Crypto-Asset Services',
+                'title'   => 'Crypto-Asset Regulation Tooling in FinAegis',
                 'slug'    => 'mica-compliance-crypto-asset-services',
-                'excerpt' => 'How FinAegis helps financial institutions navigate the Markets in Crypto-Assets (MiCA) regulation and build digital asset services with open-source compliance tooling.',
+                'excerpt' => 'FinAegis has open-source tooling modelled on the EU Markets in Crypto-Assets Regulation. This article explains what the tooling does and what it does not do.',
                 'content' => <<<'EOT'
-## Navigating MiCA: A Comprehensive Compliance Framework
+## What the Regulation Covers
 
-The Markets in Crypto-Assets (MiCA) regulation represents the most comprehensive crypto framework globally. FinAegis provides open-source compliance tooling modelled on MiCA requirements; it does not by itself make a deployment compliant.
+The EU Markets in Crypto-Assets Regulation sets rules for crypto-assets in the EU. It covers three kinds of token.
 
-### Understanding MiCA
+1. **Asset-referenced tokens**: These tokens refer to a basket of assets.
+2. **E-money tokens**: These tokens refer to one official currency.
+3. **Other crypto-assets**: This group includes utility tokens and other cryptocurrencies.
 
-MiCA covers three main categories:
-1. **Asset-Referenced Tokens (ARTs)**: Stablecoins backed by multiple assets
-2. **E-Money Tokens (EMTs)**: Single fiat-backed stablecoins
-3. **Other Crypto-Assets**: Utility tokens and cryptocurrencies
+It also sets rules for crypto-asset service providers.
 
-### Compliance Requirements
+### What the FinAegis Tooling Does
 
-**For Asset-Referenced Tokens**:
-- Minimum capital: €350,000 or 2% of average reserve assets
-- Reserve management requirements
-- Redemption rights at market value
-- Whitepaper publication and approval
+The regulatory technology module has a service modelled on the regulation.
 
-**For E-Money Tokens**:
-- E-money institution license required
-- 1:1 backing with fiat currency
-- Redemption at par value
-- Safeguarding requirements
+- It checks that a token white paper contains the required sections.
+- It reports the status of reserves recorded by the stablecoin module.
+- It checks whether a transaction needs Travel Rule data.
 
-**For Crypto-Asset Service Providers (CASPs)**:
-- Authorization requirements
-- Operational resilience
-- Conflict of interest policies
-- Market abuse prevention
+The stablecoin module models minting, redemption, collateral and reserves. The compliance module provides identity checks and anti-money laundering screening through integration adapters.
 
-### FinAegis MiCA Solution
+### What the Tooling Does Not Do
 
-Our comprehensive platform includes:
+The tooling does not connect to any regulator. It does not file reports for you. It does not make a deployment authorised or compliant.
 
-**Regulatory Module**:
-- Automated whitepaper generation
-- Regulatory reporting tools
-- Compliance monitoring dashboards
-- Audit trail maintenance
+FinAegis does not hold any authorisation under the regulation. The Global Currency Unit in the demo is a software demonstration and is not offered to anyone.
 
-**Reserve Management**:
-- Real-time reserve verification
-- Automated rebalancing
-- Transparency reports
+### Before You Build on It
 
-**Operations Infrastructure**:
-- KYC/AML for crypto transactions
-- Transaction monitoring
-- Wallet infrastructure
-- Smart contract integration
+Read the regulation with your legal advisers. Use the tooling as a starting point and test it against your own obligations.
 
-### Implementation Timeline
-
-**Phase 1 (Completed)**: Stablecoin infrastructure
-- Multi-signature wallet setup
-- Reserve management system
-- Minting/burning mechanisms
-- Compliance reporting
-
-**Phase 2 (In Progress)**: CASP-related modules
-- Trading venue integration
-- Custody solutions
-- Exchange services
-- Portfolio management
-
-**Phase 3 (Q2 2024)**: Advanced Services
-- DeFi bridge compliance
-- Cross-chain operations
-- Derivatives support
-- Institutional tools
-
-### Technical Architecture
-
-Built for compliance and scale:
-```yaml
-Infrastructure:
-  - Blockchain nodes: Ethereum, Polygon, Arbitrum
-  - Custody: Multi-sig with hardware security modules
-  - Monitoring: Real-time on-chain analytics
-  - Reporting: Regulatory report generation
-```
-
-### Cost-Benefit Analysis
-
-**Costs of Non-Compliance**:
-- Fines up to €5 million or 3% of annual turnover
-- Criminal penalties for serious breaches
-- Reputational damage
-- Market exclusion
-
-### Getting Started
-
-1. **Assessment**: Evaluate your current operations
-2. **Planning**: Design compliant service architecture
-3. **Implementation**: Deploy FinAegis infrastructure
-4. **Authorization**: Submit regulatory applications
-5. **Launch**: Go live
-
-### Ongoing Support
-
-- Regulatory updates and alerts
-- Community best practices
-
-Build financial services with open-source compliance tooling. FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
+FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
 EOT,
                 'category'        => 'compliance',
                 'author_name'     => 'Compliance Team',
                 'author_role'     => 'Legal & Compliance',
                 'author_initials' => 'CT',
-                'reading_time'    => 20,
+                'reading_time'    => 2,
                 'gradient_from'   => 'red-500',
                 'gradient_to'     => 'yellow-500',
                 'is_published'    => true,
@@ -572,100 +323,44 @@ EOT,
 
             // Additional Platform Features
             [
-                'title'   => 'Introducing FinAegis Workflows: Automate Complex Financial Operations',
+                'title'   => 'Workflows and Sagas: Running Multi-Step Operations Safely',
                 'slug'    => 'finaegis-workflows-automation',
-                'excerpt' => 'Our new workflow engine enables automation of complex multi-step financial operations with built-in compliance checks and automatic rollback capabilities.',
+                'excerpt' => 'FinAegis runs multi-step financial operations as workflows. Each workflow can undo its finished steps when a later step fails.',
                 'content' => <<<'EOT'
-## Workflow Automation for Financial Operations
+## Why Workflows?
 
-FinAegis Workflows brings enterprise-grade automation to financial operations. Built on proven workflow orchestration patterns, our system handles complex multi-step processes with ease.
+Many financial operations have several steps. A transfer might check the sender, check the limits, move the money and send a notification. If one step fails, the earlier steps must be undone.
 
-### Core Capabilities
+### How FinAegis Runs Them
 
-**Visual Workflow Designer**: Design complex flows without code
-- Drag-and-drop interface
-- Pre-built financial components
-- Real-time validation
-- Version control integration
+FinAegis uses Laravel Workflow for this. A workflow is a class that runs activities in order. An activity is one step, such as validating a batch item or moving money.
 
-**Intelligent Orchestration**: Smart execution engine
-- Parallel processing where possible
-- Automatic retry with exponential backoff
-- Compensation on failure
-- State persistence across restarts
+The workflow engine stores the state of each workflow. A workflow can continue after a restart.
 
-**Built-in Compliance**: Every step validated
-- Regulatory rule engine
-- Audit trail generation
-- Approval workflows
-- Limit checking
+### Compensation
 
-### Common Use Cases
+A workflow can register a compensation for each step. A compensation is the action that undoes the step. When a later step fails, the workflow runs the compensations of the finished steps in reverse order.
 
-**International Payments**:
-1. Validate recipient details
-2. Check sanctions lists
-3. Calculate FX rates
-4. Reserve funds
-5. Execute transfer
-6. Send notifications
-7. Update ledgers
+### Examples in the Code
 
-**Account Opening**:
-1. Collect customer data
-2. Perform KYC checks
-3. Risk assessment
-4. Document verification
-5. Account creation
-6. Welcome package
-7. Initial funding
+- The batch module runs a batch job as a workflow.
+- The lending module runs a loan application as a workflow.
+- The treasury module uses workflows for portfolio rebalancing with approval steps.
+- Cross-chain swaps run as a saga.
 
-**Investment Rebalancing**:
-1. Portfolio analysis
-2. Target allocation calculation
-3. Trade planning
-4. Execution across venues
-5. Settlement tracking
-6. Performance reporting
+### Monitoring
 
-### Technical Implementation
+Administrators can follow running workflows in the Waterline dashboard. The dashboard requires an administrator account.
 
-```typescript
-const paymentWorkflow = defineWorkflow({
-  name: 'international-payment',
-  steps: [
-    validateRecipient(),
-    checkCompliance(),
-    calculateFees(),
-    executeTranfser(),
-    notifyParties()
-  ],
-  compensation: {
-    onError: reverseTransfer()
-  }
-});
-```
+### Starting a Workflow
 
-### Performance and Reliability
-
-- Process 10,000+ workflows per minute
-- Sub-second step transitions
-- Automatic scaling based on load
-
-### Integration Options
-
-- REST API for external triggers
-- Event-based activation
-- Scheduled execution
-- Manual intervention points
-
-Start automating your financial operations today with FinAegis Workflows.
+A workflow can start from an API call, from a domain event or from a scheduled job.
 EOT,
                 'category'        => 'platform',
                 'author_name'     => 'Engineering Team',
                 'author_role'     => 'Platform Engineering',
                 'author_initials' => 'ET',
-                'reading_time'    => 11,
+                'reading_time'    => 2,
                 'gradient_from'   => 'indigo-400',
                 'gradient_to'     => 'purple-500',
                 'is_published'    => true,
@@ -674,84 +369,47 @@ EOT,
 
             // Security Update
             [
-                'title'   => 'Zero-Trust Architecture: Security Without Compromise',
+                'title'   => 'How FinAegis Checks Every Request',
                 'slug'    => 'zero-trust-architecture-implementation',
-                'excerpt' => 'Learn how our zero-trust security model protects against modern threats while maintaining the performance required for financial operations.',
+                'excerpt' => 'FinAegis checks the identity, the permissions and the request rate of every call. This article explains the checks that the platform runs.',
                 'content' => <<<'EOT'
-## Implementing Zero-Trust in Financial Services
+## Check Every Request
 
-FinAegis has completely reimagined security with our zero-trust architecture. In today's threat landscape, perimeter-based security is insufficient. Our approach assumes no trust and verifies everything.
+FinAegis does not trust a request because it comes from inside the network. It checks every request on its own.
 
-### Core Principles
+### Who Is Calling?
 
-**Never Trust, Always Verify**: Every request authenticated and authorized
-- Multi-factor authentication for all access
-- Continuous verification during sessions
-- Risk-based authentication adjustments
-- Device trust scoring
+**Sign-in**: Users sign in with a password, an email code or a passkey. Two-factor authentication is available. The administrator API routes require it.
 
-**Least Privilege Access**: Minimal permissions by default
-- Role-based access control (RBAC)
-- Just-in-time privilege elevation
-- Automated permission reviews
-- Detailed access logging
+**API tokens**: Every API token carries abilities. A read request needs the read ability. A write request needs the write ability. A delete request needs the delete ability.
 
-**Micro-segmentation**: Isolated security zones
-- Network segmentation per service
-- Encrypted service mesh communication
-- API gateway enforcement
-- Container-level isolation
+**Agents**: AI agents connect to the Model Context Protocol server through OAuth. Each token carries scopes and can have its own spending limit.
 
-### Implementation Details
+### What Are They Allowed to Do?
 
-**Identity Verification**:
-- Biometric authentication
-- Hardware key support
-- Behavioral analytics
-- Location verification
+Roles decide what a user can see and change. Administrator pages and the operations dashboards require an administrator role.
 
-**Network Security**:
-- End-to-end encryption
-- Certificate pinning
-- DNS over HTTPS
-- Split tunneling prevention
+### How Often Are They Calling?
 
-**Application Security**:
-- Runtime application self-protection (RASP)
-- Code signing verification
-- Dependency scanning
-- Secret management
+Rate limits restrict how many requests a client can send. Separate limits apply to transactions and to GraphQL. The platform can also block an IP address.
 
-### Threat Detection
+### Checking Data From Outside
 
-Our AI-powered system identifies:
-- Unusual access patterns
-- Privilege escalation attempts
-- Data exfiltration behaviors
-- Insider threats
+Incoming webhooks from providers are checked with their signatures before they are processed. Events from providers such as Bridge, Apple and Google are recorded once, so a repeated delivery does not run twice.
 
-### Compliance Benefits
+### Protecting Stored Data
 
-Zero-trust directly supports:
-- PSD2 strong customer authentication
-- GDPR data minimization
-- ISO 27001 access controls
-- SOC 2 security principles
+Sensitive fields are stored encrypted. Integrity checks use keyed hashes. Key material is cleared from memory after use.
 
-### Performance Impact
+### No Certification
 
-Despite comprehensive security:
-- <50ms authentication overhead
-- No user experience degradation
-- Automatic failover capabilities
-
-Your security is our top priority. Zero-trust ensures it stays that way.
+These controls support good security practice. They are not a certification. FinAegis holds no SOC 2, PCI DSS or ISO 27001 certification.
 EOT,
                 'category'        => 'security',
                 'author_name'     => 'Security Team',
                 'author_role'     => 'Information Security',
                 'author_initials' => 'ST',
-                'reading_time'    => 14,
+                'reading_time'    => 2,
                 'gradient_from'   => 'green-500',
                 'gradient_to'     => 'teal-500',
                 'is_published'    => true,

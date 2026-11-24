@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Multi-Asset Support',
-        'description' => 'Multi-asset account module: model balances in fiat currencies, crypto-assets and commodities in one ledger account.',
+        'description' => 'The multi-asset module keeps balances in fiat currencies, crypto-assets and commodities in one ledger account. It converts between them at current exchange rates.',
         'keywords' => 'multi-asset, multiple currencies, crypto, fiat, commodities, ' . config('brand.name', 'Zelta'),
     ])
 
@@ -28,7 +28,7 @@
             <div class="text-center">
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Multi-Asset Support</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    Multi-asset account module: model balances in fiat currencies, crypto-assets and commodities in one ledger account (sandbox demo, test data only).
+                    The multi-asset module keeps balances in fiat currencies, crypto-assets and commodities in one ledger account. The sandbox uses test data only.
                 </p>
             </div>
         </div>
@@ -41,7 +41,7 @@
             <div class="text-center mb-16">
                 <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Multiple Asset Types, One Ledger</h2>
                 <p class="text-lg text-slate-500 max-w-3xl mx-auto">
-                    {{ config('brand.name', 'Zelta') }}'s multi-asset module models diverse asset balances in one ledger account.
+                    One ledger account can hold several kinds of assets. Each asset keeps its own balance and its own precision.
                 </p>
             </div>
 
@@ -55,7 +55,7 @@
                     </div>
                     <h3 class="text-2xl font-bold mb-4">Fiat Currencies</h3>
                     <p class="text-slate-500 mb-6">
-                        Major global currencies with 2 decimal precision for traditional banking operations.
+                        Major currencies are kept with two decimal places, as in ordinary banking.
                     </p>
                     <div class="space-y-2">
                         <div class="flex items-center">
@@ -90,7 +90,7 @@
                     </div>
                     <h3 class="text-2xl font-bold mb-4">Cryptocurrencies</h3>
                     <p class="text-slate-500 mb-6">
-                        Popular digital assets with high precision (8 decimals) for accurate transactions.
+                        Common crypto-assets are kept with eight decimal places, so small amounts stay exact.
                     </p>
                     <div class="space-y-2">
                         <div class="flex items-center">
@@ -109,7 +109,7 @@
                             <span class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm font-bold mr-3 text-blue-600">$</span>
                             <span>USDC - USD Coin</span>
                         </div>
-                        <div class="text-gray-500 text-sm mt-2">+ Additional assets supported</div>
+                        <div class="text-gray-500 text-sm mt-2">Administrators can add more assets</div>
                     </div>
                 </div>
 
@@ -122,7 +122,7 @@
                     </div>
                     <h3 class="text-2xl font-bold mb-4">Commodities</h3>
                     <p class="text-slate-500 mb-6">
-                        Precious metals and other commodities.
+                        Precious metals can be modelled as assets too.
                     </p>
                     <div class="space-y-2">
                         <div class="flex items-center">
@@ -141,7 +141,7 @@
                             <span class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-sm font-bold mr-3">Pd</span>
                             <span>XPD - Palladium</span>
                         </div>
-                        <div class="text-gray-500 text-sm mt-2">+ Oil, Gas, Agricultural</div>
+                        <div class="text-gray-500 text-sm mt-2">Other commodities can be added as assets</div>
                     </div>
                 </div>
             </div>
@@ -155,15 +155,15 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
                 <div class="card-feature !p-8">
-                    <h3 class="text-2xl font-bold mb-6">Seamless Conversion</h3>
+                    <h3 class="text-2xl font-bold mb-6">Conversion</h3>
                     <ul class="space-y-4">
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
                             <div>
-                                <h4 class="font-semibold mb-1">Cross-Asset Transfers</h4>
-                                <p class="text-slate-500">Convert between any supported assets with real-time exchange rates and automatic execution.</p>
+                                <h4 class="font-semibold mb-1">Asset Conversion</h4>
+                                <p class="text-slate-500">The module converts an amount from one supported asset to another. It uses the current exchange rate.</p>
                             </div>
                         </li>
                         <li class="flex items-start">
@@ -172,7 +172,7 @@
                             </svg>
                             <div>
                                 <h4 class="font-semibold mb-1">Rate Provider Integration</h4>
-                                <p class="text-slate-500">Configurable exchange-rate providers with transparent pricing.</p>
+                                <p class="text-slate-500">You choose which exchange-rate providers the module uses.</p>
                             </div>
                         </li>
                         <li class="flex items-start">
@@ -181,7 +181,7 @@
                             </svg>
                             <div>
                                 <h4 class="font-semibold mb-1">Fee Display</h4>
-                                <p class="text-slate-500">Fee structure shown before conversion.</p>
+                                <p class="text-slate-500">The fee is shown before a conversion runs.</p>
                             </div>
                         </li>
                     </ul>
@@ -196,7 +196,7 @@
                             </svg>
                             <div>
                                 <h4 class="font-semibold mb-1">Unified Dashboard</h4>
-                                <p class="text-slate-500">View all your assets in one place with real-time valuations and performance tracking.</p>
+                                <p class="text-slate-500">The dashboard shows all assets in one place. It values them at current rates and tracks how they perform.</p>
                             </div>
                         </li>
                         <li class="flex items-start">
@@ -204,8 +204,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
                             <div>
-                                <h4 class="font-semibold mb-1">Automatic Rebalancing</h4>
-                                <p class="text-slate-500">Set target allocations and let the system automatically rebalance your portfolio.</p>
+                                <h4 class="font-semibold mb-1">Portfolio Rebalancing</h4>
+                                <p class="text-slate-500">The treasury module lets you set target weights for a portfolio. It can then rebalance the portfolio back to those weights.</p>
                             </div>
                         </li>
                         <li class="flex items-start">
@@ -214,7 +214,7 @@
                             </svg>
                             <div>
                                 <h4 class="font-semibold mb-1">Performance Analytics</h4>
-                                <p class="text-slate-500">Detailed reports showing returns, volatility, and asset performance over time.</p>
+                                <p class="text-slate-500">Reports show returns and volatility for each asset over time.</p>
                             </div>
                         </li>
                     </ul>
@@ -233,36 +233,36 @@
                     <div>
                         <h3 class="text-xl font-bold mb-4">Asset Management</h3>
                         <ul class="space-y-3 text-slate-500">
-                            <li>• Separate balance tracking for each asset type</li>
-                            <li>• Precision handling (2-8 decimals based on asset)</li>
-                            <li>• Real-time balance updates with atomic operations</li>
-                            <li>• Historical balance tracking for all assets</li>
+                            <li>• Each asset has its own balance</li>
+                            <li>• Two to eight decimal places, depending on the asset</li>
+                            <li>• Balances change in single, complete steps</li>
+                            <li>• Balance history for every asset</li>
                         </ul>
                     </div>
                     <div>
                         <h3 class="text-xl font-bold mb-4">Exchange Rate Engine</h3>
                         <ul class="space-y-3 text-slate-500">
-                            <li>• Multiple rate providers for best pricing</li>
-                            <li>• Automatic rate validation and age checking</li>
-                            <li>• Cached rates for instant conversions</li>
-                            <li>• Fallback mechanisms for high availability</li>
+                            <li>• Several rate providers to compare prices</li>
+                            <li>• Rates are checked for errors and for age</li>
+                            <li>• Recent rates are cached, so conversions are fast</li>
+                            <li>• A second provider is used when the first one fails</li>
                         </ul>
                     </div>
                     <div>
                         <h3 class="text-xl font-bold mb-4">Transaction Processing</h3>
                         <ul class="space-y-3 text-slate-500">
-                            <li>• Cross-asset transfers with automatic conversion</li>
-                            <li>• Transaction linking for audit trails</li>
-                            <li>• Event sourcing for complete history</li>
-                            <li>• Reversible transactions for error correction</li>
+                            <li>• Conversion between supported assets</li>
+                            <li>• Related transactions are linked for the audit trail</li>
+                            <li>• Every change is stored as an event, so the full history is kept</li>
+                            <li>• Batch operations can be reversed to correct errors</li>
                         </ul>
                     </div>
                     <div>
                         <h3 class="text-xl font-bold mb-4">Security & Compliance</h3>
                         <ul class="space-y-3 text-slate-500">
-                            <li>• Asset-specific validation rules</li>
-                            <li>• Separate storage for different asset types</li>
-                            <li>• Complete audit trails for all operations</li>
+                            <li>• Validation rules for each asset</li>
+                            <li>• Each asset type is stored separately</li>
+                            <li>• An audit trail for every operation</li>
                         </ul>
                     </div>
                 </div>
@@ -273,7 +273,7 @@
     <!-- API Integration -->
     <section class="py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12">Developer-Friendly APIs</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12">Multi-Asset API</h2>
             
             <div class="max-w-4xl mx-auto bg-gray-900 rounded-lg p-8 text-gray-300 font-mono text-sm">
                 <div class="mb-4">
@@ -314,7 +314,7 @@
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Explore the Multi-Asset Module</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                Explore the multi-asset module in the {{ config('brand.name', 'Zelta') }} sandbox
+                You can try the multi-asset module in the {{ config('brand.name', 'Zelta') }} sandbox with test data.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">

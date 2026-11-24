@@ -7,7 +7,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Plugin Marketplace - ' . $brand,
-        'description' => 'Browse, search, and discover plugins for the ' . $brand . ' platform. Extend banking, compliance, DeFi, and more.',
+        'description' => 'The plugin marketplace lists plugins for the ' . $brand . ' platform. You can search them by name, vendor and status. Plugins add features for banking, compliance, decentralised finance and more.',
         'keywords' => $brand . ', plugin marketplace, extensions, banking plugins, DeFi plugins, compliance plugins',
     ])
 @endsection
@@ -35,7 +35,7 @@
         <div class="text-center">
             <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Plugin Marketplace</h1>
             <p class="text-xl text-white/80 max-w-2xl mx-auto mb-8">
-                Extend {{ $brand }} with plugins for banking, compliance, DeFi, AI, and more.
+                Plugins add features to {{ $brand }}. They cover banking, compliance, decentralised finance, AI and more.
             </p>
 
             <!-- Stats -->
@@ -173,7 +173,7 @@
 <section class="bg-white py-12">
     <div class="max-w-3xl mx-auto px-4 text-center">
         <h2 class="text-2xl font-bold mb-3">Build Your Own Plugin</h2>
-        <p class="text-slate-600 mb-6">17 hooks, 12 permissions, sandboxed execution, and security scanning built in.</p>
+        <p class="text-slate-600 mb-6">A plugin can react to 17 platform events and ask for 12 kinds of permission. Plugins run in a sandbox, and a security scanner can check their code.</p>
         <a href="{{ route('developers.show', 'plugins') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors">
             Plugin Development Guide
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>

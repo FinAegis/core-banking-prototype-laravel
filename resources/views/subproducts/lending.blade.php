@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', config('brand.name', 'Zelta') . ' Lending - P2P Lending Module Demo')
+@section('title', config('brand.name', 'Zelta') . ' Lending - Peer-to-Peer Lending Module Demo')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => config('brand.name', 'Zelta') . ' Lending - P2P Lending Module Demo',
-        'description' => config('brand.name', 'Zelta') . ' Lending - P2P lending module demo: loan origination, automated credit scoring and smart contract collateral workflows (sandbox, test data only).',
-        'keywords' => config('brand.name', 'Zelta') . ' Lending, P2P lending module, loan origination, credit scoring',
+        'title' => config('brand.name', 'Zelta') . ' Lending - Peer-to-Peer Lending Module Demo',
+        'description' => 'The ' . config('brand.name', 'Zelta') . ' lending module handles peer-to-peer loans from application to repayment. It includes credit scoring and collateral management. The sandbox runs it with test data only.',
+        'keywords' => config('brand.name', 'Zelta') . ' Lending, peer-to-peer lending module, loan origination, credit scoring',
     ])
 
     <x-schema type="breadcrumb" :data="[['name' => 'Home', 'url' => url('/')], ['name' => 'Lending', 'url' => url('/subproducts/lending')]]" />
@@ -27,7 +27,7 @@
                         {{ config('brand.name', 'Zelta') }} Lending
                     </h1>
                     <p class="text-xl md:text-2xl text-slate-400 max-w-3xl mx-auto mb-8">
-                        P2P lending module demo: loan origination to repayment (sandbox, test data only)
+                        The lending module handles peer-to-peer loans from application to repayment. The sandbox runs it with test data only.
                     </p>
                 </div>
             </div>
@@ -46,7 +46,7 @@
                 <div class="text-center mb-16">
                     <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Lending Module Features</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        Lending module: loan origination, scoring and repayment workflows.
+                        The module covers loan applications, credit scoring and repayments.
                     </p>
                 </div>
 
@@ -86,25 +86,25 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-bold text-slate-900 mb-4">Smart Contracts</h3>
+                        <h3 class="text-xl font-bold text-slate-900 mb-4">Loan Records</h3>
                         <ul class="space-y-2 text-slate-600">
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Automated payments
+                                Collateral management
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Transparent terms
+                                Credit scoring and risk rating
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Settlement workflows
+                                Event-sourced loan history
                             </li>
                         </ul>
                     </div>
@@ -112,18 +112,18 @@
             </div>
         </section>
 
-        <!-- DeFi Lending Callout -->
+        <!-- Decentralised Finance Lending Callout -->
         <section class="py-12 bg-white">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="bg-gradient-to-r from-cyan-50 to-purple-50 rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between">
                     <div>
-                        <h3 class="text-2xl font-bold text-slate-900 mb-2">DeFi Lending & Flash Loans</h3>
+                        <h3 class="text-2xl font-bold text-slate-900 mb-2">Decentralised Lending and Flash Loans</h3>
                         <p class="text-slate-500 max-w-xl">
-                            DeFi lending adapters (e.g. Aave, Compound), including flash-loan workflows and market-rate comparison across protocols. Integration adapters for third-party APIs; no partnership or endorsement implied.
+                            The decentralised finance module has an adapter for the Aave lending protocol. It also includes a flash loan workflow. Integration adapters for third-party APIs; no partnership or endorsement implied.
                         </p>
                     </div>
                     <a href="{{ route('features.show', 'crosschain-defi') }}" class="mt-4 md:mt-0 inline-flex items-center px-6 py-3 bg-cyan-600 text-white rounded-lg font-semibold hover:bg-cyan-700 transition-colors flex-shrink-0">
-                        Explore Cross-Chain & DeFi
+                        Explore Decentralised Finance
                         <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                         </svg>
@@ -136,9 +136,9 @@
         <section class="bg-fa-navy relative overflow-hidden">
             <div class="absolute inset-0 bg-dot-pattern"></div>
             <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
-                <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Explore P2P Lending</h2>
+                <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Explore Peer-to-Peer Lending</h2>
                 <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                    Try the full lending lifecycle in our sandbox — from loan origination to repayment
+                    You can try the whole loan cycle in the sandbox. It starts with an application and ends with the last repayment.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('lending.index') }}" class="btn-primary px-8 py-4 text-lg">

@@ -5,8 +5,8 @@
 @section('seo')
     @include('partials.seo', [
         'title' => config('brand.name', 'Zelta') . ' Treasury - Treasury Module Demo',
-        'description' => config('brand.name', 'Zelta') . ' Treasury - Multi-bank cash-management and FX modules for enterprises (sandbox demo).',
-        'keywords' => config('brand.name', 'Zelta') . ' Treasury, cash management, FX optimization, corporate treasury',
+        'description' => 'The ' . config('brand.name', 'Zelta') . ' treasury module models cash allocation, portfolios, cash flow forecasts and risk for a business treasury. The sandbox runs it with test data only.',
+        'keywords' => config('brand.name', 'Zelta') . ' Treasury, cash management, portfolio management, corporate treasury',
     ])
 
     <x-schema type="breadcrumb" :data="[['name' => 'Home', 'url' => url('/')], ['name' => 'Treasury', 'url' => url('/subproducts/treasury')]]" />
@@ -27,7 +27,7 @@
                         {{ config('brand.name', 'Zelta') }} Treasury
                     </h1>
                     <p class="text-xl md:text-2xl text-slate-400 max-w-3xl mx-auto mb-8">
-                        Treasury module demo: cash management across multiple banks and currencies (sandbox, test data only)
+                        The treasury module models cash allocation, portfolios and cash flow forecasts. The sandbox runs it with test data only.
                     </p>
                 </div>
             </div>
@@ -46,7 +46,7 @@
                 <div class="text-center mb-16">
                     <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Treasury Module Features</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        Treasury workflows across multiple bank connectors
+                        The module covers portfolio management, risk and treasury reporting.
                     </p>
                 </div>
 
@@ -57,25 +57,25 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-bold text-slate-900 mb-4">Multi-Bank Management</h3>
+                        <h3 class="text-xl font-bold text-slate-900 mb-4">Portfolio Management</h3>
                         <ul class="space-y-2 text-slate-600">
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Unified dashboard
+                                Cash allocation strategies
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Automated sweeping
+                                Portfolio rebalancing with approval steps
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Risk diversification
+                                Asset valuation
                             </li>
                         </ul>
                     </div>
@@ -86,13 +86,13 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-bold text-slate-900 mb-4">FX Optimization</h3>
+                        <h3 class="text-xl font-bold text-slate-900 mb-4">Risk Management</h3>
                         <ul class="space-y-2 text-slate-600">
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Rate comparison
+                                Risk monitoring
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -104,7 +104,7 @@
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Multi-currency netting
+                                Performance tracking
                             </li>
                         </ul>
                     </div>
@@ -127,13 +127,13 @@
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Cash-position reporting
+                                Treasury reports
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Custom dashboards
+                                Dashboards
                             </li>
                         </ul>
                     </div>
@@ -148,11 +148,11 @@
                     <div>
                         <h3 class="text-2xl font-bold text-slate-900 mb-2">Multi-Chain Portfolio</h3>
                         <p class="text-slate-500 max-w-xl">
-                            Track treasury positions across multiple blockchains with DeFi protocol adapters.
+                            The cross-chain module tracks positions on several blockchains. It reads them through adapters for decentralised finance protocols.
                         </p>
                     </div>
                     <a href="{{ route('features.show', 'crosschain-defi') }}" class="mt-4 md:mt-0 inline-flex items-center px-6 py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-colors flex-shrink-0">
-                        Explore Cross-Chain & DeFi
+                        Explore Decentralised Finance
                         <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                         </svg>
@@ -167,7 +167,7 @@
             <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
                 <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Explore the Treasury Module</h2>
                 <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                    Explore multi-bank cash management and FX modules in the sandbox
+                    You can try cash allocation and portfolio management in the sandbox. It uses test data only.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('dashboard') }}" class="btn-primary px-8 py-4 text-lg">

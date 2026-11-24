@@ -3,12 +3,12 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="{{ config('brand.name', 'Zelta') }} Sub-Products - Optional demo modules of the open-source software: Exchange, Lending, Stablecoin, and Treasury reference implementations.">
+        <meta name="description" content="{{ config('brand.name', 'Zelta') }} has four optional demo modules for exchange, lending, stablecoins and treasury. Each one is a reference implementation in the open-source software.">
         <meta name="keywords" content="{{ config('brand.name', 'Zelta') }} sub-products, exchange module, lending module, stablecoin module, treasury module, open-source modules">
         
         <!-- Open Graph -->
         <meta property="og:title" content="{{ config('brand.name', 'Zelta') }} Sub-Products - Optional Software Modules">
-        <meta property="og:description" content="Optional open-source modules: exchange, lending, stablecoin and treasury reference implementations.">
+        <meta property="og:description" content="Four optional open-source modules for exchange, lending, stablecoins and treasury. Each one is a reference implementation.">
         <meta property="og:type" content="website">
         <meta property="og:url" content="{{ url('/sub-products') }}">
 
@@ -78,7 +78,7 @@
                         Optional Sub-Products
                     </h1>
                     <p class="text-xl md:text-2xl mb-8 text-slate-400 max-w-4xl mx-auto">
-                        Optional demo modules of the open-source software. Each module is an open-source component you can enable in your own deployment.
+                        These are optional modules of the open-source software. You can switch each one on in your own deployment.
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
                         <a href="{{ route('dashboard') }}" class="btn-primary px-8 py-4 text-lg">
@@ -105,7 +105,7 @@
                 <div class="text-center mb-16">
                     <h2 class="font-display text-4xl font-bold text-slate-900 mb-4">Demo Modules</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        Each sub-product is a reference implementation of the open-source software, shown in the sandbox with test data only.
+                        Each module is a reference implementation. The sandbox shows it with test data only.
                     </p>
                 </div>
 
@@ -123,7 +123,7 @@
                         
                         <h3 class="text-2xl font-bold text-slate-900 mb-4">{{ config('brand.name', 'Zelta') }} Exchange</h3>
                         <p class="text-slate-500 mb-6">
-                            Exchange module demo: order matching for crypto and fiat currency pairs (sandbox, test data only).
+                            The exchange module matches buy and sell orders for crypto and fiat currency pairs. The sandbox runs it with test data only.
                         </p>
                         
                         <div class="space-y-3 mb-6">
@@ -148,7 +148,7 @@
                         </div>
                         
                         <div class="flex items-center justify-between">
-                            <a href="{{ route('sub-products.show', 'exchange') }}" class="text-purple-600 font-semibold hover:text-purple-700">
+                            <a href="{{ route('subproducts.exchange') }}" class="text-purple-600 font-semibold hover:text-purple-700">
                                 Learn more →
                             </a>
                             <span class="text-sm text-gray-500">Sandbox demo</span>
@@ -168,7 +168,7 @@
                         
                         <h3 class="text-2xl font-bold text-slate-900 mb-4">{{ config('brand.name', 'Zelta') }} Lending</h3>
                         <p class="text-slate-500 mb-6">
-                            P2P lending module demo: loan origination, credit scoring and repayment workflows (sandbox, test data only).
+                            The lending module handles peer-to-peer loan applications, credit scoring and repayments. The sandbox runs it with test data only.
                         </p>
                         
                         <div class="space-y-3 mb-6">
@@ -176,13 +176,13 @@
                                 <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span>SME loan workflows</span>
+                                <span>Loan applications</span>
                             </div>
                             <div class="flex items-center text-slate-600">
                                 <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span>Invoice financing workflows</span>
+                                <span>Repayment schedules</span>
                             </div>
                             <div class="flex items-center text-slate-600">
                                 <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -193,7 +193,7 @@
                         </div>
                         
                         <div class="flex items-center justify-between">
-                            <a href="{{ route('sub-products.show', 'lending') }}" class="text-green-600 font-semibold hover:text-green-700">
+                            <a href="{{ route('subproducts.lending') }}" class="text-green-600 font-semibold hover:text-green-700">
                                 Learn more →
                             </a>
                             <span class="text-sm text-gray-500">Sandbox demo</span>
@@ -213,7 +213,7 @@
 
                         <h3 class="text-2xl font-bold text-slate-900 mb-4">{{ config('brand.name', 'Zelta') }} Stablecoins</h3>
                         <p class="text-slate-500 mb-6">
-                            Stablecoin module: model issuance, redemption and reserve tracking (sandbox, test data only). Reference implementation; no token is issued or offered.
+                            The stablecoin module models how a token is minted, redeemed and backed by reserves. The sandbox runs it with test data only. It is a reference implementation, and no token is issued or offered.
                         </p>
 
                         <div class="space-y-3 mb-6">
@@ -221,7 +221,7 @@
                                 <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span>Mint/redeem workflows</span>
+                                <span>Mint and redeem workflows</span>
                             </div>
                             <div class="flex items-center text-slate-600">
                                 <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -233,12 +233,12 @@
                                 <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span>Cross-chain bridge adapters</span>
+                                <span>Collateral liquidation</span>
                             </div>
                         </div>
 
                         <div class="flex items-center justify-between">
-                            <a href="{{ route('sub-products.show', 'stablecoins') }}" class="text-yellow-600 font-semibold hover:text-yellow-700">
+                            <a href="{{ route('subproducts.stablecoins') }}" class="text-yellow-600 font-semibold hover:text-yellow-700">
                                 Learn more →
                             </a>
                             <span class="text-sm text-gray-500">Sandbox demo</span>
@@ -258,7 +258,7 @@
 
                         <h3 class="text-2xl font-bold text-slate-900 mb-4">{{ config('brand.name', 'Zelta') }} Treasury</h3>
                         <p class="text-slate-500 mb-6">
-                            Treasury module demo: multi-bank cash-position modelling and automated portfolio rebalancing (sandbox, test data only).
+                            The treasury module models how cash is allocated and how portfolios are rebalanced. The sandbox runs it with test data only.
                         </p>
 
                         <div class="space-y-3 mb-6">
@@ -266,30 +266,30 @@
                                 <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span>Multi-bank allocation modelling</span>
+                                <span>Cash allocation strategies</span>
                             </div>
                             <div class="flex items-center text-slate-600">
                                 <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span>Automated rebalancing</span>
+                                <span>Portfolio rebalancing</span>
                             </div>
                             <div class="flex items-center text-slate-600">
                                 <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span>Risk optimization</span>
+                                <span>Risk management</span>
                             </div>
                             <div class="flex items-center text-slate-600">
                                 <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span>Corporate controls</span>
+                                <span>Approval steps for rebalancing</span>
                             </div>
                         </div>
 
                         <div class="flex items-center justify-between">
-                            <a href="{{ route('sub-products.show', 'treasury') }}" class="text-blue-600 font-semibold hover:text-blue-700">
+                            <a href="{{ route('subproducts.treasury') }}" class="text-blue-600 font-semibold hover:text-blue-700">
                                 Learn more →
                             </a>
                             <span class="text-sm text-gray-500">Sandbox demo</span>
@@ -305,7 +305,7 @@
             <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
                 <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Optional sub-product modules</h2>
                 <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                    Each module is an open-source component you can enable in your own deployment.
+                    Each module is an open-source component. You can switch it on in your own deployment.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">
@@ -325,10 +325,10 @@
                     <div>
                         <h4 class="text-white font-semibold mb-4">Sub-Products</h4>
                         <ul class="space-y-2">
-                            <li><a href="/sub-products/exchange" class="hover:text-white transition">Exchange</a></li>
-                            <li><a href="/sub-products/lending" class="hover:text-white transition">Lending</a></li>
-                            <li><a href="/sub-products/stablecoins" class="hover:text-white transition">Stablecoins</a></li>
-                            <li><a href="/sub-products/treasury" class="hover:text-white transition">Treasury</a></li>
+                            <li><a href="/subproducts/exchange" class="hover:text-white transition">Exchange</a></li>
+                            <li><a href="/subproducts/lending" class="hover:text-white transition">Lending</a></li>
+                            <li><a href="/subproducts/stablecoins" class="hover:text-white transition">Stablecoins</a></li>
+                            <li><a href="/subproducts/treasury" class="hover:text-white transition">Treasury</a></li>
                         </ul>
                     </div>
                     <div>
