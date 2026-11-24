@@ -5,8 +5,16 @@ namespace App\Domain\Account\Actions;
 use App\Domain\Account\Events\AssetBalanceSubtracted;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
+use App\Domain\Shared\EventSourcing\AppliedStoredEvents;
 use Exception;
 
+/**
+ * Projects AssetBalanceSubtracted onto account_balances for AccountProjector,
+ * the only projector of this event. The balance row is locked, and the stored
+ * event is claimed in the same transaction, so a replay or a second delivery
+ * changes nothing. A debit that finds no balance or too little money throws,
+ * as before, and the rollback gives the claim up.
+ */
 class DebitAccount extends AccountAction
 {
     public function __invoke(AssetBalanceSubtracted $event): Account
@@ -15,27 +23,32 @@ class DebitAccount extends AccountAction
             $event->aggregateRootUuid()
         );
 
-        // Find existing asset balance
-        $balance = AccountBalance::where(
-            [
-                'account_uuid' => $account->uuid,
-                'asset_code'   => $event->assetCode,
-            ]
-        )->first();
+        $connection = AccountBalance::query()->getConnection();
 
-        if (! $balance) {
-            throw new Exception("Asset balance not found for {$event->assetCode}");
-        }
+        $connection->transaction(function () use ($connection, $account, $event): void {
+            if (! AppliedStoredEvents::claim($connection, CreditAccount::PROJECTION, $event)) {
+                return;
+            }
 
-        // Subtract from balance amount (in smallest unit)
-        $balance->balance -= $event->amount;
+            $balance = AccountBalance::query()
+                ->where('account_uuid', $account->uuid)
+                ->where('asset_code', $event->assetCode)
+                ->lockForUpdate()
+                ->first();
 
-        // Ensure balance doesn't go negative (should be validated in aggregate)
-        if ($balance->balance < 0) {
-            throw new Exception("Insufficient balance for {$event->assetCode}");
-        }
+            if (! $balance) {
+                throw new Exception("Asset balance not found for {$event->assetCode}");
+            }
 
-        $balance->save();
+            // Ensure balance doesn't go negative (should be validated in aggregate)
+            if (! $balance->hasSufficientBalance($event->amount)) {
+                throw new Exception("Insufficient balance for {$event->assetCode}");
+            }
+
+            // Subtract from balance amount (in smallest unit)
+            $balance->balance -= $event->amount;
+            $balance->save();
+        }, 3);
 
         return $account->fresh();
     }
