@@ -254,9 +254,11 @@ class EventStoreService
         }
 
         $totalSnapshots = DB::table($snapshotTable)->count();
-        $uniqueAggregates = DB::table($snapshotTable)
-            ->distinct('aggregate_uuid')
-            ->count('aggregate_uuid');
+        // Not every snapshot table is keyed by aggregate (monitoring_metrics_snapshots
+        // is not); MySQL rejects the unknown column where SQLite does not.
+        $uniqueAggregates = Schema::hasColumn($snapshotTable, 'aggregate_uuid')
+            ? DB::table($snapshotTable)->distinct('aggregate_uuid')->count('aggregate_uuid')
+            : null;
         $oldest = DB::table($snapshotTable)->min('created_at');
         $newest = DB::table($snapshotTable)->max('created_at');
 

@@ -69,6 +69,30 @@ final class AppliedStoredEvents
             ->delete();
     }
 
+    /**
+     * Forget the claims of a projection, all of them or only those of the given
+     * stored events, so a rebuild of the projection applies the events again.
+     * Only a projection whose rows are reset at the same time may forget its
+     * claims; otherwise the next delivery books the money again.
+     *
+     * @param  list<int|string>|null  $storedEventIds
+     */
+    public static function forget(ConnectionInterface $connection, string $projection, ?array $storedEventIds = null): void
+    {
+        if ($storedEventIds === null) {
+            $connection->table(self::TABLE)->where('projection', $projection)->delete();
+
+            return;
+        }
+
+        foreach (array_chunk($storedEventIds, 1000) as $chunk) {
+            $connection->table(self::TABLE)
+                ->where('projection', $projection)
+                ->whereIn('stored_event_id', array_map('strval', $chunk))
+                ->delete();
+        }
+    }
+
     private static function assertInTransaction(ConnectionInterface $connection): void
     {
         if ($connection->transactionLevel() === 0) {
