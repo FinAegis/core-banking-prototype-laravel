@@ -98,22 +98,8 @@ DELETE /api/regulatory/reports/{filename}            # Delete report
 GET    /api/regulatory/metrics                       # Reporting metrics
 ```
 
-### Report Workflow Routes
-`routes/api/regulatory.php` also registers these routes. Their controller methods do not exist in `RegulatoryReportingController` yet, so they cannot work. Several of them also share a URI with the file routes above.
-```http
-GET  /api/regulatory/reports/{id}
-POST /api/regulatory/reports/generate
-POST /api/regulatory/reports/{id}/submit
-GET  /api/regulatory/reports/{id}/status
-GET  /api/regulatory/reports/{id}/download
-POST /api/regulatory/reports/{id}/amend
-GET  /api/regulatory/templates
-GET  /api/regulatory/jurisdictions
-GET  /api/regulatory/requirements
-GET  /api/regulatory/deadlines
-GET  /api/regulatory/filings
-GET  /api/regulatory/filings/{id}
-```
+### Report Workflow
+There are no HTTP endpoints for report templates, jurisdictions, requirements, deadlines, filings, submissions or amendments. The routes that named them were removed, because their controller methods never existed.
 
 There are no HTTP endpoints for thresholds or for filing retries. Use the services or `regulatory:manage` instead.
 

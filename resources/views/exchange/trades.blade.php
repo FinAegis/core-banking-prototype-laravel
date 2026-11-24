@@ -65,7 +65,7 @@
                         @forelse($trades as $trade)
                             @php
                                 $account = Auth::user()->account;
-                                $isBuyer = $account && $trade->buyer_account_id === $account->id;
+                                $isBuyer = $account && (string) $trade->buyer_account_id === (string) $account->id;
                                 $side = $isBuyer ? 'buy' : 'sell';
                                 $fee = $isBuyer ? $trade->buyer_fee : $trade->seller_fee;
                                 $role = ($isBuyer && $trade->maker_side === 'buy') || (!$isBuyer && $trade->maker_side === 'sell') ? 'maker' : 'taker';
@@ -132,19 +132,12 @@
                 Download your complete trade history for tax reporting or personal records.
             </p>
             <div class="flex gap-4">
-                <a href="{{ route('exchange.export-trades', ['format' => 'csv']) }}" 
+                <a href="{{ route('exchange.export-trades') }}" 
                    class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
                     </svg>
                     Export as CSV
-                </a>
-                <a href="{{ route('exchange.export-trades', ['format' => 'pdf']) }}" 
-                   class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                    Export as PDF
                 </a>
             </div>
         </div>

@@ -196,7 +196,7 @@
                         </x-dropdown>
                     </div>
 
-                    @if(auth()->user()->hasRole(['customer_business', 'developer', 'super_admin', 'bank_admin']))
+                    @if(auth()->user()?->hasRole(['customer_business', 'developer', 'super_admin', 'bank_admin']))
                         <x-nav-link href="{{ route('api-keys.index') }}" :active="request()->routeIs('api-keys.*')">
                             <div class="flex items-center">
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -229,7 +229,7 @@
                         </x-nav-link>
                     @endcan
                     
-                    @if(auth()->user()->hasRole(['super_admin', 'bank_admin', 'operations_manager', 'stablecoin_operator']))
+                    @if(auth()->user()?->hasRole(['super_admin', 'bank_admin', 'operations_manager', 'stablecoin_operator']))
                         <!-- Operations Dropdown -->
                         <div class="hidden sm:flex sm:items-center">
                             <x-dropdown align="left" width="48">
@@ -245,13 +245,13 @@
                                 </x-slot>
                                 
                                 <x-slot name="content">
-                                    @if(auth()->user()->hasRole(['super_admin', 'bank_admin', 'stablecoin_operator']))
-                                        <x-dropdown-link href="{{ route('stablecoin-operations.index') }}">
+                                    @if(auth()->user()?->hasRole(['super_admin', 'bank_admin', 'stablecoin_operator']))
+                                        <x-dropdown-link href="{{ route('wallet.stablecoin-operations.index') }}">
                                             {{ __('Stablecoin Operations') }}
                                         </x-dropdown-link>
                                     @endif
-                                    @if(auth()->user()->hasRole(['super_admin', 'bank_admin', 'operations_manager']))
-                                        <x-dropdown-link href="{{ route('custodian-integration.index') }}">
+                                    @if(auth()->user()?->hasRole(['super_admin', 'bank_admin', 'operations_manager']))
+                                        <x-dropdown-link href="{{ route('wallet.custodian-integration.index') }}">
                                             {{ __('Custodian Integration') }}
                                         </x-dropdown-link>
                                     @endif
@@ -309,6 +309,7 @@
             </div>
 
             <div class="hidden sm:flex sm:items-center sm:ms-6">
+                @auth
                 <!-- Teams Dropdown -->
                 {{-- currentTeam can be null for users provisioned outside the team-creating
                      signup paths (e.g. an interrupted signup). Guard the dereferences below
@@ -421,6 +422,15 @@
                         </x-slot>
                     </x-dropdown>
                 </div>
+                @else
+                    <!-- Guest links -->
+                    @if (Route::has('login'))
+                        <a href="{{ route('login') }}" class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">{{ __('Log in') }}</a>
+                    @endif
+                    @if (Route::has('register'))
+                        <a href="{{ route('register') }}" class="ms-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">{{ __('Register') }}</a>
+                    @endif
+                @endauth
             </div>
 
             <!-- Hamburger -->
@@ -485,6 +495,7 @@
         </div>
 
         <!-- Responsive Settings Options -->
+        @auth
         <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">
             <div class="flex items-center px-4">
                 @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
@@ -555,5 +566,22 @@
                 @endif
             </div>
         </div>
+        @else
+            <!-- Guest links -->
+            <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">
+                <div class="mt-3 space-y-1">
+                    @if (Route::has('login'))
+                        <x-responsive-nav-link href="{{ route('login') }}" :active="request()->routeIs('login')">
+                            {{ __('Log in') }}
+                        </x-responsive-nav-link>
+                    @endif
+                    @if (Route::has('register'))
+                        <x-responsive-nav-link href="{{ route('register') }}" :active="request()->routeIs('register')">
+                            {{ __('Register') }}
+                        </x-responsive-nav-link>
+                    @endif
+                </div>
+            </div>
+        @endauth
     </div>
 </nav>

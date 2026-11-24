@@ -36288,11 +36288,6 @@ parameters:
 			count: 1
 			path: app/Http/Controllers/ExchangeRateViewController.php
 
-		-
-			message: '#^Method App\\Http\\Controllers\\ExternalExchangeController\:\:arbitrage\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Http/Controllers/ExternalExchangeController.php
 
 		-
 			message: '#^Method App\\Http\\Controllers\\ExternalExchangeController\:\:connect\(\) has no return type specified\.$#'
@@ -36306,17 +36301,7 @@ parameters:
 			count: 1
 			path: app/Http/Controllers/ExternalExchangeController.php
 
-		-
-			message: '#^Method App\\Http\\Controllers\\ExternalExchangeController\:\:executeArbitrage\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Http/Controllers/ExternalExchangeController.php
 
-		-
-			message: '#^Method App\\Http\\Controllers\\ExternalExchangeController\:\:getActiveArbitrageStrategies\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Http/Controllers/ExternalExchangeController.php
 
 		-
 			message: '#^Method App\\Http\\Controllers\\ExternalExchangeController\:\:getConnectedExchanges\(\) has no return type specified\.$#'
@@ -36330,23 +36315,8 @@ parameters:
 			count: 1
 			path: app/Http/Controllers/ExternalExchangeController.php
 
-		-
-			message: '#^Method App\\Http\\Controllers\\ExternalExchangeController\:\:getHistoricalArbitragePerformance\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Http/Controllers/ExternalExchangeController.php
 
-		-
-			message: '#^Method App\\Http\\Controllers\\ExternalExchangeController\:\:getOurExchangePrices\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Http/Controllers/ExternalExchangeController.php
 
-		-
-			message: '#^Method App\\Http\\Controllers\\ExternalExchangeController\:\:getPriceAlignmentHistory\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Http/Controllers/ExternalExchangeController.php
 
 		-
 			message: '#^Method App\\Http\\Controllers\\ExternalExchangeController\:\:getPriceComparisons\(\) has no return type specified\.$#'
@@ -36360,17 +36330,7 @@ parameters:
 			count: 1
 			path: app/Http/Controllers/ExternalExchangeController.php
 
-		-
-			message: '#^Method App\\Http\\Controllers\\ExternalExchangeController\:\:getRecommendedPriceAdjustments\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Http/Controllers/ExternalExchangeController.php
 
-		-
-			message: '#^Method App\\Http\\Controllers\\ExternalExchangeController\:\:getSupportedArbitragePairs\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Http/Controllers/ExternalExchangeController.php
 
 		-
 			message: '#^Method App\\Http\\Controllers\\ExternalExchangeController\:\:index\(\) has no return type specified\.$#'
@@ -36378,17 +36338,7 @@ parameters:
 			count: 1
 			path: app/Http/Controllers/ExternalExchangeController.php
 
-		-
-			message: '#^Method App\\Http\\Controllers\\ExternalExchangeController\:\:priceAlignment\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Http/Controllers/ExternalExchangeController.php
 
-		-
-			message: '#^Method App\\Http\\Controllers\\ExternalExchangeController\:\:updatePriceAlignment\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Http/Controllers/ExternalExchangeController.php
 
 		-
 			message: '#^Method App\\Http\\Controllers\\FinancialInstitutionApplicationController\:\:show\(\) has no return type specified\.$#'
@@ -36594,11 +36544,6 @@ parameters:
 			count: 1
 			path: app/Http/Controllers/GCUController.php
 
-		-
-			message: '#^Method App\\Http\\Controllers\\GcuTradingController\:\:index\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Http/Controllers/GcuTradingController.php
 
 		-
 			message: '#^Method App\\Http\\Controllers\\GcuVotingController\:\:create\(\) has no return type specified\.$#'

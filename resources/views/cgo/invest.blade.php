@@ -193,7 +193,7 @@
                             </svg>
                             View on GitHub
                         </a>
-                        <a href="{{ route('developers.index') }}"
+                        <a href="{{ route('developers') }}"
                            class="inline-flex items-center px-6 py-3 border-2 border-white text-white font-semibold rounded-lg hover:bg-white/10 transition">
                             Developer Documentation
                         </a>

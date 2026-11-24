@@ -2373,7 +2373,7 @@ parameters:
 		-
 			message: '#^Cannot access property \$uuid on App\\Models\\User\|null\.$#'
 			identifier: property.nonObject
-			count: 8
+			count: 5
 			path: app/Http/Controllers/ExternalExchangeController.php
 
 		-
@@ -2412,11 +2412,6 @@ parameters:
 			count: 2
 			path: app/Http/Controllers/FundFlowController.php
 
-		-
-			message: '#^Cannot call method getBalance\(\) on Illuminate\\Database\\Eloquent\\Model\|null\.$#'
-			identifier: method.nonObject
-			count: 2
-			path: app/Http/Controllers/GcuTradingController.php
 
 		-
 			message: '#^Cannot access property \$uuid on App\\Models\\User\|null\.$#'

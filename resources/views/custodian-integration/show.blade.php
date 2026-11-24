@@ -4,7 +4,7 @@
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 {{ $custodian['name'] }} - Integration Details
             </h2>
-            <a href="{{ route('custodian-integration.index') }}" 
+            <a href="{{ route('wallet.custodian-integration.index') }}" 
                class="text-gray-600 hover:text-gray-900">
                 ← Back to Overview
             </a>
@@ -94,7 +94,7 @@
                                 class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                             Test Connection
                         </button>
-                        <form method="POST" action="{{ route('custodian-integration.synchronize', $custodian['code']) }}" class="inline">
+                        <form method="POST" action="{{ route('wallet.custodian-integration.synchronize', $custodian['code']) }}" class="inline">
                             @csrf
                             <button type="submit"
                                     class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
@@ -323,7 +323,7 @@
         });
 
         function testConnection(custodianCode) {
-            fetch(`/custodian-integration/${custodianCode}/test-connection`, {
+            fetch(`{{ url('/wallet/custodian-integration') }}/${custodianCode}/test-connection`, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',

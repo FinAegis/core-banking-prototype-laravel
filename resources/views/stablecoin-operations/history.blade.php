@@ -4,7 +4,7 @@
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 {{ __('Stablecoin Operation History') }}
             </h2>
-            <a href="{{ route('stablecoin-operations.index') }}" 
+            <a href="{{ route('wallet.stablecoin-operations.index') }}" 
                class="text-gray-600 hover:text-gray-900">
                 ← Back to Operations
             </a>
@@ -16,7 +16,7 @@
             <!-- Filters -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg mb-6">
                 <div class="p-6">
-                    <form method="GET" action="{{ route('stablecoin-operations.history') }}" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <form method="GET" action="{{ route('wallet.stablecoin-operations.history') }}" class="grid grid-cols-1 md:grid-cols-5 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 Operation Type

@@ -27,7 +27,7 @@
                             <div class="mt-4 grid grid-cols-4 gap-4 text-sm">
                                 <div>
                                     <p class="text-gray-500 dark:text-gray-400">Illustrative demo value</p>
-                                    <p class="font-semibold">${{ $currentPrice ? number_format($currentPrice->price_usd, 4) : '1.1000' }}</p>
+                                    <p class="font-semibold">{{ $currentValue ? '$' . number_format($currentValue->value, 4) : 'Not available yet' }}</p>
                                 </div>
                             </div>
                         </div>
@@ -37,7 +37,7 @@
                     <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6">
                             <h3 class="text-lg font-semibold mb-4">Your Simulated Conversions (demo)</h3>
-                            @if($recentTrades->count() > 0)
+                            @if($recentConversions->count() > 0)
                                 <div class="overflow-x-auto">
                                     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                         <thead>
@@ -45,24 +45,23 @@
                                                 <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Time</th>
                                                 <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Type</th>
                                                 <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Amount</th>
-                                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Price</th>
                                                 <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                            @foreach($recentTrades as $trade)
+                                            @foreach($recentConversions as $conversion)
+                                                @php($isBuy = $conversion->type === 'transfer_in')
                                                 <tr>
-                                                    <td class="px-3 py-2 text-sm">{{ \Carbon\Carbon::parse($trade->created_at)->format('H:i:s') }}</td>
+                                                    <td class="px-3 py-2 text-sm">{{ $conversion->created_at?->format('Y-m-d H:i') }}</td>
                                                     <td class="px-3 py-2 text-sm">
-                                                        <span class="text-{{ $trade->amount > 0 ? 'green' : 'red' }}-600">
-                                                            {{ $trade->amount > 0 ? 'Buy' : 'Sell' }}
+                                                        <span class="{{ $isBuy ? 'text-green-600' : 'text-red-600' }}">
+                                                            {{ $isBuy ? 'Buy' : 'Sell' }}
                                                         </span>
                                                     </td>
-                                                    <td class="px-3 py-2 text-sm">{{ number_format(abs($trade->amount) / 100, 2) }} GCU</td>
-                                                    <td class="px-3 py-2 text-sm">$1.1000</td>
+                                                    <td class="px-3 py-2 text-sm">{{ number_format(abs($conversion->amount) / 100, 2) }} GCU</td>
                                                     <td class="px-3 py-2 text-sm">
                                                         <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                                                            {{ ucfirst($trade->status) }}
+                                                            {{ ucfirst($conversion->status) }}
                                                         </span>
                                                     </td>
                                                 </tr>
@@ -116,17 +115,14 @@
                             </div>
 
                             <!-- Buy Form -->
-                            <form id="buyForm" action="{{ route('api.exchange') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="from_currency" value="USD">
-                                <input type="hidden" name="to_currency" value="GCU">
+                            <form id="buyForm" data-endpoint="{{ url('/api/v2/gcu/buy') }}">
                                 
                                 <div class="space-y-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                             Amount (USD)
                                         </label>
-                                        <input type="number" name="amount" step="0.01" min="0.01" 
+                                        <input type="number" name="amount" step="0.01" min="100" required
                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                                                placeholder="100.00">
                                     </div>
@@ -141,9 +137,12 @@
                                     </div>
                                     
                                     <div class="text-sm text-gray-600 dark:text-gray-400">
-                                        <p>Illustrative demo rate: 1 GCU = ${{ $currentPrice ? number_format($currentPrice->price_usd, 4) : '1.1000' }}</p>
+                                        <p>Illustrative demo rate: 1 GCU = {{ $currentValue ? '$' . number_format($currentValue->value, 4) : 'not available yet' }}</p>
+                                        <p>The demo conversion fee is 1%. The smallest purchase is 100 USD.</p>
                                     </div>
-                                    
+
+                                    <p data-role="message" class="hidden text-sm text-red-600" role="alert"></p>
+
                                     <button type="submit" class="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
                                         Buy (demo)
                                     </button>
@@ -151,19 +150,16 @@
                             </form>
 
                             <!-- Sell Form (hidden by default) -->
-                            <form id="sellForm" action="{{ route('api.exchange') }}" method="POST" class="hidden">
-                                @csrf
-                                <input type="hidden" name="from_currency" value="GCU">
-                                <input type="hidden" name="to_currency" value="USD">
+                            <form id="sellForm" data-endpoint="{{ url('/api/v2/gcu/sell') }}" class="hidden">
                                 
                                 <div class="space-y-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                             Amount (GCU)
                                         </label>
-                                        <input type="number" name="amount" step="0.01" min="0.01" 
+                                        <input type="number" name="amount" step="0.01" min="10" required
                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                                               placeholder="100.00">
+                                               placeholder="10.00">
                                     </div>
                                     
                                     <div>
@@ -176,9 +172,12 @@
                                     </div>
                                     
                                     <div class="text-sm text-gray-600 dark:text-gray-400">
-                                        <p>Illustrative demo rate: 1 GCU = ${{ $currentPrice ? number_format($currentPrice->price_usd, 4) : '1.1000' }}</p>
+                                        <p>Illustrative demo rate: 1 GCU = {{ $currentValue ? '$' . number_format($currentValue->value, 4) : 'not available yet' }}</p>
+                                        <p>The demo conversion fee is 1%. The smallest sale is 10 GCU.</p>
                                     </div>
-                                    
+
+                                    <p data-role="message" class="hidden text-sm text-red-600" role="alert"></p>
+
                                     <button type="submit" class="w-full py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
                                         Sell (demo)
                                     </button>
@@ -212,20 +211,65 @@
             document.getElementById('buyTab').classList.add('bg-gray-200', 'text-gray-700');
         });
         
-        // Calculate exchange amounts
-        const exchangeRate = {{ $currentPrice ? $currentPrice->price_usd : 1.1 }};
-        const fee = 0.001; // 0.1%
-        
+        // Estimate with the same 1% fee as /api/v2/gcu/quote. The API books
+        // the conversion and returns the exact amounts.
+        const gcuValueUsd = {{ $currentValue ? (float) $currentValue->value : 'null' }};
+        const fee = 0.01;
+
         document.querySelector('#buyForm input[name="amount"]').addEventListener('input', function(e) {
             const usdAmount = parseFloat(e.target.value) || 0;
-            const gcuAmount = (usdAmount / exchangeRate) * (1 - fee);
-            document.querySelector('#buyForm input[readonly]').value = gcuAmount.toFixed(2);
+            document.querySelector('#buyForm input[readonly]').value = gcuValueUsd
+                ? ((usdAmount * (1 - fee)) / gcuValueUsd).toFixed(2)
+                : '';
         });
-        
+
         document.querySelector('#sellForm input[name="amount"]').addEventListener('input', function(e) {
             const gcuAmount = parseFloat(e.target.value) || 0;
-            const usdAmount = (gcuAmount * exchangeRate) * (1 - fee);
-            document.querySelector('#sellForm input[readonly]').value = usdAmount.toFixed(2);
+            document.querySelector('#sellForm input[readonly]').value = gcuValueUsd
+                ? (gcuAmount * gcuValueUsd * (1 - fee)).toFixed(2)
+                : '';
+        });
+
+        // Both forms call the GCU demo API with the signed-in web session.
+        document.querySelectorAll('#buyForm, #sellForm').forEach(function(form) {
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const message = form.querySelector('[data-role="message"]');
+                const button = form.querySelector('button[type="submit"]');
+                const fallback = 'The demo conversion did not go through. Please try again.';
+                message.classList.add('hidden');
+                button.disabled = true;
+
+                try {
+                    const response = await fetch(form.dataset.endpoint, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        },
+                        body: JSON.stringify({
+                            amount: form.querySelector('input[name="amount"]').value,
+                            currency: 'USD',
+                        }),
+                    });
+
+                    if (response.ok) {
+                        window.location.reload();
+                        return;
+                    }
+
+                    const body = await response.json().catch(function() { return {}; });
+                    message.textContent = body.message || fallback;
+                } catch (error) {
+                    message.textContent = fallback;
+                }
+
+                message.classList.remove('hidden');
+                button.disabled = false;
+            });
         });
     </script>
     @endpush

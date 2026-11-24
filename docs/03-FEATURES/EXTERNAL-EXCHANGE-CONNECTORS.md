@@ -87,8 +87,7 @@ The scheduled arbitrage job only logs what it finds. It does not trade.
 `ExternalLiquidityService` also has `provideLiquidity()` and `alignPrices()`.
 They place internal orders priced from the outside markets.
 At v7.18.1 no route or scheduled job calls them.
-The web page `/exchange/external/price-alignment` does not work at v7.18.1.
-Its controller calls `getPriceDiscrepancies()` and `updateAlignmentSettings()`, which `PriceAggregator` does not define.
+The price alignment web page was removed, because it read tables that no migration creates.
 Moving funds between exchanges is not implemented.
 
 ## API Endpoints

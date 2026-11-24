@@ -8,9 +8,11 @@ use App\Domain\Exchange\Projections\Trade;
 use App\Domain\Exchange\Services\ExchangeService;
 use App\Models\User;
 use Exception;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use OpenApi\Attributes as OA;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 #[OA\Tag(
     name: 'Exchange',
@@ -171,6 +173,68 @@ class ExchangeController extends Controller
                 'trades'    => $trades,
                 'totalFees' => $totalFees,
             ]
+        );
+    }
+
+        #[OA\Get(
+            path: '/exchange/export-trades',
+            operationId: 'exchangeExportTrades',
+            tags: ['Exchange'],
+            summary: 'Export trades as CSV',
+            description: 'Downloads the user trade history as a CSV file',
+            security: [['sanctum' => []]]
+        )]
+    #[OA\Response(
+        response: 200,
+        description: 'CSV file with the user trades'
+    )]
+    public function exportTrades(): StreamedResponse|RedirectResponse
+    {
+        $account = Auth::user()?->account;
+
+        if (! $account) {
+            return redirect()->route('dashboard')->with('error', 'Please complete your account setup first.');
+        }
+
+        // Same account key as trades(): web orders store the account id.
+        $accountId = (string) $account->id;
+
+        return response()->streamDownload(
+            function () use ($accountId): void {
+                $output = fopen('php://output', 'w');
+                if ($output === false) {
+                    return;
+                }
+
+                fputcsv($output, [
+                    'Date', 'Trade ID', 'Pair', 'Side', 'Role', 'Price', 'Amount', 'Value', 'Fee', 'Fee currency',
+                ]);
+
+                Trade::forAccount($accountId)
+                    ->orderBy('created_at', 'desc')
+                    ->lazy()
+                    ->each(function (Trade $trade) use ($output, $accountId): void {
+                        $isBuyer = (string) $trade->buyer_account_id === $accountId;
+                        $isMaker = $trade->maker_side === ($isBuyer ? 'buy' : 'sell');
+
+                        fputcsv($output, [
+                            $trade->created_at?->format('Y-m-d H:i:s'),
+                            $trade->trade_id,
+                            $trade->pair,
+                            $isBuyer ? 'buy' : 'sell',
+                            $isMaker ? 'maker' : 'taker',
+                            $trade->price,
+                            $trade->amount,
+                            $trade->value,
+                            $isBuyer ? $trade->buyer_fee : $trade->seller_fee,
+                            $trade->quote_currency,
+                        ]);
+                    });
+
+                fclose($output);
+            },
+            'trades-' . now()->format('Y-m-d') . '.csv',
+            ['Content-Type' => 'text/csv; charset=UTF-8']
         );
     }
 

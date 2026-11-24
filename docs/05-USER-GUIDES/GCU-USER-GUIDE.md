@@ -46,7 +46,7 @@ curl -X POST https://finaegis.org/api/v2/gcu/buy \
   -d '{"amount": 100, "currency": "EUR"}'
 ```
 
-The web page at `/gcu/trading` is meant to show the same conversion with your balances and the recent price history. At v7.18.1 the page does not load, because its forms point to a route name that does not exist. Use the API until it is fixed.
+The web page at `/gcu/trading` shows your demo balances, the latest illustrative GCU value and your recent demo conversions. Its buy and sell forms call `/api/v2/gcu/buy` and `/api/v2/gcu/sell` with your signed-in session. The page converts US dollars only.
 
 ### Understanding the Illustrative GCU Value
 

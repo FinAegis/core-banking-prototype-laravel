@@ -4,7 +4,7 @@
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 {{ __('Burn Stablecoin') }}
             </h2>
-            <a href="{{ route('stablecoin-operations.index') }}" 
+            <a href="{{ route('wallet.stablecoin-operations.index') }}" 
                class="text-gray-600 hover:text-gray-900">
                 ← Back to Operations
             </a>
@@ -42,7 +42,7 @@
             <!-- Burn Form -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
                 <div class="p-6">
-                    <form method="POST" action="{{ route('stablecoin-operations.burn.process') }}">
+                    <form method="POST" action="{{ route('wallet.stablecoin-operations.burn.process') }}">
                         @csrf
                         <input type="hidden" name="stablecoin" value="{{ $stablecoin }}">
                         
@@ -189,7 +189,7 @@
 
                         <!-- Actions -->
                         <div class="flex justify-end space-x-3">
-                            <a href="{{ route('stablecoin-operations.index') }}" 
+                            <a href="{{ route('wallet.stablecoin-operations.index') }}" 
                                class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
                                 Cancel
                             </a>

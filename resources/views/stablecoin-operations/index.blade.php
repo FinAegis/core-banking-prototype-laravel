@@ -5,7 +5,7 @@
                 {{ __('Stablecoin Operations') }}
             </h2>
             <div class="flex space-x-2">
-                <a href="{{ route('stablecoin-operations.mint') }}" 
+                <a href="{{ route('wallet.stablecoin-operations.mint') }}" 
                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
                     <span class="flex items-center">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -14,7 +14,7 @@
                         Mint
                     </span>
                 </a>
-                <a href="{{ route('stablecoin-operations.burn') }}" 
+                <a href="{{ route('wallet.stablecoin-operations.burn') }}" 
                    class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
                     <span class="flex items-center">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -23,7 +23,7 @@
                         Burn
                     </span>
                 </a>
-                <a href="{{ route('stablecoin-operations.history') }}" 
+                <a href="{{ route('wallet.stablecoin-operations.history') }}" 
                    class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
                     History
                 </a>
@@ -120,9 +120,9 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                             @if($stablecoin['active'])
-                                                <a href="{{ route('stablecoin-operations.mint', ['stablecoin' => $stablecoin['symbol']]) }}" 
+                                                <a href="{{ route('wallet.stablecoin-operations.mint', ['stablecoin' => $stablecoin['symbol']]) }}" 
                                                    class="text-green-600 hover:text-green-900 mr-3">Mint</a>
-                                                <a href="{{ route('stablecoin-operations.burn', ['stablecoin' => $stablecoin['symbol']]) }}" 
+                                                <a href="{{ route('wallet.stablecoin-operations.burn', ['stablecoin' => $stablecoin['symbol']]) }}" 
                                                    class="text-red-600 hover:text-red-900">Burn</a>
                                             @endif
                                         </td>
@@ -166,7 +166,7 @@
                 <div class="p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold">Recent Operations</h3>
-                        <a href="{{ route('stablecoin-operations.history') }}" 
+                        <a href="{{ route('wallet.stablecoin-operations.history') }}" 
                            class="text-indigo-600 hover:text-indigo-900 text-sm">
                             View All →
                         </a>
