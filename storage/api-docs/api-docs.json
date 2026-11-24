@@ -24574,7 +24574,7 @@
                     "GDPR"
                 ],
                 "summary": "Request account deletion (GDPR Article 17)",
-                "description": "Request complete deletion of account and personal data (right to be forgotten)",
+                "description": "Erases the account's personal data right away (right to be forgotten) and keeps the records the law requires in anonymous form. All tokens are revoked after the erasure has succeeded.",
                 "operationId": "requestGdprAccountDeletion",
                 "requestBody": {
                     "required": true,
@@ -24603,14 +24603,14 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Deletion request successful",
+                        "description": "Account closed and personal data erased",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "message": {
                                             "type": "string",
-                                            "example": "Account deletion request processed. Your account will be deleted within 30 days."
+                                            "example": "Your account is closed and your personal data has been erased. We keep some records where the law requires it."
                                         }
                                     },
                                     "type": "object"
