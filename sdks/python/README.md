@@ -50,7 +50,7 @@ client = FinAegis(
     api_key='your-api-key',
     environment='production',  # 'production' | 'sandbox' | 'local'
     timeout=30,  # Request timeout in seconds
-    max_retries=3  # Number of retries for failed requests
+    max_retries=3  # Retries after a connection error, a timeout, a 429 or a 5xx; 0 turns them off
 )
 ```
 
@@ -322,6 +322,24 @@ client = FinAegis(
     timeout=60      # Increase timeout
 )
 ```
+
+### Retries and Idempotency
+
+The client sends a failed request again after a connection error, a timeout, a 5xx or a 429 answer. Every POST carries an `Idempotency-Key` header, and a retry sends the same key. The API then returns the first answer instead of running the call again, so a retried transfer moves money only once.
+
+The client makes a new key for each call. Pass your own key when you may repeat the same call later, for example after your process restarts:
+
+```python
+transfer = client.transfers.create(
+    from_account='account-uuid-1',
+    to_account='account-uuid-2',
+    amount=100,
+    asset_code='USD',
+    idempotency_key='order-1234-payout',
+)
+```
+
+The same key with a different body is refused with HTTP 409. A key must be a UUID, or 16 to 64 letters, digits, dashes or underscores.
 
 ## Examples
 
