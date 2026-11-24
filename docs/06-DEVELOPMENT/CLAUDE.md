@@ -225,7 +225,6 @@ php artisan evm:backfill-transactions              # EVM history from Alchemy
 # (spatie matches the fully qualified class name)
 php artisan event-sourcing:replay "App\Domain\Account\Projectors\AccountProjector"
 php artisan event-sourcing:replay "App\Domain\Account\Projectors\TurnoverProjector"
-php artisan event-sourcing:replay "App\Domain\Account\Projectors\TransactionProjector"
 php artisan event-sourcing:replay "App\Domain\Asset\Projectors\AssetTransactionProjector"
 php artisan event-sourcing:replay "App\Domain\Asset\Projectors\AssetTransferProjector"
 php artisan event-sourcing:replay "App\Domain\Asset\Projectors\ExchangeRateProjector"
@@ -391,7 +390,7 @@ workflows are `OrderMatchingWorkflow` and `MarketMakerWorkflow`.
 ### Event Sourcing Architecture
 - **Aggregates**: `LedgerAggregate`, `TransactionAggregate`, `TransferAggregate`, `AssetTransactionAggregate`, `AssetTransferAggregate`
 - **Events**: `AccountCreated`, `MoneyAdded`, `MoneySubtracted`, `MoneyTransferred`, `AssetBalanceAdded`, `AssetBalanceSubtracted`, `AssetTransferred`, `AssetTransactionCreated`, `AssetTransferInitiated/Completed/Failed`, `ExchangeRateUpdated`
-- **Projectors**: Build read models from events (`AccountProjector`, `TurnoverProjector`, `TransactionProjector`, `AssetTransactionProjector`, `AssetTransferProjector`, `ExchangeRateProjector`)
+- **Projectors**: Build read models from events (`AccountProjector`, `TurnoverProjector`, `AssetTransactionProjector`, `AssetTransferProjector`, `ExchangeRateProjector`)
 - **Reactors**: Handle side effects (`SnapshotTransactionsReactor`, `SnapshotTransfersReactor`)
 
 ### GraphQL API (v4.0.0-v5.1.0)

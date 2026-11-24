@@ -6,20 +6,24 @@ namespace App\Domain\Asset\Projectors;
 
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
+use App\Domain\Account\Models\TransactionProjection;
 use App\Domain\Asset\Events\AssetTransactionCreated;
 use App\Domain\Shared\EventSourcing\AppliedStoredEvents;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Spatie\EventSourcing\EventHandlers\Projectors\Projector;
 
 /**
- * Applies single-account asset credits and debits to account_balances.
+ * Applies single-account asset credits and debits to account_balances and
+ * writes their history row.
  *
- * Each stored event is applied once. The transaction that changes the balance
- * also claims the stored event in applied_stored_events, so a replay or a
- * second delivery changes nothing. A debit that finds too little money is
- * logged and skipped, as before, and its claim is given up, so a later
- * delivery can still apply it.
+ * The balance change and the history row are written in one transaction, so
+ * the history follows the balance: a debit that finds too little money is
+ * logged and skipped, as before, and writes no history row. Each stored event
+ * is applied once. The same transaction claims the stored event in
+ * applied_stored_events, so a replay or a second delivery changes nothing. A
+ * refused debit gives its claim up, so a later delivery can still apply it.
  */
 class AssetTransactionProjector extends Projector
 {
@@ -71,17 +75,15 @@ class AssetTransactionProjector extends Projector
 
                 if ($event->isCredit()) {
                     $accountBalance->credit($event->getAmount());
-
-                    return [self::APPLIED, $accountBalance->balance];
-                }
-
-                if (! $accountBalance->hasSufficientBalance($event->getAmount())) {
+                } elseif ($accountBalance->hasSufficientBalance($event->getAmount())) {
+                    $accountBalance->debit($event->getAmount());
+                } else {
                     AppliedStoredEvents::release($connection, self::PROJECTION, $event);
 
                     return [self::INSUFFICIENT, $accountBalance->balance];
                 }
 
-                $accountBalance->debit($event->getAmount());
+                $this->writeHistory($event, $accountUuid);
 
                 return [self::APPLIED, $accountBalance->balance];
             }, 3);
@@ -115,7 +117,6 @@ class AssetTransactionProjector extends Projector
                 return;
             }
 
-            // The history row comes from the account TransactionProjector.
             Log::info(
                 'Asset transaction processed successfully',
                 [
@@ -141,5 +142,24 @@ class AssetTransactionProjector extends Projector
 
             throw $e;
         }
+    }
+
+    private function writeHistory(AssetTransactionCreated $event, string $accountUuid): void
+    {
+        TransactionProjection::query()->create([
+            'uuid'         => (string) Str::uuid(),
+            'account_uuid' => $accountUuid,
+            'type'         => $event->isCredit() ? 'deposit' : 'withdrawal',
+            'asset_code'   => $event->assetCode,
+            'amount'       => $event->getAmount(),
+            'description'  => $event->description ?? ($event->isCredit() ? 'Deposit' : 'Withdrawal'),
+            'reference'    => $event->aggregateRootUuid(),
+            'hash'         => $event->hash->getHash(),
+            'status'       => 'completed',
+            'metadata'     => [
+                'event_type' => 'AssetTransactionCreated',
+                'event_uuid' => $event->aggregateRootUuid(),
+            ],
+        ]);
     }
 }

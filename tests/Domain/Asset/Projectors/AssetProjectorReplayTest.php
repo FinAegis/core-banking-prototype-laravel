@@ -7,7 +7,6 @@ use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Account\Models\TransactionProjection;
-use App\Domain\Account\Projectors\TransactionProjector;
 use App\Domain\Asset\Aggregates\AssetTransactionAggregate;
 use App\Domain\Asset\Aggregates\AssetTransferAggregate;
 use App\Domain\Asset\Events\AssetTransactionCreated;
@@ -22,12 +21,12 @@ use Spatie\EventSourcing\StoredEvents\StoredEvent;
 
 /*
  * The asset projectors move balances and write history. Transfers get both
- * from AssetTransferProjector; a single-account asset transaction gets its
- * balance from AssetTransactionProjector and its history row from the account
- * TransactionProjector. A replay (event-sourcing:replay) or a stored event
- * delivered a second time used to run them again, which debited and credited
- * the money again and added the history rows again. Each stored event must
- * change balances and history once.
+ * from AssetTransferProjector, and single-account asset transactions get both
+ * from AssetTransactionProjector, in the transaction that changes the balance.
+ * A replay (event-sourcing:replay) or a stored event delivered a second time
+ * used to run them again, which debited and credited the money again and added
+ * the history rows again. Each stored event must change balances and history
+ * once, and a refused debit writes no history.
  */
 
 beforeEach(function (): void {
@@ -151,10 +150,7 @@ it('debits an asset transaction once when the projector replays its events', fun
 
     expect(replayTestBalance($account, 'USD'))->toBe(3_000);
 
-    app(Projectionist::class)->replay(
-        collect([app(AssetTransactionProjector::class), app(TransactionProjector::class)]),
-        aggregateUuid: $aggregateUuid,
-    );
+    app(Projectionist::class)->replay(collect([app(AssetTransactionProjector::class)]), aggregateUuid: $aggregateUuid);
 
     expect(replayTestBalance($account, 'USD'))->toBe(3_000)
         ->and(replayTestHistory($account))->toBe(['withdrawal USD 2000']);
@@ -169,7 +165,8 @@ it('leaves a debit that found too little money open for a later delivery', funct
         ->persist();
 
     // Refused and logged, as before: nothing changed.
-    expect(replayTestBalance($account, 'USD'))->toBe(500);
+    expect(replayTestBalance($account, 'USD'))->toBe(500)
+        ->and(replayTestHistory($account))->toBe([]);
 
     AccountBalance::query()->where('account_uuid', $account->uuid)->where('asset_code', 'USD')->update(['balance' => 2_500]);
     $storedEvent = replayTestStoredEvent($aggregateUuid, AssetTransactionCreated::class);
@@ -178,4 +175,34 @@ it('leaves a debit that found too little money open for a later delivery', funct
 
     expect(replayTestBalance($account, 'USD'))->toBe(500)
         ->and(replayTestHistory($account))->toBe(['withdrawal USD 2000']);
+});
+
+it('writes no withdrawal history for a debit it refuses', function (): void {
+    $account = replayTestAccount(500);
+
+    AssetTransactionAggregate::retrieve((string) Str::uuid())
+        ->debit(new AccountUuid($account->uuid), 'USD', new Money(2_000))
+        ->persist();
+
+    expect(replayTestBalance($account, 'USD'))->toBe(500)
+        ->and(replayTestHistory($account))->toBe([]);
+});
+
+it('writes the history row of an applied debit and credit', function (): void {
+    $account = replayTestAccount(5_000);
+    $aggregateUuid = (string) Str::uuid();
+
+    AssetTransactionAggregate::retrieve($aggregateUuid)
+        ->debit(new AccountUuid($account->uuid), 'USD', new Money(2_000), 'Card top-up')
+        ->persist();
+    AssetTransactionAggregate::retrieve((string) Str::uuid())
+        ->credit(new AccountUuid($account->uuid), 'USD', new Money(700))
+        ->persist();
+
+    $withdrawal = TransactionProjection::query()->where('account_uuid', $account->uuid)->where('type', 'withdrawal')->firstOrFail();
+
+    expect(replayTestHistory($account))->toBe(['withdrawal USD 2000', 'deposit USD 700'])
+        ->and($withdrawal->description)->toBe('Card top-up')
+        ->and($withdrawal->reference)->toBe($aggregateUuid)
+        ->and($withdrawal->status)->toBe('completed');
 });
