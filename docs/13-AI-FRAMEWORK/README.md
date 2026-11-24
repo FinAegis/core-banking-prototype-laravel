@@ -4,7 +4,7 @@
 
 The AI agent framework is a set of agents, workflows and tools in `app/Domain/AI/`. It answers questions in plain language and calls platform tools on the user's behalf. Every agent decision can be recorded as an event, so the history of what an agent did and why stays available for review.
 
-The framework is reference code in an open-source platform. It is not a production banking service. In demo mode (`AI_DEMO_MODE=true`, the default) agents answer from templates and no language model is called. Today the agents answer from templates even with demo mode off. The orchestrator looks for API keys under `ai.providers.*`, which `config/ai.php` does not define, so connecting a language model needs code changes.
+The framework is reference code in an open-source platform. It is not a production banking service. In demo mode (`AI_DEMO_MODE=true`, the default) agents answer from templates and no language model is called. Today the agents answer from templates even with demo mode off. The orchestrator reads the API keys from `config/ai.php`, but no code registers a language model provider yet, so connecting one needs code changes.
 
 This framework is separate from the public MCP server at `https://mcp.zelta.app/mcp`. The public server lives in `app/Domain/MCP/` and exposes a fixed catalog of tools over OAuth. [MCP_INTEGRATION.md](MCP_INTEGRATION.md) describes it.
 

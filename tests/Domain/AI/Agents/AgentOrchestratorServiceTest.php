@@ -29,7 +29,7 @@ class AgentOrchestratorServiceTest extends TestCase
 
         $composer = new AgentResponseComposerService();
 
-        $this->orchestrator = new AgentOrchestratorService($router, $composer);
+        $this->orchestrator = new AgentOrchestratorService($router, $composer, $llmService);
     }
 
     protected function tearDown(): void
