@@ -520,7 +520,9 @@ describe('MCP sms.send texts', function (): void {
 
         expect($description)->not->toContain('requires payment')
             ->and($description)->toContain('signed-in user')
-            ->and($description)->toContain('per user and across all users');
+            ->and($description)->toContain('per user and across all users')
+            ->and($description)->not->toContain("token's spending limit")
+            ->and($description)->toContain('daily spending limit that the user set when they approved the app');
     });
 
     it('states the minimum paid price in the price-only note', function (): void {
