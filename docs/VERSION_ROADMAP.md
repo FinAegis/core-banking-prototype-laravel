@@ -3252,6 +3252,16 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 
 ---
 
+## Version 7.18.3 — GCU Value on the Demo Site (November 2026)
+
+**Theme**: The demo's GCU basket is valued by value shares, so a small gold weight no longer dominates it, and the composition endpoint works again.
+
+### Delivered Features
+- Basket values by value shares with a stored base, rebased when weights change.
+- `/api/v2/gcu/composition` reads stored decimal rates as numbers (#1261).
+
+---
+
 ## Version 7.18.2 — Top-up Path and Clearer Texts (November 2026)
 
 **Theme**: The top-up pipeline follows the card partner's answers, GCU trades book the price they quote, and the demo site and documentation describe the platform as it is.
@@ -3508,5 +3518,5 @@ Embeddable JS widget that renders Zelta's 402 payment flow inside the partner's 
 
 ---
 
-*Document Version: 7.18.2*
-*Updated: November 24, 2026 (v7.18.2 top-up path after the partner's answers, GCU quoted prices, demo exchange rates, clearer demo pages and documentation)*
+*Document Version: 7.18.3*
+*Updated: November 24, 2026 (v7.18.3 GCU basket valued by value shares, composition endpoint fixed)*

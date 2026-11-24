@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Changelog | ' . config('brand.name', 'Zelta'),
-        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.18.2.',
+        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.18.3.',
         'keywords' => 'changelog, release notes, updates, ' . config('brand.name', 'Zelta') . ', version history, core banking',
     ])
 
@@ -43,6 +43,18 @@
 
             @php
                 $releases = [
+                    [
+                        'version' => 'v7.18.3',
+                        'date' => 'November 24, 2026',
+                        'label' => 'GCU Value on the Demo Site',
+                        'label_color' => 'slate',
+                        'badge_color' => 'bg-slate-100 text-slate-700 border-slate-200',
+                        'dot_color' => 'bg-slate-500',
+                        'items' => [
+                            'A sensible GCU value. The demo Global Currency Unit is now valued by the share each currency and gold has in the basket, so a small amount of gold no longer makes it worth about 53 dollars.',
+                            'Basket details work again. The page that lists what the basket holds now opens without an error.',
+                        ],
+                    ],
                     [
                         'version' => 'v7.18.2',
                         'date' => 'November 24, 2026',

@@ -41,6 +41,14 @@ class BasketValueCalculationService
 
     /**
      * Perform the actual value calculation.
+     *
+     * Component weights are shares of the basket's value, not amounts of each
+     * asset. The first valuation fixes a base (each component's USD price and
+     * the weights) at a value of one US dollar. After that each component
+     * adds base value x weight x (price now / base price), so a 2 % gold
+     * weight moves the basket by 2 % of gold's price change instead of adding
+     * 2 % of an ounce. When the components or weights change, the base is set
+     * again at the current value, so a rebalance does not make the value jump.
      */
     private function performCalculation(BasketAsset $basket): BasketValue
     {
@@ -52,15 +60,14 @@ class BasketValueCalculationService
             return $this->createEmptyValue($basket);
         }
 
-        $totalValue = 0.0;
-        $componentValues = [];
+        $prices = [];
         $errors = [];
-
         foreach ($components as $component) {
             try {
-                $componentData = $this->calculateComponentValue($component);
-                $totalValue += $componentData['weighted_value'];
-                $componentValues[$component->asset_code] = $componentData;
+                if (! $component->asset) {
+                    throw new Exception("Asset {$component->asset_code} not found");
+                }
+                $prices[$component->asset_code] = $this->getAssetValueInUsd($component->asset_code);
             } catch (Exception $e) {
                 Log::error(
                     'Error calculating component value',
@@ -78,11 +85,46 @@ class BasketValueCalculationService
             }
         }
 
+        $weights = [];
+        foreach ($components as $component) {
+            $weights[$component->asset_code] = (float) $component->weight;
+        }
+
+        $base = $this->valuationBase($basket, $weights, $prices);
+
+        $totalValue = 0.0;
+        $componentValues = [];
+        foreach ($components as $component) {
+            $code = $component->asset_code;
+            $basePrice = $base['prices'][$code] ?? null;
+            if (! isset($prices[$code]) || $basePrice === null || $basePrice <= 0.0) {
+                continue;
+            }
+
+            $weightedValue = $base['value'] * ($weights[$code] / 100) * ($prices[$code] / $basePrice);
+            $totalValue += $weightedValue;
+            $componentValues[$code] = [
+                'asset_code'     => $code,
+                'asset_name'     => $component->asset?->name,
+                'value'          => $prices[$code],
+                'base_price'     => $basePrice,
+                'weight'         => $component->weight,
+                'weighted_value' => $weightedValue,
+                'currency'       => 'USD',
+            ];
+        }
+        $totalValue = round($totalValue, 8);
+
         // Store the calculated value
         return DB::transaction(
-            function () use ($basket, $totalValue, $componentValues, $errors) {
+            function () use ($basket, $base, $totalValue, $componentValues, $errors) {
                 // Ensure the basket exists as an asset
                 $basket->toAsset();
+
+                $metadata = is_array($basket->metadata) ? $basket->metadata : [];
+                if (($metadata['valuation_base'] ?? null) !== $base) {
+                    $basket->forceFill(['metadata' => [...$metadata, 'valuation_base' => $base]])->save();
+                }
 
                 $basketValue = BasketValue::create(
                     [
@@ -96,6 +138,8 @@ class BasketValueCalculationService
                                     'calculation_errors' => $errors,
                                     'total_components'   => count($componentValues),
                                     'base_currency'      => 'USD',
+                                    'base_value'         => $base['value'],
+                                    'base_set_at'        => $base['set_at'],
                                 ],
                             ]
                         ),
@@ -108,30 +152,89 @@ class BasketValueCalculationService
     }
 
     /**
-     * Calculate the value contribution of a single component.
+     * The valuation base: kept while the weights stay the same (a component
+     * priced for the first time gets its base price now); set again at the
+     * current value when components or weights change; one US dollar for a
+     * basket that has none yet.
+     *
+     * @param  array<string, float>  $weights  current weights by asset code
+     * @param  array<string, float>  $prices  current USD prices by asset code
+     * @return array{value: float, prices: array<string, float>, weights: array<string, float>, set_at: string}
      */
-    private function calculateComponentValue($component): array
+    private function valuationBase(BasketAsset $basket, array $weights, array $prices): array
     {
-        $asset = $component->asset;
+        $metadata = is_array($basket->metadata) ? $basket->metadata : [];
+        $stored = is_array($metadata['valuation_base'] ?? null) ? $metadata['valuation_base'] : null;
+        $storedValue = is_numeric($stored['value'] ?? null) ? (float) $stored['value'] : 1.0;
+        $storedPrices = $this->floatMap($stored['prices'] ?? null);
+        $storedWeights = $this->floatMap($stored['weights'] ?? null);
 
-        if (! $asset) {
-            throw new Exception("Asset {$component->asset_code} not found");
+        if ($stored !== null && $this->sameWeights($storedWeights, $weights)) {
+            foreach ($prices as $code => $price) {
+                $storedPrices[$code] ??= $price;
+            }
+
+            return [
+                'value'   => $storedValue,
+                'prices'  => $storedPrices,
+                'weights' => $weights,
+                'set_at'  => is_string($stored['set_at'] ?? null) ? $stored['set_at'] : now()->toIso8601String(),
+            ];
         }
 
-        // Get the value in USD
-        $assetValueInUsd = $this->getAssetValueInUsd($component->asset_code);
+        // A first base starts at one dollar. A new one carries the current
+        // value over, worked out with the old base and the old weights.
+        $value = 1.0;
+        if ($stored !== null && $storedWeights !== []) {
+            $carried = 0.0;
+            $complete = true;
+            foreach ($storedWeights as $code => $weight) {
+                $basePrice = $storedPrices[$code] ?? null;
+                if (! isset($prices[$code]) || $basePrice === null || $basePrice <= 0.0) {
+                    $complete = false;
+                    break;
+                }
+                $carried += $storedValue * ($weight / 100) * ($prices[$code] / $basePrice);
+            }
+            if ($complete && $carried > 0.0) {
+                $value = round($carried, 8);
+            }
+        }
 
-        // Calculate weighted value
-        $weightedValue = $assetValueInUsd * ($component->weight / 100);
+        return ['value' => $value, 'prices' => $prices, 'weights' => $weights, 'set_at' => now()->toIso8601String()];
+    }
 
-        return [
-            'asset_code'     => $component->asset_code,
-            'asset_name'     => $asset->name,
-            'value'          => $assetValueInUsd,
-            'weight'         => $component->weight,
-            'weighted_value' => $weightedValue,
-            'currency'       => 'USD',
-        ];
+    /**
+     * @return array<string, float>
+     */
+    private function floatMap(mixed $values): array
+    {
+        $map = [];
+        foreach (is_array($values) ? $values : [] as $code => $value) {
+            if (is_string($code) && is_numeric($value)) {
+                $map[$code] = (float) $value;
+            }
+        }
+
+        return $map;
+    }
+
+    /**
+     * @param  array<string, float>  $stored
+     * @param  array<string, float>  $current
+     */
+    private function sameWeights(array $stored, array $current): bool
+    {
+        if (count($stored) !== count($current)) {
+            return false;
+        }
+        foreach ($current as $code => $weight) {
+            if (! isset($stored[$code]) || abs($stored[$code] - $weight) > 0.0001) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

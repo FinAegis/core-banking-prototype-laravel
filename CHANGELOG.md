@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 >
 > Entries below describe software changes. Named third-party providers are integration adapters for third-party APIs; no partnership or endorsement implied. Mentions of the Global Currency Unit (GCU) refer to a software demonstration that is not issued, offered or sold to anyone and has no monetary value.
 
+## [7.18.3] - 2026-11-24
+
+**GCU value on the demo site.** The demo's GCU basket now has a sensible value, and its composition page answers again.
+
+### Fixed
+- Basket values used each component's unit price times its weight, so the weights acted as amounts. Two per cent of an ounce of gold at about 2,600 US dollars made the demo GCU worth about 53 dollars. Weights are now shares of value. The first valuation sets a base at one US dollar, and after that each component moves the basket by its weight times its own price change. A change of weights sets a new base at the current value, so the value does not jump.
+- `/api/v2/gcu/composition` answered 500 once the demo had a GCU basket, because stored exchange rates come back as decimal strings and were passed straight to `round()` (#1261).
+
 ## [7.18.2] - 2026-11-24
 
 **Top-up path, GCU prices and clearer texts.** The card top-up pipeline now follows the card partner's answers, and top-ups stay switched off until a real top-up is tested. GCU trades book the price they quote, and the demo site gets fixed demonstration exchange rates so conversions work there. AI assistant connections made before v7.18.1 are asked for a spending limit once. The demo site pages and the project documentation describe what the platform does today.

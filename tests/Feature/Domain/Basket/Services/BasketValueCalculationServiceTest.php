@@ -77,10 +77,11 @@ class BasketValueCalculationServiceTest extends ServiceTestCase
         $value = $this->service->calculateValue($basket, false);
 
         $this->assertInstanceOf(BasketValue::class, $value);
-        $this->assertEquals(1.2, $value->value);
+        // Weights are shares of value: a first valuation is one dollar.
+        $this->assertEquals(1.0, $value->value);
         $this->assertEquals($basket->code, $value->basket_asset_code);
         $this->assertArrayHasKey('EUR', $value->component_values);
-        $this->assertEquals(1.2, $value->component_values['EUR']['weighted_value']);
+        $this->assertEquals(1.0, $value->component_values['EUR']['weighted_value']);
     }
 
     #[Test]
@@ -146,13 +147,11 @@ class BasketValueCalculationServiceTest extends ServiceTestCase
         // Calculate value
         $value = $this->service->calculateValue($basket, false);
 
-        // EUR: 1.2 * 0.6 = 0.72
-        // GBP: 1.5 * 0.4 = 0.60
-        // Total: 1.32
-        $this->assertEquals(1.32, $value->value);
+        // A first valuation is one dollar, split by the weights (60 % and 40 %).
+        $this->assertEquals(1.0, $value->value);
         $this->assertCount(3, $value->component_values); // EUR, GBP, and _metadata
-        $this->assertEqualsWithDelta(0.72, $value->component_values['EUR']['weighted_value'], 0.001);
-        $this->assertEqualsWithDelta(0.60, $value->component_values['GBP']['weighted_value'], 0.001);
+        $this->assertEqualsWithDelta(0.60, $value->component_values['EUR']['weighted_value'], 0.001);
+        $this->assertEqualsWithDelta(0.40, $value->component_values['GBP']['weighted_value'], 0.001);
     }
 
     #[Test]
@@ -290,8 +289,8 @@ class BasketValueCalculationServiceTest extends ServiceTestCase
         // Calculate value
         $value = $this->service->calculateValue($basket, false);
 
-        // Only EUR component should contribute
-        $this->assertEquals(0.6, $value->value); // 1.2 * 0.5
+        // Only the priced EUR half contributes: 50 % of one dollar.
+        $this->assertEquals(0.5, $value->value);
         $this->assertArrayHasKey('EUR', $value->component_values);
         $this->assertArrayNotHasKey('XYZ', $value->component_values);
         $this->assertNotEmpty($value->component_values['_metadata']['calculation_errors']);
@@ -397,8 +396,9 @@ class BasketValueCalculationServiceTest extends ServiceTestCase
         $basket1Result = collect($results['successful'])->firstWhere('basket', $basket1->code);
         $basket2Result = collect($results['successful'])->firstWhere('basket', $basket2->code);
 
+        // Both baskets are valued for the first time: one dollar each.
         $this->assertEquals(1.0, $basket1Result['value']);
-        $this->assertEquals(1.2, $basket2Result['value']);
+        $this->assertEquals(1.0, $basket2Result['value']);
     }
 
     #[Test]
