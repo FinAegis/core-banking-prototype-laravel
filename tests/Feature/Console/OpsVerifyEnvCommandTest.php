@@ -884,3 +884,34 @@ describe('Card providers', function (): void {
             ->and($checks['cards.lepo']['detail'])->toContain('CARD_PROVIDER_LEPO_PILOT_USERS');
     });
 });
+
+describe('env templates', function (): void {
+    // The privacy and backup values a production template ships must pass
+    // the deploy gate as written. The values go through the real config
+    // files (config/privacy.php, config/backup.php), as config:cache would.
+    it('passes the privacy and backup checks in production with the template values', function (string $file): void {
+        $template = Dotenv\Dotenv::parse((string) file_get_contents(base_path($file)));
+        $keys = ['ZK_PROVIDER', 'MERKLE_PROVIDER', 'RAILGUN_BRIDGE_SECRET', 'BACKUP_DISK'];
+
+        foreach ($keys as $key) {
+            expect($template)->toHaveKey($key);
+        }
+
+        /** @var array<string, string|null> $env */
+        $env = array_intersect_key($template, array_flip($keys));
+
+        opsVerifyEnvAllGoodConfig();
+        config([
+            'privacy' => opsVerifyEnvWithConfigFile('privacy', $env),
+            'backup'  => opsVerifyEnvWithConfigFile('backup', $env),
+        ]);
+        app()->detectEnvironment(fn () => 'production');
+
+        [$exitCode, $checks] = opsVerifyEnvRun();
+
+        expect($checks)->not->toHaveKey('privacy.railgun.custody')
+            ->and($checks['privacy.railgun.providers']['result'])->not->toBe('FAIL')
+            ->and($checks['backup.destination']['result'])->toBe('PASS')
+            ->and($exitCode)->toBe(0);
+    })->with(['.env.zelta.example', '.env.production.example']);
+});
