@@ -2,43 +2,40 @@
 
 ## Overview
 
-This document outlines performance optimization strategies, techniques, and best practices implemented in the FinAegis Core Banking Platform. These optimizations ensure the system can handle enterprise-scale operations efficiently.
+This guide describes ways to keep FinAegis fast, from memory settings and tests to the database, queues, caching and the web server. Some sections describe what the project already does. Others are general Laravel practices shown with example code, and the guide says which is which.
 
 ## Memory Management
 
 ### PHPStan Configuration
 
-PHPStan requires significant memory for analyzing large codebases. We use a temporary directory strategy to prevent memory issues:
+PHPStan needs a lot of memory for a codebase of this size. The project runs it at Level 8 with this command:
 
 ```bash
-# Use isolated temp directory to prevent memory conflicts
-TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse --memory-limit=2G
+XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G
+
+# When several analyses run at once, give each its own temp directory
+XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse --memory-limit=2G
 ```
 
-**Benefits:**
-- Prevents memory conflicts between concurrent analyses
-- Reduces memory fragmentation
-- Enables parallel CI/CD pipelines
+Turning Xdebug off makes the analysis much faster. A separate temp directory keeps concurrent runs from sharing cache files.
 
 ### PHP Memory Optimization
 
-```php
-// config/app.php
-'memory_limit' => env('PHP_MEMORY_LIMIT', '512M'),
-'max_execution_time' => env('PHP_MAX_EXECUTION_TIME', 300),
+Set the memory and time limits in `php.ini` or the PHP-FPM pool. `config/app.php` has no such settings.
+
+```ini
+; php.ini
+memory_limit = 512M
+max_execution_time = 300
 ```
 
-**Key Strategies:**
-- Use generators for large datasets
-- Implement cursor-based pagination
-- Free resources explicitly in long-running processes
-- Use `unset()` for large variables when done
+Use generators or `cursor()` for large datasets and cursor-based pagination for long lists. Free resources in long-running processes, and `unset()` large variables when you are done with them.
 
 ## Testing Performance
 
 ### Parallel Test Execution
 
-Pest PHP parallel testing significantly reduces test execution time:
+Running Pest in parallel makes the suite much faster. See [PARALLEL-TESTING.md](PARALLEL-TESTING.md) for details.
 
 ```bash
 # Run tests in parallel (recommended)
@@ -47,11 +44,11 @@ Pest PHP parallel testing significantly reduces test execution time:
 # Configure parallel processes
 ./vendor/bin/pest --parallel --processes=10
 
-# With coverage
-./vendor/bin/pest --parallel --coverage --min=50
+# With coverage (local only; CI does not collect coverage)
+./vendor/bin/pest --parallel --coverage
 ```
 
-**Configuration:**
+**Coverage report configuration (example):**
 ```xml
 <!-- phpunit.xml -->
 <phpunit>
@@ -66,21 +63,17 @@ Pest PHP parallel testing significantly reduces test execution time:
 
 ### Test Suite Optimization
 
+`phpunit.xml` already sets `DB_CONNECTION=sqlite` and `DB_DATABASE=:memory:`, so most tests run on an in-memory database. `tests/Pest.php` binds the base test cases to the directories:
+
 ```php
-// tests/Pest.php
-uses(Tests\TestCase::class)
-    ->beforeEach(function () {
-        // Use in-memory SQLite for speed
-        config(['database.default' => 'testing']);
-    })
-    ->in('Feature', 'Unit');
+// tests/Pest.php (excerpt)
+uses(TestCase::class)->in('Feature');
+uses(TestCase::class)->in('Domain');
+uses(TestCase::class)->in('Console');
+uses(Tests\MultiConnection\MultiConnectionTestCase::class)->in('MultiConnection');
 ```
 
-**Strategies:**
-- Use in-memory databases for unit tests
-- Mock external services
-- Implement test data factories efficiently
-- Clear caches between test suites
+Mock external services, keep factories lean and clear caches between test suites.
 
 ## Database Optimization
 
@@ -101,8 +94,10 @@ Schema::table('transactions', function (Blueprint $table) {
 
 ### Connection Pooling
 
+The project's `config/database.php` does not turn on persistent connections. This example shows the option:
+
 ```php
-// config/database.php
+// config/database.php (example)
 'mysql' => [
     'driver' => 'mysql',
     'options' => [
@@ -150,8 +145,10 @@ php artisan optimize
 
 ### Queue Optimization
 
+This is an example of Redis queue settings. Horizon manages the workers in production.
+
 ```php
-// config/queue.php
+// config/queue.php (example)
 'redis' => [
     'driver' => 'redis',
     'connection' => 'queue',
@@ -170,6 +167,8 @@ php artisan optimize
 ```
 
 ### Event Sourcing Performance
+
+The examples below show batch inserts and queued projections. Many projectors in the project are already queued. Aggregates with many events can use snapshots (`php artisan snapshot:create`).
 
 ```php
 // Batch event processing
@@ -201,51 +200,51 @@ class ProjectionJob implements ShouldQueue
 
 ### Asset Optimization
 
+The web front end is built from Blade views with Livewire and Vite. `vite.config.js` splits the chart libraries into their own chunk and keeps the hardware wallet libraries out of the bundle:
+
 ```javascript
-// vite.config.js
-export default {
-    build: {
-        rollupOptions: {
-            output: {
-                manualChunks: {
-                    vendor: ['react', 'react-dom'],
-                    utils: ['lodash', 'axios'],
-                },
-            },
-        },
-        minify: 'terser',
-        terserOptions: {
-            compress: {
-                drop_console: true,
-                drop_debugger: true,
+// vite.config.js (excerpt)
+build: {
+    chunkSizeWarningLimit: 200,
+    rollupOptions: {
+        external: [
+            '@ledgerhq/hw-transport-webusb',
+            '@ledgerhq/hw-app-eth',
+            '@trezor/connect-web',
+        ],
+        output: {
+            manualChunks(id) {
+                // Split chart libraries into separate chunk
+                if (id.includes('chart.js') || id.includes('chartjs')) {
+                    return 'vendor-charts';
+                }
             },
         },
     },
-};
+},
 ```
+
+The landing page uses a hand-compiled stylesheet, `public/css/app-landing.css`. Rebuild it with the Tailwind CLI after you change classes in its Blade view.
 
 ### Lazy Loading
 
-```javascript
-// Implement code splitting
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const Trading = lazy(() => import('./pages/Trading'));
+Load heavy scripts only on the pages that need them. With Vite, use a dynamic `import()` inside the page script:
 
-// Use Suspense for loading states
-<Suspense fallback={<Loading />}>
-    <Routes>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/trading" element={<Trading />} />
-    </Routes>
-</Suspense>
+```javascript
+// Load the chart code only when the chart element exists
+if (document.querySelector('#flowChart')) {
+    const { default: Chart } = await import('chart.js/auto');
+}
 ```
 
 ## Caching Strategies
 
 ### Multi-Layer Caching
 
+This is an example pattern. The project does not have a `CacheService` class like this one.
+
 ```php
-// Application cache layers
+// Application cache layers (example)
 class CacheService
 {
     private array $layers = [
@@ -269,27 +268,14 @@ class CacheService
 
 ### Cache Warming
 
-```php
-// app/Console/Commands/WarmCache.php
-class WarmCache extends Command
-{
-    protected $signature = 'cache:warmup';
-    
-    public function handle(): void
-    {
-        // Warm critical caches
-        $this->warmExchangeRates();
-        $this->warmAccountBalances();
-        $this->warmSystemSettings();
-    }
-    
-    private function warmExchangeRates(): void
-    {
-        ExchangeRate::active()->each(function ($rate) {
-            Cache::put("rate:{$rate->pair}", $rate, 300);
-        });
-    }
-}
+The project has a `cache:warmup` command in `app/Console/Commands/CacheWarmup.php`. It warms the Redis cache for accounts:
+
+```bash
+# Warm all accounts that are not frozen
+php artisan cache:warmup
+
+# Warm specific accounts
+php artisan cache:warmup --account=<uuid> --account=<uuid>
 ```
 
 ## Monitoring & Profiling
@@ -405,14 +391,17 @@ http {
 
 ### Target Metrics
 
-| Metric | Target | Current | Status |
-|--------|--------|---------|--------|
-| API Response Time | < 200ms | 150ms | ✅ |
-| Page Load Time | < 3s | 2.5s | ✅ |
-| Database Query Time | < 50ms | 35ms | ✅ |
-| Test Suite Runtime | < 5min | 3min | ✅ |
-| Memory Usage | < 512MB | 350MB | ✅ |
-| CPU Usage | < 70% | 45% | ✅ |
+These are targets. The project does not publish measured values against them.
+
+| Metric | Target |
+|--------|--------|
+| API Response Time | < 200ms |
+| Page Load Time | < 3s |
+| Database Query Time | < 50ms |
+| Memory Usage | < 512MB |
+| CPU Usage | < 70% |
+
+The full test suite takes much longer than five minutes. CI splits it into parallel jobs and shards.
 
 ### Load Testing
 
@@ -420,43 +409,28 @@ http {
 # Use Apache Bench for basic load testing
 ab -n 1000 -c 10 http://localhost:8000/api/accounts
 
-# Use k6 for advanced scenarios
-k6 run load-test.js
+# Use k6 for advanced scenarios (the Performance workflow runs this script)
+k6 run tests/k6/load-test.js
 ```
 
 ## Best Practices
 
-1. **Profile Before Optimizing**: Always measure performance before and after changes
-2. **Cache Aggressively**: Cache expensive operations at multiple layers
-3. **Optimize Database**: Use indexes, eager loading, and query optimization
-4. **Async Processing**: Move heavy operations to background jobs
-5. **Monitor Continuously**: Set up alerts for performance degradation
-6. **Test Performance**: Include performance tests in CI/CD pipeline
-7. **Document Changes**: Record all performance optimizations and their impact
+1. Measure performance before and after every change.
+2. Cache expensive operations.
+3. Use indexes, eager loading and well-shaped queries.
+4. Move heavy work to background jobs.
+5. Set up alerts for performance degradation.
+6. Keep the performance tests in CI.
+7. Record each optimization and its effect.
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **High Memory Usage**
-   - Check for memory leaks in long-running processes
-   - Review eager loading queries
-   - Optimize cache sizes
-
-2. **Slow Queries**
-   - Enable query logging
-   - Review database indexes
-   - Consider query caching
-
-3. **Slow Tests**
-   - Use parallel testing
-   - Mock external services
-   - Use in-memory databases
-
-4. **High CPU Usage**
-   - Profile code with Xdebug
-   - Optimize algorithms
-   - Review infinite loops
+1. **High memory usage.** Look for memory leaks in long-running processes, review queries that eager-load a lot and check the cache sizes.
+2. **Slow queries.** Turn on query logging, review the indexes and consider caching the result.
+3. **Slow tests.** Run them in parallel, mock external services and use the in-memory database.
+4. **High CPU usage.** Profile the code with Xdebug, improve the algorithms and look for loops that never end.
 
 ## Resources
 

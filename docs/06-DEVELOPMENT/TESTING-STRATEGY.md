@@ -2,17 +2,17 @@
 
 ## Overview
 
-The FinAegis platform follows a comprehensive testing strategy to ensure reliability, security, and performance across all components. This document outlines our testing approach, standards, and best practices.
+This document describes how FinAegis is tested. It covers the testing approach, the standards and the good practices that keep the platform reliable, secure and fast. The repository has about 1,300 `*Test.php` files. They run with Pest 3.8 on PHPUnit 11.
 
 ## Testing Philosophy
 
 ### Core Principles
 
-1. **Test-Driven Development (TDD)**: Write tests before implementation
-2. **Behavior-Driven Development (BDD)**: Focus on business behavior
-3. **Continuous Testing**: Tests run on every commit and PR
-4. **Coverage Requirements**: Minimum 50% coverage for all new code
-5. **Fast Feedback**: Parallel execution for rapid feedback
+1. Write the test before the implementation. This is Test-Driven Development (TDD).
+2. Describe business behaviour in the tests. Behat covers this as Behavior-Driven Development (BDD).
+3. Tests run on every pull request and on every push to `main` and `develop`.
+4. Every new feature and bug fix comes with tests. CI does not measure coverage, so reviewers check this.
+5. Tests run in parallel where they can, so that feedback is fast.
 
 ## Testing Pyramid
 
@@ -28,9 +28,7 @@ The FinAegis platform follows a comprehensive testing strategy to ensure reliabi
 
 ### Unit Tests (75%)
 
-**Purpose**: Test individual components in isolation
-
-**Location**: `tests/Unit/`
+Unit tests check single components in isolation. They live in `tests/Unit/`.
 
 **Examples**:
 ```php
@@ -43,17 +41,11 @@ test('account can calculate balance', function () {
 });
 ```
 
-**Coverage Areas**:
-- Models and value objects
-- Services and utilities
-- Aggregates and events
-- Helpers and formatters
+They cover models and value objects, services and utilities, aggregates and events, and helpers and formatters.
 
 ### Feature Tests (20%)
 
-**Purpose**: Test feature workflows and integrations
-
-**Location**: `tests/Feature/`
+Feature tests check whole features and their integrations. They live in `tests/Feature/`. Tests that need two real MySQL sessions live in `tests/MultiConnection/`.
 
 **Examples**:
 ```php
@@ -75,23 +67,14 @@ test('can transfer between accounts', function () {
 });
 ```
 
-**Coverage Areas**:
-- API endpoints
-- Workflows and sagas
-- Event sourcing flows
-- Admin panel operations
-- Authentication flows
+They cover API endpoints, workflows and sagas, event sourcing flows, admin panel operations and authentication flows.
 
 ### End-to-End Tests (5%)
 
-**Purpose**: Test complete user journeys
-
-**Location**: `tests/E2E/` (future)
-
-**Examples**:
-- Complete user registration and KYC
-- Full payment cycle (deposit → transfer → withdrawal)
-- Trading workflow (place order → match → settle)
+End-to-end tests check complete user journeys. The project has Behat features in `features/` and Laravel Dusk browser tests in `tests/Browser/`. Dusk tests are not part of the CI run. Examples of journeys:
+- user registration and identity checks
+- a full payment cycle from deposit to transfer to withdrawal
+- a trading workflow from placing an order to matching and settlement
 
 ## Testing Tools & Framework
 
@@ -101,8 +84,8 @@ test('can transfer between accounts', function () {
 # Run all tests
 ./vendor/bin/pest
 
-# Run with coverage
-./vendor/bin/pest --coverage --min=50
+# Run with coverage (needs Xdebug or PCOV locally)
+./vendor/bin/pest --coverage
 
 # Run in parallel (faster)
 ./vendor/bin/pest --parallel
@@ -113,12 +96,13 @@ test('can transfer between accounts', function () {
 
 ### Testing Libraries
 
-- **Pest PHP**: Modern testing framework
-- **PHPUnit**: Underlying test runner
-- **Mockery**: Mocking framework
-- **Faker**: Test data generation
-- **Laravel Testing**: HTTP testing utilities
-- **Livewire Testing**: Filament component testing
+- Pest PHP is the testing framework.
+- PHPUnit is the underlying test runner.
+- Mockery is the mocking framework.
+- Faker generates test data.
+- Laravel's testing helpers test HTTP requests.
+- Livewire testing helpers test the Filament admin components.
+- Behat runs the BDD features. See [BEHAT.md](BEHAT.md).
 
 ## Domain-Specific Testing
 
@@ -172,7 +156,7 @@ test('handles cross-currency transfers', function () {
 
 ### Factories
 
-All models have corresponding factories:
+Most models have factories:
 
 ```php
 // Create test account with balance
@@ -208,21 +192,23 @@ DB_DATABASE=:memory:
 
 ### GitHub Actions Workflow
 
+The Test Suite workflow (`.github/workflows/03-test-suite.yml`) runs the tests in batches with `bin/pest-batch` and `bin/pest-rest`:
+
 ```yaml
-# .github/workflows/test.yml
-- name: Run tests
+# .github/workflows/03-test-suite.yml
+- name: Run Unit Tests
+  env:
+    PEST_PARALLEL: true
+    PARALLEL_PROCS: 2
   run: |
-    ./vendor/bin/pest --parallel \
-      --coverage \
-      --min=50 \
-      --configuration=phpunit.ci.xml
+    ./bin/pest-batch tests/Unit/Domain || exit 1
 ```
 
-### Coverage Requirements
+Other jobs and workflows run the multi-connection tests, the security tests, the Behat features and the slow tests. See [PARALLEL-TESTING.md](PARALLEL-TESTING.md) for details.
 
-- **Minimum**: 50% for all new code
-- **Target**: 80% for critical paths
-- **Enforcement**: CI blocks merge if coverage drops
+### Coverage
+
+CI does not collect code coverage, so it does not block a merge on a coverage number. Instead, `bin/check-test-coverage` fails CI when a top-level test directory is not claimed by any CI job. Aim for full coverage of money-moving and security-critical paths.
 
 ### Performance Benchmarks
 
@@ -286,15 +272,24 @@ afterEach(function () {
 
 ### Demo Mode Testing
 
+`DemoServiceProvider` binds the demo services when `APP_ENV` is `demo`. Tests run with `APP_ENV=testing`, so a test binds the demo service itself:
+
 ```php
 test('demo services return mock data', function () {
-    Config::set('demo.mode', true);
+    // DemoServiceProvider binds DemoPaymentService when APP_ENV=demo
+    $this->app->bind(PaymentServiceInterface::class, DemoPaymentService::class);
     
     $service = app(PaymentServiceInterface::class);
     expect($service)->toBeInstanceOf(DemoPaymentService::class);
     
-    $result = $service->createPaymentIntent(10000);
-    expect($result['id'])->toStartWith('demo_pi_');
+    $account = Account::factory()->create();
+    $intentId = $service->processStripeDeposit([
+        'account_uuid' => $account->uuid,
+        'amount'       => 10000,
+        'currency'     => 'usd',
+        'reference'    => 'test-deposit',
+    ]);
+    expect($intentId)->toStartWith('demo_pi_');
 });
 ```
 
@@ -331,7 +326,7 @@ test('maintains sub-second response times')
 ### Compliance Tests
 
 ```php
-// tests/Compliance/
+// tests/Feature/Compliance/ and tests/Unit/Domain/Compliance/
 test('generates CTR reports correctly')
 test('implements KYC verification')
 test('enforces transaction limits')
@@ -375,10 +370,10 @@ test('enforces transaction limits')
 
 ### Regular Tasks
 
-1. **Weekly**: Review and update failing tests
-2. **Monthly**: Analyze coverage reports
-3. **Quarterly**: Performance benchmark review
-4. **Yearly**: Test strategy evaluation
+1. Every week, review and update failing tests.
+2. Every month, look at the coverage reports.
+3. Every quarter, review the performance benchmarks.
+4. Every year, review this test strategy.
 
 ### Test Refactoring
 
@@ -399,11 +394,11 @@ trait CreatesTestAccounts
 
 ### Planned Improvements
 
-1. **Browser Testing**: Laravel Dusk for E2E tests
-2. **API Documentation Tests**: OpenAPI schema validation
-3. **Load Testing**: K6 or JMeter integration
-4. **Mutation Testing**: Infection PHP integration
-5. **Visual Regression**: Percy or BackstopJS
+1. Run the Laravel Dusk browser tests in `tests/Browser/` in CI.
+2. Validate API responses against the OpenAPI schema. CI already checks that `storage/api-docs/api-docs.json` matches the annotations.
+3. Extend the k6 load tests in `tests/k6/`, which the Performance workflow runs.
+4. Add mutation testing. Pest supports it with `--mutate`.
+5. Add visual regression tests, for example with Percy or BackstopJS.
 
 ### Testing Metrics
 
@@ -416,18 +411,20 @@ Track and improve:
 
 ## Best Practices Summary
 
-1. **Write tests first** - TDD approach
-2. **Keep tests fast** - Use parallel execution
-3. **Test behavior, not implementation** - Focus on outcomes
-4. **Maintain test data** - Use factories and seeders
-5. **Mock external dependencies** - Ensure reliability
-6. **Monitor coverage** - Maintain minimum standards
-7. **Review test quality** - Regular refactoring
-8. **Document test scenarios** - Clear test names
+1. Write the tests first.
+2. Keep tests fast and run them in parallel.
+3. Test behaviour and outcomes, not the implementation.
+4. Keep test data in factories and seeders.
+5. Mock external dependencies so that tests are reliable.
+6. Make sure every new directory under `tests/` is run by CI.
+7. Review and refactor tests regularly.
+8. Give tests clear names that describe the scenario.
+
+Pass `['read', 'write', 'delete']` abilities to `Sanctum::actingAs()` in API tests, because the scope middleware maps GET to `read`, POST, PUT and PATCH to `write`, and DELETE to `delete`.
 
 ## Resources
 
 - [Pest PHP Documentation](https://pestphp.com)
 - [Laravel Testing Documentation](https://laravel.com/docs/testing)
 - [Event Sourcing Test Patterns](https://www.eventstore.com/blog/testing-event-sourced-applications)
-- [Workflow Testing Guide](https://temporal.io/docs/php/testing)
+- The `durable-workflow/workflow` package documentation covers workflow testing with `WorkflowStub::fake()`.

@@ -2,189 +2,119 @@
 
 ## Overview
 
-The Transaction Status Tracking feature provides users with real-time visibility into their transaction lifecycle. Users can monitor pending transactions, view detailed timelines, and take actions like canceling or retrying transactions.
+Transaction status tracking is a set of web pages for the FinAegis web wallet.
+It shows a signed-in person their pending and finished transactions and the timeline of each one.
+The person can also cancel a pending transaction or retry a failed one.
 
 ## Features
 
-### 1. **Real-Time Status Updates**
-- Live tracking of transaction progress
-- Automatic status refresh every 5 seconds
-- Progress percentage indicators
-- Estimated completion times
+### 1. Dashboard
 
-### 2. **Comprehensive Dashboard**
-- Transaction statistics (success rate, average completion time)
-- Filtering by status, type, account, and date range
-- Separate views for pending and completed transactions
-- Visual status indicators with color coding
+The dashboard lists pending transactions and finished transactions separately.
+It shows statistics such as the success rate, the number of pending transactions and the average completion time.
+It can filter by status, type, account and date range.
 
-### 3. **Detailed Transaction View**
-- Complete transaction timeline
-- Related transaction links
-- Additional metadata display
-- Current status with visual indicators
+### 2. Detail view
 
-### 4. **Transaction Actions**
-- Cancel pending transactions
-- Retry failed transactions
-- Refresh status on demand
-- View related transactions
+The detail view shows one transaction with its timeline, its current status and its metadata.
+It links to related transactions, such as a retry or its parent.
+
+### 3. Actions
+
+A person can cancel a transaction that is `pending` or on `hold`, within 30 minutes of its creation.
+Deposits and internal transfers cannot be cancelled.
+A person can retry a `failed` transaction once, within 24 hours of the failure.
+A status endpoint returns the current state as JSON for refreshing a page.
 
 ## Implementation Details
 
 ### Controller
 
-#### `TransactionStatusController`
-Handles all transaction status tracking operations:
-- `index()` - Dashboard with pending/completed transactions
-- `show()` - Detailed transaction view with timeline
-- `status()` - Real-time status endpoint for AJAX updates
-- `cancel()` - Cancel pending transactions
-- `retry()` - Retry failed transactions
+`App\Http\Controllers\TransactionStatusController` serves the pages.
 
-### Vue Components
+| Method | Purpose |
+|--------|---------|
+| `index()` | Dashboard with pending and finished transactions and statistics |
+| `show()` | Detail view with timeline and related transactions |
+| `status()` | JSON status for one transaction |
+| `cancel()` | Cancels a pending or held transaction that is less than 30 minutes old |
+| `retry()` | Creates a retry of a failed transaction |
 
-1. **`StatusTracking.vue`**
-   - Main dashboard component
-   - Auto-refresh for pending transactions
-   - Advanced filtering options
-   - Statistics cards
-   - Transaction lists with progress bars
+The controller reads the `transaction_projections` table and joins the person's accounts.
 
-2. **`StatusDetail.vue`**
-   - Detailed transaction view
-   - Timeline visualization
-   - Real-time status updates
-   - Action buttons for cancel/retry
-   - Related transactions display
+### Views
 
-### Database Queries
-
-The controller uses optimized queries with:
-- Join operations for account data
-- Conditional filtering
-- Aggregate functions for statistics
-- Limited result sets for performance
+The pages are the Blade views `resources/views/transactions/status-tracking.blade.php` and `resources/views/transactions/status-detail.blade.php`.
+Vue versions of the same pages, `resources/js/Pages/Transactions/StatusTracking.vue` and `StatusDetail.vue`, are in the repository.
+The controller does not render them. They contain the 5-second auto-refresh, which the Blade pages do not have.
 
 ### Routes
+
+The routes sit in the authenticated web group, which uses `auth:sanctum`, the Jetstream session guard and `verified`.
 
 ```php
 Route::get('/transactions/status', [TransactionStatusController::class, 'index'])
     ->name('transactions.status');
 Route::prefix('transactions/status')->name('transactions.status.')->group(function () {
-    Route::get('/{transactionId}', 'show')->name('show');
-    Route::get('/{transactionId}/status', 'status')->name('status');
-    Route::post('/{transactionId}/cancel', 'cancel')->name('cancel');
-    Route::post('/{transactionId}/retry', 'retry')->name('retry');
+    Route::get('/{transactionId}', [TransactionStatusController::class, 'show'])->name('show');
+    Route::get('/{transactionId}/status', [TransactionStatusController::class, 'status'])->name('status');
+    Route::post('/{transactionId}/cancel', [TransactionStatusController::class, 'cancel'])->name('cancel');
+    Route::post('/{transactionId}/retry', [TransactionStatusController::class, 'retry'])->name('retry');
 });
 ```
 
-## User Interface
+## What cancel and retry do
 
-### Dashboard View
-- **Statistics Cards**: Total transactions, success rate, pending count, average completion time
-- **Filters**: Status, type, account, date range
-- **Pending Transactions**: Live progress bars, estimated completion, action buttons
-- **Transaction History**: Sortable table with status badges
+A cancel sets the projection row's status to `cancelled` and records who cancelled it and when.
+It then logs a reversal. It does not reverse balances or release holds.
 
-### Detail View
-- **Overview Panel**: Transaction details, amount, status, timestamps
-- **Timeline**: Visual representation of transaction lifecycle
-- **Status Card**: Current status with icon, estimated completion
-- **Related Transactions**: Links to parent/child/retry transactions
-- **Metadata**: Additional transaction information
+A retry copies the failed projection row into a new `pending` row.
+The new row gets a `RETRY-` reference and points to the original transaction.
+It does not run the payment or transfer again.
 
 ## Status Types
 
-1. **Pending** - Transaction initiated, awaiting processing
-2. **Processing** - Currently being processed
-3. **Hold** - Temporarily on hold (compliance, limits)
-4. **Completed** - Successfully completed
-5. **Failed** - Failed due to error
-6. **Cancelled** - Cancelled by user or system
+| Status | Meaning |
+|--------|---------|
+| `pending` | The transaction was started and waits for processing |
+| `processing` | The transaction is being processed |
+| `hold` | The transaction is held, for example for a compliance check or a limit |
+| `completed` | The transaction finished successfully |
+| `failed` | The transaction failed |
+| `cancelled` | A person or the system cancelled it |
 
 ## Progress Calculation
 
-Progress percentage is calculated based on:
-- Transaction type average processing times
-- Time elapsed since creation
-- Current status
-- Maximum 95% until actual completion
+The progress percentage is an estimate.
+It compares the time since the transaction was created with a typical processing time for its type.
+It never shows more than 95% until the transaction is completed.
 
-## Security Features
+## Security
 
-1. **User Isolation**: Users can only view their own transactions
-2. **Action Validation**: Cancel/retry actions validated server-side
-3. **CSRF Protection**: All POST requests protected
-4. **Rate Limiting**: Status checks limited to prevent abuse
+A person only sees transactions on their own accounts.
+The server checks every cancel and retry request.
+Laravel's CSRF protection covers the POST routes.
 
-## Real-Time Updates
+## Limits
 
-### Auto-Refresh
-- Pending transactions refresh every 5 seconds
-- Only refreshes when pending transactions exist
-- Preserves scroll position and UI state
-
-### Status Endpoint
-- Lightweight JSON response
-- Returns only changed data
-- Includes action availability flags
-
-## Transaction Timeline
-
-Timeline events include:
-1. Created - Transaction initiated
-2. Processing events - From metadata/logs
-3. Status changes - All status transitions
-4. Completion - Final status with timestamp
-
-## Performance Optimizations
-
-1. **Database Indexes**: On status, created_at, account_uuid
-2. **Limited Results**: Maximum 50 pending, 100 completed
-3. **Selective Refresh**: Only refresh changed components
-4. **Cached Statistics**: 5-minute cache for aggregate data
+The dashboard loads at most 50 pending and 100 finished transactions.
+The detail view shows at most 5 related transactions.
 
 ## Testing
 
-### Feature Tests
-```php
-class TransactionStatusTrackingTest extends TestCase
-{
-    public function user_can_view_transaction_status_tracking_page()
-    public function user_can_filter_transactions_by_status()
-    public function user_can_view_transaction_details()
-    public function user_can_get_real_time_transaction_status()
-    public function user_can_cancel_pending_transaction()
-    public function user_can_retry_failed_transaction()
-}
-```
+`tests/Feature/TransactionStatusTrackingTest.php` covers the pages and actions.
 
-### Manual Testing
-1. Create test transactions in various states
-2. Verify auto-refresh functionality
-3. Test filtering combinations
-4. Verify cancel/retry operations
-5. Check responsive design
+### Manual testing
+
+1. Create test transactions in several states.
+2. Check the filters.
+3. Cancel a pending transaction and retry a failed one.
+4. Check the pages on a small screen.
 
 ## Future Enhancements
 
-1. **Push Notifications**
-   - WebSocket for instant updates
-   - Browser notifications
-   - Mobile push notifications
-
-2. **Advanced Analytics**
-   - Transaction trends
-   - Failure analysis
-   - Performance metrics
-
-3. **Bulk Operations**
-   - Cancel multiple transactions
-   - Bulk retry failed transactions
-   - Export transaction data
-
-4. **Enhanced Timeline**
-   - More granular events
-   - External system updates
-   - Compliance check points
+1. Live updates through WebSockets, browser notifications and mobile push
+2. Reports on transaction trends and failures
+3. Bulk cancel, bulk retry and export
+4. A more detailed timeline with external and compliance events
+5. Real reversal of balances on cancel and a real re-run on retry

@@ -1,6 +1,8 @@
 # Domain Dependencies & Architecture
 
-This document maps the dependencies between FinAegis domains, supporting the platform's modularity goals.
+This document maps the dependencies between the main FinAegis domains. The map helps decide which domains could later become separate packages.
+
+> **Note:** The tiers, dependency counts, file counts and import counts below come from an analysis made when the platform had 29 domains. In v7.18.1 there are 61 domain folders under `app/Domain/`, and the counts are no longer current. The structure of the core and the demo domains has stayed the same.
 
 ## Domain Hierarchy
 
@@ -108,35 +110,27 @@ This document maps the dependencies between FinAegis domains, supporting the pla
 These domains are **required** for any FinAegis installation:
 
 #### Account Domain
-- **Purpose**: Central ledger and balance management
+The Account domain holds the central ledger and the balances. Every financial operation needs account balances, so it is core.
 - **Key Aggregates**: LedgerAggregate, TransactionAggregate, TransferAggregate
-- **Why Core**: All financial operations require account balances
-- **Import Count**: 406 statements across codebase
+- **Import Count**: 406 statements across the codebase at the time of the analysis
 
 #### Compliance Domain
-- **Purpose**: Regulatory compliance (KYC/AML)
-- **Key Features**: KYC verification, AML screening, SAR/CTR reporting
-- **Why Core**: Financial operations require compliance checks
-- **Import Count**: 123 statements across codebase
+The Compliance domain provides readiness tooling for Know Your Customer (KYC) and anti-money-laundering (AML) checks. Financial operations call these checks, so it is core. It does not make a deployment compliant, and no certification is held.
+- **Key Features**: KYC verification, AML screening, draft SAR and CTR reports
+- **Import Count**: 123 statements across the codebase at the time of the analysis
 
 ### SUPPORTING (Infrastructure)
 
 These domains provide **infrastructure** that optional features build upon:
 
 #### Banking Domain
-- **Purpose**: External bank connectivity
-- **Key Features**: SEPA/SWIFT transfers, bank routing
-- **Independence**: Zero external domain imports (pure infrastructure)
+The Banking domain holds the demo bank connectors and the bank routing logic. It has no live bank connection, and the production Zelta configuration disables it. Bank transfers into Zelta run through Bridge instead. At the time of the analysis it imported no other domain.
 
 #### Exchange Domain
-- **Purpose**: Trading and liquidity
-- **Key Features**: Order matching, AMM, liquidity pools
-- **Size**: 144 files (largest domain)
+The Exchange domain holds the exchange rates, the demo order book and the demo liquidity pools. The order book, the external exchange reads and the liquidity pools run only when the trading engine is on. `TRADING_ENABLED` switches it, and it is on by default only in the local, testing and demo environments. The rate endpoints stay on, because the mobile app uses them. The add, remove and rebalance liquidity flow was removed in v7.18.0. At the time of the analysis it was the largest domain, with 144 files.
 
 #### Wallet Domain
-- **Purpose**: Blockchain integration
-- **Key Features**: Multi-chain support, transaction signing
-- **Dependencies**: Account, Compliance
+The Wallet domain connects to blockchains. It runs the Zelta non-custodial wallet, in which the device signs every transaction. It depends on Account and Compliance.
 
 ### OPTIONAL (Features)
 
@@ -144,7 +138,7 @@ These domains are **independently toggleable** features:
 
 | Domain | Can Disable? | Impact if Disabled |
 |--------|--------------|-------------------|
-| Basket (GCU) | Yes | No basket currencies |
+| Basket (GCU) | Yes | No basket currencies (the GCU demo is off) |
 | Stablecoin | Yes | No token minting/burning |
 | Lending | Yes | No P2P loans |
 | Treasury | Yes | No portfolio management |
@@ -157,11 +151,13 @@ These domains are **independently toggleable** features:
 
 ### Current State
 
+All domains ship in one application. A deployment switches domains off with `MODULES_DISABLED`. A disabled domain loses its routes and its GraphQL types, and the demo domains also lose their scheduled jobs.
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    FINAEGIS MONOLITH                         │
 │                                                              │
-│  All 29 domains deployed together                           │
+│  All 61 domain folders deployed together                    │
 │  Single composer.json, single deployment                    │
 │                                                              │
 └─────────────────────────────────────────────────────────────┘
@@ -199,7 +195,7 @@ These domains are **independently toggleable** features:
 
 ### Interface Extraction Plan
 
-To enable modularity, extract interfaces for cross-domain communication:
+To enable modularity, domains talk to each other through interfaces. These interfaces now exist in `app/Domain/Shared/Contracts/`. The sketch below is the early plan, and the real method signatures differ:
 
 ```php
 // Core domain contracts (in Shared)
@@ -238,7 +234,7 @@ interface ExchangeRateInterface
 
 ### Circular Dependencies
 
-Only one soft circular dependency detected:
+The analysis found one soft circular dependency:
 
 ```
 Governance ←→ Basket
@@ -262,21 +258,21 @@ event(new BasketCompositionChangeRequested($newComposition));
 
 ### Immediate (Low Effort)
 
-1. **Document dependencies** in each domain README ✓
-2. **Extract shared interfaces** to `App\Domain\Shared\Contracts`
-3. **Use events** for cross-domain communication where possible
+1. **Document dependencies** in each domain README. Six domains have a README so far.
+2. **Extract shared interfaces** to `App\Domain\Shared\Contracts`. This is done for account operations, account queries, asset transfers, compliance checks, exchange rates, governance voting, payment processing and wallet operations.
+3. **Use events** for cross-domain communication where possible.
 
 ### Short-term (Medium Effort)
 
-4. **Create domain service providers** that can be conditionally loaded
-5. **Isolate configuration** per domain (`config/domains/exchange.php`)
-6. **Add feature flags** for optional domains
+4. **Create domain service providers** that can be loaded conditionally. `ModuleRouteLoader` already loads routes only for enabled domains.
+5. **Isolate configuration** per domain, for example in `config/domains/exchange.php`. This is not done yet.
+6. **Add feature flags** for optional domains. `MODULES_DISABLED` and flags such as `TRADING_ENABLED` now do this.
 
 ### Long-term (High Effort)
 
-7. **Extract packages** for truly optional domains
-8. **Create plugin system** for third-party extensions
-9. **Implement domain versioning** for API stability
+7. **Extract packages** for the optional domains.
+8. **Create a plugin system** for third-party extensions. A plugin manager exists in `app/Infrastructure/Plugins/`.
+9. **Version the domains** to keep the APIs stable.
 
 ---
 

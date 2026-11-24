@@ -2,654 +2,227 @@
 
 ## Overview
 
-The FinAegis Wallet Management System provides secure multi-blockchain cryptocurrency storage with advanced features like HD wallets, multi-signature support, and hardware wallet integration. This guide will help you manage your digital assets safely and efficiently.
+This guide describes the wallet features in FinAegis at v7.18.1. There are three separate wallet surfaces, and each one works differently.
+
+1. The **Zelta mobile wallet** is the hosted product. It is non-custodial, which means the person's device holds the keys.
+2. The **FinAegis web wallet** at `/wallet` is a demo of ledger accounts. Its balances live in the FinAegis database.
+3. The **blockchain wallet module** offers HD wallets, hardware wallets and multi-signature wallets through the API and the `/wallet/blockchain` pages.
+
+> FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
 
 ## Table of Contents
 
-1. [Getting Started](#getting-started)
-2. [Wallet Types](#wallet-types)
-3. [Creating Wallets](#creating-wallets)
-4. [Sending & Receiving](#sending--receiving)
-5. [Security Features](#security-features)
-6. [Supported Blockchains](#supported-blockchains)
-7. [Transaction Management](#transaction-management)
-8. [Backup & Recovery](#backup--recovery)
-9. [Advanced Features](#advanced-features)
-10. [Troubleshooting](#troubleshooting)
-
-## Getting Started
-
-### Initial Setup
-
-1. **Account Verification**
-   - Complete KYC verification for full features
-   - Enable 2FA (required for withdrawals)
-   - Set up email notifications
-
-2. **Security Setup**
-   - Create strong wallet password
-   - Download and secure backup codes
-   - Configure withdrawal whitelist (optional)
-
-3. **Choose Wallet Type**
-   - Standard: Quick setup, managed keys
-   - HD Wallet: Hierarchical deterministic
-   - Multi-Sig: Requires multiple approvals
-   - Hardware: External device integration
-
-## Wallet Types
-
-### Standard Wallet
-
-Best for beginners and everyday use:
-
-**Features:**
-- Single address per blockchain
-- Managed private keys
-- Automatic backups
-- Quick transactions
-
-**Setup:**
-1. Click **Create Wallet**
-2. Select **Standard Wallet**
-3. Choose blockchain (BTC, ETH, etc.)
-4. Wallet created instantly
-
-### HD Wallet (Hierarchical Deterministic)
-
-Professional traders and privacy-conscious users:
-
-**Features:**
-- Unlimited addresses from one seed
-- Enhanced privacy (new address per transaction)
-- BIP44 compliant
-- Single backup for all addresses
-
-**Setup:**
-1. Select **HD Wallet**
-2. Generate seed phrase (24 words)
-3. **IMPORTANT**: Write down seed phrase offline
-4. Verify seed phrase
-5. Set derivation path (optional)
-
-### Multi-Signature Wallet
-
-For organizations and high-security needs:
-
-**Features:**
-- Requires multiple approvals
-- Configurable thresholds (e.g., 2-of-3)
-- Perfect for team treasuries
-- Enhanced security
-
-**Setup:**
-1. Select **Multi-Sig Wallet**
-2. Configure signers:
-   ```
-   Required Signatures: 2
-   Total Signers: 3
-   
-   Signer 1: alice@company.com
-   Signer 2: bob@company.com
-   Signer 3: carol@company.com
-   ```
-3. Each signer receives setup email
-4. All signers must confirm participation
-
-### Hardware Wallet Integration
-
-Maximum security with external devices:
-
-**Supported Devices:**
-- Ledger Nano S/X
-- Trezor One/Model T
-- KeepKey
-
-**Setup:**
-1. Connect hardware wallet via USB
-2. Click **Connect Hardware Wallet**
-3. Follow device prompts
-4. Authorize FinAegis app
-5. Select accounts to import
-
-## Creating Wallets
-
-### Quick Create
-
-For single blockchain wallet:
-
-1. Dashboard → **Wallets** → **Create New**
-2. Select blockchain:
-   - Bitcoin (BTC)
-   - Ethereum (ETH)
-   - Polygon (MATIC)
-   - Binance Smart Chain (BNB)
-3. Choose wallet type
-4. Name your wallet (optional)
-5. Click **Create Wallet**
-
-### Bulk Creation
-
-Create multiple wallets at once:
-
-1. **Wallets** → **Bulk Create**
-2. Select blockchains (multi-select)
-3. Choose wallet type for each
-4. Review summary
-5. Click **Create All**
-
-### Import Existing Wallet
-
-Import from other platforms:
-
-1. **Wallets** → **Import**
-2. Choose import method:
-   - **Private Key**: Paste key (be careful!)
-   - **Seed Phrase**: Enter 12/24 words
-   - **Keystore File**: Upload JSON file
-   - **WIF**: For Bitcoin wallets
-3. Verify imported balance
-4. Set wallet name
-
-⚠️ **Security Warning**: Only import on secure devices. Never share private keys!
-
-## Sending & Receiving
-
-### Receiving Funds
-
-#### Generate Address
-1. Select wallet from dashboard
-2. Click **Receive**
-3. New address generated (HD wallets)
-4. Options:
-   - Copy address
-   - Show QR code
-   - Share via email
-   - Generate payment link
-
-#### Payment Links
-Create shareable payment requests:
-
-```
-https://pay.finaegis.com/r/AbC123xYz
-```
-
-Features:
-- Fixed or variable amount
-- Expiration time
-- Custom message
-- Auto-conversion rates
-
-### Sending Funds
-
-#### Basic Send
-1. Select wallet
-2. Click **Send**
-3. Enter details:
-   ```
-   To: 0x742d35Cc6634C053...
-   Amount: 0.5 ETH
-   Network Fee: Standard
-   ```
-4. Review transaction
-5. Confirm with 2FA
-
-#### Advanced Options
-
-**Network Fees:**
-- **Slow**: Lower fee, 30+ minutes
-- **Standard**: Average fee, 10-30 minutes
-- **Fast**: Higher fee, <10 minutes
-- **Custom**: Set gas price manually
-
-**Additional Features:**
-- **Memo/Tag**: For exchanges requiring it
-- **Schedule**: Send at specific time
-- **Recurring**: Automatic periodic payments
-- **Batch Send**: Multiple recipients
-
-### Address Book
-
-Save frequently used addresses:
-
-1. **Wallets** → **Address Book**
-2. Click **Add Contact**
-3. Enter details:
-   ```
-   Name: John's Bitcoin Wallet
-   Address: bc1qxy2kgdygjrsqtzq...
-   Blockchain: Bitcoin
-   Notes: Personal wallet
-   ```
-4. Use saved addresses when sending
-
-## Security Features
-
-### Two-Factor Authentication (2FA)
-
-**Required for:**
-- Withdrawals over $100
-- Address changes
-- Security settings
-- API key generation
-
-**Setup:**
-1. **Security** → **2FA Setup**
-2. Scan QR with authenticator app
-3. Enter verification code
-4. Save backup codes
-
-### Withdrawal Whitelist
-
-Only allow withdrawals to pre-approved addresses:
-
-1. **Security** → **Withdrawal Whitelist**
-2. Click **Add Address**
-3. Enter address details
-4. Confirm via email
-5. 24-hour activation delay (security)
-
-### Transaction Limits
-
-Set daily/monthly limits:
-
-```
-Daily Limit: $10,000
-Monthly Limit: $100,000
-Per Transaction: $5,000
-```
-
-Exceeding limits requires:
-- Additional verification
-- Manual approval
-- Cooling period
-
-### Multi-Signature Requirements
-
-Configure approval rules:
-
-```
-Small (<$1,000): 1 signature
-Medium ($1,000-$10,000): 2 signatures
-Large (>$10,000): 3 signatures
-```
-
-## Supported Blockchains
-
-### Bitcoin (BTC)
-
-**Features:**
-- Native SegWit support (bc1 addresses)
-- Legacy address compatibility
-- Replace-by-fee (RBF)
-- Child-pays-for-parent (CPFP)
-
-**Network Selection:**
-- Mainnet (production)
-- Testnet (testing)
-
-### Ethereum (ETH)
-
-**Features:**
-- ERC-20 token support
-- Smart contract interaction
-- Gas optimization
-- MEV protection
-
-**Supported Tokens:**
-- USDT, USDC, DAI (stablecoins)
-- LINK, UNI, AAVE (DeFi)
-- Custom tokens (add by contract)
-
-### Polygon (MATIC)
-
-**Features:**
-- Lower fees than Ethereum
-- Fast transactions (2-3 seconds)
-- Bridge to/from Ethereum
-
-### Binance Smart Chain (BSC)
-
-**Features:**
-- BEP-20 token support
-- Low transaction fees
-- High throughput
-
-## Transaction Management
-
-### Transaction Status
+1. [Zelta Mobile Wallet](#zelta-mobile-wallet)
+2. [FinAegis Web Wallet](#finaegis-web-wallet)
+3. [Blockchain Wallets](#blockchain-wallets)
+4. [Hardware Wallets](#hardware-wallets)
+5. [Multi-Signature Wallets](#multi-signature-wallets)
+6. [Security Advice](#security-advice)
+7. [Troubleshooting](#troubleshooting)
+8. [Getting Support](#getting-support)
 
-**Pending**: Broadcast to network, awaiting confirmation
-```
-Status: Pending
-Confirmations: 0/6
-Estimated Time: 10 minutes
-```
+## Zelta Mobile Wallet
 
-**Confirmed**: Included in blockchain
-```
-Status: Confirmed
-Confirmations: 6/6
-Block: 750,123
-```
+> Zelta is non-custodial wallet software. Zelta and its operator are not a bank, electronic money institution,
+> payment institution or crypto-asset service provider, and do not hold, exchange or transmit users' funds.
+> Any card or off-ramp services will be provided by licensed third parties under their own terms.
 
-**Failed**: Transaction rejected
-```
-Status: Failed
-Reason: Insufficient gas
-Action: Retry with higher gas
-```
+### How it works
 
-### Transaction History
+The person's keys stay on their own device, and Privy manages them there. On EVM networks the wallet is a smart account that the person controls with a passkey. On Solana the wallet uses an ed25519 key bound to the device. The device signs every transaction, and the backend never sees private key material.
 
-View and filter transactions:
+The app signs in through `POST /api/v1/auth/privy-login`. That endpoint checks the Privy token and returns a FinAegis API token.
 
-1. **Wallets** → **Transactions**
-2. Filter options:
-   - Date range
-   - Wallet
-   - Status
-   - Amount range
-   - Type (send/receive)
+### Supported networks and assets
 
-3. Export options:
-   - CSV for accounting
-   - PDF for records
-   - API for integration
+- Sends work on Polygon, Base and Arbitrum, and on Solana.
+- Ethereum mainnet sends are off. The setting `WALLET_SEND_EVM_NETWORKS` defaults to `polygon,base,arbitrum`, and a disabled network returns `422 NETWORK_DISABLED`.
+- The supported assets are USDC and USDT.
 
-### Speed Up Transactions
+### Receiving
 
-For stuck transactions:
+The app shows the person's address and a QR code from `GET /api/v1/wallet/receive`. On Solana the QR code follows the Solana Pay format.
 
-#### Bitcoin - Replace by Fee (RBF)
-1. Find pending transaction
-2. Click **Speed Up**
-3. Increase fee
-4. Rebroadcast
+Very small inbound SOL transfers are recorded but kept out of the activity feed and push notifications. The limit is `WALLET_SOLANA_DUST_MIN_INBOUND_SOL`, which defaults to 0.001 SOL. This filters address-poisoning spam. Token transfers are never filtered.
 
-#### Ethereum - Speed Up
-1. Same nonce, higher gas
-2. Click **Speed Up**
-3. Set new gas price
-4. Confirm transaction
+### Sending
 
-### Cancel Transactions
+A send has two steps.
+1. `POST /api/v1/wallet/transactions/prepare` returns an unsigned transaction.
+2. The device signs it, and `POST /api/v1/wallet/transactions/submit` sends the signed transaction to the network.
 
-Only for pending transactions:
+The `Idempotency-Key` HTTP header protects a send from running twice.
 
-#### Bitcoin
-- Create new transaction with higher fee
-- Send to your own address
-- Uses same inputs
+### Gas sponsorship and limits
 
-#### Ethereum
-- Send 0 ETH to yourself
-- Same nonce as stuck transaction
-- Higher gas price
+The platform pays the network fee for EVM sends, so the person does not need ETH or POL. Each person can make 30 sponsored sends per day, and the whole platform can make 5,000 per day. The counters reset at 00:00 UTC. A send over the limit returns HTTP 429 with `SEND_DAILY_LIMIT_REACHED` or `SEND_TEMPORARILY_UNAVAILABLE`.
 
-## Backup & Recovery
+On Solana the platform can pay the fee when an operator sets a sponsor key. Without it, the sender's wallet must hold SOL for the fee.
 
-### Seed Phrase Backup
+### Send outcomes (v7.18.0)
 
-**Critical for HD Wallets:**
+Since v7.18.0 a send no longer shows "failed" when the network may have accepted it after a timeout or a server error. Such a send stays submitted until the chain settles it.
 
-1. **Never store digitally** (no photos, cloud, email)
-2. Write on paper or metal
-3. Store in multiple secure locations
-4. Test recovery process
+- On EVM networks the send fails only once its sponsorship has expired and the account's nonce shows it never ran.
+- On Solana the send fails only once its blockhash can no longer be used.
+- A second submit of the same send while the first is still running returns `409 SUBMIT_IN_PROGRESS`.
 
-**Recovery Process:**
-1. **Wallets** → **Recover**
-2. Enter seed phrase
-3. Select derivation path
-4. Scan for balances
-5. Wallet restored
+### Activity
 
-### Private Key Export
+The app reads the person's history from `GET /api/v1/wallet/transactions`. Inbound transfers are mirrored from the Helius webhook on Solana and the Alchemy webhook on EVM networks. Both send a push notification.
 
-For individual wallets:
+Named third-party providers: Integration adapters for third-party APIs; no partnership or endorsement implied.
 
-1. Select wallet
-2. **Settings** → **Export Private Key**
-3. Enter password and 2FA
-4. Copy key (keep secure!)
+## FinAegis Web Wallet
 
-⚠️ **Warning**: Anyone with private key has full control!
+### What it is
 
-### Account Recovery
+The web wallet at `/wallet` is part of the FinAegis demo. It shows ledger balances in the FinAegis database, including the GCU demo balance. It does not hold crypto on a blockchain.
 
-If you lose access:
+The pages that move ledger balances sit behind `LEDGER_DIRECT_FUNDING_ENABLED`. The switch is on by default only for `APP_ENV=local`, `testing` and `demo`. It is off in production and for Zelta.
 
-1. **24-word recovery phrase**: Full recovery possible
-2. **Email + 2FA lost**: Contact support with ID
-3. **Hardware wallet lost**: Use seed phrase
-4. **Everything lost**: Limited options, contact support
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
 
-## Advanced Features
+### Pages
 
-### DeFi Integration
+| Page | What it does |
+|------|--------------|
+| `/wallet` | Shows balances and quick actions. |
+| `/wallet/deposit` | Offers a card deposit and a bank deposit. The bank deposit page leads on to Open Banking, Paysera, crypto and manual transfer. |
+| `/wallet/withdraw` | Lets the person choose between a bank withdrawal and an Open Banking withdrawal. |
+| `/wallet/transfer` | Moves money between accounts. |
+| `/wallet/convert` | Converts between currencies. |
+| `/wallet/transactions` | Lists the transaction history. |
+| `/wallet/bank-allocation` | Shows the simulated GCU custodian allocation. |
+| `/wallet/stablecoin-operations` | Shows the demo stablecoin mint and burn pages to staff with a stablecoin operator or admin role. |
 
-Interact with decentralized finance:
+### Withdrawing to a bank
 
-1. **Connect Wallet** to DeFi platforms
-2. Supported protocols:
-   - Uniswap (DEX trading)
-   - Aave (Lending)
-   - Compound (Borrowing)
-   - Curve (Stablecoin swaps)
+1. Open **Wallet**, then **Withdraw**.
+2. Choose **Traditional Bank Transfer**.
+3. Enter the amount and the currency. The minimum is 10, and the currency is USD, EUR or GBP.
+4. Type the bank name, the account number and the account holder's name. The routing number, IBAN and SWIFT code are optional.
+5. Submit the form.
 
-### NFT Management
+Since v7.18.0 the page does not save bank accounts. The saved-account feature never worked, because it wrote columns the `bank_accounts` table does not have. Type the bank details for each withdrawal.
 
-View and manage NFTs:
+The withdrawal only debits the FinAegis ledger. The bank payout step is a stub, so no money reaches a bank. The Open Banking option is a demo flow that does not work against real banks yet. See [OPENBANKING_WITHDRAWAL.md](../03-FEATURES/OPENBANKING_WITHDRAWAL.md).
 
-1. **Wallets** → **NFTs**
-2. Features:
-   - Gallery view
-   - Transfer NFTs
-   - List for sale
-   - Metadata viewing
+## Blockchain Wallets
 
-### Cross-Chain Bridges
+### What they are
 
-Transfer between blockchains:
+The blockchain wallet module creates wallets and addresses on Ethereum, Polygon, BSC and Bitcoin. Its API sits behind Sanctum sign-in and the `sub_product:blockchain` check.
 
-1. **Wallets** → **Bridge**
-2. Select:
-   ```
-   From: Ethereum
-   To: Polygon
-   Asset: USDC
-   Amount: 100
-   ```
-3. Review fees (both chains)
-4. Confirm bridge transaction
-5. Wait for confirmations (5-30 minutes)
+A wallet is either `custodial` or `non-custodial`. A non-custodial wallet can be created from a mnemonic that the person supplies, and the API validates the mnemonic first.
 
-## Mobile App
+### API
 
-### Features
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| GET | `/api/blockchain-wallets` | List wallets |
+| POST | `/api/blockchain-wallets` | Create a wallet |
+| GET | `/api/blockchain-wallets/{walletId}` | Show a wallet |
+| PUT | `/api/blockchain-wallets/{walletId}` | Update wallet settings |
+| GET | `/api/blockchain-wallets/{walletId}/addresses` | List addresses |
+| POST | `/api/blockchain-wallets/{walletId}/addresses` | Generate an address |
+| GET | `/api/blockchain-wallets/{walletId}/transactions` | List transactions |
+| POST | `/api/blockchain-wallets/{walletId}/backup` | Create a backup |
+| POST | `/api/blockchain-wallets/generate-mnemonic` | Generate a mnemonic |
 
-- **Biometric Login**: Face ID / Fingerprint
-- **Push Notifications**: Transactions, price alerts
-- **QR Scanner**: Quick address entry
-- **Offline Mode**: View balances without internet
-- **Widget**: Home screen balance display
+### Web pages
 
-### Security
+The `/wallet/blockchain` pages list addresses, create an address, show an address and its transactions, and export a backup. The send form at `/wallet/blockchain/address/{addressId}/send` also needs `LEDGER_DIRECT_FUNDING_ENABLED`.
 
-- **App PIN**: Additional security layer
-- **Auto-lock**: After inactivity
-- **Remote Wipe**: If phone stolen
-- **Secure Enclave**: Key storage
+## Hardware Wallets
+
+### Supported devices
+
+- Ledger Nano S and Ledger Nano X
+- Trezor One and Trezor Model T
+
+`GET /api/hardware-wallet/supported` returns the supported devices and chains, and it does not need a sign-in.
+
+### How signing works
+
+1. Register the device with `POST /api/hardware-wallet/register`.
+2. Create a signing request with `POST /api/hardware-wallet/signing-request`.
+3. Sign the transaction on the device.
+4. Send the signature with `POST /api/hardware-wallet/signing-request/{id}/submit`.
+
+A signing request expires after 300 seconds by default (`HARDWARE_WALLET_SIGNING_TTL`). A request can be cancelled with `POST /api/hardware-wallet/signing-request/{id}/cancel`. Registered devices are listed with `GET /api/hardware-wallet/associations` and removed with `DELETE /api/hardware-wallet/associations/{uuid}`.
+
+## Multi-Signature Wallets
+
+### What they are
+
+A multi-signature wallet needs several approvals before a transaction is sent. A wallet has between 2 and 10 signers. The supported schemes are 2-of-2, 2-of-3, 3-of-4 and 3-of-5.
+
+### How approval works
+
+1. Create the wallet with `POST /api/multi-sig/wallets`.
+2. Add signers with `POST /api/multi-sig/wallets/{id}/signers`.
+3. Create an approval request with `POST /api/multi-sig/wallets/{id}/approval-requests`.
+4. Each signer approves or rejects it with `POST /api/multi-sig/approval-requests/{id}/approve` or `/reject`.
+5. Once enough signers approve, broadcast the transaction with `POST /api/multi-sig/approval-requests/{id}/broadcast`.
+
+An approval request expires after 24 hours by default (`MULTI_SIG_APPROVAL_TTL`). A wallet can have at most five pending requests. `GET /api/multi-sig/pending-approvals` lists the requests that wait for the signed-in person.
+
+## Security Advice
+
+### Recovery phrases
+
+A recovery phrase restores a wallet. Anyone who has it controls the funds.
+
+- Write the phrase on paper or metal and keep it offline.
+- Do not store it in photos, cloud storage or email.
+- Keep copies in more than one safe place.
+- Test the recovery before you move large amounts.
+
+### Account security
+
+- Turn on two-factor authentication for the FinAegis web account.
+- Use a passkey for the Zelta app.
+- Check your transaction history for activity you do not recognise.
 
 ## Troubleshooting
 
-### Common Issues
+### A send stays pending
 
-#### Transaction Stuck
+A send can stay submitted while the network decides. Since v7.18.0 the app waits for the chain instead of reporting a failure too early. Do not submit the same send again while it is pending, because a second submit returns `409 SUBMIT_IN_PROGRESS`.
 
-**Problem**: Transaction pending for hours
+### A send is refused
 
-**Solutions:**
-1. Check network congestion
-2. Verify fee is competitive
-3. Try speeding up (RBF/gas boost)
-4. Wait for network to clear
-5. Contact support if critical
+- `422 NETWORK_DISABLED` means the network is turned off for sends, as Ethereum mainnet is by default.
+- `429 SEND_DAILY_LIMIT_REACHED` means the person used today's sponsored sends. The counter resets at 00:00 UTC.
+- `429 SEND_TEMPORARILY_UNAVAILABLE` means the platform-wide daily limit was reached.
 
-#### Wrong Network
+### A balance does not show
 
-**Problem**: Sent to wrong blockchain
+1. Check that the right network is selected.
+2. Check that the transaction is confirmed on the chain.
+3. Refresh the wallet.
 
-**Solutions:**
-- Same address format: May be recoverable
-- Different format: Likely lost
-- Contact support immediately
-- Some recovery possible with private keys
+### An address is rejected
 
-#### Missing Balance
+The address may belong to another network, or it may contain a typo. EVM addresses are not case-sensitive, but Solana addresses are. Scan the QR code instead of typing the address.
 
-**Problem**: Balance not showing
+### A web wallet page returns "not found"
 
-**Check:**
-1. Correct network selected
-2. Transaction confirmed
-3. Wallet synced
-4. Try refresh/rescan
+The money-moving web wallet pages need `LEDGER_DIRECT_FUNDING_ENABLED`, and the exchange and liquidity pages need `TRADING_ENABLED`. Both are off in production.
 
-#### Address Invalid
-
-**Problem**: "Invalid address" error
-
-**Causes:**
-- Wrong network selected
-- Typo in address
-- Old address format
-- Checksum failure
-
-**Solution:** 
-- Double-check address
-- Verify network matches
-- Use QR code scan
-- Try different format
-
-### Error Messages
-
-#### "Insufficient Balance"
-- Check available vs. total balance
-- Account for network fees
-- Verify no pending transactions
-
-#### "Network Error"
-- Check internet connection
-- Try different network
-- Wait and retry
-- Check status page
-
-#### "Invalid Signature"
-- Re-enter password
-- Check 2FA time sync
-- Clear cache and retry
-- Contact support
-
-### Security Incidents
-
-#### Suspected Hack
-
-**Immediate Actions:**
-1. **Do NOT panic**
-2. Change password immediately
-3. Disable API keys
-4. Enable withdrawal whitelist
-5. Contact support
-6. Move remaining funds
-
-#### Lost Device
-
-**If phone/computer lost:**
-1. Remote wipe if possible
-2. Change FinAegis password
-3. Revoke device access
-4. Monitor for suspicious activity
-5. Set up on new device
-
-### Getting Support
+## Getting Support
 
 - [GitHub Issues](https://github.com/FinAegis/core-banking-prototype-laravel/issues)
 
-**Include in support request:**
-- Wallet address
-- Transaction ID
-- Screenshot of error
-- Steps to reproduce
+Include these details in a support request:
+- The wallet address
+- The transaction ID
+- A screenshot of the error
+- The steps to reproduce it
 
-## Best Practices
+## Related Documentation
 
-### Security Checklist
-
-- [ ] 2FA enabled
-- [ ] Withdrawal whitelist set
-- [ ] Seed phrase backed up
-- [ ] Regular security reviews
-- [ ] Software updated
-- [ ] Suspicious activity monitoring
-
-### Daily Operations
-
-1. **Check balances** for discrepancies
-2. **Review transactions** for unauthorized activity
-3. **Monitor network fees** before sending
-4. **Update address book** for frequent contacts
-5. **Clear old sessions** regularly
-
-### Long-term Storage
-
-For holding (HODLing):
-
-1. Use hardware wallet
-2. Multiple signature setup
-3. Cold storage option
-4. Regular but infrequent access
-5. Multiple backups
-6. Consider time-locks
-
-## Tax and Regulatory Reporting
-
-### Tax Reporting
-
-Export data for tax purposes:
-
-1. **Reports** → **Tax Report**
-2. Select tax year
-3. Choose format (CSV, PDF, Form 8949)
-4. Include:
-   - All transactions
-   - Cost basis
-   - Gains/losses
-   - Mining/staking income
-
-### Travel Rule Data
-
-For large transfers (module modelled on Travel Rule requirements):
-
-- Transactions over $1,000 may require:
-  - Recipient name
-  - Recipient address
-  - Purpose of transfer
-  - Source of funds
-
-### Regional Restrictions
-
-Some features limited by jurisdiction:
-
-- **Privacy coins**: Restricted in some regions
-- **Staking**: Tax implications vary
-- **DeFi access**: Regulatory dependent
-
-## Conclusion
-
-The FinAegis wallet module provides HD, multi-signature and hardware-wallet support. Start with basic features, gradually explore advanced options, and always prioritize security.
-
-For API integration and development, see our [Developer Documentation](/docs/api/wallets) and [Integration Guide](/docs/developer/wallet-integration).
-
-Stay safe and happy HODLing!
+- [OPENBANKING_WITHDRAWAL.md](../03-FEATURES/OPENBANKING_WITHDRAWAL.md) describes the bank and Open Banking withdrawal pages.
+- [MOBILE_API_COMPATIBILITY.md](../MOBILE_API_COMPATIBILITY.md) describes the mobile wallet API.
+- [wallet-sponsorship.md](../operations/wallet-sponsorship.md) describes gas sponsorship for operators.

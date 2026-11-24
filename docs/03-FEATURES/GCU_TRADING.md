@@ -10,26 +10,33 @@
 
 ## Overview
 
-The GCU demo trading module simulates conversions between demo fiat balances and GCU demo units, with quotes, fees and KYC-tiered limits as reference logic. No real funds are used.
+The GCU trading module is a demonstration of converting demo fiat balances into GCU demo units and back.
+It shows quotes, a fee and limits tied to identity-check (Know Your Customer, KYC) levels as reference logic.
+No real funds are used.
+
+The module belongs to the Basket domain.
+Its API and web routes use the `module.enabled:Basket` middleware, and production deployments list `Basket` in `MODULES_DISABLED`.
+It therefore only runs on the demo site or a local install.
 
 ## Features
 
-### 1. Simulated Buy (demo)
-- **Supported Currencies**: EUR, USD, GBP, CHF
-- **Minimum Purchase**: 100 units of selected currency
-- **Trading Fee**: 1% of transaction amount
-- **Real-time Quotes**: Live exchange rates with 5-minute validity
-- **Execution**: Immediate update of demo ledger balances
+### Simulated buy
 
-### 2. Simulated Sell (demo)
-- **Supported Currencies**: EUR, USD, GBP, CHF
-- **Minimum Sale**: 10 GCU
-- **Trading Fee**: 1% of transaction amount
-- **Real-time Quotes**: Live exchange rates with 5-minute validity
-- **Settlement**: Immediate update of demo fiat balance
+A buy converts a demo balance in EUR, USD, GBP or CHF into GCU demo units.
+The minimum amount is 100 units of the chosen currency.
+The quote shows a 1% fee on the amount.
 
-### 3. Trading Limits (reference logic)
-Illustrative demo limits are based on KYC verification level:
+### Simulated sell
+
+A sell converts GCU demo units back into EUR, USD, GBP or CHF.
+The minimum amount is 10 GCU.
+The quote shows a 1% fee on the proceeds.
+
+### Trading limits (reference logic)
+
+The limits endpoint returns illustrative limits for each KYC level.
+At v7.18.1 the controller always reports KYC level 2 and reports zero used amounts.
+The buy and sell endpoints do not check these limits.
 
 | KYC Level | Status | Daily Buy | Daily Sell | Monthly Buy | Monthly Sell |
 |-----------|--------|-----------|------------|-------------|--------------|
@@ -39,41 +46,28 @@ Illustrative demo limits are based on KYC verification level:
 | 3 | Enhanced | €50,000 | €50,000 | €500,000 | €500,000 |
 | 4 | Corporate | €1,000,000 | €1,000,000 | €10,000,000 | €10,000,000 |
 
-### 4. Quote System
-- **Quote Validity**: 5 minutes
-- **Dynamic Pricing**: Based on current GCU basket value
-- **Fee Transparency**: Clear breakdown of fees before execution
-- **Exchange Rate Display**: Shows exact conversion rates
+### Quotes
+
+A quote is valid for 5 minutes.
+Its rate comes from the latest stored GCU basket value in `basket_values`.
+It lists the fee and the exchange rate before anything is converted.
+When no basket value is stored, the buy, sell and quote endpoints answer with HTTP 503.
+
+### What the conversion books
+
+Since v7.18.1 a buy or sell books the amount the person typed, converted exactly into the asset's minor units (#1247).
+The conversion uses the stored exchange rate between the two assets in `exchange_rates` and does not take a fee.
+The quote and the buy or sell response use the GCU basket value and the 1% fee instead.
+The amounts in the response can therefore differ from what the conversion books.
+Aligning the two needs a product decision.
 
 ## User Interface
 
-### Trading Page (`/gcu/trading`)
-The trading interface provides:
-
-1. **GCU Summary Card**
-   - Illustrative GCU demo value in USD
-   - 24-hour change of the illustrative value
-   - User's simulated GCU demo balance
-
-2. **Simulated Buy Panel**
-   - Amount input (fiat currency)
-   - Currency selector
-   - Real-time quote display
-   - Fee breakdown
-   - Buy button with validation
-
-3. **Simulated Sell Panel**
-   - Amount input (GCU)
-   - Currency selector
-   - Real-time quote display
-   - Fee breakdown
-   - Sell button with validation
-
-4. **Trading Limits Dashboard**
-   - Daily limits with progress bars
-   - Monthly limits with progress bars
-   - KYC level display
-   - Link to increase limits
+The web page is `/gcu/trading`. It is served by `App\Http\Controllers\GcuTradingController` with the Blade view `resources/views/gcu/trading.blade.php`.
+The page is meant to show the illustrative GCU value, the person's simulated GCU and USD balances, a price history, recent demo trades and forms for a simulated buy and sell.
+At v7.18.1 the page cannot load.
+Its controller reads prices through a `BasketPrice` model that does not exist, and its forms point at a route named `api.exchange` that is not registered.
+Use the API endpoints below instead.
 
 ## API Endpoints
 
@@ -197,99 +191,52 @@ GET /api/v2/gcu/trading-limits
 
 ## Technical Implementation
 
-### Backend Architecture
+### Backend
 
-1. **Controller**: `App\Http\Controllers\Api\V2\GCUTradingController`
-   - Handles buy/sell operations
-   - Provides quotes and limits
-   - Validates transactions
+The API controller is `App\Http\Controllers\Api\V2\GCUTradingController`.
+It handles buy, sell, quote and trading limits.
+A buy or sell starts `App\Domain\Wallet\Workflows\WalletConvertWorkflow` to move the demo balances.
+`ExchangeRateService` and `AccountService` support the conversion.
 
-2. **Services Used**:
-   - `ExchangeRateService`: Currency conversion
-   - `AccountService`: Balance management
-   - `AssetTransferWorkflow`: Transaction execution
+Every endpoint needs a Sanctum token.
+The controller checks that the account belongs to the caller and is not frozen.
+The buy and sell routes also use the `transaction.rate_limit:convert` middleware.
 
-3. **Security Features**:
-   - Authentication required (Sanctum)
-   - Account ownership verification
-   - Frozen account checks
-   - Transaction rate limiting
+### Frontend
 
-### Frontend Implementation
-
-1. **Vue Component**: `resources/js/Pages/GCU/Trading.vue`
-   - Real-time quote updates
-   - Form validation
-   - Error handling
-   - Loading states
-
-2. **Features**:
-   - Debounced quote requests
-   - Input validation
-   - Progress indicators
-   - Success/error notifications
+The `/gcu/trading` page is a Blade view.
+A Vue component, `resources/js/Pages/GCU/Trading.vue`, also exists in the repository, but no route renders it.
 
 ## Trading Flow (simulated)
 
-### Buy Flow
-1. User enters amount in fiat currency
-2. System fetches real-time quote
-3. User reviews quote and fees
-4. User confirms purchase
-5. System validates:
-   - Sufficient fiat balance
-   - Trading limits not exceeded
-   - Account not frozen
-6. Transaction executed via workflow
-7. Balances updated
-8. Confirmation displayed
+### Buy flow
 
-### Sell Flow
-1. User enters amount in GCU
-2. System fetches real-time quote
-3. User reviews quote and fees
-4. User confirms sale
-5. System validates:
-   - Sufficient GCU balance
-   - Trading limits not exceeded
-   - Account not frozen
-6. Transaction executed via workflow
-7. Balances updated
-8. Confirmation displayed
+1. The person enters an amount in a fiat currency and asks for a quote.
+2. The person reviews the quote and the fee, then confirms.
+3. The controller checks the account owner, the frozen flag and the demo balance.
+4. The conversion workflow updates the demo balances.
+5. The response returns the new simulated GCU balance.
+
+### Sell flow
+
+1. The person enters an amount in GCU and asks for a quote.
+2. The person reviews the quote and the fee, then confirms.
+3. The controller checks the account owner, the frozen flag and the GCU demo balance.
+4. The conversion workflow updates the demo balances.
+5. The response returns the new simulated GCU balance.
 
 ## Error Handling
 
-### Common Errors
-1. **Insufficient Balance**: User lacks required funds
-2. **Account Frozen**: Trading disabled on frozen accounts
-3. **Below Minimum**: Amount below minimum threshold
-4. **Above Limits**: Exceeds daily/monthly limits
-5. **Invalid Currency**: Unsupported currency selected
-6. **GCU Value Unavailable**: Cannot determine current value
+### Common errors
 
-### Error Responses
-All errors return appropriate HTTP status codes:
-- `400`: Bad Request (invalid parameters)
-- `403`: Forbidden (unauthorized access)
-- `422`: Unprocessable Entity (validation errors)
-- `500`: Internal Server Error (system errors)
-- `503`: Service Unavailable (external service down)
+The endpoints reject an amount below the minimum, an amount that is not a valid number or an unsupported currency with HTTP 422.
+They reject an account that belongs to someone else with HTTP 403.
+They reject a frozen account or an insufficient demo balance with HTTP 422.
+They answer with HTTP 503 when no GCU basket value is stored.
+A failure inside the conversion answers with HTTP 500 and the error "Transaction Failed".
 
 ## Testing
 
-### Unit Tests
-Located in `tests/Feature/Api/V2/GCUTradingTest.php`:
-- Quote generation
-- Buy operations
-- Sell operations
-- Trading limits
-- Error scenarios
-- Authentication
-
-### Browser Tests
-Located in `tests/Browser/GCUTradingTest.php`:
-- UI interaction
-- Form validation
-- Quote updates
-- Transaction flow
-- Error display
+`tests/Feature/Api/V2/GcuTradingUnitsTest.php` checks that buy and sell pass the right minor-unit amounts to the conversion.
+`tests/Feature/Basket/GcuBasketValueLookupTest.php` covers the GCU basket value lookup.
+`tests/Feature/ProductionSwitchesTest.php` checks that the routes are switched off when the Basket module is disabled.

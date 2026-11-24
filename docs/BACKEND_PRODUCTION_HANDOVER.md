@@ -4,6 +4,14 @@
 **Mobile Version**: 1.2.0
 **Backend Required**: core-banking-prototype-laravel v6.1.0+
 
+> **Historical record (reviewed for v7.18.1, 2026-11-24).** This handover describes the mobile launch as it stood in March 2026. Some of it has changed since:
+> - `POST /api/v1/rewards/quests/{id}/complete` was removed in v7.13.0. Quests now complete automatically when the underlying action happens.
+> - The rewards data in section 1 is now seeded. `php artisan db:seed` runs `RewardsSeeder`, and `php artisan demo:populate` and `php artisan sms:setup-demo` run `MobileRewardsDemoSeeder`. `RewardsService::getProfile()` creates the `RewardProfile` with `firstOrCreate`.
+> - The recovery shard backup endpoints counted under "Other" in section 4 were removed in v7.12.0, when the wallet became non-custodial.
+> - Virtual cards are no longer a launch item. Since v7.18.0 they are built through Lepo Finance for a closed pilot. In production only the users on the pilot list can get a card, and adding money to a card stays off.
+>
+> [MOBILE_API_COMPATIBILITY.md](MOBILE_API_COMPATIBILITY.md) lists the current state of the mobile endpoints.
+
 ---
 
 ## TL;DR
@@ -21,7 +29,7 @@ The mobile rewards screen is now live (Profile → Rewards). It calls these endp
 | `GET /api/v1/rewards/profile` | User XP, level, streak, points |
 | `GET /api/v1/rewards/quests` | Active quests with completion status |
 | `GET /api/v1/rewards/shop` | Redeemable shop items |
-| `POST /api/v1/rewards/quests/{id}/complete` | Complete a quest |
+| `POST /api/v1/rewards/quests/{id}/complete` | Complete a quest (removed in v7.13.0) |
 | `POST /api/v1/rewards/shop/{id}/redeem` | Redeem a shop item |
 
 ### Action needed:

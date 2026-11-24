@@ -1,14 +1,11 @@
 # FinCard Cards — Mobile Integration Spec
 
-Audience: Zelta mobile developers (iOS / Android). This is the integration contract
-for planned virtual cards via the FinCard card-issuing API (integration adapter for a
-third-party API; no partnership or endorsement implied). Virtual cards are planned, to
-be issued by a licensed card-issuing partner. Availability is subject to partner
-approval and jurisdiction. It describes the end-to-end flows, the `/api/v1/cards/*` HTTP surface, realtime events, and state
-machines so the app can be built in parallel with the backend.
+This document is for Zelta mobile developers on iOS and Android. It is the integration contract for virtual cards through the FinCard card-issuing API (integration adapter for a third-party API; no partnership or endorsement implied). A licensed card-issuing partner would issue the cards, and availability depends on partner approval and jurisdiction. The document describes the end-to-end flows, the `/api/v1/cards/*` HTTP endpoints, the realtime events and the state machines.
+
+> **Status at v7.18.1.** All endpoints in this document are registered. FinCard is not switched on for any user in production. A user gets FinCard only when `CARD_PROVIDERS_ENABLED` includes `fincard` and FinCard is the default provider, or when the user already has a FinCard cardholder. Since v7.18.0, Lepo Finance is the first provider on a provider-neutral card layer, and FinCard will move onto that layer later. The provider-neutral endpoints `GET /v1/cards/onboarding`, `GET /v1/cards/cardholder`, `POST /v1/cards/cardholder`, `POST /v1/cards/kyc/session` and `GET /v1/cards/account` hand FinCard users to the FinCard controllers, so the FinCard flow below is unchanged. When no provider is available to a user, `GET /v1/cards/onboarding` returns `data: { "available": false, "reason": "not_available" }`.
 
 - **Backend design:** `docs/superpowers/specs/2026-07-06-fincard-card-issuing-design.md`
-- **Status legend per endpoint:** 🟢 available now · 🟡 in progress · ⚪ planned (phase noted). Phase 1 (backend foundations) ships no new mobile endpoints; the mobile surface lands across phases 2–4. Build against this contract; treat ⚪ fields marked *(pending FinCard)* as subject to final confirmation of FinCard's response schemas.
+- **Pending fields.** Fields marked *(pending FinCard)* may still change until FinCard confirms its final response schemas. The phase labels in the headings below record when each part was built.
 
 ---
 
@@ -40,13 +37,13 @@ Identical to the rest of the Zelta mobile API:
 - **Bodies are snake_case** (e.g. `card_id`, `coin_key`, `amount_cents`).
 - **Idempotency:** POST/PATCH/DELETE require an `Idempotency-Key` HTTP header (UUID or 16–255 `[A-Za-z0-9_-]`). Reusing a key replays the first response; same key + different body → `409`.
 - **Lists** return `data: [...]`. The cursor envelope (`pagination: { next_cursor, has_more, total }`, `?cursor=…&limit=…`) applies where noted; the FinCard **card list and transactions return a bare `data: [...]`**, and transactions paginate via `?page=&limit=` (limit ≤ 100, default 20).
-- **KYC gate:** issuance/spend endpoints require completed Zelta KYC (`require.kyc`) *and* a `pass_audit` FinCard cardholder; a missing verified cardholder returns `ERR_CARDS_007` (see §7).
+- **KYC gate:** the card endpoints under `/v1/cards/fincard` need a FinCard cardholder whose identity check passed (`pass_audit`, shown as `kyc_status: "verified"`). Without one they return `ERR_CARDS_007` (see §7). They do not use the platform's `require.kyc` middleware.
 
 ---
 
 ## 2.1 Canonical endpoints — read this first
 
-**This document is the single source of truth for the mobile FinCard surface.** The registered Laravel routes below are authoritative. `/api/documentation` (OpenAPI) does **not** yet describe these endpoints — the FinCard mobile controllers carry no `@OA` annotations — so do not diff against OpenAPI for FinCard. And do **not** use the generic `/v1/cardholders` group or the generic `/v1/cards` (index / store / provision / `{id}` / PATCH / DELETE) group: those are the legacy Marqeta-era surface, not part of the FinCard flow.
+**This document is the single source of truth for the mobile FinCard surface.** The registered Laravel routes below are authoritative. The FinCard controllers have no `OA\` annotations, so `/api/documentation` (OpenAPI) does not describe the FinCard responses. The five provider-neutral endpoints listed in the status note are in OpenAPI, but their descriptions there show the Lepo response, so do not diff against OpenAPI for FinCard. And do **not** use the generic `/v1/cardholders` group or the generic `/v1/cards` (index / store / provision / `{id}` / PATCH / DELETE) group: those are the legacy Marqeta-era surface, not part of the FinCard flow.
 
 All paths are under `/api`. "Idem" = an `Idempotency-Key` header is required.
 
@@ -83,7 +80,7 @@ All amounts are **integer minor units** in the field's currency: `amount_cents` 
 
 ## 4. End-to-end flows
 
-### 4.1 KYC / cardholder onboarding ⚪ (phase 2)
+### 4.1 KYC / cardholder onboarding (phase 2)
 
 FinCard requires its own KYC — richer than the app's existing profile. Prefill what you can; collect the rest.
 
@@ -94,7 +91,7 @@ FinCard requires its own KYC — richer than the app's existing profile. Prefill
 
 > Restricted countries are rejected up front with `ERR_CARDS_010`. The full FinCard field list and photo requirements are *(pending FinCard)* final confirmation; `GET /v1/cards/onboarding` is the source of truth at runtime — render from it, don't hard-code the field set.
 
-### 4.2 Funding ⚪ (phase 3 crypto, phase 5 fiat)
+### 4.2 Funding (phase 3 crypto, phase 5 fiat)
 
 **Crypto (recommended, reuses the wallet):**
 1. `GET /v1/cards/account/coins` → supported deposit coins (e.g. `USDT_TRC20`, `USDT_BEP20`) with `chain`, `min_deposit`, `confirmations`, `deposit_fee`. Render from this — the set is dynamic; do not assume USDC.
@@ -106,7 +103,7 @@ FinCard requires its own KYC — richer than the app's existing profile. Prefill
 
 > **Dev/QA only — simulate a deposit.** On a non-production backend with `FINCARD_DEV_SIMULATE_ENABLED=true`, `POST /v1/cards/dev/simulate-deposit` `{ amount_cents, coin_key? }` (+ `Idempotency-Key`) credits the caller's account and fires the same `fincard.account.funded` WebSocket event (§6) a real deposit would — so you can exercise the funding UI end-to-end without sending crypto. It returns the account object (§5.1) and credits the local balance mirror only (no real FinCard call). The route **does not exist in production**. Use it on a backend with **no** FinCard creds; on one wired to real FinCard, balance reconciliation will later overwrite the simulated credit.
 
-### 4.3 Open & use a card ⚪ (phase 4)
+### 4.3 Open & use a card (phase 4)
 
 1. `GET /v1/cards/reference/card-types` → `{ card_types: [...], default_card_type_id }`. **Optional:** v1 is a single product, so you can skip this call and omit `card_type_id` on open — the backend applies the tenant default. Call it only to let the user choose among multiple products. The `card_types` item shape passes through FinCard *(pending FinCard schema confirmation)*.
 2. `POST /v1/cards/fincard/open` `{ amount_cents, card_type_id?, label? }` (+ `Idempotency-Key`) → opens a card, moving `amount_cents` from the account onto the card. `card_type_id` is **optional** (falls back to the tenant default server-side); do **not** send `cardholder_id` — the backend resolves the caller's single cardholder. Response is the card object (§5.2), `status: "active"`. If no `card_type_id` is sent and no default is configured → `ERR_CARDS_018`. The caller needs an active card account (§4.2 — created with the first deposit address); without one, open → `ERR_CARDS_020` and nothing is sent to the issuer.
@@ -167,7 +164,7 @@ Subscribe to the private channel `private-user.{userId}` (the same channel the a
 | `fincard.account.funded` | A deposit credits the account | `{ account_id, balance_cents, credited_cents, coin_key? }` |
 | `card.state_changed` | Card created / frozen / cancelled / balance change | `{ card_id, status, balance_cents }` |
 
-Push notifications (FCM/APNs) fire on the **terminal KYC states** (`verified`, `rejected`) and on **inbound funding**, mirroring the wallet's transaction-received pattern. Use the WebSocket for live in-app updates and push for background. All ⚪ phase 2–4.
+Push notifications (FCM/APNs) fire on the **terminal KYC states** (`verified`, `rejected`) and on **inbound funding**, mirroring the wallet's transaction-received pattern. Use the WebSocket for live in-app updates and push for background. These events were built in phases 2 to 4.
 
 ---
 
@@ -222,4 +219,4 @@ KYC: `in_review (admin)` → `in_review (channel)` → `verified` | `rejected`. 
 | Card list / open / manage / sensitive | Phase 4 (`/cards/fincard*`, `/cards/reference/card-types`) |
 | Fund with fiat | Phase 5 (Bridge path) |
 
-> **OpenAPI note:** the FinCard mobile controllers are **not** yet annotated, so `/api/documentation` does not describe these endpoints. **This document is authoritative** for the FinCard surface until they are annotated (tracked as a follow-up). Other Zelta domains remain live in OpenAPI as usual.
+> **OpenAPI note:** the FinCard controllers are not annotated, so `/api/documentation` does not describe the FinCard responses. **This document is authoritative** for the FinCard surface until they are annotated, which is tracked as a follow-up. The other Zelta domains are described in OpenAPI as usual.

@@ -1,10 +1,12 @@
-# Production Readiness Checklist — Zelta v7.15
+# Production Readiness Checklist — Zelta v7.18.1
 
 > **Supersedes the September 2024 version** of this file (the Jumio/Santander-era,
 > CTO-sign-off checklist). That document predated the non-custodial mobile-wallet
 > pivot, Plan B subscriptions, Bridge.xyz ramp, the public MCP server, and the
 > `ops:verify-env` deploy gate. This is the current go-live checklist for a Zelta
-> v7.15 mobile-wallet production deployment.
+> mobile-wallet production deployment. It was rewritten for v7.15 and updated for
+> v7.18.0 (virtual card pilot, card top-ups, registration settings) and v7.18.1
+> (saved MCP spending limit).
 >
 > **Status legend**: `[x] done` · `[ ] open` (action required before go-live) ·
 > `[blocked]` (depends on external work, tracked). Mark each item honestly — a
@@ -17,12 +19,14 @@
   php artisan ops:verify-env --json    # wire into the deploy pipeline as a hard gate
   ```
 - [ ] CI/CD actually invokes `ops:verify-env` as a blocking step (verify the pipeline, not just the command's existence).
+- [ ] v7.18.0 upgrade steps done in this order (v7.18.1 adds no migrations or settings): `composer install --no-dev`, `npm ci && npm run build`, `php artisan migrate --force` (eight migrations), `php artisan tenants:migrate` on a multi-database tenancy setup (two tenant migrations), then restart the workers (`php artisan horizon:terminate`, or `supervisorctl restart all` under Supervisor) and run `php artisan ops:verify-env`.
 
 ## 1. Core app config
 
 - [ ] `APP_ENV=production`, `APP_DEBUG=false`, `APP_KEY` set (all enforced by `ops:verify-env` core checks).
 - [ ] `config:cache` / `route:cache` run on deploy; workers restarted after env changes.
-- [ ] `REGISTRATION_ENABLED=false` (public registration off in production; users created via CLI).
+- [ ] `REGISTRATION_ENABLED=false` (the Fortify web registration form stays off in production).
+- [ ] `REGISTRATION_API_ENABLED` set explicitly (`ops:verify-env` FAILs a production deploy that leaves it unset). It governs password sign-up, the first Privy login and the first social login; `.env.zelta.example` sets `true`. Set `REGISTRATION_API_INVITE_ONLY=true` for invitation-only sign-ups.
 - [ ] `LIGHTHOUSE_SECURITY_DISABLE_INTROSPECTION=true` (GraphQL introspection off — set in both prod templates, PR #1135).
 
 ## 2. Secrets & peppers (one-way — set once, never rotate where noted)
@@ -43,10 +47,12 @@ All FAILed by `ops:verify-env` when wrong:
 - [ ] `SHOW_PROMO_PAGES=false` (production shows the app landing page only).
 - [ ] `MODULES_DISABLED` scoped for Zelta production (PR #1135) — `.env.zelta.example` curates 17 demo/showcase domains (Banking, Basket, Cgo, CrossChain, DeFi, FinancialInstitution, Governance, ISO20022, ISO8583, Interledger, Ledger, Lending, Microfinance, OpenBanking, PaymentRails, Stablecoin, Treasury). Exchange stays enabled (serves mobile `/exchange-rates`, `/convert`). Verify ~218 demo routes are removed and zero mobile/MCP/webhook routes are affected.
 - [ ] `ADMIN_MODULES` pinned to the mobile-wallet scope on Zelta deployments.
+- [ ] `TRADING_ENABLED=false`. The exchange trading engine and the liquidity endpoints (`feature:trading.enabled`) stay off in production. The liquidity add, remove and rebalance flow was removed in v7.18.0.
+- [ ] `ZK_PROVIDER=demo` and `MERKLE_PROVIDER=demo`. `ops:verify-env` FAILs `ZK_PROVIDER=railgun` in production, because it turns on the custodial RAILGUN path. It also FAILs when the two values differ. Both env templates still set `MERKLE_PROVIDER=railgun`, so change it before deploying. See `docs/operations/railgun-infra.md`.
 
 ## 4. Payment rails
 
-- [ ] **Stripe** is the default deposit rail; keys + webhook configured and verified.
+- [ ] **Stripe** card deposits on the web wallet follow `WEB_CARD_DEPOSITS_ENABLED`, which `.env.zelta.example` sets to `false` (the mobile app uses Bridge and IAP). If you turn them on, configure and verify the Stripe keys and webhook.
 - [ ] **HyperSwitch** (`HYPERSWITCH_ENABLED`): OFF by default. If enabling, set `HYPERSWITCH_API_KEY` + `HYPERSWITCH_WEBHOOK_SECRET` (both FAILed by `ops:verify-env` when the flag is on and they're empty); configure the dashboard webhook → `/api/webhooks/hyperswitch`; know the `completion_failed` reconciliation path. Runbook: `docs/operations/hyperswitch-deposits.md`.
 - [ ] **IAP subscriptions**: Apple/Google product-id maps configured; Apple Root CA G3 present at `storage/app/apple/AppleRootCA-G3.cer`; webhook endpoints registered (`/api/webhooks/apple/notifications`, `/api/webhooks/google/play`); revenue outbox sweep (`ProjectRevenueOutbox`, every 5 min) running. Runbook: `docs/operations/iap-subscriptions.md`.
 
@@ -73,20 +79,21 @@ Runbook: `docs/operations/wallet-sponsorship.md`.
 ## 7. Public MCP server
 
 - [ ] Cloudflare CNAME for `mcp.*` resolves; `bootstrap/app.php` subdomain ordering correct (mcp before protocol subdomains).
-- [ ] Per-tool kill-switches (`MCP_TOOL_*`) reviewed; payment-class tools (`payments:write`, `ramp:write`, `sms:send`) enforce the daily spending limit (`MCP_DEFAULT_DAILY_LIMIT_MINOR`, default $500). Spending limits on `ramp.start` + `sms.send` enforced as of PR #1134.
+- [ ] Per-tool kill-switches (`MCP_TOOL_*`) reviewed. The catalog has 14 tools; production exposes 10, because `account.create`, `payment.transfer`, `exchange.trade` and `sms.send` default to off outside local, testing and demo. `ops:verify-env` FAILs while `sms.send` is on in production unless `MCP_TOOL_SMS_SEND_ACKNOWLEDGED=true`.
+- [ ] Spending limits understood. The payment tools (`payment.transfer`, `ramp.start`, `sms.send`) reserve against a daily limit in `mcp_token_policies`. Since v7.18.1 the limit the person picks on the consent screen is saved for their approval of the app, so refreshed tokens share one allowance (#1252). A missing or unknown choice gets `MCP_DEFAULT_DAILY_LIMIT_MINOR` ($500). A token without a user has no policy, and its payment calls still fail with `NO_POLICY`.
 - [ ] Dev-portal tool count matches `config('mcp.tools')` (`developers/mcp-tools.blade.php`).
 
 ## 8. Observability & alerting
 
 - [ ] `LOG_SLACK_WEBHOOK_URL` set — the default log stack auto-includes Slack when present, routing every `Log::critical`/`emergency` to Slack (PR #1133). `LOG_SLACK_LEVEL` defaults to `critical` (does not inherit `LOG_LEVEL`).
-- [ ] `METRICS_TOKEN` (or `METRICS_ALLOWED_IPS`) set — `MetricsAccessMiddleware` gates `/api/monitoring/{metrics,prometheus}` + `/api/metrics/prometheus`; with neither configured it **fails closed (403) in production** (PR #1133). `/health`, `/ready`, `/alive` stay public for k8s probes.
+- [ ] `METRICS_TOKEN` (or `METRICS_ALLOWED_IPS`) set — `MetricsAccessMiddleware` gates `/api/monitoring/{metrics,prometheus}` + `/api/metrics/prometheus`; with neither configured it **fails closed (403) in production** (PR #1133). `/api/monitoring/health`, `/api/monitoring/ready` and `/api/monitoring/alive` stay public for k8s probes.
 - [ ] Error tracking (Sentry/Rollbar) + APM wired; alert thresholds set.
 - [x] Queue workers cover **every** managed queue (`config/queue.php` `managed_queues`), enforced on every PR by `tests/Feature/Ops/QueueCoverageTest.php` (PR 0A). Production runs **Supervisor** off `etc/supervisor.conf` (not Horizon). **After deploying the config you MUST run on the server:** `supervisorctl reread && supervisorctl update && supervisorctl restart all`, then confirm with `supervisorctl status` that `finaegis-transfers-worker`, `finaegis-mobile-worker`, and `finaegis-aux-worker` are RUNNING — a `git pull` alone does not restart workers. Failed-job handling: `database-uuids`, 1-week retention.
 - [ ] Run `php artisan ops:verify-env` as a manual deploy step after `git pull`, **before** `migrate` — deploy is a manual `git pull` + manual artisan steps, so the `deploy.yml` gate is not in the live path and env guards (peppers, demo-modes, RAILGUN/SOC-2 provider checks) only fire when the command is run.
 
 ## 9. Data & backups
 
-- [ ] **Scheduled DB backups are wired** (spatie/laravel-backup): `backup:run --only-db` runs daily at 01:30 UTC and `backup:clean` at 02:30 UTC, both production-only with `Log::critical` on failure (`routes/console.php`). DB-only by design — the event store is the ledger. Remaining ops steps before checking this off: set `BACKUP_DISK=s3` + the S3 bucket credentials in the prod `.env` (default is `local`, which keeps dumps on the same box — `ops:verify-env` WARNs about it), then **run one restore drill** against a real dump (see the Backup Verification section of `OPERATIONAL_RUNBOOK.md`; `backup:list` / `backup:monitor` cover ongoing verification). Managed-DB snapshots remain a sensible second layer, but are no longer the only layer.
+- [ ] **Scheduled DB backups are wired** (spatie/laravel-backup): `backup:run --only-db` runs daily at 01:30 UTC and `backup:clean` at 02:30 UTC, both production-only with `Log::critical` on failure (`routes/console.php`). DB-only by design — the event store is the ledger. Remaining ops steps before checking this off: set `BACKUP_DISK=s3` + the S3 bucket credentials in the prod `.env` (default is `local`, which keeps dumps on the same box — `ops:verify-env` FAILs that in production and WARNs elsewhere), then **run one restore drill** against a real dump (see the Backup Verification section of `OPERATIONAL_RUNBOOK.md`; `backup:list` / `backup:monitor` cover ongoing verification). Managed-DB snapshots remain a sensible second layer, but are no longer the only layer.
 - [ ] Database encryption at rest + TLS in transit (infra layer).
 - [ ] GDPR erasure path verified, including `IapReceiptPseudonymiser` (requires the pepper from §2 — it hard-throws otherwise).
 
@@ -96,7 +103,18 @@ Runbook: `docs/operations/wallet-sponsorship.md`.
 - [ ] Reviewer/demo accounts provisioned for app-store review per `docs/operations/reviewer-accounts.md` (operator-only; expiry sweep at 00:10 UTC).
 - [ ] Push notifications (FCM) configured for Helius/Alchemy webhook delivery.
 
-## 11. Pre-launch verification
+## 11. Virtual cards (v7.18.0)
+
+Cards run through the provider layer in `app/Domain/CardIssuance/Providers/`. Lepo Finance is the first provider. Named third-party providers: Integration adapters for third-party APIs; no partnership or endorsement implied. Any card services will be provided by licensed third parties under their own terms.
+
+- [ ] `CARD_PROVIDERS_ENABLED` decided. Empty means cards are not offered. `.env.zelta.example` sets `lepo` with empty Lepo keys, so either fill the keys below or clear the value; otherwise `ops:verify-env` FAILs.
+- [ ] Pilot settings: `LEPO_API_KEY` and `LEPO_WEBHOOK_SECRET` set (`ops:verify-env` FAILs when Lepo is in use and either is empty); `LEPO_CARD_TYPE_ID_VIRTUAL` set (WARN when empty); `CARD_PROVIDER_LEPO_PILOT_ONLY=true` with `CARD_PROVIDER_LEPO_PILOT_USERS` listing the pilot users (WARN when empty, because nobody can get a card).
+- [ ] Lepo webhook endpoint `POST /api/v1/webhooks/lepo` registered in the Lepo partner portal.
+- [ ] `CARD_TOPUPS_ENABLED=false` until Lepo Finance answers the open questions about how the money moves. The `AdvanceLepoTopUps` job is scheduled every minute and does nothing while the flag is off. Operators use `cards:inspect-user` and `cards:resolve-topup` for a top-up that stopped with an unclear result.
+- [ ] A shared cache store (Redis) is configured. 3-D Secure approval codes are kept encrypted in the cache for at most ten minutes and are never written to the database or the logs.
+- [ ] `CARD_ISSUER=demo` for the older issuer adapter layer. Do not set `CARD_ISSUER=lepo`, because that switch has no Lepo binding. With `CARD_ISSUER=fincard`, `fincard:reconcile-balances` runs hourly, `fincard:inspect-user` is the support command and the webhook is `POST /api/v1/webhooks/fincard`.
+
+## 12. Pre-launch verification
 
 - [ ] `./vendor/bin/pest --parallel` green (note: CI skips a portion of the suite; run the MultiConnection job against real MySQL).
 - [ ] `XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G` clean (Level 8).
@@ -105,6 +123,6 @@ Runbook: `docs/operations/wallet-sponsorship.md`.
 
 ---
 
-**Last Updated**: June 11, 2026 (v7.15 rewrite — supersedes the Sept 2024 version)
+**Last Updated**: November 24, 2026 (v7.18.1 update of the June 2026 v7.15 rewrite, which superseded the Sept 2024 version)
 **Owner**: Platform / Ops
 **Companion docs**: `docs/operations/*` runbooks, `CLAUDE.md`, `docs/10-OPERATIONS/OPERATIONAL_RUNBOOK.md`

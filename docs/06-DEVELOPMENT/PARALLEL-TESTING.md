@@ -2,24 +2,27 @@
 
 ## Overview
 
-This guide documents the parallel testing setup and best practices for the FinAegis platform. Parallel testing significantly improves test execution speed by running tests concurrently across multiple processes.
+This guide describes how FinAegis runs tests in parallel and how to keep parallel tests reliable. Pest runs tests in several processes at once through Paratest. This makes the suite much faster.
 
 ## Configuration
 
 ### Local Development (phpunit.xml)
 ```xml
-<env name="PEST_PARALLEL" value="true"/>
 <env name="DB_CONNECTION" value="sqlite"/>
 <env name="DB_DATABASE" value=":memory:"/>
+<env name="PEST_PARALLEL" value="false"/>
 ```
 
-### CI Environment (phpunit.ci.xml)
+`phpunit.xml` uses SQLite in memory. You turn on parallel runs with the `--parallel` flag.
+
+### CI Configuration (phpunit.ci.xml)
 ```xml
+<env name="DB_CONNECTION" value="sqlite"/>
 <env name="PEST_PARALLEL" value="true"/>
-<env name="DB_CONNECTION" value="mysql"/>
 <env name="REDIS_HOST" value="127.0.0.1"/>
-<env name="REDIS_PORT" value="6379"/>
 ```
+
+CI runs most suites through `bin/pest-batch` and `bin/pest-rest` with `phpunit.ci-optimized.xml`. Unit tests use SQLite in memory with two parallel processes. Feature tests use MySQL and run without parallel processes, because they share database state. The multi-connection tests in `tests/MultiConnection/` run against a real MySQL database.
 
 ## Running Tests in Parallel
 
@@ -31,34 +34,38 @@ This guide documents the parallel testing setup and best practices for the FinAe
 # Run with specific number of processes
 ./vendor/bin/pest --parallel --processes=4
 
-# Run with coverage
-./vendor/bin/pest --parallel --coverage --min=50
+# Stop at the first failure
+./vendor/bin/pest --parallel --stop-on-failure
 
 # Run specific test suite
 ./vendor/bin/pest --testsuite=Unit --parallel
 ```
 
-### CI/CD Commands
+`--parallel` accepts only one test directory at a time. To run a subset, use `--filter` or `--testsuite` instead of several paths.
+
+### CI Commands
 ```bash
-# Unit tests with MySQL
-./vendor/bin/pest --testsuite=Unit --configuration=phpunit.ci.xml --parallel --coverage --min=70
+# Run one or more directories in memory-efficient batches
+PEST_PARALLEL=true PARALLEL_PROCS=2 ./bin/pest-batch tests/Unit/Domain
 
-# Feature tests
-./vendor/bin/pest --testsuite=Feature --configuration=phpunit.ci.xml --parallel --coverage --min=65
+# Run every subdirectory of tests/Unit that no earlier batch claimed
+./bin/pest-rest tests/Unit tests/Unit/Domain tests/Unit/Http tests/Unit/Services
 
-# Integration tests
-./vendor/bin/pest --testsuite=Integration --configuration=phpunit.ci.xml --parallel --coverage --min=55
+# Multi-connection tests against real MySQL
+./vendor/bin/pest --testsuite=MultiConnection
 ```
+
+`bin/pest-batch` reads `MEMORY_LIMIT`, `CONFIG_FILE` (default `phpunit.ci-optimized.xml`), `PEST_PARALLEL`, `PARALLEL_PROCS` and `PEST_STOP_ON_FAILURE`. `bin/check-test-coverage` fails CI when a top-level directory under `tests/` is not claimed by any job. CI does not collect code coverage.
 
 ## Test Isolation
 
 ### Database Isolation
-- **Local**: Uses SQLite in-memory database (`:memory:`)
-- **CI**: Uses MySQL with database transactions
-- **RefreshDatabase**: Automatically handles cleanup between tests
+- Local runs and unit tests use SQLite in memory (`:memory:`). Each process has its own database.
+- Feature tests in CI use MySQL without parallel processes.
+- `RefreshDatabase` resets the database between tests.
 
 ### Cache and Redis Isolation
-The `TestCase` base class automatically sets up isolation:
+The `TestCase` base class sets up the isolation automatically:
 ```php
 protected function setUpParallelTesting(): void
 {
@@ -73,6 +80,8 @@ protected function setUpParallelTesting(): void
     }
 }
 ```
+
+Many tests need Redis. If parallel tests still interfere through the cache, set `config(['cache.default' => 'array'])` in the test.
 
 ### Event Sourcing Isolation
 Event sourcing storage is also isolated per test process:
@@ -94,6 +103,8 @@ $value = Cache::get('key');
 public function __construct(private CacheManager $cache) {}
 $this->cache->put('key', 'value');
 ```
+
+For cache counters, use `Cache::add($key, 0, $ttl)` followed by `Cache::increment()`. Never read the value and then write it back.
 
 ### 2. Use Database Transactions
 ```php
@@ -120,12 +131,13 @@ Queue::fake();
 Event::fake();
 ```
 
-### 4. Proper Test Categorization
-- **Unit Tests**: No database, fast, isolated
-- **Feature Tests**: Database access, API testing
-- **Integration Tests**: Full stack, external services
+### 4. Test Categories
+- Unit tests do not touch the database. They are fast and isolated.
+- Feature tests use the database and test the API.
+- Integration tests run the full stack and may call fake external services.
 
-### 5. Handle Temporal Workflows
+### 5. Handle Workflows
+The project uses the `durable-workflow/workflow` package for sagas and workflows.
 ```php
 // Use WorkflowStub::fake() for testing
 WorkflowStub::fake();
@@ -136,24 +148,20 @@ WorkflowStub::assertStarted(MyWorkflow::class);
 
 ## Common Issues and Solutions
 
-### Issue 1: Database Lock Errors
-**Problem**: Multiple processes trying to access the same database
-**Solution**: Use database transactions or separate test databases
+### Database Lock Errors
+Several processes may try to use the same database. Use transactions or separate test databases.
 
-### Issue 2: Redis Key Conflicts
-**Problem**: Tests interfering with each other's cache
-**Solution**: Automatic prefixing handled by TestCase
+### Redis Key Conflicts
+Tests may overwrite each other's cache entries. `TestCase` prefixes the keys per process. For tests that still conflict, switch them to the array cache.
 
-### Issue 3: File System Conflicts
-**Problem**: Tests writing to the same files
-**Solution**: Use unique file names with process token
+### File System Conflicts
+Tests may write to the same files. Put the process token in the file name:
 ```php
 $filename = 'test_' . ParallelTesting::token() . '_file.txt';
 ```
 
-### Issue 4: Port Conflicts
-**Problem**: Tests trying to bind to the same ports
-**Solution**: Use dynamic port allocation
+### Port Conflicts
+Tests may try to bind to the same port. Derive the port from the process token:
 ```php
 $port = 8000 + (int) ParallelTesting::token();
 ```
@@ -192,27 +200,21 @@ $port = 8000 + (int) ParallelTesting::token();
 
 ## Performance Tips
 
-1. **Group Related Tests**: Tests in the same file run in the same process
-2. **Minimize Database Operations**: Use factories efficiently
-3. **Avoid Sleep/Wait**: Use proper assertions instead
-4. **Clean Up Resources**: Always clean up in tearDown()
+1. Group related tests. Tests in the same file run in the same process.
+2. Keep database work small and use factories efficiently.
+3. Do not sleep or wait in tests. Use assertions instead.
+4. Clean up resources in `tearDown()`.
 
 ## Monitoring Test Performance
 
 ```bash
-# Generate timing report
+# Show the ten slowest tests
 ./vendor/bin/pest --parallel --profile
-
-# Identify slow tests
-./vendor/bin/pest --parallel --slow=1000
-
-# Run only fast tests
-./vendor/bin/pest --parallel --stop-on-slow
 ```
 
 ## Debugging Parallel Tests
 
-When tests fail in parallel but pass in serial:
+When tests fail in parallel but pass on their own, try these steps:
 
 1. **Run specific test in isolation**:
    ```bash
@@ -236,18 +238,19 @@ When tests fail in parallel but pass in serial:
 
 ## CI/CD Integration
 
-The GitHub Actions workflow is configured for parallel testing:
+The Test Suite workflow (`.github/workflows/03-test-suite.yml`) runs the unit tests like this:
 
 ```yaml
 - name: Run Unit Tests
+  env:
+    DB_CONNECTION: sqlite
+    DB_DATABASE: ":memory:"
+    PEST_PARALLEL: true
+    PARALLEL_PROCS: 2
   run: |
-    ./vendor/bin/pest --testsuite=Unit \
-      --configuration=phpunit.ci.xml \
-      --parallel \
-      --coverage \
-      --min=70
+    ./bin/pest-batch tests/Unit/Domain || exit 1
 ```
 
 ## Conclusion
 
-Parallel testing significantly improves test execution speed. By following these guidelines and best practices, you can ensure your tests run reliably in both local and CI environments.
+Parallel testing makes the suite much faster. Keep tests free of shared state so that they pass the same way locally and in CI.

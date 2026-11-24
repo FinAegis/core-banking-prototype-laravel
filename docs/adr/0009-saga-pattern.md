@@ -6,18 +6,14 @@ Accepted
 
 ## Context
 
-Financial operations often span multiple aggregates and domains:
+Many financial operations span several aggregates and domains:
 
-1. **Fund Transfer** - Debit source account → Credit destination account
-2. **Order Execution** - Match order → Update balances → Record trade
-3. **Loan Disbursement** - Approve loan → Create account → Transfer funds
-4. **Stablecoin Minting** - Lock collateral → Mint tokens → Update positions
+1. **Fund transfer.** The source account is debited, then the destination account is credited.
+2. **Order execution.** The order is matched, the balances are updated and the trade is recorded.
+3. **Loan disbursement.** The loan is approved, an account is created and the funds are transferred.
+4. **Stablecoin minting.** Collateral is locked, tokens are minted and the positions are updated.
 
-Challenges:
-- Traditional database transactions don't work across aggregates
-- Two-phase commit (2PC) is complex and has poor failure modes
-- Partial failures leave system in inconsistent state
-- Long-running processes need durability
+A normal database transaction does not work across aggregates. Two-phase commit (2PC) is complex and fails badly. A partial failure leaves the system in an inconsistent state, and long-running processes must survive restarts.
 
 ## Decision
 
@@ -25,11 +21,11 @@ We will use the **Saga Pattern** with **compensation actions** for distributed t
 
 ### Implementation
 
-1. **Laravel Workflow** - Durable workflow engine with Waterline
+1. **Durable workflows.** We use the `durable-workflow/workflow` package, formerly called Laravel Workflow, with the Waterline dashboard.
 
-2. **Orchestration-Based Sagas** - Central coordinator manages steps
+2. **Orchestration.** A central workflow coordinates the steps.
 
-3. **Compensation on Failure** - Each step has a corresponding undo action
+3. **Compensation on failure.** Each step has a matching undo action. The package's `addCompensation()` and `compensate()` methods support this, as `app/Domain/Exchange/Workflows/OrderMatchingWorkflow.php` shows.
 
 ### Architecture
 
@@ -152,39 +148,30 @@ class DebitAccountActivity extends Activity
 
 ### Saga Configuration
 
+`config/workflows.php` sets the storage models, the pruning age of finished workflows (one month) and the optional monitoring. It has no retry or timeout settings. Retries and time limits are set on each activity class:
+
 ```php
-// config/workflows.php
-return [
-    'storage' => 'database', // Durable storage
-    'retry' => [
-        'max_attempts' => 3,
-        'backoff' => 'exponential',
-        'initial_interval' => 1000, // 1 second
-    ],
-    'timeout' => [
-        'activity' => 30000, // 30 seconds
-        'workflow' => 300000, // 5 minutes
-    ],
-];
+class DebitAccountActivity extends Activity
+{
+    public $tries = 3;      // The package default is unlimited
+    public $timeout = 30;   // Seconds; the package default is no limit
+
+    public function backoff()
+    {
+        return [1, 2, 4];   // Seconds between attempts
+    }
+}
 ```
 
 ## Consequences
 
 ### Positive
 
-- **Atomic business operations** across aggregates
-- **Automatic compensation** on failures
-- **Durable execution** survives process restarts
-- **Visibility** into long-running processes
-- **Retry logic** built-in
-- **Human tasks** can be integrated
+A business operation across aggregates either completes or is compensated. Failures trigger compensation automatically. Execution survives process restarts, and Waterline shows long-running processes. Retries are built in, and steps that wait for a person can be added through signals.
 
 ### Negative
 
-- **Eventual consistency** between steps
-- **Compensation complexity** must be carefully designed
-- **Testing difficulty** many failure scenarios
-- **Debugging** distributed execution harder to trace
+The steps are only eventually consistent with each other. Compensation needs careful design. There are many failure scenarios to test, and distributed execution is harder to trace.
 
 ### Mitigations
 
@@ -199,17 +186,11 @@ return [
 
 ### Compensation Rules
 
-1. **Idempotent** - Can be safely retried
-2. **Complete** - Fully reverses the forward action
-3. **Independent** - Doesn't depend on other compensations
-4. **Tested** - Every compensation has test coverage
+A compensation must be safe to retry. It must fully reverse the forward action and must not depend on other compensations. Every compensation needs a test.
 
 ### Activity Rules
 
-1. **Single responsibility** - One business action
-2. **Idempotent** - Safe to retry
-3. **Atomic** - Succeeds or fails completely
-4. **Compensatable** - Has a defined undo action
+An activity performs one business action. It is safe to retry and either succeeds or fails completely. Each activity has a defined undo action.
 
 ## Alternatives Considered
 
@@ -237,5 +218,5 @@ return [
 ## References
 
 - [Microservices Patterns - Saga Pattern](https://microservices.io/patterns/data/saga.html)
-- [Laravel Workflow Documentation](https://laravel-workflow.com/)
+- [Durable Workflow Documentation (formerly Laravel Workflow)](https://laravel-workflow.com/)
 - [Compensating Transaction Pattern](https://docs.microsoft.com/en-us/azure/architecture/patterns/compensating-transaction)

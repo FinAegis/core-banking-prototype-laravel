@@ -13,7 +13,7 @@ External reviewers (Apple App Review, Google Play review, partner demo users, in
 | Threat | Mitigation |
 |---|---|
 | Operator maliciously issues reviewer account to collude with external attacker | Operator must hold `admin` Spatie role; `--allow-production` required in prod; `created_by` FK records operator identity on every flag row |
-| Reviewer account exfiltrated and abused after the review cycle | 60-day default / 90-day hard cap on `expires_at`; daily sweep auto-disables |
+| Reviewer account exfiltrated and abused after the review cycle | 60-day default and 90-day maximum for `expires_at`; `AccountFlag::isActive()` ignores an expired flag and the daily sweep disables it. `--expires-days=0` creates a flag with no expiry, so the operator must choose that on purpose |
 | Bypass flag forgotten and kept alive indefinitely | Same expiry sweep; `disabled_at` short-circuits every check |
 | Real customer account silently promoted to reviewer | `is_review_account` is a master tag; promoting a real user into it is an auditable write, and the `AccountFlag.created_by` FK identifies the operator |
 | Bypass used as "login as user" for support debugging | Purpose limitation is policy, enforced by the operator runbook (`docs/operations/reviewer-accounts.md`) and by the fact that flags are long-lived on a provisioned account, not attached to a support session |
@@ -24,7 +24,7 @@ One row per `account_flags` column.
 
 | Column | What it skips | Where it is consumed |
 |---|---|---|
-| `is_review_account` | Master tag (no enforcement effect by itself). | `AccountFlagsService::isReviewAccount()`; audit query key. |
+| `is_review_account` | Master tag (no enforcement effect by itself). | `AccountFlag::isActive()` returns false without it, so no bypass works on an account that is not a review account; audit query key. |
 | `bypass_device_attestation` | Apple App Attest / Google Play Integrity verification on login. | `BiometricJWTService::verifyDeviceAttestationForUser()` |
 | `bypass_rate_limit` | Per-user API rate limiting (default 60 req/min). | `ApiRateLimitMiddleware`, `GraphQLRateLimitMiddleware` |
 | `bypass_sanctions_screening` | ComplyAdvantage OFAC / PEP / sanctions list match during KYC workflow. | `PerformAmlScreeningActivity::execute()` |
@@ -32,45 +32,46 @@ One row per `account_flags` column.
 | `suppress_notifications` | Outbound email / SMS / FCM push on system events. | `SuppressNotificationsListener` on the `NotificationSending` event |
 | `kyc_override_level` | Real KYC level resolution; returns the override (0–3) instead. `null` = use real KYC. | `User::effectiveKycLevel()` |
 | `note` | — | Free-text operator note (audit only). |
-| `expires_at` | — | Daily sweep disables when now >= expires_at. |
-| `created_by` | — | FK → `users.id`, the operator who issued the flag. |
-| `disabled_at` | Short-circuits **every** bypass regardless of the individual columns. | `AccountFlagsService::isActive()` |
+| `expires_at` | — | `AccountFlag::isActive()` ignores the flag once it has passed, and the daily sweep sets `disabled_at`. `null` means no expiry. |
+| `created_by` | — | FK → `users.id`, the operator who issued the flag. Nullable; set to null if the operator's user row is deleted. |
+| `disabled_at` | Short-circuits **every** bypass regardless of the individual columns. | `AccountFlag::isActive()` |
 
 ## Audit guarantees
 
-Every bypass hit emits a structured `bypass.fired` log line:
+The three bypasses checked through `AccountFlagsService::hasReviewBypass()` write a `bypass.fired` info log entry each time they take effect. They are device attestation, rate limiting and sanctions screening. The entry carries this context, and the log record adds the timestamp:
 
 ```json
 {
-  "channel": "bypass.fired",
+  "message": "bypass.fired",
   "user_id": 41234,
   "bypass": "device_attestation",
-  "reason": "review_account",
-  "request_id": "01HXX...",
-  "ts": "2026-04-24T12:00:01Z"
+  "reason": "review_account"
 }
 ```
 
+The `bypass` value is `device_attestation`, `rate_limit` or `sanctions_screening`. Notification suppression and the KYC level override do not write a log entry when they take effect.
+
 Additional audit anchors:
 
-- `AccountFlag.created_by` — FK to the operator user; non-null on every row.
-- `AccountFlag.is_review_account = true` — master query key for compliance review.
-- `review_bypass` sentinel strings in seeded rows:
-  - `cards.issuer = 'review_bypass'`
-  - `trust_certificates.credential_type = 'review_bypass'`
-  - `metadata.source = 'review_bypass'` on balances, rewards, and wallets
-- `AccountPurged` domain event on purge — persisted to the event store.
+- `AccountFlag.created_by` is the FK to the operator user. The provisioning command sets it on every row it writes.
+- `AccountFlag.is_review_account = true` is the master query key for compliance review.
+- Seeded rows carry markers:
+  - `cards.issuer = 'review_bypass'`, with `source = 'review_bypass'` in the card's metadata
+  - `trust_certificates.credential_type = 'review_bypass'`, with `metadata.source = 'review_bypass'`
+  - `token_balances.wallet_id = 'review-<user id>'` on the seeded balances
+  - The seeded wallet addresses and rewards carry no marker. They are found through the user id.
+- `AccountPurged` is dispatched as a Laravel event on purge. No listener stores it today, so it is not in the event store.
 
 Auditor query: `SELECT users.id, users.email, af.* FROM account_flags af JOIN users ON users.id = af.user_id WHERE af.is_review_account = 1`.
 
 ## Expiry and reversibility
 
 - **Default expiry:** 60 days from provisioning.
-- **Hard cap:** 90 days — the provisioning command rejects `--expires-in-days > 90`.
-- **Daily sweep:** `account:disable-reviewer --all-expired` runs at 00:10 UTC via `routes/console.php`.
+- **Maximum:** 90 days. The provisioning command only accepts `--expires-days` from 0 to 90. The value 0 creates a flag with no expiry.
+- **Daily sweep:** `account:disable-reviewer --all-expired --allow-production` runs at 00:10 UTC via `routes/console.php`.
 - **Manual disable:** sets `disabled_at = now()`; bypass columns are preserved for audit.
 - **Re-enable:** clears `disabled_at`. The seeded wallet, card, cert, and rewards are untouched, so re-enabling is idempotent.
-- **Purge:** anonymizes `users.email` to `purged+<uuid>@finaegis.invalid` and sets `disabled_at`. The row is not deleted — the User model does not use `SoftDeletes`, and referential integrity across cards, certificates, and balances is preserved.
+- **Purge:** anonymizes `users.email` to `purged-<user id>-<random hex>@example.invalid`, replaces the password with a random one and sets `disabled_at`. The row is not deleted — the User model does not use `SoftDeletes`, and referential integrity across cards, certificates, and balances is preserved.
 
 ## What this is NOT
 
@@ -81,16 +82,16 @@ Auditor query: `SELECT users.id, users.email, af.* FROM account_flags af JOIN us
 
 ## Defense in depth
 
-- `disabled_at` is checked **first** in `AccountFlagsService::isActive()`. Setting `disabled_at` alone is sufficient to kill every bypass even if the individual flag columns remain `true`.
-- Per-request cache in `AccountFlagsService` (request-scoped memoization keyed by `user_id`) is invalidated on every flag update via the service's `forget()` call. Stale reads across requests cannot occur.
+- `AccountFlag::isActive()` checks `is_review_account`, then `disabled_at`, then `expires_at`. Setting `disabled_at` alone is sufficient to kill every bypass even if the individual flag columns remain `true`.
+- `AccountFlagsService` is registered as a scoped service, so its cache keyed by `user_id` lasts one request or one job. The provisioning service calls `forget()` after every flag update, and stale reads across requests cannot occur.
 - Operator must hold the `admin` Spatie role to invoke the provisioning command; non-admin operators are rejected before any DB write.
 - `--allow-production` is required when `APP_ENV=production`; the command otherwise refuses.
-- `expires_at > now() + 90d` is rejected at the command layer.
-- Email collision check — the command refuses if an existing user with that email is **not** already a reviewer account.
+- The command rejects an expiry of more than 90 days. An expiry of 0 days means no expiry.
+- The command refuses an email that belongs to an existing user who is **not** already a reviewer account. `--force-convert` overrides this outside production and is blocked in production.
 
 ## Monitoring
 
-Recommended Prometheus counter:
+This counter is a recommendation and is not implemented yet. The Prometheus counter would be:
 
 ```
 provisioning_bypass_fired_total{bypass="device_attestation|rate_limit|sanctions|notifications|kyc_level", user_id="..."}

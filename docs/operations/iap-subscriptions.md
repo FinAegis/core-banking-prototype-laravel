@@ -1,16 +1,16 @@
 # IAP Subscriptions Operator Runbook
 
-Operator-only runbook for the Plan B mobile-driven subscription rail (Apple App Store + Google Play, v7.13.0+). Domain: `app/Domain/Subscription/` (the `Iap/` subtree). Deliberately isolated from the Stripe-only `SubscriptionService` — neither path is a god-service.
+This runbook is for operators. It covers mobile subscriptions bought through Apple App Store and Google Play in-app purchases (IAP), which shipped in v7.13.0 as part of Plan B. The code is in the `Iap/` folder of `app/Domain/Subscription/`. It is kept separate from the Stripe-only `SubscriptionService` on purpose, so that neither path grows into one large service.
 
 ## When to use this runbook
 
-- A mobile user reports *"I paid in the App Store but I'm still on Free"* (verify rejected, or webhook/outbox lag).
-- Mobile escalates an `ERR_SUB_002` conflict the user can't self-resolve.
-- A GDPR erasure run aborts with `IAP_RECEIPT_PEPPER must be configured`.
-- Revenue dashboards lag behind store activity (outbox rows stuck `pending`).
-- Pre-prod checklist before an App Store / Play Store release that touches subscriptions.
+- A mobile user says "I paid in the App Store but I'm still on Free". The verify call was rejected, or the webhook or the outbox is lagging.
+- The mobile team escalates an `ERR_SUB_002` conflict that the user cannot resolve alone.
+- A GDPR erasure run stops with `IAP_RECEIPT_PEPPER must be configured`.
+- Revenue dashboards lag behind store activity because outbox rows are stuck in `pending`.
+- You are preparing an App Store or Play Store release that touches subscriptions.
 
-## Environment & credentials
+## Environment and credentials
 
 ```ini
 IAP_RECEIPT_PEPPER=<openssl rand -hex 32>     # one-way HMAC pepper — see "Never rotate" below
@@ -19,63 +19,63 @@ APPLE_JWS_VERIFICATION_BYPASS=false           # staging-only; ignored (and logge
 # Apple root CA: storage/app/apple/AppleRootCA-G3.cer (subscription.iap.apple.root_ca_path)
 ```
 
-`php artisan ops:verify-env` gates the pepper (FAIL when empty), the Apple bypass flag (FAIL when true), and the root-CA file at deploy time.
+`php artisan ops:verify-env` checks three things at deploy time. It reports FAIL when the pepper is empty or when the Apple bypass flag is true. It also checks that the root certificate file exists and matches the pinned fingerprint.
 
 ## The verify endpoint
 
-`POST /api/v1/subscription/iap/verify` (Sanctum auth, `throttle:10,1` per user) → `IapVerifyController` → `IapSubscriptionService::verify`. Processing sequence:
+The mobile app calls `POST /api/v1/subscription/iap/verify`. It needs Sanctum authentication and is limited to 10 requests per minute per user (`throttle:10,1`). `IapVerifyController` passes the request to `IapSubscriptionService::verify`, which runs these steps in order.
 
-1. **Currency gate** — EUR only in v1.3.x → `ERR_CUR_001`.
-2. **Plan resolution** — store `productId` mapped via `config('subscription.iap.{store}.product_ids')` → unknown id = `ERR_SUB_001`.
-3. **Receipt verification** — Apple: JWS chain validation (below); Google: Play Developer API lookup of the purchase token. Rejection = `ERR_SUB_001`.
-4. **Family Sharing** (Apple only) → `ERR_SUB_002` `kind=family_sharing_unsupported`.
-5. **Account binding** — Apple `appAccountToken` must equal `users.uuid`; Google `obfuscatedExternalAccountId` must equal `sha256(users.uuid)`. Mismatch = `ERR_SUB_002` `kind=different_zelta_user`. (Absent token = accepted; the Sanctum bearer still scopes the request.)
-6. **Multi-store conflict gate** — active Stripe sub, or active sub in the opposing store → `ERR_SUB_002` `kind=two_stores_active`.
-7. **Persist** (one transaction, `lockForUpdate` on the existing row): create/reactivate `iap_subscriptions`, append `iap_subscription_events`, write `iap_receipts`, log withdrawal consent, enqueue the revenue outbox row. Same-store duplicates return an idempotent 200; a cross-store unique-index race (`uniq_iap_active_per_user`) is also treated as the idempotent path.
+1. **Currency check.** v1.3.x accepts only EUR. Any other currency returns `ERR_CUR_001`.
+2. **Plan lookup.** The store `productId` is looked up in `config('subscription.iap.{store}.product_ids')`. An unknown id returns `ERR_SUB_001`.
+3. **Receipt verification.** For Apple, the JWS certificate chain is validated as described below. For Google, the purchase token is looked up through the Play Developer API. A rejected receipt returns `ERR_SUB_001`.
+4. **Family Sharing check.** This applies to Apple only. A family-shared purchase returns `ERR_SUB_002` with `kind=family_sharing_unsupported`.
+5. **Account binding.** Apple's `appAccountToken` must equal `users.uuid`. Google's `obfuscatedExternalAccountId` must equal `sha256(users.uuid)`. A mismatch returns `ERR_SUB_002` with `kind=different_zelta_user`. A missing token is accepted, because the Sanctum bearer token still scopes the request to the user.
+6. **Conflict with another store.** An active Stripe subscription or an active subscription in the other store returns `ERR_SUB_002` with `kind=two_stores_active`.
+7. **Saving.** One transaction, with `lockForUpdate` on any existing row, does all the writes. It creates or reactivates the `iap_subscriptions` row, appends to `iap_subscription_events`, writes `iap_receipts`, logs the withdrawal consent and adds the revenue outbox row. A duplicate from the same store returns an idempotent 200. A race on the unique index across stores (`uniq_iap_active_per_user`) is also treated as the idempotent case.
 
 ## ERR_SUB_002 conflict matrix
 
-Every IAP conflict is **HTTP 409 `ERR_SUB_002`** with `conflict.kind` + `attemptedSource` + a **non-null** `existingSubscription{ source, currentPeriodEndsAt }`. Mobile (`subscriptionConflict.ts`) branches on `kind` and returns null for any other code — never introduce a new `ERR_SUB_*` code for an IAP conflict, and never drop `existingSubscription` (when there is no row on file, `existingSubscriptionFromVerified()` derives it from the receipt's reported source + expiry).
+Every IAP conflict is **HTTP 409 `ERR_SUB_002`**. The response carries `conflict.kind`, `attemptedSource` and a **non-null** `existingSubscription{ source, currentPeriodEndsAt }`. The mobile app (`subscriptionConflict.ts`) branches on `kind` and returns null for any other code. Never add a new `ERR_SUB_*` code for an IAP conflict, and never leave out `existingSubscription`. When no subscription row is on file, `existingSubscriptionFromVerified()` builds it from the source and expiry that the receipt reports.
 
 | `kind` | Trigger | Typical support resolution |
 |---|---|---|
-| `two_stores_active` | Active Stripe sub, or active sub in the other store | User cancels one side in that store/Stripe portal; backend never merges. Verify state via `subscriptions` / `iap_subscriptions` |
-| `different_zelta_user` | Receipt's store subscription (or its account token) belongs to another Zelta account | User is signed into the wrong Zelta account, or shares a store account. They must use the original Zelta account, or cancel + repurchase from the new one after expiry |
-| `family_sharing_unsupported` | Apple receipt is family-shared (`isFamilyShared`) | Unsupported by policy. The purchaser's own device/account must subscribe directly |
-| `stale_receipt` | Known subscription in terminal state (`expired`/`refunded`/`cancelled`) AND receipt expiry in the past | User reinstalled with an old receipt. They should repurchase; mobile shows the resubscribe path |
+| `two_stores_active` | The user has an active Stripe subscription or an active subscription in the other store. | The user cancels one of them in that store or in the Stripe portal. The backend never merges them. Check the state in `subscriptions` and `iap_subscriptions`. |
+| `different_zelta_user` | The store subscription, or its account token, belongs to another Zelta account. | The user is signed in to the wrong Zelta account or shares a store account. They must use the original Zelta account, or cancel and buy again from the new account after the old subscription expires. |
+| `family_sharing_unsupported` | The Apple receipt is family-shared (`isFamilyShared`). | Family Sharing is not supported by policy. The purchaser must subscribe directly from their own device and account. |
+| `stale_receipt` | A known subscription is in a final state (`expired`, `refunded` or `cancelled`) and the receipt's expiry is in the past. | The user reinstalled the app with an old receipt. They should buy again, and the mobile app shows the resubscribe path. |
 
 ## Apple JWS chain validation
 
-`AppleReceiptVerifier` validates the x5c certificate chain of every signed transaction and pins the root to **Apple Root CA G3** at `storage/app/apple/AppleRootCA-G3.cer` (fingerprint `63343ABF…E9179`; verify with `openssl x509 -fingerprint -sha256 -inform der -in storage/app/apple/AppleRootCA-G3.cer`). Any chain not rooted there is rejected.
+`AppleReceiptVerifier` validates the x5c certificate chain of every signed transaction. It pins the root to **Apple Root CA G3** at `storage/app/apple/AppleRootCA-G3.cer`, with the fingerprint `63343ABF…E9179`. You can check the fingerprint with `openssl x509 -fingerprint -sha256 -inform der -in storage/app/apple/AppleRootCA-G3.cer`. Any chain with a different root is rejected.
 
-### The staging-only bypass — and why it must never reach production
+### The staging-only bypass, and why it must never reach production
 
-`APPLE_JWS_VERIFICATION_BYPASS=true` skips signature/chain verification so staging can run without provisioned certs. **It is a full auth-bypass for the entire Apple IAP surface**: with it on, any authenticated user can POST a self-crafted "receipt" and forge a Pro subscription. Defense in depth:
+`APPLE_JWS_VERIFICATION_BYPASS=true` skips signature and chain verification, so that staging can run without provisioned certificates. **It turns off authentication for the whole Apple IAP surface.** With it on, any signed-in user could send a self-made "receipt" and get a Pro subscription for free. Several layers protect against this.
 
-- In production the flag is **ignored** — chain validation runs anyway and `iap.apple.jws.bypass_rejected_in_production` is logged at ERROR (alert on this; it means someone tried).
-- Every honoured bypass (non-prod) logs `iap.apple.jws.signature_verify_bypassed` at WARNING.
-- `ops:verify-env` FAILs the deploy when the flag is true.
-- Post-deploy negative smoke test: POST a known-bad JWS to `/api/v1/subscription/iap/verify` in production and expect `ERR_SUB_001`, not a created subscription.
+- In production the flag is **ignored**. Chain validation runs anyway, and `iap.apple.jws.bypass_rejected_in_production` is logged at ERROR. Alert on this line, because it means someone tried to use the bypass.
+- Outside production, every bypassed check logs `iap.apple.jws.signature_verify_bypassed` at WARNING.
+- `ops:verify-env` reports FAIL for the deploy when the flag is true.
+- After a deploy, run a negative smoke test. Send a known-bad JWS to `/api/v1/subscription/iap/verify` in production and expect `ERR_SUB_001`, not a new subscription.
 
-## Webhook ingestion (Apple V2 + Google RTDN)
+## Webhook ingestion for Apple V2 and Google RTDN
 
-Both store webhooks flow through the same dedupe → pseudonymised-lookup → outbox path. Both **return 200 even on processing errors** (stores retry non-2xx indefinitely; controllers log and acknowledge).
+Both store webhooks go through the same path. The event is deduplicated, the subscription is found by its pseudonymised key, and an outbox row is written. Both controllers **return 200 even when processing fails**, because the stores retry any non-2xx answer without end. The controllers log the error and acknowledge the event.
 
 | | Apple | Google |
 |---|---|---|
 | Endpoint | `POST /api/webhooks/apple/notifications` | `POST /api/webhooks/google/play` |
 | Payload | `{"signedPayload": "<JWS>"}` (App Store Server Notifications V2) | Pub/Sub push: `{"message":{"data":"<base64 RTDN JSON>"}}` |
-| Auth | JWS chain validation (same pinned root as verify) | OIDC `Authorization: Bearer` JWT from `accounts.google.com`, `aud` claim checked |
-| Dedupe | `processed_webhook_events (provider, event_id)` unique index | same |
-| Post-erasure match | `IapReceiptPseudonymiser::fingerprint(originalTransactionId)` against `original_transaction_id_hash` | `fingerprint(purchaseToken)` |
+| Authentication | JWS chain validation with the same pinned root as verify | An OIDC `Authorization: Bearer` JWT from `accounts.google.com`, with the `aud` claim checked |
+| Deduplication | `processed_webhook_events (provider, event_id)` unique index | The same |
+| Matching after erasure | `IapReceiptPseudonymiser::fingerprint(originalTransactionId)` against `original_transaction_id_hash` | `fingerprint(purchaseToken)` |
 
-Events update `iap_subscriptions` (renewals, cancellations, refunds, grace), append `iap_subscription_events`, and enqueue `revenue_outbox_events` rows (negative amounts for refunds per ADR-0004 sign-prefix).
+The events update `iap_subscriptions` for renewals, cancellations, refunds and grace periods. They append to `iap_subscription_events` and add `revenue_outbox_events` rows. Refunds get negative amounts, following the sign convention in ADR-0004.
 
 ## Revenue outbox re-dispatch
 
-`ProjectRevenueOutbox` projects `pending` rows from `revenue_outbox_events` into `revenue_events`, idempotent on `(source_type, source_event_id, event_type)`. The sweep is scheduled **every five minutes** (`routes/console.php`, `withoutOverlapping`); job has `tries=5`, `backoff=30`.
+`ProjectRevenueOutbox` copies `pending` rows from `revenue_outbox_events` into `revenue_events`. It is idempotent on `(source_type, source_event_id, event_type)`. `routes/console.php` runs the sweep **every five minutes** with `withoutOverlapping`, and the job has `tries=5` and `backoff=30`.
 
-The sweep skips rows with `attempts >= config('subscription.outbox.max_attempts')` (default 5). To recover stuck rows:
+The sweep skips rows with `attempts >= config('subscription.outbox.max_attempts')`, which defaults to 5. To recover stuck rows:
 
 ```bash
 php artisan tinker
@@ -87,37 +87,37 @@ php artisan tinker
 >>> \App\Domain\Subscription\Models\RevenueOutboxEvent::whereIn('id', [...])->update(['attempts' => 0]);
 ```
 
-A delivered row re-run is a no-op; unmapped event kinds are marked delivered with an `revenue_outbox.unmapped_event` info log.
+Running a delivered row again does nothing. Event kinds without a mapping are marked delivered and logged at info level as `revenue_outbox.unmapped_event`.
 
-## NEVER rotate `IAP_RECEIPT_PEPPER`
+## Never rotate `IAP_RECEIPT_PEPPER`
 
-The pepper is one-way by construction:
+The pepper works in one direction only.
 
-1. On GDPR erasure, `IapReceiptPseudonymiser::pseudonymise()` **nulls the raw** `original_transaction_id` / purchase token / receipt blob and stores only `HMAC-SHA256(raw, pepper)` in `original_transaction_id_hash`.
-2. Post-erasure store webhooks (REFUND, RENEWAL for a scrubbed user) are matched by computing `fingerprint(raw_from_webhook)` with the **current** pepper and comparing against stored hashes.
+1. On a GDPR erasure, `IapReceiptPseudonymiser::pseudonymise()` **sets the raw** `original_transaction_id`, purchase token and receipt blob to null. It keeps only `HMAC-SHA256(raw, pepper)` in `original_transaction_id_hash`.
+2. When a store webhook later arrives for an erased user, for example a refund or a renewal, the code computes `fingerprint(raw_from_webhook)` with the **current** pepper and compares it with the stored hashes.
 
-Rotate the pepper and every pre-rotation hash becomes permanently unmatchable — the raw value is gone, re-hashing is impossible, and refunds/renewals for erased users silently stop reconciling. There is no recovery path. On suspected pepper compromise the resolution is manual ops (accept the orphaned hashes, handle affected store events by hand), not rotation.
+If you rotate the pepper, no hash made before the rotation can ever be matched again. The raw value is gone, so the hashes cannot be recomputed, and refunds and renewals for erased users silently stop reconciling. There is no way to recover from this. If you suspect the pepper is compromised, handle it by hand. Accept the orphaned hashes and process the affected store events manually instead of rotating.
 
-Corollaries:
-- **Empty pepper in production/staging**: `pseudonymise()` hard-throws `RuntimeException` before wiping anything (an empty-pepper scrub would destroy the linkage the same way). Set the pepper **before** the first verify request and before any erasure run; `ops:verify-env` enforces this.
-- Treat the pepper like an encryption key: secret manager only, never logs, never `.env` committed anywhere.
+Two more rules follow from this.
+- **An empty pepper in production or staging** makes `pseudonymise()` throw a `RuntimeException` before it deletes anything, because a scrub with an empty pepper would destroy the link in the same way. Set the pepper **before** the first verify request and before any erasure run. `ops:verify-env` enforces this.
+- Treat the pepper like an encryption key. Keep it only in the secret manager, never log it and never commit a `.env` that contains it.
 
 ## Common support cases
 
-- **"Paid but still Free"** — check `iap_subscriptions` for the user; if absent, the verify call failed (grep `iap.verify.receipt_rejected`); if present and active, check `SubscriptionProjection` / mobile cache. Renewal lag: check `processed_webhook_events` for the store's notification and the outbox row status.
-- **Stale receipt loop** — mobile keeps re-sending an old receipt after reinstall; confirm the on-file row is terminal and the expiry is past, then direct the user to repurchase.
-- **Two stores active** — user genuinely double-subscribed (e.g. Stripe web + Apple). We never auto-cancel; the user cancels one side. Refunds happen in the respective store.
-- **Family sharing** — expected rejection; not a bug.
-- **Sandbox receipts in prod** — Apple sandbox receipts are accepted but flagged `environment=sandbox` on `iap_receipts` (app-review traffic). Exclude `ENV_SANDBOX` from revenue queries.
+- **"Paid but still Free."** Look for the user's row in `iap_subscriptions`. If there is none, the verify call failed, so search the logs for `iap.verify.receipt_rejected`. If the row exists and is active, check `SubscriptionProjection` and the mobile cache. For a renewal that lags, check `processed_webhook_events` for the store notification and look at the status of the outbox row.
+- **A stale receipt loop.** The mobile app keeps sending an old receipt after a reinstall. Confirm that the row on file is in a final state and its expiry is in the past, and then tell the user to buy again.
+- **Two stores active.** The user really subscribed twice, for example on the Stripe website and through Apple. The backend never cancels automatically, so the user cancels one of them. Refunds happen in the store where the user paid.
+- **Family Sharing.** This rejection is expected and is not a bug.
+- **Sandbox receipts in production.** Apple sandbox receipts are accepted, because app review uses them, but `iap_receipts` marks them with `environment=sandbox`. Leave `ENV_SANDBOX` out of revenue queries.
 
 ## Files referenced
 
-- `app/Domain/Subscription/Iap/IapSubscriptionService.php` — verify sequence + conflict matrix
-- `app/Domain/Subscription/Iap/AppleReceiptVerifier.php` — JWS chain validation + bypass gate
-- `app/Domain/Subscription/Iap/GooglePlayReceiptVerifier.php`
-- `app/Domain/Subscription/Iap/IapReceiptPseudonymiser.php` — pepper rules, GDPR scrub
-- `app/Domain/Subscription/Webhooks/AppleNotificationsWebhookController.php`
-- `app/Domain/Subscription/Webhooks/GooglePlayWebhookController.php`
-- `app/Domain/Subscription/Jobs/ProjectRevenueOutbox.php`
-- `config/subscription.php` (`iap` block), `routes/api.php`, `routes/console.php`
-- `docs/superpowers/specs/2026-05-10-slice-2-iap-design.md` — design source
+- `app/Domain/Subscription/Iap/IapSubscriptionService.php` runs the verify sequence and the conflict matrix.
+- `app/Domain/Subscription/Iap/AppleReceiptVerifier.php` validates the JWS chain and guards the bypass.
+- `app/Domain/Subscription/Iap/GooglePlayReceiptVerifier.php` verifies Google Play purchases.
+- `app/Domain/Subscription/Iap/IapReceiptPseudonymiser.php` applies the pepper rules and the GDPR scrub.
+- `app/Domain/Subscription/Webhooks/AppleNotificationsWebhookController.php` receives Apple notifications.
+- `app/Domain/Subscription/Webhooks/GooglePlayWebhookController.php` receives Google Play notifications.
+- `app/Domain/Subscription/Jobs/ProjectRevenueOutbox.php` projects the outbox.
+- `config/subscription.php` (the `iap` block), `routes/api.php` and `routes/console.php` hold the configuration, routes and schedule.
+- `docs/superpowers/specs/2026-05-10-slice-2-iap-design.md` is the design source.

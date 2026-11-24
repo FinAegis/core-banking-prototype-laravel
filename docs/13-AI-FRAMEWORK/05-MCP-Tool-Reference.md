@@ -4,14 +4,14 @@ The public MCP server has 14 tools and 4 resources in its catalog. In production
 
 > FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
 
-> **Canonical schemas live on the wire.** Call `tools/list` (any authenticated client) for the up-to-date `inputSchema` / `outputSchema` of every enabled tool. The summaries below are durable contract notes; field-level detail is read off the running server.
+> The running server is the source of truth for schemas. Call `tools/list` with any authenticated client to get the current `inputSchema` and `outputSchema` of every enabled tool. The summaries below follow the tool classes in `app/Domain/AI/MCP/Tools/` and `app/Domain/MCP/Tools/`.
 
 ## Conventions
 
-- All write tools require an `idempotency_key` (UUID, ≤128 chars). Same key + same args replays the cached result; same key + different args returns `-32002`.
-- All payment-impact tools (`payment.transfer`, `exchange.trade`, `ramp.start`, `sms.send`) flow through the spending-limit saga and may return `-32003 SPENDING_LIMIT_EXCEEDED`.
+- Every write tool needs an `idempotency_key`. The schema asks for a UUID, and the server accepts at most 128 characters. The same key with the same arguments replays the cached result. The same key with different arguments returns `-32002`.
+- The payment tools are `payment.transfer`, `ramp.start` and `sms.send`. They run through the spending-limit saga and can return `-32003 SPENDING_LIMIT_EXCEEDED`. When no daily limit is saved for the user's approval of the client, the call gets `-32003` with `error_code: NO_POLICY`. The limit is saved when the user approves the client on the consent screen. `exchange.trade` is a write tool but does not count against the spending limit.
 - Account UUIDs match `^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`. Currency codes match `^[A-Z]{3,10}$`.
-- Common errors on every tool: `-32001` (unauthenticated), `-32004` (operator-disabled), `-32006` (user-bound tool called without a user-context token).
+- Every tool can return `-32001` (unauthenticated), `-32000` (missing scope), `-32004` (switched off by the operator) and `-32006` (user-bound tool called without a user).
 
 ## Tool calls
 
@@ -43,7 +43,7 @@ Response envelope:
 }
 ```
 
-`isError: true` is the in-band failure signal — it does NOT translate to a JSON-RPC `error` envelope. Wire-protocol errors (auth, scope, idempotency, spending) DO use `error`.
+A tool that fails returns `isError: true` inside `result`. That is not a JSON-RPC `error` envelope. Protocol errors about authentication, scope, idempotency and spending do use the `error` envelope.
 
 ---
 
@@ -70,22 +70,23 @@ Get the current balance of an account, optionally scoped to a single asset. Only
 
 **Scope:** `accounts:write` · **Idempotent:** required
 
-Create a new account record for the authenticated user (or for `user_uuid` if explicitly passed and authorized).
+Create a new account for the signed-in user. The tool never creates accounts for other users, whatever the caller's role. The account opens empty, and a positive `initial_deposit` is refused. The tool is off by default in production (`MCP_TOOL_ACCOUNT_CREATE`).
 
 **Inputs**
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | `name` | string | yes | 3–100 chars |
-| `currency` | enum | no | `USD` / `EUR` / `GBP` / `JPY` / `CHF` / `CAD` / `AUD` / `NZD` / `CNY` / `SGD`; default `USD` |
-| `type` | enum | no | `checking` / `savings` / `investment` / `trading` / `escrow` / `loan`; default `checking` |
-| `initial_deposit` | number | no | In minor units; default `0` |
+| `currency` | enum | yes | `USD` / `EUR` / `GBP` / `JPY` / `CHF` / `CAD` / `AUD` / `NZD` / `CNY` / `SGD`; schema default `USD` |
+| `type` | enum | yes | `checking` / `savings` / `investment` / `trading` / `escrow` / `loan`; schema default `checking` |
+| `user_uuid` | string (UUID) | no | Must be the caller's own user UUID; another user's UUID is refused |
 | `metadata` | object | no | `{purpose, description, tags[]}` |
+| `settings` | object | no | `{overdraft_protection, auto_sweep, minimum_balance, monthly_fee, interest_rate, notification_settings}` |
 | `idempotency_key` | string (UUID) | yes | |
 
 **Outputs**
 
-`account_uuid`, `account_number`, `name`, `type`, `currency`, `balance`, `status`, `created_at`, `initial_deposit`, `deposit_status`, `deposit_reference`, `message`.
+`account_uuid`, `account_number`, `name`, `type`, `currency`, `balance`, `status`, `created_at`, `message`.
 
 ---
 
@@ -132,7 +133,7 @@ Move money between two accounts. The source account must belong to the caller. T
 
 `transfer_id`, `from_new_balance`, `to_new_balance`, `formatted_*_balance`, `timestamp`, `status`, `fee`.
 
-**Note on amount precision.** The saga converts `amount` (major units) to integer minor units via `bcmath`. Floats are accepted but a value that round-trips through PHP's float→string in scientific notation (e.g., `1e-5`) is rejected as `AMOUNT_INVALID`. Send strings (`"100.50"`) for any amount that risks IEEE-754 drift.
+**Note on amount precision.** The saga converts `amount` from major units to integer minor units with `bcmath`. It accepts numbers, but a number that PHP turns into scientific notation, such as `1e-5`, is rejected with `AMOUNT_INVALID`. Send the amount as a string, such as `"100.50"`, to avoid floating-point drift.
 
 **Example call**
 
@@ -161,7 +162,7 @@ Move money between two accounts. The source account must belong to the caller. T
 
 **Scope:** `transactions:read`
 
-List transactions with filters.
+List the caller's transactions with optional filters.
 
 **Inputs**
 
@@ -177,7 +178,7 @@ List transactions with filters.
 
 **Outputs**
 
-`transactions[]`, `count`, `aggregates` (`total_in`, `total_out`, `net_flow`).
+`transactions[]` (each `{id, date, amount, asset, category, merchant, type, status, description}`), `summary` (`total_inflow`, `total_outflow`, `net_change`, `transaction_count`, `average_transaction`), `explanation`, `total_count`.
 
 ---
 
@@ -185,11 +186,11 @@ List transactions with filters.
 
 **Scope:** `transactions:read`
 
-Categorized spending breakdown over a window.
+Get a spending breakdown by category over a date range.
 
-**Inputs:** account or user filter, `period`, optional `categories[]`, optional `currency`.
+**Inputs:** `query` (free-form hint), `account_uuid`, `date_from`, `date_to`, `category`, `asset_code`. All are optional.
 
-**Outputs:** category-level `amount`, `count`, `avg`, `share`; `top_merchants[]`; `trend[]`.
+**Outputs:** `period` (`from`, `to`), `total_spent`, `total_earned`, `by_category` (each `{total, count}`), `top_merchants[]` (each `{merchant, total, count}`), `trends` (`direction`, `change_percent`), `insights[]`.
 
 ---
 
@@ -197,9 +198,11 @@ Categorized spending breakdown over a window.
 
 **Scope:** `exchange:read`
 
-Get a tradable quote for `from_currency` → `to_currency` at `amount`.
+Get an exchange rate for `from_currency` to `to_currency`.
 
-**Outputs:** `quote_id`, `rate`, `expires_at`, `inverse_rate`, `fee`, `slippage_bps`, `from_amount`, `to_amount`.
+**Inputs:** `from_currency`, `to_currency` (both required), `amount` (default 1), `include_fees` (default `false`).
+
+**Outputs:** `from_currency`, `to_currency`, `exchange_rate`, `amount`, `converted_amount`, `formatted_rate`, `formatted_amount`, `fee_amount`, `total_amount`, `timestamp`, `provider`, `inverse_rate`, `spread_percentage`. The tool returns no quote id, and a quote does not reserve a price.
 
 ---
 
@@ -207,13 +210,13 @@ Get a tradable quote for `from_currency` → `to_currency` at `amount`.
 
 **Scope:** `exchange:write` · **Idempotent:** required
 
-Execute a quote. The tool is off by default in production (`MCP_TOOL_EXCHANGE_TRADE`). It is also off whenever the trading engine is off (`TRADING_ENABLED=false`), whatever `MCP_TOOL_EXCHANGE_TRADE` says. It trades only on accounts the caller owns.
+Place an order on the exchange. The tool is off by default in production (`MCP_TOOL_EXCHANGE_TRADE`). It is also off whenever the trading engine is off (`TRADING_ENABLED=false`), whatever `MCP_TOOL_EXCHANGE_TRADE` says. It trades only on accounts the caller owns.
 
-**Inputs:** `quote_id`, `from_account_uuid`, `to_account_uuid`, `idempotency_key`.
+**Inputs:** `account_uuid`, `type` (`buy` / `sell`), `order_type` (`market` / `limit` / `stop` / `stop-limit`), `base_currency`, `quote_currency`, `amount`, `price` (for limit orders), `stop_price` (for stop orders), `time_in_force` (`GTC` / `IOC` / `FOK` / `GTD`, default `GTC`), `idempotency_key`.
 
-**Outputs:** `trade_id`, `from_amount`, `to_amount`, `rate`, `fee`, `executed_at`.
+**Outputs:** `order_id`, `account_uuid`, `type`, `order_type`, `base_currency`, `quote_currency`, `amount`, `price`, `status`, `filled_amount`, `remaining_amount`, `average_fill_price`, `fee_amount`, `fee_currency`, `created_at`, `updated_at`, `time_in_force`. The result is an order placement, so it usually comes back as `pending` with nothing filled yet.
 
-> **Spending-limit coverage gap.** `exchange.trade` is intentionally NOT in the saga path: the spending-limit commitment is the quote-currency cost (amount × market price), and market price isn't in the tool arguments. We will wire saga coverage once the trade tool surfaces a settled fiat-equivalent in its result. Tracked as a Phase 7 follow-up.
+> `exchange.trade` does not count against the daily spending limit. The limit would have to use the cost in the quote currency, which is the amount times the market price. The market price is not in the tool arguments, and the result reports an order placement rather than a settled amount. The saga can cover this tool once its result reports a settled value.
 
 ---
 
@@ -221,11 +224,13 @@ Execute a quote. The tool is off by default in production (`MCP_TOOL_EXCHANGE_TR
 
 **Scope:** `ramp:write` · **Idempotent:** required
 
-Start an onramp/offramp session with a third-party provider (integration adapter for the Bridge API; no partnership or endorsement implied). Converting stablecoins to fiat, where available, will be provided by licensed third parties under their own terms. Returns a checkout URL the agent or user opens to complete the funding flow.
+Start an onramp or offramp session with a third-party provider (integration adapter for the Bridge API; no partnership or endorsement implied). Converting stablecoins to fiat, where available, will be provided by licensed third parties under their own terms. Providers with a hosted page return a checkout URL that the user opens in a browser.
 
-**Inputs:** `direction` (`onramp` / `offramp`), `amount`, `currency` (fiat), `crypto_currency`, `account_uuid`, `idempotency_key`.
+**Inputs:** `type` (`on` / `off`), `fiat_currency` (`USD` / `EUR` / `GBP`), `fiat_amount` (numeric string in major units, for example `"100.00"`), `crypto_currency` (`USDC` / `EURC` / `USDT`), `wallet_address`, optional `quote_id`, `idempotency_key`.
 
-**Outputs:** `session_id`, `checkout_url`, `expires_at`, `status`.
+**Outputs:** `session_id`, `checkout_url`, `provider`, `status`.
+
+Production uses the Bridge provider (`RAMP_PROVIDER=bridge`). Bridge takes bank transfers into USDC on Polygon, so `checkout_url` is `null` and the tool output does not include the bank deposit instructions. Bridge offramp (`type: off`) is not available in v1, so the call fails with `isError: true`. The spending limit counts `fiat_amount` in `fiat_currency`.
 
 ---
 
@@ -233,37 +238,37 @@ Start an onramp/offramp session with a third-party provider (integration adapter
 
 **Scope:** `ramp:read`
 
-Poll a ramp session.
+Get the current state of a ramp session. While the session is still running, the tool refreshes it from the provider.
 
 **Inputs:** `session_id`.
 
-**Outputs:** `status`, `direction`, `amount`, `currency`, `crypto_amount`, `crypto_currency`, `tx_hash`, `completed_at`, `failure_reason`.
+**Outputs:** `session_id`, `status`, `provider`, `crypto_amount`, `updated_at`.
 
 ---
 
 ## `mpp.discovery` — read, public
 
-**Scope:** none (public — but rate-limited per IP)
+**Scope:** none (still needs a user-bound token)
 
-Returns the catalog of supported payment rails — Stripe, Tempo, Lightning, Card, x402 — with capability metadata. Useful for an agent deciding which rail to recommend before calling a payment tool.
+List the Machine Payments Protocol (MPP) rails that are available on this deployment, with the protocol configuration and the priced resources. An agent can use it to choose a rail before it calls a payment tool. The configured rails come from `MPP_SUPPORTED_RAILS` (default `stripe,tempo,lightning,card`).
 
-**Inputs:** none.
+**Inputs:** `include_resources` (boolean, default `true`).
 
-**Outputs:** `rails[]`, `protocol_versions`.
+**Outputs:** `configuration`, `rails[]`, `resources[]`.
 
 ---
 
 ## `sms.send` — write, payment-impact
 
-**Scope:** `sms:send` · **Idempotent:** required · **Spending-limit:** yes (per-message x402 settlement)
+**Scope:** `sms:send` · **Idempotent:** required · **Spending-limit:** yes (fixed price per call)
 
-Send an SMS via the Zelta SMS rail. Each message settles via x402 micropayment; the cost is debited from the consenting user's daily limit.
+Send one SMS through the platform's SMS provider (integration adapter for the VertexSMS API; no partnership or endorsement implied). The user does not pay per message, and the platform bears the cost. Each call reserves a fixed amount against the user's daily spending limit for the client. The amount is `MCP_SMS_PRICE_MINOR` US cents, 10 by default.
 
-**Inputs:** `to` (E.164 phone), `message` (one SMS part: ≤160 GSM characters, ≤70 otherwise), `dlr_url` (optional delivery-receipt webhook), `idempotency_key`.
+**Inputs:** `to` (E.164 phone), `message` (one SMS part: ≤160 GSM characters, ≤70 otherwise), optional `from` (sender ID, default `Zelta`), optional `check_price_only` (returns the price without sending), `idempotency_key`.
 
 The server applies the same input rules as `POST /api/v1/sms/send`. `to` must have 5 to 19 digits with an optional leading `+`, `from` must have 1 to 20 letters, digits or spaces, and `message` must be at most 1600 characters. Through MCP a message must also fit in one SMS part: 160 GSM characters, or 70 when it has other characters. The daily limits and the spending limit count one unit per call, so one call never bills more than one part. Each user can send at most `mcp.rate_limits.sms_per_minute` messages per minute, and the shared daily limits for unpaid sends also apply. The tool is off by default in production (`MCP_TOOL_SMS_SEND`, `SMS_ENABLED`). With `APP_ENV=production`, `MCP_TOOL_SMS_SEND=true` fails `ops:verify-env` unless `MCP_TOOL_SMS_SEND_ACKNOWLEDGED=true` confirms it.
 
-**Outputs:** `message_id`, `status`, `settlement_amount_minor`, `settlement_currency`, `submitted_at`.
+**Outputs:** `message_id`, `status`, `parts`, `price_usdc`, `country`, `note`.
 
 ---
 
@@ -271,7 +276,7 @@ The server applies the same input rules as `POST /api/v1/sms/send`. `to` must ha
 
 **Scope:** `accounts:read`
 
-List the caller's registered blockchain wallet addresses (EVM smart-account mirrors across polygon/base/arbitrum/ethereum plus the Solana ed25519 address).
+List the caller's registered blockchain wallet addresses. These are the EVM smart-account address on polygon, base, arbitrum and ethereum, and the Solana ed25519 address.
 
 **Inputs:** `chain` (optional filter, e.g. `polygon`, `solana`).
 
@@ -283,7 +288,7 @@ List the caller's registered blockchain wallet addresses (EVM smart-account mirr
 
 **Scope:** `accounts:read`
 
-The caller's most recent wallet activity — the same denormalized feed the mobile app renders (transfers in/out, merchant payments, shield/unshield).
+List the caller's most recent wallet activity. It is the same feed the mobile app shows, with transfers in and out, merchant payments, and shield and unshield events.
 
 **Inputs:** `limit` (1–50, default 10; out-of-range values are clamped).
 
@@ -293,16 +298,16 @@ The caller's most recent wallet activity — the same denormalized feed the mobi
 
 # Resources
 
-Read-only context the agent can pull into its window without firing a tool call (cheaper, cached, more LLM-friendly for browsing).
+Resources are read-only context that an agent can read without calling a tool.
 
 | URI | Scope | Returns |
 |---|---|---|
 | `account://profile` | `accounts:read` | Authenticated user profile |
-| `account://balance/{currency}` | `accounts:read` | Single-currency balance |
-| `transactions://recent` | `transactions:read` | 50 most recent transactions |
+| `account://balance/{currency}` | `accounts:read` | Balance of the user's first account in one currency, in minor units |
+| `transactions://recent` | `transactions:read` | 25 most recent transactions across the user's accounts |
 | `transaction://{id}` | `transactions:read` | One transaction by id |
 
-URIs are matched case-insensitively (RFC 3986 §3.1).
+The server matches URIs without regard to case (RFC 3986 §3.1).
 
 ## Reading a resource
 
@@ -325,7 +330,7 @@ Response:
     "contents": [{
       "uri": "account://balance/USD",
       "mimeType": "application/json",
-      "text": "{ \"currency\": \"USD\", \"balance_minor\": 12345, \"formatted\": \"$123.45\", ... }"
+      "text": "{ \"currency\": \"USD\", \"balance_minor\": 12345, \"account_id\": \"...\", \"as_of\": \"2026-11-23T10:00:00+00:00\" }"
     }]
   }
 }
@@ -335,6 +340,6 @@ Response:
 
 ## Where next
 
-- [03-MCP-Quickstart.md](03-MCP-Quickstart.md) — connect a client end-to-end
-- [04-MCP-OAuth-Reference.md](04-MCP-OAuth-Reference.md) — handshake, scopes, DCR, PKCE
-- [02-MCP-Server-Architecture.md](02-MCP-Server-Architecture.md) — request lifecycle internals
+- [03-MCP-Quickstart.md](03-MCP-Quickstart.md) shows how to connect a client.
+- [04-MCP-OAuth-Reference.md](04-MCP-OAuth-Reference.md) covers the handshake, scopes, client registration and PKCE.
+- [02-MCP-Server-Architecture.md](02-MCP-Server-Architecture.md) explains the request lifecycle.

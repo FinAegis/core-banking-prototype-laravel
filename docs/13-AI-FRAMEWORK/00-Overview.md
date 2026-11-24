@@ -2,112 +2,91 @@
 
 ## Overview
 
-The FinAegis AI Agent Framework is a comprehensive, event-sourced artificial intelligence system designed specifically for banking and financial operations. Built on Domain-Driven Design (DDD) principles, it provides intelligent automation, decision support, and customer service capabilities while maintaining complete auditability to support operators' compliance processes.
+The FinAegis AI agent framework is reference code for AI agents in financial software. It is built with Domain-Driven Design and event sourcing. Agents answer questions in plain language, call platform tools and record their decisions as events. The recorded history supports an operator's own review and compliance process.
+
+The framework lives in `app/Domain/AI/`. The public MCP server at `https://mcp.zelta.app/mcp` is a separate domain, `app/Domain/MCP/`, that reuses the framework's tool registry. [MCP_INTEGRATION.md](MCP_INTEGRATION.md) describes the public server.
 
 ## Architecture
 
-### Core Components
+### Core components
 
-1. **MCP Server (Model Context Protocol)**
-   - Tool registry and discovery
-   - Resource management
-   - Protocol handling
-   - Performance monitoring
+1. **Internal MCP server and tool registry** (`app/Domain/AI/MCP/`)
+   - `ToolRegistry` holds the tool classes and their schemas.
+   - `MCPServer` handles `tools/list`, `tools/call` and resource requests inside the application.
+   - `ResourceManager` serves read-only resources.
 
-2. **AI Agents**
-   - Customer Service Agent
-   - Compliance Agent
-   - Risk Assessment Agent
-   - Trading Agent
+2. **AI agents** (`app/Domain/AI/Agents/`)
+   - `FinancialAgent`, `TransferAgent`, `TradingAgent`, `ComplianceAgent` and `GeneralAgent`.
+   - `AgentRouterService` picks the agents for a question, and `AgentOrchestratorService` combines their answers.
 
-3. **Domain Layer** (`app/Domain/AI/`)
-   - Event sourcing with AIInteractionAggregate
-   - Domain events for complete audit trail
-   - Workflow orchestration
-   - Saga pattern implementation
+3. **Domain layer** (`app/Domain/AI/`)
+   - `AIInteractionAggregate` records each interaction as events.
+   - Domain events form the audit trail.
+   - Workflows and sagas orchestrate multi-step work.
 
-4. **Infrastructure Layer** (`app/Infrastructure/AI/`)
-   - OpenAI/Claude API integration
-   - Redis conversation store
-   - Pinecone vector database
-   - External service connectors
+4. **Infrastructure layer** (`app/Infrastructure/AI/`)
+   - `OpenAIProvider` and `ClaudeProvider` call the language model APIs.
+   - `ConversationStore` keeps conversations in Redis.
+   - `PineconeProvider` connects an optional Pinecone vector database.
 
-## Key Features
+## Key features
 
-### Event Sourcing
-Every AI decision and interaction is captured as an immutable event:
+### Event sourcing
+
+Agent decisions and interactions are stored as events. Examples are:
 - `AIDecisionMadeEvent`
 - `ToolExecutedEvent`
-- `ConversationStartedEvent`
-- `HumanOverrideEvent`
-- `ConfidenceThresholdExceededEvent`
+- `ConversationStartedEvent` and `ConversationEndedEvent`
+- `HumanInterventionRequestedEvent`
+- `HumanApprovalReceivedEvent`
+- `LLMRequestMadeEvent` and `LLMResponseReceivedEvent`
 
-### Workflow Orchestration
-Complex multi-step operations using Laravel Workflow:
+### Workflow orchestration
+
+Multi-step operations run on Laravel Workflow:
 - `CustomerServiceWorkflow`
 - `ComplianceWorkflow`
 - `RiskAssessmentSaga`
 - `TradingAgentWorkflow`
+- `HumanApprovalWorkflow` and `HumanInTheLoopWorkflow`
 
-### Human-in-the-Loop
-Configurable confidence thresholds and approval workflows:
-- High-value transaction approval
-- Risk assessment verification
-- Compliance decision review
-- Trading strategy confirmation
+### Human-in-the-loop
 
-### Multi-Agent Coordination
-Agents can collaborate and delegate tasks:
-- Consensus building
-- Task delegation
-- Conflict resolution
-- Load balancing
+`HumanInTheLoopWorkflow` has confidence and value thresholds per operation type. A decision below the confidence threshold or above the value threshold waits for a person to approve it.
 
-## Banking Tools
+### Multi-agent coordination
 
-The framework includes 20+ specialized banking tools:
+`MultiAgentCoordinationService` lets agents share a task. It picks the agents that can handle the task, splits it into subtasks and combines the answers. When the agents disagree, it resolves the conflict by weighted voting or by the most confident answer.
 
-### Account Management
-- `CreateAccountTool`
-- `CheckBalanceTool`
-- `GetTransactionHistoryTool`
-- `FreezeAccountTool`
+## Tools
 
-### Payments
-- `InitiatePaymentTool`
-- `CheckPaymentStatusTool`
-- `CancelPaymentTool`
-- `SchedulePaymentTool`
+`MCPToolServiceProvider` registers 28 tools in `ToolRegistry`. The main groups are:
 
-### Trading & Exchange
-- `GetExchangeRatesTool`
-- `PlaceOrderTool`
-- `GetMarketDataTool`
-- `ExecuteTradeTool`
+| Group | Tool names |
+|---|---|
+| Account | `account.balance`, `account.create`, `account.deposit`, `account.withdraw` |
+| Payments | `payment.transfer`, `payment.status` |
+| Transactions | `transactions.query`, `transactions.spending_analysis` |
+| Exchange | `exchange.quote`, `exchange.trade`, `exchange.liquidity_pool` |
+| Compliance | `compliance.kyc`, `compliance.aml_screening` |
+| Agent protocol | `agent_protocol.payment`, `agent_protocol.escrow`, `agent_protocol.reputation`, `agent_protocol.mandate`, `agent_protocol.vdc` |
+| Machine payments | `x402.payment`, `mpp.payment`, `mpp.discovery`, `visacli.payment`, `visacli.cards` |
+| Other | `sms.send`, `ramp.start`, `ramp.status`, `wallet.addresses`, `wallet.activity` |
 
-### Lending
-- `LoanApplicationTool`
-- `CheckLoanStatusTool`
-- `CalculateInterestTool`
-- `AssessCreditRiskTool`
+`exchange.trade` refuses to run while the trading engine is off, and it is off in production (`TRADING_ENABLED=false`). `exchange.quote` only reads exchange rates and works without it. `exchange.liquidity_pool` can create, list and inspect pools and show the caller's positions. It cannot add or remove liquidity, because that flow was removed in v7.18.0.
 
-### Compliance
-- `KYCVerificationTool`
-- `AMLScreeningTool`
-- `TransactionMonitoringTool`
-- `RegulatoryReportingTool`
+## Getting started
 
-## Getting Started
+### Configuration
 
-### Installation
-
-1. Ensure Redis and database are configured
-2. Set up vector database (optional, for semantic search)
-3. Configure AI provider credentials:
+1. Make sure Redis and the database are configured.
+2. Set up a vector database if you want semantic search. This step is optional.
+3. Set the AI provider credentials:
 
 ```bash
 # .env configuration
-AI_PROVIDER=openai  # or claude
+AI_DEMO_MODE=false        # default true: agents answer from templates, no LLM call
+AI_LLM_PROVIDER=openai    # or claude
 OPENAI_API_KEY=your-key-here
 CLAUDE_API_KEY=your-key-here
 
@@ -120,7 +99,9 @@ REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
 ```
 
-### Basic Usage
+The agents still answer from templates today, whatever these settings say. `AgentOrchestratorService` looks for `ai.providers.openai.api_key` and `ai.providers.anthropic.api_key`, and `config/ai.php` does not define them. No code registers a provider with `LLMOrchestrationService` either. Connecting a language model to the agents therefore needs code changes.
+
+### Basic usage
 
 ```php
 // Get AI Agent Service
@@ -135,86 +116,75 @@ $response = $aiAgent->chat(
 );
 
 // Response includes:
-// - AI response text
-// - Tools used (e.g., CheckBalanceTool)
-// - Confidence score
-// - Context for follow-up
+// - message_id
+// - content (the answer text)
+// - confidence
+// - tools_used (e.g. account.balance)
+// - context
 ```
 
-### MCP Tool Registration
+### Tool registration
 
 ```php
-// Register a custom tool
+// Register a custom tool (it must implement MCPToolInterface)
 $toolRegistry = app(ToolRegistry::class);
 
-$toolRegistry->register(
-    name: 'CustomBankingTool',
-    tool: new CustomBankingTool(),
-    metadata: [
-        'category' => 'banking',
-        'requires_auth' => true,
-        'cache_ttl' => 300,
-    ]
-);
+$toolRegistry->register(new CustomBankingTool());
 ```
 
-## API Endpoints
+The tool's `getName()`, `getCategory()`, `getInputSchema()` and `getOutputSchema()` methods describe it to the registry. To offer a tool on the public MCP server, it must also be added to the `tools` catalog in `config/mcp.php`.
 
-### AI Chat
-- `POST /api/ai/chat` - Send message to AI agent
-- `GET /api/ai/conversations` - List user conversations
-- `GET /api/ai/conversations/{id}` - Get conversation details
-- `DELETE /api/ai/conversations/{id}` - Delete conversation
+## API endpoints
 
-### MCP Tools
-- `GET /api/ai/mcp/tools` - List available tools
-- `GET /api/ai/mcp/tools/{tool}` - Get tool details
-- `POST /api/ai/mcp/tools/{tool}/execute` - Execute tool
-- `POST /api/ai/mcp/tools/register` - Register new tool
+### AI chat
+- `POST /api/ai/chat` sends a message to the agents.
+- `GET /api/ai/conversations` lists the user's conversations.
+- `GET /api/ai/conversations/{id}` returns one conversation.
+- `DELETE /api/ai/conversations/{id}` deletes a conversation.
+- `POST /api/ai/feedback` accepts a rating for an answer. The rating is not stored yet.
+
+### MCP tools (demo)
+- `GET /api/ai/mcp/tools` lists tools.
+- `GET /api/ai/mcp/tools/{tool}` returns tool details.
+- `POST /api/ai/mcp/tools/{tool}/execute` runs a tool.
+- `POST /api/ai/mcp/register` registers a tool.
+
+These four endpoints are a demo. They list six sample tools and return fixed sample data. They do not use `ToolRegistry`.
 
 ## Testing
 
-The framework includes comprehensive test coverage:
-
 ```bash
-# Run AI Framework tests
+# Run AI framework tests
 ./vendor/bin/pest tests/Feature/AI/
 ./vendor/bin/pest tests/Unit/Domain/AI/
 
 # Test specific components
-./vendor/bin/pest tests/Feature/AI/AgentWorkflowTest.php
-./vendor/bin/pest tests/Unit/Domain/AI/MCPServerTest.php
+./vendor/bin/pest tests/Feature/AI/FastAgentWorkflowTest.php
+./vendor/bin/pest tests/Feature/AI/MCPServerTest.php
 ```
 
-## Security Considerations
+## Security considerations
 
-1. **Authentication**: All AI operations require user authentication
-2. **Authorization**: Tool execution respects user permissions
-3. **Audit Trail**: Complete event log of all AI decisions
-4. **Data Privacy**: Conversation isolation and encryption
-5. **Rate Limiting**: API throttling to prevent abuse
-6. **Confidence Thresholds**: Configurable limits for automated actions
+1. **Authentication.** The `/api/ai/*` endpoints need a Sanctum token.
+2. **Authorization.** Each tool checks whether the user may run it.
+3. **Audit trail.** Agent decisions are stored as events.
+4. **Data privacy.** Conversations are kept per user.
+5. **Rate limiting.** The `/api/ai/*` endpoints are rate limited.
+6. **Confidence thresholds.** Low-confidence decisions wait for a person.
 
 ## Performance
 
-- **Caching**: Intelligent caching of tool results
-- **Async Processing**: Long-running operations via queues
-- **Vector Search**: Semantic search for relevant context
-- **Connection Pooling**: Efficient external API usage
-- **Event Streaming**: Real-time updates via WebSockets
+- The internal MCP server caches tool lists and cacheable tool results.
+- Long-running work can run in queued workflows.
+- A vector database can add semantic search when it is configured.
 
 ## Monitoring
 
-Built-in monitoring capabilities:
-- Tool execution metrics
-- Response time tracking
-- Error rate monitoring
-- Token usage tracking
-- Conversation analytics
+`MCPServer` records how long each tool call takes and whether the result came from the cache. `LLMOrchestrationService` writes each completion it handles, demo answers included, to the `ai_llm_usage` table.
 
-## Next Steps
+## Next steps
 
-- [MCP Integration Guide](01-MCP-Integration.md)
+- [MCP Integration Guide](MCP_INTEGRATION.md)
 - [Creating Custom Agents](02-Agent-Creation.md)
 - [Workflow Development](03-Workflows.md)
 - [Event Sourcing Patterns](04-Event-Sourcing.md)

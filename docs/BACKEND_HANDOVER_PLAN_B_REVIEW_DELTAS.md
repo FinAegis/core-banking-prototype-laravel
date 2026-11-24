@@ -3,6 +3,8 @@
 > Companion to `BACKEND_HANDOVER_PLAN_B_COMMERCIAL.md`. This document captures every architectural change agreed during the joint Q1–Q17 architectural review with the mobile team. Mirror-document of `finaegis-mobile/docs/MOBILE_HANDOVER_PLAN_B_REVIEW_DELTAS.md` from the same review.
 >
 > **Apply these as a patch PR against the original handover before week 1 starts.** The original doc remains intact for git-history clarity; this file is the changelog and the source of truth for what changed and why.
+>
+> Note added for v7.18.1: this is the historical review record for Plan B, which was released in v7.13.0 (2026-05-15). Later changes are in `CHANGELOG.md`. Since v7.15.0 the fiat ramp runs through Bridge.xyz, and the `stripe_bridge` Stripe ramp mentioned here was renamed `stripe_crypto_onramp`.
 
 ---
 

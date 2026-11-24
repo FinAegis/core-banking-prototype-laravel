@@ -1,31 +1,37 @@
-# BIAN-Compliant API Documentation
+# BIAN Service Domain API
 
 ## Overview
 
-This document describes the BIAN (Banking Industry Architecture Network) compliant API implementation for the FinAegis Core Banking Platform. BIAN provides standardized banking service definitions that enable interoperability and consistency across banking systems.
+This document describes the endpoints that FinAegis models on two service domains of the Banking Industry Architecture Network (BIAN). BIAN publishes standard definitions of banking services. Following them makes an API easier to map onto other banking systems.
+
+The endpoints follow BIAN naming for service domains, control records and behavior qualifiers. They are a reference implementation and are not certified by BIAN.
+
+The whole `/api/bian` surface moves ledger balances directly. It therefore sits behind `LEDGER_DIRECT_FUNDING_ENABLED`, and every request answers `404` while the flag is off. The flag is on by default only when `APP_ENV` is `local`, `testing` or `demo`. The production Zelta configuration keeps it off.
 
 ## BIAN Concepts
 
 ### Service Domains
-Service Domains represent major banking capabilities that group related functionality. Each domain follows a specific functional pattern.
+A service domain is one major banking capability. Each domain follows a functional pattern, such as Fulfill or Transact.
 
 ### Control Records (CR)
-Control Records track the lifecycle and state of service domain instances. They are identified by unique CR Reference IDs.
+A control record tracks the lifecycle and state of one instance of a service domain. Each control record has a unique CR Reference ID.
 
 ### Behavior Qualifiers (BQ)
-Behavior Qualifiers represent specific aspects or features within a service domain, such as "Payment", "Deposit", or "Account Balance".
+A behavior qualifier is one aspect of a service domain, such as "Payment", "Deposit" or "Account Balance".
 
 ### Standard Operations
-BIAN defines standard operations for interacting with services:
-- **Initiate** - Create a new instance
-- **Update** - Modify an existing instance
-- **Retrieve** - Get information about an instance
-- **Control** - Manage the state (freeze, suspend, etc.)
-- **Execute** - Perform an action
-- **Request** - Request specific information
-- **Grant** - Approve or authorize
-- **Capture** - Record information
-- **Exchange** - Exchange information between parties
+BIAN defines standard operations on a service:
+- **Initiate** creates a new instance.
+- **Update** changes an existing instance.
+- **Retrieve** reads information about an instance.
+- **Control** changes the state, for example to freeze or suspend it.
+- **Execute** performs an action.
+- **Request** asks for specific information.
+- **Grant** approves or authorises something.
+- **Capture** records information.
+- **Exchange** passes information between parties.
+
+FinAegis uses Initiate, Update, Retrieve, Control, Execute and Request.
 
 ## Implemented Service Domains
 
@@ -47,10 +53,12 @@ Authorization: Bearer {token}
   "customerReference": "550e8400-e29b-41d4-a716-446655440000",
   "accountName": "Personal Current Account",
   "accountType": "current",
-  "initialDeposit": 1000,
+  "initialDeposit": 0,
   "currency": "USD"
 }
 ```
+
+An account opens empty. `initialDeposit` is deprecated and accepts only `0`. Any other value is rejected with `422`. `accountType` is `current` or `checking`.
 
 **Response**:
 ```json
@@ -62,7 +70,7 @@ Authorization: Bearer {token}
     "accountType": "current",
     "accountStatus": "active",
     "accountBalance": {
-      "amount": 1000,
+      "amount": 0,
       "currency": "USD"
     },
     "dateType": {
@@ -196,6 +204,12 @@ Authorization: Bearer {token}
 }
 ```
 
+##### Retrieve Payment
+```http
+GET /api/bian/payment-initiation/{crReferenceId}/retrieve
+Authorization: Bearer {token}
+```
+
 ##### Update Payment
 ```http
 PUT /api/bian/payment-initiation/{crReferenceId}/update
@@ -236,7 +250,7 @@ Authorization: Bearer {token}
 ## Response Structure
 
 ### Success Response
-All successful responses follow the BIAN pattern of returning the complete record/arrangement:
+A successful response returns the complete record or arrangement, as BIAN does:
 
 ```json
 {
@@ -249,7 +263,7 @@ All successful responses follow the BIAN pattern of returning the complete recor
 ```
 
 ### Error Response
-Error responses include structured error information:
+An error response carries structured error details:
 
 ```json
 {
@@ -289,62 +303,62 @@ Transaction and payment history endpoints support:
 - `transactionType` - Filter by type (credit/debit/all)
 - `paymentDirection` - Filter by direction (sent/received/all)
 
-## BIAN Compliance Notes
+## BIAN Conventions
 
 ### Control Record Reference IDs
-- All service domain instances are identified by unique CR Reference IDs
-- These IDs are UUIDs in our implementation
-- They persist throughout the lifecycle of the instance
+- Every service domain instance has a unique CR Reference ID.
+- FinAegis uses UUIDs for these IDs.
+- An ID stays the same for the whole lifecycle of the instance.
 
 ### Behavior Qualifier Reference IDs
-- Each BQ operation generates its own BQ Reference ID
-- These track specific aspects or operations within a service domain
+- Each behavior qualifier operation creates its own BQ Reference ID.
+- The ID tracks that one operation within the service domain.
 
 ### Date Handling
-- All dates follow ISO 8601 format
-- Timestamps include timezone information
-- Date types are explicitly named (e.g., "AccountOpeningDate")
+- All dates use the ISO 8601 format.
+- Timestamps include the time zone.
+- Each date carries a named date type, for example "AccountOpeningDate".
 
 ### Amount Representation
-- Amounts are represented as integers (cents/minor units)
-- Currency is explicitly specified using ISO 4217 codes
+- Amounts are integers in minor units, such as cents.
+- The currency is always given as an ISO 4217 code.
 
 ### Status Values
-- Follow BIAN standard status values where applicable
-- Account Status: active, dormant, closed, frozen
-- Payment Status: initiated, scheduled, completed, failed, cancelled
-- Control Status: active, frozen, suspended
+- Status values follow the BIAN standard values where they apply.
+- An account status is `active`, `dormant`, `closed` or `frozen`.
+- A payment status is `initiated`, `scheduled`, `completed`, `failed` or `cancelled`.
+- A control status is `active`, `frozen` or `suspended`.
 
-## Migration from Legacy API
+## Mapping from the Core API
 
-To migrate from the legacy API to BIAN-compliant endpoints:
+The list below shows which BIAN-style endpoint matches each core API endpoint:
 
 1. **Account Creation**:
-   - Legacy: `POST /api/accounts`
+   - Core API: `POST /api/accounts`
    - BIAN: `POST /api/bian/current-account/initiate`
 
 2. **Deposits**:
-   - Legacy: `POST /api/accounts/{uuid}/deposit`
+   - Core API: `POST /api/accounts/{uuid}/deposit`
    - BIAN: `POST /api/bian/current-account/{crReferenceId}/deposit/execute`
 
 3. **Withdrawals**:
-   - Legacy: `POST /api/accounts/{uuid}/withdraw`
+   - Core API: `POST /api/accounts/{uuid}/withdraw`
    - BIAN: `POST /api/bian/current-account/{crReferenceId}/payment/execute`
 
 4. **Transfers**:
-   - Legacy: `POST /api/transfers`
+   - Core API: `POST /api/transfers`
    - BIAN: `POST /api/bian/payment-initiation/initiate`
 
 5. **Balance Inquiry**:
-   - Legacy: `GET /api/accounts/{uuid}/balance`
+   - Core API: `GET /api/accounts/{uuid}/balance`
    - BIAN: `GET /api/bian/current-account/{crReferenceId}/account-balance/retrieve`
 
 ## Future Service Domains
 
-The following BIAN service domains are planned for future implementation:
+These BIAN service domains are not implemented. They are candidates for later work:
 
-- **Savings Account** - Similar to Current Account with interest calculations
-- **Customer Offer** - Product offerings and eligibility
-- **Party Reference Data Directory** - Customer information management
-- **Regulatory Reporting** - Compliance and reporting functions
-- **Financial Accounting** - General ledger and accounting entries
+- **Savings Account** would work like Current Account and add interest calculations.
+- **Customer Offer** would cover product offers and eligibility.
+- **Party Reference Data Directory** would manage customer information.
+- **Regulatory Reporting** would cover compliance and reporting functions.
+- **Financial Accounting** would cover the general ledger and accounting entries.

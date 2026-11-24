@@ -2,7 +2,9 @@
 
 ## Overview
 
-The Fund Flow Visualization feature provides users with comprehensive insights into their money movements across all accounts. It offers visual representations of fund flows, detailed statistics, and network analysis to help users understand their financial patterns.
+Fund Flow Visualization is a web page that shows how money moves through a user's accounts. It shows flow statistics and a table of recent flows, filtered by period, account and flow type. It helps users understand their own financial patterns.
+
+The page is only partly built. The live page is a Blade view, and its chart area is still a placeholder. The planned Vue pages with Chart.js and D3.js exist in `resources/js/Pages/FundFlow/`, but they are not used. Inertia and Vue are not installed, and `vite.config.js` does not build them.
 
 ## Components
 
@@ -10,29 +12,27 @@ The Fund Flow Visualization feature provides users with comprehensive insights i
 Location: `app/Http/Controllers/FundFlowController.php`
 
 **Methods:**
-- `index()` - Main visualization page with filters and statistics
-- `accountFlow()` - Detailed flow analysis for a specific account
-- `data()` - API endpoint for exporting flow data
+- `index()` renders the Blade view `resources/views/fund-flow/index.blade.php` with the filters, statistics, chart data and network data.
+- `accountFlow()` returns the flow analysis for one account as JSON. It includes the balances, inflows, outflows, flow balance and counterparty analysis.
+- `data()` returns the flow data as JSON.
 
-### 2. Vue Components
+### 2. Blade View (live)
 
-#### `FundFlow/Visualization.vue`
-Main dashboard showing:
-- Statistics cards (total inflow, outflow, net flow, total flows)
-- Time period, account, and flow type filters
-- Daily fund flow line chart (Chart.js)
-- Account network visualization (D3.js)
-- Recent fund flows table
-- Export functionality
+`resources/views/fund-flow/index.blade.php` shows:
+- filters for time period, account and flow type
+- statistics cards for total inflow, total outflow, net flow and internal transfers
+- a "Daily Flow Chart" area that is still a placeholder
+- a table of recent fund flows
 
-#### `FundFlow/AccountDetail.vue`
-Account-specific view showing:
-- Account balance summary
-- Recent inflows and outflows lists
-- Flow distribution visualization
-- Key metrics (flow ratio, averages)
+The view does not render the network data, and it has no export button.
 
-### 3. Routes
+### 3. Vue Components (not used)
+
+These files were written for an Inertia front end that was never installed:
+- `FundFlow/Visualization.vue` would add a Chart.js line chart, a D3.js account network graph and a CSV export.
+- `FundFlow/AccountDetail.vue` would show one account with its inflows, outflows, flow distribution and key metrics.
+
+### 4. Routes
 ```php
 // Fund Flow Visualization Routes
 Route::prefix('fund-flow')->name('fund-flow.')->group(function () {
@@ -41,6 +41,8 @@ Route::prefix('fund-flow')->name('fund-flow.')->group(function () {
     Route::get('/data', [FundFlowController::class, 'data'])->name('data');
 });
 ```
+
+The routes live in `routes/web.php` inside the group that requires `auth:sanctum`, the Jetstream session and a verified email.
 
 ## Features
 
@@ -60,87 +62,43 @@ Route::prefix('fund-flow')->name('fund-flow.')->group(function () {
 - Withdrawals only
 - Transfers only
 
-### 4. Visual Analytics
+### 4. Visual Analytics (planned)
 
-#### Line Chart
-Shows daily aggregated data for:
-- Total inflows (green)
-- Total outflows (red)
-- Net flow (blue)
-
-#### Network Visualization
-Interactive D3.js network showing:
-- User accounts as blue nodes
-- External entities as gray nodes
-- Fund flows as weighted edges
-- Drag-and-drop interaction
+The controller already prepares the daily chart data and the network data. The unused Vue page shows how they were meant to look. The line chart would show daily inflows in green, outflows in red and net flow in blue. The network graph would be a D3.js force layout with user accounts as blue nodes and external entities as gray nodes, and fund flows as weighted edges.
 
 ### 5. Statistics
-Real-time calculations of:
+The page calculates these values for the selected filters:
 - Total inflow amount
 - Total outflow amount
 - Net flow (inflow - outflow)
 - Number of active days
 - Average daily flows
 
-### 6. Export Functionality
-Users can export flow data as CSV including:
-- Transaction type
-- Source and destination
-- Amount and currency
-- Timestamp
+### 6. Export (planned)
+`GET /fund-flow/data` returns the flow data as JSON. The unused Vue page turns it into a CSV file with the columns Type, From, To, Amount, Currency and Date. The live Blade page has no export button yet.
 
 ## Data Flow
 
-1. **Transaction Aggregation**
-   - Queries user's transactions from the database
-   - Filters by date range, account, and type
-   - Groups by day for chart data
+1. The controller reads the user's completed transactions from the `transaction_projections` table. It filters them by date range, account and type, and groups them by day for the chart.
+2. It builds the network by creating a node for each account and each external entity. It adds an edge for each fund flow and merges repeated flows between the same two nodes.
+3. It sums the inflows and outflows and calculates the net flow and the averages.
 
-2. **Network Generation**
-   - Creates nodes for each account and external entity
-   - Generates edges for each fund flow
-   - Aggregates multiple flows between same entities
-
-3. **Statistics Calculation**
-   - Sums inflows and outflows
-   - Calculates net flow and averages
-   - Identifies top flow categories
+The counterparty analysis on the account page is a placeholder. It returns empty lists for now.
 
 ## Security Considerations
 
-1. **Access Control**
-   - Requires authentication
-   - Users can only view their own accounts
-   - Account ownership verified in queries
+1. **Access Control.** The pages require a signed-in, verified user. Users see only their own accounts, because every query starts from the user's own accounts.
+2. **Data Privacy.** The JSON data contains only the user's own data. External sources and destinations are shown by name, with "External Bank" when no name is stored.
 
-2. **Data Privacy**
-   - External entity names sanitized
-   - No sensitive transaction details exposed
-   - Export limited to user's own data
+## Performance
 
-## Performance Optimizations
+The queries filter on `account_uuid` and `created_at`. The inflow and outflow lists are limited to the 100 most recent rows. The charts use aggregated daily data rather than single transactions.
 
-1. **Query Optimization**
-   - Indexed on account_uuid and created_at
-   - Limited result sets (100 recent flows)
-   - Aggregated data for visualizations
-
-2. **Frontend Optimization**
-   - Lazy loading of chart libraries
-   - Debounced filter updates
-   - Virtual scrolling for large datasets
+The live Blade page loads no chart libraries. The filters submit a normal form.
 
 ## Testing
 
-Comprehensive test coverage includes:
-- View authorization
-- Filter functionality
-- Data accuracy
-- Export functionality
-- Multi-account scenarios
-
-See `tests/Feature/FundFlowControllerTest.php` for test implementation.
+The tests cover view authorization, the filters, data accuracy, the export and users with several accounts. See `tests/Feature/FundFlowControllerTest.php`.
 
 ## Future Enhancements
 

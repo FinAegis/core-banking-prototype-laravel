@@ -4,6 +4,8 @@
 **Duration:** 2 weeks  
 **Completion Date:** 2024-06-20
 
+> This is a historical record of the 2024 phase. Some names have changed since then. The code has no `GCU_ENABLED` flag and no `config/governance.php`. The basket settings live in `config/baskets.php` (`PRIMARY_BASKET_*`), and the Basket module is switched off with `MODULES_DISABLED`. The basket models are in `app/Domain/Basket/Models/`, and the poll commands are `voting:setup` and `voting:setup-batch` in `app/Domain/Governance/Console/Commands/`.
+
 ## Overview
 
 > The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis.

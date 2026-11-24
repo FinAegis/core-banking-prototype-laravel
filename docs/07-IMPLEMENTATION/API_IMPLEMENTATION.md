@@ -3,7 +3,7 @@
 ## Overview
 This document describes the complete API layer implementation for the FinAegis Core Banking Platform, including all endpoints, controllers, and integration with the event sourcing architecture.
 
-> **Note**: A BIAN-compliant version of the API is now available. See [BIAN_API_DOCUMENTATION.md](BIAN_API_DOCUMENTATION.md) for the standards-based implementation following Banking Industry Architecture Network guidelines.
+> **Note**: A version of the API that follows the Banking Industry Architecture Network (BIAN) service domain model is also available. See [BIAN_API_DOCUMENTATION.md](../04-API/BIAN_API_DOCUMENTATION.md).
 
 ## Implementation Summary
 

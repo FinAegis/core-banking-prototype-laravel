@@ -2,18 +2,22 @@
 
 **Version:** 1.0  
 **Created:** 2024-06-16  
-**Status:** Draft
+**Status:** Implemented as a demo module (reviewed for v7.18.1)
+
+> The Basket module is reference software. The production site switches it off through `MODULES_DISABLED`, so it runs only in demo mode and on deployments that enable it. The GCU demo is built on this module.
+>
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
 
 ## Overview
 
-Basket assets (also known as composite assets or currency baskets) are financial instruments that represent a weighted combination of multiple underlying assets. This document outlines the design for implementing basket assets in the FinAegis platform.
+A basket asset is an asset whose value comes from a weighted mix of other assets. Such assets are also called composite assets or currency baskets. This document describes how basket assets are designed in FinAegis.
 
 ## Use Cases
 
-1. **Currency Baskets**: e.g., a "Stable Basket" containing 40% USD, 30% EUR, 30% GBP
-2. **Crypto Index Funds**: e.g., "Top 5 Crypto" containing weighted BTC, ETH, and other cryptocurrencies
-3. **Commodity Baskets**: e.g., "Precious Metals" containing gold, silver, platinum
-4. **Mixed Asset Baskets**: Combinations of different asset types
+1. A currency basket, such as a "Stable Basket" of 40% USD, 30% EUR and 30% GBP.
+2. A crypto index, such as a "Top 5 Crypto" basket of weighted BTC, ETH and other cryptocurrencies.
+3. A commodity basket, such as a "Precious Metals" basket of gold, silver and platinum.
+4. A mixed basket that combines different types of assets.
 
 ## Domain Model
 
@@ -234,7 +238,7 @@ class BasketRebalancingService
 
 ### Account Balances
 
-Basket assets will be treated as regular assets in account balances:
+Basket assets are held in account balances like any other asset:
 
 ```php
 // User can hold basket assets
@@ -246,7 +250,7 @@ $basketService->decompose($account, 'STABLE_BASKET', 5000); // Converts to indiv
 
 ### Exchange Rates
 
-Basket assets will have exchange rates calculated based on their composition:
+The exchange rate of a basket asset is calculated from its components:
 
 ```php
 // Exchange rate for basket is derived from components
@@ -255,7 +259,7 @@ $basketRate = $exchangeRateService->getRate('STABLE_BASKET', 'USD');
 
 ### Events
 
-New events for basket operations:
+Basket operations record these events:
 
 ```php
 class BasketCreated extends ShouldBeStored
@@ -293,13 +297,15 @@ class BasketDecomposed extends ShouldBeStored
 - `GET /api/v2/baskets` - List all basket assets
 - `GET /api/v2/baskets/{code}` - Get basket details
 - `POST /api/v2/baskets` - Create new basket (admin)
-- `PUT /api/v2/baskets/{code}` - Update basket composition
-- `DELETE /api/v2/baskets/{code}` - Deactivate basket
+
+There is no update or delete endpoint. Administrators change a basket in the admin panel.
 
 ### Basket Operations
 - `GET /api/v2/baskets/{code}/value` - Get current basket value
 - `POST /api/v2/baskets/{code}/rebalance` - Trigger rebalancing
 - `GET /api/v2/baskets/{code}/history` - Value history
+- `GET /api/v2/accounts/{uuid}/baskets` - Basket holdings of an account
+- `POST /api/v2/accounts/{uuid}/baskets/compose` - Convert components into basket units
 - `POST /api/v2/accounts/{uuid}/baskets/decompose` - Convert basket to components
 
 ## Admin Interface
@@ -319,24 +325,21 @@ class BasketDecomposed extends ShouldBeStored
 
 ## Security Considerations
 
-1. **Authorization**: Only admins can create/modify basket definitions
-2. **Validation**: Total weights must equal 100%
-3. **Audit Trail**: All basket operations are event-sourced
-4. **Rate Limiting**: Rebalancing operations are rate-limited
+1. Only platform operators (the `admin`, `super_admin` and `bank_admin` roles) can create, change or rebalance baskets.
+2. The weights of a basket must add up to 100%.
+3. Every basket operation is event-sourced, which gives an audit trail.
+4. Rebalancing through the API also needs the `write` ability. It has no separate rate limit.
 
 ## Performance Considerations
 
-1. **Caching**: Basket values cached for 5 minutes
-2. **Batch Processing**: Rebalancing done in batches
-3. **Async Calculation**: Value calculations done asynchronously
-4. **Indexing**: Proper indexes on frequently queried fields
+1. Basket values are cached for 5 minutes.
+2. Rebalancing runs in batches.
+3. Value calculations run asynchronously.
+4. Frequently queried fields are indexed.
 
 ## Testing Strategy
 
-1. **Unit Tests**: Services and calculations
-2. **Integration Tests**: API endpoints and workflows
-3. **Performance Tests**: Large basket calculations
-4. **Edge Cases**: Invalid weights, missing components
+Unit tests cover the services and calculations. Integration tests cover the API endpoints and workflows. Performance tests cover large basket calculations, and edge-case tests cover invalid weights and missing components.
 
 ## Performance Tracking (Implemented)
 
@@ -385,9 +388,10 @@ Performance tracking endpoints:
 
 ### Scheduled Tasks
 
-Performance calculations run automatically:
-- Hourly: Calculate hourly performance for all active baskets
-- Daily: Calculate daily performance summary at 00:30
+These scheduled tasks run while the Basket module is enabled:
+- `basket:calculate-performance` runs every hour for all active baskets.
+- A daily performance summary runs at 00:30.
+- `baskets:rebalance` rebalances the dynamic baskets, including the GCU demo basket, once a month.
 
 ### Console Commands
 
@@ -400,14 +404,18 @@ Performance calculations run automatically:
 
 ### Completed Features
 
-1. ✅ **Basket Asset Models**: Full implementation with relationships
-2. ✅ **Value Calculation Service**: Real-time basket valuation
-3. ✅ **Rebalancing Service**: Automated and manual rebalancing
-4. ✅ **API Layer**: Complete REST API with OpenAPI documentation
-5. ✅ **Admin Interface**: Filament resources with widgets
-6. ✅ **Event Sourcing**: Full audit trail for basket operations
-7. ✅ **Performance Tracking**: Comprehensive metrics and analytics
-8. ✅ **Testing**: Unit and integration tests with factories
+| Feature | Status |
+|---------|--------|
+| Basket asset models and relationships | Done |
+| Value calculation (`BasketValueCalculationService`) | Done |
+| Automatic and manual rebalancing (`BasketRebalancingService`) | Done |
+| REST API with OpenAPI documentation | Done |
+| Filament resources and widgets | Done |
+| Event sourcing for basket operations | Done |
+| Performance tracking (`BasketPerformanceService`) | Done |
+| Unit and integration tests with factories | Done |
+
+Version 7.18.0 fixed a lookup that never found GCU basket values.
 
 ### Database Schema Updates
 
@@ -417,13 +425,8 @@ Added performance tracking tables:
 
 ## Future Enhancements
 
-1. **Smart Rebalancing**: ML-based optimal rebalancing
-2. **Custom Strategies**: User-defined rebalancing strategies
-3. **Advanced Analytics**: Factor analysis and risk attribution
-4. **Basket NFTs**: Tokenized basket shares
-5. **Real-time Performance**: WebSocket-based live updates
-6. **Mobile SDK**: Native basket management for mobile apps
+Possible future work includes rebalancing driven by machine learning and user-defined rebalancing strategies. Other ideas are factor analysis, risk attribution, tokenized basket shares, live performance updates over WebSocket and basket management in the mobile SDKs.
 
 ---
 
-This design provides a comprehensive foundation for basket assets with full performance tracking, maintaining consistency with the existing FinAegis architecture.
+This design gives basket assets a complete base with performance tracking. It follows the same architecture as the rest of FinAegis.

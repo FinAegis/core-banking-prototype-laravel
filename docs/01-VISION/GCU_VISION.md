@@ -10,89 +10,97 @@
 
 ## What is GCU?
 
-The GCU demo is a reference implementation of a basket-referenced unit built with FinAegis. In this model:
+The GCU demo is a reference implementation of a basket-referenced unit built with FinAegis. It shows three ideas.
 
-- **Basket-Referenced**: An illustrative value is calculated from a weighted basket of currencies and gold
-- **Simulated Governance**: Demo accounts cast simulated basket "votes"
-- **Multi-Custodian Allocation (simulated)**: Illustrates how balances could be allocated across custodians; no funds are held at any bank
+- **Basket reference.** The demo calculates an illustrative value from a weighted basket of currencies and gold.
+- **Simulated governance.** Demo accounts cast simulated basket "votes".
+- **Simulated custodian allocation.** The demo shows how balances could be split across custodians. No funds are held at any bank.
+
+The `Basket` and `Governance` modules that run the demo are disabled on the production site.
 
 ## How It Would Work
 
-### In the Demo
+### Custodian allocation (illustrative)
 
-**Custodian Allocation (illustrative)**
-Choose how demo balances are allocated:
+A demo user chooses how demo balances are split, for example like this:
 - 40% Custodian A
 - 30% Custodian B
 - 30% Custodian C
 
-**Simulated Governance**
+### Simulated governance
+
 Demo basket polls are weighted by simulated demo GCU balances. Votes have no monetary effect.
 
-### Current Basket Composition (Demo)
+### Basket composition (demo)
 
-| Asset | Weight | Purpose |
-|-------|--------|---------|
-| USD | 35% | Global trade currency |
-| EUR | 30% | European stability |
-| GBP | 20% | Financial markets access |
-| CHF | 10% | Safe haven |
-| JPY | 3% | Asian market exposure |
-| Gold (XAU) | 2% | Inflation hedge |
+`GCUBasketSeeder` seeds the demo basket with these weights.
+
+| Asset | Weight |
+|-------|--------|
+| USD | 40% |
+| EUR | 30% |
+| GBP | 15% |
+| CHF | 10% |
+| JPY | 3% |
+| Gold (XAU) | 2% |
 
 ## Technical Implementation
 
-Built on the FinAegis platform:
+The demo uses these parts of the FinAegis platform:
 
-- **Event Sourcing**: Complete audit trail of all operations
-- **Multi-Asset Ledger**: Native support for currency baskets
-- **Democratic Governance**: Built-in voting and poll management
-- **Custodian Abstraction**: Ready for multi-bank integration
+- **Event sourcing** keeps an audit trail of every operation.
+- **The multi-asset ledger** holds the basket and its components.
+- **The governance module** runs the polls and the voting.
+- **The custodian abstraction** defines how bank connectors would plug in.
 
 ## Demo Features
 
-### What You Can Try
+### What you can try
 
 | Feature | Description |
 |---------|-------------|
-| Basket Management | View and understand basket composition |
-| Bank Allocation | See how multi-bank distribution works |
-| Voting System | Participate in demo governance polls |
-| Simulated Conversion | Convert demo balances between GCU and other demo assets |
-| Balance Tracking | See how the illustrative GCU value tracks the basket |
+| Basket management | View the basket composition. |
+| Bank allocation | See how a multi-bank split would look. |
+| Voting | Take part in demo governance polls. |
+| Simulated conversion | Convert demo balances between GCU and other demo assets. |
+| Balance tracking | See how the illustrative GCU value follows the basket. |
 
-### What's Simulated
+### What is simulated
 
-- Bank connections (mock implementations)
-- Real-time basket rebalancing
-- Actual fund movements
+- Bank connections use mock implementations.
+- Basket rebalancing is simulated.
+- No real funds move.
 
 ## Getting Started
 
-### Try the Demo
+### Try the demo
 
 ```bash
-# Clone and setup
+# Clone and set up
 git clone https://github.com/finaegis/core-banking-prototype-laravel.git
 cd core-banking-prototype-laravel
 composer install && npm install
 cp .env.demo .env
 php artisan key:generate
-php artisan migrate --seed
+php artisan migrate
+php artisan demo:populate
 npm run build
 
 # Start the server
 php artisan serve
 ```
 
-Visit `http://localhost:8000` and log in with `demo.investor@gcu.global` / `demo123`
+`php artisan migrate --seed` does not create the demo users. `php artisan demo:populate` runs the seeders and creates the demo accounts.
 
-### Explore the Code
+Visit `http://localhost:8000` and log in with `demo.investor@gcu.global` and the password `demo123`.
 
-Key GCU components:
-- `app/Domain/Governance/` - Voting system
-- `app/Domain/Asset/` - Multi-asset support
-- `app/Domain/Custodian/` - Bank integration abstraction
+### Explore the code
+
+These folders hold the GCU components:
+- `app/Domain/Basket/` holds the basket assets and their valuation.
+- `app/Domain/Governance/` holds the voting system.
+- `app/Domain/Asset/` holds multi-asset support.
+- `app/Domain/Custodian/` holds the bank integration abstraction.
 
 ## Resources
 

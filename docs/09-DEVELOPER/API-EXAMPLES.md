@@ -1,6 +1,8 @@
 # FinAegis API Integration Examples
 
-This document provides practical examples of integrating with the FinAegis API in various programming languages and frameworks. Replace `your-finaegis-host.example` with the base URL of the FinAegis deployment you operate.
+This document gives practical examples of calls to the FinAegis API in several languages and frameworks. Replace `your-finaegis-host.example` with the base URL of the FinAegis deployment you operate.
+
+Credentials go in the `Authorization: Bearer` header. The version 2 routes accept a Sanctum token or an API key that starts with `fak_`. The version 1 routes that some examples use (`/api/exchange/convert`, `/api/voting/...` and `/api/bank-allocations`) accept only a Sanctum token. Amounts in deposit, withdrawal and transfer requests are in major units, for example `100.00` dollars. Balances in responses are in minor units, for example cents.
 
 ## Table of Contents
 - [Quick Start](#quick-start)
@@ -128,12 +130,7 @@ async function createAndFundAccount(userEmail, initialDeposit) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        name: `${userEmail} GCU Wallet`,
-        type: 'savings',
-        metadata: {
-          user_email: userEmail,
-          created_via: 'api'
-        }
+        name: `${userEmail} GCU Wallet`
       })
     });
 
@@ -141,6 +138,8 @@ async function createAndFundAccount(userEmail, initialDeposit) {
     console.log('Account created:', account.data.uuid);
 
     // Step 2: Fund account with GCU
+    // Direct deposits work only where LEDGER_DIRECT_FUNDING_ENABLED is on
+    // (local, testing and demo environments by default).
     const depositResponse = await fetch(
       `https://your-finaegis-host.example/api/v2/accounts/${account.data.uuid}/deposit`,
       {
@@ -150,15 +149,15 @@ async function createAndFundAccount(userEmail, initialDeposit) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          amount: initialDeposit * 100, // Convert to cents
+          amount: initialDeposit, // Major units, for example 1000.00
           asset_code: 'GCU',
-          reference: 'Initial deposit'
+          description: 'Initial deposit'
         })
       }
     );
 
     const deposit = await depositResponse.json();
-    console.log('Deposit completed:', deposit.data.transaction_id);
+    console.log(deposit.message); // Deposit initiated successfully
 
     return account.data;
   } catch (error) {
@@ -174,6 +173,8 @@ const newAccount = await createAndFundAccount('user@example.com', 1000); // Ǥ1,
 ### Multi-Currency Account Operations (Python)
 ```python
 import asyncio
+from decimal import Decimal
+
 import aiohttp
 
 class MultiCurrencyAccount:
@@ -192,32 +193,34 @@ class MultiCurrencyAccount:
                 return data['data']['balances']
     
     async def convert_to_gcu(self, from_asset, amount):
+        # The conversion runs on the version 1 endpoint POST /api/exchange/convert.
+        # It works only where LEDGER_DIRECT_FUNDING_ENABLED is on.
+        v1_url = self.base_url.replace('/api/v2', '/api')
         async with aiohttp.ClientSession() as session:
-            # Get exchange rate
+            # Get a quote first. The quote endpoint takes minor units (cents for EUR).
+            amount_minor = int(Decimal(str(amount)) * 100)
             async with session.get(
-                f'{self.base_url}/exchange-rates/{from_asset}/GCU',
+                f'{self.base_url}/exchange-rates/{from_asset}/GCU/convert',
+                params={'amount': str(amount_minor)},
                 headers={'Authorization': f'Bearer {self.api_key}'}
             ) as response:
-                rate_data = await response.json()
-                rate = rate_data['data']['rate']
+                quote = await response.json()
             
-            # Perform conversion
-            gcu_amount = int(amount * rate * 100)  # Convert to cents
-            
-            # Execute conversion via transfer
+            # Execute the conversion (amount in major units)
             async with session.post(
-                f'{self.base_url}/accounts/{self.account_uuid}/convert',
+                f'{v1_url}/exchange/convert',
                 headers={
                     'Authorization': f'Bearer {self.api_key}',
                     'Content-Type': 'application/json'
                 },
                 json={
-                    'from_asset': from_asset,
-                    'to_asset': 'GCU',
-                    'amount': int(amount * 100)
+                    'account_uuid': self.account_uuid,
+                    'from_currency': from_asset,
+                    'to_currency': 'GCU',
+                    'amount': str(amount)
                 }
             ) as response:
-                return await response.json()
+                return quote, await response.json()
 
 # Usage
 async def main():
@@ -226,7 +229,7 @@ async def main():
     # Get all balances
     balances = await account.get_all_balances()
     for balance in balances:
-        print(f"{balance['asset_code']}: {balance['formatted_balance']}")
+        print(f"{balance['asset_code']}: {balance['formatted']}")
     
     # Convert EUR to GCU
     result = await account.convert_to_gcu('EUR', 500)
@@ -239,6 +242,8 @@ asyncio.run(main())
 
 > The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
 
+The GCU examples need the Basket and Governance modules. The production site switches both off through `MODULES_DISABLED`, so run these examples against a demo or local deployment.
+
 ### GCU demo basket vote (simulated) (React)
 ```jsx
 import React, { useState, useEffect } from 'react';
@@ -247,9 +252,9 @@ function GCUVotingComponent({ apiKey }) {
   const [activePolls, setActivePolls] = useState([]);
   const [votingPower, setVotingPower] = useState(0);
   const [allocations, setAllocations] = useState({
-    USD: 35,
+    USD: 40,
     EUR: 30,
-    GBP: 20,
+    GBP: 15,
     CHF: 10,
     JPY: 3,
     XAU: 2
@@ -259,8 +264,11 @@ function GCUVotingComponent({ apiKey }) {
     fetchActivePolls();
   }, []);
 
+  // GET /api/voting/polls returns each poll with the uuid that the vote endpoint needs
   const fetchActivePolls = async () => {
-    const response = await fetch('https://your-finaegis-host.example/api/v2/gcu/governance/active-polls');
+    const response = await fetch('https://your-finaegis-host.example/api/voting/polls', {
+      headers: { 'Authorization': `Bearer ${apiKey}` }
+    });
     const data = await response.json();
     setActivePolls(data.data);
   };
@@ -273,16 +281,14 @@ function GCUVotingComponent({ apiKey }) {
       return;
     }
 
-    const response = await fetch(`https://your-finaegis-host.example/api/v2/polls/${pollId}/vote`, {
+    // Basket votes go to the version 1 endpoint POST /api/voting/polls/{uuid}/vote
+    const response = await fetch(`https://your-finaegis-host.example/api/voting/polls/${pollId}/vote`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        option_id: 'basket_allocation',
-        metadata: { allocations }
-      })
+      body: JSON.stringify({ allocations })
     });
 
     if (response.ok) {
@@ -303,10 +309,10 @@ function GCUVotingComponent({ apiKey }) {
       <h2>GCU Basket Voting</h2>
       
       {activePolls.map(poll => (
-        <div key={poll.id} className="poll-card">
+        <div key={poll.uuid} className="poll-card">
           <h3>{poll.title}</h3>
           <p>{poll.description}</p>
-          <p>Time remaining: {poll.time_remaining.human_readable}</p>
+          <p>Voting ends: {new Date(poll.end_date).toLocaleString()}</p>
           
           <div className="allocation-inputs">
             {Object.entries(allocations).map(([asset, value]) => (
@@ -326,7 +332,7 @@ function GCUVotingComponent({ apiKey }) {
           
           <p>Total: {Object.values(allocations).reduce((sum, val) => sum + val, 0)}%</p>
           
-          <button onClick={() => submitVote(poll.id)}>
+          <button onClick={() => submitVote(poll.uuid)}>
             Submit Vote
           </button>
         </div>
@@ -436,153 +442,78 @@ export default {
 
 Integration adapters for third-party APIs; no partnership or endorsement implied. In the GCU demo, distributions are simulated.
 
+Bank allocation belongs to the Banking module and uses the version 1 API under `/api/bank-allocations`. The production site switches the Banking module off. A user keeps a list of banks with a percentage each. The preview endpoint shows how an amount would be split. It does not move money.
+
 ### Bank Allocation Management (TypeScript)
 ```typescript
 interface BankAllocation {
-  custodian_code: string;
+  bank_code: string;
+  bank_name: string;
   allocation_percentage: number;
+  is_primary: boolean;
+  status: string;
+}
+
+interface DistributionLine {
+  bank_code: string;
+  bank_name: string;
+  allocation_percentage: number;
+  amount: number; // major units
   is_primary: boolean;
 }
 
-interface DistributionResult {
-  bank: string;
-  amount: number;
-  status: 'success' | 'failed';
-  transaction_id?: string;
-  error?: string;
-}
-
-class BankDistributionService {
+class BankAllocationClient {
   constructor(
     private apiKey: string,
-    private baseUrl: string = 'https://your-finaegis-host.example/api/v2'
+    private baseUrl: string = 'https://your-finaegis-host.example/api'
   ) {}
 
-  async distributeDeposit(
-    accountUuid: string,
-    totalAmount: number,
-    assetCode: string = 'GCU'
-  ): Promise<DistributionResult[]> {
-    // Get user's bank preferences
-    const allocations = await this.getBankAllocations(accountUuid);
-    
-    // Calculate distribution
-    const distributions = this.calculateDistribution(totalAmount, allocations);
-    
-    // Execute parallel deposits
-    const results = await Promise.allSettled(
-      distributions.map(dist => this.depositToBank(accountUuid, dist))
-    );
-    
-    return results.map((result, index) => {
-      if (result.status === 'fulfilled') {
-        return {
-          bank: distributions[index].bank,
-          amount: distributions[index].amount,
-          status: 'success' as const,
-          transaction_id: result.value.transaction_id
-        };
-      } else {
-        return {
-          bank: distributions[index].bank,
-          amount: distributions[index].amount,
-          status: 'failed' as const,
-          error: result.reason.message
-        };
-      }
-    });
+  private headers() {
+    return {
+      'Authorization': `Bearer ${this.apiKey}`,
+      'Content-Type': 'application/json'
+    };
   }
 
-  private async getBankAllocations(accountUuid: string): Promise<BankAllocation[]> {
-    const response = await fetch(
-      `${this.baseUrl}/accounts/${accountUuid}/bank-preferences`,
-      {
-        headers: { 'Authorization': `Bearer ${this.apiKey}` }
-      }
-    );
-    
+  // GET /api/bank-allocations
+  async getAllocations(): Promise<BankAllocation[]> {
+    const response = await fetch(`${this.baseUrl}/bank-allocations`, {
+      headers: this.headers()
+    });
     const data = await response.json();
     return data.data.allocations;
   }
 
-  private calculateDistribution(
-    totalAmount: number,
-    allocations: BankAllocation[]
-  ): { bank: string; amount: number }[] {
-    let remaining = totalAmount;
-    const distributions: { bank: string; amount: number }[] = [];
-    
-    // Sort by allocation percentage descending to minimize rounding errors
-    const sorted = [...allocations].sort(
-      (a, b) => b.allocation_percentage - a.allocation_percentage
-    );
-    
-    sorted.forEach((allocation, index) => {
-      if (index === sorted.length - 1) {
-        // Last allocation gets the remaining amount
-        distributions.push({
-          bank: allocation.custodian_code,
-          amount: remaining
-        });
-      } else {
-        const amount = Math.floor(totalAmount * allocation.allocation_percentage / 100);
-        distributions.push({
-          bank: allocation.custodian_code,
-          amount
-        });
-        remaining -= amount;
-      }
+  // POST /api/bank-allocations/distribution-preview (amount in major units)
+  async previewDistribution(amount: number, assetCode: string = 'USD'): Promise<DistributionLine[]> {
+    const response = await fetch(`${this.baseUrl}/bank-allocations/distribution-preview`, {
+      method: 'POST',
+      headers: this.headers(),
+      body: JSON.stringify({ amount, asset_code: assetCode })
     });
-    
-    return distributions;
-  }
 
-  private async depositToBank(
-    accountUuid: string,
-    distribution: { bank: string; amount: number }
-  ): Promise<{ transaction_id: string }> {
-    const response = await fetch(
-      `${this.baseUrl}/custodians/${distribution.bank}/deposit`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          account_uuid: accountUuid,
-          amount: distribution.amount,
-          asset_code: 'GCU'
-        })
-      }
-    );
-    
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Deposit failed');
+      throw new Error(error.message || 'Preview failed');
     }
-    
+
     const data = await response.json();
-    return { transaction_id: data.data.transaction_id };
+    return data.data.distribution;
   }
 }
 
 // Usage
-const distributionService = new BankDistributionService(API_KEY);
+const allocationClient = new BankAllocationClient(API_KEY);
 
-// Distribute a simulated demo amount across configured bank adapters
-const results = await distributionService.distributeDeposit(
-  accountUuid,
-  1000000, // Ǥ10,000 in cents
-  'GCU'
-);
+const allocations = await allocationClient.getAllocations();
+const preview = await allocationClient.previewDistribution(10000.00, 'USD');
 
-console.log('Distribution results:', results);
+console.log('Distribution preview:', preview);
 // Example output:
 // [
-//   { bank: 'bank_a', amount: 400000, status: 'success', transaction_id: 'tx_123' },
-//   { bank: 'bank_b', amount: 300000, status: 'success', transaction_id: 'tx_124' },
-//   { bank: 'bank_c', amount: 300000, status: 'success', transaction_id: 'tx_125' }
+//   { bank_code: 'BANK_A', allocation_percentage: 40, amount: 4000, ... },
+//   { bank_code: 'BANK_B', allocation_percentage: 30, amount: 3000, ... },
+//   { bank_code: 'BANK_C', allocation_percentage: 30, amount: 3000, ... }
 // ]
 ```
 
@@ -639,25 +570,22 @@ async function processWebhookEvent(event) {
   console.log(`Processing ${event.event} event`);
   
   try {
+    // The payload is flat: the event fields sit next to `event` and `timestamp`
     switch (event.event) {
       case 'account.created':
-        await handleAccountCreated(event.data);
+        await handleAccountCreated(event);
         break;
         
-      case 'transaction.completed':
-        await handleTransactionCompleted(event.data);
+      case 'transaction.created':
+        await handleTransactionCreated(event);
         break;
         
       case 'transfer.completed':
-        await handleTransferCompleted(event.data);
+        await handleTransferCompleted(event);
         break;
         
-      case 'basket.rebalanced':
-        await handleBasketRebalanced(event.data);
-        break;
-        
-      case 'poll.completed':
-        await handlePollCompleted(event.data);
+      case 'balance.low':
+        await handleLowBalance(event);
         break;
         
       default:
@@ -669,27 +597,20 @@ async function processWebhookEvent(event) {
   }
 }
 
-async function handleTransactionCompleted(data) {
-  // Update user balance in your database
-  await db.updateUserBalance(
+async function handleTransactionCreated(data) {
+  // data: account_uuid, type ('deposit' or 'withdrawal'), amount (minor units),
+  // currency, balance_after, hash, event, timestamp
+  await db.recordAccountActivity(
     data.account_uuid,
-    data.asset_code,
+    data.type,
     data.amount,
-    data.type
+    data.balance_after
   );
   
-  // Send notification to user
-  await notificationService.send({
-    user_id: data.user_id,
-    type: 'transaction_completed',
-    message: `${data.type} of ${data.formatted_amount} ${data.asset_code} completed`
-  });
-  
   // Update analytics
-  await analytics.track('transaction_completed', {
+  await analytics.track('transaction_created', {
     account_uuid: data.account_uuid,
     amount: data.amount,
-    asset_code: data.asset_code,
     type: data.type
   });
 }
@@ -750,20 +671,20 @@ from celery import shared_task
 
 @shared_task
 def process_webhook_event(event):
+    # The payload is flat: the event fields sit next to 'event' and 'timestamp'
     event_type = event.get('event')
-    data = event.get('data', {})
     
     handlers = {
         'account.created': handle_account_created,
-        'transaction.completed': handle_transaction_completed,
+        'transaction.created': handle_transaction_created,
         'transfer.completed': handle_transfer_completed,
-        'basket.rebalanced': handle_basket_rebalanced,
+        'balance.low': handle_low_balance,
     }
     
     handler = handlers.get(event_type)
     if handler:
         try:
-            handler(data)
+            handler(event)
         except Exception as e:
             logger.error(f'Error handling {event_type}: {e}')
             raise  # Celery will retry
@@ -784,10 +705,12 @@ import (
     "time"
 )
 
+// Business errors return {"message": "...", "error": "INSUFFICIENT_FUNDS", ...}
 type APIError struct {
-    Code    string                 `json:"code"`
-    Message string                 `json:"message"`
-    Details map[string]interface{} `json:"details,omitempty"`
+    StatusCode     int    `json:"-"`
+    Code           string `json:"error"`
+    Message        string `json:"message"`
+    CurrentBalance int64  `json:"current_balance,omitempty"`
 }
 
 type RetryConfig struct {
@@ -841,14 +764,8 @@ func (c *Client) callWithRetry(
 }
 
 func (c *Client) isRetryable(err *APIError) bool {
-    retryableCodes := map[string]bool{
-        "RATE_LIMIT_EXCEEDED":   true,
-        "CUSTODIAN_UNAVAILABLE": true,
-        "TEMPORARY_ERROR":       true,
-        "TIMEOUT":              true,
-    }
-    
-    return retryableCodes[err.Code]
+    // Retry rate limits (429) and server errors (5xx) only
+    return err.StatusCode == 429 || err.StatusCode >= 500
 }
 
 func (c *Client) calculateBackoff(attempt int, config RetryConfig) time.Duration {
@@ -863,7 +780,8 @@ func (c *Client) calculateBackoff(attempt int, config RetryConfig) time.Duration
 }
 
 // Usage example
-func TransferWithRetry(client *Client, from, to string, amount int64) error {
+// amount is in major units, for example "100.00"
+func TransferWithRetry(client *Client, from, to string, amount string) error {
     ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
     defer cancel()
     
@@ -880,10 +798,10 @@ func TransferWithRetry(client *Client, from, to string, amount int64) error {
         if apiErr, ok := err.(*APIError); ok {
             switch apiErr.Code {
             case "INSUFFICIENT_FUNDS":
-                return fmt.Errorf("not enough balance: need %d, have %d",
+                return fmt.Errorf("not enough balance: need %s, have %d (minor units)",
                     amount,
-                    apiErr.Details["available_balance"])
-            case "ACCOUNT_FROZEN":
+                    apiErr.CurrentBalance)
+            case "SOURCE_ACCOUNT_FROZEN":
                 return fmt.Errorf("account %s is frozen", from)
             default:
                 return fmt.Errorf("transfer failed: %s", apiErr.Message)
@@ -895,6 +813,8 @@ func TransferWithRetry(client *Client, from, to string, amount int64) error {
     return nil
 }
 ```
+
+The version 2 transfer endpoint does not deduplicate requests. A retry after a server error can therefore create a second transfer. Check the account's transfers with `GET /api/v2/accounts/{uuid}/transfers` before you retry a transfer.
 
 ## Production Best Practices
 
@@ -1149,8 +1069,7 @@ describe('FinAegis API Integration Tests', () => {
     const account = await client.request('/accounts', {
       method: 'POST',
       body: JSON.stringify({
-        name: 'Test Account',
-        type: 'savings'
+        name: 'Test Account'
       })
     });
 

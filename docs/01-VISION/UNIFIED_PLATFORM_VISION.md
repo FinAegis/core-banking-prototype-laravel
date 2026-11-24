@@ -2,18 +2,20 @@
 
 ## Overview
 
-**FinAegis** is a comprehensive banking platform that demonstrates how a unified financial platform could be architected. The platform showcases:
+FinAegis is an open-source reference platform. It shows how several financial products can be built on one shared core. It is not a production bank. Zelta is the hosted non-custodial wallet product built on FinAegis, and it uses only part of the platform.
 
-**Core Concept Demonstration:**
-- **GCU demo** - a reference implementation of a basket-referenced unit built with FinAegis
+**Core concept demonstration**
+- **GCU demo.** A reference implementation of a basket-referenced unit built with FinAegis.
 
-**Additional Pattern Demonstrations:**
-- **FinAegis Exchange** - Example architecture for multi-currency and crypto trading  
-- **FinAegis Lending** - P2P lending platform patterns and workflows
-- **FinAegis Stablecoins** - Demonstration of stable token issuance concepts
-- **FinAegis Treasury** - Multi-bank allocation pattern examples
+**Additional pattern demonstrations**
+- **FinAegis Exchange.** An example architecture for multi-currency and crypto trading.
+- **FinAegis Lending.** Patterns and workflows for peer-to-peer lending.
+- **FinAegis Stablecoins.** A demonstration of stable token issuance concepts.
+- **FinAegis Treasury.** Examples of multi-bank allocation patterns.
 
-All demonstrations use the same core platform infrastructure, showcasing code reuse patterns and integrated architecture design.
+All demonstrations use the same core platform, so they show how code can be reused across products.
+
+These modules run in demo mode. The production site disables the Banking, Basket, Governance, Lending, Stablecoin and Treasury modules through `MODULES_DISABLED`, and it turns off the exchange through `TRADING_ENABLED=false`.
 
 > The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis.
 > It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or
@@ -37,7 +39,7 @@ All demonstrations use the same core platform infrastructure, showcasing code re
 - **Lending Use**: Asset conversions for loan disbursement and collection
 - **Stablecoins Use**: Reserve asset management and stability mechanisms
 - **Treasury Use**: Currency conversions for optimal allocation
-- **Shared**: Order matching, liquidity management, real-time rate feeds
+- **Shared**: Order matching, liquidity pools, real-time rate feeds
 
 ### 3. Stablecoin Infrastructure
 - **GCU Use**: GCU demo units valued against the basket (simulated)
@@ -75,10 +77,9 @@ All demonstrations use the same core platform infrastructure, showcasing code re
 
 ### GCU-Specific
 - Currency basket management algorithms
-- Multi-bank allocation interface (40/30/30 split)
-- Democratic currency composition voting UI
-- Automated basket rebalancing workflows
-- Bank relationship management
+- Simulated multi-custodian allocation page (for example a 40/30/30 split)
+- Simulated basket composition voting page
+- Basket rebalancing workflows
 
 ### FinAegis Exchange-Specific
 - Crypto wallet infrastructure (hot/cold storage)
@@ -86,14 +87,14 @@ All demonstrations use the same core platform infrastructure, showcasing code re
 - Multi-asset order book and matching engine
 - Crypto-fiat bridge services
 - Advanced trading interface and tools
-- Market making and liquidity provision
+- Market making and liquidity pools (adding and removing liquidity was removed in v7.18.0)
 
 ### FinAegis Lending-Specific
 - P2P lending marketplace and matching
 - Credit scoring and risk assessment
 - Loan origination and approval workflows
 - Automated loan servicing and collection
-- Borrower and investor dashboards
+- Borrower and lender dashboards
 - Default management and recovery
 
 ### FinAegis Stablecoins-Specific
@@ -134,132 +135,93 @@ All demonstrations use the same core platform infrastructure, showcasing code re
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Development Strategy
+## Development History
 
-### Phase 1-6: ✅ COMPLETED
-- Core platform architecture demonstration
-- GCU concept implementation
-- Basic exchange capability patterns
+### Phases 1 to 6 (completed)
+These phases built the core platform architecture, the GCU concept and the first exchange patterns.
 
-### Phase 7: Platform Pattern Unification ✅ COMPLETED
-1. **Platform Settings Management**
-   - Configurable sub-products and features
-   - Dynamic feature toggles
-   - License-based enablement
+### Phase 7: platform pattern unification (completed)
+1. **Platform settings management.** Sub-products and features can be configured and switched on or off.
+2. **Sub-product framework.** Products are independent modules that share core services.
+3. **Asset extension.** The ledger supports fiat, crypto and commodity assets, and every product can use them.
 
-2. **Sub-Product Framework**
-   - Modular architecture for independent products
-   - Shared core services
-   - Unified user experience
-
-3. **Asset Extension**
-   - Multi-asset type support (fiat, crypto, commodities)
-   - Flexible asset configuration
-   - Cross-product asset availability
-
-### Phase 8: Additional Pattern Demonstrations (Future)
-1. **FinAegis Exchange**
-   - Multi-currency trading engine
-   - Crypto wallet infrastructure
-   - Order book and matching system
-
-2. **FinAegis Stablecoins**
-   - EUR-pegged stablecoin module (demo)
-   - Reserve management system
-
-3. **FinAegis Treasury**
-   - Multi-bank allocation algorithms
-   - FX optimization tools
-   - Corporate treasury features
-
-4. **FinAegis Lending** (Demo Available)
-   - P2P lending marketplace
-   - Credit scoring integration
-   - Automated loan servicing
+### Phase 8: additional pattern demonstrations (completed as demo modules)
+1. **FinAegis Exchange.** A multi-currency trading engine with an order book and matching. It runs only when `TRADING_ENABLED` is on.
+2. **FinAegis Stablecoins.** A demo module for an EUR-pegged stablecoin with reserve management.
+3. **FinAegis Treasury.** Multi-bank allocation, FX optimisation and corporate treasury features.
+4. **FinAegis Lending.** A demo peer-to-peer lending marketplace with credit scoring and loan servicing.
 
 ## Educational Benefits of Unified Architecture
 
-### Technical Learning Opportunities
-- **Code Reuse Patterns**: Demonstrates 70% shared codebase approach
-- **Maintenance Architecture**: Shows single platform patterns
-- **Testing Infrastructure**: Examples of shared test patterns
-- **Deployment Patterns**: Unified deployment architecture
+### Technical learning
+- **Code reuse.** The products share one codebase and one set of core services.
+- **Maintenance.** One platform is maintained instead of several.
+- **Testing.** The products share test patterns and test infrastructure.
+- **Deployment.** One deployment serves every product.
 
-### Business Architecture Demonstrations
-- **Service Integration**: Shows how products could be integrated
-- **Shared Resources**: Demonstrates liquidity pool patterns
-- **Compliance Patterns**: Unified regulatory framework examples
-- **Operational Patterns**: Monitoring and support architecture
+### Business architecture
+- **Service integration.** The demo shows how products could work together.
+- **Shared resources.** The exchange demo shows liquidity pool patterns.
+- **Compliance patterns.** The compliance modules share one framework. They are readiness tooling, and no certification or licence is held.
+- **Operations.** Monitoring and support use the same architecture for every product.
 
-### User Experience Patterns
-- **Account Unification**: Demonstrates single account concept
-- **Service Interoperability**: Shows seamless integration patterns
-- **Wallet Architecture**: Unified asset management example
-- **UX Consistency**: Interface pattern demonstrations
+### User experience
+- **One account.** A person uses one account for every product.
+- **Interoperability.** The products can pass funds and data to each other.
+- **Wallet architecture.** One wallet shows every asset.
+- **Consistent interface.** The products follow the same interface patterns.
 
 ## Configuration Pattern Demonstration
 
-Example of how to support multiple services in one codebase:
+`config/sub_products.php` shows how several products can be switched on and off in one codebase. This is a shortened excerpt.
 
 ```php
 // config/sub_products.php
 return [
     'exchange' => [
-        'enabled' => true,
+        'enabled'  => env('SUB_PRODUCT_EXCHANGE_ENABLED', true),
         'features' => [
-            'fiat_trading' => true,
-            'crypto_trading' => true,
-            'advanced_orders' => true,
+            'crypto_trading'  => env('EXCHANGE_CRYPTO_ENABLED', false),
+            'fiat_pairs'      => env('EXCHANGE_FIAT_ENABLED', true),
+            'advanced_orders' => env('EXCHANGE_ADVANCED_ORDERS_ENABLED', true),
         ],
         'licenses' => ['vasp', 'mica'],
-        'metadata' => ['demo_mode' => true],
     ],
     'lending' => [
-        'enabled' => false, // Demo only
+        'enabled'  => env('SUB_PRODUCT_LENDING_ENABLED', false),
         'features' => [
-            'sme_loans' => true,
-            'invoice_financing' => true,
-            'p2p_marketplace' => true,
+            'sme_loans'         => env('LENDING_SME_ENABLED', true),
+            'invoice_financing' => env('LENDING_INVOICE_ENABLED', true),
         ],
-        'licenses' => ['lending_license'],
-        'metadata' => ['demo_mode' => true],
+        'licenses' => ['lending_license', 'credit_intermediary'],
     ],
     'stablecoins' => [
-        'enabled' => true,
+        'enabled'  => env('SUB_PRODUCT_STABLECOINS_ENABLED', true),
         'features' => [
-            'eur_stablecoin' => true,
-            'basket_stablecoin' => true,
-            'asset_backed_tokens' => true,
+            'eur_stablecoin'    => env('STABLECOIN_EUR_ENABLED', true),
+            'basket_stablecoin' => env('STABLECOIN_BASKET_ENABLED', false),
         ],
-        'licenses' => ['emi_license', 'mica'],
-        'metadata' => ['demo_mode' => true],
+        'licenses' => ['emi_license', 'e_money_issuer'],
     ],
     'treasury' => [
-        'enabled' => true,
+        'enabled'  => env('SUB_PRODUCT_TREASURY_ENABLED', true),
         'features' => [
-            'multi_bank_allocation' => true,
-            'fx_optimization' => true,
-            'cash_flow_forecasting' => true,
+            'multi_bank'      => env('TREASURY_MULTI_BANK_ENABLED', true),
+            'fx_optimization' => env('TREASURY_FX_OPTIMIZATION_ENABLED', true),
         ],
-        'licenses' => ['payment_services'],
-        'metadata' => ['demo_mode' => true],
+        'licenses' => ['payment_services', 'investment_services'],
     ],
 ];
 ```
 
-## Development Pattern Examples
-
-1. **Current Platform**: Core platform with GCU demonstration
-2. **Completed Patterns**: Platform settings and framework examples
-3. **Additional Examples**: Exchange and stablecoin patterns
-4. **Future Demonstrations**: Treasury and lending patterns
+The `licenses` key is a label that the admin panel shows. It names the licences an operator would need before offering that product. FinAegis holds none of them.
 
 ## Educational Value
 
-This platform demonstrates important architectural patterns:
-- **Infrastructure Sharing**: Shows 70% code reuse patterns
-- **Component Leverage**: Demonstrates rapid development approaches
-- **Service Integration**: Examples of seamless service design
-- **Comprehensive Architecture**: Full-stack financial service patterns
+This platform shows several architecture patterns.
+- **Infrastructure sharing.** Products reuse the same core services.
+- **Component reuse.** New products are built from existing components.
+- **Service integration.** Products are designed to work together.
+- **Full-stack architecture.** The patterns cover the database, the domain logic, the APIs and the user interface.
 
-The unified platform serves as an educational resource for understanding how modern financial services could be architected, showing patterns for everything from traditional banking concepts to crypto and lending services within a single, integrated design.
+The unified platform is a learning resource. It shows how financial services could be built on one integrated design, from traditional banking concepts to crypto and lending.

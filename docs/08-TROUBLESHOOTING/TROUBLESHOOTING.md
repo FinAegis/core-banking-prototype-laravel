@@ -1,9 +1,9 @@
 # FinAegis Troubleshooting Guide
 
-**Last Updated:** 2024-09-07  
-**Version:** 1.0
+**Last Updated:** 2026-11-24  
+**Platform version:** v7.18.1
 
-This guide helps resolve common issues encountered when developing or running the FinAegis platform.
+This guide helps you fix common problems when you develop or run FinAegis. The stack is PHP 8.4, Laravel 12, MySQL 8 or MariaDB, and Redis.
 
 ## Table of Contents
 
@@ -21,12 +21,12 @@ This guide helps resolve common issues encountered when developing or running th
 
 ### Composer Install Fails
 
-**Problem**: Dependencies won't install
+If Composer cannot install the dependencies, you see this error:
 ```bash
 Your requirements could not be resolved to an installable set of packages
 ```
 
-**Solution**:
+Try these steps:
 ```bash
 # Clear composer cache
 composer clear-cache
@@ -36,35 +36,29 @@ composer self-update
 
 # Install with verbose output
 composer install -vvv
-
-# If PHP version mismatch
-composer install --ignore-platform-reqs
 ```
+
+The project requires PHP 8.4. If the error is a PHP version mismatch, install PHP 8.4 rather than skipping the platform checks with `--ignore-platform-reqs`.
 
 ### NPM Install Issues
 
-**Problem**: Node modules fail to install
-
-**Solution**:
+If the Node modules fail to install, clear the cache and reinstall from the lock file:
 ```bash
 # Clear npm cache
 npm cache clean --force
 
 # Delete existing modules
-rm -rf node_modules package-lock.json
+rm -rf node_modules
 
-# Reinstall
-npm install
-
-# Or use yarn
-yarn install
+# Reinstall exactly what package-lock.json lists
+npm ci
 ```
+
+Keep `package-lock.json`. The deploy runs `npm ci`, which needs it.
 
 ### Permission Errors
 
-**Problem**: Laravel can't write to storage/logs
-
-**Solution**:
+If Laravel cannot write to `storage/logs`, fix the permissions:
 ```bash
 # Fix permissions
 sudo chmod -R 775 storage bootstrap/cache
@@ -78,11 +72,9 @@ sudo chown -R $USER:www-data storage bootstrap/cache
 
 ### Migration Failures
 
-**Problem**: Migrations fail with foreign key constraints
-
-**Solution**:
+If migrations fail on foreign key constraints in a local database, rebuild it. This deletes all data:
 ```bash
-# Disable foreign key checks
+# Drop all tables and migrate again
 php artisan migrate:fresh --seed
 
 # Or manually in MySQL
@@ -93,9 +85,7 @@ SET FOREIGN_KEY_CHECKS=1;
 
 ### Connection Refused
 
-**Problem**: SQLSTATE[HY000] [2002] Connection refused
-
-**Solution**:
+If you see `SQLSTATE[HY000] [2002] Connection refused`, the database server is not reachable. Check that it runs and that `.env` points to it:
 ```bash
 # Check MySQL is running
 sudo systemctl status mysql
@@ -110,24 +100,19 @@ DB_PORT=3306
 
 ### Event Store Issues
 
-**Problem**: Event store table not found
-
-**Solution**:
+If the event store table is missing, run the migrations. The `stored_events` and `snapshots` tables and the domain-specific event tables come from the project's own migrations in `database/migrations/`:
 ```bash
-# Run event sourcing migrations
-php artisan event-sourcing:migrate
+php artisan migrate
 
-# Or create manually
-php artisan migrate --path=vendor/spatie/laravel-event-sourcing/database/migrations
+# On a multi-database tenancy setup, also migrate the tenant databases
+php artisan tenants:migrate
 ```
 
 ## Redis & Caching
 
 ### Redis Connection Failed
 
-**Problem**: Connection to Redis failed
-
-**Solution**:
+If the connection to Redis fails, check that Redis runs and that `.env` points to it:
 ```bash
 # Check Redis is running
 redis-cli ping
@@ -142,9 +127,7 @@ REDIS_PORT=6379
 
 ### Cache Not Updating
 
-**Problem**: Changes not reflected despite cache clear
-
-**Solution**:
+If your changes do not show up after a cache clear, clear every cache and restart the workers:
 ```bash
 # Clear all caches
 php artisan cache:clear
@@ -152,7 +135,7 @@ php artisan config:clear
 php artisan route:clear
 php artisan view:clear
 
-# Flush Redis entirely
+# Flush Redis entirely (local only; this deletes all Redis data)
 redis-cli FLUSHALL
 
 # Restart queue workers
@@ -163,24 +146,18 @@ php artisan queue:restart
 
 ### Tests Timeout
 
-**Problem**: Tests hang or timeout
+If tests hang or run very long, find the slow ones first. Many tests need Redis, so check that Redis runs.
+```bash
+# Show the slowest tests
+./vendor/bin/pest --profile
 
-**Solution**:
-```php
-// Increase timeout in specific tests
-it('handles large dataset', function () {
-    // test code
-})->timeout(30); // 30 seconds
-
-// Or globally in phpunit.xml
-<phpunit executionTimeLimit="300">
+# Stop at the first failure
+./vendor/bin/pest --parallel --stop-on-failure
 ```
 
 ### Database Not Found
 
-**Problem**: Database 'testing' doesn't exist
-
-**Solution**:
+Most test configurations (`phpunit.xml`, `phpunit.ci.xml` and others) use SQLite in memory and need no database server. `phpunit.unit.xml` and the multi-connection tests in `tests/MultiConnection/` use a real MySQL database named `testing`. If that database does not exist, create it:
 ```bash
 # Create test database
 mysql -u root -p -e "CREATE DATABASE testing;"
@@ -191,28 +168,27 @@ php artisan migrate --env=testing
 
 ### Parallel Test Conflicts
 
-**Problem**: Tests fail in parallel but pass individually
-
-**Solution**:
+If tests fail in parallel but pass on their own, they usually share state. Give each test unique data, and use the array cache instead of a shared Redis cache:
 ```php
 // Use unique identifiers
 beforeEach(function () {
     $this->testId = Str::uuid();
+    config(['cache.default' => 'array']);
 });
-
-// Or disable parallel for specific tests
-it('requires isolation', function () {
-    // test code
-})->sequential();
 ```
+
+To check a single test without parallel workers, run it with a filter:
+```bash
+./vendor/bin/pest --filter="requires isolation"
+```
+
+See [PARALLEL-TESTING.md](../06-DEVELOPMENT/PARALLEL-TESTING.md) for more.
 
 ## API Errors
 
 ### 401 Unauthorized
 
-**Problem**: API returns 401 even with token
-
-**Solution**:
+If the API returns 401 even though you send a token, check the header and the token:
 ```php
 // Check token format
 Authorization: Bearer YOUR_TOKEN_HERE
@@ -226,75 +202,52 @@ $token = $user->createToken('api')->plainTextToken;
 
 ### 419 CSRF Token Mismatch
 
-**Problem**: POST requests fail with 419
-
-**Solution**:
+If web POST requests fail with 419, the request has no valid CSRF token. Include it in the request:
 ```javascript
 // Include CSRF token in requests
 axios.defaults.headers.common['X-CSRF-TOKEN'] = 
     document.querySelector('meta[name="csrf-token"]').content;
-
-// Or exclude API routes from CSRF
-// In VerifyCsrfToken.php
-protected $except = [
-    'api/*'
-];
 ```
+
+API routes under `/api` do not use the web session, so they need a bearer token rather than a CSRF token. The project's exclusions for web routes such as webhooks are in `app/Http/Middleware/VerifyCsrfToken.php`.
 
 ### 429 Too Many Requests
 
-**Problem**: Rate limiting triggered
+If you get 429, a rate limit was hit. The API does not use one global throttle. It uses the project's own middleware (`api.rate_limit` and `transaction.rate_limit`), configured in `config/rate_limiting.php`:
+```env
+# Turn rate limiting off locally
+RATE_LIMITING_ENABLED=false
 
-**Solution**:
-```php
-// Increase rate limit in RouteServiceProvider
-RateLimiter::for('api', function (Request $request) {
-    return Limit::perMinute(100)->by($request->user()?->id ?: $request->ip());
-});
-
-// Or disable for testing
-if (app()->environment('testing')) {
-    RateLimiter::for('api', fn() => Limit::none());
-}
+# Or raise a single limit, for example for auth endpoints
+RATE_LIMIT_AUTH=10
 ```
+
+Some features have their own named limiters, for example `sms-send` and `mcp.aggregate`. Look for `RateLimiter::for(` in `app/Providers/` to find them.
 
 ## Frontend Issues
 
 ### Vite Build Errors
 
-**Problem**: npm run build fails
-
-**Solution**:
+If `npm run build` fails, clear the Vite cache and build again. The build output names the file with the error.
 ```bash
 # Clear Vite cache
 rm -rf node_modules/.vite
 
 # Rebuild
 npm run build
-
-# Check for syntax errors
-npm run lint
 ```
 
-### Components Not Found
+### Scripts Not Loading
 
-**Problem**: Vue components not loading
-
-**Solution**:
-```javascript
-// Register globally in app.js
-import AccountBalance from './Components/AccountBalance.vue';
-app.component('AccountBalance', AccountBalance);
-
-// Or check import path
-import AccountBalance from '@/Components/AccountBalance.vue';
+The web front end uses Blade views with Livewire, and Vite builds the scripts and styles. Vue is not installed, so the `.vue` files in `resources/js/components/` and `resources/js/Pages/` are not built. If a script does not load, check that its file is listed in the `input` array in `vite.config.js` and that the page includes it with `@vite`:
+```php
+// In the Blade layout
+@vite(['resources/css/app.css', 'resources/js/app.js'])
 ```
 
 ### Hot Reload Not Working
 
-**Problem**: Changes not reflected in browser
-
-**Solution**:
+If changes do not appear in the browser, restart Vite and check the HMR settings:
 ```bash
 # Restart Vite
 npm run dev
@@ -312,9 +265,7 @@ server: {
 
 ### Slow Queries
 
-**Problem**: Pages loading slowly
-
-**Solution**:
+If pages load slowly, look at the queries:
 ```php
 // Enable query logging
 DB::enableQueryLog();
@@ -332,9 +283,7 @@ $accounts = Account::with('balances', 'user')->get();
 
 ### Memory Exhausted
 
-**Problem**: Allowed memory size exhausted
-
-**Solution**:
+If PHP reports "Allowed memory size exhausted", raise the limit or process the data in chunks:
 ```php
 // Increase memory limit
 ini_set('memory_limit', '512M');
@@ -352,46 +301,37 @@ Account::lazy()->each(function ($account) {
 
 ### Queue Processing Slow
 
-**Problem**: Jobs taking too long
-
-**Solution**:
+If jobs take too long, check that a worker serves every queue. Horizon manages the workers in production:
 ```bash
-# Increase workers
-php artisan queue:work --queue=high,default,low --tries=3
-
-# Use Horizon for better management
+# Start Horizon
 php artisan horizon
 
-# Monitor queue size
-php artisan queue:size
+# Check Horizon and its supervisors
+php artisan horizon:status
+php artisan horizon:supervisors
+
+# Warn when a queue grows too large
+php artisan queue:monitor redis:default --max=100
 ```
 
 ## Event Sourcing Issues
 
 ### Events Not Projecting
 
-**Problem**: Projections not updating
-
-**Solution**:
+If projections do not update, replay the projector. Projectors and reactors in `app/Domain/*/Projectors` and `app/Domain/*/Reactors` are registered automatically through `auto_discover_projectors_and_reactors` in `config/event-sourcing.php`.
 ```bash
+# List the registered projectors and reactors
+php artisan event-sourcing:list
+
 # Replay projector
-php artisan event-sourcing:replay AccountProjector
-
-# Check projector is registered
-// config/event-sourcing.php
-'projectors' => [
-    AccountProjector::class,
-],
-
-# Run manually
-app(AccountProjector::class)->onMoneyAdded($event);
+php artisan event-sourcing:replay "App\Domain\Account\Projectors\AccountProjector"
 ```
+
+Make sure the queue workers are running, because many projectors are queued.
 
 ### Snapshot Issues
 
-**Problem**: Aggregates loading slowly
-
-**Solution**:
+If aggregates load slowly, create snapshots:
 ```bash
 # Create snapshots
 php artisan snapshot:create
@@ -406,15 +346,12 @@ public function getSnapshotVersion(): int
 
 ### Event Version Conflicts
 
-**Problem**: Event class not found after changes
-
-**Solution**:
+If an event class is not found after a change, check the event class map. `config/event-sourcing.php` sets `enforce_event_class_map` to true, so every stored event needs an alias in `event_class_map`:
 ```php
-// Use event aliases
 // config/event-sourcing.php
-'event_aliases' => [
-    'money_added_v1' => MoneyAddedV1::class,
-    'money_added_v2' => MoneyAddedV2::class,
+'event_class_map' => [
+    'account_created' => App\Domain\Account\Events\AccountCreated::class,
+    // keep the old alias when you rename or move an event class
 ],
 ```
 
@@ -422,9 +359,7 @@ public function getSnapshotVersion(): int
 
 ### Storage Not Writable
 
-**Problem**: The stream or file could not be opened
-
-**Solution**:
+If Laravel reports "The stream or file could not be opened", fix the storage permissions:
 ```bash
 # Production permissions
 sudo chown -R www-data:www-data storage bootstrap/cache
@@ -436,9 +371,7 @@ php artisan storage:link
 
 ### Environment Issues
 
-**Problem**: .env not loading in production
-
-**Solution**:
+If `.env` changes are not picked up in production, the configuration is cached. Rebuild the caches. Then run `php artisan ops:verify-env` to check the production settings before a deploy.
 ```bash
 # Cache configuration
 php artisan config:cache
@@ -451,9 +384,7 @@ php artisan config:clear
 
 ### SSL/HTTPS Issues
 
-**Problem**: Mixed content warnings
-
-**Solution**:
+If the browser shows mixed content warnings, force HTTPS and set the URL:
 ```php
 // Force HTTPS in AppServiceProvider
 if (app()->environment('production')) {
@@ -469,7 +400,7 @@ APP_URL=https://your-domain.com
 ### Reset Everything
 
 ```bash
-# Nuclear option - reset all
+# Reset a local database and all caches (deletes all data)
 php artisan migrate:fresh --seed
 php artisan cache:clear
 php artisan config:clear
@@ -492,7 +423,7 @@ tail -f storage/logs/laravel.log
 # Use tinker for debugging
 php artisan tinker
 >>> User::first()
->>> app(AccountService::class)->createAccount(...)
+>>> app(AccountService::class)->create(...)
 ```
 
 ### Common Commands
@@ -516,12 +447,9 @@ php artisan optimize
 
 ## Getting Help
 
-1. **Check Logs**: `storage/logs/laravel.log`
-2. **Enable Debug**: Set `APP_DEBUG=true`
-3. **Search Issues**: github.com/FinAegis/core-banking-prototype-laravel/issues
-4. **Community**: discord.gg/finaegis
-5. **Documentation**: docs.finaegis.com
+1. Read the log in `storage/logs/laravel.log`.
+2. Set `APP_DEBUG=true` in a local environment to see full errors.
+3. Search the GitHub issues at github.com/FinAegis/core-banking-prototype-laravel/issues.
+4. Read the rest of the documentation in the `docs/` directory.
 
----
-
-**Remember**: Most issues have simple solutions. Check logs, clear caches, and verify configurations first!
+Most problems have simple causes. Check the logs, clear the caches and check the configuration first.

@@ -27,8 +27,8 @@ php artisan user:admins              # List all admin users
 # Reviewer / demo accounts (operator-only; requires admin role)
 php artisan account:provision-reviewer --email=appreview@... --operator-email=admin@...
 php artisan account:list-reviewers
-php artisan account:disable-reviewer --email=X          # or --all-expired
-php artisan account:purge-reviewer --email=X --confirm  # anonymizes email + disables
+php artisan account:disable-reviewer --email=X --operator-email=admin@...   # or --all-expired (no operator needed)
+php artisan account:purge-reviewer --email=X --operator-email=admin@... --confirm  # anonymizes email + disables
 
 # Bridge.xyz ramp ops
 php artisan bridge:inspect-user user@example.com         # print bridge_customer + va + ramp sessions
@@ -46,14 +46,14 @@ php artisan ops:verify-env --json    # exit 1 = blocked; FAILs only block in pro
 - **61 domains** in `app/Domain/` (DDD bounded contexts)
 - **Payment Protocols**: x402 (Coinbase), MPP (Stripe/Tempo), AP2 (Google)
 - **HyperSwitch** (`app/Domain/Payment/Services/HyperSwitch/`): EXPERIMENTAL but WIRED (PR #1118) — opt-in via `HYPERSWITCH_ENABLED` (off by default; Stripe is the default deposit rail). `DepositController` routes card deposits through `HyperSwitchPaymentService::startDeposit`; the webhook credits via `AccountCreditService` (amount from the stored intent, idempotent via `processed_webhook_events`, deadlock-safe — tenant-connection credit kept out of the default-connection claim txn). Intent status flows pending→processing→completed|`completion_failed` (the latter for operator reconciliation — failures are never disguised as completed). Routing-intelligence/analytics are NOT exposed yet. Webhook credit FK pitfall: `account_balances.asset_code`→`assets.code`, so MultiConnection tests must seed the asset
-- **Packages**: `packages/zelta-sdk/` (Payment SDK), `packages/zelta-cli/` (CLI binary)
+- **Packages**: `packages/zelta-sdk/` (Payment SDK), `packages/zelta-cli/` (CLI binary), `packages/finaegis-mcp-stdio/` (MCP stdio wrapper)
 - **Event Sourcing**: Spatie v7.7+ with domain-specific tables
 - **CQRS**: Command/Query Bus in `app/Infrastructure/`
-- **GraphQL**: Lighthouse PHP, 45 domain schemas
+- **GraphQL**: Lighthouse PHP, 45 `#import`s in `graphql/schema.graphql` (43 domain schemas + `directives` + `subscriptions`)
 - **Multi-Tenancy**: Team-based isolation (`UsesTenantConnection` trait)
 - **Event Streaming**: Redis Streams publisher/consumer with DLQ + backpressure
 - **Post-Quantum Crypto**: ML-KEM-768, ML-DSA-65, hybrid encryption
-- **Stack**: PHP 8.4 / Laravel 12 / MySQL 8 / Redis / Pest / PHPStan Level 8
+- **Stack**: PHP 8.4 / Laravel 12 / MySQL 8 + MariaDB 11.4 (CI) / Redis / Pest / PHPStan Level 8 (phpstan 2.3.7, larastan 3.15)
 
 ## Code Conventions
 
@@ -86,7 +86,7 @@ namespace App\Domain\Exchange\Services;
 | Financial arithmetic | Always use `bcmath` (`bcadd`, `bcsub`, `bcmul`, `bcdiv`) — NEVER `(float)` for money. Normalize with `bcadd($val, '0', 4)` |
 | DB transactions | Wrap multi-table financial writes in `DB::transaction()` — use `lockForUpdate()` for balance checks |
 | XML parsing | Always pass `LIBXML_NONET` to `SimpleXMLElement` when parsing external input (XXE prevention) |
-| PHPCS version | CI uses PHPCS v4.0.1 — run `./vendor/bin/phpcs` locally to match before pushing |
+| PHPCS version | CI runs `vendor/bin/phpcs` from `composer.lock` (v4.0.4) — run `./vendor/bin/phpcs` locally to match before pushing |
 | PHPStan `numeric-string` | bcmath requires `numeric-string` type — use `bcadd($val, '0', 4)` to normalize, not `(float)` cast |
 | `assert()` as auth guard | Use `if (!$user instanceof User) return 401` — `assert()` compiled out with `zend.assertions=-1` |
 | MariaDB UUID columns | Must be RFC 4122 (version=4 nibble, variant=10xx bits) — raw hashes rejected |
@@ -164,7 +164,7 @@ Non-custodial flow. Privy holds the keys (passkey-controlled smart accounts on E
 - Solana fee-payer sponsorship: a non-custodial wallet holds SPL tokens but no SOL, so it cannot pay its own tx fee. When `WALLET_SOLANA_SPONSOR_SECRET_KEY` is set (base58 64-byte ed25519 secret) the sponsor account becomes the fee payer (account index 0) and `SolanaSendSubmitter` co-signs server-side; the device still signs the same opaque message bytes (mobile contract unchanged). Two-signer message — signatures ordered `[sponsor, sender]`. Unset = legacy single-signer (sender pays, fails for a 0-SOL wallet). `solana:check-sponsor-balance` runs hourly and alerts (CRITICAL + non-zero exit) when the sponsor SOL balance drops below `WALLET_SOLANA_SPONSOR_LOW_BALANCE_LAMPORTS`
 - Confirmation: `HeliusTransactionProcessor` for Solana (existing webhook), `PollEvmWalletSendConfirmations` for EVM (cron, every minute)
 - Operator commands: `php artisan privy:verify-jwt <token>`, `php artisan wallet:inspect-user <email>`
-- Spec: `docs/superpowers/specs/2026-05-05-wallet-privy-noncustodial-design.md` (if present); see PR #1017
+- Spec: not in the repo; see PR #1017
 
 | Pitfall | Fix |
 |---|---|
@@ -190,7 +190,7 @@ Virtual consumer cards. Lepo Finance is the first provider (issuer Interlace, id
 |---|---|
 | Retrying a Lepo money call | `crypto-to-quantum-transfer` and `cards/topup` have no idempotency key. Record the step before the call, never retry it, and send any unclear result to `needs_attention` for an operator |
 | SumSub web SDK fed the `sumsub/kyc-url` accessToken | That accessToken is a link to Lepo's own hosted page, not an SDK token (Lepo, 2026-11-23). Our page at `/cards/kyc/{cardholder}` (signed, path-only link) gets its SDK token from `POST /users/{id}/kyc/sumsub-access-token`, with the five questionnaire answers on every call. After approval both answer 400 `KYC_ALREADY_APPROVED`: sync the status, never show an error |
-| Card number or CVV in our systems | Never. `GET /cards/{id}/widget` returns a short-lived `widgetToken` for Interlace Widget.js on the partner-hosted page |
+| Card number or CVV in our systems | Never. Lepo's `GET /cards/{id}/widget` (`LepoClient`) returns a short-lived `widgetToken` for Interlace Widget.js on the partner-hosted page |
 | 3-D Secure code storage | Encrypted in the cache for at most 10 minutes, never in the database, logs, push payloads or events; Telescope ignores the webhook, code endpoint and hosted pages |
 | Page numbers | Card transaction pages start from 0; crypto-transaction pages from 1 |
 | Test fakes for an outage | `LepoClient::read()` retries twice, so a fake needs three failures; `Http::fake()` stubs accumulate (first match wins), so use one fake with response sequences |
@@ -217,7 +217,7 @@ Plan B mobile-driven subscriptions (Apple App Store + Google Play). Entry point:
 
 ## Bridge.xyz Ramp (v7.15.0+)
 
-Primary v1 fiat ↔ stablecoin rail (bank transfers in/out, USDC on Polygon). Domain: `app/Domain/Compliance/Kyc/` (Kyc abstraction lives under Compliance, not its own top-level domain) + `app/Infrastructure/Bridge/` (HTTP client + webhook verifier shared between Ramp + Kyc). Persistence: `bridge_customers`, `ramp_sessions` (gains `deposit_instructions` encrypted + `source` enum).
+Primary v1 fiat ↔ stablecoin rail (bank transfers in, USDC on Polygon out; onramp only, offramp in v1.1). Domain: `app/Domain/Compliance/Kyc/` (Kyc abstraction lives under Compliance, not its own top-level domain) + `app/Infrastructure/Bridge/` (HTTP client + webhook verifier shared between Ramp + Kyc). Persistence: `bridge_customers`, `ramp_sessions` (gains `deposit_instructions` encrypted + `source` enum).
 
 - **Webhook URL**: `POST /api/v1/webhooks/bridge` — single endpoint for both KYC (`customer.kyc_link_*`) and ramp (`virtual_account.activity`, `transfer.*`) events. Event-level dedupe via `processed_webhook_events (provider='bridge', event_id)`. Configure Bridge dashboard to POST here.
 - **Setup endpoints** (mobile-facing, no `require.kyc` middleware): `GET /api/v1/user/bridge-setup-status` + `POST /api/v1/user/bridge-kyc-link`. Lazy Bridge customer creation on first kyc-link request with `Idempotency-Key: bridge_customer:{user_id}`.
@@ -234,7 +234,7 @@ Primary v1 fiat ↔ stablecoin rail (bank transfers in/out, USDC on Polygon). Do
 | `RAMP_PROVIDER=stripe_bridge` still in deployed `.env` | Recognised as a deprecated alias (logged warning) that resolves to `stripe_crypto_onramp` (the renamed scaffolding from ADR-0005). Update `.env` to the canonical name; alias removal in v1.1 |
 | `BridgeWebhookVerifier` dev passthrough | Fires only when BOTH `BRIDGE_WEBHOOK_PUBLIC_KEY` and `BRIDGE_WEBHOOK_SECRET` are empty: accepts any well-formed request in non-production, fails closed (401) in production. Set `BRIDGE_WEBHOOK_PUBLIC_KEY` (the current platform credential) before going live |
 | Bridge offramp (`type=off`) throws `OfframpNotAvailableException` | v1 is bank-rail onramp only per the brief. `POST /api/v1/ramp/session` maps it to **HTTP 422 + `OFFRAMP_NOT_AVAILABLE`** (never a 500). Offramp lands in v1.1 alongside SWIFT support and additional networks (Solana, Base, Arbitrum) |
-| VA never gets created after KYC approval | User had no Polygon `blockchain_addresses` row at KYC-completion time. `BlockchainAddressBridgeObserver` auto-retries when the address is registered; if the row already exists, run `php artisan bridge:inspect-user --email=X` to confirm state and re-trigger by deleting + re-creating the address (or call `BridgePostKycHandler::tryProvisionVirtualAccount` from tinker) |
+| VA never gets created after KYC approval | User had no Polygon `blockchain_addresses` row at KYC-completion time. `BlockchainAddressBridgeObserver` auto-retries when the address is registered; if the row already exists, run `php artisan bridge:inspect-user X` (email is positional) to confirm state and re-trigger by deleting + re-creating the address (or call `BridgePostKycHandler::tryProvisionVirtualAccount` from tinker) |
 | Cross-domain ordering | KycServiceProvider attaches a second observer on `BlockchainAddress` (separate from Wallet/BlockchainAddressObserver which handles Helius/Solana sync). The two observers fire independently; don't merge their concerns |
 
 ## RAILGUN Non-Custodial Privacy (v7.16.0+)

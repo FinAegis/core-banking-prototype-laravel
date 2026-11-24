@@ -2,41 +2,21 @@
 
 ## Overview
 
-The FinAegis platform includes a comprehensive, multi-layered fraud detection system that combines rule-based analysis, behavioral profiling, device fingerprinting, and machine learning to protect against fraudulent activities.
+The Fraud domain (`app/Domain/Fraud/`) scores transactions and users for fraud risk. It combines configurable rules, behavioural profiles, device fingerprints and a machine learning score. The machine learning part is a rule-based simulation unless an external model is configured with `FRAUD_ML_ENABLED` and `FRAUD_ML_API_ENDPOINT`. Since v7.18.0, fraud cases are stored in the `fraud_cases` table.
 
 ## Architecture
 
 ### Core Components
 
-1. **Fraud Detection Service** (`FraudDetectionService`)
-   - Orchestrates all fraud detection components
-   - Analyzes transactions and users in real-time
-   - Makes decisions (allow, challenge, review, block)
+The services live in `app/Domain/Fraud/Services/`.
 
-2. **Rule Engine** (`RuleEngineService`)
-   - Evaluates configurable fraud rules
-   - Supports multiple rule categories
-   - Dynamic scoring based on conditions
-
-3. **Behavioral Analysis** (`BehavioralAnalysisService`)
-   - Builds user behavioral profiles
-   - Detects anomalies in user patterns
-   - Tracks transaction timing, amounts, locations
-
-4. **Device Fingerprinting** (`DeviceFingerprintService`)
-   - Tracks and analyzes devices
-   - Detects device spoofing
-   - Manages device trust networks
-
-5. **Machine Learning** (`MachineLearningService`)
-   - ML-based fraud prediction
-   - Feature extraction and engineering
-   - Model training with feedback loop
-
-6. **Case Management** (`FraudCaseService`)
-   - Creates and manages fraud investigation cases
-   - Tracks evidence and investigation notes
-   - Handles case resolution and outcomes
+1. `FraudDetectionService` runs all the other components. It analyses transactions and users and decides to allow, challenge, review or block.
+2. `RuleEngineService` evaluates the configurable fraud rules in several categories and scores them by their conditions.
+3. `BehavioralAnalysisService` builds behavioural profiles of users. It finds unusual timing, amounts and locations.
+4. `DeviceFingerprintService` tracks devices, detects device spoofing and keeps device trust scores.
+5. `MachineLearningService` extracts features and returns a fraud probability. Without an external model it uses a rule-based simulation.
+6. `FraudCaseService` creates and manages investigation cases with their evidence, notes and outcomes.
+7. `AnomalyDetectionOrchestrator` runs the statistical, behavioural, velocity and geographic anomaly detectors. The `fraud:scan-anomalies` command runs it in batches. It is off unless `FRAUD_ANOMALY_DETECTION_ENABLED=true`.
 
 ## Database Schema
 
@@ -54,7 +34,7 @@ The FinAegis platform includes a comprehensive, multi-layered fraud detection sy
 - base_score (0-100)
 - is_active
 - is_blocking
-- trigger_count
+- triggers_count, true_positives, false_positives
 - last_triggered_at
 ```
 
@@ -78,21 +58,25 @@ The FinAegis platform includes a comprehensive, multi-layered fraud detection sy
 
 ### Fraud Cases Table
 ```sql
-- id (UUID)
+- id
+- uuid (unique)
+- team_id
 - case_number (unique)
-- fraud_score_id
-- entity_id (polymorphic)
-- entity_type
-- status (open|investigating|closed)
-- priority (low|medium|high|critical)
-- risk_level
-- assigned_to (investigator)
-- loss_amount
-- recovery_amount
-- investigation_notes (JSON)
+- type (transaction, account_takeover, money_mule and so on)
+- status (pending|investigating|confirmed|false_positive|resolved)
+- severity (low|medium|high|critical)
+- risk_score
+- fraud_score_id (the fraud score that opened the case, added in v7.18.0)
+- subject_account_uuid
+- amount and currency
+- related_transactions and related_accounts (JSON)
+- detection_rules (JSON)
+- description
 - evidence (JSON)
-- resolution
-- outcome
+- assigned_to (investigator)
+- actions_taken (JSON)
+- resolution_notes
+- detected_at
 - resolved_at
 ```
 
@@ -107,7 +91,7 @@ The FinAegis platform includes a comprehensive, multi-layered fraud detection sy
 - behavioral biometrics (typing patterns, mouse patterns)
 - first_seen_at
 - last_seen_at
-- blocked_at
+- is_trusted, is_blocked and block_reason
 ```
 
 ### Behavioral Profiles Table
@@ -139,13 +123,22 @@ GET  /api/fraud/detection/model/metrics
 
 ```http
 GET  /api/fraud/cases
-GET  /api/fraud/cases/{caseId}
-PUT  /api/fraud/cases/{caseId}
-POST /api/fraud/cases/{caseId}/resolve
-POST /api/fraud/cases/{caseId}/escalate
-POST /api/fraud/cases/{caseId}/evidence
-GET  /api/fraud/cases/{caseId}/timeline
-GET  /api/fraud/cases/statistics
+GET  /api/fraud/cases/{id}
+PUT  /api/fraud/cases/{id}
+```
+
+Resolving and escalating a case (`resolveCase()`, `escalateCase()`) and case statistics (`getCaseStatistics()`) are methods of `FraudCaseService` without HTTP routes. There is no evidence or timeline endpoint.
+
+### Alerts, Patterns and Dashboard
+
+```http
+GET  /api/fraud/alerts
+GET  /api/fraud/alerts/{id}
+POST /api/fraud/alerts/{id}/acknowledge
+POST /api/fraud/alerts/{id}/investigate
+GET  /api/fraud/patterns
+GET  /api/fraud/dashboard
+GET  /api/fraud/statistics
 ```
 
 ### Fraud Rules
@@ -161,6 +154,7 @@ POST /api/fraud/rules/{ruleId}/test
 POST /api/fraud/rules/create-defaults
 GET  /api/fraud/rules/export/all
 POST /api/fraud/rules/import
+GET  /api/fraud/rules/statistics
 ```
 
 ## Rule Categories
@@ -198,7 +192,7 @@ POST /api/fraud/rules/import
 
 ## Risk Scoring
 
-The system uses a weighted scoring approach:
+The total score is a weighted sum of the component scores:
 
 ```
 Total Score = (Rule Score × 0.35) + 
@@ -206,6 +200,8 @@ Total Score = (Rule Score × 0.35) +
               (Device Score × 0.20) + 
               (ML Score × 0.20)
 ```
+
+When machine learning is turned off, the ML part is left out and the rest of the score is scaled up to the full range.
 
 Risk Levels:
 - Very Low: 0-19
@@ -267,98 +263,74 @@ $rule = FraudRule::create([
 
 ## Machine Learning Features
 
-The ML service extracts 40+ features including:
-
-- Transaction features (amount, type, currency)
-- Temporal features (time of day, day of week)
-- Velocity features (transaction counts, volumes)
-- User features (account age, KYC level)
-- Behavioral features (deviation scores, profile confidence)
-- Device features (risk score, trust level)
-- Network features (IP risk, location)
+The ML service extracts more than 40 features. They cover the transaction (amount, type, currency), timing (time of day, day of week), velocity (transaction counts and volumes) and the user (account age, KYC level). They also cover behaviour (deviation scores, profile confidence), the device (risk score, trust level) and the network (IP risk, location).
 
 ## Behavioral Analysis
 
-The system tracks:
+The behavioural profile records four kinds of patterns:
 
-1. **Transaction Patterns**
-   - Typical amounts and deviations
-   - Preferred transaction times
-   - Common transaction types
-
-2. **Location Patterns**
-   - Common countries/cities
-   - Travel patterns
-   - Location consistency
-
-3. **Device Patterns**
-   - Trusted devices
-   - Device switching behavior
-   - Device count
-
-4. **Velocity Patterns**
-   - Normal transaction frequency
-   - Volume patterns
-   - Peak activity times
+1. **Transaction patterns.** Typical amounts and deviations, preferred times and common transaction types.
+2. **Location patterns.** Common countries and cities, travel patterns and how consistent the location is.
+3. **Device patterns.** Trusted devices, how often the user switches devices and the number of devices.
+4. **Velocity patterns.** Normal transaction frequency, volume and peak activity times.
 
 ## Events
 
-The system emits events for monitoring and integration:
+The domain emits these events from `app/Domain/Fraud/Events/`:
 
-- `FraudDetected` - When fraud is detected
-- `TransactionBlocked` - When a transaction is blocked
-- `ChallengeRequired` - When additional verification is needed
-- `FraudCaseCreated` - When a new case is created
-- `FraudCaseResolved` - When a case is resolved
+- `FraudDetected` fires when fraud is detected.
+- `TransactionBlocked` fires when a transaction is blocked.
+- `ChallengeRequired` fires when more verification is needed.
+- `FraudCaseCreated`, `FraudCaseUpdated` and `FraudCaseResolved` follow the life of a case.
+- `AnomalyDetected` fires when an anomaly detector finds something.
 
 ## Configuration
 
 ### Environment Variables
 
+The settings live in `config/fraud.php`. These are the main variables:
+
 ```env
-# ML Service Configuration
-FRAUD_ML_ENABLED=true
+# ML Service Configuration (off by default)
+FRAUD_ML_ENABLED=false
 FRAUD_ML_API_ENDPOINT=http://ml-service:8000
-FRAUD_ML_MODEL_VERSION=1.0.0
+FRAUD_ML_MODEL_VERSION=v1.0
 
-# Rule Engine Configuration
-FRAUD_RULES_CACHE_TTL=300
-FRAUD_RULES_MAX_ACTIVE=100
+# Anomaly detection (off by default)
+FRAUD_ANOMALY_DETECTION_ENABLED=false
+FRAUD_Z_SCORE_THRESHOLD=3.0
+FRAUD_BATCH_CHUNK_SIZE=100
+FRAUD_BATCH_LOOKBACK_HOURS=24
 
-# Behavioral Analysis
-FRAUD_BEHAVIOR_MIN_TRANSACTIONS=10
-FRAUD_BEHAVIOR_LOOKBACK_DAYS=90
-
-# Device Fingerprinting
-FRAUD_DEVICE_TRUST_THRESHOLD=70
-FRAUD_DEVICE_MAX_USERS=5
+# Geography
+FRAUD_HIGH_RISK_COUNTRIES=
+FRAUD_MAX_TRAVEL_SPEED=900
 ```
+
+See `config/fraud.php` for the full list, including the velocity, structuring, time and weight settings.
 
 ### Creating Default Rules
 
+There is no artisan command for the default rules. Create them through the API:
+
 ```bash
-php artisan fraud:create-default-rules
+curl -X POST /api/fraud/rules/create-defaults \
+  -H "Authorization: Bearer {token}"
+```
+
+### Scanning for Anomalies
+
+```bash
+php artisan fraud:scan-anomalies
 ```
 
 ## Monitoring and Metrics
 
 ### Key Metrics
 
-1. **Detection Metrics**
-   - Total transactions analyzed
-   - Fraud detection rate
-   - False positive rate
-   - Average processing time
-
-2. **Rule Performance**
-   - Rule trigger frequency
-   - Rule effectiveness
-   - False positive by rule
-
-3. **Case Metrics**
-   - Cases created/resolved
-   - Average resolution time
-   - Recovery rates
+1. **Detection metrics.** Track the number of transactions analysed, the detection rate, the false positive rate and the average processing time.
+2. **Rule performance.** Track how often each rule triggers, how effective it is and its false positives.
+3. **Case metrics.** Track cases created and resolved, the average resolution time and the recovery rate.
 
 ### Dashboard Queries
 
@@ -376,36 +348,17 @@ $stats = FraudScore::where('created_at', '>=', now()->subDays(7))
 
 ## Best Practices
 
-1. **Rule Management**
-   - Regularly review rule performance
-   - Adjust thresholds based on false positive rates
-   - Test rules before activation
-
-2. **Behavioral Profiles**
-   - Allow sufficient history before strict enforcement
-   - Consider seasonal patterns
-   - Account for legitimate behavior changes
-
-3. **Device Management**
-   - Implement device registration flows
-   - Allow users to manage trusted devices
-   - Consider multi-device users
-
-4. **Case Investigation**
-   - Document all investigation steps
-   - Collect evidence systematically
-   - Use outcomes for ML training
-
-5. **Performance**
-   - Cache active rules
-   - Use async processing for non-critical analysis
-   - Monitor API response times
+1. **Rule management.** Review rule performance regularly. Adjust thresholds when false positives are high. Test a rule before you activate it.
+2. **Behavioural profiles.** Wait for enough history before strict enforcement. Allow for seasonal patterns and legitimate changes in behaviour.
+3. **Device management.** Offer a device registration flow and let users manage their trusted devices. Remember that many users have several devices.
+4. **Case investigation.** Document every step and collect evidence systematically. Feed the outcomes back into model training.
+5. **Performance.** Cache the active rules, run non-critical analysis asynchronously and watch the API response times.
 
 ## Testing
 
 ```bash
 # Run fraud detection tests
-php artisan test --filter=FraudDetection
+./vendor/bin/pest --filter=FraudDetection
 
 # Test specific rule
 curl -X POST /api/fraud/rules/{ruleId}/test \
@@ -415,17 +368,6 @@ curl -X POST /api/fraud/rules/{ruleId}/test \
 
 ## Security Considerations
 
-1. **Data Protection**
-   - Encrypt sensitive behavioral data
-   - Limit PII in fraud scores
-   - Implement audit logging
-
-2. **Access Control**
-   - Role-based access to cases
-   - Separate read/write permissions
-   - Investigator assignment rules
-
-3. **API Security**
-   - Rate limiting on analysis endpoints
-   - Authentication for all endpoints
-   - Input validation on rule creation
+1. **Data protection.** Encrypt sensitive behavioural data, keep personal data out of fraud scores and log access for audit.
+2. **Access control.** Give access to cases by role, separate read and write permissions and define rules for assigning investigators.
+3. **API security.** Rate-limit the analysis endpoints, require authentication on every endpoint and validate input when rules are created.

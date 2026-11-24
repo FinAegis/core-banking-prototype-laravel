@@ -3,7 +3,9 @@
 **Status:** Accepted
 **Date:** 2026-05-23
 **Decision-maker:** Backend engineer
-**Related:** [ADR-0005](0005-bridge-xyz-over-stripe-crypto-onramp.md); `docs/BACKEND_HANDOVER_BRIDGE_RAMP.md` §2 decision 6, §3.5
+**Related:** [ADR-0005](0005-bridge-xyz-over-stripe-crypto-onramp.md); `docs/BACKEND_HANDOVER_BRIDGE_RAMP.md` §2 decision 6, §3.5 (the brief is not stored in this repository)
+
+> **Implementation status (reviewed for v7.18.1).** The per-customer default is built. `BridgeDeveloperFeeSync` keeps `bridge_customers.developer_fee_bps` at 75 for Free and 0 for Pro. A `SubscriptionTierChanged` listener runs it on every tier change, and `php artisan bridge:sync-dev-fee` reconciles it by hand. The admin panel's Bridge customer page can trigger the same sync. The ramp quote shows `zeltaMarkup`, `zeltaMarkupWaived` and `zeltaMarkupTier`. v1 is the virtual-account onramp, so every transfer uses the per-customer default. The per-transfer fee lock described below is not used yet. Recording Bridge's developer-fee remittances as `RevenueOutboxEvent` rows is not built yet either; it remains a finance-ops step.
 
 ---
 
@@ -172,6 +174,6 @@ Developer-fee remittances arrive via Bridge's settlement reports. Each remittanc
 ## References
 
 - [ADR-0005](0005-bridge-xyz-over-stripe-crypto-onramp.md) — sibling ADR; the choice of Bridge.xyz over Stripe Crypto Onramp / Onramper makes this fee mechanic possible
-- `docs/BACKEND_HANDOVER_BRIDGE_RAMP.md` §2.6 (Pricing locked), §3.5 (Pricing wrap in `RampService`), §7 (non-custody invariants)
+- `docs/BACKEND_HANDOVER_BRIDGE_RAMP.md` (not stored in this repository) §2.6 (Pricing locked), §3.5 (Pricing wrap in `RampService`), §7 (non-custody invariants)
 - Bridge developer fees — https://apidocs.bridge.xyz/platform/orchestration/fees-and-mins/devfees
 - `app/Domain/Subscription/Models/RevenueOutboxEvent.php` — existing revenue eventing pattern reused for Bridge settlement remittances

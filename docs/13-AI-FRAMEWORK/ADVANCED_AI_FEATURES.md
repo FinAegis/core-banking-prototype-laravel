@@ -2,7 +2,7 @@
 
 ## Phase 4: Advanced AI Agent Features
 
-This document describes the advanced AI features implemented in Phase 4 of the FinAegis AI Agent Framework.
+This document describes the advanced features that Phase 4 added to the AI agent framework. They are a trading workflow, multi-agent coordination and human approval of AI decisions. The code is reference code. The trading features are an example template and not investment advice, and trading is off in production (`TRADING_ENABLED=false`).
 
 ## Table of Contents
 1. [Trading Agent Workflow](#trading-agent-workflow)
@@ -13,22 +13,20 @@ This document describes the advanced AI features implemented in Phase 4 of the F
 
 ## Trading Agent Workflow
 
-The `TradingAgentWorkflow` provides automated trading capabilities with comprehensive market analysis and portfolio management.
+`TradingAgentWorkflow` analyzes a market, proposes trading strategies and can place an order. It is a demonstration. Its market analysis runs on simulated prices and volumes generated inside the workflow, unless the caller passes its own `prices` and `volumes`. It does not read a live market feed.
 
 ### Features
-- **Market Analysis**: Real-time market data processing and trend identification
-- **Technical Analysis**: RSI, MACD, SMA indicators with pattern recognition
-- **Strategy Generation**: Momentum, mean reversion, and risk management strategies
-- **Portfolio Optimization**: Automated rebalancing and allocation recommendations
-- **Risk Assessment**: VaR, Sharpe ratio, drawdown analysis
+- Market analysis finds trends in the price series.
+- Technical analysis calculates RSI, MACD and moving averages and looks for patterns.
+- Strategy generation proposes momentum, mean reversion and risk management strategies.
+- Portfolio optimization suggests how to rebalance holdings.
+- Risk assessment calculates Value at Risk (VaR), the Sharpe ratio and drawdown.
 
 ### Workflow Steps
-1. **Market Analysis**: Analyze current market conditions and sentiment
-2. **Technical Analysis**: Calculate technical indicators and identify patterns
-3. **Strategy Generation**: Create trading strategies based on analysis
-4. **Risk Assessment**: Evaluate risk metrics for proposed strategies
-5. **Portfolio Optimization**: Optimize asset allocation
-6. **Trading Decision**: Execute or recommend trades based on confidence
+1. The `MarketAnalysisWorkflow` child workflow analyzes the market and calculates the technical indicators.
+2. The `StrategyGenerationWorkflow` child workflow proposes strategies and rates the risk of each one.
+3. If the recommended strategy has a confidence of at least 0.7 and its action is not hold or wait, `TradingExecutionSaga` places an order through `OrderService`.
+4. The workflow returns the analysis, the strategies and the execution result.
 
 ### Example Usage
 
@@ -60,35 +58,29 @@ $result = iterator_to_array($workflow->execute(
 
 ### Configuration
 
-```php
-// Confidence thresholds for auto-execution
-const AUTO_EXECUTE_THRESHOLD = 0.7;
-
-// Value thresholds (USD)
-const MAX_ORDER_VALUE = 10000;
-const MAX_PORTFOLIO_RISK = 0.15; // 15% maximum portfolio risk
-
-// Technical indicator settings
-const RSI_OVERSOLD = 30;
-const RSI_OVERBOUGHT = 70;
-```
+The 0.7 confidence threshold is hard-coded in `TradingAgentWorkflow::shouldExecuteTrade()`. The workflow does not read the `auto_execute` or `max_order_value` parameters shown in the example above.
 
 ## Multi-Agent Coordination
 
-The `MultiAgentCoordinationService` orchestrates multiple AI agents for complex tasks requiring collaboration.
+`MultiAgentCoordinationService` lets several agents work on one task.
 
 ### Features
-- **Agent Registry**: Dynamic registration and capability discovery
-- **Task Delegation**: Intelligent task distribution based on agent capabilities
-- **Communication Protocol**: Inter-agent messaging and information sharing
-- **Consensus Building**: Weighted voting and conflict resolution
-- **Load Balancing**: Distribute workload across available agents
+- Agents are registered with their capabilities, and the service finds the agents that can handle a task.
+- A task is split into subtasks, and each subtask goes to the best-suited agent.
+- Agents can pass messages and share information.
+- When the answers differ, the service builds a consensus by weighted voting.
+- The service tracks each agent's load and spreads work across them.
 
-### Registered Agents
-1. **Customer Service Agent**: Query handling, account operations
-2. **Compliance Agent**: KYC verification, AML screening
-3. **Risk Assessment Agent**: Credit scoring, fraud detection
-4. **Trading Agent**: Market analysis, portfolio optimization
+### Registered agents
+
+The service keeps its own list of four agent types. They are separate from the five agents that `AgentRouterService` uses for chat.
+
+| Agent type | Capabilities |
+|---|---|
+| `customer_service` | Query handling, account operations, basic support |
+| `compliance` | KYC verification, AML screening, regulatory reporting |
+| `risk_assessment` | Credit scoring, fraud detection, portfolio risk |
+| `trading` | Market analysis, trading strategy, portfolio optimization |
 
 ### Coordination Patterns
 
@@ -127,21 +119,20 @@ $result = $coordinator->coordinateTask(
 
 ### Conflict Resolution
 
-When agents disagree, the system uses:
-1. **Weighted Voting**: Based on agent confidence scores
-2. **Highest Confidence**: Select the most confident agent's decision
-3. **Human Escalation**: For critical conflicts requiring human review
+When agents disagree, the service resolves the conflict in one of two ways. Weighted voting weighs each answer by the agent's confidence score. The highest-confidence rule takes the answer of the most confident agent. Conflicts that need a person go through the human-in-the-loop workflow below.
 
 ## Human-in-the-Loop Workflow
 
-The `HumanInTheLoopWorkflow` manages AI decisions requiring human oversight and approval.
+`HumanInTheLoopWorkflow` sends AI decisions to a person for approval when the decision is uncertain or the amount is large.
 
 ### Features
-- **Confidence Thresholds**: Configurable per operation type
-- **Value Thresholds**: Automatic escalation for high-value operations
-- **Approval Workflows**: Structured review and approval process
-- **Audit Trail**: Complete record of all decisions and overrides
-- **Feedback Collection**: Learn from human decisions
+- Each operation type has its own confidence threshold.
+- Operations above a value threshold always go to a person.
+- A reviewer approves or rejects the decision in a structured request.
+- Every decision and override is recorded.
+- The reviewer's answer is kept as feedback for the AI.
+
+The thresholds are class constants in `HumanInTheLoopWorkflow`.
 
 ### Confidence Thresholds
 
@@ -217,26 +208,28 @@ $result = iterator_to_array($workflow->execute(
 
 ### Event Sourcing Integration
 
-All AI decisions are recorded in the event store:
+AI decisions are recorded in the event store:
 
 ```php
 use App\Domain\AI\Aggregates\AIInteractionAggregate;
 
 $aggregate = AIInteractionAggregate::retrieve($conversationId);
 
-$aggregate->recordDecision(
+$aggregate->makeDecision(
     decision: 'trading_strategy_momentum',
+    reasoning: ['strategies' => [...], 'analysis' => [...]],
     confidence: 0.75,
-    context: ['strategies' => [...], 'analysis' => [...]],
-    outcome: json_encode($result)
+    requiresApproval: false
 );
 
 $aggregate->persist();
 ```
 
+A decision below `AI_CONFIDENCE_THRESHOLD` (default 0.7) also records a `HumanInterventionRequestedEvent`.
+
 ### Saga Pattern Integration
 
-Complex workflows use the saga pattern for compensation:
+Multi-step workflows use the saga pattern, so a failed step undoes the earlier ones. The code below is simplified.
 
 ```php
 class TradingExecutionSaga extends Saga
@@ -251,7 +244,7 @@ class TradingExecutionSaga extends Saga
 
 ### Service Integration
 
-AI agents integrate with existing domain services:
+AI agents call the existing domain services. The code below is simplified.
 
 ```php
 // Trading Agent uses Exchange services
@@ -346,53 +339,37 @@ $auditTrail = $humanWorkflow->getAuditTrail();
 
 ## Performance Considerations
 
-### Caching Strategy
-- Market data cached for 1 minute
-- Technical indicators cached for 5 minutes
-- Agent capabilities cached for session duration
-
-### Optimization Tips
-1. Use batch operations for multiple analyses
-2. Enable caching for repeated queries
-3. Implement circuit breakers for external services
-4. Use async processing for non-critical decisions
+### Optimization tips
+1. Batch several analyses into one call where you can.
+2. Cache the results of repeated queries.
+3. Put circuit breakers around external services.
+4. Run decisions that are not urgent asynchronously.
 
 ### Monitoring
-- Track agent response times
-- Monitor consensus agreement rates
-- Measure human override frequency
-- Analyze confidence score accuracy
+
+Track how fast agents respond, how often they agree, how often people override them and how well the confidence scores match the outcomes.
 
 ## Security Considerations
 
 ### Authorization
-- All workflows require authenticated user context
-- Operations validated against user permissions
-- High-value operations require additional authentication
 
-### Audit Trail
-- Every decision recorded with timestamp
-- Actor identification (AI/human)
-- Complete context preservation
-- Immutable event store
+Workflows run for an authenticated user, and tools check that user's permissions. High-value operations go to a person for approval.
 
-### Data Protection
-- Sensitive data encrypted at rest
-- PII masked in logs
-- Secure inter-agent communication
-- Rate limiting on all endpoints
+### Audit trail
+
+Every decision is recorded with a timestamp and says whether the AI or a person made it. The context is kept with it, and stored events are never changed.
+
+### Data protection
+
+Operators should encrypt sensitive data at rest and keep personal data out of the logs. The `/api/ai/*` endpoints are rate limited.
 
 ## Future Enhancements
 
-### Planned Features
-1. **Machine Learning Integration**: Train models on historical decisions
-2. **Advanced Consensus Algorithms**: Byzantine fault tolerance
-3. **Real-time Market Feeds**: Direct exchange connections
-4. **Predictive Analytics**: Forecast market movements
-5. **Regulatory Compliance Automation**: Auto-generate reports
+These ideas are not scheduled. They are possible next steps.
 
-### Research Areas
-- Federated learning across institutions
-- Zero-knowledge proofs for privacy
-- Quantum-resistant cryptography
+- Train models on past decisions.
+- Use stronger consensus algorithms between agents.
+- Feed the trading workflow with live market data instead of simulated data.
+- Forecast market movements.
+- Draft regulatory reports automatically for review.
 - Decentralized agent networks

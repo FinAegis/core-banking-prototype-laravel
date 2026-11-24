@@ -3,6 +3,8 @@
 **Version:** 1.0  
 **Last Updated:** 2024-06-15
 
+> **Note (v7.18.1):** This is a historical design document from 2024. It records the plan for multi-asset support, not the code as built. The asset model, the `account_balances` table, the exchange rate service, the custodian abstraction and the governance polls were built. Custodian connectors are integration adapters for third-party APIs; no partnership or endorsement implied, and no live bank connection is in place. Asset transfers and currency conversions work since v7.18.1. Earlier releases stopped on a missing method before any balance moved. The governance, basket and banking demo modules are disabled in the production Zelta configuration.
+
 ## Overview
 
 This document outlines the technical architecture for evolving FinAegis from a single-currency banking platform to a comprehensive multi-asset management system with decentralized custody and democratic governance.
@@ -451,6 +453,8 @@ CREATE TABLE votes (
 ## API Changes
 
 ### New Endpoints
+
+These are the planned endpoints. Some were built under these paths: `GET /api/v2/assets`, `GET /api/v2/assets/{code}`, `GET /api/v2/accounts/{uuid}/balances` and `POST /api/v2/transfers`. The rest were built elsewhere or not at all. Polls live under `/api/polls` and `/api/voting`, and custodians under `/api/custodians`. See [REST_API_REFERENCE.md](../04-API/REST_API_REFERENCE.md) for the endpoints that exist.
 
 ```yaml
 # Asset Management

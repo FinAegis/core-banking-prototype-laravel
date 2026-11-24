@@ -2,148 +2,114 @@
 
 ## Overview
 
-FinAegis Exchange implements an automated market maker (AMM) model using liquidity pools. This allows users to trade assets without traditional order books by providing liquidity that enables instant swaps at algorithmically determined prices.
+Liquidity pools are part of the FinAegis demo trading engine. A pool holds two assets and prices swaps with an automated market maker (AMM) formula instead of an order book.
+
+The whole feature sits behind the trading switch. Routes use the `feature:trading.enabled` middleware, which reads `TRADING_ENABLED`. The switch is on by default only for `APP_ENV=local`, `testing` and `demo`, and production sets `TRADING_ENABLED=false`. Zelta does not use the exchange.
+
+> FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
+
+### Removed in v7.18.0
+
+The flow for adding, removing and rebalancing liquidity was removed in v7.18.0. It never worked, because it used a class, a table and columns that do not exist. The removal covered these parts:
+
+- `LiquidityManagementWorkflow` and `EnhancedLiquidityManagementWorkflow`, with their activities and retry policy.
+- The `POST /api/liquidity/add` and `POST /api/liquidity/remove` endpoints and the web add and remove pages.
+- `PoolRebalancingService` and the `liquidity:rebalance` command with its schedule.
+- The `add_liquidity` and `remove_liquidity` actions of the AI liquidity pool tool.
+
+The `LiquidityPool` aggregate still has `addLiquidity()`, `removeLiquidity()` and `rebalancePool()` as domain logic, but no API, page, command or workflow calls them. A new pool therefore has no reserves unless a test or a script puts them there.
+
+Pool lists, pool creation, swaps, positions, rewards, impermanent-loss protection and pool analytics stay.
 
 ## Architecture
 
-### Event-Driven Design
+### Events and aggregate
 
-The liquidity pool system uses event sourcing for complete auditability:
+The pools use event sourcing. The `LiquidityPool` aggregate in `app/Domain/Exchange/Aggregates/LiquidityPool.php` keeps the pool state and records these events:
 
-1. **Pool Events**:
-   - `LiquidityPoolCreated` - New pool initialization
-   - `LiquidityAdded` - Provider adds liquidity
-   - `LiquidityRemoved` - Provider withdraws liquidity
-   - `PoolFeeCollected` - Trading fees collected
-   - `LiquidityRewardsDistributed` - Rewards distributed to providers
-   - `LiquidityRewardsClaimed` - Provider claims rewards
-   - `PoolParametersUpdated` - Pool settings changed
-   - `LiquidityPoolRebalanced` - Pool ratio adjusted
+- `LiquidityPoolCreated` when a pool is created.
+- `PoolFeeCollected` when a swap is calculated.
+- `LiquidityRewardsDistributed` and `LiquidityRewardsClaimed` for rewards.
+- `PoolParametersUpdated` when pool settings change.
+- `ImpermanentLossProtectionEnabled` and `ImpermanentLossProtectionClaimed` for impermanent-loss protection.
 
-2. **Aggregate Root**:
-   - `LiquidityPool` aggregate manages pool state and invariants
-   - Enforces constant product formula (x * y = k)
-   - Calculates shares and swap amounts
-   - Handles fee collection and distribution
+The event classes `LiquidityAdded`, `LiquidityRemoved` and `LiquidityPoolRebalanced` still exist for the aggregate methods above, but nothing records them in normal use.
 
-3. **Workflow-Based Operations**:
-   - `LiquidityManagementWorkflow` orchestrates complex operations
-   - Handles compensation for failed transactions
-   - Manages multi-step processes with atomicity
+### Services
+
+- `LiquidityPoolService` creates pools, runs swaps, lists pools and positions, and handles rewards and impermanent-loss protection.
+- `LiquidityIncentivesService` calculates and distributes rewards.
+- `ImpermanentLossProtectionService` calculates impermanent loss and protection claims.
+- `AutomatedMarketMakerService` generates market-making orders for the order book.
 
 ## Core Concepts
 
-### 1. **Constant Product Formula**
-The AMM uses the constant product formula: `x * y = k`
-- `x` = Amount of base currency in pool
-- `y` = Amount of quote currency in pool
-- `k` = Constant that remains unchanged during swaps
+### Constant product formula
 
-### 2. **Liquidity Shares**
-- Providers receive shares representing their pool ownership
-- First provider shares = √(baseAmount × quoteAmount)
-- Subsequent providers receive proportional shares
-- Shares determine reward distribution and withdrawal amounts
+The pool prices swaps with the constant product formula `x * y = k`.
 
-### 3. **Price Impact**
-- Larger trades cause more price slippage
-- Price impact = |spotPrice - executionPrice| / spotPrice × 100
-- Users can set minimum output amounts to limit slippage
+- `x` is the amount of the base currency in the pool.
+- `y` is the amount of the quote currency in the pool.
+- `k` is the constant that the formula keeps during a swap.
 
-### 4. **Fee Structure**
-- Default swap fee: 0.3% (configurable per pool)
-- Fees remain in pool and are accounted to LP shares
-- No separate protocol fees (can be added later)
+### Price impact
+
+A larger trade moves the price more. The service reports price impact as `|spotPrice - executionPrice| / spotPrice × 100`. A caller can set a minimum output amount, and the swap fails with "Slippage tolerance exceeded" when the output would be lower.
+
+### Fees
+
+The default swap fee is 0.3%. A pool can be created with a fee rate between 0.01% and 1%. There is no separate protocol fee.
 
 ## Features
 
-### For Liquidity Providers
+### Swaps
 
-1. **Add Liquidity**
-   - Deposit both assets in current pool ratio
-   - Receive LP shares representing ownership
-   - Pool fee share accrues to LP shares
+A swap trades one asset of the pool for the other. The pool aggregate calculates the output with the constant product formula. `ExchangeService::executePoolSwap` then records two transfers between the person's account and a pool account.
 
-2. **Remove Liquidity**
-   - Burn shares to withdraw assets
-   - Receive proportional share of reserves
-   - Can set minimum amounts to protect against slippage
+Swaps are a demonstration path.
+A new pool starts with no reserves, and since v7.18.0 no endpoint adds liquidity.
+A swap therefore needs a pool whose reserves were set up some other way, for example in a test.
+The swap also does not update the pool reserves, and the code marks this with a `@todo` in `ExchangeService::executePoolSwap`.
 
-3. **Fee and reward accounting**
-   - Trading fees auto-compound in pool
-   - Additional rewards can be distributed
-   - Claim rewards without removing liquidity
+### Positions
 
-4. **Position Tracking**
-   - View current value of positions
-   - Track impermanent loss
-   - Monitor accrued fees and rewards
+The positions endpoint lists the pools a person has shares in, with the shares and the value of each position.
 
-### For Traders
+### Rewards
 
-1. **Instant Swaps**
-   - No order matching required
-   - Execute trades against pool liquidity
-   - Predictable pricing algorithm
+The `liquidity:distribute-rewards` command calculates rewards for providers and runs every hour when trading is enabled. A provider can claim rewards with the claim endpoint.
 
-2. **Price Discovery**
-   - Real-time spot prices
-   - Calculate price impact before trading
-   - Set slippage tolerance
+### Impermanent-loss protection
 
-3. **Multi-hop Routing**
-   - Trade pairs without direct pools
-   - Automatic route optimization
-   - Best price execution
+Impermanent loss is the value a provider loses compared with simply holding the two assets. Protection is enabled per pool with a threshold, a maximum coverage, a minimum holding period and a fund size. The defaults are a 2% threshold, 80% coverage and 168 hours. The service then calculates the loss for a position and processes protection claims for a pool.
+
+The enable and process-claims endpoints only check that the caller is signed in. They do not check for an administrator, so a deployment that turns trading on should restrict them first.
+
+### Market making
+
+The `liquidity:update-market-making` command places automated market-making orders in the order book and runs every five minutes when trading is enabled.
 
 ## Implementation Details
 
-### Database Schema
+### Database tables
 
-1. **liquidity_pools**
-   - Stores pool state and reserves
-   - Tracks fees and volume metrics
-   - Links to pool's system account
+- `liquidity_pools` stores the pool state, reserves, fees and volume.
+- `liquidity_providers` stores provider positions, shares and rewards.
+- `pool_swaps` stores swap records.
+- `liquidity_pool_events` is the event store for the pool aggregate.
 
-2. **liquidity_providers**
-   - Records provider positions
-   - Tracks shares and rewards
-   - Maintains contribution history
+### Scheduled commands
 
-3. **pool_swaps**
-   - Logs all swap transactions
-   - Records price impact and fees
-   - Enables analytics and reporting
+Both commands are scheduled in `routes/console.php` only when the Exchange module is enabled and `trading.enabled` is true.
 
-4. **balance_locks**
-   - Temporary locks during operations
-   - Ensures atomic transactions
-   - Enables compensation on failure
-
-### Workflow Activities
-
-1. **ValidateLiquidityActivity**
-   - Checks account KYC status
-   - Validates pool existence
-   - Ensures sufficient balances
-   - Verifies ratio compliance
-
-2. **LockLiquidityActivity**
-   - Pessimistically locks user funds
-   - Creates compensation records
-   - Prevents double-spending
-
-3. **TransferLiquidityActivity**
-   - Moves assets to/from pool account
-   - Updates account balances
-   - Records transaction details
-
-4. **CalculatePoolSharesActivity**
-   - Computes shares to mint/burn
-   - Calculates withdrawal amounts
-   - Provides pool state information
+| Command | Schedule |
+|---------|----------|
+| `liquidity:distribute-rewards` | Hourly |
+| `liquidity:update-market-making --cancel-existing` | Every five minutes |
 
 ## API Endpoints
+
+All endpoints are under the `feature:trading.enabled` middleware. The two pool reads do not need a sign-in. The other endpoints need a Sanctum token.
 
 ### Public Endpoints
 
@@ -151,13 +117,13 @@ The AMM uses the constant product formula: `x * y = k`
 ```http
 GET /api/liquidity/pools
 ```
-Returns list of active liquidity pools with metrics.
+Returns the active liquidity pools with their metrics.
 
 #### Get Pool Details
 ```http
 GET /api/liquidity/pools/{poolId}
 ```
-Returns detailed information about a specific pool.
+Returns the details of one pool.
 
 ### Authenticated Endpoints
 
@@ -170,32 +136,6 @@ Authorization: Bearer {token}
   "base_currency": "BTC",
   "quote_currency": "EUR",
   "fee_rate": "0.003"
-}
-```
-
-#### Add Liquidity
-```http
-POST /api/liquidity/add
-Authorization: Bearer {token}
-
-{
-  "pool_id": "uuid",
-  "base_amount": "1.0",
-  "quote_amount": "48000",
-  "min_shares": "0"
-}
-```
-
-#### Remove Liquidity
-```http
-POST /api/liquidity/remove
-Authorization: Bearer {token}
-
-{
-  "pool_id": "uuid",
-  "shares": "100",
-  "min_base_amount": "0.99",
-  "min_quote_amount": "47500"
 }
 ```
 
@@ -228,104 +168,60 @@ Authorization: Bearer {token}
 }
 ```
 
-## Configuration
-
-### Environment Variables
-```env
-# Pool defaults
-LIQUIDITY_MIN_TVL=1000
-LIQUIDITY_DEFAULT_FEE=0.003
-LIQUIDITY_MAX_PRICE_IMPACT=0.05
-
-# Rewards
-LIQUIDITY_REWARD_INTERVAL=daily
-LIQUIDITY_REWARD_SOURCE=protocol_revenue
+#### Impermanent-Loss Protection
+```http
+GET  /api/liquidity/il-protection/{positionId}
+POST /api/liquidity/il-protection/enable
+POST /api/liquidity/il-protection/process-claims
+GET  /api/liquidity/il-protection/fund-requirements/{poolId}
 ```
 
-### Pool Parameters
-- **Fee Rate**: 0.01% - 1% (default 0.3%)
-- **Minimum Liquidity**: Prevents manipulation
-- **Maximum Price Impact**: Protects users
-- **Active Status**: Can pause trading
+The enable request takes `pool_id` and the optional `protection_threshold`, `max_coverage`, `min_holding_hours` and `fund_size`.
+
+#### Pool Analytics
+```http
+GET /api/liquidity/analytics/{poolId}
+Authorization: Bearer {token}
+```
+
+### Web Pages
+
+- `/liquidity` lists the pools.
+- `/liquidity/{poolId}` shows one pool.
+
+Both pages use the same trading switch.
+
+## Configuration
+
+The trading switch is the only setting the pools need.
+
+```env
+TRADING_ENABLED=true   # demo and local; production sets false
+```
+
+The pool fee is set per pool when the pool is created. There are no separate `LIQUIDITY_*` environment variables.
 
 ## Security Considerations
 
-1. **Reentrancy Protection**
-   - All state changes before external calls
-   - Pessimistic locking of balances
-   - Atomic operations with rollback
-
-2. **Price Manipulation**
-   - Minimum liquidity requirements
-   - Maximum price impact limits
-   - Time-weighted average prices
-
-3. **Sandwich Attack Prevention**
-   - Slippage protection
-   - MEV resistance mechanisms
-   - Private mempool options
-
-4. **Impermanent Loss**
-   - Clear risk disclosure
-   - IL tracking tools
-   - Hedging strategies
+- Amounts are calculated with `Brick\Math\BigDecimal`, not floats.
+- The minimum output amount protects a swap against slippage.
+- The create, swap and claim endpoints use the `idempotency` middleware, so a repeated request with the same idempotency key does not run twice.
+- Impermanent-loss tracking shows providers the risk of holding a position.
 
 ## Testing
 
-### Unit Tests
 ```php
-// Test pool creation
+// Create a pool
 $poolId = $liquidityService->createPool('BTC', 'EUR', '0.003');
 
-// Test liquidity addition
-$result = $liquidityService->addLiquidity(new LiquidityAdditionInput(...));
-
-// Test swap execution
+// Calculate and record a swap (the pool needs reserves first)
 $swap = $liquidityService->swap($poolId, $accountId, 'BTC', '0.1');
 ```
 
-### Integration Tests
-- End-to-end liquidity provision flow
-- Multi-provider scenarios
-- Edge cases and error handling
-- Performance under load
-
-## Monitoring
-
-### Key Metrics
-1. **Pool Health**
-   - Total Value Locked (TVL)
-   - 24h volume and fees
-   - Number of providers
-   - Price deviation from external
-
-2. **User Metrics**
-   - Active liquidity providers
-   - Average position size
-   - Reward distribution
-   - Withdrawal patterns
-
-3. **System Performance**
-   - Swap execution time
-   - Gas costs per operation
-   - Failed transaction rate
-   - Slippage statistics
-
 ## Future Enhancements
 
-1. **Advanced Features**
-   - Concentrated liquidity (Uniswap V3 style)
-   - Dynamic fees based on volatility
-   - Multi-asset pools (Balancer style)
-   - Flash loan functionality
+These ideas are not built.
 
-2. **Risk Management**
-   - Automated IL hedging
-   - Portfolio rebalancing
-   - Stop-loss for LPs
-
-3. **Cross-Chain**
-   - Bridge integrations
-   - Cross-chain liquidity
-   - Unified liquidity layer
-   - Chain-agnostic swaps
+- Rebuild adding and removing liquidity on tables and columns that exist.
+- Update pool reserves when a swap runs.
+- Concentrated liquidity, dynamic fees and pools with more than two assets.

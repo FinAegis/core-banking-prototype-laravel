@@ -2,14 +2,13 @@
 
 ## Overview
 
-The Zelta SDK is a payment-protocol client: it handles HTTP 402 negotiation for x402 (on-chain USDC) and MPP rails through a single SDK. Settlement design is under discussion; see [VERTEXSMS_X402_INTEGRATION §6](partners/VERTEXSMS_X402_INTEGRATION.md#6-money-flow). Partners integrate once and gain access to all supported payment rails without managing protocol-level complexity.
+The Zelta SDK is a client for paid APIs. When a server answers with HTTP 402 Payment Required, the SDK pays and retries the request. It supports x402, which settles in USDC on-chain, and the Machine Payments Protocol (MPP), which supports several payment rails. Settlement design is under discussion; see [VERTEXSMS_X402_INTEGRATION §6](partners/VERTEXSMS_X402_INTEGRATION.md#6-money-flow). A partner integrates the SDK once and can then use every supported rail without handling the protocols directly.
 
-What partners get:
+The SDK gives partners these things:
 
-- **Transparent 402 payment negotiation** -- the SDK handles payment challenges automatically
-- **Multi-protocol support** -- x402 (on-chain USDC) and MPP (Stripe, Tempo, Lightning, Card) in one client
-- **Webhook notifications** -- real-time notifications for payment lifecycle events
-- **Sandbox environment** -- full test environment with no real value at risk
+- It handles payment challenges automatically when a server returns 402.
+- It supports x402 (on-chain USDC) and MPP (Stripe, Tempo, Lightning, Card) in one client.
+- It returns every response as a `PaymentResult` that says whether a payment was made.
 
 Integration adapters for third-party APIs; no partnership or endorsement implied.
 
@@ -18,7 +17,7 @@ Integration adapters for third-party APIs; no partnership or endorsement implied
 - PHP 8.4+ (required by Zelta SDK v1.0.0)
 - Composer 2.x
 - Zelta API credentials (contact partnerships@zelta.app)
-- Webhook endpoint for payment notifications (HTTPS required in production)
+- A signer for x402 payments that implements `Zelta\Contracts\SignerInterface`
 
 ## Quick Start (5 minutes)
 
@@ -41,8 +40,7 @@ use Zelta\ZeltaClient;
 
 $config = new PaymentConfig(
     baseUrl: 'https://api.zelta.app',
-    apiKey: 'zk_live_your_api_key',
-    preferredNetwork: 'base',  // ethereum, polygon, arbitrum, base, solana
+    apiKey: 'fak_your_api_key',
     autoPay: true,
     timeoutSeconds: 30,
 );
@@ -50,8 +48,10 @@ $config = new PaymentConfig(
 $client = new ZeltaClient(
     config: $config,
     payment: new AutoDetectHandler(
-        new X402PaymentHandler($signer),
-        new MppPaymentHandler($config),
+        // x402 network preference order, as CAIP-2 ids
+        new X402PaymentHandler($signer, ['eip155:8453', 'solana:mainnet', 'eip155:1']),
+        // MPP rail preference order
+        new MppPaymentHandler(['stripe', 'x402', 'tempo', 'lightning']),
     ),
 );
 ```
@@ -59,38 +59,40 @@ $client = new ZeltaClient(
 ### 3. Make a paid API call
 
 ```php
-$response = $client->get('/v1/premium/resource');
+$result = $client->get('/v1/premium/resource');
 // SDK automatically handles 402 payment negotiation:
 // 1. Server returns 402 with payment requirements
 // 2. SDK detects protocol (x402 or MPP) from response headers
-// 3. SDK completes payment and retries the request
+// 3. SDK completes payment and retries the request once
 // 4. You receive the successful response
 ```
 
 ### 4. Handle the response
 
 ```php
-$data = json_decode($response->getBody()->getContents(), true);
+$data = $result->body;          // decoded JSON body
+$status = $result->statusCode;  // HTTP status code
+$paid = $result->paid;          // true when the SDK paid for this call
 ```
 
 ## Payment Protocols
 
 ### x402 (USDC On-Chain)
 
-The x402 protocol enables direct on-chain USDC payments via the HTTP 402 status code. When a server returns 402 with x402 headers, the SDK constructs and submits a payment transaction, then retries the original request with proof of payment.
+The x402 protocol pays for a request directly on-chain in USDC, using the HTTP 402 status code. When a server returns 402 with x402 headers, the SDK builds and signs a payment, then retries the original request with proof of payment.
 
 | Property | Detail |
 |----------|--------|
-| **Supported networks** | Ethereum, Polygon, Arbitrum, Base, Solana |
+| **Supported networks** | Base, Ethereum, Avalanche and Solana, plus their test networks (`config/x402.php`) |
 | **Settlement** | Facilitator-based, typically < 30 seconds |
 | **Token** | USDC (native on each chain) |
 | **Best for** | Crypto-native partners, high-value transactions, programmatic M2M payments |
 
-Configuration endpoint: `/.well-known/x402-configuration`
+Configuration endpoint: `/.well-known/x402-configuration` on `api.zelta.app` (`/api/.well-known/x402-configuration` on the main domain)
 
-### MPP (Multi-Payment Protocol)
+### MPP (Machine Payments Protocol)
 
-MPP aggregates multiple payment rails behind a single negotiation flow. The server advertises available rails and the SDK selects the optimal one based on partner configuration.
+MPP puts several payment rails behind one negotiation flow. The server lists the rails it accepts, and the SDK picks one in the order the partner configured.
 
 | Property | Detail |
 |----------|--------|
@@ -99,7 +101,9 @@ MPP aggregates multiple payment rails behind a single negotiation flow. The serv
 | **Currencies** | USD, EUR, GBP + USDC via x402 fallback |
 | **Best for** | Fiat-accepting partners, consumer-facing products, mass market |
 
-Configuration endpoint: `/.well-known/mpp-configuration`
+Configuration endpoint: `/.well-known/mpp-configuration` on `api.zelta.app` (`/api/.well-known/mpp-configuration` on the main domain)
+
+MPP is off by default (`MPP_ENABLED=false`). See [MACHINE_PAYMENTS_PROTOCOL.md](MACHINE_PAYMENTS_PROTOCOL.md).
 
 ### Choosing a Protocol
 
@@ -109,31 +113,26 @@ Configuration endpoint: `/.well-known/mpp-configuration`
 | Consumer checkout, subscription billing | MPP |
 | Mixed audience, maximum reach | AutoDetectHandler (both) |
 
-## Webhook Integration
+## Webhooks
 
-### Setup
+Partners cannot register webhooks themselves. Webhooks are platform configuration, so only a platform administrator can create them, through `POST /api/v2/webhooks`. `GET /api/v2/webhooks/events` lists the events a webhook can subscribe to. They cover accounts, transactions, transfers, baskets, polls, votes and exchange rates. There are no payment or subscription events for x402 or MPP payments.
 
-Register your webhook URL via the API:
+If an administrator sets up a webhook for you, each delivery carries these headers:
 
-```bash
-curl -X POST https://api.zelta.app/api/v1/webhooks/register \
-  -H "Authorization: Bearer zk_live_your_api_key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://your-app.com/webhooks/zelta",
-    "events": ["payment.completed", "payment.failed", "payment.refunded"]
-  }'
-```
+| Header | Content |
+|--------|---------|
+| `X-Webhook-ID` | The webhook's id |
+| `X-Webhook-Event` | The event type |
+| `X-Webhook-Delivery` | The delivery's id |
+| `X-Webhook-Signature` | `sha256=` followed by the hex HMAC-SHA256 of the raw body, keyed by the webhook secret |
 
-### Signature Verification
-
-All webhook payloads are signed with HMAC-SHA256. Always verify before processing:
+Always verify the signature before processing a delivery:
 
 ```php
 $payload = file_get_contents('php://input');
-$receivedSignature = $_SERVER['HTTP_X_ZELTA_SIGNATURE'] ?? '';
+$receivedSignature = $_SERVER['HTTP_X_WEBHOOK_SIGNATURE'] ?? '';
 
-$expectedSignature = hash_hmac('sha256', $payload, $webhookSecret);
+$expectedSignature = 'sha256=' . hash_hmac('sha256', $payload, $webhookSecret);
 
 if (! hash_equals($expectedSignature, $receivedSignature)) {
     http_response_code(401);
@@ -146,32 +145,14 @@ $event = json_decode($payload, true);
 
 Use `hash_equals()` for timing-safe comparison to prevent timing attacks.
 
-### Webhook Events
-
-| Event | Description |
-|-------|-------------|
-| `payment.completed` | Payment reported as completed by the underlying rail |
-| `payment.failed` | Payment failed (insufficient funds, network error, etc.) |
-| `payment.refunded` | Payment refunded to the payer |
-| `subscription.created` | Recurring payment subscription started |
-| `subscription.cancelled` | Recurring payment subscription stopped |
-
-### Retry Policy
-
-Failed webhook deliveries are retried with exponential backoff:
-
-- Attempt 1: immediate
-- Attempt 2: 1 minute
-- Attempt 3: 5 minutes
-
-Your endpoint must return a 2xx status code within 10 seconds. Non-2xx responses or timeouts trigger a retry.
+A failed delivery is retried after 1 minute, 5 minutes and 15 minutes, and then every 15 minutes for up to 24 hours. Your endpoint must return a 2xx status code within the webhook's timeout, which is 30 seconds by default. A non-2xx response or a timeout triggers a retry.
 
 ## Idempotency
 
 All payment-initiating requests should include an idempotency key to prevent duplicate charges:
 
 ```php
-$response = $client->post('/v1/payments', [
+$result = $client->post('/v1/payments', [
     'headers' => [
         'Idempotency-Key' => 'partner-order-abc123',
     ],
@@ -186,25 +167,25 @@ Keys are valid for 24 hours. Duplicate requests within that window return the or
 
 ## Rate Limits
 
-| Endpoint Type | Limit |
-|---------------|-------|
-| General API requests | 1,000 requests/minute per API key |
-| Payment initiations | 100 requests/minute per API key |
-| Webhook registrations | 10 requests/minute per API key |
+The API limits requests per minute by endpoint type. These are the defaults in `config/rate_limiting.php`:
 
-When rate-limited, the API returns HTTP 429 with a `Retry-After` header (in seconds). The SDK does not auto-retry rate limits -- implement backoff in your application:
+| Endpoint Type | Default limit |
+|---------------|---------------|
+| Queries | 100 requests/minute |
+| Transactions | 30 requests/minute |
+| Authentication | 3 requests/minute |
+| Public endpoints | 60 requests/minute |
+
+A request made with a Banking-as-a-Service partner key is limited by the partner's tier instead, at 60, 300 or 1,000 requests per minute. That figure is multiplied by a factor for the endpoint type, for example 0.5 for transactions.
+
+When a limit is reached, the API returns HTTP 429 with a `Retry-After` header in seconds. The SDK does not retry a 429. It returns a `PaymentResult` with `statusCode` 429 and does not expose the response headers, so implement backoff in your application:
 
 ```php
-use GuzzleHttp\Exception\ClientException;
+$result = $client->get('/v1/resource');
 
-try {
-    $response = $client->get('/v1/resource');
-} catch (ClientException $e) {
-    if ($e->getResponse()->getStatusCode() === 429) {
-        $retryAfter = (int) $e->getResponse()->getHeaderLine('Retry-After');
-        sleep($retryAfter);
-        // Retry...
-    }
+if ($result->statusCode === 429) {
+    sleep($backoffSeconds);
+    // Retry...
 }
 ```
 
@@ -220,26 +201,20 @@ try {
 | 429 | Rate limited | Respect `Retry-After` header |
 | 500 | Server error | Retry with backoff, contact support if persistent |
 
-The SDK throws `PaymentRequiredException` if a 402 response cannot be handled (e.g., no handler configured) and `PaymentFailedException` if the payment itself fails.
+The SDK throws `PaymentRequiredException` when it cannot handle a 402 response, for example when no handler is configured or `autoPay` is false. It throws `PaymentFailedException` when the retry after payment still fails.
 
 ## Testing
 
-| Property | Detail |
-|----------|--------|
-| **Sandbox URL** | `https://sandbox.api.zelta.app` |
-| **Test API key prefix** | `zk_test_` |
-| **Test tokens** | No real value -- all sandbox payments use test tokens |
+Outside production, the payment rail adapters return simulated responses, so tests need no external payment keys. Ask the Zelta team for test credentials and a test base URL before you start.
 
 ```php
 $testConfig = new PaymentConfig(
-    baseUrl: 'https://sandbox.api.zelta.app',
-    apiKey: 'zk_test_your_test_key',
+    baseUrl: 'https://your-test-host.example',
+    apiKey: 'fak_your_test_key',
 );
 
 $testClient = new ZeltaClient(config: $testConfig, payment: $handler);
 ```
-
-Sandbox mirrors production behavior exactly, including 402 challenges, webhook delivery, and rate limits.
 
 ## Migration from Direct API
 
@@ -255,7 +230,7 @@ if ($response->getStatusCode() === 402) {
 }
 
 // After: SDK handles it
-$response = $client->get('/v1/resource');
+$result = $client->get('/v1/resource');
 // Done -- 402 negotiation is automatic
 ```
 
@@ -265,6 +240,5 @@ $response = $client->get('/v1/resource');
 |---------|---------|
 | Technical support | developers@zelta.app |
 | Partnership inquiries | partnerships@zelta.app |
-| Status page | https://status.zelta.app |
 | SDK issues | https://github.com/FinAegis/core-banking-prototype-laravel/issues |
 | Documentation | https://zelta.app/developers |

@@ -1,6 +1,8 @@
 # Security Audit Checklist
 
-This checklist provides a comprehensive security review framework for FinAegis deployments. Use it before any production deployment or as part of regular security assessments.
+This checklist is a security review for a FinAegis deployment. Use it before a production deployment and in regular security reviews.
+
+Some checks can be run from the command line. `php artisan security:audit` scores the application settings. `php artisan ops:verify-env` checks the production environment. `php artisan pci:audit` checks data classification, encryption, key rotation and network segmentation. These commands are readiness tooling. FinAegis holds no SOC 2, PCI DSS or other certification, and a passing result does not certify a deployment.
 
 ## Quick Reference
 
@@ -306,7 +308,7 @@ This checklist provides a comprehensive security review framework for FinAegis d
 
 - [ ] **Security Standards**
   - [ ] OWASP Top 10 reviewed
-  - [ ] PCI-DSS considered (if card data)
+  - [ ] PCI DSS scope assessed (if card data). Any Zelta card services will be provided by licensed third parties under their own terms. Card numbers are shown only on the card partner's secure page.
   - [ ] SOC 2 controls mapped (if applicable)
   - [ ] Penetration testing scheduled
 

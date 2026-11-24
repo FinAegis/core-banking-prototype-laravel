@@ -10,7 +10,7 @@ use OpenApi\Attributes as OA;
 
 #[OA\Tag(
     name: 'Liquidity Pools',
-    description: 'Liquidity pool creation and management'
+    description: 'Liquidity pool pages of the demo trading engine'
 )]
 class LiquidityPoolController extends Controller
 {

@@ -1,10 +1,12 @@
 # Infrastructure Development Guide
 
-**Last Updated:** 2024-09-08
+**Last Updated:** 2026-11-24 (v7.18.1)
 
 ## Overview
 
-The FinAegis platform uses a complete CQRS and Event Sourcing infrastructure built on Laravel. This guide covers the infrastructure components, patterns, and development practices.
+FinAegis has a Command Query Responsibility Segregation (CQRS) and domain event infrastructure built on Laravel. The command bus, query bus and domain event bus are implemented in `app/Infrastructure/`. Event sourcing itself runs on `spatie/laravel-event-sourcing` and is described in [EVENT-SOURCING-BEST-PRACTICES.md](EVENT-SOURCING-BEST-PRACTICES.md).
+
+The buses are ready to use, but no command, query or event handlers are registered yet. `DomainServiceProvider` contains the registration code with the examples commented out. Most domain code still calls services, workflows and aggregates directly. The examples in this guide show the intended pattern; classes such as `PlaceOrderCommand` and `PlaceOrderHandler` do not exist yet.
 
 ## Architecture Components
 
@@ -94,6 +96,8 @@ class PlaceOrderHandler
 ```
 
 #### 3. Register Handler
+
+Handler registration in `app/Providers/DomainServiceProvider.php` runs when `APP_ENV` is `production` or when `config('domain.enable_handlers')` is true.
 
 ```php
 // app/Providers/DomainServiceProvider.php
@@ -269,21 +273,19 @@ $eventBus->subscribe(
 ```bash
 # .env configuration
 
-# Enable/disable handler registration
-DOMAIN_ENABLE_HANDLERS=true  # false for demo mode
-
 # Queue configuration for async operations
 QUEUE_CONNECTION=redis
-QUEUE_DRIVER=redis
 
 # Cache configuration for query bus
-CACHE_DRIVER=redis
+CACHE_STORE=redis
 ```
 
 ### Configuration File
 
+The repository has no `config/domain.php` and no `DOMAIN_ENABLE_HANDLERS` variable. Outside production, `config('domain.enable_handlers')` is therefore false and the registration code does not run. To turn it on in another environment, add a config file like this one:
+
 ```php
-// config/domain.php
+// config/domain.php (not included in the repository)
 return [
     'enable_handlers' => env('DOMAIN_ENABLE_HANDLERS', true),
     
@@ -359,22 +361,13 @@ public function test_event_publishing()
 ## Best Practices
 
 ### 1. Command Design
-- Keep commands immutable (readonly properties)
-- Include all data needed for execution
-- Use value objects for complex data
-- Validate in command constructor
+Keep commands immutable with readonly properties. Put all the data needed for execution into the command. Use value objects for complex data, and validate in the constructor. Use strings and bcmath for money amounts, never floats.
 
 ### 2. Query Optimization
-- Use caching for expensive queries
-- Design queries for specific use cases
-- Avoid N+1 problems with eager loading
-- Consider read models for complex queries
+Cache expensive queries and design each query for one use case. Avoid N+1 problems with eager loading. Consider read models for complex queries.
 
 ### 3. Event Handling
-- Keep handlers idempotent
-- Handle events asynchronously when possible
-- Use priority for ordering dependent handlers
-- Log all event processing
+Keep handlers idempotent and run them asynchronously when you can. Use the priority to order dependent handlers. Log all event processing.
 
 ### 4. Error Handling
 ```php
@@ -404,21 +397,13 @@ DB::transaction(function () use ($commandBus, $eventBus) {
 ## Performance Considerations
 
 ### Command Bus
-- Use async dispatch for non-critical commands
-- Batch related commands in transactions
-- Monitor queue depth and processing time
+Use async dispatch for commands that are not critical. Batch related commands in transactions. Watch the queue depth and the processing time.
 
 ### Query Bus
-- Cache frequently accessed data
-- Use appropriate cache TTLs
-- Consider cache warming strategies
-- Monitor cache hit rates
+Cache frequently used data with suitable TTLs. Consider warming the cache, and watch the cache hit rate.
 
 ### Event Bus
-- Process events asynchronously when possible
-- Use priority queues for critical events
-- Monitor event processing lag
-- Implement retry mechanisms
+Process events asynchronously when you can, and use priority queues for critical events. Watch the processing lag and retry failed handlers.
 
 ## Monitoring
 
@@ -431,7 +416,7 @@ DB::transaction(function () use ($commandBus, $eventBus) {
 
 ### Logging
 ```php
-// All infrastructure components log automatically
+// Example log lines from the infrastructure components
 [2024-09-08 10:00:00] domain.INFO: Command dispatched {"command":"PlaceOrderCommand","user":"123"}
 [2024-09-08 10:00:01] domain.INFO: Query executed {"query":"GetOrderBookQuery","cached":true}
 [2024-09-08 10:00:02] domain.INFO: Event published {"event":"OrderPlaced","async":false}
@@ -461,16 +446,10 @@ $commandBus->dispatch(new PlaceOrderCommand($userId, $type, $side, $amount));
 ## Troubleshooting
 
 ### Commands Not Executing
-- Check `DOMAIN_ENABLE_HANDLERS` is true
-- Verify handler registration in provider
-- Check queue workers are running
+Check that the handler is registered in `DomainServiceProvider` and that the registration code runs. It runs in production, or when `config('domain.enable_handlers')` is true. Check that the queue workers are running.
 
 ### Queries Not Caching
-- Verify cache driver is configured
-- Check cache permissions
-- Monitor cache memory usage
+Check that `CACHE_STORE` points to a working cache store, that the cache has the right permissions and that it has enough memory.
 
 ### Events Not Processing
-- Check event subscriptions
-- Verify queue workers for async events
-- Check handler exceptions in logs
+Check the event subscriptions and the queue workers for async events. Look for handler exceptions in the logs.

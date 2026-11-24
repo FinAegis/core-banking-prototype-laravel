@@ -2,7 +2,14 @@
 
 ## Overview
 
-AI Agents in FinAegis are specialized workflows that handle specific banking domains. They combine natural language processing, tool execution, and decision-making capabilities while maintaining complete auditability through event sourcing.
+An AI agent in FinAegis handles one area of questions, such as balances, transfers or compliance lookups. It reads the question, calls tools from `ToolRegistry` and writes an answer. Its decisions can be stored as events, so they can be reviewed later.
+
+There are two ways to build an agent.
+
+- A simple agent extends `App\Domain\AI\Agents\BaseAgent` and is registered with `AgentRouterService`. The five built-in agents (`FinancialAgent`, `TransferAgent`, `TradingAgent`, `ComplianceAgent`, `GeneralAgent`) work this way. Step 5 shows the registration.
+- A workflow agent is a Laravel Workflow class with activities, compensation and human approval. `CustomerServiceWorkflow` in `app/Domain/AI/Workflows/` is a real example.
+
+The steps below build a loan advisor as a workflow agent. `LoanAdvisorAgentWorkflow`, `ExecutionActivity`, `ResponseGenerationActivity`, `NLPService`, `LoanAdvisorService` and `HumanInterventionPolicy` are example classes that you would write. They are not in the codebase. `IntentRecognitionActivity`, `ToolSelectionActivity` and `AIInteractionAggregate` do exist.
 
 ## Agent Architecture
 
@@ -327,37 +334,29 @@ class HumanInterventionPolicy
 
 ### Step 5: Register the Agent
 
-Register your agent in the service provider:
+A simple agent extends `BaseAgent` and declares its name, description, keywords and tool names. Register it in `App\Providers\AgentServiceProvider`, next to the built-in agents:
 
 ```php
 namespace App\Providers;
 
-use App\Domain\AI\Registry\AgentRegistry;
-use App\Domain\AI\Workflows\LoanAdvisorAgentWorkflow;
+use App\Domain\AI\Agents\LoanAdvisorAgent; // your class, extends BaseAgent
+use App\Domain\AI\MCP\ToolRegistry;
+use App\Domain\AI\Services\AgentRouterService;
+use App\Domain\AI\Services\LLMOrchestrationService;
 
-class AIAgentServiceProvider extends ServiceProvider
-{
-    public function boot(AgentRegistry $registry): void
-    {
-        $registry->register(
-            name: 'loan_advisor',
-            workflow: LoanAdvisorAgentWorkflow::class,
-            config: [
-                'description' => 'Provides loan advice and eligibility assessment',
-                'capabilities' => [
-                    'loan_eligibility_check',
-                    'interest_rate_calculation',
-                    'repayment_planning',
-                    'document_requirements',
-                ],
-                'confidence_threshold' => 0.8,
-                'requires_auth' => true,
-                'max_interactions_per_day' => 100,
-            ]
-        );
-    }
-}
+$this->app->singleton(AgentRouterService::class, function ($app) {
+    $router = new AgentRouterService();
+    $toolRegistry = $app->make(ToolRegistry::class);
+    $llmService = $app->make(LLMOrchestrationService::class);
+
+    // ... built-in agents ...
+    $router->registerAgent(new LoanAdvisorAgent($toolRegistry, $llmService));
+
+    return $router;
+});
 ```
+
+The router scores each agent by its keywords and sends the question to the best matches. A workflow agent is started with `WorkflowStub::make(...)` instead and needs no registration.
 
 ## Testing Agents
 
@@ -432,44 +431,21 @@ class LoanAdvisorAgentTest extends TestCase
 
 ## Agent Types
 
-### Customer Service Agent
-Handles general inquiries and support:
-- Account information
-- Transaction queries
-- Basic troubleshooting
-- FAQ responses
+These agents are registered by default:
 
-### Compliance Agent
-Supports operators' compliance processes:
-- KYC verification
-- AML screening
-- Transaction monitoring
-- Suspicious activity reporting
+| Agent | Handles |
+|---|---|
+| `FinancialAgent` | Balances, transactions and spending questions |
+| `TransferAgent` | Payment and transfer requests |
+| `TradingAgent` | Exchange quotes and market questions (example template; not investment advice) |
+| `ComplianceAgent` | KYC and AML lookups that support an operator's compliance process |
+| `GeneralAgent` | Questions that no other agent matches |
 
-### Risk Assessment Agent
-Evaluates various risks:
-- Credit risk assessment
-- Market risk analysis
-- Operational risk evaluation
-- Fraud detection
-
-### Trading Agent
-Manages trading operations:
-- Market analysis
-- Trade execution
-- Portfolio optimization
-- Strategy recommendations
-
-### Portfolio Analytics Agent (example template)
-Provides portfolio analytics (not investment advice):
-- Portfolio analysis
-- Asset allocation
-- Risk profiling
-- Performance reporting
+Risk assessment is not an agent. It runs as the `RiskAssessmentSaga` workflow.
 
 ## Multi-Agent Coordination
 
-Agents can collaborate on complex tasks:
+Agents can work on one task together. The code below is a simplified example. The real implementation is `MultiAgentCoordinationService::coordinateTask()`.
 
 ```php
 class MultiAgentCoordinator
@@ -505,29 +481,26 @@ class MultiAgentCoordinator
 
 ## Performance Optimization
 
-### Caching Strategies
-- Cache intent recognition results
-- Cache tool selection decisions
-- Cache frequently accessed context
+### Caching
 
-### Async Processing
-- Use queues for long-running operations
-- Process multiple tools in parallel
-- Stream responses for better UX
+Cache intent recognition results, tool selection decisions and context that is read often. Tools that return `isCacheable() === true` are cached by the internal MCP server.
 
-### Resource Management
-- Pool external API connections
-- Implement circuit breakers
-- Monitor token usage
+### Async processing
+
+Run long operations on queues or as workflows. Independent tool calls can run in parallel.
+
+### Resource management
+
+Reuse connections to external APIs and add circuit breakers around them. Watch language model token usage, which is recorded in the `ai_llm_usage` table.
 
 ## Security Best Practices
 
-1. **Authentication**: Verify user identity before agent interaction
-2. **Authorization**: Check permissions for each tool execution
-3. **Audit Trail**: Log all decisions and tool executions
-4. **Data Privacy**: Isolate conversation data per user
-5. **Rate Limiting**: Prevent abuse with interaction limits
-6. **Encryption**: Encrypt sensitive conversation data
+1. Verify the user's identity before the agent acts.
+2. Check permissions for every tool call. Each tool has an `authorize()` method for this.
+3. Record every decision and tool call.
+4. Keep each user's conversations separate.
+5. Limit how often a user can call the agent.
+6. Encrypt sensitive conversation data.
 
 ## Next Steps
 

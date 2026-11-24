@@ -4,19 +4,17 @@
 
 Accepted
 
+> **Implementation status (reviewed for v7.18.1).** The decision is built, but the names differ from the sketches below. The mode follows `APP_ENV`. `APP_ENV=demo` turns on demo mode, and `SANDBOX_MODE=true` turns on the sandbox settings. There is no `services.environment_mode` setting. `App\Providers\DemoServiceProvider` binds the demo implementations, such as `DemoPaymentService`, `DemoPaymentGatewayService`, `DemoExchangeService`, `DemoLendingService`, `DemoStablecoinService` and `DemoBankConnector`. The demo settings live in `config/demo.php`. There is no `demo:reset` command. `php artisan demo:populate` loads the demo data, and `php artisan demo:cleanup` removes old demo data every day at 03:00. The demo users are demo.argentina@, demo.nomad@, demo.business@, demo.investor@ and demo.user@gcu.global, all with the password `demo123`. The demo payment gateway does not simulate declines by card number; demo charges succeed.
+
 ## Context
 
-The platform needs to support multiple operational modes:
+FinAegis has to run in several modes:
 
-1. **Demo Mode** - For demonstrations, learning, testing
-2. **Sandbox Mode** - For integration testing with test APIs
-3. **Production Mode** - Real transactions with real money
+1. **Demo mode** is for demonstrations, learning and testing.
+2. **Sandbox mode** is for integration testing against providers' test APIs.
+3. **Production mode** connects real providers. FinAegis is reference software, so a production deployment is the operator's own responsibility.
 
-Challenges:
-- External service dependencies (payment gateways, exchanges, KYC providers)
-- Consistent behavior across environments
-- Easy switching between modes
-- Realistic demo experience without real transactions
+External services such as payment gateways, exchanges and identity check providers make this hard. The platform should behave the same way in every environment, and switching modes should be easy. The demo should feel realistic without moving real money.
 
 ## Decision
 
@@ -153,21 +151,31 @@ class PaymentServiceProvider extends ServiceProvider
 ### Configuration
 
 ```php
-// config/services.php
+// config/demo.php (excerpt)
 return [
-    'environment_mode' => env('APP_ENV_MODE', 'demo'),
-
-    'demo' => [
+    'features' => [
+        'instant_deposits'     => env('DEMO_INSTANT_DEPOSITS', true),
+        'skip_kyc'             => env('DEMO_SKIP_KYC', true),
+        'mock_external_apis'   => env('DEMO_MOCK_EXTERNAL_APIS', true),
+        'fixed_exchange_rates' => env('DEMO_FIXED_EXCHANGE_RATES', true),
+        'auto_approve'         => env('DEMO_AUTO_APPROVE', true),
+    ],
+    'ui' => [
         'show_banner' => env('DEMO_SHOW_BANNER', true),
-        'reset_schedule' => env('DEMO_RESET_SCHEDULE', 'daily'),
-        'seed_accounts' => env('DEMO_SEED_ACCOUNTS', true),
+        'banner_text' => env('DEMO_BANNER_TEXT', 'Demo Environment - No real transactions'),
+    ],
+    'cleanup' => [
+        'enabled'        => env('DEMO_CLEANUP_ENABLED', true),
+        'retention_days' => env('DEMO_CLEANUP_RETENTION_DAYS', 1),
+    ],
+    'sandbox' => [
+        'enabled' => env('SANDBOX_MODE', false),
     ],
 ];
 
-// .env.demo
-APP_ENV_MODE=demo
+// .env for a demo deployment
+APP_ENV=demo
 DEMO_SHOW_BANNER=true
-DEMO_SEED_ACCOUNTS=true
 ```
 
 ### Demo Behaviors
@@ -183,7 +191,9 @@ DEMO_SEED_ACCOUNTS=true
 
 ### Test Card Numbers
 
-| Card Number | Behavior |
+The decision planned test cards for declines. They are not built yet. The demo gateway returns a successful charge for every card and reports the card as `4242`.
+
+| Card Number | Planned behavior |
 |-------------|----------|
 | 4242 4242 4242 4242 | Success |
 | 4000 0000 0000 0000 | Decline (insufficient funds) |
@@ -197,7 +207,8 @@ class DemoDataSeeder extends Seeder
 {
     public function run(): void
     {
-        // Demo accounts
+        // Demo accounts (the real seeder also creates
+        // demo.argentina@gcu.global and demo.nomad@gcu.global)
         $accounts = [
             ['email' => 'demo.user@gcu.global', 'balance' => 10000],
             ['email' => 'demo.business@gcu.global', 'balance' => 50000],
@@ -230,17 +241,11 @@ class DemoDataSeeder extends Seeder
 
 ### Positive
 
-- **Zero external dependencies** in demo mode
-- **Consistent experience** across environments
-- **Easy testing** without real transactions
-- **Safe learning** environment
-- **Predictable** demo behaviors
+Demo mode needs no external services. The experience is the same in every environment. People can test and learn without real transactions, and the demo behaves predictably.
 
 ### Negative
 
-- **Maintenance** of multiple implementations
-- **Drift risk** between demo and production
-- **Complexity** in service provider logic
+Several implementations of each service must be maintained. Demo and production code can drift apart, and the service provider logic gets more complex.
 
 ### Mitigations
 
@@ -255,7 +260,7 @@ class DemoDataSeeder extends Seeder
 ### 1. Visual Indicators
 
 ```blade
-@if(config('services.demo.show_banner'))
+@if(config('demo.ui.show_banner'))
 <div class="demo-banner">
     This is a demo environment. No real transactions.
 </div>
@@ -264,8 +269,10 @@ class DemoDataSeeder extends Seeder
 
 ### 2. Demo Reset
 
+The planned `demo:reset` command was built as two commands. `php artisan demo:cleanup` removes old demo data, and `php artisan demo:populate` loads it again. The sketch shows the idea:
+
 ```php
-// Artisan command
+// Artisan command (planned name)
 php artisan demo:reset
 
 class ResetDemoCommand extends Command

@@ -1,5 +1,7 @@
 # Phase 5.2: Transaction Processing
 
+> This is a historical record of the 2024 phase. The custodian connectors are integration adapters for third-party bank APIs, and no partnership or endorsement is implied. No live bank connection is configured, and FinAegis is a reference platform, not a bank.
+
 ## Overview
 
 Phase 5.2 implements advanced transaction processing capabilities for the FinAegis platform, focusing on multi-bank transfers, intelligent routing, and efficient settlement mechanisms. This phase builds upon the custodian connectors from Phase 5.1 to enable seamless money movement across different financial institutions.
@@ -201,4 +203,4 @@ Comprehensive test suites ensure reliability:
 
 ## Conclusion
 
-Phase 5.2 transforms FinAegis into a true multi-bank platform capable of intelligently routing transfers and optimizing settlement costs. The implementation provides a solid foundation for global money movement while maintaining security, reliability, and cost efficiency.
+Phase 5.2 added the software for routing transfers between custodians and optimizing settlement costs. It is reference software and is not connected to any bank.

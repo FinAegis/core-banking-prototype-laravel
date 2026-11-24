@@ -2,24 +2,26 @@
 
 ## Overview
 
-This guide provides comprehensive best practices for implementing event sourcing in the FinAegis platform. Event sourcing stores all changes to application state as a sequence of events, providing a complete audit trail and enabling powerful features like temporal queries and event replay.
+This guide collects best practices for event sourcing in the FinAegis platform. Event sourcing stores every change to the application state as a sequence of events. That gives a complete audit trail. It also makes it possible to ask what the state was at a past moment and to replay events into new read models.
+
+FinAegis uses `spatie/laravel-event-sourcing` 7.15. Many domains keep their events in their own table, for example `treasury_events`, `exchange_events` or `lending_events`. Account events use the shared `stored_events` table.
+
+### About the examples
+
+The examples use the Treasury domain. `TreasuryAggregate`, `TreasuryAccountCreated`, `CashAllocated` and `RiskManagementSaga` exist in `app/Domain/Treasury/`. The projector, batch processor, cache repository and metrics classes below are sketches that show the pattern. They are not classes in the codebase. The Treasury module is switched off on the production site through `MODULES_DISABLED`.
+
+Some sketches use `float` for amounts to stay short. Real code must not do that. Money is handled as numeric strings with `bcmath` (`bcadd`, `bcsub`, `bcmul`, `bcdiv`), and balance changes run inside `DB::transaction()` with `lockForUpdate()`.
 
 ## Core Principles
 
 ### 1. Events are Immutable
-- Once stored, events should never be modified or deleted
-- Corrections are made by appending compensating events
-- This ensures a complete and trustworthy audit trail
+A stored event is never changed or deleted. A mistake is corrected by appending a compensating event. This keeps the audit trail complete and trustworthy.
 
 ### 2. Events Represent Facts
-- Events describe something that has already happened
-- Use past tense naming: `AccountCreated`, `FundsTransferred`, `OrderPlaced`
-- Events cannot be rejected once they've occurred
+An event describes something that has already happened. Its name is in the past tense, such as `AccountCreated`, `FundsTransferred` or `OrderPlaced`. An event cannot be rejected once it has happened.
 
 ### 3. Events are Business-Focused
-- Events should represent business concepts, not technical implementation
-- Good: `CustomerRegistered`, `PaymentProcessed`
-- Bad: `DatabaseUpdated`, `CacheInvalidated`
+An event names a business concept, not a technical step. `CustomerRegistered` and `PaymentProcessed` are good names. `DatabaseUpdated` and `CacheInvalidated` are bad names.
 
 ## Event Design Best Practices
 
@@ -49,17 +51,9 @@ class TreasuryAccountCreated extends ShouldBeStored
 
 ### Event Naming Conventions
 
-1. **Use Domain Language**: Events should use ubiquitous language from the domain
-2. **Past Tense**: Always use past tense to indicate something has happened
-3. **Specific and Descriptive**: Be specific about what occurred
+Event names use the language of the domain. They are always in the past tense, because the event has already happened. They say exactly what occurred.
 
-Examples:
-- ✅ `LoanApplicationSubmitted`
-- ✅ `RiskAssessmentCompleted`
-- ✅ `YieldOptimizationStarted`
-- ❌ `ProcessLoan`
-- ❌ `UpdateStatus`
-- ❌ `DataChanged`
+Good names are `LoanApplicationSubmitted`, `RiskAssessmentCompleted` and `YieldOptimizationStarted`. Bad names are `ProcessLoan`, `UpdateStatus` and `DataChanged`.
 
 ### Event Versioning
 
@@ -104,7 +98,7 @@ class OrderPlacedV2 extends ShouldBeStored
 
 ### Separate Event Storage per Aggregate
 
-Each aggregate should have its own event storage table for better performance and isolation:
+Give each domain its own event table. This keeps queries fast and keeps the domains apart:
 
 ```php
 <?php
@@ -604,6 +598,8 @@ class EventStoreMetrics
 
 ### Event Replay Tool
 
+The platform already has a replay command. `php artisan event:replay` takes `--domain`, `--projector`, `--event-type`, `--aggregate-id`, `--from`, `--to` and `--dry-run`. Related commands are `event:stats`, `event:rebuild`, `event:upcast`, `snapshot:create` and `snapshot:cleanup`. The sketch below shows how such a command works inside:
+
 ```php
 <?php
 
@@ -662,8 +658,7 @@ class ReplayEventsCommand extends Command
 ## Common Pitfalls and Solutions
 
 ### 1. Event Granularity
-**Problem**: Too many fine-grained events
-**Solution**: Combine related changes into meaningful business events
+Too many small events make the history hard to read. Combine related changes into one meaningful business event.
 
 ```php
 // ❌ Too granular
@@ -676,8 +671,7 @@ $this->recordThat(new CustomerProfileUpdated($name, $email, $phone));
 ```
 
 ### 2. Event Payload Size
-**Problem**: Large events with unnecessary data
-**Solution**: Store only essential data, use references for large objects
+Large events with unneeded data slow down replays. Store only the essential data, and store a reference to large objects instead of the objects.
 
 ```php
 // ❌ Storing entire objects
@@ -688,8 +682,7 @@ $this->recordThat(new ReportGenerated($reportId, $reportUrl));
 ```
 
 ### 3. Synchronous Projections
-**Problem**: Slow projections blocking main flow
-**Solution**: Use queued projectors for heavy computations
+A slow projection blocks the request that recorded the event. Use queued projectors for heavy work.
 
 ```php
 // ❌ Synchronous heavy computation
@@ -717,11 +710,11 @@ class FastProjector extends QueuedProjector
 
 ### Moving from CRUD to Event Sourcing
 
-1. **Parallel Run**: Run event sourcing alongside existing system
-2. **Gradual Migration**: Migrate one aggregate at a time
-3. **Event Generation**: Generate initial events from existing data
-4. **Verification**: Ensure read models match existing data
-5. **Cutover**: Switch to event-sourced system
+1. Run event sourcing alongside the existing system.
+2. Migrate one aggregate at a time.
+3. Generate the first events from the existing data.
+4. Check that the read models match the existing data.
+5. Switch over to the event-sourced system.
 
 ```php
 <?php
@@ -754,4 +747,4 @@ class MigrateToEventSourcingCommand extends Command
 
 ## Conclusion
 
-Event sourcing provides powerful capabilities but requires careful design and implementation. Follow these best practices to build maintainable, performant, and reliable event-sourced systems in the FinAegis platform.
+Event sourcing gives a full history of every change, but it needs careful design. These practices keep the event-sourced parts of FinAegis maintainable, fast and reliable.

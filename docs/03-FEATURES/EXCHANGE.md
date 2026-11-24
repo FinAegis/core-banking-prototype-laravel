@@ -2,115 +2,105 @@
 
 ## Overview
 
-FinAegis Exchange is an open-source exchange-engine module (order book, matching, fees) for multi-asset trading. Licensing and regulatory compliance are the responsibility of the operator of each deployment.
+FinAegis Exchange is an open-source exchange engine for multi-asset trading. It has an order book, order matching and fees. Licensing and regulatory compliance are the responsibility of the operator of each deployment.
+
+The exchange is part of the demo trading engine. Its trading routes use the `feature:trading.enabled` middleware, which reads `TRADING_ENABLED`. The switch is on by default only for `APP_ENV=local`, `testing` and `demo`, and production sets `TRADING_ENABLED=false`. Zelta does not use the exchange. Exchange rates, settings and the status endpoint stay available without the switch.
 
 ## Key Features
 
-### 1. **Multi-Asset Support**
+### 1. Multi-asset support
 - **Cryptocurrencies**: BTC, ETH
-- **Fiat Currencies**: EUR, USD, GBP
+- **Fiat currencies**: EUR, USD, GBP
 - **Demo units**: GCU demo (simulated; not issued or offered)
-- **Trading Pairs**: All combinations of tradeable assets
+- **Trading pairs**: `config/trading.php` lists the intended pairs, but the code does not read that list. The order endpoint accepts any pair of three-letter currency codes.
 
-### 2. **Order Types**
-- **Market Orders**: Instant execution at best available price
-- **Limit Orders**: Execution at specified price or better
-- **Order Management**: Place, view, and cancel orders
+> The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
 
-### 3. **Advanced Order Book**
-- **Real-time Updates**: Live order book with bid/ask prices
-- **Depth Charts**: Visual representation of market depth
-- **Trade History**: Complete execution history
-- **Best Bid/Ask**: Always visible spread information
+### 2. Order types
+- **Market orders** execute at the best available price.
+- **Limit orders** execute at the given price or better.
+- People can place, view and cancel their orders.
 
-### 4. **Fee Structure**
-- **Maker Fee**: 0.1% (default)
-- **Taker Fee**: 0.2% (default)
-- **Volume Discounts**: Reduced fees for high-volume traders
-- **Fee Tiers**: Based on 30-day trading volume
+### 3. Order book
+The order book shows bids, asks and the spread for each pair. The trading page also shows recent trades.
 
-### 5. **Security Features**
-- **Balance Locking**: Funds locked during order placement
-- **Atomic Swaps**: All-or-nothing execution (full reversal on failure)
-- **Event Sourcing**: Complete audit trail of all actions
-- **Rate Limiting**: Protection against abuse
+### 4. Fees
+- The default maker fee is 0.1%.
+- The default taker fee is 0.2%.
+- `FeeCalculator` lowers both fees when the 30-day trading volume reaches $500,000, and again when it reaches $1,000,000.
+
+The fee values are set in `FeeCalculator`. The `fees` block in `config/trading.php` is not read.
+
+### 5. Safeguards
+- Funds are locked while an order is open.
+- The API order endpoint uses the `transaction.rate_limit` middleware and the `idempotency` middleware.
+- Every order action is stored as an event, so the history can be replayed.
 
 ## Architecture
 
-### Event-Driven Design
-The exchange uses event sourcing for all operations:
-- `OrderPlaced`: When a new order is created
-- `OrderMatched`: When orders are matched
-- `OrderFilled`: When an order is completely filled
-- `OrderCancelled`: When an order is cancelled
-- `OrderPartiallyFilled`: When an order is partially executed
+### Event-driven design
+The exchange uses event sourcing for its operations. The main events are these:
+- `OrderPlaced` when a new order is created.
+- `OrderMatched` when two orders match.
+- `OrderPartiallyFilled` when part of an order executes.
+- `OrderFilled` when an order is completely filled.
+- `OrderCancelled` when an order is cancelled.
 
-### Domain Components
-1. **Order Aggregate**: Manages individual order lifecycle
-2. **OrderBook Aggregate**: Maintains bid/ask order collections
-3. **Matching Engine**: Workflow-based order matching
-4. **Fee Calculator**: Dynamic fee calculation service
+### Domain components
+1. The **Order aggregate** manages the life of one order.
+2. The **OrderBook aggregate** keeps the bid and ask collections.
+3. `OrderMatchingWorkflow` matches orders.
+4. `FeeCalculator` calculates the fees when orders match.
 
-### Workflow-Based Matching
-The order matching process uses Laravel Workflow:
-1. **Validate Order**: Check account, balance, and parameters
-2. **Lock Balance**: Reserve funds for the order
-3. **Add to Order Book**: Place order in appropriate queue
-4. **Match Orders**: Find and execute matches
-5. **Transfer Assets**: Move assets between accounts
-6. **Update Order Book**: Remove filled orders
+### Workflow-based matching
+`OrderMatchingWorkflow` runs these steps with Laravel Workflow:
+1. Validate the order, the account and the balance.
+2. Lock the balance for the order.
+3. Add the order to the order book.
+4. Find and execute matches.
+5. Move assets between accounts.
+6. Remove filled orders from the order book.
 
 ## API Endpoints
 
-### Public Endpoints
-- `GET /api/exchange/orderbook/{base}/{quote}` - Get order book
-- `GET /api/exchange/markets` - Get all market data
+### Public endpoints
+- `GET /api/exchange/orderbook/{baseCurrency}/{quoteCurrency}` returns the order book.
+- `GET /api/exchange/markets` returns market data.
 
-### Authenticated Endpoints
-- `POST /api/exchange/orders` - Place new order
-- `GET /api/exchange/orders` - Get user's orders
-- `DELETE /api/exchange/orders/{orderId}` - Cancel order
-- `GET /api/exchange/trades` - Get user's trade history
+### Authenticated endpoints
+- `POST /api/exchange/orders` places a new order.
+- `GET /api/exchange/orders` lists the person's orders.
+- `DELETE /api/exchange/orders/{orderId}` cancels an order.
+- `GET /api/exchange/trades` lists the person's trades.
 
 ## Web Interface
 
-### Trading Interface (`/exchange`)
-- **Order Book Display**: Real-time bid/ask prices
-- **Order Placement**: Buy/sell forms with market/limit options
-- **Open Orders**: View and manage active orders
-- **Recent Trades**: Market activity display
-- **Market Selector**: Switch between trading pairs
+### Trading page (`/exchange`)
+The trading page shows the order book, buy and sell forms with market and limit options, open orders, recent trades and a pair selector.
 
-### Order Management (`/exchange/orders`)
-- **Order History**: Complete list of all orders
-- **Order Details**: Execution details and status
-- **Cancel Orders**: One-click cancellation
-- **Filter Options**: By status, type, and pair
+### Orders (`/exchange/orders`)
+This page lists the person's orders with their status, and lets the person cancel open orders.
 
-### Trade History (`/exchange/trades`)
-- **Execution History**: All completed trades
-- **Fee Summary**: Total fees paid
-- **Export Options**: CSV and PDF export
-- **Performance Metrics**: Trading statistics
+### Trades (`/exchange/trades`)
+This page lists the person's completed trades and the fees paid. The page shows CSV and PDF export buttons that call `/exchange/export-trades`, but that route points to an `ExchangeController::exportTrades` method that does not exist, so export does not work at v7.18.1.
+
+### External exchanges (`/exchange/external`)
+These pages show market data from the Binance and Kraken connector adapters (integration adapters for third-party APIs; no partnership or endorsement implied). See [EXTERNAL-EXCHANGE-CONNECTORS.md](EXTERNAL-EXCHANGE-CONNECTORS.md).
+
+Most of these pages do not work at v7.18.1. Connecting an exchange only logs the request and does not save the credentials. The arbitrage page and the arbitrage trade fail, because the controller calls `ArbitrageService::findOpportunities()` without a pair and passes an id where `ArbitrageService::executeArbitrage()` expects an array. The price alignment page fails, because its controller calls methods that `PriceAggregator` does not define.
 
 ## Admin Interface
 
-### Filament Resources
-1. **Order Management**
-   - View all platform orders
-   - Filter by user, status, pair
-   - Cancel orders if needed
-   - Export order data
-
-2. **Order Book Monitoring**
-   - Real-time order book status
-   - Market depth analysis
-   - Spread monitoring
-   - Volume tracking
+The Filament admin panel has two resources in the Exchange group.
+1. `OrderResource` lists platform orders and filters them by user, status and pair.
+2. `OrderBookResource` shows the state of each order book.
 
 ## Testing
 
-### Feature Tests (Behat)
+### Feature tests (Behat)
+`features/exchange.feature` describes trading scenarios such as the one below.
+The feature is tagged `@wip`, so the Behat suites in `behat.yml` skip it.
+
 ```gherkin
 Feature: Exchange Trading
   Scenario: Place a limit buy order
@@ -120,94 +110,45 @@ Feature: Exchange Trading
     And my "EUR" balance should be reduced by "4800.00"
 ```
 
-### Unit Tests
-- Order aggregate tests
-- Order book aggregate tests
-- Fee calculator tests
-- Matching engine tests
+### Unit tests
+The unit tests in `tests/Unit/Domain/Exchange/` cover the exchange service, fee tiers, the order routing and spread sagas, and the liquidity pool services.
 
 ## Configuration
 
-### Environment Variables
+### Environment variables
 ```env
-# Exchange Configuration
-EXCHANGE_MIN_ORDER_BTC=0.0001
-EXCHANGE_MIN_ORDER_ETH=0.001
-EXCHANGE_MIN_ORDER_FIAT=10
+# Trading switch (production sets false)
+TRADING_ENABLED=true
 
-# Fee Configuration
-EXCHANGE_MAKER_FEE=0.001
-EXCHANGE_TAKER_FEE=0.002
+# External exchange connectors and arbitrage checks
+TRADING_EXTERNAL_CONNECTORS=binance,kraken
+TRADING_ARBITRAGE_ENABLED=false
 ```
 
-### Trading Rules
-1. **Minimum Order Sizes**
-   - BTC: 0.0001 BTC
-   - ETH: 0.001 ETH
-   - Fiat: 10 EUR/USD/GBP
+`config/trading.php` also defines `TRADING_MIN_ORDER_*`, `TRADING_MAX_ORDER_*`, `TRADING_MAKER_FEE`, `TRADING_TAKER_FEE`, the market-making settings and the list of pairs. The code does not read those values at v7.18.1, so changing them has no effect.
 
-2. **Price Precision**
-   - Crypto pairs: 2 decimal places
-   - Fiat pairs: 2 decimal places
-
-3. **Amount Precision**
-   - BTC: 8 decimal places
-   - ETH: 18 decimal places
-   - Fiat: 2 decimal places
-
-## Performance
-
-### Optimization Features
-- **Indexed Order Books**: Fast order matching
-- **Cached Fee Calculations**: Reduced computation
-- **Async Event Processing**: Non-blocking operations
-- **Queue Workers**: Parallel order processing
-
-### Scalability
-- **Horizontal Scaling**: Multiple matching workers
-- **Event Store Partitioning**: By trading pair
-- **Read Model Caching**: Redis-backed projections
-- **CDN Integration**: Static asset delivery
+### Trading rules
+The minimum order sizes are set in `FeeCalculator::calculateMinimumOrderValue`.
+- BTC: 0.0001 BTC
+- ETH: 0.001 ETH
+- EUR and USD: 10
+- GCU demo: 10
+- Any other base currency: 1
 
 ## Security Considerations
 
-1. **Balance Protection**
-   - Pessimistic locking during operations
-   - Double-spend prevention
-   - Atomic transaction guarantees
+1. **Balance protection.** Balances are locked while an order is open, so the same funds cannot back two orders.
+2. **Rate limiting.** Order placement uses `transaction.rate_limit:exchange_order`. `TransactionRateLimitMiddleware` has no `exchange_order` entry, so orders fall back to the transfer limits at v7.18.1.
+3. **Audit trail.** Every order action is stored in the event store.
 
-2. **Rate Limiting**
-   - Per-user order limits
-   - API request throttling
-   - DDoS protection
+## Related Features
 
-3. **Audit Trail**
-   - Complete event history
-   - Immutable event store
-   - Compliance reporting
+- Liquidity pools are described in [LIQUIDITY-POOLS.md](LIQUIDITY-POOLS.md). Adding, removing and rebalancing liquidity was removed in v7.18.0.
+- External exchange connectors are described in [EXTERNAL-EXCHANGE-CONNECTORS.md](EXTERNAL-EXCHANGE-CONNECTORS.md).
 
 ## Future Enhancements
 
-1. **Advanced Order Types**
-   - Stop-loss orders
-   - Stop-limit orders
-   - Iceberg orders
-   - Time-weighted average price (TWAP)
+These ideas are not built.
 
-2. **External Connectivity** (integration adapters for third-party APIs; no partnership or endorsement implied)
-   - Binance API integration
-   - Kraken API integration
-   - Liquidity aggregation
-   - Cross-exchange arbitrage
-
-3. **Analytics**
-   - Trading volume charts
-   - Price history graphs
-   - Technical indicators
-   - Market sentiment analysis
-
-4. **Mobile Apps**
-   - iOS trading app
-   - Android trading app
-   - Push notifications
-   - Biometric authentication
+1. **More order types** such as stop-loss, stop-limit, iceberg and time-weighted average price (TWAP) orders.
+2. **Analytics** such as volume charts, price history and technical indicators.

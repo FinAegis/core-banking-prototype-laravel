@@ -1,12 +1,12 @@
 # FinAegis Testing Guide
 
-**Last Updated:** 2026-02-13  
-**Version:** 1.0  
-**Test Framework:** Pest PHP
+**Last Updated:** 2026-11-24  
+**Platform version:** v7.18.1  
+**Test Framework:** Pest 3.8 on PHPUnit 11
 
 ## Overview
 
-This guide provides comprehensive information about testing in the FinAegis platform, including test organization, patterns, and best practices.
+This guide explains how tests are organised in FinAegis, how to run them and which patterns to follow. The repository has about 1,300 `*Test.php` files.
 
 ## Table of Contents
 
@@ -35,10 +35,16 @@ tests/
 │   ├── Exchange/       # Trading engine tests
 │   ├── Lending/        # P2P lending tests
 │   └── Stablecoin/     # Stablecoin tests
-├── Browser/            # Browser automation tests
+├── Integration/        # Cross-component integration tests
+├── MultiConnection/    # Tests against real MySQL with a separate tenant session
+├── Security/           # Security test suite
+├── Browser/            # Laravel Dusk browser tests (not run in CI)
 ├── Performance/        # Performance benchmarks
+├── k6/                 # k6 load test scripts
 └── TestCase.php        # Base test class
 ```
+
+The Behat features live in `features/` at the project root. See [BEHAT.md](BEHAT.md).
 
 ### Test Naming Conventions
 
@@ -69,8 +75,8 @@ tests/
 # Run tests matching pattern
 ./vendor/bin/pest --filter="can create account"
 
-# Run with coverage
-./vendor/bin/pest --coverage --min=50
+# Run with coverage (needs Xdebug or PCOV)
+./vendor/bin/pest --coverage
 
 # Run with coverage HTML report
 ./vendor/bin/pest --coverage-html=coverage-report
@@ -85,30 +91,24 @@ tests/
 # Specify number of processes
 ./vendor/bin/pest --parallel --processes=4
 
-# Optimal for CI
-./vendor/bin/pest --parallel --processes=8 --coverage --min=50
+# Stop at the first failure
+./vendor/bin/pest --parallel --stop-on-failure
 ```
+
+`--parallel` accepts one test directory at a time. Use `--filter` or `--testsuite` to narrow a parallel run. See [PARALLEL-TESTING.md](PARALLEL-TESTING.md).
 
 ## Test Coverage
 
-### Current Coverage Status
+### Coverage in CI
 
-| Component | Coverage | Target |
-|-----------|----------|---------|
-| Core Banking | 95% | 90% |
-| Multi-Asset | 90% | 85% |
-| Exchange | 85% | 80% |
-| P2P Lending | 75% | 85% |
-| Stablecoins | 80% | 85% |
-| Liquidity Pools | 70% | 85% |
-| API Layer | 88% | 85% |
-| **Overall** | **85%** | **85%** |
+CI does not collect code coverage, so it does not report or enforce a coverage number. Instead, `bin/check-test-coverage` fails CI when a top-level directory under `tests/` is not claimed by any CI job.
 
-### Coverage Requirements
+### Coverage Targets
 
-- **Minimum**: 50% for all new code
-- **Target**: 85% for production features
-- **Critical**: 95% for financial operations
+These are the targets to aim for when you measure coverage locally:
+- at least 50% for all new code
+- 85% for production features
+- 95% for financial operations
 
 ### Generating Coverage Reports
 
@@ -278,27 +278,21 @@ it('handles complete lending lifecycle', function () {
     
     // Create loan application
     $this->actingAs($borrower)
-        ->postJson('/api/loans/apply', [
+        ->postJson('/api/lending/applications', [
             'amount' => 10000,
             'term_months' => 12,
             'purpose' => 'business',
         ])
         ->assertStatus(201);
     
-    // Lender funds loan
+    // Approval and funding run through the lending workflow
     $application = LoanApplication::latest()->first();
-    
-    $this->actingAs($lender)
-        ->postJson("/api/loans/{$application->id}/fund", [
-            'amount' => 10000,
-        ])
-        ->assertStatus(200);
     
     // Make payment
     $loan = Loan::where('application_id', $application->id)->first();
     
     $this->actingAs($borrower)
-        ->postJson("/api/loans/{$loan->id}/repay", [
+        ->postJson("/api/lending/loans/{$loan->id}/payments", [
             'amount' => 877.84,
         ])
         ->assertStatus(200);
@@ -371,6 +365,8 @@ it('handles insufficient funds gracefully', function () {
 ```
 
 ## Frontend Testing
+
+The root `package.json` has no JavaScript test runner yet, so these Vue examples show the intended pattern with `@vue/test-utils`. The packages under `packages/` and `sdks/` run their own vitest suites.
 
 ### Component Testing (Vue)
 
@@ -462,57 +458,28 @@ it('benchmarks order matching performance', function () {
 
 ### GitHub Actions Configuration
 
+The tests run in several workflows under `.github/workflows/`:
+- `01-code-quality.yml` runs PHPCS, PHPStan, PHP CS Fixer, the test coverage map check and the OpenAPI drift check.
+- `03-test-suite.yml` runs the unit, feature and integration tests in batches with `bin/pest-batch` and `bin/pest-rest`, plus the multi-connection tests against MySQL and a Behat job.
+- `04-security-tests.yml` runs the security tests.
+- `behat-tests.yml` runs the Behat features through `bin/behat-ci`.
+- `slow-tests.yml` runs the slow tests.
+
 ```yaml
-# .github/workflows/test.yml
-name: Tests
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
-jobs:
-  test:
-    runs-on: self-hosted
-    
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: password
-          MYSQL_DATABASE: testing
-      
-      redis:
-        image: redis:7
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          extensions: mbstring, pdo, pdo_mysql, redis
-          coverage: xdebug
-      
-      - name: Install Dependencies
-        run: |
-          composer install --no-interaction
-          npm ci
-          npm run build
-      
-      - name: Run Tests
-        run: |
-          ./vendor/bin/pest --parallel --coverage --min=50
-      
-      - name: Upload Coverage
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./coverage.xml
+# .github/workflows/03-test-suite.yml (excerpt)
+- name: Run Unit Tests
+  env:
+    DB_CONNECTION: sqlite
+    DB_DATABASE: ":memory:"
+    PEST_PARALLEL: true
+    PARALLEL_PROCS: 2
+  run: |
+    ./bin/pest-batch tests/Unit/Domain || exit 1
 ```
 
 ### Pre-commit Hooks
+
+The project's own pre-commit script is `bin/pre-commit-check.sh`. See [code-quality-workflow.md](QUALITY/code-quality-workflow.md). A hook that also runs the tests for changed files could look like this:
 
 ```bash
 #!/bin/sh
@@ -611,37 +578,42 @@ it('handles concurrent operations', function () {
 
 ### Common Issues
 
-1. **Database Connection Errors**
+1. **Database connection errors.** Most configurations use SQLite in memory. `phpunit.unit.xml` and the multi-connection tests need a MySQL database named `testing`:
    ```bash
    # Ensure test database exists
    php artisan migrate --env=testing
    ```
 
-2. **Redis Connection Errors**
+2. **Redis connection errors.** Many tests need Redis. Start it before you run the suite:
    ```bash
    # Start Redis for testing
-   redis-server --port 6380
+   redis-server
    ```
 
-3. **Parallel Test Conflicts**
+3. **Parallel test conflicts.** Give each test unique data, and use the array cache where tests share cache keys:
    ```php
    // Use unique identifiers
    $uuid = Str::uuid();
+   config(['cache.default' => 'array']);
    ```
 
-4. **Memory Issues**
+4. **Memory issues.** Raise the PHP memory limit:
    ```bash
    # Increase memory limit
-   ./vendor/bin/pest --memory-limit=512M
+   php -d memory_limit=2G ./vendor/bin/pest
+   ```
+
+5. **403 responses in API tests.** Pass all abilities to Sanctum:
+   ```php
+   Sanctum::actingAs($user, ['read', 'write', 'delete']);
    ```
 
 ## Resources
 
 - [Pest PHP Documentation](https://pestphp.com)
 - [Laravel Testing Docs](https://laravel.com/docs/testing)
-- [PHPUnit Assertions](https://docs.phpunit.de/en/10.0/assertions.html)
-- [Test Driven Development](https://tdd.finaegis.internal)
+- [PHPUnit Assertions](https://docs.phpunit.de/en/11.5/assertions.html)
 
 ---
 
-**Remember**: Good tests are the foundation of a reliable financial platform. Write tests first, code second!
+Write the tests first and the code second. Reliable tests matter most for code that moves money.

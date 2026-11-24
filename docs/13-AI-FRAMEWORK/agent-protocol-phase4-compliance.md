@@ -110,7 +110,7 @@ $service->generateCTR(
 
 #### Suspicious Activity Report (SAR)
 
-Filed for suspicious patterns:
+Drafted for suspicious patterns. The service does not contact any authority. It logs the report and marks it `submitted`, so an operator still has to file it:
 
 ```php
 $service->generateSAR(

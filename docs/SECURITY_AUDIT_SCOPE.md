@@ -1,18 +1,22 @@
-# Security Audit Scope — FinAegis/Zelta v7.15.0
+# Security Audit Scope — FinAegis/Zelta v7.18.1
 
 **Prepared**: 2026-03-29
 **Updated**: 2026-06-11 (v7.15.0 — added post-v7.10 surfaces: public MCP server, non-custodial wallet send, IAP verify, Bridge.xyz ramp)
+**Updated**: 2026-11-23 (v7.18.0 — added the non-custodial RAILGUN support endpoints, the card provider layer with Lepo Finance, card top-ups and 3-D Secure codes, and the wallet send outcome handling)
+**Updated**: 2026-11-24 (v7.18.1 — added the MCP consent spending limit and the asset transfer and conversion money path)
 **Platform**: PHP 8.4 / Laravel 12 / MySQL 8 / Redis
 **PHPStan Level**: 8 (strict)
 **Domain Modules**: 61 bounded contexts (DDD)
-**Route Count**: ~1,400 registered routes
-**GraphQL Schemas**: 45 schema files
+**Route Count**: ~1,500 registered routes
+**GraphQL Schemas**: 45 `#import` lines in `graphql/schema.graphql` (43 domain schemas plus `directives.graphql` and `subscriptions.graphql`)
 
 ---
 
 ## Target Overview
 
-Core banking platform with 56 domain modules, payment processing (x402/MPP/AP2), card issuance, cross-chain DeFi bridging, zero-knowledge proofs, post-quantum cryptography, and multi-tenant team isolation. Handles stablecoin reserves, inter-bank transfers, lending, compliance/AML screening, and fraud detection.
+FinAegis is an open-source reference platform for core banking software. It has 61 domain modules. They cover payment processing (x402, MPP and AP2), card issuance, cross-chain and DeFi bridging, zero-knowledge proofs, post-quantum cryptography and multi-tenant team isolation. The code also models stablecoin reserves, inter-bank transfers, lending, compliance and anti-money-laundering (AML) screening, and fraud detection.
+
+Zelta is the hosted non-custodial wallet built on FinAegis. Its production site switches most of the reference modules off. `.env.zelta.example` sets `MODULES_DISABLED="Banking,Basket,Cgo,CrossChain,DeFi,FinancialInstitution,Governance,ISO20022,ISO8583,Interledger,Ledger,Lending,Microfinance,OpenBanking,PaymentRails,Stablecoin,Treasury"`, `TRADING_ENABLED=false`, `SHOW_PROMO_PAGES=false` and `SMS_ENABLED=false`, and MPP stays off by default. The standards modules work at the message layer and in demo mode, and they are not connected to any bank, card scheme or regulator. An audit of the production deployment should therefore weight the Zelta surfaces (wallet, MCP server, subscriptions, ramp, cards and privacy support) above the reference modules. The reference modules stay in scope because anyone can deploy them.
 
 ---
 
@@ -45,7 +49,7 @@ Core banking platform with 56 domain modules, payment processing (x402/MPP/AP2),
 - **Idempotency middleware** with cache-based deduplication and atomic locking
 
 ### Financial Operations
-- **Card issuance** via Rain/Marqeta adapters with JIT funding, spend limits, card provisioning
+- **Card issuance** through the `CardIssuerInterface` adapters (Demo, Marqeta and FinCard are selectable with `CARD_ISSUER`, default `demo`; a Rain adapter class exists but is not wired in) with JIT funding, spend limits and card provisioning. Since v7.18.0 there is also a provider-neutral card layer with Lepo Finance as its first provider (see the v7.16.0 to v7.18.1 section below).
 - **Bank account connections** via Open Banking/PSD2 (Santander, generic Open Banking)
 - **Inter-bank transfers** with state machine transitions
 - **Cross-chain bridging**: Wormhole and Circle CCTP adapters with quote comparison
@@ -53,9 +57,9 @@ Core banking platform with 56 domain modules, payment processing (x402/MPP/AP2),
 - **Stablecoin reserve management** with event sourcing
 - **Treasury management** with portfolio event sourcing
 - **Lending** with loan aggregates, repayment schedules
-- **On/off ramp**: Stripe Bridge integration with async webhook processing
+- **On-ramp**: Bridge.xyz bank transfers (`RAMP_PROVIDER=bridge`) with async webhook processing. The Stripe Crypto Onramp adapter remains as scaffolding, and the off-ramp is not available yet.
 - **Batch processing** with event sourcing
-- **CGO operations** (Chief Growth Officer analytics)
+- **CGO operations** (Continuous Growth Offering investment management, demo only)
 
 ### New Domains (v7.2.0–v7.5.0) — Added in v7.7.0 Audit Scope
 - **ISO 20022** (`app/Domain/ISO20022/`): SEPA/SWIFT message generation and parsing (pain, pacs, camt families). XML schema validation, namespace handling, XSD conformance. Input: raw message XML; risk surface: XXE injection, schema validation bypass.
@@ -72,6 +76,15 @@ Core banking platform with 56 domain modules, payment processing (x402/MPP/AP2),
 - **IAP Verify Surface** (`app/Domain/Subscription/Iap/`, v7.13.0+): `POST /api/v1/subscription/iap/verify` accepts client-supplied store receipts. Apple receipts are JWS-validated with the x5c chain pinned to Apple Root CA G3 (`storage/app/apple/AppleRootCA-G3.cer`); Google purchase tokens are verified server-side against the Play Developer API; store webhooks (Apple V2 JWS, Google RTDN with OIDC bearer) dedupe via `processed_webhook_events`. Risk surface: receipt forgery / JWS chain bypass, the `APPLE_JWS_VERIFICATION_BYPASS` staging flag (ignored + logged in production, FAILed by `ops:verify-env` — verify the production gate cannot be sidestepped), account-binding bypass (`appAccountToken`/`obfuscatedAccountId` is best-effort and accepted when absent), replay of valid receipts across accounts (conflict matrix ERR_SUB_002), `IAP_RECEIPT_PEPPER` handling (one-way pseudonymisation pepper — compromise or rotation breaks post-erasure webhook matching).
 - **Bridge.xyz Ramp** (`app/Domain/Compliance/Kyc/` + `app/Infrastructure/Bridge/`, v7.15.0+): Single webhook endpoint `POST /api/v1/webhooks/bridge` for KYC and ramp events, verified against Bridge's asymmetric scheme (`X-Webhook-Signature: t=<unix_ms>,v0=<base64>`, RSA-SHA256 over `<t>.<body>` with the per-endpoint public key) with a legacy HMAC fallback; dev passthrough only when BOTH credentials are empty AND non-production. Virtual-account provisioning auto-triggers on `customer.kyc_link_completed` against the user's Polygon address in `blockchain_addresses`; per-customer `developer_fee_bps` (Free=75/Pro=0) is PATCHed on `SubscriptionTierChanged`. Risk surface: webhook signature scheme drift / replay (timestamp units unverified against live bytes), forged `virtual_account.activity` deposits if verification regresses, VA provisioning race against address registration, dev-fee tampering (anything that can emit `SubscriptionTierChanged` or mutate tier state zeroes the 0.75% markup), encrypted `deposit_instructions` handling, KYC-state confusion between `users.kyc_status` (Ondato) and `bridge_customers.kyc_status`.
 
+### Surfaces Added in v7.16.0 to v7.18.1
+- **Non-custodial RAILGUN support** (`app/Domain/Privacy/`, `app/Http/Controllers/Api/Privacy/`, v7.16.0+): The device registers its public `0zk` address at `POST /api/v1/privacy/wallet/register`, and the server stores no seed. `GET /api/v1/privacy/engine-config` returns the on-device engine settings. `POST /api/v1/privacy/rpc/{network}` is a JSON-RPC proxy that keeps the provider key on the server. It is authorised by a signed URL instead of Sanctum, because the SDK cannot send a header. The URL lives between 60 and 900 seconds, and only read methods and `eth_sendRawTransaction` pass. The old custodial endpoints (`shield`, `unshield`, `transfer`, `viewing-key`, `proof-of-innocence`, `delegated-proof`) still exist, but `RejectCustodialPrivacyInProduction` makes them return `501` in production. Risk surface: replay of a signed RPC URL within its lifetime, method whitelist bypass (including JSON-RPC batches), provider key leakage into logs or responses, the custodial middleware missing from a route, address registration spoofing across accounts.
+- **Card provider layer and Lepo Finance** (`app/Domain/CardIssuance/Providers/`, `app/Infrastructure/Lepo/`, v7.18.0+): Cards are built for a closed pilot and stay off until `CARD_PROVIDERS_ENABLED=lepo` is set (`CARD_PROVIDER_LEPO_PILOT_ONLY`, `CARD_PROVIDER_LEPO_PILOT_USERS`). `POST /api/v1/webhooks/lepo` checks `X-LepoFinance-Signature`, a hex HMAC-SHA256 of the raw body, and has no timestamp in the signed data. Card numbers are shown only on the card partner's secure page. 3-D Secure codes arrive by webhook, are kept encrypted in the cache for at most ten minutes, are never written to the database or the logs, and are released only through `GET /api/v1/cards/issued/{card}/3ds/code`. Risk surface: webhook replay (no timestamp), forged card or 3-D Secure events, reading another user's 3-D Secure code or card details, pilot gating bypass.
+- **Card top-ups** (v7.18.0+, off through `CARD_TOPUPS_ENABLED=false`): "Add to card" moves USDC from the user's wallet to the card. A pipeline finds the deposit, converts it to US dollars and loads the card. Lepo's conversion and load calls cannot be repeated safely, so the code never repeats them, and an unclear result stops for an operator (`cards:resolve-topup`). Risk surface: double conversion or double load under retries or concurrent workers, crediting a top-up from a deposit that belongs to another user or another top-up, operator command misuse.
+- **FinCard** (`app/Infrastructure/FinCard/`): `POST /api/v1/webhooks/fincard` verifies an RSA-SHA256 signature over the raw body. `fincard:reconcile-balances` reconciles balances on a schedule.
+- **MCP consent spending limit** (v7.18.1+): The consent screen's daily spending limit is saved by `CaptureMcpConsentLimit` when Passport accepts the approval. The limit belongs to the user's approval of the client, not to one access token, so a refreshed token shares the same allowance. A token without a user still fails closed with `NO_POLICY`. Only the offered values are accepted, and an unknown value gets the configured default. Risk surface: setting a limit that was not offered on the screen, resetting the spent amount by approving again or refreshing a token, a limit saved for the wrong client.
+- **Asset transfers and conversions** (v7.18.1+): Asset transfers, wallet currency conversions and GCU buy and sell now move balances. The debit, the credit and both history rows are written in one transaction with row locks, amounts are rescaled by each asset's precision with bcmath, and a retried conversion returns the booked result. Risk surface: rounding or precision errors between assets, double booking under retries, overdrawing through concurrent requests.
+- **Wallet send outcome handling** (v7.18.0+): A send whose outcome is unclear after a timeout or a server error stays `submitted` until the chain settles it. A second submit for the same intent while the first is running gets `409 SUBMIT_IN_PROGRESS` through a cache lock. Risk surface: a send marked failed while it still lands, lock expiry allowing a double broadcast, settlement logic that fails a send which later confirms.
+
 ### Cryptography
 - **Post-quantum encryption**: ML-KEM-768 (key encapsulation), ML-DSA-65 (digital signatures)
 - **Hybrid encryption**: PQ + classical combined scheme with AAD
@@ -87,8 +100,8 @@ Core banking platform with 56 domain modules, payment processing (x402/MPP/AP2),
 ### API Surface
 - **REST API v1**: Primary API with Sanctum auth
 - **REST API v2**: Next-gen API with `ensure.json` enforcement
-- **BIAN-compliant API**: Banking Industry Architecture Network endpoints
-- **GraphQL** (Lighthouse PHP): 45 schema files with query cost analysis and rate limiting
+- **BIAN-style API**: endpoints under `/api/bian/*` modelled on the Banking Industry Architecture Network (BIAN) service domains
+- **GraphQL** (Lighthouse PHP): 43 domain schemas with query cost analysis and rate limiting
 - **WebSocket**: Private broadcast channels with Sanctum auth
 - **.well-known discovery endpoints**: `x402-configuration`, `mpp-configuration`, `ap2-configuration`, `agent.json`, `apple-app-site-association`, `assetlinks.json`
 - **Swagger/OpenAPI**: L5-Swagger generated documentation at `/api/documentation`
@@ -119,7 +132,7 @@ Core banking platform with 56 domain modules, payment processing (x402/MPP/AP2),
 ---
 
 ## Out of Scope
-- Third-party service internals (Stripe, Rain, Circle, Coinbase, Marqeta, Ondato APIs)
+- Third-party service internals (Stripe, Rain, Circle, Coinbase, Marqeta, Ondato, Bridge.xyz, Privy, Pimlico, Helius, Alchemy, Lepo Finance and FinCard APIs)
 - Mobile app (separate repository)
 - CDN/WAF configuration
 - Physical security
@@ -131,7 +144,7 @@ Core banking platform with 56 domain modules, payment processing (x402/MPP/AP2),
 
 ## Known Security Controls
 
-### Middleware Stack (43 middleware classes)
+### Middleware Stack (55 middleware classes in `app/Http/Middleware/`)
 | Control | Implementation |
 |---------|---------------|
 | Security headers | `SecurityHeaders` — CSP, HSTS (preload), X-Frame-Options DENY, X-Content-Type-Options, Permissions-Policy |
@@ -173,15 +186,19 @@ Core banking platform with 56 domain modules, payment processing (x402/MPP/AP2),
 ---
 
 ## Test Accounts
-- Demo user: `php artisan user:create`
+- Demo data with demo users: `php artisan demo:populate` (creates `demo.user@gcu.global` and the other demo personas, password `demo123`). `php artisan migrate --seed` does not create demo users.
+- Single user: `php artisan user:create`
 - Admin user: `php artisan user:create --admin`
 - Promote/demote: `php artisan user:promote` / `php artisan user:demote`
 - Test environment: `APP_ENV=demo` with `SHOW_PROMO_PAGES=true`
 - Demo SMS setup: `php artisan sms:setup-demo`
+- App review accounts (operator only): `php artisan account:provision-reviewer --email=... --operator-email=...`
 
 ---
 
 ## Automated Scan Results
+
+These results were recorded when the scope was prepared. They were not run again for v7.18.0 or v7.18.1, so the auditor should repeat them.
 
 ### Dependency Vulnerabilities
 ```
@@ -247,9 +264,9 @@ Models without $fillable or $guarded: 31 files
 ## Priority Areas for Penetration Testing
 
 ### P0 — Critical
-1. **Cross-tenant data leakage**: Verify `InitializeTenancyByTeam` membership checks cannot be bypassed. Test switching teams via API manipulation. Verify tenant-scoped queries in all 56 domain modules.
+1. **Cross-tenant data leakage**: Verify `InitializeTenancyByTeam` membership checks cannot be bypassed. Test switching teams via API manipulation. Verify tenant-scoped queries in all 61 domain modules.
 2. **Payment amount manipulation**: Test x402/MPP payment flows for amount tampering between quote and settlement. Verify JIT funding balance check + hold creation atomicity.
-3. **JIT funding race conditions**: Test concurrent authorization requests for the same card/balance. Verify balance check and hold creation are atomic (currently no `lockForUpdate()` in `JitFundingService`).
+3. **JIT funding race conditions**: Test concurrent authorization requests for the same card/balance. Verify balance check and hold creation are atomic. `JitFundingService` now takes a `lockForUpdate()` row lock on the funding account for live issuers, so test that the lock covers every path.
 4. **Webhook replay attacks**: Verify timestamp tolerance enforcement across all 6 webhook providers. Test replay with valid signatures but expired timestamps.
 
 ### P1 — High
@@ -300,7 +317,23 @@ Models without $fillable or $guarded: 31 files
 35. **Wallet prepare/submit integrity**: Substitute signatures/intents across users at `POST /api/v1/wallet/transactions/submit`; replay `Idempotency-Key` headers; verify a `pending` record cannot be submitted twice or by a different user.
 36. **MCP tool catalog confusion**: Verify disabled tools (`MCP_TOOL_*=false`) are absent from `tools/list` AND rejected at call time; test `requires_user` tools without a resolved user.
 
-*Document Version: 7.15.0*
+### P0 — Critical (v7.16.0 to v7.18.1 Surfaces)
+37. **Card top-up double spend**: Run concurrent workers and forced retries against the top-up pipeline. Verify that a conversion or a load call is never sent twice, and that an unclear result stops for an operator instead of retrying.
+38. **3-D Secure code exposure**: Try to read another user's code through `GET /api/v1/cards/issued/{card}/3ds/code`. Check that the code never appears in logs, queued payloads, push messages, WebSocket events or the database.
+
+### P1 — High (v7.16.0 to v7.18.1 Surfaces)
+39. **Lepo webhook replay and forgery**: Replay a valid signed webhook and send unsigned ones. Verify that unsigned webhooks are rejected outside local and testing, and that replays cannot change card or top-up state twice.
+40. **RAILGUN RPC proxy**: Reuse a signed URL after its lifetime, call methods outside the whitelist (including inside a batch), and look for the upstream key in errors and logs.
+41. **Custodial privacy endpoints in production**: Verify every custodial privacy route returns `501` in production, including routes added later.
+
+### P2 — Medium (v7.16.0 to v7.18.1 Surfaces)
+42. **Wallet send settlement**: Force timeouts and server errors on submit. Verify the send stays `submitted`, a parallel submit gets `409 SUBMIT_IN_PROGRESS`, and the record never shows failed for a transaction that lands.
+43. **MCP consent spending limit**: Post a limit that the consent screen does not offer, approve the same client again and refresh the token. Verify an unknown value falls back to the configured default and the spent amount in the current window does not reset.
+44. **Asset transfer and conversion amounts**: Convert between assets with different precisions, retry a conversion and send concurrent transfers from one balance. Verify the amounts are rescaled correctly, nothing is booked twice and no balance goes below zero.
+
+*Document Version: 7.18.1*
 *Created: January 11, 2026*
 *Updated: April 4, 2026 (v7.9.0 Solana Balances, Helius Webhooks & SEO Overhaul)*
 *Updated: June 11, 2026 (v7.15.0 — post-v7.10 surfaces: MCP server, non-custodial wallet send, IAP verify, Bridge ramp)*
+*Updated: November 23, 2026 (v7.18.0 — RAILGUN support endpoints, Lepo card layer, card top-ups, 3-D Secure codes, wallet send outcome handling)*
+*Updated: November 24, 2026 (v7.18.1 — MCP consent spending limit, asset transfer and conversion money path)*

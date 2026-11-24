@@ -2,6 +2,8 @@
 
 > Concept and demo code for an investment-round workflow (tiers, payments, KYC, agreements, refunds). The CGO round is closed.
 
+*Historical plan from September 2024. It is kept as a record and is not a current roadmap. The `Cgo` module is concept and demo code, and production deployments switch it off through `MODULES_DISABLED`. See [README.md](README.md) for the current state.*
+
 ## Current Status: Development Environment Only
 
 The CGO feature is currently in development mode with critical security measures in place to prevent accidental use in production.

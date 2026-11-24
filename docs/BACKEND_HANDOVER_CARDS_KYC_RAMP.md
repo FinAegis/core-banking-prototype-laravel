@@ -2,7 +2,13 @@
 
 **Date**: 2026-04-07
 **Mobile version**: 1.2.0+
-**Status**: Mobile implementation complete, backend endpoints required
+**Status**: Historical request. The backend work is done or was replaced, as the note below explains.
+
+> **Status at v7.18.1.** This is the mobile team's request from 7 April 2026, kept as a record. The backend has since built the card waitlist (`POST /api/v1/cards/waitlist` and `GET /api/v1/cards/waitlist/status`). It has also built the paid identity check with `POST /api/v1/trustcert/applications/{applicationId}/pay`, `/pay/card` and `/pay/iap`, and the `POST /api/webhooks/stripe/kyc` webhook.
+>
+> The ramp plan in section 3 changed. ADR-0005 chose Bridge.xyz instead of Stripe's crypto onramp, and the Stripe scaffolding was renamed `stripe_crypto_onramp`. Its webhook is `POST /api/v1/ramp/webhook/{provider}`, not `/webhooks/stripe/bridge`. The current ramp is described in `docs/operations/bridge-ramp.md`.
+>
+> The card plan changed too. v7.18.0 added virtual cards with Lepo Finance for a closed pilot. In production only the users on the pilot list can get a card, and adding money to a card stays off (`CARD_TOPUPS_ENABLED=false`). The card endpoints are under `/api/v1/cards/onboarding` and `/api/v1/cards/issued`, and the OpenAPI documentation at `/api/documentation` describes them under the Cards tag.
 
 This document covers three new backend requirements:
 

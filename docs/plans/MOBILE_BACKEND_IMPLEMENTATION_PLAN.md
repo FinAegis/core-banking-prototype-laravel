@@ -75,6 +75,8 @@ public function registerDevice(User $user, array $data): MobileDevice
 }
 ```
 
+> Changed later. At v7.18.1 only devices with bound credentials (`biometric_enabled` or `passkey_enabled`) are still refused, with HTTP 409 and `DEVICE_REGISTERED_TO_DIFFERENT_USER`. A push-only device is reassigned automatically, and an audit row is written to `device_reassignment_log`. An operator moves a credential-bound device with `php artisan mobile:reassign-device`.
+
 ### 0.2 Implement Per-Device Biometric Rate Limiting
 
 **Migration**:

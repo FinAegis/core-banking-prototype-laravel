@@ -2,10 +2,12 @@
 
 **Date**: 2026-05-08 (refactored 2026-05-08)
 **Mobile version target**: 1.3.0+
-**Status**: Specification — implementation not started
+**Status**: Specification — implementation not started (as of 2026-05-08). Plan B was implemented and released in v7.13.0 (2026-05-15). This file is kept as the historical handover record.
 **Estimated effort**: ~7 engineer‑weeks (one mid‑senior backend engineer)
 **Companion doc**: `finaegis-mobile/docs/MOBILE_HANDOVER_PLAN_B_COMMERCIAL.md`
 **Stack**: PHP 8.4 / Laravel 12 / MySQL 8 / Redis / Pest / PHPStan Level 8
+
+> Note added for v7.18.1: since v7.15.0 the fiat ramp runs through Bridge.xyz (`RAMP_PROVIDER=bridge`). The Stripe ramp named `stripe_bridge` in this spec was renamed `stripe_crypto_onramp` and is kept only as scaffolding (see `docs/adr/0005-bridge-xyz-over-stripe-crypto-onramp.md`). The `stripe_bridge` value survives only as a deprecated alias and as a legacy revenue source.
 
 This document defines the backend work to make Zelta commercially viable **without** the EMI / MiCA licence. Layers transparent service fees, a freemium subscription, and B2B BaaS revenue on top of the existing non‑custodial architecture. Independent of the licence application track.
 

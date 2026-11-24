@@ -4,6 +4,12 @@
 **Date:** 2026-03-24
 **Note:** Integration design between Zelta (powered by FinAegis) and the VertexSMS API. Integration adapters for third-party APIs; no partnership or endorsement implied.
 
+**Status at v7.18.1:** This is the integration design from March 2026, kept as a record. Phase 1 was built, together with parts of Phases 2 and 3 (Stripe Connect support, settlement reports and SMS mandates). The built pieces include the VertexSMS client, `POST /api/v1/sms/send`, `GET /api/v1/sms/rates`, `GET /api/v1/sms/status/{messageId}`, the delivery report webhook at `POST /api/v1/webhooks/vertexsms/dlr` and the `sms.send` MCP tool.
+
+In this document, "Production" in a status column means that the code is built. It does not mean that the feature runs on the Zelta site. Production sets `SMS_ENABLED=false` and `MCP_TOOL_SMS_SEND=false`, and the MPP payment gate stays off unless `MPP_ENABLED=true`.
+
+Two details now differ from the design. A send through the `sms.send` MCP tool is not paid per message. It needs a signed-in user and counts against the daily limits for unpaid sends (`SMS_SEND_PER_USER_PER_DAY`, `SMS_SEND_GLOBAL_PER_DAY`). `POST /api/v1/sms/send` with a valid Sanctum token takes the same unpaid path. Only a settled payment of at least `SMS_MIN_PAID_PRICE_USDC` counts as a paid send, and paid sends have their own daily ceiling (`SMS_PAID_SEND_PER_USER_PER_DAY`).
+
 ---
 
 ## 1. What We're Building
@@ -342,6 +348,8 @@ GET /api/v1/sms/status/{message_id}
 
 Agents discover this automatically:
 
+> At v7.18.1 a send through this tool is not paid per message. It needs a signed-in user and counts against the daily limits for unpaid sends, as the status note at the top explains.
+
 ```json
 {
   "tool": "sms.send",
@@ -452,6 +460,7 @@ Enterprise authorization. A company creates a mandate: "Agent X can spend €50/
 
 **What about Solana?**
 x402 on Solana requires different signing (Ed25519 vs EIP-712). Base is ready now. Solana is Phase 2 for both Zelta mobile and the facilitator.
+(At v7.18.1 `config/x402.php` also lists `solana:mainnet` and `solana:devnet`.)
 
 **What does VertexSMS need to change in their existing API?**
 Nothing. For the MPP path, Zelta calls their existing `POST /sms` with their existing token auth. For the optional native x402 path, they add a new endpoint alongside the existing one.

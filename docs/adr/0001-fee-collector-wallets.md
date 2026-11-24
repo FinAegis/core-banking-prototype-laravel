@@ -5,6 +5,8 @@
 **Decision-maker:** Backend engineer
 **Related:** Backend-Q2 in `docs/BACKEND_HANDOVER_PLAN_B_REVIEW_DELTAS.md`; original handover §2.4 (Collection mechanism per fee type); ADR-0004 (Money on the wire — fee transfers carry Money in this format)
 
+> **Implementation status (reviewed for v7.18.1).** The decision stands, but most of it is not built yet. The collector addresses exist only as empty placeholders in `config/pricing.php` under `fee_collectors`, read from `FEE_COLLECTOR_POLYGON`, `FEE_COLLECTOR_BASE`, `FEE_COLLECTOR_ARBITRUM`, `FEE_COLLECTOR_ETHEREUM` and `FEE_COLLECTOR_SOLANA`. No code reads them yet. The KMS signing, the `revenue:sweep-fee-collectors` and `revenue:top-up-collector-gas` commands, the `revenue_sweeps` table and the `ServiceFeeCharged` event described below do not exist yet. `config/fees.php` was never created, because ADR-0003 moved fee configuration to `config/pricing.php`.
+
 ---
 
 ## Context
@@ -29,7 +31,7 @@ Five collector addresses total:
 - `fee_collector_ethereum`
 - `fee_collector_solana`
 
-Configured in `config/fees.php` keyed by chain, env-driven (`FEE_COLLECTOR_POLYGON_ADDRESS`, `FEE_COLLECTOR_POLYGON_KMS_ARN`, etc.). Public addresses are not secrets — they appear in every quoted userOp's calldata and on-chain. The KMS ARN binding the address to a signing key is the secret.
+Configured per chain from environment variables. The plan named `config/fees.php` with `FEE_COLLECTOR_POLYGON_ADDRESS` and `FEE_COLLECTOR_POLYGON_KMS_ARN`; the built placeholder is `config/pricing.php` with `FEE_COLLECTOR_POLYGON` and its siblings. Public addresses are not secrets — they appear in every quoted userOp's calldata and on-chain. The KMS ARN binding the address to a signing key is the secret.
 
 Production signing path: AWS KMS asymmetric secp256k1 keys for EVM, ed25519 for Solana. Key never leaves the HSM. Application calls `kms:Sign` to produce sweep-transaction signatures. Local/staging uses env-stored private keys for the same addresses (different addresses per environment).
 
@@ -94,8 +96,10 @@ Treasure-grade MPC custody. Reads as institutional-quality to investors and to a
 
 ### Configuration
 
+This is the planned shape. The built placeholder is the flat `fee_collectors` map in `config/pricing.php`.
+
 ```php
-// config/fees.php
+// config/fees.php (planned, not created)
 return [
     'collectors' => [
         'polygon' => [

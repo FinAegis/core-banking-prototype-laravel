@@ -1,6 +1,6 @@
 # OpenAPI Documentation Coverage - 100% Complete
 
-> **Note:** This coverage assessment was performed at v3.4.0. Additional controllers have been added in v3.5.0-v5.0.0 including Compliance Certification, GraphQL resolvers, Plugin management, and Live Dashboard endpoints.
+> **Note:** This is a historical record. The coverage assessment was made at v3.4.0 on 2024-06-25, and it does not describe v7.18.1. Many controllers were added after it. In v7.18.1, 152 of the 174 controller files under `app/Http/Controllers/Api/` carry OpenAPI annotations, written as PHP attributes such as `#[OA\Get]`. The other 22 have none, among them the FinCard card controllers, the Banking, Ledger, Interledger and Microfinance demo controllers, and several incoming webhook controllers. Some annotations also no longer match the code, so coverage is not complete and the generated document is not guaranteed to be in sync. The generated document is served at `/api/documentation` and `/docs/api-docs.json`.
 
 ## Summary
 

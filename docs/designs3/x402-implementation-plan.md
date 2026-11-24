@@ -5,6 +5,8 @@
 > **Date**: 2026-02-22
 > **Status**: Implementation Specification
 > **Dependencies**: `AgentProtocol`, `Relayer`, `AI/MCP`, `KeyManagement`, `Wallet` domains
+>
+> **Status at v7.18.1**: This is the v5.2.0 plan, kept as a record. The x402 domain was built in `app/Domain/X402/`, and `config/x402.php` lists eight networks, including Solana. One point in this plan no longer holds. Signing on the server for mobile through `UserOperationSigningService` is not available, because the `/api/auth/sign-userop` endpoint was removed in v7.12.0. The Zelta wallet is non-custodial, and the device signs every payment through Privy.
 
 ---
 
@@ -48,7 +50,7 @@ This creates a dual-sided payment gateway for the autonomous agent economy, brid
 | `AgentProtocol/EscrowService` | Pre-authorized payment holding |
 | `Relayer/GasStationService` | On-chain settlement gas sponsoring |
 | `Relayer/SmartAccountService` | ERC-4337 smart accounts as payers |
-| `Relayer/UserOperationSigningService` | Biometric-gated signing for mobile |
+| `Relayer/UserOperationSigningService` | Biometric-gated signing for mobile (no longer exposed: the sign-userop endpoint was removed in v7.12.0) |
 | `AI/MCP/ToolRegistry` | Monetized tool tagging |
 | `AI/MCP/MCPServer` | 402 response handling for tool calls |
 | `AI/AIAgentService` | Auto-retry with payment on 402 |
@@ -1149,7 +1151,7 @@ Schema::create('x402_spending_limits', function (Blueprint $table) {
 | `DigitalSignatureService` | Reuse for EIP-712 signature creation/verification |
 | `GasStationService` | Sponsor settlement gas for self-hosted facilitator |
 | `SmartAccountService` | Allow ERC-4337 smart accounts as x402 payers |
-| `UserOperationSigningService` | Biometric-gated signing for mobile x402 payments |
+| `UserOperationSigningService` | Biometric-gated signing for mobile x402 payments (no longer exposed: the sign-userop endpoint was removed in v7.12.0) |
 | `ShamirService` | Secure storage of facilitator wallet keys |
 | `EventStreamPublisher` | Real-time x402 payment event streaming |
 | `LiveMetricsService` | x402 dashboard metrics |

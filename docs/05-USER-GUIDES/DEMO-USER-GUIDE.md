@@ -1,132 +1,92 @@
 # Demo Environment User Guide
 
-## Welcome to FinAegis Demo
+## Welcome to the FinAegis Demo
 
-Welcome to the FinAegis Core Banking Platform demonstration environment! This guide will help you explore all the features of our comprehensive banking platform without any real financial transactions.
+This guide describes the FinAegis demo environment at [finaegis.org](https://finaegis.org). The demo runs the open-source FinAegis platform with `APP_ENV=demo`. No real money moves in it.
 
 > All balances, tokens and transactions in the demo are simulated demo balances with no real value.
 > FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory
 > compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
 
+The production Zelta site is a different deployment. Zelta is the non-custodial wallet product built on FinAegis, and it turns the demo modules described here off.
+
 ## Quick Start
 
-### 1. Access the Demo
+### 1. Open the Demo
 
-Visit the demo environment at: **[finaegis.org](https://finaegis.org)**
+Visit [finaegis.org](https://finaegis.org). You can also run the demo on your own machine with the steps in [Getting Started](GETTING-STARTED.md).
 
-### 2. Demo Credentials
+### 2. Demo Accounts
 
-Use these pre-configured demo accounts:
+`php artisan demo:populate` creates five demo users. Each one has the password `demo123` and simulated starting balances.
 
-| Role | Email | Password | Description |
-|------|-------|----------|-------------|
-| **Customer** | john@demo.finaegis.com | Demo123! | Regular customer account with transaction history |
-| **Premium** | jane@demo.finaegis.com | Demo123! | Premium account with higher limits |
-| **Admin** | admin@demo.finaegis.com | Admin123! | Full administrative access |
+| Persona | Email | Simulated balances |
+|---------|-------|--------------------|
+| Regular user | `demo.user@gcu.global` | $1,000 and 950 GCU |
+| High-inflation country user | `demo.argentina@gcu.global` | $500 and 450 GCU |
+| Digital nomad | `demo.nomad@gcu.global` | $2,000, €1,500 and 1,800 GCU |
+| Business user | `demo.business@gcu.global` | $10,000, €8,000, £5,000 and 9,500 GCU |
+| Investor persona | `demo.investor@gcu.global` | $50,000, 48,500 GCU and 1 oz of gold |
 
-### 3. Demo Mode Indicators
+None of the demo accounts has the admin role. On a local copy you can create an admin user with `php artisan user:create --admin`.
 
-Look for these indicators that confirm you're in demo mode:
-- 🟡 **Yellow banner** at the top of every page
-- **"DEMO"** badge in the header
-- **Test mode** labels on payment forms
-- **Simulated data** watermarks on reports
+### 3. How to Tell You Are in the Demo
+
+When `APP_ENV=demo`, a "Sandbox" label sits in the bottom-left corner of every page. Click it to read that the site uses test data and processes no real funds. The deposit pages also show a yellow "Demo Mode Active" notice.
 
 ## Features Overview
 
-### 💳 Banking Operations
+### Banking Operations
 
-#### Account Management
-1. **View Accounts**: Navigate to Dashboard → Accounts
-2. **Create Account**: Click "New Account" → Select account type
-3. **Account Details**: Click any account to view transactions, balance, and settings
+#### Accounts
 
-**Demo Features:**
-- Pre-populated transaction history
-- Instant balance updates
-- Multiple currency support (EUR, USD, GBP)
+Each demo user starts with one account that holds several assets.
 
-#### Transactions
-1. **Send Money**: Dashboard → Send Money
-   - Enter recipient: `demo@recipient.com`
-   - Amount: Any value up to €100,000
-   - Demo transactions process instantly
+1. Open `/accounts` to see your accounts and their balances.
+2. Click **Manage** on an account to open the wallet page with its balances and recent transactions.
 
-2. **Request Payment**: Dashboard → Request Payment
-   - Create payment requests with QR codes
-   - Share demo payment links
-   - Track payment status in real-time
+The web pages offer a **Create Account** button only to a user who has no account yet. To open more accounts, use the API with `POST /api/accounts`.
 
-**Demo Transaction Behaviors:**
-- 90% success rate for normal transactions
-- Instant processing (1-2 seconds)
-- Automatic receipt generation
+#### Deposits, Transfers and Withdrawals
 
-### 📈 Trading Platform
+The wallet pages under `/wallet` handle deposits, transfers, conversions and withdrawals. Deposits, conversions and withdrawals need `LEDGER_DIRECT_FUNDING_ENABLED=true`. That flag is on in the demo and off in production.
 
-#### Exchange Trading
-1. **Access Trading**: Navigate to Trading → Exchange
-2. **Place Orders**:
-   - Market orders execute immediately
-   - Limit orders fill based on simulated market conditions
-   - View order book with realistic depth
+- **Deposit** at `/wallet/deposit` links to a card deposit and a bank transfer. Separate pages exist for Open Banking, crypto, manual and Paysera deposits under `/wallet/deposit/...`. In the demo, card deposits go through a simulated payment gateway that always succeeds, and no card number is checked.
+- **Transfer** at `/wallet/transfer` moves money to another account.
+- **Convert** at `/wallet/convert` turns one currency into another at a simulated rate.
+- **Withdraw** at `/wallet/withdraw` offers a bank transfer or an Open Banking withdrawal. Since v7.18.0, the bank transfer page no longer saves bank accounts, so you type the bank details for each withdrawal. The bank payout step is a stub, so a withdrawal only lowers the demo ledger balance.
 
-**Demo Trading Features:**
-- Simulated real-time price movements
-- €1,000,000 demo trading balance
-- Historical chart data
-- Order types: Market, Limit, Stop-Loss
+### Trading Platform
 
-#### Market Data
-- Live price feeds (simulated with realistic volatility)
-- 24-hour volume statistics
-- Price charts with technical indicators
-- Market depth visualization
+#### Exchange
 
-### 💰 Stablecoin Operations
+The demo order book at `/exchange` needs `TRADING_ENABLED=true`. That flag is on in the demo and off in production.
 
-#### EUR Stablecoin (EURS) — demo only, not issued
-1. **Mint Tokens**: Stablecoins → Mint EURS
-   - Enter amount (up to €100,000)
-   - View backing ratio (always 105% in demo)
-   - Simulated minting confirmation
+1. Open **Exchange** in the top navigation.
+2. Choose a trading pair.
+3. Place a market order or a limit order.
 
-2. **Redeem Tokens**: Stablecoins → Redeem
-   - Convert demo EURS back to demo EUR
-   - No fees in demo mode
-   - Simulated redemption (no real funds)
+The exchange supports market orders and limit orders only. Prices come from the demo order book and from simulated rates. See the [Exchange Engine guide](EXCHANGE_ENGINE_GUIDE.md) for details.
 
-**Demo Stablecoin Features:**
-- Transparent reserve status
-- Simulated audit reports
-- Backing composition breakdown
+#### Liquidity Pools
 
-### 🏦 P2P Lending
+The liquidity pages at `/liquidity` list the demo pools and show a pool's details. They also need `TRADING_ENABLED=true`. Adding and removing liquidity was removed in v7.18.0, so these pages are read-only.
 
-#### As a Borrower
-1. **Apply for Loan**: Lending → Apply for Loan
-2. **Complete Application**:
-   - Amount: €100 - €50,000
-   - Term: 3-60 months
-   - Purpose: Select from dropdown
-3. **View Offers**: See simulated lender offers with rates
-4. **Accept Offer**: Choose best rate and terms
+### Stablecoin Operations
 
-**Demo Credit Scores:**
-- Automatically generated (600-850)
-- Instant approval decisions
-- Interest rates: 5-15% APR
+The stablecoin operations pages at `/wallet/stablecoin-operations` are for staff only. They need one of the roles `admin`, `super_admin`, `bank_admin` or `stablecoin_operator`, so the demo users cannot open them. Minting and burning also need `LEDGER_DIRECT_FUNDING_ENABLED=true`. Any stablecoin in the demo is a simulated demo token that is not issued.
 
-#### As a lender (demo)
-1. **Browse Loans**: Lending → Loan listings
-2. **Filter Options**:
-   - Risk level (A-F rating)
-   - Interest rate range
-   - Loan term
-3. **Fund**: Select a demo amount (min €50)
-4. **Track**: Monitor simulated repayments
+### Lending
 
-### 🗳️ Governance (GCU Voting)
+The lending pages at `/lending` show the loan application flow from the borrower's side. They need the Lending module, which is on in the demo and disabled in production.
+
+1. Open **Lending** and choose **Apply**.
+2. Enter an amount between 100 and 1,000,000 and a term between 1 and 360 months.
+3. Submit the application.
+
+In the demo, the application gets a simulated credit score and an automatic decision. No real loan is made, and there is no page for lenders.
+
+### Governance (GCU Voting)
 
 > The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis.
 > It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or
@@ -134,199 +94,99 @@ Look for these indicators that confirm you're in demo mode:
 > basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under
 > MiCA (Title III); no such authorisation is held.
 
-#### Participating in Votes
-1. **View Proposals**: Governance → Active Proposals
-2. **Review Details**: Click proposal for full information
-3. **Cast Vote**: 
-   - Select: Approve, Reject, or Abstain
-   - Confirm with demo signature
-4. **Track Results**: Real-time vote counting
+#### Taking Part in a Vote
 
-**Demo Voting Weight:**
-- Each demo account has 1,000 simulated GCU demo units (no monetary value)
-- Voting weight proportional to the simulated demo balance
-- Instant vote confirmation
+1. Open **Governance** in the top navigation. It leads to `/gcu/voting`.
+2. Click a proposal to read its description and the proposed basket weights.
+3. Vote for, against or abstain while the proposal is open.
+4. The page shows the running totals. You can change your vote until voting closes.
 
-## Demo Scenarios
+**Demo voting weight:**
+- Your voting weight equals your simulated demo GCU balance. GCU has no monetary value.
+- You need a demo GCU balance above zero to vote.
+- Only administrators can create new proposals.
 
-### Test Payment Scenarios
-
-Use these test inputs to trigger specific outcomes:
-
-#### Card Payments
-| Card Number | Outcome |
-|------------|---------|
-| 4242 4242 4242 4242 | Success |
-| 4000 0000 0000 0002 | Declined |
-| 4000 0000 0000 9995 | Insufficient funds |
-| 4000 0000 0000 9987 | Lost card error |
-
-#### Bank Transfers
-| IBAN | Outcome |
-|------|---------|
-| DE89 3704 0044 0532 0130 00 | Success |
-| DE89 3704 0044 0000 0000 01 | Account closed |
-| DE89 3704 0044 0000 0000 02 | Invalid account |
-
-### Trading Scenarios
-
-#### Trigger Market Events
-1. **Bull Market**: Place large buy order (>€10,000)
-2. **Bear Market**: Place large sell order (>€10,000)
-3. **Volatility Spike**: Rapid small trades (<1 min apart)
-4. **Circuit Breaker**: Try order >€1,000,000
-
-### Lending Scenarios
-
-#### Credit Score Simulations
-- Email ending in `@good.demo`: Score 750-850 (auto-approved)
-- Email ending in `@fair.demo`: Score 650-749 (manual review)
-- Email ending in `@poor.demo`: Score 500-649 (declined)
+See the [GCU voting guide](GCU_VOTING_GUIDE.md) for the API and the monthly schedule.
 
 ## Advanced Features
 
 ### API Access
 
-#### Demo API Endpoints
-```
-Base URL: https://finaegis.org/api
-Authentication: Bearer {demo_token}
-```
+The API reference is at `/api/documentation`. Use a bearer token from the login endpoint.
 
-#### Get Demo Token
 ```bash
-curl -X POST https://finaegis.org/api/auth/demo-token \
+# Get a token for a demo account
+curl -X POST https://finaegis.org/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "john@demo.finaegis.com"}'
-```
+  -d '{"email": "demo.user@gcu.global", "password": "demo123"}'
 
-#### Example API Calls
-```bash
-# Get account balance
+# List your accounts
 curl https://finaegis.org/api/accounts \
-  -H "Authorization: Bearer {demo_token}"
+  -H "Authorization: Bearer {access_token}"
 
-# Create transaction
-curl -X POST https://finaegis.org/api/transactions \
-  -H "Authorization: Bearer {demo_token}" \
+# Transfer between accounts
+curl -X POST https://finaegis.org/api/transfers \
+  -H "Authorization: Bearer {access_token}" \
   -H "Content-Type: application/json" \
-  -d '{"to": "demo@recipient.com", "amount": 100, "currency": "EUR"}'
+  -d '{"from_account_uuid": "...", "to_account_uuid": "...", "amount": 100, "asset_code": "USD"}'
 ```
+
+Check the exact request fields for each endpoint in `/api/documentation`.
 
 ### Webhook Testing
 
-#### Demo Webhook Events
-Configure webhook URL in Settings → Webhooks
-
-**Available Events:**
-- `payment.succeeded`
-- `payment.failed`
-- `transaction.created`
-- `loan.approved`
-- `trade.executed`
-
-**Demo Webhook Payload:**
-```json
-{
-  "event": "payment.succeeded",
-  "data": {
-    "id": "demo_pay_123",
-    "amount": 100,
-    "currency": "EUR",
-    "status": "succeeded"
-  },
-  "timestamp": "2024-09-15T10:30:00Z",
-  "demo": true
-}
-```
+Webhooks are platform settings, so only administrators can register them through the API at `/api/v2/webhooks`. The demo users cannot. Anyone can call `GET /api/v2/webhooks/events` to list the event types. They cover accounts, transactions, transfers, baskets, polls, votes and exchange rates. Examples are `account.created`, `transaction.completed`, `transfer.failed` and `vote.cast`. See the [Webhook Integration guide](../04-API/WEBHOOK_INTEGRATION.md) for the payload and the signature check.
 
 ## Demo Limitations
 
 ### What You Cannot Do
-- ❌ Real money transactions
-- ❌ Withdraw funds to real bank accounts
-- ❌ Trade on real exchanges
-- ❌ Access production data
-- ❌ Send emails to non-demo addresses
 
-### Data Persistence
-- Demo data persists for **24 hours**
-- Automatic cleanup at midnight UTC
-- Download your demo data anytime
-- Reset option available in Settings
+- You cannot move real money.
+- You cannot withdraw to a real bank account.
+- You cannot trade on a real exchange.
+- You cannot see production data.
+
+### Data Cleanup
+
+In the demo environment, `php artisan demo:cleanup` runs every day at 03:00. It deletes demo-tagged transactions and events older than `DEMO_CLEANUP_RETENTION_DAYS`, which defaults to one day. It also deletes old users with an `@demo.finaegis.com` email and their accounts. The five seeded `@gcu.global` demo users stay.
 
 ### Rate Limits
-- API: 100 requests per minute
-- Transactions: 50 per hour
-- Trades: 100 per hour
-- Bulk operations: 10 per hour
 
-## Tips & Tricks
+The API applies per-user limits to money-moving requests. For example, a user can make 10 deposits, 5 withdrawals, 15 transfers and 20 conversions per hour. Read requests have their own per-minute limits.
 
-### 1. Quick Testing
-- Use keyboard shortcuts:
-  - `Ctrl+D`: Toggle demo controls
-  - `Ctrl+R`: Reset demo data
-  - `Ctrl+T`: Open test scenarios
+## Tips
 
-### 2. Bulk Operations
-- Import CSV files with demo data
-- Use batch API endpoints
-- Access bulk testing tools in Admin panel
-
-### 3. Mobile Testing
-- Responsive design on all devices
-- Touch-optimized interfaces
-- Mobile app demo available
-
-### 4. Multi-Language
-- Switch languages in Settings
-- Available: EN, ES, FR, DE, IT
-- All features fully translated
+- The interface is in English only.
+- The pages work on phone-sized screens.
+- On a local copy, `php artisan demo:populate --fresh` resets the database to the demo data.
 
 ## Troubleshooting
 
 ### Common Issues
 
-#### "Demo Mode Not Active"
-- Clear browser cache
-- Check URL includes `/demo`
-- Verify demo credentials
+#### You cannot log in
+- Check that the email and password match exactly.
+- On a local copy, check that you ran `php artisan demo:populate`.
 
-#### "Transaction Failed"
-- Normal behavior (10% failure rate)
-- Try again for success
-- Check demo balance limits
+#### A page returns "not found"
+- The exchange and liquidity pages need `TRADING_ENABLED=true`.
+- The deposit, convert and withdraw actions need `LEDGER_DIRECT_FUNDING_ENABLED=true`.
+- The lending and voting pages need their modules to be enabled.
 
-#### "Cannot Access Feature"
-- Some features require admin role
-- Switch to admin@demo.finaegis.com
-- Check feature availability in demo
-
-### Reset Demo Environment
-1. Go to Settings → Demo Controls
-2. Click "Reset Demo Data"
-3. Confirm reset
-4. Fresh start with default data
+#### A page returns "forbidden" or sends you back
+- The stablecoin operations pages need a staff role.
+- `/admin` sends users without the admin role back to `/dashboard`.
 
 ## Support
 
-### Demo Support Channels
 - [GitHub Issues](https://github.com/FinAegis/core-banking-prototype-laravel/issues)
-
-### Feedback
-We value your feedback! Please share your demo experience:
-- In-app feedback widget
-- Survey after demo session
 
 ## Next Steps
 
-### Technical Documentation
-- [API Documentation](/docs/api)
-- [Integration Guides](/docs/integration)
-- [Security Overview](/docs/security)
-- [Compliance Information](/docs/compliance)
+- [API Reference](../04-API/REST_API_REFERENCE.md)
+- [Demo mode technical notes](../03-FEATURES/DEMO-MODE.md)
+- [Getting Started](GETTING-STARTED.md)
 
 ---
 
-**Note**: This is a demonstration environment. No real financial transactions occur. All data is simulated and will be cleared periodically.
+**Note**: This is a demonstration environment. No real financial transactions occur. All data is simulated and old demo transactions are cleared daily.

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The FinAegis AI Agent Framework includes sophisticated workflow implementations that enable AI agents to handle complex banking operations with full event sourcing, compensation support, and human-in-the-loop capabilities.
+The AI agent framework has three main workflows in `app/Domain/AI/Workflows/`. They let agents handle multi-step operations. Each workflow records its steps as events, can undo completed steps when a later one fails and can ask a person to approve a decision.
 
 ## Implemented Workflows
 
@@ -32,7 +32,9 @@ The FinAegis AI Agent Framework includes sophisticated workflow implementations 
 - `check_balance` → account.balance tool
 - `transfer_funds` → payment.transfer tool
 - `exchange_quote` → exchange.quote tool
-- `check_kyc_status` → compliance.kyc_status tool
+- `check_kyc_status` → `compliance.kyc_status` tool (the registry has no tool by this name; the registered KYC tool is `compliance.kyc`)
+
+The workflow does not call these tools yet. `executeToolForIntent()` returns a simulated result for every mapped intent.
 
 ### 2. ComplianceWorkflow
 
@@ -43,8 +45,8 @@ The FinAegis AI Agent Framework includes sophisticated workflow implementations 
 **Key Features**:
 - Multi-step compliance verification
 - Saga pattern with compensation support
-- Integration with compliance services
-- Regulatory reporting automation
+- Simplified demo checks that stand in for the compliance services
+- Regulatory report drafts for an operator to review
 - Alert generation for suspicious activities
 
 **Workflow Steps**:
@@ -102,7 +104,7 @@ The FinAegis AI Agent Framework includes sophisticated workflow implementations 
 
 ## Event Sourcing Integration
 
-All workflows integrate with the `AIInteractionAggregate` for complete audit trail:
+Each workflow records its steps through `AIInteractionAggregate`, which keeps the audit trail.
 
 ```php
 $aggregate = AIInteractionAggregate::retrieve($conversationId);
@@ -114,7 +116,7 @@ $aggregate->persist();
 
 ## Saga Pattern Implementation
 
-Workflows implement the saga pattern for multi-step operations:
+Workflows use the saga pattern for multi-step operations. When a step fails, the completed steps are undone in reverse order. The code below is simplified.
 
 ```php
 class RiskAssessmentSaga extends Workflow
@@ -144,7 +146,7 @@ class RiskAssessmentSaga extends Workflow
 
 ## Confidence Scoring
 
-All AI decisions include confidence scores:
+Every AI decision carries a confidence score.
 
 ```php
 $confidence = match ($type) {
@@ -158,7 +160,7 @@ $aggregate->makeDecision($decision, $metadata, $confidence, $confidence < 0.7);
 
 ## Human-in-the-Loop
 
-Low confidence decisions trigger human review:
+A decision with low confidence goes to a person for review.
 
 ```php
 if ($intent['confidence'] < 0.7) {
@@ -168,40 +170,41 @@ if ($intent['confidence'] < 0.7) {
 
 ## Service Integration
 
-Workflows integrate with existing domain services:
+The workflows contain simplified demo logic. They do not call the domain services yet, although `ComplianceWorkflow` imports `KycService` and `AmlScreeningService`. These services hold the real logic that a production version would call:
 
-- `KycService` - KYC verification
-- `AmlScreeningService` - AML checks
-- `TransactionMonitoringService` - Pattern detection
-- `RegulatoryReportingService` - Report generation
-- `DefaultRiskAssessmentService` - Risk scoring
+| Service | Purpose |
+|---|---|
+| `App\Domain\Compliance\Services\KycService` | KYC verification |
+| `App\Domain\Compliance\Services\AmlScreeningService` | AML checks |
+| `App\Domain\Compliance\Services\TransactionMonitoringService` | Pattern detection |
+| `App\Domain\AgentProtocol\Services\RegulatoryReportingService` | Report drafts |
+| `App\Domain\Lending\Services\DefaultRiskAssessmentService` | Risk scoring |
 
 ## Testing
 
-All workflows are designed for testability:
+The workflows can be run directly in tests:
 
 ```php
 // Test workflow execution
-$workflow = new ComplianceWorkflow($kycService, $amlService, $reportingService);
+$workflow = new ComplianceWorkflow();
 $result = iterator_to_array($workflow->execute($conversationId, $userId, 'kyc', $parameters));
 
-// Verify event sourcing
-$this->assertDatabaseHas('ai_interaction_events', [
+// Verify event sourcing (events go to the default stored_events table)
+$this->assertDatabaseHas('stored_events', [
     'aggregate_uuid' => $conversationId,
-    'event_type' => 'ConversationStarted'
 ]);
 ```
 
 ## Configuration
 
-Workflows can be configured via environment variables:
+`AI_CONFIDENCE_THRESHOLD` (default 0.7) sets the confidence below which `AIInteractionAggregate::makeDecision()` asks for human review. The other AI settings are in `config/ai.php`.
 
 ```env
 # AI Agent Configuration
 AI_CONFIDENCE_THRESHOLD=0.7
-AI_HUMAN_REVIEW_REQUIRED=true
-AI_MAX_CONVERSATION_DURATION=3600
-AI_ENABLE_CACHING=true
+AI_HIGH_CONFIDENCE_THRESHOLD=0.9
+AI_LOW_CONFIDENCE_THRESHOLD=0.5
+AI_CONVERSATION_TTL=86400
 ```
 
 ## Usage Examples
@@ -240,9 +243,4 @@ $result = iterator_to_array($saga->execute(
 
 ## Future Enhancements
 
-### Phase 4 Plans:
-- Trading Agent with market analysis
-- Multi-Agent coordination
-- Advanced NLP processing
-- Real-time learning and adaptation
-- Cross-agent communication protocols
+Phase 4 added the trading agent workflow and multi-agent coordination. [ADVANCED_AI_FEATURES.md](ADVANCED_AI_FEATURES.md) describes them. Better language processing, learning from past decisions and protocols for agents to talk to each other are not built yet.

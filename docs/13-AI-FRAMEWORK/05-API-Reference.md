@@ -1,13 +1,14 @@
 # AI Framework API Reference
 
 ## Base URL
-```
-https://api.zelta.app/api/ai
-```
+
+The endpoints live under `/api/ai` on the application host. The routes are defined in `app/Domain/AI/Routes/api.php`.
+
+Several endpoints are still demo implementations. The conversation list, the feedback endpoint and all `/api/ai/mcp/*` endpoints return sample data or do not store anything. Each section below says so where it applies.
 
 ## Authentication
 
-All AI endpoints require authentication via Laravel Sanctum:
+All AI endpoints require a Laravel Sanctum token:
 
 ```http
 Authorization: Bearer {token}
@@ -21,37 +22,39 @@ Authorization: Bearer {token}
 POST /api/ai/chat
 ```
 
+The router sends the message to the matching agents and combines their answers. In demo mode (`AI_DEMO_MODE=true`) the agents answer from templates without a language model.
+
 #### Request Body
 
 ```json
 {
   "message": "What is my account balance?",
-  "conversation_id": "conv_123abc",  // Optional, will be generated if not provided
+  "conversation_id": "9b1f6c2e-3d4a-4f5b-8c7d-1e2f3a4b5c6d",  // Optional UUID, generated if not provided
   "context": {                       // Optional context data
     "account_type": "checking",
     "previous_topic": "transfers"
   },
   "model": "gpt-4",                  // Optional: gpt-4, gpt-3.5-turbo, claude-3
   "temperature": 0.7,                // Optional: 0.0 to 2.0
-  "stream": false                     // Optional: Enable streaming response
+  "stream": false                     // Optional
 }
 ```
+
+`message` is required and can be up to 4,000 characters.
 
 #### Response
 
 ```json
 {
-  "conversation_id": "conv_123abc",
-  "message_id": "msg_456def",
+  "conversation_id": "9b1f6c2e-3d4a-4f5b-8c7d-1e2f3a4b5c6d",
+  "message_id": "4c3b2a19-8d7e-4f6a-b5c4-d3e2f1a0b9c8",
   "response": "Your current checking account balance is $12,456.78.",
   "confidence": 0.95,
   "tools_used": [
-    "CheckBalanceTool",
-    "AccountLookupTool"
+    "account.balance"
   ],
   "context": {
-    "account_number": "****1234",
-    "last_updated": "2024-09-08T10:30:00Z"
+    "account_type": "checking"
   }
 }
 ```
@@ -62,26 +65,21 @@ POST /api/ai/chat
 GET /api/ai/conversations?limit=10
 ```
 
+This endpoint is a demo. It returns two sample conversations, whatever the user has done.
+
 #### Response
 
 ```json
-{
-  "data": [
-    {
-      "id": "conv_123abc",
-      "title": "Account Balance Inquiry",
-      "last_message": "Your balance is $12,456.78",
-      "message_count": 5,
-      "created_at": "2024-09-08T09:00:00Z",
-      "updated_at": "2024-09-08T10:30:00Z"
-    }
-  ],
-  "meta": {
-    "total": 25,
-    "per_page": 10,
-    "current_page": 1
+[
+  {
+    "id": "0d5e2f7a-...",
+    "title": "Account Balance Inquiry",
+    "last_message": "Your balance is $12,456.78",
+    "message_count": 3,
+    "created_at": "2026-11-23T08:00:00+00:00",
+    "updated_at": "2026-11-23T08:00:00+00:00"
   }
-}
+]
 ```
 
 ### Get Conversation Details
@@ -90,30 +88,25 @@ GET /api/ai/conversations?limit=10
 GET /api/ai/conversations/{conversationId}
 ```
 
+The endpoint returns the user's conversation from the cache. For any other id it returns a sample conversation, so it never answers `404` today.
+
 #### Response
 
 ```json
 {
-  "id": "conv_123abc",
+  "id": "9b1f6c2e-3d4a-4f5b-8c7d-1e2f3a4b5c6d",
   "messages": [
     {
       "role": "user",
       "content": "What is my account balance?",
-      "timestamp": "2024-09-08T10:00:00Z"
+      "timestamp": "2026-11-23T10:00:00+00:00"
     },
     {
       "role": "assistant",
       "content": "Your current checking account balance is $12,456.78.",
-      "timestamp": "2024-09-08T10:00:05Z",
-      "tools_used": ["CheckBalanceTool"],
-      "confidence": 0.95
+      "timestamp": "2026-11-23T10:00:05+00:00"
     }
-  ],
-  "context": {
-    "user_id": 123,
-    "account_type": "checking"
-  },
-  "created_at": "2024-09-08T10:00:00Z"
+  ]
 }
 ```
 
@@ -123,14 +116,7 @@ GET /api/ai/conversations/{conversationId}
 DELETE /api/ai/conversations/{conversationId}
 ```
 
-#### Response
-
-```json
-{
-  "success": true,
-  "message": "Conversation deleted successfully"
-}
-```
+A successful delete returns `204 No Content`. An unknown conversation returns `404` with `{"error": "Conversation not found"}`.
 
 ### Submit Feedback
 
@@ -142,22 +128,27 @@ POST /api/ai/feedback
 
 ```json
 {
-  "message_id": "msg_456def",
+  "message_id": "4c3b2a19-8d7e-4f6a-b5c4-d3e2f1a0b9c8",
   "rating": 5,
   "feedback": "Very helpful and accurate response"
 }
 ```
 
+`rating` is an integer from 1 to 5. `feedback` is optional and can be up to 1,000 characters.
+
 #### Response
 
 ```json
 {
-  "success": true,
-  "message": "Feedback recorded successfully"
+  "message": "Feedback submitted successfully"
 }
 ```
 
-## MCP Tools Endpoints
+The feedback is not stored yet.
+
+## MCP Tools Endpoints (demo)
+
+These endpoints are a demo served by `MCPToolsController`. They list six sample tools of their own (`get_account_balance`, `authorize_transfer`, `check_fraud_risk`, `get_transaction_history`, `analyze_spending_patterns`, `create_budget_plan`) and return fixed sample data. They do not use the tool registry and do not touch real accounts. The public MCP server at `https://mcp.zelta.app/mcp` is the working tool interface; see [MCP_INTEGRATION.md](MCP_INTEGRATION.md).
 
 ### List Available Tools
 
@@ -171,43 +162,16 @@ GET /api/ai/mcp/tools
 {
   "data": [
     {
-      "name": "CheckBalanceTool",
-      "category": "account",
-      "description": "Check account balance",
+      "name": "get_account_balance",
+      "description": "Retrieve the current balance for a customer account",
+      "category": "account_management",
       "parameters": {
-        "account_id": {
-          "type": "string",
-          "required": false,
-          "description": "Account ID (optional, defaults to primary)"
-        }
+        "account_id": {"type": "string", "required": true},
+        "include_pending": {"type": "boolean", "required": false},
+        "currency": {"type": "string", "required": false}
       },
       "requires_auth": true,
-      "cache_ttl": 300
-    },
-    {
-      "name": "TransferFundsTool",
-      "category": "payment",
-      "description": "Transfer funds between accounts",
-      "parameters": {
-        "from_account": {
-          "type": "string",
-          "required": true,
-          "description": "Source account"
-        },
-        "to_account": {
-          "type": "string",
-          "required": true,
-          "description": "Destination account"
-        },
-        "amount": {
-          "type": "number",
-          "required": true,
-          "description": "Transfer amount"
-        }
-      },
-      "requires_auth": true,
-      "requires_2fa": true,
-      "cache_ttl": 0
+      "rate_limit": 100
     }
   ]
 }
@@ -216,62 +180,15 @@ GET /api/ai/mcp/tools
 ### Get Tool Details
 
 ```http
-GET /api/ai/mcp/tools/{toolName}
+GET /api/ai/mcp/tools/{tool}
 ```
 
-#### Response
-
-```json
-{
-  "name": "CheckBalanceTool",
-  "category": "account",
-  "description": "Check account balance for a specified account",
-  "version": "1.0.0",
-  "parameters": {
-    "account_id": {
-      "type": "string",
-      "required": false,
-      "description": "Account ID (defaults to primary account)",
-      "example": "ACC001"
-    },
-    "currency": {
-      "type": "string",
-      "required": false,
-      "description": "Currency code for balance",
-      "example": "USD",
-      "default": "USD"
-    }
-  },
-  "response_schema": {
-    "type": "object",
-    "properties": {
-      "balance": {"type": "number"},
-      "currency": {"type": "string"},
-      "available": {"type": "number"},
-      "pending": {"type": "number"}
-    }
-  },
-  "examples": [
-    {
-      "input": {"account_id": "ACC001"},
-      "output": {
-        "balance": 12456.78,
-        "currency": "USD",
-        "available": 12000.00,
-        "pending": 456.78
-      }
-    }
-  ],
-  "requires_auth": true,
-  "rate_limit": "100/hour",
-  "cache_ttl": 300
-}
-```
+The response describes one sample tool with its parameters and examples. An unknown tool returns `404`.
 
 ### Execute Tool
 
 ```http
-POST /api/ai/mcp/tools/{toolName}/execute
+POST /api/ai/mcp/tools/{tool}/execute
 ```
 
 #### Request Body
@@ -281,10 +198,6 @@ POST /api/ai/mcp/tools/{toolName}/execute
   "parameters": {
     "account_id": "ACC001",
     "currency": "USD"
-  },
-  "context": {
-    "conversation_id": "conv_123abc",
-    "user_intent": "balance_check"
   }
 }
 ```
@@ -294,76 +207,60 @@ POST /api/ai/mcp/tools/{toolName}/execute
 ```json
 {
   "success": true,
+  "tool": "get_account_balance",
   "result": {
-    "balance": 12456.78,
+    "account_id": "ACC001",
+    "available_balance": 12456.78,
+    "current_balance": 12556.78,
+    "pending_balance": 100.00,
     "currency": "USD",
-    "available": 12000.00,
-    "pending": 456.78,
-    "last_updated": "2024-09-08T10:30:00Z"
+    "as_of": "2026-11-23T10:00:00+00:00"
   },
-  "execution_time": 0.125,
-  "cached": false,
-  "tool_version": "1.0.0"
+  "execution_time_ms": 0,
+  "metadata": {
+    "user_id": 1,
+    "timestamp": "2026-11-23T10:00:00+00:00"
+  }
 }
 ```
+
+The balance figures are fixed sample values. An unknown tool returns `404` with `{"success": false, "error": "Tool not found"}`.
 
 ### Register Custom Tool
 
 ```http
-POST /api/ai/mcp/tools/register
+POST /api/ai/mcp/register
 ```
 
 #### Request Body
 
 ```json
 {
-  "name": "CustomAnalyticsTool",
+  "name": "custom_analytics",
   "description": "Custom analytics for user transactions",
-  "category": "analytics",
   "endpoint": "https://api.example.com/analytics",
   "parameters": {
-    "user_id": {
-      "type": "integer",
-      "required": true,
-      "description": "User ID for analytics"
-    },
-    "date_range": {
-      "type": "object",
-      "required": false,
-      "properties": {
-        "start": {"type": "string", "format": "date"},
-        "end": {"type": "string", "format": "date"}
-      }
-    }
+    "user_id": {"type": "integer", "required": true}
   },
-  "headers": {
-    "X-API-Key": "your-api-key"
-  },
-  "cache_ttl": 3600
+  "category": "analytics",
+  "requires_auth": true,
+  "rate_limit": 100
 }
 ```
 
-#### Response
-
-```json
-{
-  "success": true,
-  "tool_id": "tool_custom_analytics_001",
-  "message": "Tool registered successfully"
-}
-```
+The controller would answer `201` with a generated `tool_id` and would not store the tool. In practice the request fails first. Its validation checks the name against an `mcp_tools` table, and no migration creates that table, so the request ends in a server error.
 
 ## Error Responses
 
-### 400 Bad Request
+Laravel returns its standard error shapes.
+
+### 422 Unprocessable Entity
 
 ```json
 {
-  "error": "validation_error",
-  "message": "The given data was invalid",
+  "message": "The message field is required.",
   "errors": {
-    "message": ["The message field is required"],
-    "model": ["The selected model is invalid"]
+    "message": ["The message field is required."]
   }
 }
 ```
@@ -372,17 +269,7 @@ POST /api/ai/mcp/tools/register
 
 ```json
 {
-  "error": "unauthorized",
-  "message": "Unauthenticated"
-}
-```
-
-### 403 Forbidden
-
-```json
-{
-  "error": "forbidden",
-  "message": "You do not have permission to execute this tool"
+  "message": "Unauthenticated."
 }
 ```
 
@@ -390,212 +277,26 @@ POST /api/ai/mcp/tools/register
 
 ```json
 {
-  "error": "not_found",
-  "message": "Conversation not found"
+  "error": "Conversation not found"
 }
 ```
+
+`DELETE /api/ai/conversations/{conversationId}` returns this when the conversation is not in the cache.
 
 ### 429 Too Many Requests
 
-```json
-{
-  "error": "rate_limit_exceeded",
-  "message": "Too many requests",
-  "retry_after": 60
-}
-```
-
-### 500 Internal Server Error
-
-```json
-{
-  "error": "internal_error",
-  "message": "An unexpected error occurred",
-  "trace_id": "trace_123abc"
-}
-```
-
-## WebSocket Events
-
-### Connect to WebSocket
-
-```javascript
-const socket = new WebSocket('wss://api.zelta.app/ai/ws');
-
-socket.onopen = () => {
-  // Authenticate
-  socket.send(JSON.stringify({
-    type: 'auth',
-    token: 'your-sanctum-token'
-  }));
-  
-  // Subscribe to conversation
-  socket.send(JSON.stringify({
-    type: 'subscribe',
-    conversation_id: 'conv_123abc'
-  }));
-};
-```
-
-### Event Types
-
-#### Message Stream
-
-```json
-{
-  "type": "message_stream",
-  "conversation_id": "conv_123abc",
-  "content": "Your account balance",
-  "complete": false
-}
-```
-
-#### Tool Execution
-
-```json
-{
-  "type": "tool_execution",
-  "conversation_id": "conv_123abc",
-  "tool": "CheckBalanceTool",
-  "status": "executing"
-}
-```
-
-#### Human Intervention Request
-
-```json
-{
-  "type": "human_intervention",
-  "conversation_id": "conv_123abc",
-  "reason": "Low confidence decision",
-  "context": {
-    "confidence": 0.45,
-    "decision": "large_transfer"
-  }
-}
-```
+The response carries `Retry-After` and `X-RateLimit-*` headers.
 
 ## Rate Limiting
 
-| Endpoint | Rate Limit | Window |
-|----------|------------|--------|
-| Chat | 60 requests | 1 minute |
-| Tool Execution | 100 requests | 1 hour |
-| Tool Registration | 10 requests | 1 hour |
-| Conversations List | 120 requests | 1 minute |
+The `/api/ai/*` group uses the `api.rate_limit:private` middleware. `ApiRateLimitMiddleware` has no `private` tier, so it falls back to the `query` tier. Each user gets 100 requests per minute on each endpoint, and a client that goes over is blocked for 30 seconds.
 
-## SDK Examples
+## Not available
 
-### JavaScript/TypeScript
-
-```typescript
-import { FinAegisAI } from '@finaegis/ai-sdk';
-
-const ai = new FinAegisAI({
-  apiKey: 'your-api-key',
-  baseUrl: 'https://api.zelta.app'
-});
-
-// Send message
-const response = await ai.chat({
-  message: 'What is my balance?',
-  conversationId: 'conv_123'
-});
-
-// Execute tool
-const result = await ai.executeTool('CheckBalanceTool', {
-  account_id: 'ACC001'
-});
-```
-
-### Python
-
-```python
-from finaegis import AIClient
-
-client = AIClient(
-    api_key='your-api-key',
-    base_url='https://api.zelta.app'
-)
-
-# Send message
-response = client.chat(
-    message='What is my balance?',
-    conversation_id='conv_123'
-)
-
-# Execute tool
-result = client.execute_tool(
-    'CheckBalanceTool',
-    parameters={'account_id': 'ACC001'}
-)
-```
-
-### PHP
-
-```php
-use FinAegis\AI\Client;
-
-$client = new Client([
-    'api_key' => 'your-api-key',
-    'base_url' => 'https://api.zelta.app'
-]);
-
-// Send message
-$response = $client->chat([
-    'message' => 'What is my balance?',
-    'conversation_id' => 'conv_123'
-]);
-
-// Execute tool
-$result = $client->executeTool('CheckBalanceTool', [
-    'account_id' => 'ACC001'
-]);
-```
-
-## Webhook Integration
-
-Register webhooks to receive AI events:
-
-```http
-POST /api/ai/webhooks
-```
-
-```json
-{
-  "url": "https://your-app.com/webhooks/ai",
-  "events": [
-    "conversation.started",
-    "decision.made",
-    "tool.executed",
-    "human.intervention.requested"
-  ],
-  "secret": "webhook-secret-key"
-}
-```
-
-Webhook payload example:
-
-```json
-{
-  "event": "decision.made",
-  "timestamp": "2024-09-08T10:30:00Z",
-  "data": {
-    "conversation_id": "conv_123abc",
-    "decision": "transfer_approved",
-    "confidence": 0.92,
-    "factors": {
-      "risk_score": 0.15,
-      "account_history": "good",
-      "amount_threshold": "within_limits"
-    }
-  },
-  "signature": "sha256=..."
-}
-```
+There is no AI WebSocket channel, no AI webhook registration endpoint and no dedicated AI SDK. Use the REST endpoints above or the public MCP server.
 
 ## Next Steps
 
-- [Testing Guide](06-Testing.md)
-- [Deployment Guide](07-Deployment.md)
-- [Monitoring Guide](08-Monitoring.md)
+- [MCP Integration Guide](MCP_INTEGRATION.md)
+- [Workflow Development](03-Workflows.md)
+- [Event Sourcing Patterns](04-Event-Sourcing.md)

@@ -3,7 +3,9 @@
 **Status:** Accepted
 **Date:** 2026-05-23
 **Decision-maker:** Backend engineer
-**Related:** `docs/BACKEND_HANDOVER_BRIDGE_RAMP.md` (mobile-authored brief, §1, §3.7); supersedes `docs/superpowers/specs/2026-04-12-stripe-bridge-ramp-design.md`
+**Related:** `docs/BACKEND_HANDOVER_BRIDGE_RAMP.md` (mobile-authored brief, §1, §3.7; the brief is not stored in this repository); supersedes `docs/superpowers/specs/2026-04-12-stripe-bridge-ramp-design.md`; operations runbook `docs/operations/bridge-ramp.md`
+
+> **Implementation status (reviewed for v7.18.1).** Bridge.xyz is the primary ramp. The Zelta production setup sets `RAMP_PROVIDER=bridge`. v1 is the bank-transfer onramp to USDC on Polygon only. An offramp request returns HTTP 422 with `OFFRAMP_NOT_AVAILABLE`. Bridge webhooks are now verified with Bridge's asymmetric RSA signature (`BRIDGE_WEBHOOK_PUBLIC_KEY`), as described in `docs/14-TECHNICAL/WEBHOOK_SECURITY.md`. The card program did not go through Bridge. Virtual cards are built for a closed pilot with Lepo Finance, and production offers them only to the users listed for the pilot. A FinCard adapter is also in the codebase. Bridge and the other named providers are integration adapters for third-party services, and no partnership or endorsement is implied.
 
 ---
 
@@ -13,7 +15,7 @@ Mobile is shipping a ramp surface in v1.x. Three options have been on the table 
 
 - **Stripe Crypto Onramp** — hosted card-payment checkout. The existing `StripeBridgeProvider` + `StripeBridgeService` in `app/Domain/Ramp/` is scaffolding for *this* product, not for Bridge.xyz. 1.5–3% per transaction, on-ramp only (no off-ramp in their public API), ~6-month "audition" before Stripe will discuss a cards path.
 - **Onramper** — aggregator over many providers. $200/month subscription floor plus per-tx fees. Cost-prohibitive at our launch scale.
-- **Bridge.xyz (direct KYB)** — the stablecoin orchestration company Stripe acquired in 2024, available as a direct partner. 10 bps + network + ≤1% FX spread; covers onramp + offramp + cards path in one integration; bundled regulated KYC; KYB invitation in hand skips the audition entirely.
+- **Bridge.xyz (direct KYB)** — the stablecoin orchestration company Stripe acquired in 2024, available for direct integration after its business onboarding (KYB). 10 bps + network + ≤1% FX spread; covers onramp + offramp + cards path in one integration; bundled regulated KYC; KYB invitation in hand skips the audition entirely.
 
 The "Stripe Bridge" naming in the prior memory and codebase was a conflation between Stripe Crypto Onramp and Bridge.xyz. They are two different Stripe products with different APIs, contracts, and pricing. This ADR commits to the second one and removes the conflation from the codebase.
 
@@ -49,9 +51,9 @@ Use Onramper as the front door and let it route to underlying providers.
 
 ### (γ) Bridge.xyz direct integration — **chosen**
 
-Direct KYB partnership with Bridge.xyz.
+Direct integration with Bridge.xyz after its business onboarding (KYB).
 
-**Pros:** 10 bps + network + ≤1% FX spread (lowest blended cost of the three by a wide margin); covers onramp (ACH/SEPA/SEPA Instant) **and** offramp (ACH/SEPA/SWIFT to 30+ currencies) in one integration — single contract, single webhook surface, single KYC flow; **first-party support for per-transaction developer fees** (see [ADR-0006](0006-bridge-developer-fees-as-markup-mechanism.md)) so the Free-tier 0.75% Zelta markup is collected through the rail itself, not via out-of-band billing; bundled regulated KYC under Bridge's wrapper means we don't need to be a money-services business for ramp; the same Bridge customer record extends to Stripe Issuing cards in a future card-program slice with no separate KYB ceremony; the KYB invitation skips the audition that Stripe Crypto Onramp would impose.
+**Pros:** 10 bps + network + ≤1% FX spread (lowest blended cost of the three by a wide margin); covers onramp (ACH/SEPA/SEPA Instant) **and** offramp (ACH/SEPA/SWIFT to 30+ currencies) in one integration — single contract, single webhook surface, single KYC flow; **first-party support for per-transaction developer fees** (see [ADR-0006](0006-bridge-developer-fees-as-markup-mechanism.md)) so the Free-tier 0.75% Zelta markup is collected through the rail itself, not via out-of-band billing; Bridge runs its own regulated KYC for its customers, so the ramp needs no KYC stack of our own (the team's working assumption was that this keeps us out of a money-services role for the ramp; that is a question for counsel, not a conclusion of this ADR); the same Bridge customer record extends to Stripe Issuing cards in a future card-program slice with no separate KYB ceremony; the KYB invitation skips the audition that Stripe Crypto Onramp would impose.
 
 **Cons:** no hosted card-payment onramp in v1 (users wait 1–3 days for ACH the first time; SEPA Instant is faster for EU); requires Bridge's own KYC ceremony — partitioned from Ondato per §7.5 of the handover, which means users who already completed Ondato TrustCert KYC will run Bridge KYC as a second ceremony; the existing `StripeBridgeProvider` code becomes dead weight unless renamed.
 
@@ -89,7 +91,7 @@ Build both, let users pick at checkout.
 
 ## Implementation notes
 
-- New `BridgeProvider` + `BridgeService` under `app/Domain/Ramp/`. Implements existing `RampProviderInterface` with no signature changes except the additive `network: ?string` param on `createSession` (default Polygon for v1; required for v1.1).
+- New `BridgeProvider` under `app/Domain/Ramp/Providers/`, with the HTTP client in `app/Infrastructure/Bridge/BridgeClient.php` (no separate `BridgeService` class was built). Implements existing `RampProviderInterface` with no signature changes except the additive `network: ?string` param on `createSession` (default Polygon for v1; required for v1.1).
 - New encrypted `ramp_sessions.deposit_instructions` column for the Bridge onramp shape (no checkout URL — fiat lands at an account number / IBAN + memo). Mobile reads it as a top-level field on the session response.
 - Existing `StripeBridgeProvider` + `StripeBridgeService` renamed to `StripeCryptoOnramp*`; `enabled: false` by default in `config/ramp.php`; env var `STRIPE_BRIDGE_WEBHOOK_SECRET` renamed to `STRIPE_CRYPTO_ONRAMP_WEBHOOK_SECRET`.
 - KYC partitioning enforced at the schema level — Bridge KYC state lives in a new `bridge_customers` table, not on `users.kyc_status` (which remains Ondato's). See the migration scaffolding in this branch.
@@ -99,7 +101,7 @@ Build both, let users pick at checkout.
 
 ## References
 
-- `docs/BACKEND_HANDOVER_BRIDGE_RAMP.md` — mobile-authored brief, the source material for this ADR
+- `docs/BACKEND_HANDOVER_BRIDGE_RAMP.md` — mobile-authored brief, the source material for this ADR (not stored in this repository)
 - `docs/superpowers/specs/2026-04-12-stripe-bridge-ramp-design.md` — superseded design (Stripe Crypto Onramp); kept for git-blame context
 - `docs/adr/0006-bridge-developer-fees-as-markup-mechanism.md` — sibling ADR on how the 0.75% Zelta markup is actually collected
 - Bridge API docs — https://apidocs.bridge.xyz/

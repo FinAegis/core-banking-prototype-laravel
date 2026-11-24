@@ -1,9 +1,15 @@
-# Threat Model — FinAegis/Zelta v7.15.0
+# Threat Model — FinAegis/Zelta v7.18.1
 
 **Methodology**: STRIDE (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege)
 **Prepared**: 2026-03-28
 **Updated**: 2026-06-11 (v7.15.0 — added flows 6–9: public MCP server, non-custodial wallet send, IAP verify, Bridge.xyz ramp)
-**Scope**: Top 9 critical data flows (flows 1–5 original; 6–9 added for the post-v7.10 surfaces)
+**Updated**: 2026-11-23 (v7.18.0 — marked the fixed findings in flows 1–5, updated flows 4 and 7, added flow 10 for virtual cards)
+**Updated**: 2026-11-24 (v7.18.1 — updated flow 6 for the spending limit that the MCP consent screen now saves)
+**Scope**: Top 10 critical data flows (flows 1–5 original; 6–9 added for the post-v7.10 surfaces; 10 added for the v7.18.0 card pilot)
+
+This is a working threat model, not a certification or an audit opinion. Each **Gap** line records what the analysis found when the flow was written. All 15 findings in flows 1 to 5 were fixed by v7.8.0 (2026-03-31), and a **Status** line under each of those gaps says how. The fix table is in `docs/VERSION_ROADMAP.md` under "Version 7.6.0 — Security Hardening". The gaps in flows 6 to 10 are open items to verify.
+
+Flows 1 and 3 cover modules that the Zelta production site does not run, and so do parts of flow 5, such as the Open Banking and bank webhooks. Production keeps Banking, CrossChain, DeFi, OpenBanking and the other reference modules in `MODULES_DISABLED`, and its card issuer adapter is `CARD_ISSUER=demo`. The flows stay in this model because anyone can deploy the open-source platform with those modules switched on.
 
 ---
 
@@ -17,11 +23,13 @@
 - **Risk**: Attacker impersonates card issuer by sending fake authorization requests.
 - **Mitigation**: `ValidateWebhookSignature` middleware validates Marqeta webhooks via Basic Auth + optional HMAC-SHA256. Stripe-style timestamp tolerance (5 minutes) prevents delayed replays. All validation uses `hash_equals()` for constant-time comparison.
 - **Gap**: Marqeta HMAC signature is optional (`if ($secret !== null && $secret !== '' && $signature !== null)`). If HMAC secret is not configured, Basic Auth alone protects the endpoint. Recommend making HMAC mandatory in production.
+- **Status**: Mitigated by v7.8.0 (finding 15). Production now logs a warning at boot and the health check reports the missing secret. HMAC is still not mandatory.
 
 ### Tampering
 - **Risk**: Modification of authorization amount between balance check and hold creation. Amount field manipulation in transit.
 - **Mitigation**: `AuthorizationRequest` is a value object with immutable properties. Amount is passed through as `getAmountDecimal()`. Card token is validated against issuer records.
 - **Gap**: Balance check and hold creation are not wrapped in a database transaction with `lockForUpdate()`. Under concurrent requests for the same card/user, a TOCTOU race condition could approve two authorizations against the same balance. This is the highest-severity finding in this flow.
+- **Status**: Fixed in v7.1.1 (finding 1). For live issuers `JitFundingService` takes a `lockForUpdate()` row lock on the funding account, and checks the spend limit and creates the hold while the lock is held.
 
 ### Repudiation
 - **Risk**: Disputed transactions without audit trail.
@@ -37,6 +45,7 @@
 - **Risk**: Flood of authorization requests exhausting balance lookup or hold creation capacity, causing legitimate transactions to time out beyond 2000ms budget.
 - **Mitigation**: `ApiRateLimitMiddleware` on webhook routes. Card issuer IP allowlisting can be configured via `IpBlocking` middleware. Metrics tracking via `MetricsService` enables alerting on latency spikes.
 - **Gap**: No per-card-token rate limiting. A compromised card could generate unlimited authorization requests. Consider implementing card-level throttling.
+- **Status**: Fixed by v7.8.0 (finding 9). Authorization requests are rate limited per card token with `RateLimiter::attempt()` (10 per minute by default).
 
 ### Elevation of Privilege
 - **Risk**: Bypassing spend limits or using another user's balance for authorization.
@@ -69,7 +78,7 @@
 ### Information Disclosure
 - **Risk**: Data from one tenant leaking into another tenant's queries due to missing tenant scope.
 - **Mitigation**: Stancl/Tenancy provides database-level isolation (separate databases or scoped queries). `UsesTenantConnection` trait forces models to use tenant-scoped database connections.
-- **Gap**: All 56 domain modules must correctly use tenant-scoped connections. Any model that accidentally uses the central database connection could leak cross-tenant data. This should be verified systematically during the audit — query all domain models for `UsesTenantConnection` trait usage versus direct `Model` extension.
+- **Gap**: All 61 domain modules must correctly use tenant-scoped connections. Any model that accidentally uses the central database connection could leak cross-tenant data. This should be verified systematically during the audit — query all domain models for `UsesTenantConnection` trait usage versus direct `Model` extension.
 
 ### Denial of Service
 - **Risk**: Excessive tenant lookup requests causing database pressure or cache exhaustion.
@@ -80,6 +89,7 @@
 - **Risk**: Regular user accessing admin-only features within a tenant, or team member accessing data beyond their team role.
 - **Mitigation**: Admin endpoints use `require.2fa.admin` middleware. Team roles are enforced by Jetstream. The tenant middleware only checks membership, not role — role enforcement happens at the controller/policy level.
 - **Gap**: The `$allowWithoutTenant` static flag defaults to `false` but is publicly writable. If any code sets this to `true`, the security check is globally bypassed for all subsequent requests in that process. This should be made private or enforced via config.
+- **Status**: Fixed by v7.8.0 (finding 7). `$allowWithoutTenant` is now a private static property with a controlled setter that writes an audit log entry.
 
 ---
 
@@ -93,11 +103,13 @@
 - **Risk**: Attacker submits bridge request with spoofed sender/recipient addresses.
 - **Mitigation**: `auth:sanctum` required on all cross-chain endpoints. Sender address should be verified against user's registered wallet addresses.
 - **Gap**: `initiateBridge()` accepts `senderAddress` and `recipientAddress` as plain strings. There is no on-chain ownership verification that the `senderAddress` belongs to the authenticated user. An attacker could initiate a bridge from someone else's address if they know the address (which are public on-chain). The adapter layer must enforce ownership.
+- **Status**: Fixed by v7.8.0 (finding 10). The sender address is checked against the user's `BlockchainAddress` rows before the bridge runs.
 
 ### Tampering
 - **Risk**: Quote manipulation between quote retrieval and bridge initiation — changing amount, fee, or destination chain.
 - **Mitigation**: `BridgeQuote` is a value object. Quote expiry is checked via `$quote->isExpired()` before initiation. Quote ID ties the execution to the original quote parameters.
 - **Gap**: The quote object is reconstructed from the client's request, not fetched from a server-side cache by quote ID. If the client sends a modified quote object, the adapter might accept tampered parameters. Quotes should be stored server-side and referenced by ID only.
+- **Status**: Fixed by v7.8.0 (finding 3). Quotes are cached on the server for 60 seconds, and the client sends only the `quote_id`.
 
 ### Repudiation
 - **Risk**: Disputed bridge transactions (funds stuck in limbo between chains).
@@ -118,6 +130,7 @@
 - **Risk**: Unauthorized bridge initiation or manipulation of bridge parameters to redirect funds.
 - **Mitigation**: Authentication required. Bridge amount comes from the quote, which was computed by the adapter.
 - **Gap**: No separate authorization check verifying the user has permission to bridge the requested amount. Spend limits apply to cards but not to bridge operations. Consider implementing bridge-specific value limits.
+- **Status**: Fixed by v7.8.0 (finding 14). Bridge operations have configurable per-transaction and daily limits with atomic counters.
 
 ---
 
@@ -126,6 +139,8 @@
 **Flow**: Client submits private/public inputs -> `SnarkjsProverService` resolves circuit -> writes inputs to temp file -> runs snarkjs CLI as subprocess -> reads proof/public signals -> verifies proof -> returns `ZkProof` value object. Also: `OnChainVerifierService` for Solidity verification, `ZkKycService` for privacy-preserving KYC.
 
 **Entry points**: Privacy API endpoints, GraphQL privacy schema, internal service calls.
+
+**Update for v7.18.0**: Privacy is moving to a non-custodial model in which the device generates its own RAILGUN proofs. The custodial privacy endpoints (`shield`, `unshield`, `transfer`, `viewing-key`, `proof-of-innocence` generation and `delegated-proof`) return `501 CUSTODIAL_PRIVACY_DISABLED` in production through `RejectCustodialPrivacyInProduction`. Since v7.16.0 the backend also serves `POST /api/v1/privacy/wallet/register`, `GET /api/v1/privacy/engine-config` and a signed-URL RPC proxy at `POST /api/v1/privacy/rpc/{network}`. The proxy keeps the provider key on the server and only passes read methods and `eth_sendRawTransaction`.
 
 ### Spoofing
 - **Risk**: Attacker submits proof generation request impersonating another user to generate proofs for their data.
@@ -136,6 +151,7 @@
 - **Risk**: Manipulation of circuit files or trusted setup parameters (toxic waste) to create a backdoor allowing proof forgery.
 - **Mitigation**: `TrustedSetupService` manages ceremony. Circuit files stored in `storage/app/circuits/`. `validateCircuitFiles()` checks file existence. `SrsManifestService` tracks circuit manifest integrity.
 - **Gap**: Circuit files on the filesystem could be tampered if storage is compromised. Consider adding hash verification of circuit files (zkey, wasm, vkey) against a known-good manifest before each proof generation. The current `validateCircuitFiles()` checks existence only, not integrity.
+- **Status**: Fixed by v7.8.0 (finding 13). Circuit files are checked against a SHA-256 manifest, and `php artisan zk:verify-circuits` runs the check on demand.
 
 ### Repudiation
 - **Risk**: Denial of having generated a specific proof, or claiming a valid proof was not accepted.
@@ -146,11 +162,13 @@
 - **Risk**: Leakage of private inputs (the entire purpose of ZK proofs is to keep these secret).
 - **Mitigation**: Private inputs are written to temporary JSON files, used for proof generation, then presumably cleaned up. Proof of Innocence service uses `random_bytes()` for nonces.
 - **Gap**: Temporary files containing private inputs (`input.json`) must be securely deleted after proof generation. Verify that `SnarkjsProverService` cleans up temp files in a `finally` block. If the snarkjs process crashes, temp files with private inputs may persist on disk. Use `tmpfile()` or secure deletion.
+- **Status**: Fixed by v7.8.0 (finding 4). The prover deletes its temporary files in a `try`/`finally` block.
 
 ### Denial of Service
 - **Risk**: Proof generation is CPU-intensive (snarkjs runs as subprocess with 120-second timeout). An attacker could exhaust server resources by requesting many proofs simultaneously.
 - **Mitigation**: Configurable timeout via `privacy.zk.snarkjs_timeout_seconds` (default 120s). Symfony Process is used for subprocess management.
 - **Gap**: No concurrency limit on proof generation. Each proof spawns a Node.js subprocess. Without a semaphore or queue-based throttling, parallel requests could exhaust CPU/memory. Consider routing proof generation through a dedicated queue with bounded workers.
+- **Status**: Fixed by v7.8.0 (finding 6). Proof generation runs behind a counting semaphore built on `Cache::lock()`, with three slots by default.
 
 ### Elevation of Privilege
 - **Risk**: Using proof generation to execute arbitrary commands via the snarkjs CLI.
@@ -171,19 +189,23 @@
 - **Risk (Inbound)**: Attacker sends fake webhooks impersonating Stripe/Coinbase/etc. to trigger unauthorized actions (fake payment confirmations, fake card events).
 - **Mitigation**: Provider-specific signature validation. Stripe: timestamp + HMAC-SHA256 with `v1` signature. Coinbase: HMAC-SHA256 on payload. Santander: timestamp + HMAC-SHA512. Marqeta: Basic Auth + optional HMAC. All use `hash_equals()`.
 - **Gap**: Open Banking webhook validation uses session-based `state` parameter comparison (`session('openbanking_state')`). This is fragile — sessions may expire between redirect and callback, and session fixation attacks could bypass this. Recommend switching to a database-persisted state with expiry.
+- **Status**: Fixed by v7.8.0 (finding 5). The state is now a single-use nonce in the cache with a 10-minute lifetime, read with `Cache::pull()`.
 
 - **Risk (Outbound)**: Customer configures webhook URL pointing to internal services (SSRF via webhook delivery).
 - **Mitigation**: `Http::withHeaders()->timeout($webhook->timeout_seconds)->post($webhook->url, ...)` — standard Laravel HTTP client.
 - **Gap**: No URL validation against internal/private IP ranges. A customer could set `webhook.url` to `http://169.254.169.254/` (AWS metadata), `http://localhost:6379/` (Redis), or internal service endpoints. This is a critical SSRF vector. Implement URL allowlisting or block private IP ranges.
+- **Status**: Fixed in v7.1.1 (finding 2). Outbound webhook URLs are validated against private and internal IP ranges.
 
 ### Tampering
 - **Risk (Inbound)**: Modification of webhook payload in transit to change payment amounts or transaction status.
 - **Mitigation**: HMAC signatures cover the entire payload body. Timestamp tolerance (5 minutes) prevents replay of old payloads. Signatures are validated before any business logic processes the payload.
 - **Gap**: Coinbase and Paysera signatures do not include a timestamp component — they sign only the payload. A captured valid signature+payload pair can be replayed indefinitely. Implement per-provider replay protection using delivery ID tracking.
+- **Status**: Fixed by v7.8.0 (finding 8). Coinbase and Paysera deliveries are deduplicated by delivery ID in the cache for 24 hours.
 
 - **Risk (Outbound)**: Man-in-the-middle modification of outbound webhook delivery.
 - **Mitigation**: `X-Webhook-Signature` header generated via `WebhookService::generateSignature()` using the webhook's secret. Customers can verify signatures on their end.
 - **Gap**: No enforcement that webhook URLs use HTTPS. Outbound webhooks over HTTP would expose payload and signature in transit. Enforce HTTPS-only webhook URLs.
+- **Status**: Fixed by v7.8.0 (finding 11). Production only accepts HTTPS webhook URLs.
 
 ### Repudiation
 - **Risk**: Disputes over whether a webhook was delivered or what it contained.
@@ -194,6 +216,7 @@
 - **Risk (Outbound)**: Webhook payloads may contain sensitive financial data sent to customer-controlled URLs over insecure channels.
 - **Mitigation**: Webhook secret enables customers to verify authenticity. `User-Agent` header identifies the service.
 - **Gap**: Payload construction in `WebhookService::dispatch()` uses `array_merge($payload, ...)` without filtering sensitive fields. If upstream services include PII, card numbers, or internal IDs in the payload, these are forwarded to the webhook URL. Implement a payload sanitization layer.
+- **Status**: Fixed by v7.8.0 (finding 12). `PayloadSanitizer` removes fields that match sensitive patterns before dispatch.
 
 - **Risk (Inbound)**: Webhook error logs may contain sensitive payload data.
 - **Mitigation**: Logs include webhook_id and delivery_id, not full payloads.
@@ -232,7 +255,7 @@
 
 ### Tampering
 - **Risk**: Tool-call parameter manipulation by a prompt-injected agent (the *authorized* client sends attacker-chosen amounts/recipients).
-- **Mitigation**: Per-user daily spending limit (`MCP_DEFAULT_DAILY_LIMIT_MINOR`, default $500) on payment-class tools; amounts converted major→minor via bcmath; `is_write` tools annotated for client-side confirmation hints.
+- **Mitigation**: Daily spending limit on payment-class tools. Since v7.18.1 the user picks it on the consent screen from the offered values (USD 50, 500, 2,000, 10,000 or no limit), and a missing or unknown value gets `MCP_DEFAULT_DAILY_LIMIT_MINOR` (default $500). Before v7.18.1 the chosen limit was not saved, so spending tools failed closed with `NO_POLICY`. Amounts are converted major→minor via bcmath; `is_write` tools are annotated for client-side confirmation hints.
 - **Gap**: `exchange.trade` is deliberately not counted against the spending limit (documented in `config/mcp.php`) — a prompt-injected agent can churn trades without tripping a cap. Re-evaluate when exchange goes beyond idempotent quotes.
 
 ### Repudiation
@@ -252,8 +275,8 @@
 
 ### Elevation of Privilege
 - **Risk**: Scope escalation — a token granted `transactions:read` invokes `payments:write`; or the spending limit is evaded per-client.
-- **Mitigation**: Scopes are snake_case with a `:` separator; `Scope::can()` is case-sensitive and checked per tool. The spending limit is keyed per user.
-- **Gap**: Verify scope strings match exactly (no prefix/substring match) and that the daily spending limit binds per-user, not per-OAuth-client — one user with many DCR clients must not get N× the limit. `exchange.trade` being uncounted (above) is the known carve-out.
+- **Mitigation**: Scopes are snake_case with a `:` separator; `Scope::can()` is case-sensitive and checked per tool. Since v7.18.1 the spending limit is keyed on the user's approval of one client (`grant:{client}:{user}`), so refreshed or re-issued tokens share one allowance. A token without a user keeps a token-scoped key and fails closed.
+- **Gap**: Verify scope strings match exactly (no prefix/substring match). The daily spending limit binds per user and client, not per user, so one user who approves many DCR clients gets one allowance for each of them. The consent screen also offers no limit at all. `exchange.trade` being uncounted (above) is the known carve-out.
 
 ---
 
@@ -270,8 +293,8 @@
 
 ### Tampering
 - **Risk**: Changing recipient/amount between prepare and submit, or submitting another user's `pending` record.
-- **Mitigation**: The device signs the exact opaque bytes the backend built; Solana two-signer message is `[sponsor, sender]`, sponsor co-signs the SAME bytes. `submit` requires status `pending` and rejects `submitted`/`confirmed`/`failed`.
-- **Gap**: Verify `submit` authorizes the `wallet_send_record` against the authenticated user (record from user A cannot be submitted by user B) and that the device signature is verified against the sender key before broadcast.
+- **Mitigation**: The device signs the exact opaque bytes the backend built; Solana two-signer message is `[sponsor, sender]`, sponsor co-signs the SAME bytes. `submit` looks the record up by the authenticated `user_id` and the intent id, so another user's intent returns 404 `INTENT_NOT_FOUND`. Since v7.18.0 `submit` holds a per-intent cache lock, and a second submit while the first is running gets 409 `SUBMIT_IN_PROGRESS`. A send whose outcome is unclear after a timeout or a server error stays `submitted` until the chain settles it, instead of being marked failed.
+- **Gap**: Verify that the device signature is verified against the sender key before broadcast, and that the submit lock (120 seconds) cannot expire while a broadcast is still running and let a second broadcast through.
 
 ### Repudiation
 - **Risk**: User disputes a send they signed.
@@ -285,8 +308,8 @@
 
 ### Denial of Service
 - **Risk (financial DoS)**: Sponsored sends cost real gas/SOL — a scripted account or spike drains the Pimlico paymaster / sponsor account.
-- **Mitigation**: `enforceSendRateLimit` caps per-user (30/day) + global (5000/day) at prepare time via UTC-day cache counters (`Cache::add`+`increment`), returning 429; `solana:check-sponsor-balance` alerts hourly; L1 disabled by default.
-- **Gap**: Counters live in cache — a `cache:clear`/Redis flush resets the day's counts and reopens the window. Only a count ceiling, no hard global value ceiling.
+- **Mitigation**: `SponsorshipBudget` caps sends per user (30/day) and across the platform (5000/day) with UTC-day cache counters (`Cache::add`+`increment`), returning 429. Prepare reserves the user's unit and checks the global count; the global unit is taken at submit, so abandoned intents do not use it up. An optional daily USD budget (`WALLET_SPONSORSHIP_DAILY_BUDGET_USD`) adds a value ceiling. `solana:check-sponsor-balance` alerts hourly, and Ethereum L1 sends are disabled by default.
+- **Gap**: Counters live in cache — a `cache:clear`/Redis flush resets the day's counts and reopens the window. The USD budget is optional and trails in-flight sends, so a burst can overshoot it.
 
 ### Elevation of Privilege
 - **Risk**: Registering another user's address, or steering the Privy account lookup into a victim account. Pre-account hijacking: someone registers a victim's address with a password before the victim signs in with Privy, and keeps a way in after the link.
@@ -371,7 +394,47 @@
 
 ---
 
+## 10. Virtual Cards with Lepo Finance (Webhooks, Top-Ups, 3-D Secure Codes) (v7.18.0+)
+
+**Flow**: A user in the closed pilot opens a card through `POST /api/v1/cards/issued` -> the provider-neutral card layer (`app/Domain/CardIssuance/Providers/`) calls Lepo Finance -> card details are shown only on the card partner's secure page through a short-lived signed link. "Add to card": `POST /api/v1/cards/issued/{card}/topups` -> the wallet sends USDC -> a pipeline finds the deposit, converts it to US dollars and loads the card. Lepo sends card, transaction and 3-D Secure events to `POST /api/v1/webhooks/lepo`.
+
+**Entry points**: `/api/v1/cards/issued/*` (Sanctum), `/api/v1/webhooks/lepo` (public, signed). Cards stay off until `CARD_PROVIDERS_ENABLED=lepo` is set, and only pilot users get them (`CARD_PROVIDER_LEPO_PILOT_ONLY=true`, `CARD_PROVIDER_LEPO_PILOT_USERS`). Top-ups stay off through `CARD_TOPUPS_ENABLED=false`.
+
+### Spoofing
+- **Risk**: A forged webhook that changes card state, records a fake transaction or plants a 3-D Secure code.
+- **Mitigation**: `LepoWebhookVerifier` checks `X-LepoFinance-Signature`, a lowercase hex HMAC-SHA256 of the raw body, with `hash_equals()`. Without a secret, unsigned webhooks are accepted only in local and testing. `ops:verify-env` checks the Lepo settings before a deploy.
+- **Gap**: The signature covers only the body and has no timestamp. A captured webhook stays valid, so protection against replay rests on deduplication by event id.
+
+### Tampering
+- **Risk**: A top-up that converts or loads twice, or credits the wrong card.
+- **Mitigation**: Lepo's conversion and load calls cannot be repeated safely, so the pipeline never repeats them. An unclear result stops for an operator, who resolves it with `cards:resolve-topup`. Top-up and card actions require an `Idempotency-Key` (`idempotency.required`). Webhooks are deduplicated on `processed_webhook_events (provider='lepo', event_id)` and processed once in a queued job.
+- **Gap**: Verify that concurrent workers cannot pick up the same top-up step, and that a deposit can only be matched to the top-up it belongs to.
+
+### Repudiation
+- **Risk**: A user disputes a top-up or a card payment.
+- **Mitigation**: Each top-up records the wallet transaction it came from. Card transactions reach the app in one shape (type, direction, positive amount, one status). `cards:inspect-user` shows support the card and top-up state.
+- **Gap**: Verify that an operator's `cards:resolve-topup` decision is recorded with the operator's identity.
+
+### Information Disclosure
+- **Risk**: Card numbers or 3-D Secure codes leaking into logs, the database, push messages or another user's session.
+- **Mitigation**: Card numbers are never handled by the backend; the app opens the card partner's secure page through a signed link that expires after five minutes. A 3-D Secure code is kept encrypted in the cache for at most ten minutes and is never written to the database or the logs. The webhook payload is redacted before it is queued. The push and the `cards.3ds.code` event only say that a code is waiting. The code is returned only by `GET /api/v1/cards/issued/{card}/3ds/code`, which looks the card up by the authenticated user, with `Cache-Control: no-store, private`.
+- **Gap**: Verify that `LepoRedactor` covers every field that can carry a code or card data, including error responses from Lepo.
+
+### Denial of Service
+- **Risk**: A webhook flood, or top-up requests that tie up the pipeline.
+- **Mitigation**: `api.rate_limit:webhook` on the webhook route and `api.rate_limit:mutation` on card and top-up actions. A waiting top-up can be cancelled.
+- **Gap**: Verify that a stuck top-up waiting for an operator does not block the user's later top-ups or other users' top-ups.
+
+### Elevation of Privilege
+- **Risk**: A user outside the pilot opens a card, or a user acts on another user's card.
+- **Mitigation**: The provider is offered only when it is listed in `CARD_PROVIDERS_ENABLED`, and in pilot mode only to the listed users. Every card route looks the card up by the authenticated `user_id`. Card freezes placed by staff or the card issuer cannot be lifted by the cardholder (v7.17.1).
+- **Gap**: Verify the pilot check runs on every card route and not only on card creation.
+
+---
+
 ## Summary of Critical Findings
+
+Findings 1 to 15 were fixed by v7.8.0, as the Status lines in flows 1 to 5 describe. Findings 16 to 27 are open items to verify.
 
 | # | Finding | Severity | Flow |
 |---|---------|----------|------|
@@ -394,12 +457,18 @@
 | 17 | Bridge asymmetric webhook signature (timestamp units / RSA padding) unverified against live bytes | **High** | Bridge Ramp |
 | 18 | Sponsorship caps are cache-counter based — a cache flush resets the day's per-user/global limits | **High** | Wallet Send |
 | 19 | MCP `exchange.trade` is not counted against the daily spending limit (deliberate carve-out) | **Medium** | MCP Server |
-| 20 | MCP daily spending limit must bind per-user, not per-OAuth-client (anonymous DCR allows many clients) | **Medium** | MCP Server |
+| 20 | MCP daily spending limit binds per user and client (since v7.18.1), so a user who approves many DCR clients gets one allowance each | **Medium** | MCP Server |
 | 21 | IAP account binding is accepted when the store account token is absent — replay-across-accounts risk | **Medium** | IAP Verify |
 | 22 | Privy JWKS is cached — verify a rotated-out key cannot be accepted within the stale window | **Medium** | Wallet Send |
 | 23 | Bridge `developer_fee_bps` markup zeroed by any path that can emit `SubscriptionTierChanged` | **Medium** | Bridge Ramp |
+| 24 | Card top-up conversion or load sent twice under concurrent workers or retries | **High** | Virtual Cards |
+| 25 | 3-D Secure code or card data reaching logs, queued payloads or another user | **High** | Virtual Cards |
+| 26 | Lepo webhook signature has no timestamp — replay protection rests on event-id deduplication | **Medium** | Virtual Cards |
+| 27 | Pilot gating checked only at card creation | **Medium** | Virtual Cards |
 
 ---
 
-*Document Version: 7.15.0*
+*Document Version: 7.18.1*
 *Updated: June 11, 2026 (v7.15.0 — flows 6–9 added: public MCP server, non-custodial wallet send, IAP verify, Bridge.xyz ramp)*
+*Updated: November 23, 2026 (v7.18.0 — fixed findings marked, flows 4 and 7 updated, flow 10 added for virtual cards)*
+*Updated: November 24, 2026 (v7.18.1 — flow 6 updated for the saved MCP consent spending limit)*

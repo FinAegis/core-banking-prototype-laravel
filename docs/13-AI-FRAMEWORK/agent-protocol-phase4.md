@@ -22,7 +22,7 @@ The DigitalSignatureService provides enhanced cryptographic signing capabilities
 - **Multi-Party Signatures**: Support for threshold signatures requiring M-of-N participants
 - **Replay Protection**: Nonce-based prevention of replay attacks
 - **Expiration Handling**: Time-bound signatures with configurable TTL
-- **Zero-Knowledge Proofs**: Support for signature proofs without revealing private keys
+- **Zero-Knowledge Proofs**: Support for signature proofs without revealing private keys (Note, v7.18.1: `createSignatureProof()` stores a SHA-256 hash of the commitments and a challenge. It is not a zero-knowledge proof.)
 
 **Security Levels**:
 ```php
@@ -244,6 +244,8 @@ POST   /api/v1/agents/{did}/audit/export
 5. **Zero Trust**: Verify everything, trust nothing
 
 ### Compliance Requirements
+These are standards that an operator of a deployment may need to meet. FinAegis holds no certification against any of them.
+
 1. **PCI DSS**: For payment card data
 2. **GDPR**: For EU data subjects
 3. **SOC 2**: For service organizations

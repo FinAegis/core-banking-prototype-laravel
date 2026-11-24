@@ -2,51 +2,19 @@
 
 ## Overview
 
-FinAegis is evolving from a core banking platform into a comprehensive AI Agent Framework for financial institutions. Built on our robust event-sourced architecture, it provides intelligent automation for banking operations while maintaining complete audit trails that support operators' compliance processes.
+The AI agent framework is a set of agents, workflows and tools in `app/Domain/AI/`. It answers questions in plain language and calls platform tools on the user's behalf. Every agent decision can be recorded as an event, so the history of what an agent did and why stays available for review.
 
-## 🎯 Vision
+The framework is reference code in an open-source platform. It is not a production banking service. In demo mode (`AI_DEMO_MODE=true`, the default) agents answer from templates and no language model is called. Today the agents answer from templates even with demo mode off. The orchestrator looks for API keys under `ai.providers.*`, which `config/ai.php` does not define, so connecting a language model needs code changes.
 
-Transform traditional banking operations through intelligent AI agents that:
-- Understand natural language queries
-- Execute complex financial operations
-- Support operators' compliance processes
-- Learn from patterns and improve over time
-- Maintain human oversight for critical decisions
+This framework is separate from the public MCP server at `https://mcp.zelta.app/mcp`. The public server lives in `app/Domain/MCP/` and exposes a fixed catalog of tools over OAuth. [MCP_INTEGRATION.md](MCP_INTEGRATION.md) describes it.
 
-## 🏗️ Architecture
-
-### MCP (Model Context Protocol) Integration
-
-FinAegis implements a full MCP server, making it compatible with any MCP-enabled AI system:
-
-```typescript
-// MCP Tools exposed by FinAegis
-{
-  tools: [
-    "account.create",
-    "account.balance",
-    "payment.transfer",
-    "exchange.trade",
-    "lending.approve",
-    "compliance.check",
-    "governance.vote"
-  ],
-  resources: [
-    "ledger://accounts",
-    "exchange://orderbook",
-    "lending://applications",
-    "compliance://reports"
-  ]
-}
-```
-
-### AI Agent Layer
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                  AI Agent Layer                          │
 ├─────────────────────────────────────────────────────────┤
-│ MCP Server │ Agent Runtime │ Context Manager │ Tools    │
+│ Agent Router │ Agents │ Tool Registry │ Conversation Store│
 ├─────────────────────────────────────────────────────────┤
 │              Existing FinAegis Platform                  │
 ├─────────────────────────────────────────────────────────┤
@@ -54,55 +22,53 @@ FinAegis implements a full MCP server, making it compatible with any MCP-enabled
 └─────────────────────────────────────────────────────────┘
 ```
 
-## 🤖 Available Agents
+### Internal tool registry
 
-### Customer Service Agent
-Natural language interface for banking operations:
-- Account inquiries and management
-- Transaction history analysis
-- Payment processing
-- FAQ and knowledge base queries
+`App\Domain\AI\MCP\ToolRegistry` holds every tool class that agents and the public MCP server can call. `MCPToolServiceProvider` registers 28 tools. They include account, payment, transaction, exchange, compliance, agent protocol, x402, MPP, Visa CLI, SMS, ramp and wallet tools. The public MCP server's catalog in `config/mcp.php` offers 14 of them, and the production server exposes 10.
 
-### Compliance Agent
-Compliance tooling support:
-- KYC/AML verification
-- Transaction monitoring
-- Suspicious activity detection
-- Regulatory reporting assistance
+Examples of registered tool names are `account.balance`, `payment.transfer`, `exchange.quote`, `exchange.liquidity_pool`, `compliance.kyc`, `compliance.aml_screening`, `x402.payment` and `mpp.discovery`.
 
-### Risk Assessment Agent
-Intelligent risk management:
-- Portfolio risk analysis
-- Credit scoring
-- Fraud detection
-- Real-time alerts
+## Available agents
 
-### Trading Agent (Advanced)
-Automated trading tooling (example agent template; not investment advice):
-- Market analysis
-- Portfolio optimization
-- Automated trading strategies
-- Risk-adjusted recommendations
+`AgentServiceProvider` registers five agents with `AgentRouterService`. The router picks agents by keywords in the question.
 
-## 🔗 Integration Patterns
+| Agent | Class | Purpose |
+|---|---|---|
+| Financial | `FinancialAgent` | Balances, transactions and spending questions |
+| Transfer | `TransferAgent` | Payment and transfer requests |
+| Trading | `TradingAgent` | Exchange quotes and market questions (example template; not investment advice) |
+| Compliance | `ComplianceAgent` | KYC and AML lookups that support an operator's compliance process |
+| General | `GeneralAgent` | Questions that fit no other agent |
 
-### Event-Driven AI
-Every AI decision creates an event in our event store:
+## Workflows
+
+The workflows in `app/Domain/AI/Workflows/` use Laravel Workflow. They are `CustomerServiceWorkflow`, `ComplianceWorkflow`, `RiskAssessmentSaga`, `TradingAgentWorkflow`, `HumanApprovalWorkflow` and `HumanInTheLoopWorkflow`. [AI_AGENT_WORKFLOWS.md](AI_AGENT_WORKFLOWS.md) describes them.
+
+## Integration patterns
+
+### Event-driven AI
+
+An agent decision is recorded as an `AIDecisionMadeEvent` in the event store:
 
 ```php
-class AIDecisionMadeEvent extends StoredEvent
+class AIDecisionMadeEvent extends ShouldBeStored
 {
     public function __construct(
-        public string $agentId,
+        public string $conversationId,
+        public string $agentType,
         public string $decision,
         public array $reasoning,
-        public float $confidence
+        public float $confidence,
+        public bool $requiresApproval,
+        public ?string $userId = null,
+        public ?string $timestamp = null
     ) {}
 }
 ```
 
-### Human-in-the-Loop
-Configurable approval workflows for high-risk operations:
+### Human-in-the-loop
+
+`HumanInTheLoopWorkflow` and `HumanApprovalWorkflow` stop a decision until a person approves it. `HumanInTheLoopWorkflow` keeps its confidence and value thresholds in class constants. The example below is not a class in the codebase. It shows the kind of rule the workflows apply.
 
 ```php
 class AIApprovalWorkflow
@@ -116,30 +82,25 @@ class AIApprovalWorkflow
 }
 ```
 
-## 🚀 Quick Start
+## Quick start
 
-### Installation
+### Configuration
+
+The framework ships with the application. No extra package or migration is needed. Set the provider keys in `.env`:
 
 ```bash
-# Install AI dependencies
-composer require openai-php/laravel
-composer require langchain/langchain-php
-
-# Run migrations for AI tables
-php artisan migrate --path=database/migrations/ai
-
-# Register AI service provider
-php artisan vendor:publish --provider="App\Providers\AIServiceProvider"
-
-# Configure AI services
-cp .env.ai.example .env
-php artisan config:cache
+AI_DEMO_MODE=false            # true (default) answers from templates without an LLM
+AI_LLM_PROVIDER=openai        # or claude
+OPENAI_API_KEY=your-key-here
+CLAUDE_API_KEY=your-key-here
 ```
 
-### Basic Usage
+Then run `php artisan config:cache`.
+
+### Basic usage
 
 ```php
-// Using MCP Server directly
+// Using the internal MCP server directly
 use App\Domain\AI\ValueObjects\MCPRequest;
 
 $mcpServer = app(\App\Domain\AI\MCP\MCPServer::class);
@@ -149,93 +110,58 @@ $request = MCPRequest::create('tools/call', [
 ]);
 $response = $mcpServer->handle($request);
 
-// Using Customer Service Workflow
+// Using the customer service workflow
 use Workflow\WorkflowStub;
 use App\Domain\AI\Workflows\CustomerServiceWorkflow;
 
 $workflow = WorkflowStub::make(CustomerServiceWorkflow::class);
-$result = $workflow->start(
-    conversationId: Str::uuid(),
+$workflow->start(
+    conversationId: (string) Str::uuid(),
     query: "What's my account balance?",
-    userId: auth()->id()
+    userId: (string) auth()->id()
 );
 
-// Using pre-configured agents
-$agent = app(\App\Domain\AI\Agents\CustomerServiceAgent::class);
-$response = $agent->process("Transfer $100 to John");
+// Using the agent service (routes the question to the right agent)
+$service = app(\App\Domain\AI\Services\AIAgentService::class);
+$response = $service->chat("What is my balance?", (string) Str::uuid(), auth()->id());
 ```
 
-## 📚 Documentation
+## Documentation
 
-- [MCP Integration Guide](MCP_INTEGRATION.md)
-- [Agent Development Guide](AGENT_DEVELOPMENT.md)
-- [API Reference](API_REFERENCE.md)
-- [Security & Compliance](SECURITY.md)
-- [Use Cases](USE_CASES.md)
+- [00-Overview.md](00-Overview.md) gives an overview of the framework.
+- [MCP_INTEGRATION.md](MCP_INTEGRATION.md) describes the public MCP server.
+- [02-Agent-Creation.md](02-Agent-Creation.md) shows how to create an agent.
+- [05-API-Reference.md](05-API-Reference.md) lists the `/api/ai/*` endpoints.
+- [ADVANCED_AI_FEATURES.md](ADVANCED_AI_FEATURES.md) covers trading, multi-agent coordination and human approval.
 
-## 🔒 Security & Compliance
+## Security and compliance
 
-### Audit Trail
-Every AI decision is recorded in our event store, providing:
-- Complete decision history
-- Reasoning transparency
-- Confidence levels
-- Human override tracking
+### Audit trail
+
+Agent decisions are recorded in the event store. A record holds the decision, the reasoning, the confidence score and whether a person must approve it.
 
 ### Compliance support
-- Data-handling controls that help operators meet GDPR obligations
-- Explainable AI decisions
-- Human oversight controls
 
-## 🎯 Use Cases
+The framework has data-handling controls that help operators meet their GDPR obligations. Agents explain their decisions, and people can review and override them. The compliance agent and tools support an operator's own compliance process. They do not make a deployment compliant.
 
-### For Banks
-- **24/7 Customer Service**: AI agents handle routine inquiries
-- **Fraud Prevention**: Real-time transaction monitoring
-- **Compliance Automation**: Automated KYC/AML checks
-- **Risk Management**: Continuous portfolio assessment
+## Use cases
 
-### For Fintech
-- **Rapid Integration**: MCP-compatible with existing AI tools
-- **Scalable Operations**: Handle millions of requests
-- **Cost Reduction**: Automate repetitive tasks
-- **Innovation Platform**: Build new AI-powered services
+The framework shows how AI agents can support these tasks:
 
-## 🛣️ Roadmap
+- answering routine customer questions about balances and transactions,
+- flagging unusual transactions for review,
+- running KYC and AML lookups for a compliance team,
+- connecting existing AI tools through MCP.
 
-### Phase 1: Foundation (Q1 2024)
-- [x] Architecture design
-- [ ] MCP server implementation
-- [ ] Basic agent framework
-- [ ] Vector database integration
+## Contributing
 
-### Phase 2: Core Agents (Q2 2024)
-- [ ] Customer service agent
-- [ ] Compliance agent
-- [ ] Risk assessment agent
-- [ ] Demo environment
+Contributions to the AI agent framework are welcome. See the [Contributing Guide](../../CONTRIBUTING.md) for details.
 
-### Phase 3: Advanced Features (Q3 2024)
-- [ ] Trading agent
-- [ ] Multi-agent coordination
-- [ ] Advanced RAG
-- [ ] Production deployment
-
-### Phase 4: Enterprise (Q4 2024)
-- [ ] Multi-tenant support
-- [ ] Custom agent builder
-- [ ] Enterprise security
-- [ ] SaaS platform
-
-## 🤝 Contributing
-
-We welcome contributions to the AI Agent Framework! See our [Contributing Guide](CONTRIBUTING.md) for details.
-
-## 📝 License
+## License
 
 Apache 2.0 - See [LICENSE](../../LICENSE) for details.
 
-## 🔗 Resources
+## Resources
 
 - [FinAegis Platform Documentation](../README.md)
 - [Model Context Protocol](https://modelcontextprotocol.io)

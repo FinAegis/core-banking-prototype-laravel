@@ -2,48 +2,58 @@
 
 ## Overview
 
-This guide prepares the FinAegis platform for third-party security audits, following financial-industry security best practices.
+This guide helps an operator prepare a FinAegis deployment for a third-party security audit. It lists what the code provides, what the operator has to provide and which tools collect evidence.
+
+FinAegis holds no security certification. The compliance modules and the `security:audit`, `pci:audit` and `compliance:*` commands are readiness tooling. Their output helps prepare an audit. It is not an audit result, and it does not show that a deployment meets SOC 2, PCI DSS or any other standard.
+
+> FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
 
 ## Pre-Audit Checklist
 
+Items marked `[x]` are provided by the code. Items marked `[ ]` depend on the operator's infrastructure or processes.
+
 ### 1. Access Control & Authentication
-- [x] **Multi-factor Authentication**: Implemented via Laravel Sanctum
-- [x] **Role-Based Access Control**: Filament admin panel with permissions
-- [x] **API Token Management**: Secure token generation and rotation
-- [x] **Session Management**: Secure session handling with timeouts
-- [ ] **OAuth2 Implementation**: For bank integrations (Phase 5)
-- [ ] **Biometric Authentication**: Mobile app support (Phase 6)
+- [x] **Two-factor authentication**: TOTP two-factor login for web accounts through Laravel Fortify.
+- [x] **Role-based access control**: Roles and permissions through spatie/laravel-permission. The Filament admin panel needs an admin role.
+- [x] **API tokens**: Laravel Sanctum tokens with `read`, `write` and `delete` abilities.
+- [x] **OAuth 2.1**: Laravel Passport serves the public MCP server, with PKCE and dynamic client registration.
+- [x] **Mobile sign-in**: Passkeys and biometric login for the mobile app. Device attestation is off (`MOBILE_ATTESTATION_ENABLED=false`) until the mobile challenge is wired through.
+- [ ] **Session timeouts**: Set `SESSION_LIFETIME` to your policy.
 
 ### 2. Data Security
-- [x] **Encryption at Rest**: Database encryption enabled
-- [x] **Encryption in Transit**: HTTPS enforced, TLS 1.3
-- [x] **Quantum-Resistant Hashing**: SHA3-512 for transactions
-- [x] **PII Data Protection**: GDPR data-protection controls implemented
-- [x] **Data Retention Policies**: Automated data lifecycle management
-- [ ] **Hardware Security Module**: For key management (production)
+- [ ] **Encryption at rest**: Database and disk encryption are set up in the infrastructure, not in the code.
+- [ ] **Encryption in transit**: TLS is terminated by the load balancer or web server. The `SecurityHeaders` middleware sends HSTS.
+- [x] **Field encryption**: Sensitive model fields use Laravel's `encrypted` cast.
+- [x] **Transaction hashes**: Transaction events carry a SHA3-512 hash, and `php artisan app:verify-transaction-hashes` checks the chain.
+- [x] **Personal data controls**: GDPR data export and erasure endpoints (`GdprController`), consent records, a record of processing activities (`gdpr:register-export`) and breach-deadline checks (`gdpr:breach-check`).
+- [ ] **Data retention**: `php artisan gdpr:retention-enforce` applies the retention rules, but it is not scheduled by default. Schedule it yourself.
+- [ ] **Hardware security module**: Key storage in an HSM is the operator's choice. The code has an HSM interface for keys that need one.
 
 ### 3. Application Security
-- [x] **Input Validation**: Request validation on all endpoints
-- [x] **SQL Injection Prevention**: Eloquent ORM with parameterized queries
-- [x] **XSS Protection**: Auto-escaping in Blade templates
-- [x] **CSRF Protection**: Laravel CSRF tokens
-- [x] **Rate Limiting**: API throttling implemented
-- [x] **Security Headers**: CSP, HSTS, X-Frame-Options
+- [x] **Input validation**: Request validation on the API endpoints.
+- [x] **SQL injection prevention**: Eloquent and the query builder with bound parameters.
+- [x] **XSS protection**: Blade escapes output by default.
+- [x] **CSRF protection**: Laravel CSRF tokens on web routes.
+- [x] **Rate limiting**: `ApiRateLimitMiddleware` and Laravel throttles on the API.
+- [x] **Security headers**: `SecurityHeaders` middleware sends CSP, HSTS and X-Frame-Options.
+- [x] **Deploy preflight**: `php artisan ops:verify-env` blocks a production deploy with unsafe settings.
 
 ### 4. Infrastructure Security
-- [x] **Network Segmentation**: Separate database, cache, queue networks
-- [x] **Firewall Rules**: Restrictive ingress/egress rules
-- [x] **DDoS Protection**: Cloudflare integration ready
-- [x] **Intrusion Detection**: Log monitoring configured
-- [ ] **Penetration Testing**: Scheduled for Q3 2024
-- [ ] **Vulnerability Scanning**: Weekly automated scans
+- [ ] **Network segmentation**: Separate networks for database, cache and queue. The Helm chart has a `NetworkPolicy` template.
+- [ ] **Firewall rules**: Restrictive ingress and egress rules.
+- [ ] **DDoS protection**: A provider such as Cloudflare in front of the app.
+- [ ] **Intrusion detection**: Log monitoring and alerting.
+- [ ] **Penetration testing**: Commission an external test before go-live.
+- [x] **Dependency and secret scanning**: CI runs `composer audit` and Gitleaks (`.github/workflows/02-security-scan.yml`).
 
 ### 5. Compliance & Auditing
-- [x] **Event Sourcing**: Complete audit trail
-- [x] **Compliance Reporting Tooling**: CTR, SAR report drafts
-- [x] **Access Logs**: Comprehensive logging system
-- [x] **Change Management**: Git-based audit trail
-- [x] **KYC/AML workflow tooling**: implemented
+- [x] **Event sourcing**: An append-only event store keeps the history of financial changes.
+- [x] **Report drafts**: `compliance:generate-reports` drafts CTR, SAR, KYC and summary reports for an operator to review. Nothing is filed with an authority.
+- [x] **Access review**: `compliance:access-review` reports privileged users, permissions and stale accounts.
+- [x] **Evidence collection**: `compliance:collect-evidence` gathers access logs, a configuration snapshot and the change log.
+- [x] **Incident records**: `compliance:incident` lists, creates and resolves security incidents.
+- [x] **Change management**: Git history and pull request reviews.
+- [x] **KYC and AML workflow tooling**: Identity checks run through third-party providers (integration adapters; no partnership or endorsement implied).
 
 ## Security Architecture
 
@@ -73,6 +83,8 @@ This guide prepares the FinAegis platform for third-party security audits, follo
 ```
 
 ### 2. Zero Trust Security Model
+
+The code samples in this section and in "Security Controls Implementation" show patterns an auditor may ask about. They are illustrations, not classes in the codebase. Point the auditor to the real middleware in `app/Http/Middleware/` and the services in `app/Domain/Security/` and `app/Domain/Compliance/`.
 
 ```php
 // Every request is verified
@@ -269,8 +281,10 @@ class EncryptedModel extends Model
 
 ### 1. Automated Security Tests
 
+The security tests live in `tests/Security/`, in the folders `API`, `Authentication`, `Cryptography`, `MultiTenancy`, `Penetration` and `Vulnerabilities`. The workflow `.github/workflows/04-security-tests.yml` runs them in CI. The example below shows the kind of test they contain.
+
 ```php
-// tests/Security/ApiSecurityTest.php
+// Example in the style of tests/Security/API/
 class ApiSecurityTest extends TestCase
 {
     public function test_sql_injection_prevention()
@@ -315,57 +329,32 @@ class ApiSecurityTest extends TestCase
 
 ### 2. Security Scanning Configuration
 
-```yaml
-# .github/workflows/security-scan.yml
-name: Security Scan
+The CI pipeline (`.github/workflows/ci-pipeline.yml`) calls these workflows on every push and pull request to `main`:
 
-on:
-  schedule:
-    - cron: '0 0 * * 0' # Weekly
-  workflow_dispatch:
+| Workflow | What it runs |
+|---|---|
+| `02-security-scan.yml` | Gitleaks secret scanning and `composer audit` for production and all dependencies |
+| `04-security-tests.yml` | Penetration, authentication, API security and vulnerability test suites from `tests/Security/` |
+| `01-code-quality.yml` | PHPStan at level 8, PHPCS and php-cs-fixer |
 
-jobs:
-  dependency-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Run Composer Audit
-        run: composer audit
-        
-      - name: Run NPM Audit
-        run: npm audit --production
-        
-  static-analysis:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Run PHPStan Security Rules
-        run: vendor/bin/phpstan analyse --level=max
-        
-      - name: Run Psalm Security Analysis
-        run: vendor/bin/psalm --taint-analysis
-        
-  vulnerability-scan:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Run OWASP Dependency Check
-        uses: dependency-check/Dependency-Check_Action@main
-        with:
-          project: 'FinAegis'
-          path: '.'
-          format: 'ALL'
+Run the same checks locally before an audit:
+
+```bash
+composer audit
+npm audit --omit=dev
+XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G
+./vendor/bin/pest tests/Security --configuration=phpunit.security.xml
+php artisan security:audit --format=table
 ```
 
 ## Security Incident Response
 
 ### 1. Incident Response Plan
 
+Incidents are recorded through `App\Domain\Compliance\Services\Certification\IncidentResponseService` and the `compliance:incident` command. The code below is a simplified illustration of a response plan, not that service.
+
 ```php
-// app/Services/Security/IncidentResponse.php
+// Illustration
 class IncidentResponseService
 {
     const SEVERITY_CRITICAL = 'critical';
@@ -409,6 +398,8 @@ class IncidentResponseService
 ```
 
 ### 2. Security Monitoring
+
+The fraud and anomaly checks live in `app/Domain/Fraud/`, and the scheduler runs `php artisan fraud:scan-anomalies` every hour by default (`FRAUD_BATCH_SCHEDULE`). The code below is an illustration.
 
 ```php
 // Real-time security monitoring
@@ -471,6 +462,8 @@ class SecurityMonitor
 
 ## Security Metrics and KPIs
 
+These are suggested targets. Set them to match your own service levels.
+
 ### Technical Metrics
 - **Mean Time to Detect (MTTD)**: < 5 minutes
 - **Mean Time to Respond (MTTR)**: < 30 minutes
@@ -528,5 +521,4 @@ class SecurityMonitor
 
 ## Security Contacts
 
-- **Security Team Lead**: security@finaegis.org
-- **Incident Response**: incident@finaegis.org
+Report vulnerabilities in FinAegis through a private GitHub security advisory, as described in [SECURITY.md](../../SECURITY.md). An incident in a running deployment goes to the contacts in that operator's own incident response plan.

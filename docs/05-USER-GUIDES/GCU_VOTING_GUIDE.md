@@ -12,154 +12,156 @@
 
 The GCU demo includes a simulated governance flow in which demo accounts cast basket "votes" weighted by simulated demo balances. Votes have no monetary effect.
 
+The voting pages and endpoints need the Governance module. The demo environment turns it on. Production deployments such as the Zelta site disable it.
+
+The demo has two kinds of vote.
+
+- **GCU proposals** are what you see on the `/gcu/voting` pages. Each proposal suggests new basket weights, and you vote for, against or abstain.
+- **Basket polls** are available through the `/api/voting` API. In a basket poll, you send your own preferred weights for each component.
+
 ## How It Works
 
-### Monthly Voting Cycle
+### Monthly Cycle
 
-1. **Voting Opens**: First day of each month
-2. **Voting Period**: 7 days (1st - 7th)
-3. **Results Calculation**: 8th of the month
-4. **Demo Basket Update**: Applied to the simulated demo basket on the 9th
+On the 20th of each month, the scheduler runs `php artisan voting:setup`. It creates the GCU composition proposal for the next month. Voting on that proposal opens on the 20th of that month and stays open for seven days.
+
+A monthly proposal passes when at least 10% of the total simulated GCU balance takes part and at least 50% of the weight that voted is for it. The result is decided once the proposal is closed.
 
 ### Your Demo Voting Weight
 
-- **Weighted by simulated balance**: 1 simulated demo GCU = 1 demo vote
-- **Real-time Calculation**: Based on your simulated demo GCU balance
-- **Transparent**: See your demo voting weight before voting
+Your voting weight equals your simulated demo GCU balance. You need a balance above zero to vote. Your weight is shown before you vote.
 
 ## Step-by-Step Voting Process
 
-### 1. Access the Voting Dashboard
+### 1. Open the Voting Pages
 
-Navigate to the GCU Voting section in your dashboard or visit:
-```
-https://platform.finaegis.org/voting/gcu
-```
+Open **Governance** in the top navigation, or go to `/gcu/voting` directly. Anyone can see the proposals. You need to log in to vote.
 
-### 2. View Active Polls
+### 2. View the Active Proposal
 
-You'll see the current month's currency basket voting poll with:
-- Current basket composition
-- Proposed changes
-- Time remaining to vote
-- Your demo voting weight
+The proposal page shows the following.
+- The current basket weights
+- The proposed weights
+- When voting opens and closes
+- The running vote totals
+
+The monthly proposal copies the example weights from `config/platform.php` as both its current and its proposed weights. Those weights are USD 35%, EUR 30%, GBP 20%, CHF 10%, JPY 3% and gold 2%.
 
 ### 3. Cast Your Vote
 
-#### Option A: Keep Current Allocation
-Vote to maintain the existing currency basket:
-- USD: 40%
-- EUR: 30%
-- GBP: 15%
-- CHF: 10%
-- JPY: 3%
-- Gold: 2%
+Choose **For**, **Against** or **Abstain**, and submit your vote.
 
-#### Option B: Approve Proposed Changes
-Vote for the new allocation in the demo proposal.
+### 4. Change Your Vote
 
-### 4. Confirm Your Vote
-
-- Review your selection
-- See the impact of your demo voting weight
-- Click "Submit Vote"
-- Receive confirmation
+You can change your vote while voting is open. Only your latest vote counts.
 
 ## Voting Rules
 
 ### Eligibility
-- Must have a simulated demo GCU balance of at least 1 GCU
-- One vote per account per poll
+- You need a simulated demo GCU balance above zero.
+- Each user has one vote per proposal.
 
-### Vote Changes
-- You can change your vote until polls close
-- Only your latest vote counts
-- Previous votes are overwritten
+### Creating Proposals
+- Only administrators can create new proposals. They do this in the admin panel under **GCU Management**.
+- A proposal needs a title, a description, a rationale, the voting dates, the participation and approval thresholds, and weights that add up to exactly 100%.
 
 ### Transparency
-- All votes are recorded in the application database (not on a blockchain)
-- Results are publicly viewable
+- All votes are recorded in the application database (not on a blockchain).
+- Anyone can see the proposals and their vote totals.
 
 ## API Integration
 
-### Get Active Polls
+### GCU Proposals
+
+| Method | Path | Login needed |
+|--------|------|--------------|
+| GET | `/api/v2/gcu/voting/proposals` | No |
+| GET | `/api/v2/gcu/voting/proposals/{id}` | No |
+| POST | `/api/v2/gcu/voting/proposals/{id}/vote` | Yes |
+| GET | `/api/v2/gcu/voting/my-votes` | Yes |
+
 ```bash
-GET /api/voting/polls
+POST /api/v2/gcu/voting/proposals/{id}/vote
 Authorization: Bearer {your-token}
+Content-Type: application/json
+
+{
+  "vote": "for"
+}
 ```
 
-### Submit Vote
+The `vote` field takes `for`, `against` or `abstain`.
+
+### Basket Polls
+
+| Method | Path | What it does |
+|--------|------|--------------|
+| GET | `/api/voting/polls` | Lists the active polls |
+| GET | `/api/voting/polls/upcoming` | Lists the polls that have not started |
+| GET | `/api/voting/polls/history` | Lists the polls you voted in |
+| GET | `/api/voting/dashboard` | Returns a summary for the voting dashboard |
+| POST | `/api/voting/polls/{uuid}/vote` | Records your preferred weights |
+| GET | `/api/polls/{uuid}/voting-power` | Returns your voting power for a poll |
+
+All of these need a bearer token.
+
 ```bash
 POST /api/voting/polls/{poll-uuid}/vote
 Authorization: Bearer {your-token}
 Content-Type: application/json
 
 {
-  "option_id": "keep-current",
-  "amount": 1000
+  "allocations": {
+    "USD": 35,
+    "EUR": 30,
+    "GBP": 20,
+    "CHF": 10,
+    "JPY": 3,
+    "XAU": 2
+  }
 }
 ```
 
-### Check Voting Power
-```bash
-GET /api/voting/polls/{poll-uuid}/voting-power
-Authorization: Bearer {your-token}
-```
+The allocations must add up to 100. You can vote only once in each basket poll, and you cannot change that vote. Your voting power in a basket poll is your balance of the basket asset named in `PRIMARY_BASKET_CODE`, divided by 100. `.env.example` sets that code to `GCU`.
 
 ## Understanding Results
 
-### Vote Calculation
-- Total votes = Sum of all simulated demo GCU used for voting
-- Winning option = Option with most votes
-- Minimum participation: 10% of total simulated demo GCU balances
+### GCU Proposals
+- The vote totals add up the voting weight of every for, against and abstain vote.
+- A proposal passes when it reaches its participation and approval thresholds.
 
-### Implementation
-- Automatic update of the demo basket
+### Basket Polls
+- The new weight of each component is the average of the votes, weighted by each voter's voting power.
+- An administrator completes the poll in the admin panel or through GraphQL.
+- At v7.18.1, completing a poll does not change the demo basket. The poll names `UpdateBasketCompositionWorkflow`, but the completion step does not start that workflow, so an operator has to start it by hand. The [basket tutorial](../tutorials/BUILDING_BASKET_CURRENCIES.md) shows how.
 
 ## Frequently Asked Questions
 
 ### Q: What if I don't vote?
-A: The demo basket follows the outcome of the simulated votes that were cast.
+A: Your demo voting weight is not counted for that proposal or poll. You can vote in the next one.
 
 ### Q: Can I delegate my voting power?
-A: Currently, delegation is not supported. You must vote directly.
+A: No. Delegation is not supported, so you must vote directly.
 
 ### Q: How are proposals created?
-A: Demo proposals are created by administrators or demo users with a description, a rationale and proposed demo basket weights.
+A: The scheduler creates the monthly proposal. Administrators can create other proposals with a description, a rationale and proposed demo basket weights.
 
 ### Q: Is voting mandatory?
 A: No, voting in the demo is optional.
 
-### Q: What happens in a tie?
-A: In the unlikely event of an exact tie, the current allocation is maintained.
+## Security and Privacy
 
-## Security & Privacy
-
-### Your Vote is:
-- **Encrypted**: During transmission
-- **Auditable**: Verifiable through the application's vote records
-
-### Best Practices
-1. Vote from secure devices
-2. Verify poll authenticity
-3. Don't share voting intentions publicly
-4. Review results after polls close
+- Votes travel over HTTPS on the hosted demo.
+- Each proposal vote is stored with a signature that the application generates.
+- Each basket poll vote is stored with the time, your IP address and your browser's user agent. You can check a basket poll vote through `POST /api/votes/{id}/verify`.
 
 ## Support
 
-### Need Help?
-- Email: support@finaegis.org
-
-### Report Issues
-If you experience voting problems:
-1. Note the poll ID and timestamp
-2. Screenshot any errors
-3. Contact support immediately
+If you find a problem with voting, note the proposal or poll ID and the time. Then open a [GitHub issue](https://github.com/FinAegis/core-banking-prototype-laravel/issues) with that information and a screenshot of any error.
 
 ## Conclusion
 
 The governance demo shows how basket-weight proposals and weighted polls can be implemented with FinAegis.
 
 ---
-*Last Updated: September 2024*
-*Version: 1.0*
+*Last updated: November 2026 (v7.18.1)*

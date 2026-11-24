@@ -4,6 +4,8 @@
 **Audit Date**: 2026-01-28
 **Status**: PASSED
 
+> Note added for v7.18.1: this is an internal review that the project ran during v2.0.0 development. It is not an independent audit, a penetration test or a certification. It records the state of the multi-tenancy code at v2.0.0, and later releases have not been reviewed against it. "PASSED" means the listed checks passed in that internal review.
+
 ## Executive Summary
 
 This document provides a comprehensive security audit of the FinAegis multi-tenancy implementation. The implementation follows industry best practices for data isolation, access control, and security hardening.

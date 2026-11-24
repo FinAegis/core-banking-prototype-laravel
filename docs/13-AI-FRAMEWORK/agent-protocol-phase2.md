@@ -357,7 +357,11 @@ CREATE TABLE agent_offline_notifications (
 ./vendor/bin/pest tests/Integration/AgentProtocol/
 ```
 
+> Note (v7.18.1): there is no `tests/Integration/AgentProtocol/` directory. The agent protocol tests are in `tests/Feature/AgentProtocol/`, `tests/Unit/AgentProtocol/` and `tests/Unit/Domain/AgentProtocol/`.
+
 ## API Endpoints
+
+> Note (v7.18.1): the paths below were the Phase 2 design and were not built under these names. The agent protocol routes that exist are under `/api/agent-protocol/`, for example `POST /api/agent-protocol/agents/{did}/payments`, `POST /api/agent-protocol/escrow` and `POST /api/agent-protocol/escrow/{escrowId}/release`. Run `php artisan route:list --path=agent-protocol` for the current list.
 
 ### Payment Endpoints
 - `POST /api/v1/agent/payments` - Initiate payment
@@ -431,6 +435,7 @@ Log::channel('agent_protocol')->info('Payment processed', [
    php artisan agent:test-payment
    php artisan agent:test-escrow
    ```
+   Note (v7.18.1): these two commands do not exist. Run `./vendor/bin/pest tests/Feature/AgentProtocol/` instead.
 
 ## Troubleshooting
 
@@ -457,6 +462,8 @@ Log::channel('agent_protocol')->info('Payment processed', [
 - Review retry logs in database
 
 ### Debug Commands
+
+> Note (v7.18.1): the `agent:*` commands below do not exist, and there is no `PaymentHistoryProjector` class. Use the API routes under `/api/agent-protocol/` and `php artisan projector:health` instead.
 
 ```bash
 # Check payment status

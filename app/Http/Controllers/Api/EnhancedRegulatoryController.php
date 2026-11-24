@@ -491,8 +491,8 @@ class EnhancedRegulatoryController extends Controller
     #[OA\Post(
         path: '/api/compliance/regulatory-reports/{reportId}/submit',
         operationId: 'regulatorySubmitReport',
-        summary: 'Submit a regulatory report to the authority',
-        description: 'Submits a regulatory report for filing with the appropriate regulatory authority. Supports initial, amendment, and correction filing types via API, portal, or email.',
+        summary: 'Record a regulatory report filing (simulated)',
+        description: 'Records a filing of type initial, amendment or correction for the report. No regulator is contacted. The api method needs an endpoint in the regulatory.api_endpoints config, which this codebase does not define, so it fails. The portal and email methods are simulated. They send nothing and return a generated reference, and the portal method fails at random about one time in five.',
         tags: ['Compliance'],
         security: [['sanctum' => []]],
         parameters: [
@@ -563,8 +563,8 @@ class EnhancedRegulatoryController extends Controller
     #[OA\Get(
         path: '/api/compliance/regulatory-reports/filings/{filingId}/status',
         operationId: 'regulatoryCheckFilingStatus',
-        summary: 'Check the status of a regulatory filing',
-        description: 'Queries the current status of a previously submitted regulatory filing, returning the latest filing record and any status updates.',
+        summary: 'Check the status of a regulatory filing (simulated)',
+        description: 'Returns the latest filing record and its status. No regulator is contacted. For a portal filing the status is chosen at random from pending, accepted and rejected, and an accepted or rejected status is saved to the filing. An email filing has no status check.',
         tags: ['Compliance'],
         security: [['sanctum' => []]],
         parameters: [
@@ -620,8 +620,8 @@ class EnhancedRegulatoryController extends Controller
     #[OA\Post(
         path: '/api/compliance/regulatory-reports/filings/{filingId}/retry',
         operationId: 'regulatoryRetryFiling',
-        summary: 'Retry a failed regulatory filing',
-        description: 'Retries submission of a previously failed regulatory filing.',
+        summary: 'Retry a failed regulatory filing (simulated)',
+        description: 'Retries a failed filing with the same simulated methods as the submit endpoint. No regulator is contacted.',
         tags: ['Compliance'],
         security: [['sanctum' => []]],
         parameters: [

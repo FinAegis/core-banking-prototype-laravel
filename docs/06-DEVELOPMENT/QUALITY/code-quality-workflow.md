@@ -1,51 +1,22 @@
-# Code Quality Workflow - Preventing CI Failures
+# Code Quality Workflow
 
-## Problem Summary
-We encountered a CI failure on PR #236 where PHPCS caught a trailing whitespace issue that wasn't detected locally. This happened because we were only running PHP CS Fixer and PHPStan, but not PHPCS (PHP_CodeSniffer).
+This guide explains which quality checks to run before you push. Running them locally prevents CI failures.
 
-## Root Cause Analysis
+## Background
 
-### Why We Missed This
-1. **Different Tools, Different Rules**:
-   - **PHP CS Fixer**: Configured with PSR-12 rules, focuses on fixing style issues
-   - **PHPCS (PHP_CodeSniffer)**: Validates PSR-12 compliance more strictly
-   - **PHPStan**: Static analysis tool - doesn't check code style at all
+A CI run on PR #236 failed because PHP_CodeSniffer (PHPCS) found trailing whitespace. The problem was not caught locally. At the time, the local workflow ran only PHP CS Fixer and PHPStan, while CI also ran PHPCS.
 
-2. **The Gap**:
-   - Our local workflow only ran PHP CS Fixer and PHPStan
-   - CI pipeline additionally runs PHPCS which caught the whitespace issue
-   - Some issues (like trailing whitespace) can be missed by PHP CS Fixer
+The three tools check different things:
+- PHP CS Fixer fixes code style. The project rules live in `.php-cs-fixer.php`.
+- PHPCS checks PSR-12 compliance more strictly. The rules live in `phpcs.xml`. CI runs PHPCS v4 from `vendor/bin` (`squizlabs/php_codesniffer` 4.0.4 in `composer.lock`), so run the same binary locally.
+- PHPStan is a static analysis tool. It does not check code style. The project runs it at Level 8 with the baselines listed in `phpstan.neon`.
 
-## Solution: Comprehensive Pre-Commit Checks
+Some issues, such as trailing whitespace, can slip past PHP CS Fixer. That is why all three are needed.
 
-### New Pre-Commit Script
-Location: `bin/pre-commit-check.sh`
+## Pre-commit script
 
-Features:
-- Checks only modified files (fast)
-- Runs all quality tools in correct order
-- Auto-fix capability with `--fix` flag
-- Full codebase check with `--all` flag
+The script `bin/pre-commit-check.sh` runs all quality tools in the right order. By default it checks only modified files, so it is fast.
 
-### Correct Tool Execution Order
-
-```bash
-# 1. PHP CS Fixer - Fixes most style issues
-./vendor/bin/php-cs-fixer fix
-
-# 2. PHPCS/PHPCBF - Catches PSR-12 issues CS Fixer might miss
-./vendor/bin/phpcbf --standard=PSR12 app/
-
-# 3. PHPStan - Static analysis
-XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse --memory-limit=2G
-
-# 4. Tests - Verify functionality
-./vendor/bin/pest --parallel
-```
-
-### Usage
-
-#### Quick Check (Recommended)
 ```bash
 # Check modified files only
 ./bin/pre-commit-check.sh
@@ -53,11 +24,34 @@ XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse --memory-limit
 # Auto-fix issues where possible
 ./bin/pre-commit-check.sh --fix
 
-# Check entire codebase
+# Check the entire codebase
 ./bin/pre-commit-check.sh --all
+
+# Run in CI mode with stricter checks
+./bin/pre-commit-check.sh --ci
 ```
 
-#### Manual Tools (if needed)
+## Running the tools by hand
+
+Run the tools in this order:
+
+```bash
+# 1. PHP CS Fixer fixes most style issues
+./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php
+
+# 2. PHPCS/PHPCBF catches PSR-12 issues that CS Fixer misses
+./vendor/bin/phpcbf --standard=PSR12 app/
+./vendor/bin/phpcs
+
+# 3. PHPStan runs static analysis
+XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G
+
+# 4. Tests verify behaviour
+./vendor/bin/pest --parallel --stop-on-failure
+```
+
+For a single file:
+
 ```bash
 # Fix specific file with PHPCS
 ./vendor/bin/phpcbf --standard=PSR12 path/to/file.php
@@ -66,59 +60,51 @@ XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse --memory-limit
 ./vendor/bin/phpcs --standard=PSR12 path/to/file.php
 
 # Fix with PHP CS Fixer
-./vendor/bin/php-cs-fixer fix path/to/file.php
+./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php path/to/file.php
 ```
 
-## Git Pre-Commit Hook
+## Git pre-commit hook
 
-A git hook has been installed at `.git/hooks/pre-commit` that automatically runs quality checks before each commit.
+Git hooks are not stored in the repository. You can point a local `.git/hooks/pre-commit` hook at `bin/pre-commit-check.sh` so the checks run before each commit.
 
-To bypass (only use when necessary):
+To bypass the hook when you really need to:
 ```bash
 git commit --no-verify
 ```
 
-## CI Pipeline Requirements
+## What CI checks
 
-The CI pipeline (GitHub Actions) checks:
-1. PHP CS Fixer compliance
-2. PHPCS PSR-12 standard
-3. PHPStan Level 5 analysis
-4. Test suite passes
-5. Security scanning
+The Code Quality workflow (`.github/workflows/01-code-quality.yml`) runs these steps:
+1. `bin/check-test-coverage`, which fails when a top-level directory under `tests/` is not claimed by any CI job.
+2. `vendor/bin/phpcs`.
+3. `vendor/bin/phpstan analyse --memory-limit=2G` at Level 8.
+4. `vendor/bin/php-cs-fixer fix --dry-run --diff`.
+5. An OpenAPI drift check on `storage/api-docs/api-docs.json`.
 
-## Best Practices
+The test suite and the security scans run in their own workflows.
 
-1. **Always run pre-commit check**: `./bin/pre-commit-check.sh --fix`
-2. **Don't skip PHPCS**: It catches issues PHP CS Fixer might miss
-3. **Fix in order**: PHP CS Fixer → PHPCS → PHPStan → Tests
-4. **Use auto-fix**: Both tools support auto-fixing (`--fix` flag)
-5. **Check CI logs**: If CI fails, check which specific tool failed
+## Good habits
 
-## Common Issues and Solutions
+1. Run `./bin/pre-commit-check.sh --fix` before every push.
+2. Do not skip PHPCS, because it catches issues that PHP CS Fixer misses.
+3. Fix in this order: PHP CS Fixer, then PHPCS, then PHPStan, then tests.
+4. Use the auto-fixers. Both style tools can fix most issues themselves.
+5. When CI fails, check the log to see which tool failed.
 
-### Trailing Whitespace
-- **Tool**: PHPCS
-- **Fix**: `./vendor/bin/phpcbf --standard=PSR12 file.php`
+## Common issues
 
-### Line Length Warnings
-- **Tool**: PHPCS
-- **Note**: Warnings don't block commits, only errors do
-- **Fix**: Manual refactoring to shorten lines
+### Trailing whitespace
+PHPCS reports it. Fix it with `./vendor/bin/phpcbf --standard=PSR12 file.php`.
 
-### Import Order
-- **Tool**: PHP CS Fixer
-- **Fix**: `./vendor/bin/php-cs-fixer fix file.php`
+### Line length
+`phpcs.xml` excludes the line length rule, so PHPCS does not report long lines. Shorten them by hand when it makes the code easier to read.
 
-### Type Hints
-- **Tool**: PHPStan
-- **Fix**: Add proper type declarations and PHPDoc blocks
+### Import order
+PHP CS Fixer reports it. Fix it with `./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php file.php`.
+
+### Type hints
+PHPStan reports them. Add proper type declarations and PHPDoc blocks.
 
 ## Summary
 
-The key lesson is that **PHP CS Fixer and PHPCS serve different purposes**:
-- PHP CS Fixer: Focuses on fixing code style
-- PHPCS: Validates strict PSR-12 compliance
-- Both are needed for complete code quality assurance
-
-Always run the pre-commit check script before pushing to avoid CI failures.
+PHP CS Fixer and PHPCS serve different purposes. PHP CS Fixer fixes code style. PHPCS checks strict PSR-12 compliance. You need both for complete coverage, and PHPStan on top for type safety. Run the pre-commit script before you push to avoid CI failures.

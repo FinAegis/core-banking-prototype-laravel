@@ -2,26 +2,48 @@
 
 ## Overview
 
-This document describes the webhook signature validation implementation that protects all webhook endpoints in the FinAegis Core Banking Platform. This security enhancement addresses the critical vulnerability where webhook endpoints were broadly exempted from CSRF protection without proper signature validation.
+This document explains how FinAegis checks the signature of incoming webhooks. Webhook endpoints cannot use CSRF tokens, so each one must prove its sender in another way. Earlier versions exempted broad paths from CSRF protection without checking signatures. The current design checks a signature or a shared secret on every provider webhook.
+
+There are two ways the check is done. Older provider webhooks use the shared `ValidateWebhookSignature` middleware. Newer integrations verify the signature inside their own verifier class or controller.
 
 ## Security Architecture
 
 ### Middleware Implementation
 
-The `ValidateWebhookSignature` middleware provides centralized signature validation for all webhook providers:
+The `ValidateWebhookSignature` middleware (alias `webhook.signature`) checks these providers:
 
-- **Stripe**: HMAC-SHA256 with timestamp validation
-- **Coinbase Commerce**: HMAC-SHA256 signature
-- **Paysera**: HMAC-SHA256 signature
-- **Santander**: HMAC-SHA512 with timestamp
-- **Open Banking**: OAuth state parameter validation
+| Provider | Scheme |
+|----------|--------|
+| Stripe | HMAC-SHA256 with a timestamp check (`Stripe-Signature`) |
+| Coinbase Commerce | HMAC-SHA256 (`X-CC-Webhook-Signature`) |
+| Paysera | HMAC-SHA256 (`X-Paysera-Signature`) |
+| Santander | HMAC-SHA512 with a timestamp check (`X-Santander-Signature`, `X-Santander-Timestamp`) |
+| Open Banking | Single-use OAuth `state` value kept in the cache |
+| Marqeta | Basic authentication and HMAC-SHA256 (`X-Marqeta-Webhook-Signature`) |
+
+### Verification Outside the Middleware
+
+These webhooks verify the sender in their own code:
+
+| Endpoint | Check |
+|----------|-------|
+| `POST /api/v1/webhooks/bridge` | `BridgeWebhookVerifier` checks an RSA-SHA256 signature in `X-Webhook-Signature` (`t=<unix_ms>,v0=<base64>`) against `BRIDGE_WEBHOOK_PUBLIC_KEY`. A legacy HMAC scheme keyed by `BRIDGE_WEBHOOK_SECRET` remains as a fallback. |
+| `POST /api/v1/webhooks/lepo` | `LepoWebhookVerifier` checks an HMAC-SHA256 of the raw body in `X-LepoFinance-Signature`. |
+| `POST /api/v1/webhooks/fincard` | `FinCardWebhookVerifier` checks a base64 RSA-SHA256 signature of the raw body against FinCard's public key. |
+| `POST /api/webhooks/helius/solana` | The controller compares the secret in the `Authorization` header. |
+| `POST /api/webhooks/alchemy/address-activity` | The controller checks `X-Alchemy-Signature` with the signing key stored in `webhook_endpoints`. |
+| `POST /api/webhooks/hyperswitch`, `POST /api/webhooks/stripe/kyc`, `POST /api/webhooks/stripe/subscriptions`, `POST /api/webhooks/visa-cli/payment` | Each controller verifies the provider's signature itself. |
+| `POST /api/v1/webhooks/vertexsms/dlr` | The controller accepts either a URL token (`?t=...`) or an HMAC-SHA256 signature in `X-VertexSMS-Signature`. |
+| `POST /api/webhooks/apple/notifications`, `POST /api/webhooks/google/play` | The subscription controllers verify the store's signed notification. Apple notifications are checked against the Apple Root CA G3 certificate. |
+
+Several of these webhooks also deduplicate events through the `processed_webhook_events` table.
 
 ### Key Features
 
-1. **Provider-Specific Validation**: Each webhook provider has its own validation logic matching their signature schemes
-2. **Timestamp Protection**: Prevents replay attacks by validating timestamps (5-minute tolerance)
-3. **Constant-Time Comparison**: Uses `hash_equals()` to prevent timing attacks
-4. **Graceful Failure**: Returns 403 with error message on validation failure
+1. Each provider has its own check that matches its signature scheme.
+2. The Stripe and Santander checks reject timestamps older than 5 minutes, which stops replayed requests.
+3. Signatures are compared with `hash_equals()`, which prevents timing attacks.
+4. A failed check returns HTTP 403 with an error message.
 
 ## Configuration
 
@@ -45,7 +67,7 @@ SANTANDER_WEBHOOK_SECRET=your_santander_webhook_secret
 
 ### Route Protection
 
-All webhook routes are automatically protected by the middleware:
+These routes use the middleware:
 
 ```php
 // API routes
@@ -60,13 +82,19 @@ Route::post('/api/webhooks/custodian/paysera', [CustodianWebhookController::clas
 
 Route::post('/api/webhooks/custodian/santander', [CustodianWebhookController::class, 'santander'])
     ->middleware('webhook.signature:santander');
+
+// The whole /api/webhooks/card-issuer/* group (authorization, settlement, transaction)
+Route::post('/api/webhooks/card-issuer/authorization', [JitFundingWebhookController::class, 'handleAuthorization'])
+    ->middleware(['api.rate_limit:webhook', 'webhook.signature:marqeta']);
 ```
+
+The Stripe route overrides Laravel Cashier's default webhook route in `WebhookServiceProvider`.
 
 ## Implementation Details
 
 ### Stripe Signature Validation
 
-Stripe uses a complex signature format with timestamps:
+Stripe sends a signature header that carries a timestamp and one or more signatures:
 
 ```php
 // Signature format: t=timestamp,v1=signature
@@ -95,7 +123,7 @@ $expectedSignature = hash_hmac('sha256', $signedPayload, $secret);
 
 ### Coinbase Commerce Validation
 
-Simple HMAC-SHA256 validation:
+Coinbase Commerce signs the raw body with HMAC-SHA256:
 
 ```php
 $expectedSignature = hash_hmac('sha256', $payload, $secret);
@@ -104,7 +132,7 @@ return hash_equals($expectedSignature, $signature);
 
 ### Santander Validation
 
-HMAC-SHA512 with timestamp included in the signature:
+Santander signs the timestamp and the body together with HMAC-SHA512:
 
 ```php
 $dataToSign = $timestamp . '.' . $payload;
@@ -116,55 +144,45 @@ return hash_equals($expectedSignature, $signature);
 
 ### Feature Tests
 
-The implementation includes comprehensive feature tests that validate:
+The feature tests check that a valid signature is accepted for each provider. They check that malformed or wrong signatures are rejected and that Stripe and Santander reject old timestamps. They also check that requests without a signature header are rejected and that OAuth callbacks validate the `state` value.
 
-1. **Valid Signatures**: Each provider's valid signature format is accepted
-2. **Invalid Signatures**: Malformed or incorrect signatures are rejected
-3. **Expired Timestamps**: Old timestamps are rejected (Stripe and Santander)
-4. **Missing Headers**: Requests without signature headers are rejected
-5. **State Validation**: OAuth callbacks validate state parameters
-
-### Unit Tests
-
-Unit tests cover:
-
-1. **Signature Algorithms**: Each provider's signature computation
-2. **Error Handling**: Missing configuration, unknown providers
-3. **Edge Cases**: Empty payloads, malformed headers
+The verifier classes have their own tests in `tests/Feature/Api/Bridge/BridgeWebhookVerifierTest.php`, `tests/Feature/Api/FinCard/FinCardWebhookVerifierTest.php` and `tests/Feature/CardIssuance/LepoWebhookTest.php`.
 
 ### Running Tests
 
 ```bash
 # Run all webhook validation tests
-php artisan test --filter ValidateWebhookSignature
+./vendor/bin/pest --filter ValidateWebhookSignature
 
-# Run specific test suite
-php artisan test tests/Feature/Middleware/ValidateWebhookSignatureTest.php
-php artisan test tests/Unit/Middleware/ValidateWebhookSignatureTest.php
+# Run specific test files
+./vendor/bin/pest tests/Feature/Middleware/ValidateWebhookSignatureTest.php
+./vendor/bin/pest tests/Feature/Api/Bridge/BridgeWebhookVerifierTest.php
 ```
 
 ## Security Best Practices
 
-1. **Never Log Secrets**: The middleware never logs webhook secrets
-2. **Rotate Secrets Regularly**: Update webhook secrets periodically
-3. **Monitor Failed Validations**: Log and alert on validation failures
-4. **Use HTTPS Only**: Webhooks should only be received over HTTPS
-5. **Validate Payloads**: Always validate webhook payload structure after signature validation
+1. Never log webhook secrets. The middleware does not log them.
+2. Rotate webhook secrets regularly.
+3. Log failed validations and alert on them.
+4. Receive webhooks over HTTPS only.
+5. Validate the payload structure after the signature check. Store only whitelisted fields, never the raw payload.
 
 ## Migration Guide
 
 ### From Manual Validation
 
-If you were manually validating signatures in controllers:
+To move a provider that fits one of the middleware schemes from controller code to the middleware, follow four steps:
 
-1. Remove manual validation code from controllers
-2. Add the middleware to your routes
-3. Ensure webhook secrets are configured
-4. Test with your webhook providers
+1. Remove the manual validation code from the controller.
+2. Add the middleware to the route.
+3. Make sure the webhook secret is configured.
+4. Test with the provider.
+
+Providers with their own scheme, such as Bridge, Lepo and FinCard, keep their verifier class.
 
 ### CSRF Token Updates
 
-The CSRF exemptions have been updated from broad path exemptions to specific endpoints:
+The CSRF exemptions in `App\Http\Middleware\VerifyCsrfToken` list specific endpoints instead of broad paths:
 
 ```php
 // Before (vulnerable)
@@ -187,18 +205,19 @@ protected $except = [
 ### Common Issues
 
 1. **403 Invalid Signature**
-   - Check webhook secret configuration
-   - Verify signature header name matches provider
-   - Ensure payload hasn't been modified
+   - Check the webhook secret or public key in the configuration.
+   - Check that the signature header name matches the provider.
+   - Make sure nothing changed the raw body before the check, such as a proxy.
 
 2. **Timestamp Errors**
-   - Check server time synchronization
-   - Verify timestamp format from provider
-   - Adjust tolerance if needed (default: 5 minutes)
+   - Check that the server clock is synchronized.
+   - Check the timestamp format the provider sends.
+   - The tolerance is 5 minutes.
 
 3. **Missing Configuration**
-   - Ensure all webhook secrets are in `.env`
-   - Clear config cache: `php artisan config:clear`
+   - Make sure all webhook secrets are in `.env`.
+   - Clear the config cache with `php artisan config:clear`.
+   - Run `php artisan ops:verify-env` before a deploy. It checks the Bridge and Lepo webhook settings, among others.
 
 ### Debug Mode
 

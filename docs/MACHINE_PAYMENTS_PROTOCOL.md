@@ -2,7 +2,9 @@
 
 ## Overview
 
-The Machine Payments Protocol (MPP) enables AI agents and services to make programmatic payments via HTTP 402 responses. Unlike x402 (USDC-on-EVM only), MPP supports multiple payment rails: Stripe SPT (fiat), Tempo stablecoins, Lightning Network, and traditional card networks.
+The Machine Payments Protocol (MPP) lets AI agents and services pay for a resource from code. A server that wants payment answers with HTTP 402, and the client pays and retries. x402 settles in USDC on EVM networks and Solana. MPP instead supports several payment rails. They are Stripe shared payment tokens (SPT) for fiat money, Tempo stablecoins, the Lightning Network and card network tokens.
+
+FinAegis implements MPP in the `MachinePay` domain. It is off by default (`MPP_ENABLED=false`).
 
 **Spec**: [paymentauth.org](https://paymentauth.org)
 **Co-developed by**: Stripe + Tempo Labs
@@ -67,26 +69,28 @@ MPP defines error code **-32042** as the MCP equivalent of HTTP 402:
 |--------|------|------|-------------|
 | GET | `/api/v1/mpp/status` | Public | Protocol status |
 | GET | `/api/v1/mpp/supported-rails` | Public | Available payment rails |
-| GET | `/.well-known/mpp-configuration` | Public | Discovery document |
+| GET | `/.well-known/mpp-configuration` | Public | Discovery document (on the `api.` and `mpp.` subdomains; `/api/.well-known/mpp-configuration` on the main domain) |
 | GET | `/api/v1/mpp/resources` | Sanctum | List monetized resources |
 | POST | `/api/v1/mpp/resources` | Sanctum | Create monetized resource |
 | GET | `/api/v1/mpp/payments` | Sanctum | Payment history |
 | GET | `/api/v1/mpp/payments/stats` | Sanctum | Payment statistics |
+| GET | `/api/v1/mpp/spending-limits` | Sanctum | List agent spending limits |
 | POST | `/api/v1/mpp/spending-limits` | Sanctum | Set agent spending limit |
+| DELETE | `/api/v1/mpp/spending-limits/{agentId}` | Sanctum | Remove agent spending limit |
 
 ## MCP Tools
 
-- `mpp.payment` — Handle 402 challenges, select rail, generate credentials
-- `mpp.discovery` — Discover MPP-enabled resources and configuration
+- `mpp.payment` handles a 402 challenge. It selects a rail and builds the payment credential. It is a tool of the internal AI framework.
+- `mpp.discovery` finds MPP-enabled resources and their configuration. It is also one of the 14 tools on the public MCP server at `mcp.zelta.app`.
 
 ## Demo Mode
 
-All rail adapters return simulated responses in non-production environments. No external API keys required for testing.
+Outside production, all rail adapters return simulated responses. Testing needs no external API keys.
 
 ## Relationship to x402
 
-MPP and x402 are parallel protocols:
-- **x402**: Custom headers, USDC-on-EVM, facilitator-based settlement
-- **MPP**: Standard HTTP auth headers, multi-rail (fiat + crypto), HMAC challenge binding
+MPP and x402 are separate protocols that solve the same problem.
+- **x402** uses its own headers. It settles in USDC on EVM networks and Solana through a facilitator.
+- **MPP** uses the standard HTTP authentication headers. It supports several rails for fiat money and crypto, and it binds each challenge with an HMAC.
 
-AP2 (Google) can wrap both as payment methods within its mandate system.
+AP2, the agent authorisation protocol from Google, can use either one as the payment method inside a mandate.

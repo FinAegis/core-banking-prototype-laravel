@@ -2,550 +2,204 @@
 
 ## Overview
 
-The Demo Mode feature provides a fully functional demonstration environment for the FinAegis Core Banking Platform. It allows users to explore all platform features without connecting to real payment providers, blockchain networks, or financial institutions.
+Demo mode is the environment that runs the public FinAegis demonstration. It is switched on by `APP_ENV=demo`. In this mode the platform replaces payment providers, bank connectors and several domain services with simulated versions. People can try the features without touching real payment providers, blockchain networks or banks.
+
+All balances, tokens and transactions in the demo are simulated and have no real value.
+
+> FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
 
 ## Purpose
 
-- **Product Demonstrations**: Showcase platform capabilities to potential clients
-- **User Training**: Provide a safe environment for learning platform features
-- **Development Testing**: Test integrations without using real services
-- **Sales Presentations**: Enable interactive demonstrations during sales processes
+Demo mode exists for product walkthroughs, training and integration work.
+It lets a developer or reviewer try the platform without credentials for third-party services.
+It also keeps demo traffic away from any real provider.
 
-## Architecture
+## How the platform decides it is a demo
 
-### Service Layer Abstraction
-
-The demo mode implements a service abstraction pattern that allows seamless switching between production, sandbox, and demo environments:
+Demo mode is tied to the Laravel environment name, not to a separate flag.
+`App\Providers\DemoServiceProvider` checks `app()->environment('demo')` and swaps the bindings below.
+A second, optional mode is the sandbox mode. It is switched on with `SANDBOX_MODE=true`.
+In sandbox mode payments go through `SandboxPaymentService`, which calls the providers' own test APIs.
+Blockchain calls still use the simulated `DemoBlockchainService` in sandbox mode.
 
 ```php
-interface PaymentServiceInterface
-{
-    public function createPaymentIntent(array $data): array;
-    public function processPayment(string $paymentId): bool;
-    public function getPaymentStatus(string $paymentId): string;
-}
-
-// Production implementation
-class ProductionPaymentService implements PaymentServiceInterface
-{
-    // Real Stripe/payment provider integration
-}
-
-// Demo implementation
-class DemoPaymentService implements PaymentServiceInterface
-{
-    // Simulated payments with predictable outcomes
+// app/Providers/DemoServiceProvider.php (simplified)
+if ($this->app->environment('demo')) {
+    $this->app->bind(PaymentServiceInterface::class, DemoPaymentService::class);
+    $this->app->bind(PayseraDepositServiceInterface::class, DemoPayseraDepositService::class);
+} elseif (config('demo.sandbox.enabled')) {
+    $this->app->bind(PaymentServiceInterface::class, SandboxPaymentService::class);
+    $this->app->bind(PayseraDepositServiceInterface::class, PayseraDepositService::class);
+} else {
+    $this->app->bind(PaymentServiceInterface::class, ProductionPaymentService::class);
+    $this->app->bind(PayseraDepositServiceInterface::class, PayseraDepositService::class);
 }
 ```
 
-### Environment Detection
+The payment, payment gateway, exchange, lending and stablecoin demo services refuse to run in production.
+Each of them throws a `RuntimeException` from its constructor when `app()->environment('production')` is true.
+The demo bank connector is never registered in production.
 
-```php
-// config/services.php
-'environment_mode' => env('APP_ENV_MODE', 'production'),
+## Demo services
 
-// Service provider registration
-public function register()
-{
-    $this->app->bind(PaymentServiceInterface::class, function ($app) {
-        return match (config('services.environment_mode')) {
-            'demo' => new DemoPaymentService(),
-            'sandbox' => new SandboxPaymentService(),
-            default => new ProductionPaymentService(),
-        };
-    });
-}
-```
+| Service | Class | What it simulates |
+|---------|-------|-------------------|
+| Payments | `App\Domain\Payment\Services\DemoPaymentService` | Card deposits, bank withdrawals and Open Banking deposits, recorded through the transaction aggregate without calling a provider |
+| Payment gateway | `App\Domain\Payment\Services\DemoPaymentGatewayService` | The web wallet's deposit and withdrawal gateway |
+| Paysera deposits | `App\Domain\Payment\Services\DemoPayseraDepositService` | The Paysera deposit flow |
+| Exchange | `App\Domain\Exchange\Services\DemoExchangeService` | Order placement, cancellation, order book and market data |
+| Lending | `App\Domain\Lending\Services\DemoLendingService` | Loan applications, approval and repayments (bound as `lending.service`) |
+| Stablecoin | `App\Domain\Stablecoin\Services\DemoStablecoinService` | Collateral positions, mint, burn and liquidation checks (bound as `stablecoin.service`) |
+| Blockchain | `App\Domain\Wallet\Services\DemoBlockchainService` | Addresses, balances, gas estimates and transaction status without network calls (chosen by `BlockchainConnectorFactory` in the demo environment or sandbox mode) |
+| Bank custodian | `App\Domain\Custodian\Connectors\DemoBankConnector` | A bank that accepts any account and always succeeds |
 
-## Demo Services
+The demo bank connector is registered as `demo_bank`.
+It is registered in the `demo` environment, and in `local` or `testing` when `SANDBOX_MODE=true`.
+It is never registered in any other environment.
+In the demo environment it also replaces the `paysera`, `santander` and `deutsche_bank` custodians while `demo.features.mock_external_apis` is on.
 
-### 1. Demo Payment Service
+Other domains have their own demo adapters, for example `DemoCardIssuerAdapter`, `DemoBridgeAdapter`, `DemoSwapConnector`, `DemoHsmProvider`, `DemoZkProver` and the relayer's `DemoBundlerService` and `DemoPaymasterService`.
+They are selected through each domain's own configuration.
 
-Simulates payment processing with configurable success/failure scenarios:
+## Demo data
 
-```php
-class DemoPaymentService implements PaymentServiceInterface
-{
-    private array $simulatedPayments = [];
-    
-    public function createPaymentIntent(array $data): array
-    {
-        $paymentId = 'demo_pi_' . Str::random(16);
-        
-        $this->simulatedPayments[$paymentId] = [
-            'id' => $paymentId,
-            'amount' => $data['amount'],
-            'currency' => $data['currency'],
-            'status' => 'pending',
-            'created_at' => now(),
-        ];
-        
-        return $this->simulatedPayments[$paymentId];
-    }
-    
-    public function processPayment(string $paymentId): bool
-    {
-        // Simulate processing delay
-        sleep(1);
-        
-        // 90% success rate for demo
-        $success = rand(1, 10) <= 9;
-        
-        $this->simulatedPayments[$paymentId]['status'] = 
-            $success ? 'succeeded' : 'failed';
-            
-        return $success;
-    }
-}
-```
-
-### 2. Demo Exchange Service
-
-Provides realistic market data and trading simulations:
-
-```php
-class DemoExchangeService implements ExchangeServiceInterface
-{
-    public function getMarketData(string $pair): array
-    {
-        // Generate realistic price movements
-        $basePrice = $this->getBasePrice($pair);
-        $volatility = 0.02; // 2% volatility
-        
-        return [
-            'pair' => $pair,
-            'bid' => $basePrice * (1 - rand(0, $volatility * 100) / 10000),
-            'ask' => $basePrice * (1 + rand(0, $volatility * 100) / 10000),
-            'volume' => rand(1000000, 10000000),
-            'change_24h' => rand(-500, 500) / 100,
-        ];
-    }
-    
-    public function executeOrder(Order $order): Trade
-    {
-        // Simulate order matching with slight slippage
-        $executionPrice = $order->price * (1 + rand(-10, 10) / 10000);
-        
-        return Trade::create([
-            'order_id' => $order->id,
-            'execution_price' => $executionPrice,
-            'executed_at' => now(),
-            'status' => 'completed',
-        ]);
-    }
-}
-```
-
-### 3. Demo Blockchain Service
-
-Simulates blockchain operations without real network calls:
-
-```php
-class DemoBlockchainService implements BlockchainServiceInterface
-{
-    public function sendTransaction(array $params): string
-    {
-        // Generate demo transaction hash
-        return '0xdemo' . hash('sha256', json_encode($params));
-    }
-    
-    public function getTransactionStatus(string $txHash): string
-    {
-        // Simulate confirmation after delay
-        $age = Cache::get("tx_age_{$txHash}", 0);
-        
-        return match(true) {
-            $age < 10 => 'pending',
-            $age < 30 => 'confirming',
-            default => 'confirmed',
-        };
-    }
-    
-    public function getBalance(string $address): string
-    {
-        // Return demo balance based on address
-        return Cache::remember("balance_{$address}", 300, function() {
-            return (string) rand(1000, 1000000);
-        });
-    }
-}
-```
-
-### 4. Demo Lending Service
-
-Simulates loan lifecycle with automated approvals:
-
-```php
-class DemoLendingService implements LendingServiceInterface
-{
-    public function assessCreditScore(User $user): int
-    {
-        // Generate consistent demo credit score
-        return 300 + (crc32($user->email) % 550);
-    }
-    
-    public function approveLoan(LoanApplication $application): bool
-    {
-        $creditScore = $this->assessCreditScore($application->user);
-        
-        // Auto-approve based on credit score
-        return $creditScore >= 650;
-    }
-    
-    public function calculateInterestRate(LoanApplication $application): float
-    {
-        $creditScore = $this->assessCreditScore($application->user);
-        
-        // Base rate adjusted by credit score
-        $baseRate = 5.0;
-        $adjustment = (850 - $creditScore) / 100;
-        
-        return round($baseRate + $adjustment, 2);
-    }
-}
-```
-
-### 5. Demo Stablecoin Service
-
-Provides stablecoin operations with simulated backing:
-
-```php
-class DemoStablecoinService implements StablecoinServiceInterface
-{
-    public function mintTokens(float $amount, string $currency): array
-    {
-        return [
-            'transaction_id' => 'demo_mint_' . Str::random(16),
-            'amount' => $amount,
-            'currency' => $currency,
-            'tokens_minted' => $amount,
-            'backing_ratio' => 1.05, // 105% backed
-            'timestamp' => now(),
-        ];
-    }
-    
-    public function getReserveStatus(): array
-    {
-        return [
-            'total_supply' => 10000000,
-            'total_reserves' => 10500000,
-            'backing_ratio' => 1.05,
-            'reserve_composition' => [
-                'cash' => 0.40,
-                'bonds' => 0.35,
-                'commodities' => 0.25,
-            ],
-        ];
-    }
-}
-```
-
-## Demo Data Management
-
-### Seeding Demo Data
+`php artisan migrate --seed` creates the reference data but no demo users.
+`php artisan demo:populate` runs the standard seeders, then `DemoDataSeeder`, `SmsDemoSeeder` and `MobileRewardsDemoSeeder`.
 
 ```bash
-# Seed demo data
-php artisan db:seed --class=DemoDataSeeder
+# Seed reference data and create the demo users
+php artisan demo:populate
 
-# Reset demo environment
-php artisan demo:reset
+# Wipe the database first (asks for confirmation)
+php artisan demo:populate --fresh
+
+# Also create an admin user for the Filament panel
+php artisan demo:populate --with-admin
 ```
 
-### Demo Data Seeder
+`demo:populate` creates five demo users. They all use the password `demo123`.
+`DemoDataSeeder` sets this password directly, so changing `DEMO_USER_PASSWORD` does not change it.
 
-```php
-class DemoDataSeeder extends Seeder
-{
-    public function run(): void
-    {
-        // Create demo users
-        $this->createDemoUsers();
-        
-        // Create demo accounts
-        $this->createDemoAccounts();
-        
-        // Create demo transactions
-        $this->createDemoTransactions();
-        
-        // Create demo market data
-        $this->createDemoMarketData();
-    }
-    
-    private function createDemoUsers(): void
-    {
-        $demoUsers = [
-            ['name' => 'John Demo', 'email' => 'john@demo.finaegis.com'],
-            ['name' => 'Jane Test', 'email' => 'jane@demo.finaegis.com'],
-            ['name' => 'Admin Demo', 'email' => 'admin@demo.finaegis.com'],
-        ];
-        
-        foreach ($demoUsers as $userData) {
-            User::factory()->create($userData);
-        }
-    }
-}
+| Email | Profile |
+|-------|---------|
+| `demo.user@gcu.global` | Regular user |
+| `demo.business@gcu.global` | Business user |
+| `demo.investor@gcu.global` | Investor |
+| `demo.argentina@gcu.global` | User in a high-inflation country |
+| `demo.nomad@gcu.global` | Digital nomad |
+
+Two more commands help with demo data.
+
+```bash
+# Add a simulated deposit to a user (local, testing and demo only; --instant applies only in demo)
+php artisan demo:deposit demo.user@gcu.global 500 --asset=EUR --instant
+
+# Delete demo data older than one day (demo environment only)
+php artisan demo:cleanup --days=1 --dry-run
 ```
+
+In the demo environment the scheduler runs `demo:cleanup` every day.
+It keeps `demo.cleanup.retention_days` days of data, which `DEMO_CLEANUP_RETENTION_DAYS` sets.
 
 ## Configuration
 
-### Environment Variables
+### Environment
+
+Copy `.env.demo` to `.env` to start a demo deployment.
+`APP_ENV=demo` turns several demo-only features on by default. The file also sets them explicitly.
+The mock bank custodian is the exception. It stays off in the demo environment unless `CUSTODIAN_MOCK_ENABLED=true` is set.
 
 ```env
-# Enable demo mode
-APP_ENV_MODE=demo
+APP_ENV=demo
 
-# Demo service configuration
+# Demo-only ledger and showcase features (default on under APP_ENV=demo)
+LEDGER_DIRECT_FUNDING_ENABLED=true
+TRADING_ENABLED=true
+REGISTRATION_API_ENABLED=true
+
+# Mock bank custodian (default off under APP_ENV=demo, so set it explicitly)
+CUSTODIAN_MOCK_ENABLED=true
+```
+
+### `config/demo.php`
+
+`config/demo.php` defines these settings.
+
+```env
+# Demo features
+DEMO_INSTANT_DEPOSITS=true
+DEMO_SKIP_KYC=true
+DEMO_MOCK_EXTERNAL_APIS=true
+DEMO_FIXED_EXCHANGE_RATES=true
 DEMO_AUTO_APPROVE=true
-DEMO_SUCCESS_RATE=90
-DEMO_PROCESSING_DELAY=1
-DEMO_MARKET_VOLATILITY=0.02
 
-# Demo data retention
-DEMO_DATA_TTL=86400  # 24 hours
-DEMO_AUTO_CLEANUP=true
+# Banner and watermark
+DEMO_SHOW_BANNER=true
+DEMO_BANNER_TEXT="Demo Environment - No real transactions"
+DEMO_SHOW_WATERMARK=true
+
+# Demo users and data retention
+DEMO_USER_PASSWORD=demo123
+DEMO_DATA_RETENTION_DAYS=7
+DEMO_CLEANUP_ENABLED=true
+DEMO_CLEANUP_RETENTION_DAYS=1
+
+# Use real provider sandboxes instead of simulations
+SANDBOX_MODE=false
 ```
 
-### Configuration File
+The code reads only some of them.
+`DEMO_MOCK_EXTERNAL_APIS` decides whether the demo bank replaces the named custodians.
+`DEMO_AUTO_APPROVE` and `DEMO_INSTANT_DEPOSITS` are read by the demo exchange, lending and blockchain services.
+`DEMO_SHOW_BANNER` and `DEMO_BANNER_TEXT` control the banner, `DEMO_CLEANUP_RETENTION_DAYS` sets the scheduled cleanup, and `SANDBOX_MODE` turns on sandbox mode.
+No code reads `DEMO_SKIP_KYC`, `DEMO_FIXED_EXCHANGE_RATES`, `DEMO_SHOW_WATERMARK`, `DEMO_USER_PASSWORD`, `DEMO_DATA_RETENTION_DAYS` or `DEMO_CLEANUP_ENABLED` at present.
 
-```php
-// config/demo.php
-return [
-    'enabled' => env('APP_ENV_MODE') === 'demo',
-    
-    'features' => [
-        'auto_approve_kyc' => true,
-        'auto_approve_loans' => true,
-        'instant_deposits' => true,
-        'simulated_market_data' => true,
-    ],
-    
-    'limits' => [
-        'max_transaction_amount' => 100000,
-        'max_loan_amount' => 50000,
-        'max_trading_volume' => 1000000,
-    ],
-    
-    'simulation' => [
-        'success_rate' => 0.9,
-        'processing_delay' => 1,
-        'market_volatility' => 0.02,
-    ],
-];
-```
+The same file holds fixed demo exchange rates, lending and stablecoin defaults, the demo user list and demo limits.
+The demo limits, such as `max_transaction_amount` and `max_daily_transactions`, are not enforced by any code at present.
 
-## User Interface
+## User interface
 
-### Demo Mode Indicators
+When `DEMO_SHOW_BANNER` is on, `DemoServiceProvider` shares `isDemoMode` and `demoMessage` with every view.
+The `<x-demo-banner>` component (`resources/views/components/demo-banner.blade.php`) shows a notice on pages such as the crypto, manual and Open Banking deposit pages.
+It only renders when the environment is `demo`.
 
-```blade
-{{-- resources/views/components/demo-banner.blade.php --}}
-@if(config('demo.enabled'))
-    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4">
-        <p class="font-bold">Demo Mode Active</p>
-        <p>You are using a demonstration environment. No real transactions will be processed.</p>
-    </div>
-@endif
-```
+## Middleware
 
-### Demo Controls
+`App\Http\Middleware\DemoMode` is added to the `web` group when `APP_ENV=demo`. It is also available under the `demo` alias.
+It is written to block a short list of routes, such as external webhook processing, with HTTP 403.
+It is also written to add the `X-Demo-Mode: true` and `X-Demo-Features` headers to other responses.
+At present it only acts when `SANDBOX_MODE=true`. It checks a `demo.mode` setting that `config/demo.php` does not define, so under a plain `APP_ENV=demo` it passes every request through unchanged.
 
-```blade
-{{-- Demo control panel for testing scenarios --}}
-@if(config('demo.enabled'))
-    <div class="demo-controls">
-        <h3>Demo Controls</h3>
-        
-        <button onclick="simulatePaymentSuccess()">
-            Simulate Successful Payment
-        </button>
-        
-        <button onclick="simulatePaymentFailure()">
-            Simulate Failed Payment
-        </button>
-        
-        <button onclick="generateMarketVolatility()">
-            Generate Market Volatility
-        </button>
-        
-        <button onclick="resetDemoData()">
-            Reset Demo Data
-        </button>
-    </div>
-@endif
-```
+## Production safeguards
 
-## API Endpoints
+The payment, payment gateway, exchange, lending and stablecoin demo services throw an exception when they are built in production.
+`ops:verify-env` fails a production deploy while `LEDGER_DIRECT_FUNDING_ENABLED` is on, unless `LEDGER_DIRECT_FUNDING_ACKNOWLEDGED=true` confirms a production-mode demo.
+The production templates `.env.production.example` and `.env.zelta.example` keep `TRADING_ENABLED=false` and `SHOW_PROMO_PAGES=false`.
 
-### Demo-Specific Endpoints
+## Best practices
 
-```php
-// routes/api.php
-Route::group(['prefix' => 'demo', 'middleware' => 'demo.mode'], function () {
-    Route::post('/reset', [DemoController::class, 'reset']);
-    Route::post('/simulate/payment', [DemoController::class, 'simulatePayment']);
-    Route::post('/simulate/market', [DemoController::class, 'simulateMarket']);
-    Route::get('/scenarios', [DemoController::class, 'getScenarios']);
-});
-```
-
-### Demo Controller
-
-```php
-class DemoController extends Controller
-{
-    public function reset(): JsonResponse
-    {
-        if (!config('demo.enabled')) {
-            abort(403, 'Demo mode not enabled');
-        }
-        
-        Artisan::call('demo:reset');
-        
-        return response()->json([
-            'message' => 'Demo environment reset successfully',
-        ]);
-    }
-    
-    public function simulatePayment(Request $request): JsonResponse
-    {
-        $scenario = $request->input('scenario', 'success');
-        
-        $result = app(DemoPaymentService::class)
-            ->simulateScenario($scenario);
-            
-        return response()->json($result);
-    }
-}
-```
-
-## Security Considerations
-
-### Access Control
-
-```php
-class DemoModeMiddleware
-{
-    public function handle($request, Closure $next)
-    {
-        if (!config('demo.enabled')) {
-            abort(403, 'Demo mode not available');
-        }
-        
-        // Add demo headers
-        $response = $next($request);
-        $response->headers->set('X-Demo-Mode', 'true');
-        
-        return $response;
-    }
-}
-```
-
-### Data Isolation
-
-```php
-class DemoDataScope implements Scope
-{
-    public function apply(Builder $builder, Model $model)
-    {
-        if (config('demo.enabled')) {
-            $builder->where('is_demo', true);
-        }
-    }
-}
-```
-
-## Testing
-
-### Demo Mode Tests
-
-```php
-class DemoModeTest extends TestCase
-{
-    public function test_demo_payment_service_returns_predictable_results()
-    {
-        config(['services.environment_mode' => 'demo']);
-        
-        $service = app(PaymentServiceInterface::class);
-        $payment = $service->createPaymentIntent(['amount' => 100]);
-        
-        $this->assertStringStartsWith('demo_pi_', $payment['id']);
-        $this->assertEquals('pending', $payment['status']);
-    }
-    
-    public function test_demo_mode_prevents_real_transactions()
-    {
-        config(['demo.enabled' => true]);
-        
-        $response = $this->post('/api/payments', [
-            'amount' => 100,
-            'method' => 'card',
-        ]);
-        
-        $response->assertHeader('X-Demo-Mode', 'true');
-    }
-}
-```
-
-## Monitoring
-
-### Demo Usage Analytics
-
-```php
-class DemoAnalytics
-{
-    public function trackUsage(string $feature, User $user = null): void
-    {
-        DemoUsage::create([
-            'feature' => $feature,
-            'user_id' => $user?->id,
-            'session_id' => session()->getId(),
-            'timestamp' => now(),
-        ]);
-    }
-    
-    public function getUsageReport(): array
-    {
-        return [
-            'total_sessions' => DemoUsage::distinct('session_id')->count(),
-            'popular_features' => DemoUsage::groupBy('feature')
-                ->selectRaw('feature, count(*) as usage_count')
-                ->orderByDesc('usage_count')
-                ->limit(10)
-                ->get(),
-            'active_users' => DemoUsage::where('timestamp', '>', now()->subHour())
-                ->distinct('session_id')
-                ->count(),
-        ];
-    }
-}
-```
-
-## Best Practices
-
-1. **Clear Indication**: Always clearly indicate when demo mode is active
-2. **Realistic Data**: Generate realistic but clearly fake data
-3. **Predictable Behavior**: Ensure demo behavior is consistent and predictable
-4. **Time Limits**: Implement automatic cleanup of old demo data
-5. **Rate Limiting**: Apply rate limits to prevent demo abuse
-6. **Documentation**: Provide clear documentation for demo scenarios
-7. **Isolation**: Keep demo data completely isolated from production
+Always show clearly that the demo is a demo.
+Use data that looks realistic but is obviously fake.
+Keep the cleanup schedule on so old demo data does not pile up.
+Keep demo data in a separate database from any real deployment.
 
 ## Troubleshooting
 
-### Common Issues
+### Demo services are not used
 
-1. **Demo services not loading**
-   - Check `APP_ENV_MODE` environment variable
-   - Verify service provider registration
-   - Clear configuration cache
+Check that `APP_ENV` is exactly `demo`.
+Then clear the configuration cache with `php artisan config:clear`.
 
-2. **Real services being called**
-   - Verify environment detection logic
-   - Check service binding in container
-   - Review middleware configuration
+### Real provider calls happen in the demo
 
-3. **Demo data persistence**
-   - Check cleanup schedules
-   - Verify data isolation scopes
-   - Review cache configuration
+Check that `SANDBOX_MODE` is not set to `true`.
+Check that `DEMO_MOCK_EXTERNAL_APIS` is on.
+
+### Demo users are missing
+
+Run `php artisan demo:populate`. A plain `php artisan migrate --seed` does not create them.
+
+### Old demo data is not removed
+
+Check that the scheduler runs and that `APP_ENV` is `demo`, because the cleanup is only scheduled in the demo environment.
+Run `php artisan demo:cleanup --dry-run` to see what would be deleted.

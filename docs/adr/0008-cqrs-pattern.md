@@ -6,18 +6,14 @@ Accepted
 
 ## Context
 
-The platform handles diverse workloads:
+The platform handles two very different kinds of work:
 
-1. **Write Operations** - Complex business logic, validation, event generation
-2. **Read Operations** - High-volume queries, reporting, dashboards
-3. **Different Scaling Needs** - Reads vastly outnumber writes (typically 10:1 to 100:1)
-4. **Different Data Shapes** - Write models (aggregates) differ from read models (views)
+1. **Writes** run complex business logic and validation, and they record events.
+2. **Reads** serve many queries, reports and dashboards.
+3. **Scaling needs differ.** Reads usually outnumber writes by 10 to 1 or even 100 to 1.
+4. **Data shapes differ.** The write models (aggregates) look different from the read models (views).
 
-Traditional single-model approaches:
-- Force compromise between read and write optimization
-- Complicate both query and command handling
-- Make scaling difficult
-- Create performance bottlenecks
+A single model has to compromise between fast reads and safe writes. It makes both queries and commands more complicated, makes scaling harder and creates performance bottlenecks.
 
 ## Decision
 
@@ -52,7 +48,7 @@ We will implement **Command Query Responsibility Segregation (CQRS)** to separat
 
 ### Implementation
 
-1. **Command Bus** - Routes commands to handlers
+1. **Command bus.** It routes each command to its handler.
    ```php
    interface CommandBus
    {
@@ -68,7 +64,7 @@ We will implement **Command Query Responsibility Segregation (CQRS)** to separat
    ));
    ```
 
-2. **Query Bus** - Routes queries to handlers with caching
+2. **Query bus.** It routes each query to its handler and can cache the result.
    ```php
    interface QueryBus
    {
@@ -79,7 +75,7 @@ We will implement **Command Query Responsibility Segregation (CQRS)** to separat
    $balance = $queryBus->ask(new GetAccountBalanceQuery($accountId));
    ```
 
-3. **Command Handlers** - Process commands through aggregates
+3. **Command handlers.** They process commands through aggregates.
    ```php
    class PlaceOrderHandler
    {
@@ -99,7 +95,7 @@ We will implement **Command Query Responsibility Segregation (CQRS)** to separat
    }
    ```
 
-4. **Query Handlers** - Read from optimized projections
+4. **Query handlers.** They read from projections that are shaped for the query.
    ```php
    class GetAccountBalanceHandler
    {
@@ -111,7 +107,7 @@ We will implement **Command Query Responsibility Segregation (CQRS)** to separat
    }
    ```
 
-5. **Projectors** - Build read models from events
+5. **Projectors.** They build the read models from events.
    ```php
    class OrderBookProjector extends Projector
    {
@@ -128,44 +124,23 @@ We will implement **Command Query Responsibility Segregation (CQRS)** to separat
    }
    ```
 
-### Configuration
+### Where It Lives
 
-```php
-// config/cqrs.php
-return [
-    'command_bus' => [
-        'middleware' => [
-            TransactionalMiddleware::class,
-            LoggingMiddleware::class,
-            ValidationMiddleware::class,
-        ],
-    ],
-    'query_bus' => [
-        'cache' => [
-            'enabled' => true,
-            'ttl' => 60,
-        ],
-    ],
-];
-```
+The bus interfaces are `App\Domain\Shared\CQRS\CommandBus` and `App\Domain\Shared\CQRS\QueryBus`. The implementations are `LaravelCommandBus` and `LaravelQueryBus` in `app/Infrastructure/CQRS/`, and `DomainServiceProvider` registers them. There is no `config/cqrs.php` file.
+
+The command bus offers `dispatch()`, `dispatchAsync()` for queued commands and `dispatchTransaction()`, which runs several commands inside one `DB::transaction()`. The query bus offers `ask()`, `askCached()` with a default cache time of 3600 seconds and `askMultiple()`.
+
+At v7.18.1 no command or query handler is registered with the buses. Controllers still call services, aggregates and workflows directly, so the handler examples above show the intended design.
 
 ## Consequences
 
 ### Positive
 
-- **Optimized reads** - Read models shaped for specific queries
-- **Optimized writes** - Aggregates focused on business logic
-- **Independent scaling** - Scale read and write sides separately
-- **Simpler code** - Each side has single responsibility
-- **Cache-friendly** - Read models can be heavily cached
-- **Event sourcing synergy** - Natural fit with event-sourced aggregates
+Read models are shaped for specific queries, and aggregates focus on business logic. The read side and the write side can scale separately. Each side has a single responsibility, which keeps the code simpler. Read models are easy to cache, and the pattern fits well with event-sourced aggregates.
 
 ### Negative
 
-- **Eventual consistency** - Read models may lag writes
-- **Increased complexity** - More classes and infrastructure
-- **Synchronization** - Must keep read models updated
-- **Debugging** - Issues span multiple components
+Read models can lag behind writes. There are more classes and more infrastructure. The read models must be kept up to date, and a problem can span several components, which makes debugging harder.
 
 ### Mitigations
 
@@ -190,6 +165,8 @@ return [
 **Cons**: Doesn't address write side complexity
 
 **Rejected because**: Only solves read side, not full separation
+
+GraphQL was later added next to CQRS, not instead of it. Lighthouse serves 43 domain schemas at `/graphql`.
 
 ### 3. Separate Read/Write Databases
 

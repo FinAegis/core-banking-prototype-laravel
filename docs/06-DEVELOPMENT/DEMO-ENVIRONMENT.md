@@ -2,7 +2,7 @@
 
 ## Overview
 
-The FinAegis Demo Environment is a comprehensive system that allows the platform to run without external dependencies, making it ideal for demonstrations, development, and testing. Implemented in PR #201-202, this system provides instant responses and simulated behaviors for all external integrations.
+The demo environment lets FinAegis run without its external services. It is meant for demonstrations, development and testing. It was introduced in PR #201 and PR #202. Demo services return instant, simulated responses in place of the external integrations. `APP_ENV=demo` switches it on.
 
 ## Table of Contents
 
@@ -19,11 +19,11 @@ The FinAegis Demo Environment is a comprehensive system that allows the platform
 
 ### Design Principles
 
-1. **Zero External Dependencies**: All external API calls are intercepted and simulated
-2. **Instant Responses**: No network delays or processing time
-3. **Predictable Behavior**: Consistent responses for reliable demonstrations
-4. **Feature Parity**: All platform features work in demo mode
-5. **Easy Toggle**: Switch between demo and production with a single flag
+1. Demo services replace the external API calls with simulated responses.
+2. Responses are instant, without network delays.
+3. Behaviour is predictable, so demonstrations are reliable.
+4. The main flows work in demo mode. Features without a demo service still need their external service or stay unavailable.
+5. One setting, `APP_ENV=demo`, switches between demo and production behaviour.
 
 ### Service Layer Architecture
 
@@ -46,16 +46,15 @@ Mock Response             External API
 
 **Location**: `app/Providers/DemoServiceProvider.php`
 
-Responsible for:
-- Binding demo implementations based on environment
-- Registering demo bank connectors
-- Configuring view composers for demo indicators
+The provider binds the demo implementations when `APP_ENV` is `demo`. It also registers the demo bank connectors and the view composers for the demo indicators.
 
 ```php
 // Automatic service switching based on environment
 if ($this->app->environment('demo')) {
     $this->app->bind(PaymentServiceInterface::class, DemoPaymentService::class);
     $this->app->bind(ExchangeService::class, DemoExchangeService::class);
+    $this->app->bind('lending.service', DemoLendingService::class);
+    $this->app->bind('stablecoin.service', DemoStablecoinService::class);
     // ... other bindings
 }
 ```
@@ -64,11 +63,7 @@ if ($this->app->environment('demo')) {
 
 **Location**: `app/Http/Middleware/DemoMode.php`
 
-Features:
-- Adds demo banner to all pages
-- Injects demo configuration into views
-- Protects sensitive operations
-- Adds demo watermarks
+The middleware adds the demo banner and watermark to the web pages and passes the demo configuration to the views. It also blocks sensitive operations, such as incoming webhooks. `bootstrap/app.php` adds it to the web group when `APP_ENV` is `demo`.
 
 ### 3. Environment Detection
 
@@ -87,39 +82,19 @@ The system uses Laravel's environment system:
 #### DemoPaymentService
 **Location**: `app/Domain/Payment/Services/DemoPaymentService.php`
 
-Simulates:
-- Stripe deposits and withdrawals
-- Payment intent creation
-- Transaction processing
-- Instant confirmations
-
-Key Features:
-```php
-- Instant deposit processing
-- Mock payment intent IDs (demo_pi_*)
-- Simulated webhooks
-- Configurable success rates
-```
+The service simulates Stripe deposits, bank withdrawals and Open Banking deposits with instant confirmation. It records the deposit through the transaction aggregate and returns mock payment intent IDs that start with `demo_pi_`.
 
 #### DemoPaymentGatewayService
 **Location**: `app/Domain/Payment/Services/DemoPaymentGatewayService.php`
 
-Provides:
-- Mock Stripe payment intents
-- Simulated client secrets
-- Demo-specific metadata
-- Instant payment confirmations
+The service returns mock Stripe payment intents with simulated client secrets and demo metadata, and confirms payments at once.
 
 ### Exchange Services
 
 #### DemoExchangeService
 **Location**: `app/Domain/Exchange/Services/DemoExchangeService.php`
 
-Features:
-- Instant order matching
-- Simulated market depth
-- Configurable spreads
-- Mock trading pairs
+The service matches orders at once and simulates market depth, spreads and trading pairs. Trading is off in production through `TRADING_ENABLED=false`.
 
 Configuration:
 ```php
@@ -141,62 +116,30 @@ Configuration:
 #### DemoLendingService
 **Location**: `app/Domain/Lending/Services/DemoLendingService.php`
 
-Capabilities:
-- Auto-approved loans (configurable threshold)
-- Instant disbursement
-- Simulated credit scoring
-- Mock repayment schedules
-
-Features:
-```php
-- Configurable approval rates
-- Default credit scores
-- Instant loan processing
-- Simulated interest calculations
-```
+The service approves loans up to a configurable threshold and disburses them at once. It simulates credit scores, interest and repayment schedules.
 
 ### Stablecoin Services
 
 #### DemoStablecoinService
 **Location**: `app/Domain/Stablecoin/Services/DemoStablecoinService.php`
 
-Simulates:
-- Instant minting and burning
-- Auto-collateralization
-- Stability mechanism triggers
-- Mock oracle price feeds
+The service simulates instant minting and burning, collateralisation, the stability mechanisms and oracle price feeds.
 
 ### Blockchain Services
 
 #### DemoBlockchainService
 **Location**: `app/Domain/Wallet/Services/DemoBlockchainService.php`
 
-Provides:
-- Mock blockchain transactions
-- Simulated wallet addresses
-- Instant confirmations
-- Fake transaction hashes
-
-Features:
-```php
-- Multi-chain support (ETH, BTC, Polygon, BSC)
-- Mock HD wallet generation
-- Simulated gas fees
-- Instant transaction mining
-```
+The service returns mock blockchain transactions, wallet addresses and transaction hashes for Ethereum, Bitcoin, Polygon and BSC. It simulates HD wallet generation and gas fees and confirms transactions at once. The non-custodial wallet send in the Zelta app does not use it.
 
 ### Banking Services
 
 #### DemoBankConnector
 **Location**: `app/Domain/Custodian/Connectors/DemoBankConnector.php`
 
-Simulates:
-- Bank account operations
-- Wire transfers
-- Balance inquiries
-- Transaction history
+The connector simulates bank account operations, wire transfers, balance inquiries and transaction history.
 
-Replaces the bank connector adapters (e.g. Paysera, Santander, Deutsche Bank APIs). Integration adapters for third-party APIs; no partnership or endorsement implied.
+It replaces the bank connector adapters (e.g. Paysera, Santander, Deutsche Bank APIs). Integration adapters for third-party APIs; no partnership or endorsement implied.
 
 ## Configuration
 
@@ -299,8 +242,10 @@ php artisan config:cache
 2. **Manual Setup**:
 ```env
 # In .env file
-DEMO_MODE=true
+APP_ENV=demo
 ```
+
+There is no `DEMO_MODE` variable. See [DEMO-MODE-REFACTORING.md](DEMO-MODE-REFACTORING.md).
 
 3. **Programmatic Check**:
 ```php
@@ -312,7 +257,10 @@ if (app()->environment('demo')) {
 ### Demo Data Seeding
 
 ```bash
-# Run demo seeder
+# Run the standard seeders and all demo seeders
+php artisan demo:populate
+
+# Or run only the demo user seeder
 php artisan db:seed --class=DemoDataSeeder
 
 # Create demo deposits
@@ -321,7 +269,7 @@ php artisan demo:deposit demo.user@gcu.global 10000 --asset=USD
 
 ### Demo User Accounts
 
-Pre-configured demo accounts:
+`php artisan migrate --seed` does not create these users. `php artisan demo:populate` does:
 - `demo.argentina@gcu.global` - High-inflation country user
 - `demo.nomad@gcu.global` - Digital nomad
 - `demo.business@gcu.global` - Business user
@@ -372,7 +320,8 @@ class DemoYourServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        Config::set('demo.mode', true);
+        // Tests run with APP_ENV=testing, so bind the demo service directly
+        $this->app->bind(YourServiceInterface::class, DemoYourService::class);
     }
     
     public function test_demo_service_returns_mock_response()
@@ -390,9 +339,11 @@ class DemoYourServiceTest extends TestCase
 
 ### Running Tests in Demo Mode
 
+Tests run with `APP_ENV=testing`, so `DemoServiceProvider` does not bind the demo services. Bind the demo service in the test, or test the demo class directly.
+
 ```bash
-# Set environment for testing
-DEMO_MODE=true ./vendor/bin/pest
+# Run the demo service tests
+./vendor/bin/pest --filter=Demo
 
 # Or use the CI configuration
 ./vendor/bin/pest --configuration=phpunit.ci.xml
@@ -405,7 +356,7 @@ trait UsesDemoMode
 {
     protected function enableDemoMode(): void
     {
-        Config::set('demo.mode', true);
+        $this->app->bind(PaymentServiceInterface::class, DemoPaymentService::class);
         Config::set('demo.features.instant_deposits', true);
     }
 }
@@ -417,24 +368,15 @@ trait UsesDemoMode
 
 #### 1. Demo Mode Not Activating
 
-**Check**:
-- Environment variable is set: `DEMO_MODE=true`
-- Configuration is cached: `php artisan config:cache`
-- Service provider is registered in `bootstrap/providers.php`
+Check that `APP_ENV=demo` is set in `.env`. Then rebuild the configuration cache with `php artisan config:cache`. Also check that `DemoServiceProvider` is registered in `bootstrap/providers.php`.
 
 #### 2. External APIs Still Being Called
 
-**Verify**:
-- DemoServiceProvider bindings are correct
-- Service resolution uses interface, not concrete class
-- Cache is cleared after configuration changes
+Check the bindings in `DemoServiceProvider`. Make sure the code resolves the interface, not the concrete class. Clear the cache after configuration changes.
 
 #### 3. Demo Indicators Not Showing
 
-**Ensure**:
-- `DEMO_SHOW_BANNER=true` in .env
-- DemoMode middleware is registered
-- View composers are working
+Check that `DEMO_SHOW_BANNER=true` is set in `.env`, that the `DemoMode` middleware is registered and that the view composers run.
 
 ### Debug Commands
 
@@ -454,30 +396,25 @@ php artisan optimize:clear
 
 ### Production Safety
 
-The demo system includes multiple safeguards:
+The demo system has several safeguards:
 
-1. **Environment Protection**: Cannot be enabled in production
-2. **Transaction Limits**: Maximum amounts enforced
-3. **Rate Limiting**: Prevents abuse
-4. **Visual Indicators**: Clear demo mode warnings
-5. **Data Isolation**: Demo data clearly marked
+1. Demo services are bound only when `APP_ENV=demo`. `ops:verify-env` fails a production deploy when `demo.mode` or other demo flags are on.
+2. Demo amounts have maximum limits.
+3. Rate limiting prevents abuse.
+4. The banner and watermark make demo mode visible.
+5. Demo data is clearly marked.
 
 ### Best Practices
 
-1. Never deploy with `DEMO_MODE=true` to production
-2. Use separate databases for demo environments
-3. Implement proper access controls
-4. Regular audit of demo mode usage
-5. Clear separation of demo and real data
+1. Never deploy production with `APP_ENV=demo`.
+2. Use separate databases for demo environments.
+3. Set up proper access controls.
+4. Audit the use of demo mode regularly.
+5. Keep demo data and real data clearly apart.
 
 ## Performance Impact
 
-Demo mode actually improves performance by:
-- Eliminating external API calls
-- Removing network latency
-- Instant response times
-- No rate limiting delays
-- Simplified processing logic
+Demo mode is faster than normal operation. It makes no external API calls, so there is no network latency and no rate limiting by the providers. The demo services also use simpler processing logic and answer at once.
 
 Typical improvements:
 - Payment processing: 2000ms → 50ms
@@ -496,7 +433,7 @@ Planned improvements:
 
 ## Related Documentation
 
-- [DEMO_SETUP.md](../DEMO_SETUP.md) - Quick setup guide
-- [Testing Guide](./TESTING_GUIDE.md) - Testing strategies
-- [Payment Architecture](./PAYMENT-ARCHITECTURE.md) - Payment service details
-- [API Documentation](../04-API/REST_API_REFERENCE.md) - API endpoints
+- [DEMO_SETUP.md](../../DEMO_SETUP.md) is the quick setup guide.
+- The [Testing Guide](./TESTING_GUIDE.md) explains the testing strategies.
+- [Payment Abstraction](../03-FEATURES/PAYMENT-ABSTRACTION.md) explains the payment services.
+- The [REST API Reference](../04-API/REST_API_REFERENCE.md) lists the API endpoints.

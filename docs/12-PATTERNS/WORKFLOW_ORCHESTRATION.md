@@ -1,8 +1,25 @@
-# Workflow Orchestration with Laravel Workflow
+# Workflow Orchestration with Durable Workflow
 
 ## Overview
 
-The FinAegis platform uses Laravel Workflow for orchestrating complex business processes. This document covers workflow implementation patterns, saga compensation, activity design, and best practices for building reliable distributed workflows.
+FinAegis runs multi-step business processes as durable workflows. It uses the `durable-workflow/workflow` package, version 1.0, which was formerly called Laravel Workflow. Its classes live in the `Workflow\` namespace. The Waterline dashboard shows running and finished workflows, and only administrators can open it.
+
+This document covers workflow patterns, saga compensation, activity design and best practices for reliable workflows.
+
+### About the code samples
+
+The samples are sketches that show each pattern. Several of their classes do not exist in the codebase. The package API they use is real:
+
+- `ActivityStub::make()` runs an activity, and `ActivityStub::all()` waits for several activities at once.
+- `ChildWorkflowStub::make()` starts a child workflow.
+- `WorkflowStub::timer()` pauses a workflow, and `WorkflowStub::awaitWithTimeout()` waits for a signal with a time limit.
+- `WorkflowStub::sideEffect()` and `WorkflowStub::now()` keep random values and the current time stable when a workflow is replayed.
+- `$this->addCompensation()` and `$this->compensate()` give built-in saga compensation.
+- Activities set their own retries and time limits through the `$tries` and `$timeout` properties and the `backoff()` method.
+
+For a complete working example, read `app/Domain/Exchange/Workflows/OrderMatchingWorkflow.php`. It uses `ActivityStub::make()` together with `addCompensation()` and `compensate()`.
+
+Some sketches use `float` for amounts to stay short. Real code must handle money as numeric strings with `bcmath`.
 
 ## Architecture
 
@@ -32,8 +49,8 @@ app/Domain/[Domain]/
 
 namespace App\Domain\Treasury\Workflows;
 
+use Workflow\ActivityStub;
 use Workflow\Workflow;
-use Workflow\Activity;
 
 class CashManagementWorkflow extends Workflow
 {
@@ -52,13 +69,13 @@ class CashManagementWorkflow extends Workflow
         
         try {
             // Step 1: Validate prerequisites
-            $validation = yield Activity::make(ValidatePrerequisitesActivity::class, [
+            $validation = yield ActivityStub::make(ValidatePrerequisitesActivity::class, [
                 'account_id' => $accountId,
                 'amount' => $totalAmount,
             ]);
             
             // Step 2: Execute main business logic
-            $allocation = yield Activity::make(AllocateCashActivity::class, [
+            $allocation = yield ActivityStub::make(AllocateCashActivity::class, [
                 'account_id' => $accountId,
                 'strategy' => $strategy,
                 'amount' => $totalAmount,
@@ -67,7 +84,7 @@ class CashManagementWorkflow extends Workflow
             $this->allocationResults = $allocation;
             
             // Step 3: Optimize results
-            $optimization = yield Activity::make(OptimizeYieldActivity::class, [
+            $optimization = yield ActivityStub::make(OptimizeYieldActivity::class, [
                 'allocations' => $allocation,
                 'constraints' => $constraints,
             ]);
@@ -80,19 +97,19 @@ class CashManagementWorkflow extends Workflow
             
         } catch (\Exception $e) {
             // Trigger compensation
-            yield from $this->compensate();
-            throw new WorkflowException(
+            yield from $this->reverseCompletedSteps();
+            throw new \RuntimeException(
                 "Workflow failed: {$e->getMessage()}",
                 previous: $e
             );
         }
     }
     
-    public function compensate()
+    private function reverseCompletedSteps()
     {
         if (!empty($this->allocationResults)) {
             // Reverse the allocation
-            yield Activity::make(ReverseAllocationActivity::class, [
+            yield ActivityStub::make(ReverseAllocationActivity::class, [
                 'account_id' => $this->accountId,
                 'allocations' => $this->allocationResults,
             ]);
@@ -189,9 +206,8 @@ class AllocateCashActivity extends Activity
 
 namespace App\Domain\Lending\Workflows;
 
+use Workflow\ActivityStub;
 use Workflow\Workflow;
-use Workflow\Activity;
-use Workflow\Promise;
 
 class LoanApplicationWorkflow extends Workflow
 {
@@ -199,34 +215,34 @@ class LoanApplicationWorkflow extends Workflow
     {
         // Execute activities in parallel
         $promises = [
-            'credit_check' => Activity::make(CreditCheckActivity::class, [
+            'credit_check' => ActivityStub::make(CreditCheckActivity::class, [
                 'ssn' => $application['ssn'],
                 'income' => $application['income'],
             ]),
-            'fraud_check' => Activity::make(FraudDetectionActivity::class, [
+            'fraud_check' => ActivityStub::make(FraudDetectionActivity::class, [
                 'application' => $application,
             ]),
-            'document_verification' => Activity::make(DocumentVerificationActivity::class, [
+            'document_verification' => ActivityStub::make(DocumentVerificationActivity::class, [
                 'documents' => $application['documents'],
             ]),
         ];
         
         // Wait for all parallel activities
-        $results = yield Promise::all($promises);
+        $results = yield ActivityStub::all($promises);
         
         // Aggregate results
         $riskScore = $this->calculateRiskScore($results);
         
         if ($riskScore > 70) {
             // High risk - manual review required
-            yield Activity::make(RequestManualReviewActivity::class, [
+            yield ActivityStub::make(RequestManualReviewActivity::class, [
                 'application_id' => $application['id'],
                 'risk_score' => $riskScore,
                 'results' => $results,
             ]);
         } else {
             // Auto-approve
-            yield Activity::make(ApproveLoanActivity::class, [
+            yield ActivityStub::make(ApproveLoanActivity::class, [
                 'application_id' => $application['id'],
                 'amount' => $application['amount'],
                 'terms' => $this->calculateTerms($riskScore),
@@ -249,15 +265,16 @@ class LoanApplicationWorkflow extends Workflow
 
 namespace App\Domain\Exchange\Workflows;
 
+use Workflow\ActivityStub;
+use Workflow\ChildWorkflowStub;
 use Workflow\Workflow;
-use Workflow\ChildWorkflow;
 
 class OrderMatchingWorkflow extends Workflow
 {
     public function execute(array $order)
     {
         // Validate order
-        $validation = yield Activity::make(ValidateOrderActivity::class, [
+        $validation = yield ActivityStub::make(ValidateOrderActivity::class, [
             'order' => $order,
         ]);
         
@@ -266,14 +283,14 @@ class OrderMatchingWorkflow extends Workflow
         }
         
         // Execute child workflow for matching
-        $matchingResult = yield ChildWorkflow::make(
+        $matchingResult = yield ChildWorkflowStub::make(
             FindMatchingOrdersWorkflow::class,
             [$order]
         );
         
         // Process matches
         foreach ($matchingResult['matches'] as $match) {
-            yield ChildWorkflow::make(
+            yield ChildWorkflowStub::make(
                 ExecuteTradeWorkflow::class,
                 [$order, $match]
             );
@@ -295,36 +312,45 @@ class OrderMatchingWorkflow extends Workflow
 
 namespace App\Domain\Wallet\Workflows;
 
-use Workflow\Workflow;
-use Workflow\Timer;
 use Carbon\CarbonInterval;
+use Workflow\ActivityStub;
+use Workflow\SignalMethod;
+use Workflow\Workflow;
+use Workflow\WorkflowStub;
 
 class WithdrawalWorkflow extends Workflow
 {
+    private bool $confirmed = false;
+
+    // The confirmation link in the email sends this signal to the workflow
+    #[SignalMethod]
+    public function confirm(): void
+    {
+        $this->confirmed = true;
+    }
+
     public function execute(array $withdrawal)
     {
         // Initial validation
-        $validation = yield Activity::make(ValidateWithdrawalActivity::class, [
+        $validation = yield ActivityStub::make(ValidateWithdrawalActivity::class, [
             'withdrawal' => $withdrawal,
         ]);
         
         // Send confirmation email
-        yield Activity::make(SendConfirmationEmailActivity::class, [
+        yield ActivityStub::make(SendConfirmationEmailActivity::class, [
             'user_id' => $withdrawal['user_id'],
             'amount' => $withdrawal['amount'],
         ]);
         
         // Wait for user confirmation (with timeout)
-        $confirmed = yield Timer::awaitWithTimeout(
+        $confirmed = yield WorkflowStub::awaitWithTimeout(
             CarbonInterval::minutes(30),
-            Activity::make(WaitForConfirmationActivity::class, [
-                'withdrawal_id' => $withdrawal['id'],
-            ])
+            fn () => $this->confirmed
         );
         
         if (!$confirmed) {
             // Timeout - cancel withdrawal
-            yield Activity::make(CancelWithdrawalActivity::class, [
+            yield ActivityStub::make(CancelWithdrawalActivity::class, [
                 'withdrawal_id' => $withdrawal['id'],
                 'reason' => 'Confirmation timeout',
             ]);
@@ -333,14 +359,14 @@ class WithdrawalWorkflow extends Workflow
         }
         
         // Process withdrawal
-        yield Activity::make(ProcessWithdrawalActivity::class, [
+        yield ActivityStub::make(ProcessWithdrawalActivity::class, [
             'withdrawal' => $withdrawal,
         ]);
         
         // Schedule settlement after clearing period
-        yield Timer::sleep(CarbonInterval::days(3));
+        yield WorkflowStub::timer(CarbonInterval::days(3));
         
-        yield Activity::make(SettleWithdrawalActivity::class, [
+        yield ActivityStub::make(SettleWithdrawalActivity::class, [
             'withdrawal_id' => $withdrawal['id'],
         ]);
         
@@ -442,10 +468,11 @@ class RiskManagementSaga extends Reactor
 
 namespace App\Domain\Lending\Workflows;
 
+use Carbon\CarbonInterval;
+use Throwable;
+use Workflow\ActivityStub;
 use Workflow\Workflow;
-use Workflow\Activity;
-use Workflow\Exception\ActivityFailedException;
-use Workflow\Exception\WorkflowExecutionException;
+use Workflow\WorkflowStub;
 
 class LoanDisbursementWorkflow extends Workflow
 {
@@ -471,7 +498,7 @@ class LoanDisbursementWorkflow extends Workflow
             $this->completedSteps[] = ['create_transaction', $transaction];
             
             // Step 3: Transfer funds
-            $transfer = yield Activity::make(TransferFundsActivity::class, [
+            $transfer = yield ActivityStub::make(TransferFundsActivity::class, [
                 'transaction_id' => $transaction['id'],
                 'to_account' => $loan['borrower_account'],
                 'amount' => $loan['amount'],
@@ -479,10 +506,10 @@ class LoanDisbursementWorkflow extends Workflow
             $this->completedSteps[] = ['transfer_funds', $transfer];
             
             // Step 4: Update loan status
-            yield Activity::make(UpdateLoanStatusActivity::class, [
+            yield ActivityStub::make(UpdateLoanStatusActivity::class, [
                 'loan_id' => $loan['id'],
                 'status' => 'disbursed',
-                'disbursed_at' => now(),
+                'disbursed_at' => WorkflowStub::now(),
             ]);
             
             return [
@@ -491,16 +518,10 @@ class LoanDisbursementWorkflow extends Workflow
                 'disbursed_amount' => $loan['amount'],
             ];
             
-        } catch (ActivityFailedException $e) {
-            Log::error('Activity failed in loan disbursement', [
-                'loan_id' => $loan['id'],
-                'activity' => $e->getActivityType(),
-                'error' => $e->getMessage(),
-            ]);
+        } catch (Throwable $e) {
+            yield from $this->reverseCompletedSteps();
             
-            yield from $this->compensate();
-            
-            throw new WorkflowExecutionException(
+            throw new \RuntimeException(
                 "Loan disbursement failed: {$e->getMessage()}",
                 previous: $e
             );
@@ -517,14 +538,14 @@ class LoanDisbursementWorkflow extends Workflow
         
         while ($attempt < $maxAttempts) {
             try {
-                return yield Activity::make($activityClass, $input);
+                return yield ActivityStub::make($activityClass, $input);
             } catch (\Exception $e) {
                 $lastException = $e;
                 $attempt++;
                 
                 if ($attempt < $maxAttempts) {
                     // Exponential backoff
-                    yield Timer::sleep(CarbonInterval::seconds(2 ** $attempt));
+                    yield WorkflowStub::timer(CarbonInterval::seconds(2 ** $attempt));
                 }
             }
         }
@@ -532,25 +553,25 @@ class LoanDisbursementWorkflow extends Workflow
         throw $lastException;
     }
     
-    public function compensate()
+    private function reverseCompletedSteps()
     {
         // Reverse completed steps in reverse order
         foreach (array_reverse($this->completedSteps) as [$step, $data]) {
             switch ($step) {
                 case 'transfer_funds':
-                    yield Activity::make(ReverseFundsTransferActivity::class, [
+                    yield ActivityStub::make(ReverseFundsTransferActivity::class, [
                         'transfer_id' => $data['id'],
                     ]);
                     break;
                     
                 case 'create_transaction':
-                    yield Activity::make(VoidTransactionActivity::class, [
+                    yield ActivityStub::make(VoidTransactionActivity::class, [
                         'transaction_id' => $data['id'],
                     ]);
                     break;
                     
                 case 'reserve_funds':
-                    yield Activity::make(ReleaseFundsReservationActivity::class, [
+                    yield ActivityStub::make(ReleaseFundsReservationActivity::class, [
                         'reservation_id' => $data['id'],
                     ]);
                     break;
@@ -564,68 +585,32 @@ class LoanDisbursementWorkflow extends Workflow
 
 ### Unit Testing Workflows
 
+The package has a fake mode for tests. `WorkflowStub::fake()` stops real dispatching. `WorkflowStub::mock()` sets the result of an activity, and `WorkflowStub::assertDispatched()` checks that an activity ran. `tests/Domain/Asset/Workflows/AssetWorkflowMoneyTest.php` is a working example.
+
 ```php
 <?php
 
-namespace Tests\Feature\Domain\Treasury\Workflows;
-
-use App\Domain\Treasury\Workflows\CashManagementWorkflow;
 use App\Domain\Treasury\Activities\AllocateCashActivity;
+use App\Domain\Treasury\Workflows\CashManagementWorkflow;
 use Workflow\WorkflowStub;
-use Workflow\Testing\WorkflowTestCase;
 
-class CashManagementWorkflowTest extends WorkflowTestCase
-{
-    public function test_successful_cash_allocation()
-    {
-        // Arrange
-        $workflow = WorkflowStub::make(CashManagementWorkflow::class);
-        
-        $this->mockActivity(AllocateCashActivity::class)
-            ->with([
-                'account_id' => 'test-account',
-                'strategy' => 'balanced',
-                'amount' => 100000,
-            ])
-            ->andReturn([
-                'allocations' => [
-                    ['type' => 'cash', 'amount' => 20000],
-                    ['type' => 'bonds', 'amount' => 40000],
-                    ['type' => 'equities', 'amount' => 40000],
-                ],
-                'total_allocated' => 100000,
-            ]);
-        
-        // Act
-        $result = $workflow->execute(
-            'test-account',
-            100000,
-            'balanced',
-            ['min_yield' => 5.0]
-        );
-        
-        // Assert
-        $this->assertTrue($result['success']);
-        $this->assertEquals(100000, $result['allocation']['total_allocated']);
-        $this->assertCount(3, $result['allocation']['allocations']);
-    }
-    
-    public function test_workflow_compensation_on_failure()
-    {
-        // Arrange
-        $workflow = WorkflowStub::make(CashManagementWorkflow::class);
-        
-        $this->mockActivity(AllocateCashActivity::class)
-            ->andThrow(new \Exception('Allocation failed'));
-        
-        $this->expectCompensation(ReverseAllocationActivity::class);
-        
-        // Act & Assert
-        $this->expectException(WorkflowException::class);
-        
-        $workflow->execute('test-account', 100000, 'balanced');
-    }
-}
+it('allocates cash through the activity', function () {
+    WorkflowStub::fake();
+
+    WorkflowStub::mock(AllocateCashActivity::class, [
+        'allocations' => [
+            ['type' => 'cash', 'amount' => '20000.00'],
+            ['type' => 'bonds', 'amount' => '40000.00'],
+            ['type' => 'equities', 'amount' => '40000.00'],
+        ],
+        'total_allocated' => '100000.00',
+    ]);
+
+    $workflow = WorkflowStub::make(CashManagementWorkflow::class);
+    $workflow->start('test-account', '100000.00', 'balanced', ['min_yield' => 5.0]);
+
+    WorkflowStub::assertDispatched(AllocateCashActivity::class);
+});
 ```
 
 ### Integration Testing
@@ -714,47 +699,54 @@ class BatchOrderProcessingActivity extends Activity
 }
 ```
 
-### Async Activity Execution
+### Concurrent Activity Execution
+
+Start several activities without waiting for each one, then wait for all of them with `ActivityStub::all()`. Retries and time limits belong on the activity class.
 
 ```php
 <?php
 
 namespace App\Domain\Reporting\Workflows;
 
+use Workflow\ActivityStub;
 use Workflow\Workflow;
-use Workflow\Activity;
-use Workflow\ActivityOptions;
 
 class ReportGenerationWorkflow extends Workflow
 {
     public function execute(array $params)
     {
-        // Configure async execution
-        $options = ActivityOptions::new()
-            ->withStartToCloseTimeout(CarbonInterval::minutes(30))
-            ->withRetryPolicy(
-                maxAttempts: 3,
-                backoffCoefficient: 2.0,
-                initialInterval: CarbonInterval::seconds(1)
-            );
-        
-        // Start async activity
-        $reportGeneration = yield Activity::makeAsync(
-            GenerateReportActivity::class,
-            $params,
-            $options
-        );
-        
-        // Do other work while report generates
-        $metadata = yield Activity::make(CollectMetadataActivity::class, $params);
-        
-        // Wait for async activity to complete
-        $report = yield $reportGeneration;
-        
+        // Both activities run at the same time
+        [$report, $metadata] = yield ActivityStub::all([
+            ActivityStub::make(GenerateReportActivity::class, $params),
+            ActivityStub::make(CollectMetadataActivity::class, $params),
+        ]);
+
         return [
             'report' => $report,
             'metadata' => $metadata,
         ];
+    }
+}
+```
+
+```php
+<?php
+
+use Workflow\Activity;
+
+class GenerateReportActivity extends Activity
+{
+    public $tries = 3;        // The package default is unlimited
+    public $timeout = 1800;   // Seconds; the package default is no limit
+
+    public function backoff()
+    {
+        return [1, 2, 4];     // Seconds between attempts
+    }
+
+    public function execute(array $params): array
+    {
+        // ...
     }
 }
 ```
@@ -851,7 +843,7 @@ abstract class TrackedWorkflow extends Workflow
 ## Best Practices
 
 ### 1. Idempotent Activities
-Ensure activities can be safely retried:
+An activity can run more than once, so it must be safe to retry:
 
 ```php
 class TransferFundsActivity extends Activity
@@ -877,7 +869,7 @@ class TransferFundsActivity extends Activity
 ```
 
 ### 2. Deterministic Workflows
-Workflows must be deterministic for replay:
+A workflow is replayed from its history, so it must make the same decisions every time it runs:
 
 ```php
 // ❌ Non-deterministic
@@ -890,13 +882,13 @@ public function execute($input)
 // ✅ Deterministic
 public function execute($input)
 {
-    $random = yield Activity::make(GenerateRandomActivity::class);
-    $now = yield Activity::make(GetCurrentTimeActivity::class);
+    $random = yield WorkflowStub::sideEffect(fn () => random_int(1, 100));
+    $now = WorkflowStub::now();
 }
 ```
 
 ### 3. Workflow Versioning
-Handle workflow evolution:
+Workflows that are still running must keep working after you change the code. The package offers `WorkflowStub::getVersion()` for this. A simpler approach is a version field in the input:
 
 ```php
 class LoanApplicationWorkflowV2 extends Workflow
@@ -918,4 +910,4 @@ class LoanApplicationWorkflowV2 extends Workflow
 
 ## Conclusion
 
-Laravel Workflow provides powerful orchestration capabilities for complex business processes. By following these patterns and best practices, you can build reliable, maintainable, and scalable workflow systems in the FinAegis platform.
+Durable workflows keep multi-step processes running across failures and restarts. Following these patterns keeps the FinAegis workflows reliable and easy to maintain.

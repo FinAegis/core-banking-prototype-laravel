@@ -5,6 +5,8 @@
 **Decision-maker:** Backend engineer
 **Related:** Backend-Q4 in `docs/BACKEND_HANDOVER_PLAN_B_REVIEW_DELTAS.md`; original handover §3 (Universal quote endpoint); ADR-0001 (fee collectors); ADR-0002 (revenue projection); ADR-0004 (Money on the wire)
 
+> **Implementation status (reviewed for v7.18.1).** The `App\Domain\Pricing` context is built. It has the `PriceQuote` model on the `price_quotes` table, the `FeeTier` and `Money` value objects, and the `QuoteService`, `PriceQuoteIssuer`, `QuoteSigner` and `FeeResolverService` services. The routes are `POST /api/v1/pricing/quote` and `GET /api/v1/pricing/quote/{quoteId}`, and the `ERR_QUOTE_001` and `ERR_QUOTE_002` codes are in use. Some names in the naming table below were not built: there is no `PriceQuoteAggregate`, no `PriceTier` model, no `price_quote_events` table and no quote events. On the wallet send endpoints, `quote_id` in snake_case is now the canonical request field, and the camelCase `quoteId` is still accepted. The ramp quote endpoint is served at `GET /api/v1/ramp/quotes`.
+
 ---
 
 ## Context

@@ -2,11 +2,19 @@
 
 ## Overview
 
-The FinAegis Admin Dashboard is a comprehensive administrative interface built with Filament v3 that provides full control over the core banking platform. It offers real-time account management, transaction monitoring, and system analytics.
+The admin dashboard is the operator interface of FinAegis. It is built with Filament 3.3 and is served at `/admin`. Administrators use it to manage accounts, follow transactions and watch system health.
+
+Only users with an administrator role can open the panel. Other signed-in users are sent to `/dashboard` with an error message. The brand name in the panel comes from `BRAND_NAME` and falls back to "Zelta".
+
+### Module Visibility
+
+The panel groups its resources into navigation groups, such as Banking, System, Ramp, Subscriptions, Mobile and MCP. `ADMIN_MODULES` lists the groups to show, and an empty value shows them all. The Zelta production setup limits the panel to the mobile wallet groups. Widgets follow the same setting.
+
+This page describes the account and transaction screens in detail. The other groups have their own resources, for example for users, API keys, webhooks, Bridge customers, ramp sessions, subscriptions, MCP tool calls and anomaly detection. The Bank Operations and Audit Log pages were removed in v7.18.1, because they could never work.
 
 ## Features
 
-### 🏦 Account Management
+### Account Management
 
 #### Account List View
 - **Real-time account overview** with balance and status
@@ -19,6 +27,7 @@ The FinAegis Admin Dashboard is a comprehensive administrative interface built w
 - **Pagination** with customizable page size
 
 #### Account Operations
+The deposit action appears only when `LEDGER_DIRECT_FUNDING_ENABLED` is on. That is the default in local, testing and demo environments only. The withdrawal action appears for any account that is not frozen and has a positive balance.
 - **Deposit Money**: Add funds to any account with real-time balance updates
 - **Withdraw Money**: Remove funds with automatic validation
 - **Freeze Account**: Prevent all transactions with confirmation dialog
@@ -29,10 +38,11 @@ The FinAegis Admin Dashboard is a comprehensive administrative interface built w
 - Create new accounts with:
   - Account name
   - User UUID assignment
-  - Initial balance (defaults to 0)
   - Frozen status toggle
 
-### 📊 Transaction Monitoring
+A new account always starts at zero. It is funded through a supported deposit method.
+
+### Transaction Monitoring
 
 #### Transaction History
 - **Complete transaction log** for each account
@@ -58,7 +68,7 @@ The FinAegis Admin Dashboard is a comprehensive administrative interface built w
   - Exact timestamp
   - All metadata
 
-### 📈 Analytics & Statistics
+### Analytics & Statistics
 
 #### Account Statistics Widget
 Shows real-time metrics:
@@ -113,6 +123,8 @@ Shows real-time metrics:
 - **Performance charts**: Mini sparklines for trends
 - **Auto-refresh**: Updates every 10 seconds
 
+The current values come from the database, Redis and the queue. The small trend lines show fixed sample values, not measured history.
+
 #### Individual Account Stats
 When viewing a specific account:
 - **Current Balance** with status indicator
@@ -121,7 +133,7 @@ When viewing a specific account:
 - **Monthly Debit** (current month)
 - **Last Transaction** timestamp
 
-### 💹 Turnover Monitoring
+### Turnover Monitoring
 
 #### Turnover History
 - **Monthly aggregations** of account activity
@@ -133,7 +145,7 @@ When viewing a specific account:
 - **Date range filtering**
 - **Trend analysis** capabilities
 
-### 👥 User Management
+### User Management
 
 #### User List
 - View all system users
@@ -144,13 +156,8 @@ When viewing a specific account:
 ## Navigation
 
 ### Main Menu Structure
-```
-🏠 Dashboard
-└── 💰 Banking
-    └── 💳 Bank Accounts
-└── ⚙️ System
-    └── 👥 Users
-```
+
+The menu starts with the Dashboard. Below it come the navigation groups that `ADMIN_MODULES` allows. The accounts described on this page are under **Banking → Accounts**, and users are under **System → Users**. Other groups include Ramp, Subscriptions, Payments, Webhooks, Mobile, MCP, Fraud Detection, Key Management and Support.
 
 ### Quick Actions
 - **Global Search**: Search across all resources
@@ -191,41 +198,41 @@ When viewing a specific account:
 
 1. **Create Admin User**:
    ```bash
-   php artisan make:filament-user
+   php artisan user:create --admin
    ```
-   Enter your name, email, and password when prompted.
+   Enter your name, email and password when prompted. To give an existing user the administrator role, run `php artisan user:promote user@example.com`. `php artisan user:admins` lists all administrators.
 
 2. **Access Dashboard**:
    Navigate to `http://localhost:8000/admin`
 
 3. **Login**:
-   Use the credentials created in step 1
+   Use the credentials created in step 1. The panel has its own sign-in page at `/admin/login`.
 
 ### Common Tasks
 
 #### Depositing Money
-1. Navigate to Bank Accounts
+1. Navigate to Banking → Accounts
 2. Find the target account
 3. Click the "Deposit" action (green plus icon)
 4. Enter amount in dollars (e.g., 50.00)
 5. Confirm the transaction
 
 #### Freezing an Account
-1. Navigate to Bank Accounts
+1. Navigate to Banking → Accounts
 2. Find the account to freeze
 3. Click the "Freeze" action (red lock icon)
 4. Confirm in the dialog
 5. Account status updates immediately
 
 #### Viewing Transaction History
-1. Navigate to Bank Accounts
+1. Navigate to Banking → Accounts
 2. Click on any account row
 3. Scroll to Transaction History section
 4. Use filters to narrow results
 5. Click any transaction for details
 
 #### Bulk Freezing Accounts
-1. Navigate to Bank Accounts
+1. Navigate to Banking → Accounts
 2. Select multiple accounts using checkboxes
 3. Click "Bulk Actions" dropdown
 4. Select "Freeze Selected"
@@ -236,7 +243,7 @@ When viewing a specific account:
 ### Theme Colors
 The dashboard uses the following color scheme:
 - **Primary**: Blue
-- **Success**: Green
+- **Success**: Emerald
 - **Warning**: Amber
 - **Danger**: Red
 
@@ -262,14 +269,13 @@ public static function table(Table $table): Table
 
 ### Common Issues
 
-1. **403 Forbidden Error**
-   - Ensure you're logged in
-   - Check user permissions
-   - Clear browser cache
+1. **Redirected to `/dashboard`**
+   - The user does not have an administrator role. Run `php artisan user:promote user@example.com`.
+   - Check that the admin module you need is listed in `ADMIN_MODULES`.
 
 2. **Missing Data**
    - Run migrations: `php artisan migrate`
-   - Seed database: `php artisan db:seed`
+   - Load demo data: `php artisan demo:populate`
    - Clear cache: `php artisan cache:clear`
 
 3. **Slow Performance**
@@ -279,32 +285,19 @@ public static function table(Table $table): Table
 
 ### Debug Mode
 
-Enable debug information:
+Enable debug information in a local environment only:
 ```bash
 # In .env file
 APP_DEBUG=true
-FILAMENT_DEBUG=true
 ```
 
 ## API Integration
 
-The admin dashboard integrates with the core banking API:
-- All operations use the same service layer
-- Maintains data consistency
-- Respects business rules
-- Triggers appropriate events
+The admin dashboard uses the same service layer as the API. Its actions follow the same business rules and record the same events, so the data stays consistent.
 
 ## Future Enhancements
 
-Planned features for future releases:
-- Export functionality (CSV, PDF)
-- Advanced reporting module
-- Batch import capabilities
-- Audit log viewer
-- Performance dashboards
-- Multi-language support
-- Custom dashboard widgets
-- Webhook configuration UI
+The panel already has webhook management, custom widgets, an event store dashboard and exports for accounts, transactions and users. It has no audit log viewer. Planned features include PDF export, batch import and multi-language support.
 
 ## Support
 

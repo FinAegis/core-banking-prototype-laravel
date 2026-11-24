@@ -5,6 +5,8 @@
 **Framework**: Expo (React Native) with EAS Build
 **Platforms**: Android (primary), iOS
 
+> This is a historical planning document from January 2026 (platform v2.2.0). The backend work it plans has since shipped. For example, `/api/mobile/devices`, `/api/mobile/auth/biometric/*` and `/api/mobile/config` exist now, and the "New Endpoints (To Be Built)" table below is done. The mobile app became Zelta, the hosted non-custodial wallet. Sign-in uses Privy (`POST /api/v1/auth/privy-login`), and wallet sends are signed on the device. For the current contract, see [MOBILE_APP_SPECIFICATION.md](../MOBILE_APP_SPECIFICATION.md) and [MOBILE_API_COMPATIBILITY.md](../MOBILE_API_COMPATIBILITY.md).
+
 ---
 
 ## Executive Summary
