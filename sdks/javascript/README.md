@@ -48,9 +48,24 @@ const client = new FinAegis({
   apiKey: 'your-api-key',
   environment: 'production', // 'production' | 'sandbox' | 'local'
   timeout: 30000, // Request timeout in milliseconds
-  maxRetries: 3 // Number of retries for failed requests
+  maxRetries: 3 // Retries after a network error or a 5xx; 0 turns retries off
 });
 ```
+
+### Retries and idempotency
+
+The SDK sends a failed request again after a network error or a 5xx answer. Every POST carries an `Idempotency-Key` header, and a retry sends the same key. The API then returns the first answer instead of running the call again, so a retried transfer moves money only once.
+
+The SDK makes a new key for each call. Pass your own key when you may repeat the same call later, for example after your process restarts:
+
+```typescript
+await client.transfers.create(
+  { from_account: 'account-uuid-1', to_account: 'account-uuid-2', amount: 100, asset_code: 'USD' },
+  { idempotencyKey: 'order-1234-payout' }
+);
+```
+
+The same key with a different body is refused with HTTP 409. A key must be a UUID, or 16 to 64 letters, digits, dashes or underscores.
 
 ## Resources
 

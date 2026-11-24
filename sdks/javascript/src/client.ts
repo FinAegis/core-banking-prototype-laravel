@@ -6,6 +6,7 @@ import {
   ApiResponse
 } from './types';
 import { FinAegisError } from './errors';
+import { IDEMPOTENCY_HEADER, generateIdempotencyKey, idempotencyConfig } from './idempotency';
 import { Accounts } from './resources/accounts';
 import { Transactions } from './resources/transactions';
 import { Transfers } from './resources/transfers';
@@ -43,14 +44,37 @@ export class FinAegis {
         'Accept': 'application/json',
         'User-Agent': `FinAegis-JS-SDK/${this.getVersion()}`
       },
-      timeout: config.timeout || 30000,
+      timeout: config.timeout ?? 30000,
     });
 
-    // Configure retry logic
+    // Give every POST an Idempotency-Key before it is first sent. A retry
+    // sends the same request config again, so it carries the same key, and
+    // the server answers it with the first response instead of running it
+    // a second time.
+    this.client.interceptors.request.use((request) => {
+      if (request.method?.toLowerCase() === 'post' && !request.headers.has(IDEMPOTENCY_HEADER)) {
+        request.headers.set(IDEMPOTENCY_HEADER, generateIdempotencyKey());
+      }
+      return request;
+    });
+
+    // Configure retry logic. 0 means no retries.
     axiosRetry(this.client, {
-      retries: config.maxRetries || 3,
+      retries: config.maxRetries ?? 3,
       retryDelay: axiosRetry.exponentialDelay,
       retryCondition: (error) => {
+        const method = error.config?.method?.toLowerCase();
+
+        // A POST can move money. Send it again only when it carries an
+        // Idempotency-Key, so the server can recognise the repeat.
+        if (method === 'post' || method === 'patch') {
+          if (!error.config?.headers?.has(IDEMPOTENCY_HEADER)) {
+            return false;
+          }
+          return axiosRetry.isNetworkError(error) ||
+                 (error.response?.status ?? 0) >= 500;
+        }
+
         return axiosRetry.isNetworkOrIdempotentRequestError(error) ||
                (error.response?.status ?? 0) >= 500;
       }
@@ -60,6 +84,11 @@ export class FinAegis {
     this.client.interceptors.response.use(
       (response) => response,
       (error) => {
+        // A retried request passes through this handler twice. Keep the
+        // error from the last attempt, with its status code.
+        if (error instanceof FinAegisError) {
+          throw error;
+        }
         if (error.response) {
           throw new FinAegisError(
             error.response.data?.message || error.message,
@@ -108,12 +137,15 @@ export class FinAegis {
     path: string;
     params?: Record<string, any>;
     data?: any;
+    /** Idempotency-Key for a POST. The SDK makes one when you leave it out. */
+    idempotencyKey?: string;
   }): Promise<ApiResponse<T>> {
     const response = await this.client.request({
       method: config.method,
       url: config.path,
       params: config.params,
-      data: config.data
+      data: config.data,
+      ...idempotencyConfig({ idempotencyKey: config.idempotencyKey })
     });
     
     return response.data;

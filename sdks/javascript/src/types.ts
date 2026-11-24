@@ -6,7 +6,23 @@ export interface FinAegisConfig {
   /** Override the default API base URL (takes precedence over environment) */
   baseURL?: string;
   timeout?: number;
+  /**
+   * How many times a failed request is sent again after a network error or
+   * a 5xx answer. Set it to 0 to turn retries off. The default is 3.
+   * A POST is only sent again when it carries an Idempotency-Key, and the
+   * SDK adds one to every POST, so the server runs it at most once.
+   */
   maxRetries?: number;
+}
+
+export interface RequestOptions {
+  /**
+   * The Idempotency-Key for this call. When you leave it out, the SDK makes a
+   * new key for the call and sends the same key on every retry. Pass your own
+   * key when you may repeat the call later, for example after a restart. Use
+   * a UUID, or 16 to 64 letters, digits, dashes or underscores.
+   */
+  idempotencyKey?: string;
 }
 
 export interface ApiResponse<T> {

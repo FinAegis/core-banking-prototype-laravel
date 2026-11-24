@@ -1,5 +1,6 @@
 import { AxiosInstance } from 'axios';
-import { Basket, ApiResponse, PaginatedResponse, ListParams } from '../types';
+import { Basket, ApiResponse, PaginatedResponse, ListParams, RequestOptions } from '../types';
+import { idempotencyConfig } from '../idempotency';
 
 export class Baskets {
   constructor(private client: AxiosInstance) {}
@@ -89,30 +90,32 @@ export class Baskets {
   }
 
   /**
-   * Compose basket assets into basket tokens
+   * Compose basket assets into basket tokens. A retry carries the same
+   * Idempotency-Key.
    */
-  async compose(accountUuid: string, basketCode: string, amount: number): Promise<ApiResponse<{
+  async compose(accountUuid: string, basketCode: string, amount: number, options?: RequestOptions): Promise<ApiResponse<{
     message: string;
     transaction_id: string;
   }>> {
     const response = await this.client.post(`/accounts/${accountUuid}/baskets/compose`, {
       basket_code: basketCode,
       amount
-    });
+    }, idempotencyConfig(options));
     return response.data;
   }
 
   /**
-   * Decompose basket tokens into underlying assets
+   * Decompose basket tokens into underlying assets. A retry carries the same
+   * Idempotency-Key.
    */
-  async decompose(accountUuid: string, basketCode: string, amount: number): Promise<ApiResponse<{
+  async decompose(accountUuid: string, basketCode: string, amount: number, options?: RequestOptions): Promise<ApiResponse<{
     message: string;
     transaction_id: string;
   }>> {
     const response = await this.client.post(`/accounts/${accountUuid}/baskets/decompose`, {
       basket_code: basketCode,
       amount
-    });
+    }, idempotencyConfig(options));
     return response.data;
   }
 }
