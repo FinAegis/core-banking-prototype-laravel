@@ -16,7 +16,8 @@ function makeTrialFingerprintRow(Carbon $lastUsedAt, array $overrides = []): Tri
 {
     /** @var TrialCardFingerprint $row */
     $row = TrialCardFingerprint::query()->create(array_replace([
-        'fingerprint_hash'         => str_repeat('a', 60) . substr(uniqid('', true), -4),
+        // 64 random hex characters; four random digits collided now and then.
+        'fingerprint_hash'         => bin2hex(random_bytes(32)),
         'first_user_id'            => 1,
         'last_user_id'             => 1,
         'first_used_at'            => $lastUsedAt,
