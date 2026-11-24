@@ -23,7 +23,9 @@ use Illuminate\Support\Facades\Log;
  *
  * This command surfaces the drift loudly so it never sits silently
  * again. Schedule it hourly. On drift it logs at ERROR level and
- * exits non-zero so monitoring/cron alerts fire.
+ * exits non-zero so monitoring/cron alerts fire. With --auto-sync it
+ * runs solana:sync and checks again: drift that the sync fixed is
+ * logged as a WARNING and exits zero; drift that remains still fails.
  */
 class SolanaReconcileHeliusCommand extends Command
 {
@@ -54,35 +56,13 @@ class SolanaReconcileHeliusCommand extends Command
             ->values()
             ->all();
 
-        try {
-            $response = Http::timeout(15)
-                ->withQueryParameters(['api-key' => $apiKey])
-                ->get("https://api.helius.xyz/v0/webhooks/{$webhookId}");
-        } catch (ConnectionException $e) {
-            // The Helius key is the api-key query parameter of the request URL.
-            $error = SecretRedactor::message($e);
+        $heliusAddresses = $this->fetchHeliusAddresses($webhookId, $apiKey);
 
-            Log::error('Helius reconcile: webhook API unreachable', ['error' => $error]);
-            $this->error("Helius API unreachable: {$error}");
-
+        if ($heliusAddresses === null) {
             return self::FAILURE;
         }
 
-        if (! $response->successful()) {
-            Log::error('Helius reconcile: failed to fetch webhook config', [
-                'status' => $response->status(),
-                'body'   => SecretRedactor::redact($response->body()),
-            ]);
-            $this->error("Helius API returned {$response->status()}.");
-
-            return self::FAILURE;
-        }
-
-        /** @var array<int, string> $heliusAddresses */
-        $heliusAddresses = (array) $response->json('accountAddresses', []);
-
-        $missingFromHelius = array_values(array_diff($dbAddresses, $heliusAddresses));
-        $orphanedOnHelius = array_values(array_diff($heliusAddresses, $dbAddresses));
+        [$missingFromHelius, $orphanedOnHelius] = $this->drift($dbAddresses, $heliusAddresses);
 
         $dbCount = count($dbAddresses);
         $heliusCount = count($heliusAddresses);
@@ -95,13 +75,6 @@ class SolanaReconcileHeliusCommand extends Command
 
             return self::SUCCESS;
         }
-
-        Log::error('Helius reconcile: address drift detected', [
-            'db_count'            => $dbCount,
-            'helius_count'        => $heliusCount,
-            'missing_from_helius' => $missingFromHelius,
-            'orphaned_on_helius'  => $orphanedOnHelius,
-        ]);
 
         $this->error(sprintf(
             'Drift detected: %d missing from Helius, %d orphaned on Helius.',
@@ -123,13 +96,110 @@ class SolanaReconcileHeliusCommand extends Command
             }
         }
 
-        if ($this->option('auto-sync')) {
-            $this->info('--auto-sync set; invoking solana:sync...');
-            $this->call('solana:sync');
-        } else {
+        if (! $this->option('auto-sync')) {
+            Log::error('Helius reconcile: address drift detected', [
+                'db_count'            => $dbCount,
+                'helius_count'        => $heliusCount,
+                'missing_from_helius' => $missingFromHelius,
+                'orphaned_on_helius'  => $orphanedOnHelius,
+            ]);
             $this->warn('Re-run with --auto-sync to push the missing addresses, or run `php artisan solana:sync` manually.');
+
+            return self::FAILURE;
         }
 
+        $this->info('--auto-sync set; invoking solana:sync...');
+        $this->call('solana:sync');
+
+        // Check again: the drift alarm should only fire when the sync did
+        // not fix it, otherwise every self-healed run pages an operator.
+        $heliusAfterSync = $this->fetchHeliusAddresses($webhookId, $apiKey);
+
+        if ($heliusAfterSync === null) {
+            return self::FAILURE;
+        }
+
+        [$stillMissing, $stillOrphaned] = $this->drift($dbAddresses, $heliusAfterSync);
+
+        if (empty($stillMissing) && empty($stillOrphaned)) {
+            Log::warning('Helius reconcile: address drift fixed by auto-sync', [
+                'db_count'                 => $dbCount,
+                'helius_count_before_sync' => $heliusCount,
+                'helius_count'             => count($heliusAfterSync),
+                'missing_from_helius'      => $missingFromHelius,
+                'orphaned_on_helius'       => $orphanedOnHelius,
+            ]);
+            $this->warn('Drift fixed by solana:sync. Helius now watches the same addresses as our DB.');
+
+            return self::SUCCESS;
+        }
+
+        Log::error('Helius reconcile: address drift remains after auto-sync', [
+            'db_count'                        => $dbCount,
+            'helius_count_before_sync'        => $heliusCount,
+            'helius_count'                    => count($heliusAfterSync),
+            'missing_from_helius_before_sync' => $missingFromHelius,
+            'orphaned_on_helius_before_sync'  => $orphanedOnHelius,
+            'missing_from_helius'             => $stillMissing,
+            'orphaned_on_helius'              => $stillOrphaned,
+        ]);
+        $this->error(sprintf(
+            'Drift remains after solana:sync: %d missing from Helius, %d orphaned on Helius.',
+            count($stillMissing),
+            count($stillOrphaned),
+        ));
+
         return self::FAILURE;
+    }
+
+    /**
+     * Fetch the addresses the Helius webhook watches. Returns null (after
+     * logging and printing the error) when the API cannot be read.
+     *
+     * @return array<int, string>|null
+     */
+    private function fetchHeliusAddresses(string $webhookId, string $apiKey): ?array
+    {
+        try {
+            $response = Http::timeout(15)
+                ->withQueryParameters(['api-key' => $apiKey])
+                ->get("https://api.helius.xyz/v0/webhooks/{$webhookId}");
+        } catch (ConnectionException $e) {
+            // The Helius key is the api-key query parameter of the request URL.
+            $error = SecretRedactor::message($e);
+
+            Log::error('Helius reconcile: webhook API unreachable', ['error' => $error]);
+            $this->error("Helius API unreachable: {$error}");
+
+            return null;
+        }
+
+        if (! $response->successful()) {
+            Log::error('Helius reconcile: failed to fetch webhook config', [
+                'status' => $response->status(),
+                'body'   => SecretRedactor::redact($response->body()),
+            ]);
+            $this->error("Helius API returned {$response->status()}.");
+
+            return null;
+        }
+
+        /** @var array<int, string> $addresses */
+        $addresses = (array) $response->json('accountAddresses', []);
+
+        return $addresses;
+    }
+
+    /**
+     * @param  array<int, string>  $dbAddresses
+     * @param  array<int, string>  $heliusAddresses
+     * @return array{0: array<int, string>, 1: array<int, string>} [missing from Helius, orphaned on Helius]
+     */
+    private function drift(array $dbAddresses, array $heliusAddresses): array
+    {
+        return [
+            array_values(array_diff($dbAddresses, $heliusAddresses)),
+            array_values(array_diff($heliusAddresses, $dbAddresses)),
+        ];
     }
 }

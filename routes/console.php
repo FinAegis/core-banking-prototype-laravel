@@ -354,14 +354,15 @@ Schedule::command('cue:reconcile')
 // Hourly reconciliation: detect Helius webhook ↔ DB address drift.
 // Caught silent for 27 days during the April 2026 incident — never again.
 // --auto-sync runs `solana:sync` whenever drift is found, so the system
-// self-heals between manual operator visits.
+// self-heals between manual operator visits. The command then checks again
+// and exits non-zero only when the drift is still there after the sync.
 Schedule::command('solana:reconcile-helius --auto-sync')
     ->hourly()
     ->description('Reconcile Solana addresses between local DB and Helius webhook config')
     ->appendOutputTo(storage_path('logs/solana-reconcile-helius.log'))
     ->withoutOverlapping()
     ->onFailure(function () {
-        Log::error('Solana ↔ Helius reconciliation reported drift or failed');
+        Log::error('Solana ↔ Helius reconciliation failed or drift remains after auto-sync');
     });
 
 // Hourly: alert when the Solana fee-payer (sponsor) account runs low on SOL.
