@@ -29,12 +29,11 @@
                 <ol>
                     <li>Open the Zelta app and sign in.</li>
                     <li>Open the <strong>Profile</strong> tab.</li>
-                    <li>In the <strong>Security</strong> section, tap <strong>Auto-Lock</strong>. This opens the <strong>Security &amp; Privacy</strong> screen.</li>
-                    <li>Scroll down to <strong>Danger Zone</strong> and tap <strong>Delete Account</strong>.</li>
-                    <li>Tap <strong>Delete My Account</strong> to confirm.</li>
+                    <li>Scroll to the bottom. Below <strong>Sign Out</strong>, tap <strong>Delete Account</strong>.</li>
+                    <li>Read the confirmation and confirm the deletion.</li>
                 </ol>
-                <p>The app signs you out straight away. We also end your sign-in on your other devices.</p>
-                <p>Before you delete your account, move the money in your wallet to another wallet that you control.</p>
+                <p>The deletion cannot be undone. The app signs you out straight away. We also end your sign-in on your other devices.</p>
+                <p>Before you delete your account, move all the money in your wallet to another wallet that you control. After the deletion, you cannot open this wallet in the app again.</p>
 
                 <h2>Delete your account by email</h2>
                 <p>If you cannot use the app, write to <a href="mailto:support@zelta.app?subject=Delete%20my%20account">support@zelta.app</a> from the email address of your Zelta account. Use the subject line <strong>"Delete my account"</strong>. We check that the request comes from you and process it within 30 days.</p>
@@ -60,6 +59,7 @@
                 <ul>
                     <li>We keep the records of money you moved with Zelta. These are wallet transfers, bank transfers, payments, subscriptions and purchases in the app{{ $isFinAegisSite ? '' : ', and card top-ups' }}. The records keep the amounts, dates, wallet addresses and transaction references. We erase your bank details, free-text notes and technical details from them.</li>
                     <li>Your wallet addresses stay on record, but we stop watching them for new transactions.</li>
+                    <li>We keep a coded form of your sign-in identifier and the time of the deletion. It stops an old session on a phone from opening a new account by mistake. The code cannot be turned back into the identifier.</li>
                     <li>We keep the proof that you agreed to our terms and to your subscription. We need it in case of a legal claim.</li>
                     <li>We keep security records, such as changes of the device linked to your account. We remove your network address and device details from them.</li>
                     <li>We keep identity verification and anti-money-laundering records where the law requires it.</li>

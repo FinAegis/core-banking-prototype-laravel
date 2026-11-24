@@ -30,7 +30,10 @@ describe('Zelta account deletion page', function (): void {
         $response = $this->get('/legal/delete-account');
         $response->assertOk();
         $response->assertSee('Open the <strong>Profile</strong> tab.', false);
-        $response->assertSee('Tap <strong>Delete My Account</strong> to confirm.', false);
+        $response->assertSee('Scroll to the bottom. Below <strong>Sign Out</strong>, tap <strong>Delete Account</strong>.', false);
+        $response->assertDontSee('Auto-Lock');
+        $response->assertSee('After the deletion, you cannot open this wallet in the app again.');
+        $response->assertSee('The deletion cannot be undone.');
         $response->assertDontSee('password');
         $response->assertDontSee('Password');
     });
@@ -43,6 +46,7 @@ describe('Zelta account deletion page', function (): void {
         $response->assertSee('We replace your name and email address with anonymous values.');
         $response->assertSee('We keep the records of money you moved with Zelta.');
         $response->assertSee('we stop watching them for new transactions.');
+        $response->assertSee('We keep a coded form of your sign-in identifier');
         $response->assertSee('If you applied for a card, we erase the details you gave for it.');
     });
 });

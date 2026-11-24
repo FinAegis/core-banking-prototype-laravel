@@ -8,6 +8,7 @@ use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Account\Models\BlockchainAddress;
 use App\Domain\Account\Models\TransactionProjection;
+use App\Domain\Auth\Services\ErasedPrivyIdentities;
 use App\Domain\Auth\Services\PrivyEmailOtpClient;
 use App\Domain\CardIssuance\Models\Card;
 use App\Domain\CardIssuance\Models\CardDepositAddress;
@@ -894,6 +895,13 @@ class GdprService
      */
     protected function anonymizeUser(User $user): void
     {
+        // Remember the sign-in identity as a keyed hash, so an app that
+        // still holds a session from before the deletion cannot open a new
+        // account with it (see ErasedPrivyIdentities).
+        if (is_string($user->privy_user_id) && $user->privy_user_id !== '') {
+            ErasedPrivyIdentities::record($user->privy_user_id);
+        }
+
         $user->update(
             [
                 'name'     => 'ANONYMIZED_' . substr($user->uuid, 0, 8),

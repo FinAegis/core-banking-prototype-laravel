@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Account\Models\Account;
+use App\Domain\Auth\Services\ErasedPrivyIdentities;
 use App\Domain\Auth\Services\PrivyEmailOtpClient;
 use App\Domain\Commerce\Models\Merchant;
 use App\Domain\Compliance\Models\KycDocument;
@@ -10,6 +11,7 @@ use App\Domain\Compliance\Services\GdprService;
 use App\Domain\MobilePayment\Models\PaymentIntent;
 use App\Domain\Wallet\Models\WalletSendRecord;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Mockery\MockInterface;
@@ -104,6 +106,14 @@ it('erases the account, keeps the money records and ends the sign-ins', function
         ->and($erased?->name)->toStartWith('ANONYMIZED_')
         ->and($erased?->email)->toBe('deleted-' . $user->uuid . '@anonymized.local')
         ->and($erased?->privy_user_id)->toBeNull();
+
+    // The sign-in identity is remembered only as a keyed hash, so an old
+    // session on a phone cannot open a new account with it.
+    $tombstones = DB::table(ErasedPrivyIdentities::TABLE)->get();
+    expect($tombstones)->toHaveCount(1)
+        ->and((string) $tombstones->first()?->identity_hash)->not->toContain('did:privy')
+        ->and(ErasedPrivyIdentities::erasedSince('did:privy:deletion-endpoint', now()->subMinute()))->toBeTrue()
+        ->and(ErasedPrivyIdentities::erasedSince('did:privy:someone-else', now()->subMinute()))->toBeFalse();
 
     // Money records stay; their personal fields are erased.
     expect(Account::query()->where('uuid', $account->uuid)->exists())->toBeTrue();

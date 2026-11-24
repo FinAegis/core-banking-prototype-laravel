@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Auth\Services\ErasedPrivyIdentities;
 use App\Domain\Auth\Services\PrivyJwtVerifier;
 use App\Models\User;
 use Firebase\JWT\JWT;
@@ -389,4 +390,39 @@ it('treats a missing timezone field as a no-op (backwards compat)', function ():
         ->assertOk();
 
     expect(User::where('privy_user_id', 'did:privy:notzfield')->value('timezone'))->toBeNull();
+});
+
+it('refuses a token issued before its account was deleted and opens no new account', function (): void {
+    // An older app build keeps the Privy session of a deleted account and
+    // signs in with it again right after the deletion.
+    ErasedPrivyIdentities::record('did:privy:deleted0123456789', now());
+    $usersBefore = User::query()->count();
+
+    $token = privy_login_jwt([
+        'sub'             => 'did:privy:deleted0123456789',
+        'iat'             => time() - 120,
+        'linked_accounts' => [['type' => 'email', 'address' => 'gone@example.com', 'verified_at' => time() - 300]],
+    ], $this);
+
+    $this->postJson('/api/v1/auth/privy-login', ['privy_token' => $token])
+        ->assertStatus(401)
+        ->assertJsonPath('success', false)
+        ->assertJsonPath('error.code', 'ACCOUNT_DELETED');
+
+    expect(User::query()->count())->toBe($usersBefore)
+        ->and(User::query()->where('email', 'gone@example.com')->exists())->toBeFalse();
+});
+
+it('lets the same identity open a new account with a sign-in made after the deletion', function (): void {
+    ErasedPrivyIdentities::record('did:privy:deleted0123456789', now()->subMinutes(10));
+
+    $token = privy_login_jwt([
+        'sub'             => 'did:privy:deleted0123456789',
+        'iat'             => time() - 60,
+        'linked_accounts' => [['type' => 'email', 'address' => 'back-again@example.com', 'verified_at' => time() - 100]],
+    ], $this);
+
+    $this->postJson('/api/v1/auth/privy-login', ['privy_token' => $token])
+        ->assertOk()
+        ->assertJsonPath('data.is_new_user', true);
 });

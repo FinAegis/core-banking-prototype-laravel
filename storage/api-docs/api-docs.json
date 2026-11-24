@@ -6115,7 +6115,7 @@
                         }
                     },
                     "401": {
-                        "description": "Invalid or expired Privy token",
+                        "description": "Invalid or expired Privy token (INVALID_PRIVY_TOKEN), or a token issued before its account was deleted (ACCOUNT_DELETED). After ACCOUNT_DELETED the app signs out of Privy; a new sign-in may open a new account.",
                         "content": {
                             "application/json": {
                                 "schema": {
