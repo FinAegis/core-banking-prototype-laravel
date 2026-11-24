@@ -367,14 +367,16 @@ The privacy endpoints are described in [RAILGUN_MOBILE_INTEGRATION.md](RAILGUN_M
 
 ### Virtuals Agents (6)
 
+These routes are switched off on zelta.app (`VIRTUALS_AGENT_ENABLED=false`, `VirtualsAgent` in `MODULES_DISABLED`) and answer 404 there; they stay on for the demo. The current app (Android 15, iOS 13, mobile main `e707e1f`) does not use them: the agents screens still call them, but no screen, notification or button leads there since the home tile was removed on 2026-05-14. A 404 shows an empty list or a "please try again" error and never signs the user out.
+
 | Endpoint | Method | Mobile Service | Status |
 |----------|--------|----------------|--------|
-| `/api/v1/virtuals-agents` | GET | `agentService.getAgents` | OK |
-| `/api/v1/virtuals-agents/{id}` | GET | `agentService.getAgent` | OK |
-| `/api/v1/virtuals-agents/onboard` | POST | `agentService.onboardAgent` | OK |
-| `/api/v1/virtuals-agents/{id}/suspend` | PUT | `agentService.suspendAgent` | OK |
-| `/api/v1/virtuals-agents/{id}/activate` | PUT | `agentService.activateAgent` | OK |
-| `/api/v1/virtuals-agents/{id}/transactions` | GET | `agentService.getSpendingSummary` | OK |
+| `/api/v1/virtuals-agents` | GET | `agentService.getAgents` | Off in production |
+| `/api/v1/virtuals-agents/{id}` | GET | `agentService.getAgent` | Off in production |
+| `/api/v1/virtuals-agents/onboard` | POST | `agentService.onboardAgent` | Off in production |
+| `/api/v1/virtuals-agents/{id}/suspend` | PUT | `agentService.suspendAgent` | Off in production |
+| `/api/v1/virtuals-agents/{id}/activate` | PUT | `agentService.activateAgent` | Off in production |
+| `/api/v1/virtuals-agents/{id}/transactions` | GET | `agentService.getSpendingSummary` | Off in production |
 
 ---
 
