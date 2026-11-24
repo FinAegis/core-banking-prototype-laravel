@@ -5650,7 +5650,7 @@
                     "Account Deletion"
                 ],
                 "summary": "Delete user account",
-                "description": "Soft-deletes the authenticated user's account, revokes all tokens, and schedules the account for permanent deletion.",
+                "description": "Erases the authenticated user's personal data right away and keeps the records the law requires in anonymous form. All tokens are revoked after the erasure has succeeded. When the erasure fails, nothing is revoked and the request can be repeated.",
                 "operationId": "accountDeletion",
                 "requestBody": {
                     "required": true,
@@ -5674,7 +5674,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Account scheduled for deletion",
+                        "description": "Account deleted",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -5687,7 +5687,7 @@
                                             "properties": {
                                                 "message": {
                                                     "type": "string",
-                                                    "example": "Account has been scheduled for deletion."
+                                                    "example": "Your account has been deleted."
                                                 },
                                                 "deleted_at": {
                                                     "type": "string",
@@ -5705,8 +5705,14 @@
                     "401": {
                         "description": "Unauthenticated"
                     },
+                    "409": {
+                        "description": "A rule does not allow the deletion yet (error.code ACCOUNT_DELETION_BLOCKED); nothing was erased and the tokens stay valid"
+                    },
                     "422": {
                         "description": "Validation error — confirmation field is required and must be 'DELETE'"
+                    },
+                    "500": {
+                        "description": "The erasure failed (error.code ACCOUNT_DELETION_FAILED); the tokens stay valid and the request can be repeated"
                     }
                 },
                 "security": [

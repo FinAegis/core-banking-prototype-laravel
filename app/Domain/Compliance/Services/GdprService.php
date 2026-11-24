@@ -967,7 +967,7 @@ class GdprService
         // subscriptions (Cashier/Stripe): retained as-is — billing records
         // under Art. 17(3)(b); the only identifier is the pseudonymous
         // stripe_id, and the Stripe-side customer object is purged separately
-        // (GdprController::purgeStripeCustomerData).
+        // (AccountClosureService::purgeStripeCustomerData).
 
         // subscription_consent_log: proof of consent retained for defence of
         // legal claims (Art. 17(3)(e)); user_agent is device-fingerprint PII
@@ -1345,6 +1345,8 @@ class GdprService
 
     /**
      * Check if user data can be deleted.
+     *
+     * @return array{can_delete: bool, reasons: array<int, string>}
      */
     public function canDeleteUserData(User $user): array
     {
