@@ -11,7 +11,7 @@ class GCU extends BaseResource
      */
     public function getInfo(): GCUInfo
     {
-        $response = $this->get('/gcu');
+        $response = $this->httpGet('/gcu');
 
         return new GCUInfo($response['data']);
     }
@@ -21,7 +21,7 @@ class GCU extends BaseResource
      */
     public function getComposition(): GCUInfo
     {
-        $response = $this->get('/gcu/composition');
+        $response = $this->httpGet('/gcu/composition');
 
         return new GCUInfo($response['data']);
     }
@@ -34,7 +34,7 @@ class GCU extends BaseResource
      */
     public function getValueHistory(string $period = '30d', string $interval = 'daily'): array
     {
-        $response = $this->get('/gcu/value-history', ['period' => $period, 'interval' => $interval]);
+        $response = $this->httpGet('/gcu/value-history', ['period' => $period, 'interval' => $interval]);
 
         return $response['data'];
     }
@@ -44,7 +44,7 @@ class GCU extends BaseResource
      */
     public function getActivePolls(): array
     {
-        $response = $this->get('/gcu/governance/active-polls');
+        $response = $this->httpGet('/gcu/governance/active-polls');
 
         return $response['data'];
     }
@@ -54,7 +54,7 @@ class GCU extends BaseResource
      */
     public function getSupportedBanks(): array
     {
-        $response = $this->get('/gcu/supported-banks');
+        $response = $this->httpGet('/gcu/supported-banks');
 
         return $response['data'];
     }

@@ -16,7 +16,7 @@ abstract class BaseResource
     /**
      * Make a GET request.
      */
-    protected function get(string $path, array $params = []): array
+    protected function httpGet(string $path, array $params = []): array
     {
         $options = [];
         if (! empty($params)) {
@@ -28,12 +28,18 @@ abstract class BaseResource
 
     /**
      * Make a POST request.
+     *
+     * The client adds an Idempotency-Key and repeats it on retries. Pass
+     * $idempotencyKey to choose the key yourself.
      */
-    protected function post(string $path, array $data = []): array
+    protected function httpPost(string $path, array $data = [], ?string $idempotencyKey = null): array
     {
         $options = [];
         if (! empty($data)) {
             $options['json'] = $data;
+        }
+        if ($idempotencyKey !== null) {
+            $options['idempotency_key'] = $idempotencyKey;
         }
 
         return $this->client->request('POST', $path, $options);
@@ -42,7 +48,7 @@ abstract class BaseResource
     /**
      * Make a PUT request.
      */
-    protected function put(string $path, array $data = []): array
+    protected function httpPut(string $path, array $data = []): array
     {
         $options = [];
         if (! empty($data)) {
@@ -55,7 +61,7 @@ abstract class BaseResource
     /**
      * Make a DELETE request.
      */
-    protected function delete(string $path): array
+    protected function httpDelete(string $path): array
     {
         return $this->client->request('DELETE', $path);
     }

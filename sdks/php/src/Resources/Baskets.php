@@ -13,7 +13,7 @@ class Baskets extends BaseResource
      */
     public function get(string $basketCode): Basket
     {
-        $response = $this->get("/baskets/{$basketCode}");
+        $response = $this->httpGet("/baskets/{$basketCode}");
 
         return new Basket($response['data']);
     }
@@ -27,7 +27,7 @@ class Baskets extends BaseResource
      */
     public function getHistory(string $basketCode, string $period = '30d', string $interval = 'daily'): array
     {
-        $response = $this->get("/baskets/{$basketCode}/history", [
+        $response = $this->httpGet("/baskets/{$basketCode}/history", [
             'period' => $period,
             'interval' => $interval,
         ]);
@@ -44,7 +44,7 @@ class Baskets extends BaseResource
      */
     public function create(string $code, string $name, array $composition): Basket
     {
-        $response = $this->post('/baskets', [
+        $response = $this->httpPost('/baskets', [
             'code' => $code,
             'name' => $name,
             'composition' => $composition,
@@ -62,7 +62,7 @@ class Baskets extends BaseResource
      */
     public function compose(string $accountId, string $basketCode, float $amount): array
     {
-        $response = $this->post("/baskets/{$basketCode}/compose", [
+        $response = $this->httpPost("/baskets/{$basketCode}/compose", [
             'account_id' => $accountId,
             'amount' => $amount,
         ]);
@@ -79,7 +79,7 @@ class Baskets extends BaseResource
      */
     public function decompose(string $accountId, string $basketCode, float $amount): array
     {
-        $response = $this->post("/baskets/{$basketCode}/decompose", [
+        $response = $this->httpPost("/baskets/{$basketCode}/decompose", [
             'account_id' => $accountId,
             'amount' => $amount,
         ]);

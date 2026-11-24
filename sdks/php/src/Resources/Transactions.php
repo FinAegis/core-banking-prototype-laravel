@@ -14,7 +14,7 @@ class Transactions extends BaseResource
      */
     public function get(string $transactionId): Transaction
     {
-        $response = $this->get("/transactions/{$transactionId}");
+        $response = $this->httpGet("/transactions/{$transactionId}");
 
         return new Transaction($response['data']);
     }
@@ -27,7 +27,7 @@ class Transactions extends BaseResource
      */
     public function list(int $page = 1, int $perPage = 20): PaginatedResponse
     {
-        $response = $this->get('/transactions', ['page' => $page, 'per_page' => $perPage]);
+        $response = $this->httpGet('/transactions', ['page' => $page, 'per_page' => $perPage]);
 
         return new PaginatedResponse($response, Transaction::class);
     }

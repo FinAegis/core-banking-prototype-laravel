@@ -59,11 +59,30 @@ $transfer = $client->transfers->create(
 $client = new Client('your-api-key', [
     'environment' => 'production',  // 'production' | 'sandbox' | 'local'
     'timeout' => 30,               // Request timeout in seconds
-    'max_retries' => 3,            // Number of retries for failed requests
+    'max_retries' => 3,            // Retries after a connection error, a 5xx or a 429; 0 turns them off
     'base_url' => null,            // Custom API base URL (optional)
     'logger' => $logger            // PSR-3 compatible logger (optional)
 ]);
 ```
+
+### Retries and Idempotency
+
+The client sends a failed request again after a connection error, a timeout, a 5xx or a 429 answer. Every POST carries an `Idempotency-Key` header, and a retry sends the same key. The API then returns the first answer instead of running the call again, so a retried transfer moves money only once.
+
+The client makes a new key for each call. Pass your own key when you may repeat the same call later, for example after your process restarts:
+
+```php
+$transfer = $client->transfers->create(
+    'account-uuid-1',
+    'account-uuid-2',
+    100.00,
+    'USD',
+    'Invoice #123',
+    'order-1234-payout'   // Idempotency-Key
+);
+```
+
+The same key with a different body is refused with HTTP 409. A key must be a UUID, or 16 to 64 letters, digits, dashes or underscores.
 
 ### Environment Variables
 
