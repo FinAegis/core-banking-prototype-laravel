@@ -309,7 +309,6 @@ jobs:
             # while still safely in maintenance mode.
             php artisan ops:verify-env
             php artisan migrate --force
-            php artisan db:seed --class=ProductionSeeder --force || true
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache

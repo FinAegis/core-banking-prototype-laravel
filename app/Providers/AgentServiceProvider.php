@@ -20,6 +20,10 @@ class AgentServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        // One shared instance, so a provider registered with registerProvider()
+        // is seen by the agents and by AgentOrchestratorService alike.
+        $this->app->singleton(LLMOrchestrationService::class);
+
         $this->app->singleton(AgentResponseComposerService::class);
 
         $this->app->singleton(AgentRouterService::class, function ($app) {

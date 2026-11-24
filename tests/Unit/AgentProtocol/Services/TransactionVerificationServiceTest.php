@@ -163,11 +163,16 @@ class TransactionVerificationServiceTest extends TestCase
 
         // Generate valid signature
         $this->signatureService->generateAgentKeyPair($agentId);
+        $this->freezeSecond();
         $signature = $this->signatureService->signAgentTransaction(
             $transactionId,
             $agentId,
             $transactionData
         );
+
+        // A second passes before verification, as it can on a slow runner.
+        // The signature must still verify, so the agent check is reached.
+        $this->travel(1)->seconds();
 
         // Verify transaction
         $result = $this->service->verifyTransaction(
@@ -179,6 +184,7 @@ class TransactionVerificationServiceTest extends TestCase
         );
 
         $this->assertEquals('rejected', $result['status']);
+        $this->assertTrue($result['checks']['signature']['passed']);
         $this->assertFalse($result['checks']['agent']['passed']);
         $this->assertEquals('Agent suspended', $result['checks']['agent']['reason']);
     }

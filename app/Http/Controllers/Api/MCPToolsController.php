@@ -277,56 +277,6 @@ class MCPToolsController extends Controller
         return response()->json($tools[$tool]);
     }
 
-        #[OA\Post(
-            path: '/api/ai/mcp/register',
-            operationId: 'registerMcpTool',
-            tags: ['MCP Tools'],
-            summary: 'Register a new MCP tool',
-            description: 'Register a custom MCP tool for use by AI agents',
-            security: [['sanctum' => []]],
-            requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['name', 'description', 'endpoint', 'parameters'], properties: [
-            new OA\Property(property: 'name', type: 'string', example: 'custom_tool'),
-            new OA\Property(property: 'description', type: 'string', example: 'A custom tool for specific operations'),
-            new OA\Property(property: 'endpoint', type: 'string', format: 'url', example: 'https://api.example.com/tool'),
-            new OA\Property(property: 'parameters', type: 'object'),
-            new OA\Property(property: 'category', type: 'string', example: 'custom'),
-            new OA\Property(property: 'requires_auth', type: 'boolean', example: true),
-            new OA\Property(property: 'rate_limit', type: 'integer', example: 50),
-            ]))
-        )]
-    #[OA\Response(
-        response: 201,
-        description: 'Tool registered successfully',
-        content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'success', type: 'boolean', example: true),
-        new OA\Property(property: 'tool_id', type: 'string', example: 'tool_abc123'),
-        new OA\Property(property: 'message', type: 'string', example: 'Tool registered successfully'),
-        ])
-    )]
-    #[OA\Response(
-        response: 400,
-        description: 'Invalid tool configuration'
-    )]
-    public function registerTool(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'name'          => 'required|string|unique:mcp_tools,name',
-            'description'   => 'required|string',
-            'endpoint'      => 'required|url',
-            'parameters'    => 'required|array',
-            'category'      => 'string',
-            'requires_auth' => 'boolean',
-            'rate_limit'    => 'integer|min:1|max:1000',
-        ]);
-
-        // Demo implementation
-        return response()->json([
-            'success' => true,
-            'tool_id' => 'tool_' . uniqid(),
-            'message' => 'Tool registered successfully',
-        ], 201);
-    }
-
     // Demo execution methods
     private function executeGetAccountBalance(array $params): array
     {

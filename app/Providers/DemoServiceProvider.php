@@ -19,6 +19,10 @@ use App\Domain\Payment\Services\PayseraDepositService;
 use App\Domain\Payment\Services\ProductionPaymentService;
 use App\Domain\Payment\Services\SandboxPaymentService;
 use App\Domain\Stablecoin\Services\DemoStablecoinService;
+use App\Http\Middleware\DemoMode;
+use App\Http\Middleware\InjectDemoBanner;
+use Illuminate\Contracts\Http\Kernel as HttpKernelContract;
+use Illuminate\Foundation\Http\Kernel as HttpKernel;
 use Illuminate\Support\ServiceProvider;
 
 class DemoServiceProvider extends ServiceProvider
@@ -106,6 +110,10 @@ class DemoServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if ($this->app->environment('demo')) {
+            $this->addDemoWebMiddleware();
+        }
+
         // Add demo banner to views when in demo environment
         if ($this->app->environment('demo') && config('demo.ui.show_banner', true)) {
             view()->composer('*', function ($view) {
@@ -113,5 +121,32 @@ class DemoServiceProvider extends ServiceProvider
                 $view->with('demoMessage', config('demo.ui.banner_text'));
             });
         }
+    }
+
+    /**
+     * Add DemoMode and the demo banner to the web group.
+     *
+     * This is done here and not in bootstrap/app.php: the withMiddleware()
+     * callback runs when the HTTP kernel is resolved, before .env is loaded,
+     * so it cannot see APP_ENV when it only lives in .env. On a real request
+     * the kernel already exists when providers boot; in console and test
+     * boots it is resolved later, so both cases are covered.
+     */
+    private function addDemoWebMiddleware(): void
+    {
+        $append = static function (mixed $kernel): void {
+            if (! $kernel instanceof HttpKernel) {
+                return;
+            }
+
+            $kernel->appendMiddlewareToGroup('web', DemoMode::class);
+            $kernel->appendMiddlewareToGroup('web', InjectDemoBanner::class);
+        };
+
+        if ($this->app->resolved(HttpKernelContract::class)) {
+            $append($this->app->make(HttpKernelContract::class));
+        }
+
+        $this->app->afterResolving(HttpKernelContract::class, $append);
     }
 }

@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\Log;
 
 final class WebhookReplayService
 {
+    public function __construct(
+        private readonly WebhookService $webhookService = new WebhookService(),
+    ) {
+    }
+
     /**
      * Replay a past webhook delivery.
      *
@@ -19,7 +24,9 @@ final class WebhookReplayService
     {
         $headers = ['Content-Type' => 'application/json'];
         if ($secret !== null) {
-            $headers['X-Webhook-Signature'] = hash_hmac('sha256', $payload, $secret);
+            // Same `sha256=<hex>` format as a first delivery
+            // (ProcessWebhookDelivery), so receivers verify both alike.
+            $headers['X-Webhook-Signature'] = $this->webhookService->generateSignature($payload, $secret);
         }
 
         try {

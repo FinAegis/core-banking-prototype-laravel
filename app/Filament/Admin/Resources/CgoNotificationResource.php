@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Resources;
 
 use App\Domain\Cgo\Models\CgoNotification;
 use App\Filament\Admin\Resources\CgoNotificationResource\Pages;
+use App\Filament\Exports\CgoNotificationExporter;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -80,7 +81,8 @@ class CgoNotificationResource extends Resource
                     Tables\Actions\BulkActionGroup::make(
                         [
                             Tables\Actions\DeleteBulkAction::make(),
-                            Tables\Actions\ExportBulkAction::make(),
+                            Tables\Actions\ExportBulkAction::make()
+                                ->exporter(CgoNotificationExporter::class),
                         ]
                     ),
                 ]

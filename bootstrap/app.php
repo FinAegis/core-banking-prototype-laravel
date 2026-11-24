@@ -203,11 +203,9 @@ return Application::configure(basePath: is_string($_appBasePath) ? $_appBasePath
             Laravel\Jetstream\Http\Middleware\AuthenticateSession::class,
         ]);
 
-        // Apply demo middleware to web routes in demo environment
-        // Note: env() is used here because config() is not available during middleware registration
-        if (env('APP_ENV') === 'demo') {
-            $middleware->appendToGroup('web', App\Http\Middleware\DemoMode::class);
-        }
+        // DemoMode and InjectDemoBanner are added to the web group by
+        // DemoServiceProvider::boot() in the demo environment. This callback
+        // runs before .env is loaded, so it cannot tell the environment.
 
         // Saves the MCP consent screen's daily spending limit on approval.
         $middleware->appendToGroup('web', App\Http\Middleware\CaptureMcpConsentLimit::class);

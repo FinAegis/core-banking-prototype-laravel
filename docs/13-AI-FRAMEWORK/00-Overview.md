@@ -99,7 +99,7 @@ REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
 ```
 
-The agents still answer from templates today, whatever these settings say. `AgentOrchestratorService` looks for `ai.providers.openai.api_key` and `ai.providers.anthropic.api_key`, and `config/ai.php` does not define them. No code registers a provider with `LLMOrchestrationService` either. Connecting a language model to the agents therefore needs code changes.
+The agents still answer from templates today, whatever these settings say. `AgentOrchestratorService` uses a language model only when demo mode is off, the primary or fallback provider has a key in `ai.{provider}.api_key`, and that provider is registered with `LLMOrchestrationService`. No code registers a provider yet. Connecting a language model to the agents therefore needs a provider that implements `App\Domain\AI\Contracts\LLMProviderInterface`, registered with `registerProvider()`.
 
 ### Basic usage
 
@@ -147,9 +147,8 @@ The tool's `getName()`, `getCategory()`, `getInputSchema()` and `getOutputSchema
 - `GET /api/ai/mcp/tools` lists tools.
 - `GET /api/ai/mcp/tools/{tool}` returns tool details.
 - `POST /api/ai/mcp/tools/{tool}/execute` runs a tool.
-- `POST /api/ai/mcp/register` registers a tool.
 
-These four endpoints are a demo. They list six sample tools and return fixed sample data. They do not use `ToolRegistry`.
+These three endpoints are a demo. They list six sample tools and return fixed sample data. They do not use `ToolRegistry`.
 
 ## Testing
 

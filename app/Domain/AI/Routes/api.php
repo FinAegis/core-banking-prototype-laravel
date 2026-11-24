@@ -22,7 +22,6 @@ Route::prefix('ai')->middleware(['auth:sanctum', 'api.rate_limit:private'])->gro
         Route::get('/tools', [MCPToolsController::class, 'listTools'])->name('api.ai.mcp.tools');
         Route::get('/tools/{tool}', [MCPToolsController::class, 'getToolDetails'])->name('api.ai.mcp.tool.details');
         Route::post('/tools/{tool}/execute', [MCPToolsController::class, 'executeTool'])->name('api.ai.mcp.tool.execute');
-        Route::post('/register', [MCPToolsController::class, 'registerTool'])->name('api.ai.mcp.register');
     });
 
     // AI Query endpoints (natural language transaction queries)

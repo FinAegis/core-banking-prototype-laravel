@@ -1326,7 +1326,7 @@ curl "{{ config('app.url') }}/api/v1/sms/info"
 
                             <div class="border rounded-lg p-6 bg-blue-50 border-blue-200">
                                 <h3 class="text-xl font-semibold mb-4">MCP Tool: sms.send</h3>
-                                <p class="text-gray-600 mb-4">AI agents can send text messages through the Model Context Protocol server. The <code>sms.send</code> tool costs a fixed amount per message, and that amount counts against the token's daily spending limit. The tool is off by default outside demo and test environments.</p>
+                                <p class="text-gray-600 mb-4">AI agents can send text messages through the Model Context Protocol server. The <code>sms.send</code> tool costs a fixed amount per message, and that amount counts against the daily spending limit that the user set when they approved the app. The tool is off by default outside demo and test environments.</p>
                                 <x-code-block language="json">
 {
   "tool": "sms.send",

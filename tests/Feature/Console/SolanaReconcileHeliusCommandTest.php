@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Domain\Account\Models\BlockchainAddress;
+use App\Domain\Wallet\Services\HeliusWebhookSyncService;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Tests\Traits\CreatesSolanaTestTables;
 
 uses(CreatesSolanaTestTables::class);
@@ -94,4 +96,77 @@ it('skips silently when Helius is not configured', function (): void {
     $this->artisan('solana:reconcile-helius')
         ->expectsOutputToContain('not configured')
         ->assertSuccessful();
+});
+
+it('exits successfully with a warning when --auto-sync fixes the drift', function (): void {
+    $user = User::factory()->create();
+
+    BlockchainAddress::create([
+        'user_uuid'  => $user->uuid,
+        'chain'      => 'solana',
+        'address'    => 'address-in-db',
+        'public_key' => 'address-in-db',
+        'is_active'  => true,
+    ]);
+
+    // The sync service is mocked so no Helius write happens; the re-check
+    // after the sync sees the address Helius now watches.
+    $sync = Mockery::mock(HeliusWebhookSyncService::class);
+    $sync->shouldReceive('syncAllAddresses')->once()->andReturn(1);
+    app()->instance(HeliusWebhookSyncService::class, $sync);
+
+    Http::fake([
+        'https://api.helius.xyz/v0/webhooks/test-webhook-id*' => Http::sequence()
+            ->push(['webhookID' => 'test-webhook-id', 'accountAddresses' => []], 200)
+            ->push(['webhookID' => 'test-webhook-id', 'accountAddresses' => ['address-in-db']], 200),
+    ]);
+
+    $log = Log::spy();
+
+    $this->artisan('solana:reconcile-helius --auto-sync')
+        ->expectsOutputToContain('Drift detected')
+        ->expectsOutputToContain('Drift fixed by solana:sync')
+        ->assertSuccessful();
+
+    $log->shouldHaveReceived('warning')
+        ->withArgs(fn (string $message): bool => str_contains($message, 'drift fixed by auto-sync'))
+        ->once();
+    $log->shouldNotHaveReceived('error');
+
+    Http::assertSentCount(2);
+});
+
+it('exits non-zero when drift remains after --auto-sync', function (): void {
+    $user = User::factory()->create();
+
+    BlockchainAddress::create([
+        'user_uuid'  => $user->uuid,
+        'chain'      => 'solana',
+        'address'    => 'address-in-db',
+        'public_key' => 'address-in-db',
+        'is_active'  => true,
+    ]);
+
+    $sync = Mockery::mock(HeliusWebhookSyncService::class);
+    $sync->shouldReceive('syncAllAddresses')->once()->andReturn(0);
+    app()->instance(HeliusWebhookSyncService::class, $sync);
+
+    Http::fake([
+        'https://api.helius.xyz/v0/webhooks/test-webhook-id*' => Http::response([
+            'webhookID'        => 'test-webhook-id',
+            'accountAddresses' => [],
+        ], 200),
+    ]);
+
+    $log = Log::spy();
+
+    $this->artisan('solana:reconcile-helius --auto-sync')
+        ->expectsOutputToContain('Drift remains after solana:sync')
+        ->assertFailed();
+
+    $log->shouldHaveReceived('error')
+        ->withArgs(fn (string $message): bool => str_contains($message, 'drift remains after auto-sync'))
+        ->once();
+
+    Http::assertSentCount(2);
 });

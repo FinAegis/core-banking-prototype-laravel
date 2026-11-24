@@ -28,8 +28,9 @@ use Illuminate\Support\Facades\RateLimiter;
  * schema, so execute() applies the same rules as POST /api/v1/sms/send
  * (SmsController::send: `to` and `from` formats, message at most 1600
  * characters) and a per-user per-minute limit
- * (`mcp.rate_limits.sms_per_minute`). The daily limits and the token's
- * spending limit count one unit per call, so a message must also fit in
+ * (`mcp.rate_limits.sms_per_minute`). The daily limits and the daily
+ * spending limit of the user's approval of the app count one unit per
+ * call, so a message must also fit in
  * one billed SMS part ({@see self::billedParts()}).
  */
 class SmsSendTool implements MCPToolInterface
@@ -68,8 +69,9 @@ class SmsSendTool implements MCPToolInterface
         return 'Send an SMS message via VertexSMS while SMS sending is enabled. Requires a '
             . 'signed-in user. A send through this tool is not paid per message: it counts '
             . 'against the daily limits for unpaid sends shared with POST /api/v1/sms/send, '
-            . 'per user and across all users, which reset at 00:00 UTC (on the public MCP '
-            . 'server it also uses the token\'s spending limit). A message must fit in one '
+            . 'per user and across all users, which reset at 00:00 UTC. On the public MCP '
+            . 'server it also counts against the daily spending limit that the user set when '
+            . 'they approved the app. A message must fit in one '
             . 'SMS part: 160 GSM characters, or 70 when it has other characters. Call '
             . 'sms.rates or set check_price_only to see the price for the destination country.';
     }

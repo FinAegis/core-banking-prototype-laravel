@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\BasketAssetResource\Widgets;
 
+use App\Domain\Basket\Models\BasketPerformance;
 use App\Domain\Basket\Services\BasketPerformanceService;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -24,7 +25,7 @@ class BasketPerformanceWidget extends BaseWidget
             ->query(
                 $this->record
                     ? $this->record->performances()->getQuery()
-                    : \App\Domain\BasketPerformance\Models\BasketPerformance::query()->whereRaw('1 = 0')
+                    : BasketPerformance::query()->whereRaw('1 = 0')
             )
             ->columns(
                 [

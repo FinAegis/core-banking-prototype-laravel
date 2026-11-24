@@ -355,6 +355,90 @@ class DigitalSignatureServiceTest extends TestCase
         $this->assertEquals($commitments, $proof['commitments']);
     }
 
+    #[Test]
+    public function itVerifiesASignatureAfterTheClockMovesOn(): void
+    {
+        // The signed payload holds the signing time. Verification used to
+        // rebuild it with a fresh now(), so a signature failed whenever the
+        // clock crossed a second between signing and verifying (a flaky
+        // failure on slower CI runners).
+        $agentId = 'agent_' . uniqid();
+        $transactionId = 'txn_' . uniqid();
+        $transactionData = ['amount' => 1000.00];
+
+        Agent::factory()->create(['agent_id' => $agentId]);
+        $this->service->generateAgentKeyPair($agentId);
+
+        $this->freezeSecond();
+        $signature = $this->service->signAgentTransaction($transactionId, $agentId, $transactionData);
+
+        $this->travel(2)->seconds();
+
+        $verification = $this->service->verifyAgentSignature(
+            $transactionId,
+            $agentId,
+            $transactionData,
+            $signature['signature'],
+            $signature
+        );
+
+        $this->assertTrue($verification['is_valid']);
+    }
+
+    #[Test]
+    public function itRejectsAChangedSigningTime(): void
+    {
+        $agentId = 'agent_' . uniqid();
+        $transactionId = 'txn_' . uniqid();
+        $transactionData = ['amount' => 1000.00];
+
+        Agent::factory()->create(['agent_id' => $agentId]);
+        $this->service->generateAgentKeyPair($agentId);
+
+        $signature = $this->service->signAgentTransaction($transactionId, $agentId, $transactionData);
+        $signature['signed_at'] = now()->subMinutes(5)->toIso8601String();
+
+        $verification = $this->service->verifyAgentSignature(
+            $transactionId,
+            $agentId,
+            $transactionData,
+            $signature['signature'],
+            $signature
+        );
+
+        $this->assertFalse($verification['is_valid']);
+    }
+
+    #[Test]
+    public function itRejectsASignatureOlderThanTheMaximumAgeEvenWithoutExpiry(): void
+    {
+        // expires_at and the nonce are not signed, so a replay could drop the
+        // expiry and pick a new nonce. The signed signing time bounds the age.
+        $agentId = 'agent_' . uniqid();
+        $transactionId = 'txn_' . uniqid();
+        $transactionData = ['amount' => 1000.00];
+
+        Agent::factory()->create(['agent_id' => $agentId]);
+        $this->service->generateAgentKeyPair($agentId);
+
+        $this->freezeSecond();
+        $signature = $this->service->signAgentTransaction($transactionId, $agentId, $transactionData);
+        unset($signature['expires_at']);
+
+        $this->travel(DigitalSignatureService::MAX_SIGNATURE_AGE_MINUTES + 1)->minutes();
+
+        $verification = $this->service->verifyAgentSignature(
+            $transactionId,
+            $agentId,
+            $transactionData,
+            $signature['signature'],
+            $signature
+        );
+
+        $this->assertFalse($verification['is_valid']);
+        $this->assertEquals('Signature has expired', $verification['reason']);
+    }
+
     protected function tearDown(): void
     {
         Cache::flush();

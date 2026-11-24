@@ -42,3 +42,32 @@ it('emits OAuth Authorization Server metadata', function () {
     expect($body['grant_types_supported'])->toContain('authorization_code', 'client_credentials', 'refresh_token');
     expect($body['code_challenge_methods_supported'])->toBe(['S256']);
 });
+
+it('does not advertise a revocation endpoint the app does not serve', function () {
+    // Passport has no RFC 7009 token revocation route, so the metadata must
+    // not point clients at one (the old value was the unregistered /oauth/tokens).
+    $controller = new App\Domain\MCP\Discovery\AuthorizationServerMetadataController();
+    $body = $controller(Request::create('/.well-known/oauth-authorization-server'))->getData(true);
+
+    expect($body)->not->toHaveKey('revocation_endpoint');
+});
+
+it('advertises only endpoints that are registered routes', function () {
+    $controller = new App\Domain\MCP\Discovery\AuthorizationServerMetadataController();
+    $body = $controller(Request::create('/.well-known/oauth-authorization-server'))->getData(true);
+    $issuer = (string) config('mcp.authorization_server');
+
+    $routes = app('router')->getRoutes();
+
+    foreach ($body as $key => $value) {
+        if (! str_ends_with((string) $key, '_endpoint')) {
+            continue;
+        }
+
+        $path = substr((string) $value, strlen($issuer));
+        $registered = collect($routes->getRoutes())
+            ->contains(fn ($route): bool => '/' . ltrim($route->uri(), '/') === $path);
+
+        expect($registered)->toBeTrue("{$key} points to {$path}, which is not a registered route");
+    }
+});
