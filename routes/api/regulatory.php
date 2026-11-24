@@ -17,27 +17,19 @@ use Spatie\Permission\Middleware\RoleMiddleware;
 |
 | These routes handle regulatory reporting, compliance, and audit trails.
 | Every route in this file is limited to compliance staff
-| (StaffRoles::COMPLIANCE): the reports, transaction monitoring, audit,
-| SAR and CTR data cover all users.
+| (StaffRoles::COMPLIANCE): the reports, transaction monitoring, audit
+| and CTR data cover all users.
 |
 */
 
 Route::middleware(['auth:sanctum', RoleMiddleware::using(StaffRoles::COMPLIANCE)])->group(function () {
-    // Regulatory Reporting
+    // Regulatory report download. app/Domain/Banking/Routes/api.php holds
+    // the other report endpoints (generate, list, show, delete, metrics),
+    // but that file is not loaded when the Banking module is disabled, as on
+    // zelta.app. The scheduler generates the reports in every environment
+    // (routes/console.php), so the download stays available here.
     Route::prefix('regulatory')->group(function () {
-        Route::get('/reports', [RegulatoryReportingController::class, 'getReports']);
-        Route::get('/reports/{id}', [RegulatoryReportingController::class, 'getReportDetails']);
-        Route::post('/reports/generate', [RegulatoryReportingController::class, 'generateReport']);
-        Route::post('/reports/{id}/submit', [RegulatoryReportingController::class, 'submitReport']);
-        Route::get('/reports/{id}/status', [RegulatoryReportingController::class, 'getReportStatus']);
         Route::get('/reports/{id}/download', [RegulatoryReportingController::class, 'downloadReport']);
-        Route::get('/templates', [RegulatoryReportingController::class, 'getReportTemplates']);
-        Route::get('/jurisdictions', [RegulatoryReportingController::class, 'getJurisdictions']);
-        Route::get('/requirements', [RegulatoryReportingController::class, 'getRequirements']);
-        Route::get('/deadlines', [RegulatoryReportingController::class, 'getDeadlines']);
-        Route::post('/reports/{id}/amend', [RegulatoryReportingController::class, 'amendReport']);
-        Route::get('/filings', [RegulatoryReportingController::class, 'getFilings']);
-        Route::get('/filings/{id}', [RegulatoryReportingController::class, 'getFilingDetails']);
     });
 
     // Compliance Management
@@ -114,23 +106,9 @@ Route::middleware(['auth:sanctum', RoleMiddleware::using(StaffRoles::COMPLIANCE)
         Route::post('/archive', [AuditController::class, 'archiveAuditLogs']);
     });
 
-    // Suspicious Activity Reporting (SAR)
-    Route::prefix('sar')->group(function () {
-        Route::get('/', [RegulatoryReportingController::class, 'getSARs']);
-        Route::get('/{id}', [RegulatoryReportingController::class, 'getSARDetails']);
-        Route::post('/create', [RegulatoryReportingController::class, 'createSAR']);
-        Route::put('/{id}', [RegulatoryReportingController::class, 'updateSAR']);
-        Route::post('/{id}/submit', [RegulatoryReportingController::class, 'submitSAR']);
-        Route::get('/{id}/status', [RegulatoryReportingController::class, 'getSARStatus']);
-        Route::post('/{id}/attach', [RegulatoryReportingController::class, 'attachDocuments']);
-    });
-
-    // Currency Transaction Reports (CTR)
+    // Currency Transaction Reports (CTR): same report as
+    // POST /api/regulatory/reports/ctr
     Route::prefix('ctr')->group(function () {
-        Route::get('/', [RegulatoryReportingController::class, 'getCTRs']);
-        Route::get('/{id}', [RegulatoryReportingController::class, 'getCTRDetails']);
         Route::post('/generate', [RegulatoryReportingController::class, 'generateCTR']);
-        Route::post('/{id}/submit', [RegulatoryReportingController::class, 'submitCTR']);
-        Route::get('/thresholds', [RegulatoryReportingController::class, 'getCTRThresholds']);
     });
 });

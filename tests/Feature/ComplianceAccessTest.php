@@ -160,7 +160,7 @@ describe('compliance route inventory', function (): void {
         $seen = cxaAssertInventory(app(Router::class), 'api/');
 
         // The staff-only families are all present in the main-domain registration.
-        foreach (['GET compliance/dashboard', 'GET compliance/certification/evidence', 'GET compliance/gdpr/v2/register', 'GET transaction-monitoring', 'GET regulatory/reports', 'GET audit/logs', 'GET sar', 'GET ctr'] as $key) {
+        foreach (['GET compliance/dashboard', 'GET compliance/certification/evidence', 'GET compliance/gdpr/v2/register', 'GET transaction-monitoring', 'GET regulatory/reports', 'GET audit/logs', 'POST ctr/generate'] as $key) {
             expect($seen)->toContain($key);
         }
     });
@@ -584,6 +584,39 @@ describe('regulatory reports, transaction monitoring and audit', function (): vo
         Sanctum::actingAs(cxaUser('compliance_officer'), ['read', 'write', 'delete']);
         expect($this->getJson('/api/regulatory/reports')->assertOk()->json())->toBeArray();
     });
+
+    it('opens and downloads a single stored report for compliance staff', function (): void {
+        Storage::fake();
+        Storage::put('regulatory/kyc/report_2026_01_01.json', (string) json_encode([
+            'report_type' => 'KYC Compliance Report',
+        ]));
+
+        // GET /api/regulatory/reports/{filename} used to be captured by a
+        // route whose controller method did not exist.
+        $route = app('router')->getRoutes()->match(Request::create('/api/regulatory/reports/report_2026_01_01.json', 'GET'));
+        expect($route->getActionName())->toBe('App\Http\Controllers\Api\RegulatoryReportingController@getReport');
+
+        Sanctum::actingAs(cxaUser('compliance_officer'), ['read', 'write', 'delete']);
+        $this->getJson('/api/regulatory/reports/report_2026_01_01.json')
+            ->assertOk()
+            ->assertJsonPath('data.filename', 'report_2026_01_01.json')
+            ->assertJsonPath('data.content.report_type', 'KYC Compliance Report');
+        $this->get('/api/regulatory/reports/report_2026_01_01.json/download')->assertOk();
+    });
+
+    it('no longer registers the SAR, CTR and report workflow routes whose methods never existed', function (string $method, string $path): void {
+        Sanctum::actingAs(cxaUser('compliance_officer'), ['read', 'write', 'delete']);
+        $this->json($method, $path)->assertNotFound();
+    })->with([
+        ['GET', '/api/sar'],
+        ['GET', '/api/ctr'],
+        ['GET', '/api/ctr/thresholds'],
+        ['GET', '/api/regulatory/templates'],
+        ['GET', '/api/regulatory/filings'],
+        ['POST', '/api/regulatory/reports/1/submit'],
+        ['POST', '/api/compliance/alerts/1/resolve'],
+        ['POST', '/api/compliance/cases/1/documents'],
+    ]);
 });
 
 describe('streamed and file downloads through the api middleware', function (): void {

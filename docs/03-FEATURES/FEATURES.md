@@ -423,9 +423,6 @@ GET /api/accounts/{uuid}/balance # Get account balance
 ```
 GET /api/v2/assets # List available assets
 GET /api/v2/assets/{code} # Get asset details
-POST /api/v2/assets # Create new asset (admin)
-PUT /api/v2/assets/{code} # Update asset (admin)
-DELETE /api/v2/assets/{code} # Delete asset (admin)
 GET /api/v1/assets # List assets (v1)
 ```
 

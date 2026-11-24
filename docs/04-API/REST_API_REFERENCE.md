@@ -390,7 +390,7 @@ GET /api/v2/assets/{code}
 Authorization: Bearer {token}
 ```
 
-The routes `POST /api/v2/assets`, `PUT /api/v2/assets/{code}` and `DELETE /api/v2/assets/{code}` are registered, but their controller methods do not exist, so they fail. Operators manage assets in the admin panel.
+The asset API is read-only. Operators manage assets in the admin panel.
 
 ## Transaction Management
 
@@ -423,7 +423,7 @@ Content-Type: application/json
 ```
 
 ### Transaction History
-`GET /api/accounts/{uuid}/transactions` lists the transactions of an account (see [Account Management](#account-management)). The routes `GET /api/v2/transactions` and `GET /api/v2/transactions/{id}` are registered, but their controller methods do not exist, so they fail.
+`GET /api/accounts/{uuid}/transactions` lists the transactions of an account (see [Account Management](#account-management)). The same list is available at `GET /api/v2/accounts/{uuid}/transactions`.
 
 ## Transfer Operations
 
@@ -484,7 +484,7 @@ GET /api/exchange-rates/{from}/{to}/convert?amount=100
 | POST | `/api/v1/exchange-providers/refresh` | Refresh rates (platform operators only) |
 | POST | `/api/v1/exchange-providers/validate` | Validate a rate |
 
-The route `POST /api/v2/exchange-rates/refresh` is registered, but its controller method does not exist, so it fails. There is no endpoint that writes a rate by hand.
+Platform operators refresh the rates with `POST /api/v1/exchange-providers/refresh`. There is no endpoint that writes a rate by hand.
 
 ## Governance & Voting
 
@@ -1238,11 +1238,12 @@ The regulatory reporting endpoints generate draft reports for an operator's own 
 | POST | `/api/regulatory/reports/compliance-summary` | Generate a compliance summary |
 | POST | `/api/regulatory/reports/kyc` | Generate a KYC report |
 | GET | `/api/regulatory/reports` | List generated reports |
+| GET | `/api/regulatory/reports/{filename}` | Show one report |
 | GET | `/api/regulatory/reports/{filename}/download` | Download a report file |
 | DELETE | `/api/regulatory/reports/{filename}` | Delete a report |
 | GET | `/api/regulatory/metrics` | Reporting metrics |
 
-`routes/api/regulatory.php` also registers `/api/regulatory/reports/generate`, `/templates`, `/jurisdictions`, `/requirements`, `/deadlines`, `/filings`, `/reports/{id}/submit`, `/reports/{id}/amend` and `/reports/{id}/status`, plus the `/api/sar/...` and `/api/ctr/...` routes. Their controller methods do not exist, so these routes fail. The one exception is `POST /api/ctr/generate`, which runs the same report as `POST /api/regulatory/reports/ctr`. The `GET /api/regulatory/reports/{id}` route from that file also catches requests meant for `GET /api/regulatory/reports/{filename}`, so showing a single report fails. Downloading a report works.
+`POST /api/ctr/generate` runs the same report as `POST /api/regulatory/reports/ctr`. The scheduler generates the reports every day. The download route also works when the Banking module is disabled.
 
 The `/api/regtech/...` endpoints cover regulation checks such as MiCA, MiFID and the travel rule.
 

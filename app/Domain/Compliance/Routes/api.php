@@ -24,19 +24,16 @@ Route::prefix('v1/compliance')->name('api.compliance.mobile.')
 
 // Compliance and KYC endpoints
 Route::middleware('auth:sanctum')->prefix('compliance')->group(function () {
-    // Compliance alerts and cases: compliance staff only
+    // Compliance alerts and cases: compliance staff only. routes/api/regulatory.php
+    // registers the status, assign (PUT), link, search, create-case, evidence,
+    // escalate and timeline routes for the same controllers.
     Route::prefix('alerts')->middleware(RoleMiddleware::using(StaffRoles::COMPLIANCE))->group(function () {
         Route::get('/', [ComplianceAlertController::class, 'index']);
         Route::post('/', [ComplianceAlertController::class, 'store']);
         Route::get('/statistics', [ComplianceAlertController::class, 'statistics']);
         Route::get('/trends', [ComplianceAlertController::class, 'trends']);
         Route::get('/{alert}', [ComplianceAlertController::class, 'show']);
-        Route::put('/{alert}', [ComplianceAlertController::class, 'update']);
-        Route::delete('/{alert}', [ComplianceAlertController::class, 'destroy']);
         Route::post('/{alert}/assign', [ComplianceAlertController::class, 'assign']);
-        Route::post('/{alert}/resolve', [ComplianceAlertController::class, 'resolve']);
-        Route::post('/{alert}/escalate', [ComplianceAlertController::class, 'escalate']);
-        Route::post('/{alert}/link', [ComplianceAlertController::class, 'link']);
         Route::post('/{alert}/notes', [ComplianceAlertController::class, 'addNote']);
     });
 
@@ -47,9 +44,7 @@ Route::middleware('auth:sanctum')->prefix('compliance')->group(function () {
         Route::get('/{case}', [ComplianceCaseController::class, 'show']);
         Route::put('/{case}', [ComplianceCaseController::class, 'update']);
         Route::delete('/{case}', [ComplianceCaseController::class, 'destroy']);
-        Route::post('/{case}/status', [ComplianceCaseController::class, 'updateStatus']);
         Route::post('/{case}/notes', [ComplianceCaseController::class, 'addNote']);
-        Route::post('/{case}/documents', [ComplianceCaseController::class, 'addDocument']);
     });
 
     // KYC endpoints: the caller's own KYC record (document download is

@@ -161,21 +161,18 @@ Route::middleware(['auth.api_or_sanctum:read'])->group(function () {
         }
     });
 
-    // Asset management
+    // Assets (read-only; operators manage assets in the admin panel)
     Route::prefix('assets')->group(function () {
         Route::get('/', [App\Http\Controllers\Api\AssetController::class, 'index']);
         Route::get('/{code}', [App\Http\Controllers\Api\AssetController::class, 'show']);
-        Route::post('/', [App\Http\Controllers\Api\AssetController::class, 'store'])->middleware('auth.api_or_sanctum:write');
-        Route::put('/{code}', [App\Http\Controllers\Api\AssetController::class, 'update'])->middleware('auth.api_or_sanctum:write');
-        Route::delete('/{code}', [App\Http\Controllers\Api\AssetController::class, 'destroy'])->middleware('auth.api_or_sanctum:delete');
     });
 
-    // Exchange rates
+    // Exchange rates (read-only; operators refresh rates through
+    // POST /api/v1/exchange-providers/refresh)
     Route::prefix('exchange-rates')->group(function () {
         Route::get('/', [App\Http\Controllers\Api\ExchangeRateController::class, 'index']);
         Route::get('/{from}/{to}', [App\Http\Controllers\Api\ExchangeRateController::class, 'show']);
         Route::get('/{from}/{to}/convert', [App\Http\Controllers\Api\ExchangeRateController::class, 'convert']);
-        Route::post('/refresh', [App\Http\Controllers\Api\ExchangeRateController::class, 'refresh'])->middleware('auth.api_or_sanctum:write');
     });
 
     // Transfers
@@ -191,12 +188,6 @@ Route::middleware(['auth.api_or_sanctum:read'])->group(function () {
             Route::post('/{code}/rebalance', [App\Http\Controllers\Api\BasketController::class, 'rebalance'])->middleware('auth.api_or_sanctum:write');
         });
     }
-
-    // Transactions
-    Route::prefix('transactions')->group(function () {
-        Route::get('/', [App\Http\Controllers\Api\TransactionController::class, 'index']);
-        Route::get('/{id}', [App\Http\Controllers\Api\TransactionController::class, 'show']);
-    });
 
     // Compliance and KYC/AML
     Route::prefix('compliance')->group(function () {
