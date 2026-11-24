@@ -188,8 +188,9 @@ if (! DomainManager::isDisabledByConfig('Exchange') && config('trading.enabled')
         ->withoutOverlapping();
 }
 
-// Demo Data Cleanup (only runs in demo environment)
-if (app()->environment('demo')) {
+// Demo Data Cleanup (only runs in demo environment, unless
+// DEMO_CLEANUP_ENABLED=false turns it off)
+if (app()->environment('demo') && config('demo.cleanup.enabled', true)) {
     Schedule::command('demo:cleanup --days=' . config('demo.cleanup.retention_days', 1))
         ->dailyAt(config('demo.cleanup.schedule_time', '03:00'))
         ->description('Clean up old demo data')

@@ -185,3 +185,12 @@ it('adds neither when APP_ENV=production comes only from the env file', function
         ->and($response->headers->has('X-Demo-Mode'))->toBeFalse()
         ->and((string) $response->getContent())->not->toContain('demo-banner');
 });
+
+it('skips the demo cleanup schedule when demo cleanup is turned off', function (): void {
+    $this->app = bootApplicationIn('demo', ['demo.cleanup.enabled' => false]);
+
+    $cleanup = collect(app(Schedule::class)->events())
+        ->first(fn (Event $event): bool => str_contains((string) $event->command, 'demo:cleanup'));
+
+    expect($cleanup)->toBeNull();
+});
