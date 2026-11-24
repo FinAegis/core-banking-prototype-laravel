@@ -141,20 +141,19 @@ class AccountController extends Controller
         $workflow = WorkflowStub::make(CreateAccountWorkflow::class);
         $workflow->start($accountData);
 
-        // Wait a moment for the projector to create the account record
-        $account = Account::where('uuid', $accountUuid)->first();
-
-        // In test mode, the account might not exist yet, so create it
-        if (! $account) {
-            $account = Account::create(
+        // The projector writes the row once the workflow has run. While the
+        // workflow waits on the queue, write the row here for the response; the
+        // projector then leaves it as it is. createOrFirst also covers a worker
+        // that projects the row between the lookup and this insert.
+        $account = Account::where('uuid', $accountUuid)->first()
+            ?? Account::query()->withoutGlobalScopes()->createOrFirst(
+                ['uuid' => $accountUuid],
                 [
-                    'uuid'      => $accountUuid,
                     'user_uuid' => $request->user()->uuid,
                     'name'      => $sanitizedName,
                     'balance'   => 0,
                 ]
             );
-        }
 
         return response()->json(
             [

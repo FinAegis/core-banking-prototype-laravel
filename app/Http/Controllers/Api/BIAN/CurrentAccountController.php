@@ -133,10 +133,12 @@ class CurrentAccountController extends Controller
         $workflow = WorkflowStub::make(CreateAccountWorkflow::class);
         $workflow->start($accountData);
 
-        // Create the account record for immediate response
-        $account = Account::create(
+        // Write the account record for the immediate response unless the
+        // workflow already ran and its projector wrote it. The projector leaves
+        // an existing row as it is.
+        $account = Account::query()->withoutGlobalScopes()->createOrFirst(
+            ['uuid' => $crReferenceId],
             [
-                'uuid'      => $crReferenceId,
                 'user_uuid' => $validated['customerReference'],
                 'name'      => $validated['accountName'],
                 'balance'   => 0,
