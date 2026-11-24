@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Compliance\Services\AccountClosureService;
 use App\Domain\Mobile\Services\BiometricJWTService;
 use App\Domain\Mobile\Services\MobileDeviceService;
 use App\Domain\Mobile\Services\PasskeyAuthenticationService;
@@ -52,30 +53,32 @@ describe('LoginController response envelope', function (): void {
 });
 
 describe('AccountDeletionController', function (): void {
-    it('requires confirmation string DELETE', function (): void {
-        $controller = new AccountDeletionController();
+    it('requires confirmation string DELETE and closes the account', function (): void {
+        $user = Mockery::mock(User::class)->makePartial();
+        $user->id = 1;
+
+        /** @var AccountClosureService&Mockery\MockInterface $closure */
+        $closure = Mockery::mock(AccountClosureService::class);
+        $closure->shouldReceive('close')->once()->with($user, AccountClosureService::SOURCE_APP);
+        $controller = new AccountDeletionController($closure);
 
         $request = Request::create('/api/auth/delete-account', 'POST', [
             'confirmation' => 'DELETE',
         ]);
-
-        $user = Mockery::mock(User::class)->makePartial();
-        $user->id = 1;
-        $user->email = 'test@example.com';
-        $user->shouldReceive('tokens->delete')->once();
-        $user->shouldReceive('delete')->once();
         $request->setUserResolver(fn () => $user);
 
         $response = $controller($request);
         $data = $response->getData(true);
 
         expect($data['success'])->toBeTrue()
-            ->and($data['data'])->toHaveKey('message')
-            ->and($data['data']['message'])->toContain('deletion');
+            ->and($data['data'])->toHaveKeys(['message', 'deleted_at']);
     });
 
     it('rejects request without proper confirmation', function (): void {
-        $controller = new AccountDeletionController();
+        /** @var AccountClosureService&Mockery\MockInterface $closure */
+        $closure = Mockery::mock(AccountClosureService::class);
+        $closure->shouldNotReceive('close');
+        $controller = new AccountDeletionController($closure);
 
         $request = Request::create('/api/auth/delete-account', 'POST', [
             'confirmation' => 'wrong',

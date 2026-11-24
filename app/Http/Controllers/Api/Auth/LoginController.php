@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Domain\Auth\Exceptions\PrivyJwtException;
+use App\Domain\Auth\Services\ErasedPrivyIdentities;
 use App\Domain\Auth\Services\PrivyAccountLinker;
 use App\Domain\Auth\Services\PrivyJwtVerifier;
 use App\Domain\Mobile\Services\BiometricJWTService;
@@ -193,7 +194,7 @@ class LoginController extends Controller
     )]
     #[OA\Response(
         response: 401,
-        description: 'Invalid or expired Privy token',
+        description: 'Invalid or expired Privy token (INVALID_PRIVY_TOKEN), or a token issued before its account was deleted (ACCOUNT_DELETED). After ACCOUNT_DELETED the app signs out of Privy; a new sign-in may open a new account.',
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'success', type: 'boolean', example: false),
         new OA\Property(property: 'error', type: 'object', properties: [
@@ -254,6 +255,19 @@ class LoginController extends Controller
                 'error'   => [
                     'code'    => 'INVALID_PRIVY_TOKEN',
                     'message' => $e->getMessage(),
+                ],
+            ], 401);
+        }
+
+        // A session from before the account was deleted cannot open a new
+        // account. Older app builds kept such a session and signed in again
+        // right after the deletion.
+        if (ErasedPrivyIdentities::erasedSince($claims->privyUserId, $claims->issuedAt)) {
+            return response()->json([
+                'success' => false,
+                'error'   => [
+                    'code'    => 'ACCOUNT_DELETED',
+                    'message' => 'This account was deleted. Sign in again to open a new account.',
                 ],
             ], 401);
         }

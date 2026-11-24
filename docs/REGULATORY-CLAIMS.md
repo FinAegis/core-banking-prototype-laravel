@@ -1639,8 +1639,9 @@ These need a product or legal decision, a binary asset, or a change outside the 
   whether to restrict them to the demo environment is pending.
 - Operator legal entity details: the Terms and Privacy Policy show them (see "Card pilot legal text" above, from
   `BRAND_LEGAL_*`). Since 2026-11-23 the zelta.app footers name the operator from `BRAND_LEGAL_ENTITY`, and /invest
-  names "Aegis brightsmark capital, MB" with company code 307576279 instead of "Aegis Brightsmark Ltd.". The
-  developer name on /legal/delete-account still says FinAegis and must match the Play Console listing.
+  names "Aegis brightsmark capital, MB" with company code 307576279 instead of "Aegis Brightsmark Ltd.". Since
+  2026-11-24 /legal/delete-account on zelta.app names the developer from `BRAND_LEGAL_ENTITY` (finaegis.org keeps
+  FinAegis). That name must match the developer name in the Google Play Console.
 - Social preview images (`public/images/og-default.png`, `public/images/og-twitter.png`) contain card artwork and need to
   be regenerated.
 - `docs/archive/litas_specification.pdf` (concept document) cannot be edited in place.

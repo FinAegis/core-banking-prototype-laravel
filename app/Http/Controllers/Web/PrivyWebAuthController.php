@@ -12,6 +12,7 @@ use App\Domain\User\Services\ApiRegistrationGate;
 use App\Http\Controllers\Concerns\ProvisionsPersonalTeam;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\RecentSignIn;
 use Illuminate\Cache\RateLimiter;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\RedirectResponse;
@@ -197,6 +198,9 @@ final class PrivyWebAuthController extends Controller
 
         Auth::login($user, remember: true);
         $request->session()->regenerate();
+        // The email code proved who the user is just now. Account deletion
+        // without a password asks for such a recent sign-in.
+        RecentSignIn::record($request->session());
 
         return redirect()->intended(route('dashboard'));
     }

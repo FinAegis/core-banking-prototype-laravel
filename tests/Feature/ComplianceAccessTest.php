@@ -359,7 +359,7 @@ describe('GDPR self-service', function (): void {
         $gdpr->shouldReceive('canDeleteUserData')
             ->once()
             ->with(Mockery::on(fn (User $user): bool => $user->id === $caller->id))
-            ->andReturn(['can_delete' => true, 'reasons' => []]);
+            ->andReturn(['can_delete' => true, 'reasons' => [], 'reason_codes' => []]);
         $gdpr->shouldReceive('deleteUserData')
             ->once()
             ->with(Mockery::on(fn (User $user): bool => $user->id === $caller->id), Mockery::type('array'));

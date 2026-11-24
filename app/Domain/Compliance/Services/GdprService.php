@@ -8,6 +8,7 @@ use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Account\Models\BlockchainAddress;
 use App\Domain\Account\Models\TransactionProjection;
+use App\Domain\Auth\Services\ErasedPrivyIdentities;
 use App\Domain\Auth\Services\PrivyEmailOtpClient;
 use App\Domain\CardIssuance\Models\Card;
 use App\Domain\CardIssuance\Models\CardDepositAddress;
@@ -894,6 +895,13 @@ class GdprService
      */
     protected function anonymizeUser(User $user): void
     {
+        // Remember the sign-in identity as a keyed hash, so an app that
+        // still holds a session from before the deletion cannot open a new
+        // account with it (see ErasedPrivyIdentities).
+        if (is_string($user->privy_user_id) && $user->privy_user_id !== '') {
+            ErasedPrivyIdentities::record($user->privy_user_id);
+        }
+
         $user->update(
             [
                 'name'     => 'ANONYMIZED_' . substr($user->uuid, 0, 8),
@@ -967,7 +975,7 @@ class GdprService
         // subscriptions (Cashier/Stripe): retained as-is — billing records
         // under Art. 17(3)(b); the only identifier is the pseudonymous
         // stripe_id, and the Stripe-side customer object is purged separately
-        // (GdprController::purgeStripeCustomerData).
+        // (AccountClosureService::purgeStripeCustomerData).
 
         // subscription_consent_log: proof of consent retained for defence of
         // legal claims (Art. 17(3)(e)); user_agent is device-fingerprint PII
@@ -1345,15 +1353,23 @@ class GdprService
 
     /**
      * Check if user data can be deleted.
+     *
+     * Each reason comes with a stable code in reason_codes, at the same
+     * position. Clients (the mobile app) branch on the codes; the sentences
+     * are for people and may be reworded.
+     *
+     * @return array{can_delete: bool, reasons: array<int, string>, reason_codes: array<int, string>}
      */
     public function canDeleteUserData(User $user): array
     {
         $reasons = [];
+        $reasonCodes = [];
 
         // Check for active accounts with balance
         $activeAccounts = $user->accounts()->where('balance', '>', 0)->count();
         if ($activeAccounts > 0) {
             $reasons[] = 'User has active accounts with positive balance';
+            $reasonCodes[] = 'positive_balance';
         }
 
         // Check for pending transactions
@@ -1362,11 +1378,13 @@ class GdprService
         // Check for legal holds
         if ($user->kyc_status === 'in_review') {
             $reasons[] = 'KYC verification is in progress';
+            $reasonCodes[] = 'identity_check_in_review';
         }
 
         return [
-            'can_delete' => empty($reasons),
-            'reasons'    => $reasons,
+            'can_delete'   => empty($reasons),
+            'reasons'      => $reasons,
+            'reason_codes' => $reasonCodes,
         ];
     }
 }

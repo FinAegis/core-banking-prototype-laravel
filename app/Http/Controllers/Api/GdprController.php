@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\Compliance\Exceptions\AccountClosureBlockedException;
+use App\Domain\Compliance\Services\AccountClosureService;
 use App\Domain\Compliance\Services\GdprService;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -12,7 +14,6 @@ use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use OpenApi\Attributes as OA;
 use Throwable;
@@ -24,7 +25,8 @@ use Throwable;
 class GdprController extends Controller
 {
     public function __construct(
-        private readonly GdprService $gdprService
+        private readonly GdprService $gdprService,
+        private readonly AccountClosureService $accountClosure,
     ) {
     }
 
@@ -343,7 +345,7 @@ class GdprController extends Controller
             operationId: 'requestGdprAccountDeletion',
             tags: ['GDPR'],
             summary: 'Request account deletion (GDPR Article 17)',
-            description: 'Request complete deletion of account and personal data (right to be forgotten)',
+            description: 'Erases the account\'s personal data right away (right to be forgotten) and keeps the records the law requires in anonymous form. All tokens are revoked after the erasure has succeeded.',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['confirm'], properties: [
             new OA\Property(property: 'confirm', type: 'boolean', example: true, description: 'Confirmation of deletion request'),
@@ -352,9 +354,9 @@ class GdprController extends Controller
         )]
     #[OA\Response(
         response: 200,
-        description: 'Deletion request successful',
+        description: 'Account closed and personal data erased',
         content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'message', type: 'string', example: 'Account deletion request processed. Your account will be deleted within 30 days.'),
+        new OA\Property(property: 'message', type: 'string', example: 'Your account is closed and your personal data has been erased. We keep some records where the law requires it.'),
         ])
     )]
     #[OA\Response(
@@ -362,7 +364,8 @@ class GdprController extends Controller
         description: 'Deletion not allowed',
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'error', type: 'string', example: 'Account cannot be deleted at this time'),
-        new OA\Property(property: 'reasons', type: 'array', example: ['Outstanding balance', 'Active loans'], items: new OA\Items(type: 'string')),
+        new OA\Property(property: 'reasons', type: 'array', example: ['User has active accounts with positive balance'], items: new OA\Items(type: 'string')),
+        new OA\Property(property: 'reason_codes', type: 'array', example: ['positive_balance'], items: new OA\Items(type: 'string', enum: ['positive_balance', 'identity_check_in_review'])),
         ])
     )]
     #[OA\Response(
@@ -384,43 +387,25 @@ class GdprController extends Controller
 
         $user = Auth::user();
         /** @var User $user */
+        $reason = $request->input('reason');
 
-        // Check if deletion is allowed
-        $check = $this->gdprService->canDeleteUserData($user);
-        if (! $check['can_delete']) {
+        try {
+            // Erases now, then ends every sign-in (tokens, OAuth grants,
+            // sessions, devices and API keys). A failed erasure leaves the
+            // sign-ins in place.
+            $this->accountClosure->close($user, AccountClosureService::SOURCE_GDPR_API, is_string($reason) ? $reason : null);
+        } catch (AccountClosureBlockedException $e) {
             return response()->json(
                 [
-                    'error'   => 'Account cannot be deleted at this time',
-                    'reasons' => $check['reasons'],
+                    'error'        => 'Account cannot be deleted at this time',
+                    'reasons'      => $e->reasons,
+                    'reason_codes' => $e->reasonCodes,
                 ],
                 400
             );
-        }
+        } catch (Throwable $e) {
+            report($e);
 
-        try {
-            // In a real application, this would queue a job and require
-            // additional confirmation steps
-            $this->gdprService->deleteUserData(
-                $user,
-                [
-                    'reason'                 => $request->reason,
-                    'delete_documents'       => true,
-                    'anonymize_transactions' => true,
-                ]
-            );
-
-            // Plan B Backend-Q1 #6 — explicit Stripe customer delete.
-            // Cashier doesn't auto-cascade on User::delete(), so we must call
-            // `asStripeCustomer()->delete()` here to satisfy GDPR Article 17
-            // for the Stripe-side personal data we control.
-            $this->purgeStripeCustomerData($user);
-
-            return response()->json(
-                [
-                    'message' => 'Account deletion request processed. Your account will be deleted within 30 days.',
-                ]
-            );
-        } catch (Exception $e) {
             return response()->json(
                 [
                     'error' => 'Failed to process deletion request',
@@ -428,33 +413,12 @@ class GdprController extends Controller
                 500
             );
         }
-    }
 
-    /**
-     * Cascade GDPR erasure to Stripe per Plan B Backend-Q1 #6. Best-effort:
-     * a Stripe outage or already-deleted-customer must NOT block the local
-     * deletion flow — we log and continue.
-     */
-    private function purgeStripeCustomerData(User $user): void
-    {
-        if (empty($user->stripe_id)) {
-            return;
-        }
-
-        try {
-            $user->asStripeCustomer()->delete();
-        } catch (Throwable $e) {
-            Log::warning('gdpr.stripe_customer_delete_failed', [
-                'user_id' => $user->id,
-                'error'   => $e->getMessage(),
-            ]);
-        }
-
-        $user->forceFill([
-            'stripe_id'    => null,
-            'pm_type'      => null,
-            'pm_last_four' => null,
-        ])->save();
+        return response()->json(
+            [
+                'message' => 'Your account is closed and your personal data has been erased. We keep some records where the law requires it.',
+            ]
+        );
     }
 
         #[OA\Get(

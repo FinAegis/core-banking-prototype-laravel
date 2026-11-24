@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\SystemHealthCheck;
 use App\Models\SystemIncident;
 use Exception;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use OpenApi\Attributes as OA;
+use Throwable;
 
 #[OA\Tag(
     name: 'System Status',
@@ -16,6 +18,28 @@ use OpenApi\Attributes as OA;
 )]
 class StatusController extends Controller
 {
+    /**
+     * Services checked live when the page is viewed. The results are cached
+     * for LIVE_CHECK_CACHE_SECONDS and never written to
+     * system_health_checks; only the scheduled command writes rows.
+     */
+    private const LIVE_CHECKED = ['database', 'cache', 'queue', 'storage'];
+
+    /**
+     * Services checked by the scheduled system:health-check command. That
+     * command runs every five minutes in production and staging only.
+     */
+    private const SCHEDULE_CHECKED = ['web', 'api'];
+
+    /**
+     * A scheduled result older than this is too old to show as the status.
+     */
+    private const SCHEDULED_CHECK_MAX_AGE_MINUTES = 15;
+
+    private const LIVE_CHECK_CACHE_KEY = 'status-page:live-checks';
+
+    private const LIVE_CHECK_CACHE_SECONDS = 60;
+
         #[OA\Get(
             path: '/status',
             operationId: 'systemStatusIndex',
@@ -34,7 +58,7 @@ class StatusController extends Controller
     public function index()
     {
         $status = $this->checkSystemStatus();
-        $services = $this->getServicesStatus();
+        $services = $this->getServicesStatus($status['checks']);
         $incidents = $this->getRecentIncidents();
         $uptime = $this->calculateUptime();
 
@@ -63,7 +87,7 @@ class StatusController extends Controller
         return response()->json(
             [
                 'status'    => $status,
-                'services'  => $this->getServicesStatus(),
+                'services'  => $this->getServicesStatus($status['checks']),
                 'uptime'    => $this->calculateUptime(),
                 'incidents' => $this->getRecentIncidents(true),
                 'timestamp' => now()->toIso8601String(),
@@ -71,46 +95,38 @@ class StatusController extends Controller
         );
     }
 
-    private function checkSystemStatus()
+    /**
+     * @return array{overall: string, checks: array<string, array<string, mixed>>, response_time: float|null, last_checked: Carbon}
+     */
+    private function checkSystemStatus(): array
     {
-        // Get latest health checks from database
-        $latestChecks = SystemHealthCheck::getLatestStatuses();
+        $names = collect($this->serviceDefinitions())->map(fn (array $service): string => $service['name']);
 
-        // Perform real-time checks for critical services
-        $realtimeChecks = [
-            'database' => $this->checkDatabase(),
-            'cache'    => $this->checkCache(),
-            'queue'    => $this->checkQueue(),
-            'storage'  => $this->checkStorage(),
-        ];
+        $live = $this->liveChecks();
 
-        // Merge with database records
         $checks = [];
-        foreach ($realtimeChecks as $service => $check) {
-            $checks[$service] = $check;
-
-            // Record the check
-            SystemHealthCheck::create(
-                [
-                    'service'       => $service,
-                    'check_type'    => 'realtime',
-                    'status'        => $check['status'],
-                    'response_time' => $check['response_time'] ?? null,
-                    'error_message' => $check['status'] !== 'operational' ? ($check['message'] ?? null) : null,
-                    'checked_at'    => now(),
-                ]
-            );
+        foreach ($live['checks'] as $service => $check) {
+            $checks[$service] = ['name' => $names[$service]] + $check;
         }
 
-        // Add checks from database for services not checked in real-time
-        foreach ($latestChecks as $service => $healthCheck) {
-            if (! isset($checks[$service])) {
-                $checks[$service] = [
-                    'status'        => $healthCheck->status,
-                    'response_time' => $healthCheck->response_time,
-                    'message'       => $healthCheck->error_message ?? 'Status from the last monitoring check.',
-                ];
+        // Add the recent results of the scheduled checks. Older results and
+        // rows for services without a real check are left out.
+        foreach (self::SCHEDULE_CHECKED as $service) {
+            $healthCheck = $this->recentScheduledCheck($service);
+            if ($healthCheck === null) {
+                continue;
             }
+
+            $checks[$service] = [
+                'name'          => $names[$service],
+                'status'        => $healthCheck->status,
+                'response_time' => $healthCheck->response_time,
+                'message'       => match ($healthCheck->status) {
+                    'operational' => 'The last automatic check passed.',
+                    'degraded'    => 'The last automatic check found slow answers.',
+                    default       => 'The last automatic check failed.',
+                },
+            ];
         }
 
         $allOperational = collect($checks)->every(fn ($check) => $check['status'] === 'operational');
@@ -119,9 +135,61 @@ class StatusController extends Controller
         return [
             'overall'       => $hasDown ? 'down' : ($allOperational ? 'operational' : 'degraded'),
             'checks'        => $checks,
-            'response_time' => $this->measureResponseTime(),
-            'last_checked'  => now(),
+            'response_time' => $live['checks']['database']['response_time'] ?? null,
+            'last_checked'  => Carbon::createFromTimestamp($live['checked_at']),
         ];
+    }
+
+    /**
+     * The live checks, reused for LIVE_CHECK_CACHE_SECONDS so that page views
+     * do not query the database, cache, queue and disk every time. Page views
+     * never write health check rows.
+     *
+     * @return array{checked_at: int, checks: array<string, array<string, mixed>>}
+     */
+    private function liveChecks(): array
+    {
+        try {
+            /** @var array{checked_at: int, checks: array<string, array<string, mixed>>} $live */
+            $live = Cache::remember(
+                self::LIVE_CHECK_CACHE_KEY,
+                self::LIVE_CHECK_CACHE_SECONDS,
+                fn (): array => $this->runLiveChecks()
+            );
+
+            return $live;
+        } catch (Throwable) {
+            // The cache store itself failed. Check without it; the cache
+            // check below then reports the problem.
+            return $this->runLiveChecks();
+        }
+    }
+
+    /**
+     * @return array{checked_at: int, checks: array<string, array<string, mixed>>}
+     */
+    private function runLiveChecks(): array
+    {
+        return [
+            'checked_at' => now()->getTimestamp(),
+            'checks'     => [
+                'database' => $this->checkDatabase(),
+                'cache'    => $this->checkCache(),
+                'queue'    => $this->checkQueue(),
+                'storage'  => $this->checkStorage(),
+            ],
+        ];
+    }
+
+    private function recentScheduledCheck(string $service): ?SystemHealthCheck
+    {
+        /** @var SystemHealthCheck|null $check */
+        $check = SystemHealthCheck::where('service', $service)
+            ->where('checked_at', '>=', now()->subMinutes(self::SCHEDULED_CHECK_MAX_AGE_MINUTES))
+            ->orderBy('checked_at', 'desc')
+            ->first();
+
+        return $check;
     }
 
     private function checkDatabase()
@@ -218,20 +286,16 @@ class StatusController extends Controller
         }
     }
 
-    private function measureResponseTime()
+    /**
+     * The services shown on the page. Only the services in LIVE_CHECKED and
+     * SCHEDULE_CHECKED have a real check. Email is not one of them: the
+     * scheduled command only reads the mail configuration.
+     *
+     * @return array<string, array{name: string, description: string, category: string}>
+     */
+    private function serviceDefinitions(): array
     {
-        // Get average response time from recent health checks
-        $avgResponseTime = SystemHealthCheck::where('service', 'database')
-            ->where('checked_at', '>=', now()->subHour())
-            ->whereNotNull('response_time')
-            ->avg('response_time');
-
-        return round($avgResponseTime ?? 0, 2);
-    }
-
-    private function getServicesStatus()
-    {
-        $services = [
+        return [
             'web' => [
                 'name'        => 'Website',
                 'description' => 'The website and the account pages you open in a browser.',
@@ -288,23 +352,33 @@ class StatusController extends Controller
                 'category'    => 'Connected services',
             ],
         ];
+    }
 
+    /**
+     * @param  array<string, array<string, mixed>>  $checks
+     * @return array<int, array{key: string, name: string, description: string, category: string, status: string, uptime: string|null}>
+     */
+    private function getServicesStatus(array $checks): array
+    {
         $result = [];
-        foreach ($services as $serviceKey => $serviceInfo) {
-            // Get latest status from health checks
-            $latestCheck = SystemHealthCheck::where('service', $serviceKey)
-                ->orderBy('checked_at', 'desc')
-                ->first();
-
-            $status = $latestCheck ? $latestCheck->status : 'operational';
-            $uptime = SystemHealthCheck::calculateUptime($serviceKey, 30);
+        foreach ($this->serviceDefinitions() as $serviceKey => $serviceInfo) {
+            if (! in_array($serviceKey, [...self::LIVE_CHECKED, ...self::SCHEDULE_CHECKED], true)) {
+                // Nothing checks this service, so the page makes no claim about it.
+                $status = 'not_monitored';
+                $uptime = null;
+            } else {
+                // A scheduled service without a recent result has no current status.
+                $status = $checks[$serviceKey]['status'] ?? 'unknown';
+                $uptime = SystemHealthCheck::calculateUptime($serviceKey, 30);
+            }
 
             $result[] = [
+                'key'         => $serviceKey,
                 'name'        => $serviceInfo['name'],
                 'description' => $serviceInfo['description'],
                 'category'    => $serviceInfo['category'],
                 'status'      => $status,
-                'uptime'      => $uptime . '%',
+                'uptime'      => $uptime === null ? null : $uptime . '%',
             ];
         }
 
@@ -348,36 +422,30 @@ class StatusController extends Controller
         return $incidents;
     }
 
-    private function calculateUptime()
+    /**
+     * Share of passed checks over 30 days, counted only for services with a
+     * real check. Without any recorded check there is no figure.
+     *
+     * @return array{percentage: float|null, period: string, checks_total: int, checks_failed: int}
+     */
+    private function calculateUptime(): array
     {
-        // Calculate overall platform uptime based on all services
-        $services = ['web', 'auth', 'api', 'graphql', 'x402', 'database', 'cache', 'queue', 'storage', 'email', 'blockchain'];
-        $totalUptime = 0;
-        $serviceCount = 0;
+        $monitored = [...self::LIVE_CHECKED, ...self::SCHEDULE_CHECKED];
+        $since = now()->subDays(30);
 
-        foreach ($services as $service) {
-            $uptime = SystemHealthCheck::calculateUptime($service, 30);
-            if ($uptime > 0) {
-                $totalUptime += $uptime;
-                $serviceCount++;
-            }
-        }
-
-        $overallUptime = $serviceCount > 0 ? ($totalUptime / $serviceCount) : 100;
-
-        // Calculate total downtime minutes
-        $totalChecks = SystemHealthCheck::where('checked_at', '>=', now()->subDays(30))->count();
-        $failedChecks = SystemHealthCheck::where('checked_at', '>=', now()->subDays(30))
+        $totalChecks = SystemHealthCheck::whereIn('service', $monitored)
+            ->where('checked_at', '>=', $since)
+            ->count();
+        $failedChecks = SystemHealthCheck::whereIn('service', $monitored)
+            ->where('checked_at', '>=', $since)
             ->whereIn('status', ['degraded', 'down'])
             ->count();
 
-        // Assuming checks run every minute
-        $downtimeMinutes = $failedChecks;
-
         return [
-            'percentage'       => round($overallUptime, 2),
-            'period'           => '30 days',
-            'downtime_minutes' => $downtimeMinutes,
+            'percentage'    => $totalChecks > 0 ? round(($totalChecks - $failedChecks) / $totalChecks * 100, 2) : null,
+            'period'        => '30 days',
+            'checks_total'  => $totalChecks,
+            'checks_failed' => $failedChecks,
         ];
     }
 }

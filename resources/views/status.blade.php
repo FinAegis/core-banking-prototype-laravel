@@ -46,11 +46,11 @@
                     <div>
                         <h1 class="font-display text-3xl md:text-4xl font-extrabold text-white">
                             @if($status['overall'] === 'operational')
-                                All Systems Operational
+                                All Checked Services Are Working
                             @elseif($status['overall'] === 'degraded')
-                                Some Systems Have Problems
+                                Some Services Have Problems
                             @else
-                                Major Outage
+                                Some Services Are Down
                             @endif
                         </h1>
                         <p class="text-sm text-slate-400 mt-1">Updated {{ $status['last_checked']->diffForHumans() }}</p>
@@ -58,12 +58,12 @@
                 </div>
                 <div class="flex items-center gap-8">
                     <div class="text-center">
-                        <div class="font-display text-2xl font-bold text-white">{{ $uptime['percentage'] }}%</div>
-                        <div class="text-xs text-slate-400 uppercase tracking-wider">Uptime</div>
+                        <div class="font-display text-2xl font-bold text-white">{{ $uptime['percentage'] !== null ? $uptime['percentage'] . '%' : 'No data' }}</div>
+                        <div class="text-xs text-slate-400 uppercase tracking-wider">Checks passed in 30 days</div>
                     </div>
                     <div class="text-center">
-                        <div class="font-display text-2xl font-bold text-white">{{ $status['response_time'] }}ms</div>
-                        <div class="text-xs text-slate-400 uppercase tracking-wider">Average response</div>
+                        <div class="font-display text-2xl font-bold text-white">{{ $status['response_time'] ?? 'No data' }}</div>
+                        <div class="text-xs text-slate-400 uppercase tracking-wider">Database answer time in milliseconds</div>
                     </div>
                 </div>
             </div>
@@ -76,6 +76,23 @@
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             @php
                 $grouped = collect($services)->groupBy('category');
+                $statusLabels = [
+                    'operational'   => 'Operational',
+                    'degraded'      => 'Has problems',
+                    'down'          => 'Down',
+                    'unknown'       => 'No recent check',
+                    'not_monitored' => 'Not monitored',
+                ];
+                $dotClasses = [
+                    'operational' => 'bg-emerald-500',
+                    'degraded'    => 'bg-amber-500',
+                    'down'        => 'bg-red-500',
+                ];
+                $badgeClasses = [
+                    'operational' => 'badge-success',
+                    'degraded'    => 'badge-warning',
+                    'down'        => 'badge-accent',
+                ];
             @endphp
 
             @foreach($grouped as $category => $categoryServices)
@@ -85,16 +102,18 @@
                     @foreach($categoryServices as $service)
                     <div class="px-5 py-4 flex items-center justify-between">
                         <div class="flex items-center gap-3">
-                            <div class="w-2.5 h-2.5 rounded-full {{ $service['status'] === 'operational' ? 'bg-emerald-500' : ($service['status'] === 'degraded' ? 'bg-amber-500' : 'bg-red-500') }}"></div>
+                            <div class="w-2.5 h-2.5 rounded-full {{ $dotClasses[$service['status']] ?? 'border border-slate-300 bg-white' }}"></div>
                             <div>
                                 <span class="text-sm font-medium text-slate-900">{{ $service['name'] }}</span>
                                 <span class="text-sm text-slate-400 ml-2 hidden sm:inline">{{ $service['description'] }}</span>
                             </div>
                         </div>
                         <div class="flex items-center gap-4">
-                            <span class="text-xs text-slate-400 hidden sm:inline font-mono">{{ $service['uptime'] }}</span>
-                            <span class="badge {{ $service['status'] === 'operational' ? 'badge-success' : ($service['status'] === 'degraded' ? 'badge-warning' : 'badge-accent') }}">
-                                {{ ucfirst($service['status']) }}
+                            @if($service['uptime'] !== null)
+                                <span class="text-xs text-slate-400 hidden sm:inline font-mono">{{ $service['uptime'] }}</span>
+                            @endif
+                            <span class="badge {{ $badgeClasses[$service['status']] ?? 'bg-slate-100 text-slate-600' }}">
+                                {{ $statusLabels[$service['status']] ?? 'Not monitored' }}
                             </span>
                         </div>
                     </div>
@@ -102,6 +121,12 @@
                 </div>
             </div>
             @endforeach
+
+            <div class="mb-8 px-1 space-y-2 text-sm text-slate-500">
+                <p>Not monitored means that no automatic check covers this service yet. This page cannot tell whether it is working.</p>
+                <p>No recent check means that the automatic check has not reported in the last 15 minutes.</p>
+                <p>The percentage next to a service is the share of its checks that passed in the last 30 days.</p>
+            </div>
 
             <!-- System Health Checks -->
             <div class="mb-8 animate-on-scroll">
@@ -124,10 +149,10 @@
                                 </svg>
                             @endif
                             <div>
-                                <div class="font-display text-sm font-medium text-slate-900 capitalize">{{ str_replace('_', ' ', $check) }}</div>
+                                <div class="font-display text-sm font-medium text-slate-900">{{ $result['name'] ?? ucfirst(str_replace('_', ' ', $check)) }}</div>
                                 <div class="text-xs text-slate-500">{{ $result['message'] }}</div>
                                 @if(isset($result['response_time']))
-                                    <div class="text-xs text-slate-400 mt-0.5 font-mono">{{ $result['response_time'] }}ms</div>
+                                    <div class="text-xs text-slate-400 mt-0.5">It answered in {{ $result['response_time'] }} milliseconds.</div>
                                 @endif
                             </div>
                         </div>

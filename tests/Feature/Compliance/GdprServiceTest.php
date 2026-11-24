@@ -409,6 +409,7 @@ test('can check if user data can be deleted', function () {
     $check = $this->gdprService->canDeleteUserData($this->user);
     expect($check['can_delete'])->toBeFalse();
     expect($check['reasons'])->toContain('User has active accounts with positive balance');
+    expect($check['reason_codes'])->toBe(['positive_balance']);
 
     // User with KYC in review - cannot delete
     $account->update(['balance' => 0]);
@@ -416,6 +417,7 @@ test('can check if user data can be deleted', function () {
     $check = $this->gdprService->canDeleteUserData($this->user);
     expect($check['can_delete'])->toBeFalse();
     expect($check['reasons'])->toContain('KYC verification is in progress');
+    expect($check['reason_codes'])->toBe(['identity_check_in_review']);
 });
 
 test('can anonymize user data', function () {
