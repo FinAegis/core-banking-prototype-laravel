@@ -9,11 +9,14 @@ use App\Domain\MCP\Policy\SpendingLimitService;
 use Throwable;
 
 /**
- * Saga (synchronous, in-process) that enforces per-token daily spend limits
- * around a payment-tool execution.
+ * Saga (synchronous, in-process) that enforces the daily spending limit
+ * around a payment-tool execution. The limit belongs to the user's approval
+ * of the app (client + user, McpRequestContext::spendingPolicyKey()), so all
+ * tokens of one approval share it; only a token without a user (client
+ * credentials) has a limit of its own.
  *
  * Steps:
- *   1. Reserve $amountMinor against the token's daily window. If the policy
+ *   1. Reserve $amountMinor against that approval's daily window. If the policy
  *      rejects (over limit, currency mismatch, no policy), throw
  *      SpendingLimitExceededException — the router maps this to -32003.
  *   2. Run the underlying tool execution callable.
@@ -36,6 +39,7 @@ final class SpendingEnforcedToolCallSaga
     }
 
     /**
+     * @param  string $tokenId  The spending policy key from McpRequestContext::spendingPolicyKey() (the approval, not one token).
      * @param  array<string, mixed> $arguments  The tool call arguments (must contain the configured amount + currency fields unless the entry is fixed-cost).
      * @param  array{amount_arg?: string, currency_arg?: string, fixed_cost_minor?: int, fixed_cost_currency?: string}|array<string, mixed> $entry  The catalog entry for this tool.
      * @param  callable(): array<string, mixed> $execute  Closure that runs the tool and returns the McpToolAdapter envelope.
