@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Changelog | ' . config('brand.name', 'Zelta'),
-        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.18.1.',
+        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.18.2.',
         'keywords' => 'changelog, release notes, updates, ' . config('brand.name', 'Zelta') . ', version history, core banking',
     ])
 
@@ -43,6 +43,21 @@
 
             @php
                 $releases = [
+                    [
+                        'version' => 'v7.18.2',
+                        'date' => 'November 24, 2026',
+                        'label' => 'Top-up Path and Clearer Texts',
+                        'label_color' => 'slate',
+                        'badge_color' => 'bg-slate-100 text-slate-700 border-slate-200',
+                        'dot_color' => 'bg-slate-500',
+                        'items' => [
+                            'Top-ups follow the partner&rsquo;s rules. Fees, card loads and balances now work the way the card partner confirmed. Adding money to a card stays switched off until it is tested with real money.',
+                            'Fair GCU prices. Buying or selling the Global Currency Unit in the demo now books the price shown, including the fee.',
+                            'Working conversions in the demo. The demo site now has fixed demonstration exchange rates, so currency conversions work there.',
+                            'Spending limits for older AI connections. An AI assistant connected before the last release is asked once for a daily spending limit.',
+                            'Clearer pages and documentation. The demo site pages and the project documentation now describe what the platform does today.',
+                        ],
+                    ],
                     [
                         'version' => 'v7.18.1',
                         'date' => 'November 24, 2026',
