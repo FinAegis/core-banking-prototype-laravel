@@ -9,6 +9,7 @@ use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\Transfer;
 use App\Domain\Asset\Models\Asset;
 use App\Domain\Wallet\Workflows\WalletTransferWorkflow;
+use App\Http\Controllers\Concerns\ConvertsMajorUnitAmounts;
 use App\Http\Controllers\Controller;
 use DB;
 use Exception;
@@ -20,6 +21,8 @@ use Workflow\WorkflowStub;
 
 class TransferController extends Controller
 {
+    use ConvertsMajorUnitAmounts;
+
         #[OA\Post(
             path: '/api/transfers',
             operationId: 'createTransfer',
@@ -30,10 +33,11 @@ class TransferController extends Controller
             parameters: [
                 new OA\Parameter(name: 'Idempotency-Key', in: 'header', required: false, description: 'A key you choose for this transfer, such as a UUID. Send the same key when you retry the same transfer. The server keeps it for 24 hours.', schema: new OA\Schema(type: 'string', minLength: 16, maxLength: 64, example: '7f1c2a9e-4b1d-4c8e-9a51-2d3f6b7e8c90')),
             ],
-            requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['from_account_uuid', 'to_account_uuid', 'amount'], properties: [
+            requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['from_account_uuid', 'to_account_uuid', 'amount', 'asset_code'], properties: [
             new OA\Property(property: 'from_account_uuid', type: 'string', format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000'),
             new OA\Property(property: 'to_account_uuid', type: 'string', format: 'uuid', example: '660e8400-e29b-41d4-a716-446655440000'),
-            new OA\Property(property: 'amount', type: 'integer', example: 5000, minimum: 1, description: 'Amount in cents'),
+            new OA\Property(property: 'amount', type: 'string', format: 'decimal', example: '25.00', description: 'Amount in major units of the asset, for example 25.00 for 25 US dollars. It can have at most as many decimals as the asset has; an amount with more decimals is refused with 422.'),
+            new OA\Property(property: 'asset_code', type: 'string', example: 'USD'),
             new OA\Property(property: 'description', type: 'string', example: 'Payment for services', maxLength: 255),
             ]))
         )]
@@ -45,7 +49,7 @@ class TransferController extends Controller
         new OA\Property(property: 'transfer_uuid', type: 'string', format: 'uuid'),
         new OA\Property(property: 'from_account_uuid', type: 'string', format: 'uuid'),
         new OA\Property(property: 'to_account_uuid', type: 'string', format: 'uuid'),
-        new OA\Property(property: 'amount', type: 'integer', example: 5000),
+        new OA\Property(property: 'amount', type: 'string', example: '25.00', description: 'The amount as sent, in major units of the asset.'),
         new OA\Property(property: 'status', type: 'string', example: 'pending'),
         ]),
         new OA\Property(property: 'message', type: 'string', example: 'Transfer initiated successfully'),
@@ -61,7 +65,7 @@ class TransferController extends Controller
     )]
     #[OA\Response(
         response: 422,
-        description: 'Validation error or business rule violation',
+        description: 'Validation error or business rule violation, for example an amount with more decimals than the asset has',
         content: new OA\JsonContent(ref: '#/components/schemas/Error')
     )]
     public function store(Request $request): JsonResponse
@@ -131,7 +135,7 @@ class TransferController extends Controller
         }
 
         $asset = Asset::where('code', $validated['asset_code'])->firstOrFail();
-        $amountInMinorUnits = (int) round($validated['amount'] * (10 ** $asset->precision));
+        $amountInMinorUnits = $this->minorUnitsOrFail($validated['amount'], $asset);
 
         // Check sufficient balance
         $fromBalance = $fromAccount->getBalance($validated['asset_code']);

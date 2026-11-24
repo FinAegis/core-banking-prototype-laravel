@@ -27,19 +27,20 @@ const accounts = await client.accounts.list();
 // Create a new account
 const account = await client.accounts.create({
   user_uuid: 'user-uuid',
-  name: 'My Savings Account',
-  initial_balance: 10000 // in cents
+  name: 'My Savings Account' // accounts open empty; fund them with a deposit
 });
 
 // Make a transfer
 const transfer = await client.transfers.create({
   from_account: 'account-uuid-1',
   to_account: 'account-uuid-2',
-  amount: 5000, // in cents
+  amount: 50.25, // 50.25 US dollars, in major units
   asset_code: 'USD',
   reference: 'Payment for services'
 });
 ```
+
+Amounts are in major units of the asset, for example 50.25 for 50.25 US dollars, not cents. The API refuses an amount with more decimals than the asset has, such as 10.005 for USD.
 
 ## Configuration
 
@@ -85,10 +86,10 @@ const account = await client.accounts.get('account-uuid');
 const balances = await client.accounts.getBalances('account-uuid');
 
 // Deposit funds
-const deposit = await client.accounts.deposit('account-uuid', 10000, 'USD');
+const deposit = await client.accounts.deposit('account-uuid', 100, 'USD'); // 100 US dollars
 
 // Withdraw funds
-const withdrawal = await client.accounts.withdraw('account-uuid', 5000, 'USD');
+const withdrawal = await client.accounts.withdraw('account-uuid', 50, 'USD'); // 50 US dollars
 
 // Freeze/unfreeze account
 await client.accounts.freeze('account-uuid', 'Suspicious activity');
@@ -102,7 +103,7 @@ await client.accounts.unfreeze('account-uuid', 'Investigation completed');
 const transfer = await client.transfers.create({
   from_account: 'account-uuid-1',
   to_account: 'account-uuid-2',
-  amount: 10000,
+  amount: 100, // 100 US dollars
   asset_code: 'USD',
   reference: 'Invoice #123'
 });
@@ -242,7 +243,7 @@ async function processPayment(fromAccountId: string, toAccountId: string, amount
     const transfer = await client.transfers.create({
       from_account: fromAccountId,
       to_account: toAccountId,
-      amount: amount * 100, // Convert to cents
+      amount, // in US dollars; the API takes major units, not cents
       asset_code: 'USD',
       reference: `Payment on ${new Date().toISOString()}`
     });

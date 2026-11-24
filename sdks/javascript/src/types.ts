@@ -61,6 +61,7 @@ export interface Account {
 export interface CreateAccountParams {
   user_uuid: string;
   name: string;
+  /** Leave it out or send 0. Accounts open empty; fund them with a deposit. */
   initial_balance?: number;
 }
 
@@ -91,6 +92,10 @@ export interface Transfer {
 export interface CreateTransferParams {
   from_account: string;
   to_account: string;
+  /**
+   * Amount in major units of the asset, for example 25.5 for 25.50 US
+   * dollars, not cents. The API refuses more decimals than the asset has.
+   */
   amount: number;
   asset_code: string;
   reference?: string;

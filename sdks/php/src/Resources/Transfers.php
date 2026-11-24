@@ -16,7 +16,7 @@ class Transfers extends BaseResource
      *
      * @param  string  $fromAccount  Source account UUID
      * @param  string  $toAccount  Destination account UUID
-     * @param  float  $amount  Amount in cents
+     * @param  float  $amount  Amount in major units of the asset, for example 25.50 for 25.50 US dollars
      * @param  string  $assetCode  Asset code
      * @param  string|null  $reference  Optional reference
      * @param  string|null  $idempotencyKey  Optional Idempotency-Key

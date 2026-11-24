@@ -28,7 +28,7 @@ class Accounts extends BaseResource
      *
      * @param  string  $userUuid  User UUID
      * @param  string  $name  Account name
-     * @param  float  $initialBalance  Initial balance in cents
+     * @param  float  $initialBalance  Must be 0. Accounts open empty; fund them with a deposit.
      * @param  string  $assetCode  Asset code (default: USD)
      */
     public function create(string $userUuid, string $name, float $initialBalance = 0, string $assetCode = 'USD'): Account
@@ -84,7 +84,7 @@ class Accounts extends BaseResource
      * Deposit funds to account.
      *
      * @param  string  $accountId  Account UUID
-     * @param  float  $amount  Amount in cents
+     * @param  float  $amount  Amount in major units of the asset, for example 100.00 for 100 US dollars
      * @param  string  $assetCode  Asset code
      * @param  string|null  $reference  Optional reference
      * @param  string|null  $idempotencyKey  Optional Idempotency-Key. The client makes one
@@ -115,7 +115,7 @@ class Accounts extends BaseResource
      * Withdraw funds from account.
      *
      * @param  string  $accountId  Account UUID
-     * @param  float  $amount  Amount in cents
+     * @param  float  $amount  Amount in major units of the asset, for example 100.00 for 100 US dollars
      * @param  string  $assetCode  Asset code
      * @param  string|null  $reference  Optional reference
      * @param  string|null  $idempotencyKey  Optional Idempotency-Key. The client makes one
