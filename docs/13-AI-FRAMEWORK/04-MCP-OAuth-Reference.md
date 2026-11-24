@@ -134,7 +134,7 @@ POST /oauth/token
 
 The response has a new access token and may have a new refresh token. The npm relay refreshes tokens on its own.
 
-The authorization server metadata lists `https://zelta.app/oauth/tokens` as `revocation_endpoint`, but the app has no such route yet.
+The authorization server metadata does not list a `revocation_endpoint`. Passport has no token revocation route under RFC 7009, so the app does not advertise one.
 
 ## Token policies
 

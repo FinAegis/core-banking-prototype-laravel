@@ -13,12 +13,14 @@ final class AuthorizationServerMetadataController
     {
         $issuer = (string) config('mcp.authorization_server');
 
+        // No `revocation_endpoint`: Passport ships no RFC 7009 token
+        // revocation route, and RFC 8414 makes the field optional. Only
+        // advertise endpoints that are registered routes.
         return response()->json([
             'issuer'                                => $issuer,
             'authorization_endpoint'                => $issuer . '/oauth/authorize',
             'token_endpoint'                        => $issuer . '/oauth/token',
             'registration_endpoint'                 => $issuer . '/oauth/register',
-            'revocation_endpoint'                   => $issuer . '/oauth/tokens',
             'scopes_supported'                      => array_keys((array) config('mcp.scopes', [])),
             'response_types_supported'              => ['code'],
             'grant_types_supported'                 => ['authorization_code', 'client_credentials', 'refresh_token'],
