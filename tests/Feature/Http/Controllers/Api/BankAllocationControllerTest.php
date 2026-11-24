@@ -476,6 +476,64 @@ class BankAllocationControllerTest extends ControllerTestCase
         $this->assertEquals(300.00, $santanderAmount); // 30% of 1000
     }
 
+    private function createSingleBankPreference(): void
+    {
+        UserBankPreference::create([
+            'user_uuid'             => $this->user->uuid,
+            'bank_code'             => 'PAYSERA',
+            'bank_name'             => UserBankPreference::AVAILABLE_BANKS['PAYSERA']['name'],
+            'allocation_percentage' => 100,
+            'is_primary'            => true,
+            'is_active'             => true,
+            'status'                => 'active',
+            'metadata'              => UserBankPreference::AVAILABLE_BANKS['PAYSERA'],
+        ]);
+    }
+
+    #[Test]
+    public function test_preview_distribution_uses_exact_minor_units(): void
+    {
+        // (int) (0.29 * 100) is 28: the preview showed 0.28 for 0.29.
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+        $this->createSingleBankPreference();
+
+        $this->postJson('/api/bank-allocations/distribution-preview', [
+            'amount'     => 0.29,
+            'asset_code' => 'USD',
+        ])->assertOk()
+            ->assertJsonPath('data.distribution.0.amount', '0.29');
+    }
+
+    #[Test]
+    public function test_preview_distribution_uses_the_asset_precision(): void
+    {
+        Asset::firstOrCreate(
+            ['code' => 'BTC'],
+            ['name' => 'Bitcoin', 'type' => 'crypto', 'precision' => 8, 'is_active' => true]
+        );
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+        $this->createSingleBankPreference();
+
+        $this->postJson('/api/bank-allocations/distribution-preview', [
+            'amount'     => 1.1,
+            'asset_code' => 'BTC',
+        ])->assertOk()
+            ->assertJsonPath('data.distribution.0.amount', '1.10000000');
+    }
+
+    #[Test]
+    public function test_preview_distribution_refuses_more_decimals_than_the_asset_has(): void
+    {
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+        $this->createSingleBankPreference();
+
+        $this->postJson('/api/bank-allocations/distribution-preview', [
+            'amount'     => '0.295',
+            'asset_code' => 'USD',
+        ])->assertStatus(422)
+            ->assertJsonValidationErrors(['amount']);
+    }
+
     #[Test]
     public function test_preview_distribution_validates_input(): void
     {

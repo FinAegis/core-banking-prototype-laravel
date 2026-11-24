@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Domain\Account\Services\BankAllocationService;
+use App\Domain\Asset\Models\Asset;
 use App\Domain\Banking\Models\UserBankPreference;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\DecimalString;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(
@@ -427,7 +430,7 @@ class BankAllocationController extends Controller
         new OA\Property(property: 'bank_code', type: 'string', example: 'PAYSERA'),
         new OA\Property(property: 'bank_name', type: 'string', example: 'Paysera Bank'),
         new OA\Property(property: 'allocation_percentage', type: 'number', example: 40.0),
-        new OA\Property(property: 'amount', type: 'number', example: 400.00),
+        new OA\Property(property: 'amount', type: 'string', example: '400.00', description: 'Decimal string in the precision of the asset'),
         new OA\Property(property: 'is_primary', type: 'boolean', example: true),
         ])),
         new OA\Property(property: 'summary', type: 'object', properties: [
@@ -449,9 +452,19 @@ class BankAllocationController extends Controller
 
         $user = Auth::user();
         /** @var User $user */
-        $amountInCents = (int) ($validated['amount'] * 100);
 
-        $summary = $this->bankAllocationService->getDistributionSummary($user, $amountInCents);
+        // Exact minor units of the asset. An amount with more decimals than
+        // the asset has is refused, not rounded.
+        $precision = (int) (Asset::query()->where('code', $validated['asset_code'])->value('precision') ?? 2);
+        $amountInMinorUnits = DecimalString::toMinorUnitsInt($validated['amount'], $precision);
+
+        if ($amountInMinorUnits === null) {
+            throw ValidationException::withMessages([
+                'amount' => ["The amount can have at most {$precision} decimal places for {$validated['asset_code']}."],
+            ]);
+        }
+
+        $summary = $this->bankAllocationService->getDistributionSummary($user, $amountInMinorUnits);
 
         if (isset($summary['error'])) {
             return response()->json(
@@ -463,14 +476,15 @@ class BankAllocationController extends Controller
             );
         }
 
-        // Convert distribution from cents back to float for API response
+        // Minor units back to a decimal string in the asset's precision.
+        $divisor = bcpow('10', (string) $precision);
         $distribution = collect($summary['distribution'])->map(
-            function ($bankDistribution) {
+            function ($bankDistribution) use ($divisor, $precision) {
                 return [
                     'bank_code'             => $bankDistribution['bank_code'],
                     'bank_name'             => $bankDistribution['bank_name'],
                     'allocation_percentage' => $bankDistribution['percentage'],
-                    'amount'                => $bankDistribution['amount'] / 100,
+                    'amount'                => bcdiv((string) $bankDistribution['amount'], $divisor, $precision),
                     'is_primary'            => $bankDistribution['is_primary'],
                 ];
             }
