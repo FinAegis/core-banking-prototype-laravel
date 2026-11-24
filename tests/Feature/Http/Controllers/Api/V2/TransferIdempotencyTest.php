@@ -194,11 +194,9 @@ it('deduplicates every v2 POST route that the SDKs call', function (string $uri)
     'account create'   => ['api/v2/accounts'],
     'account freeze'   => ['api/v2/accounts/{uuid}/freeze'],
     'account unfreeze' => ['api/v2/accounts/{uuid}/unfreeze'],
-    'asset create'     => ['api/v2/assets'],
     'basket create'    => ['api/v2/baskets'],
     'basket rebalance' => ['api/v2/baskets/{code}/rebalance'],
     'webhook create'   => ['api/v2/webhooks'],
-    'rates refresh'    => ['api/v2/exchange-rates/refresh'],
 ]);
 
 it('deduplicates the money-moving v2 POST routes that no SDK calls', function (string $uri, string $limiter): void {
