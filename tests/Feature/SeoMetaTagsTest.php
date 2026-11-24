@@ -40,7 +40,7 @@ class SeoMetaTagsTest extends TestCase
                 'hasOgTags'      => true,
             ],
             '/pricing' => [
-                'title'          => 'Pricing - Flexible Plans for Every Scale | ' . $brand,
+                'title'          => 'Pricing - Free and Open Source | ' . $brand,
                 'hasDescription' => true,
                 'hasKeywords'    => true,
                 'hasOgTags'      => true,

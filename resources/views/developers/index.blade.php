@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Developer Docs — REST, GraphQL & CLI Reference | ' . config('brand.name', 'Zelta'),
-        'description' => config('brand.name', 'Zelta') . ' developer docs: 1,400+ REST and GraphQL API routes, public MCP server, SDKs, CLI tools, and WebSocket integrations across 61 banking modules. Get started in minutes.',
+        'description' => 'The developer docs for ' . config('brand.name', 'Zelta') . ' cover more than 1,000 API routes, GraphQL, the Model Context Protocol server, SDKs, a command-line tool and WebSockets across 61 modules.',
         'keywords' => config('brand.name', 'Zelta') . ', developer, API, documentation, SDK, CLI, REST API, GraphQL, WebSocket, Laravel, banking API, open source, integration',
     ])
 @endsection
@@ -137,13 +137,13 @@
                 <div class="text-center">
                     <div class="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm mb-6">
                         <span class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
-                        <span>v7.14.1 Documentation — 61 Domains, 1,400+ Routes, GraphQL + REST + MCP + x402</span>
+                        <span>Documentation for v7.18.1, with 61 domain modules and more than 1,000 API routes</span>
                     </div>
                     <h1 class="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-200">
-                        Build with 1,400+ API Routes
+                        Build with More Than 1,000 API Routes
                     </h1>
                     <p class="text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto mb-12">
-                        REST, GraphQL, WebSocket, and CLI — integrate payments, lending, and compliance tooling in minutes.
+                        You can use REST, GraphQL, WebSockets and a command-line tool. They give you access to payments, lending, compliance tooling and the other modules.
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
                         <a href="#quickstart" class="group bg-white text-slate-900 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition shadow-lg hover:shadow-xl inline-flex items-center justify-center">
@@ -177,8 +177,8 @@
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    <span class="font-medium">v7.14.1 Released:</span>
-                    <span class="ml-2">Hotfix — Privy email-OTP signups now provision a Jetstream personal team, fixing a 500 on first web login. v7.14.0 shipped the wallet transaction mirror — inbound EVM deposits (Polygon/Base/Arbitrum/Ethereum) mirrored into transaction history at parity with Solana, per-user wallet activity in the admin panel, the receipt endpoint serving a hosted page and a downloadable PDF, and Solana address-poisoning dust filtered out of the feed. USDT (v7.13.1), mobile-driven IAP subscriptions (v7.13.0), and non-custodial wallet send via Privy (v7.12.0) all live. 61 DDD domains, 1,400+ API routes, GraphQL (45 domains), ISO 20022, ISO 8583, x402 Protocol, public MCP server.</span>
+                    <span class="font-medium">Version 7.18.1 is out.</span>
+                    <span class="ml-2">Asset transfers, wallet currency conversions and Global Currency Unit demo trades now book the right amounts. The daily spending limit a person sets when connecting an AI assistant is now saved. The identity check in the closed card pilot now starts, and adding money to a card stays switched off. Version 7.18.0 added the provider-neutral card layer. It also removed the liquidity add, remove and rebalance flow and the saved bank accounts on the withdrawal page, because they never worked.</span>
                 </div>
             </div>
         </section>
@@ -189,7 +189,7 @@
                 <div class="text-center mb-16">
                     <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Quick Start Guide</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        Get up and running with {{ config('brand.name', 'Zelta') }} in three simple steps
+                        You can run {{ config('brand.name', 'Zelta') }} on your own computer in three steps.
                     </p>
                 </div>
 
@@ -199,7 +199,7 @@
                         <div class="text-center mb-6">
                             <div class="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto shadow-lg">1</div>
                             <h3 class="text-xl font-semibold mt-4 mb-2">Clone Repository</h3>
-                            <p class="text-slate-500">Get the source code from GitHub</p>
+                            <p class="text-slate-500">Get the source code from GitHub.</p>
                         </div>
                         <div class="code-container flex-1">
                             <div class="code-header">
@@ -230,7 +230,7 @@
                         <div class="text-center mb-6">
                             <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto shadow-lg">2</div>
                             <h3 class="text-xl font-semibold mt-4 mb-2">Install & Configure</h3>
-                            <p class="text-slate-500">Set up your development environment</p>
+                            <p class="text-slate-500">Set up your development environment.</p>
                         </div>
                         <div class="code-container flex-1">
                             <div class="code-header">
@@ -263,7 +263,7 @@
                         <div class="text-center mb-6">
                             <div class="w-20 h-20 bg-gradient-to-br from-pink-500 to-orange-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto shadow-lg">3</div>
                             <h3 class="text-xl font-semibold mt-4 mb-2">Start Building</h3>
-                            <p class="text-slate-500">Verify the API is running, then make your first request</p>
+                            <p class="text-slate-500">Check that the API is running, then make your first request.</p>
                         </div>
                         <div class="code-container flex-1">
                             <div class="code-header">
@@ -284,7 +284,7 @@
                                 <div id="code-step3">
                                     <div><span class="text-gray-500"># Verify the API is running (no auth needed)</span></div>
                                     <div><span class="text-gray-500">$</span> <span class="text-green-400">curl</span> <span class="text-yellow-400">http://localhost:8000/api/health</span></div>
-                                    <div><span class="text-gray-500"># {"status":"ok","version":"7.10.8"}</span></div>
+                                    <div><span class="text-gray-500"># {"status":"healthy","checks":{"database":true,"cache":true,"app":true},...}</span></div>
                                     <div class="mt-2"><span class="text-gray-500"># Make an authenticated request</span></div>
                                     <div><span class="text-gray-500">$</span> <span class="text-green-400">curl</span> <span class="text-blue-400">-H</span> <span class="text-yellow-400">"Authorization: Bearer YOUR_API_KEY"</span> <span class="text-gray-400">\</span></div>
                                     <div>  <span class="text-yellow-400">http://localhost:8000/api/v2/accounts</span></div>
@@ -302,7 +302,7 @@
                 <div class="text-center mb-16">
                     <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">API Overview</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        RESTful API built on modern standards with comprehensive documentation
+                        The REST API follows common conventions and is described in an OpenAPI reference.
                     </p>
                 </div>
 
@@ -319,7 +319,7 @@
                                 <h3 class="text-xl font-semibold">Authentication</h3>
                             </div>
                             <p class="text-slate-500 mb-6">
-                                Secure API authentication using Bearer tokens. Get your API key from the dashboard after registration.
+                                The API uses bearer tokens for authentication. You can create an API key in the dashboard after you register.
                             </p>
                             <div class="code-container">
                                 <div class="code-header">
@@ -369,24 +369,24 @@
                                 <h3 class="text-xl font-semibold">Rate Limiting</h3>
                             </div>
                             <p class="text-slate-500 mb-6">
-                                API requests are limited to ensure fair usage and platform stability.
+                                Each type of request has its own limit per minute. The limits keep the platform fair and stable.
                             </p>
                             <div class="bg-slate-50 rounded-lg p-6 space-y-4">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-slate-600 font-medium">Per Hour</span>
-                                    <span class="text-2xl font-bold text-indigo-600">1,000</span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-slate-600 font-medium">Per Day</span>
-                                    <span class="text-2xl font-bold text-indigo-600">10,000</span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-slate-600 font-medium">Burst Rate</span>
+                                    <span class="text-slate-600 font-medium">Queries</span>
                                     <span class="text-2xl font-bold text-indigo-600">100/min</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-600 font-medium">Transactions</span>
+                                    <span class="text-2xl font-bold text-indigo-600">30/min</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-600 font-medium">Sign-in attempts</span>
+                                    <span class="text-2xl font-bold text-indigo-600">3/min</span>
                                 </div>
                             </div>
                             <p class="text-sm text-slate-400 mt-4">
-                                Rate limit headers are included in all API responses for monitoring.
+                                Responses carry rate limit headers, so you can see how many requests remain. Operators can change each limit in the configuration.
                             </p>
                         </div>
                     </div>
@@ -403,7 +403,7 @@
                         </div>
                         <h4 class="text-lg font-semibold text-slate-900 mb-2">API Versioning</h4>
                         <p class="text-slate-500 text-sm">
-                            All endpoints are versioned (v1, v2) to ensure backward compatibility as we evolve the API.
+                            Most endpoints carry a version in the path, such as v1 or v2. A new version can change an endpoint without breaking older clients.
                         </p>
                     </div>
 
@@ -416,7 +416,7 @@
                         </div>
                         <h4 class="text-lg font-semibold text-slate-900 mb-2">Webhooks</h4>
                         <p class="text-slate-500 text-sm">
-                            Real-time event notifications for transactions, account updates, and system events.
+                            Webhooks notify your systems about transactions, account changes and system events as they happen.
                         </p>
                     </div>
 
@@ -427,16 +427,14 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
                             </svg>
                         </div>
-                        <h4 class="text-lg font-semibold text-slate-900 mb-2">Official SDKs</h4>
+                        <h4 class="text-lg font-semibold text-slate-900 mb-2">Official Client Libraries</h4>
                         <p class="text-slate-500 text-sm mb-3">
-                            Native SDKs for JavaScript, Python, and PHP. Go and Ruby coming soon.
+                            Official client libraries exist for JavaScript, Python and PHP.
                         </p>
                         <div class="flex flex-wrap gap-2">
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">JavaScript</span>
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Python</span>
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">PHP</span>
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-500">Go (soon)</span>
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-500">Ruby (soon)</span>
                         </div>
                     </div>
                 </div>
@@ -444,7 +442,7 @@
                 <!-- Platform API Area Cards -->
                 <div class="mt-16">
                     <h3 class="text-2xl font-bold text-slate-900 mb-2 text-center">Platform API Areas</h3>
-                    <p class="text-slate-500 text-center mb-8">Explore the full breadth of the {{ config('brand.name', 'Zelta') }} platform across 61 DDD domains. Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
+                    <p class="text-slate-500 text-center mb-8">These cards show the main API areas of the 61 domain modules. Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
                         <!-- CrossChain -->
@@ -457,11 +455,11 @@
                                         </svg>
                                     </div>
                                     <div>
-                                        <h4 class="text-lg font-semibold text-slate-900">CrossChain</h4>
-                                        <span class="text-xs text-slate-400">7 routes</span>
+                                        <h4 class="text-lg font-semibold text-slate-900">Cross-Chain</h4>
+                                        <span class="text-xs text-slate-400">6 routes</span>
                                     </div>
                                 </div>
-                                <p class="text-slate-500 text-sm mb-3">Bridge protocols (Wormhole, LayerZero, Axelar), cross-chain swaps, fee comparison, and multi-chain portfolio tracking.</p>
+                                <p class="text-slate-500 text-sm mb-3">Bridge adapters for Wormhole, LayerZero and Axelar compare fees and run cross-chain swaps. The API also tracks portfolios across chains.</p>
                                 <span class="text-cyan-600 text-sm font-medium group-hover:text-cyan-700">View endpoints &rarr;</span>
                             </div>
                         </a>
@@ -476,11 +474,11 @@
                                         </svg>
                                     </div>
                                     <div>
-                                        <h4 class="text-lg font-semibold text-slate-900">DeFi</h4>
+                                        <h4 class="text-lg font-semibold text-slate-900">Decentralised Finance</h4>
                                         <span class="text-xs text-slate-400">8 routes</span>
                                     </div>
                                 </div>
-                                <p class="text-slate-500 text-sm mb-3">DEX aggregation (Uniswap, Curve), lending (Aave), staking (Lido), flash loans, and portfolio management.</p>
+                                <p class="text-slate-500 text-sm mb-3">Swaps run through Uniswap and Curve, lending through Aave and staking through Lido. The API also covers flash loans and portfolio management.</p>
                                 <span class="text-emerald-600 text-sm font-medium group-hover:text-emerald-700">View endpoints &rarr;</span>
                             </div>
                         </a>
@@ -495,11 +493,11 @@
                                         </svg>
                                     </div>
                                     <div>
-                                        <h4 class="text-lg font-semibold text-slate-900">RegTech</h4>
-                                        <span class="text-xs text-slate-400">12 routes</span>
+                                        <h4 class="text-lg font-semibold text-slate-900">Regulatory Reporting</h4>
+                                        <span class="text-xs text-slate-400">11 routes</span>
                                     </div>
                                 </div>
-                                <p class="text-slate-500 text-sm mb-3">Reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements, with jurisdiction adapters.</p>
+                                <p class="text-slate-500 text-sm mb-3">These endpoints build reports in the formats of the Markets in Financial Instruments Directive, the Markets in Crypto-Assets Regulation and the Travel Rule. Each jurisdiction has its own adapter.</p>
                                 <span class="text-amber-600 text-sm font-medium group-hover:text-amber-700">View endpoints &rarr;</span>
                             </div>
                         </a>
@@ -515,15 +513,15 @@
                                     </div>
                                     <div>
                                         <h4 class="text-lg font-semibold text-slate-900">Mobile Payment</h4>
-                                        <span class="text-xs text-slate-400">25+ routes</span>
+                                        <span class="text-xs text-slate-400">15+ routes</span>
                                     </div>
                                 </div>
-                                <p class="text-slate-500 text-sm mb-3">Payment intents, receipts, activity feeds, receive addresses, P2P transfers, passkey auth, and biometric JWT.</p>
+                                <p class="text-slate-500 text-sm mb-3">The mobile endpoints handle payment intents, receipts, the activity feed, receive addresses and peer-to-peer transfers. People sign in with passkeys or biometrics.</p>
                                 <span class="text-violet-600 text-sm font-medium group-hover:text-violet-700">View endpoints &rarr;</span>
                             </div>
                         </a>
 
-                        <!-- Partner / BaaS -->
+                        <!-- Partner API -->
                         <a href="{{ route('developers.show', 'api-docs') }}#partner-baas" class="group block">
                             <div class="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all hover:-translate-y-1 h-full">
                                 <div class="flex items-center mb-3">
@@ -533,11 +531,11 @@
                                         </svg>
                                     </div>
                                     <div>
-                                        <h4 class="text-lg font-semibold text-slate-900">Partner / BaaS</h4>
-                                        <span class="text-xs text-slate-400">24 routes</span>
+                                        <h4 class="text-lg font-semibold text-slate-900">Partner API</h4>
+                                        <span class="text-xs text-slate-400">28 routes</span>
                                     </div>
                                 </div>
-                                <p class="text-slate-500 text-sm mb-3">Banking-as-a-Service partner onboarding, SDK generation, white-label configuration, and tenant provisioning.</p>
+                                <p class="text-slate-500 text-sm mb-3">Banking-as-a-service partners can generate client libraries, set their own branding and embed widgets. They can also see their usage and bills.</p>
                                 <span class="text-rose-600 text-sm font-medium group-hover:text-rose-700">View endpoints &rarr;</span>
                             </div>
                         </a>
@@ -556,7 +554,7 @@
                                         <span class="text-xs text-slate-400">2 routes</span>
                                     </div>
                                 </div>
-                                <p class="text-slate-500 text-sm mb-3">Natural language transaction queries and AI-powered financial insights via the intelligent query interface.</p>
+                                <p class="text-slate-500 text-sm mb-3">You can ask about transactions in plain language. The query endpoint answers with financial insights.</p>
                                 <span class="text-slate-500 text-sm font-medium group-hover:text-slate-800">View endpoints &rarr;</span>
                             </div>
                         </a>
@@ -573,10 +571,10 @@
                                     </div>
                                     <div>
                                         <h4 class="text-lg font-semibold text-slate-900">GraphQL API</h4>
-                                        <span class="text-xs text-slate-400">45 domains</span>
+                                        <span class="text-xs text-slate-400">43 domains</span>
                                     </div>
                                 </div>
-                                <p class="text-slate-500 text-sm mb-3">Schema-first GraphQL via Lighthouse PHP with queries, mutations, subscriptions, and DataLoaders across 45 domain schemas.</p>
+                                <p class="text-slate-500 text-sm mb-3">The schema-first GraphQL API is built with Lighthouse PHP. It has queries, mutations and subscriptions across 43 domains, and it batches database queries.</p>
                                 <span class="text-sky-600 text-sm font-medium group-hover:text-sky-700">View endpoints &rarr;</span>
                             </div>
                         </a>
@@ -595,7 +593,7 @@
                                         <span class="text-xs text-slate-400">5 endpoints</span>
                                     </div>
                                 </div>
-                                <p class="text-slate-500 text-sm mb-3">Redis Streams-based event publishing, consumer groups, live metrics dashboard with projector lag and throughput monitoring.</p>
+                                <p class="text-slate-500 text-sm mb-3">Domain events are published to Redis Streams and read by consumer groups. A live dashboard shows projector lag and throughput.</p>
                                 <span class="text-lime-600 text-sm font-medium group-hover:text-lime-700">View endpoints &rarr;</span>
                             </div>
                         </a>
@@ -611,10 +609,10 @@
                                     </div>
                                     <div>
                                         <h4 class="text-lg font-semibold text-slate-900">SMS</h4>
-                                        <span class="text-xs text-slate-400">4 endpoints &middot; MPP gated</span>
+                                        <span class="text-xs text-slate-400">4 endpoints &middot; paid per message</span>
                                     </div>
                                 </div>
-                                <p class="text-slate-500 text-sm mb-3">Send SMS via VertexSMS with multi-rail payment gating (USDC, Stripe, Lightning). Delivery tracking, per-country rates, and MCP tool support.</p>
+                                <p class="text-slate-500 text-sm mb-3">You can send SMS messages through VertexSMS and pay for each one with USDC, Stripe or Lightning. The API tracks delivery and shows the rate for each country. A Model Context Protocol tool can send messages too.</p>
                                 <span class="text-orange-600 text-sm font-medium group-hover:text-orange-700">View endpoints &rarr;</span>
                             </div>
                         </a>
@@ -633,7 +631,7 @@
                                         <span class="text-xs text-slate-400">15+ endpoints</span>
                                     </div>
                                 </div>
-                                <p class="text-slate-500 text-sm mb-3">HTTP-native micropayments. Monetize APIs with USDC on Base. GraphQL + REST with AI agent payment support.</p>
+                                <p class="text-slate-500 text-sm mb-3">An API can ask for a small USDC payment before it answers, so you can charge for your own APIs. REST and GraphQL endpoints manage it, and AI agents can pay on their own.</p>
                                 <span class="text-emerald-600 text-sm font-medium group-hover:text-emerald-700">View endpoints &rarr;</span>
                             </div>
                         </a>
@@ -652,7 +650,7 @@
                                         <span class="text-xs text-slate-400">8 message types</span>
                                     </div>
                                 </div>
-                                <p class="text-slate-500 text-sm mb-3">Parse, generate, validate ISO 20022 messages. 8 message types (pacs, pain, camt) with REST + GraphQL APIs.</p>
+                                <p class="text-slate-500 text-sm mb-3">The API reads, builds and validates eight ISO 20022 message types from the pacs, pain and camt families. It works at the message layer and does not connect to a live scheme.</p>
                                 <span class="text-blue-600 text-sm font-medium group-hover:text-blue-700">View endpoints &rarr;</span>
                             </div>
                         </a>
@@ -668,10 +666,10 @@
                                     </div>
                                     <div>
                                         <h4 class="text-lg font-semibold text-slate-900">Open Banking</h4>
-                                        <span class="text-xs text-slate-400">PSD2 &middot; AISP &middot; PISP</span>
+                                        <span class="text-xs text-slate-400">Consents &middot; Accounts &middot; Payments</span>
                                     </div>
                                 </div>
-                                <p class="text-slate-500 text-sm mb-3">PSD2 consent management, AISP account access, PISP payment initiation. Berlin Group and UK Open Banking adapters.</p>
+                                <p class="text-slate-500 text-sm mb-3">The API manages consents, account access and payment initiation under the European Union's second Payment Services Directive. It includes adapters for the Berlin Group standard and the United Kingdom Open Banking standard, and it runs in demo mode.</p>
                                 <span class="text-teal-600 text-sm font-medium group-hover:text-teal-700">View endpoints &rarr;</span>
                             </div>
                         </a>
@@ -690,7 +688,7 @@
                                         <span class="text-xs text-slate-400">ACH &middot; Fedwire &middot; SEPA &middot; RTP &middot; FedNow</span>
                                     </div>
                                 </div>
-                                <p class="text-slate-500 text-sm mb-3">ACH, Fedwire, RTP, FedNow, SEPA message modules with intelligent routing that selects the optimal rail automatically.</p>
+                                <p class="text-slate-500 text-sm mb-3">These modules build messages for the Automated Clearing House network, Fedwire, Real-Time Payments, FedNow and SEPA. Routing logic picks a rail for each payment. They do not settle real payments.</p>
                                 <span class="text-orange-600 text-sm font-medium group-hover:text-orange-700">View endpoints &rarr;</span>
                             </div>
                         </a>
@@ -706,10 +704,10 @@
                                     </div>
                                     <div>
                                         <h4 class="text-lg font-semibold text-slate-900">Interledger</h4>
-                                        <span class="text-xs text-slate-400">ILP &middot; Open Payments &middot; GNAP</span>
+                                        <span class="text-xs text-slate-400">Connector &middot; Open Payments &middot; Quotes</span>
                                     </div>
                                 </div>
-                                <p class="text-slate-500 text-sm mb-3">ILP connections, Open Payments (GNAP authorization), and cross-currency quotes.</p>
+                                <p class="text-slate-500 text-sm mb-3">The Interledger connector moves value between networks and quotes across currencies. It supports Open Payments with its own authorisation protocol.</p>
                                 <span class="text-purple-600 text-sm font-medium group-hover:text-purple-700">View endpoints &rarr;</span>
                             </div>
                         </a>
@@ -728,7 +726,7 @@
                                         <span class="text-xs text-slate-400">Double-entry accounting</span>
                                     </div>
                                 </div>
-                                <p class="text-slate-500 text-sm mb-3">Double-entry accounting, chart of accounts, journal entries, trial balance, and GL auto-posting with optional TigerBeetle driver.</p>
+                                <p class="text-slate-500 text-sm mb-3">The ledger keeps double-entry books with a chart of accounts and journal entries. It posts to the general ledger and produces a trial balance. An optional TigerBeetle driver handles high volumes.</p>
                                 <span class="text-slate-600 text-sm font-medium group-hover:text-slate-800">View endpoints &rarr;</span>
                             </div>
                         </a>
@@ -744,10 +742,10 @@
                                     </div>
                                     <div>
                                         <h4 class="text-lg font-semibold text-slate-900">Microfinance</h4>
-                                        <span class="text-xs text-slate-400">Group lending &middot; IFRS &middot; Teller ops</span>
+                                        <span class="text-xs text-slate-400">Group lending &middot; Provisions &middot; Tellers</span>
                                     </div>
                                 </div>
-                                <p class="text-slate-500 text-sm mb-3">Group lending, IFRS loan provisioning, share accounts, teller operations, and savings products for inclusion banking.</p>
+                                <p class="text-slate-500 text-sm mb-3">The API supports group loans, loan-loss provisions by days overdue, share accounts, teller work and savings accounts.</p>
                                 <span class="text-green-600 text-sm font-medium group-hover:text-green-700">View endpoints &rarr;</span>
                             </div>
                         </a>
@@ -772,7 +770,7 @@
                 <div class="text-center mb-16">
                     <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Developer Resources</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        Everything you need to build amazing financial applications
+                        These resources help you build on the platform.
                     </p>
                 </div>
 
@@ -785,9 +783,9 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                                 </svg>
                             </div>
-                            <h3 class="text-xl font-semibold mb-2">MCP &amp; AI Agent Tools</h3>
-                            <p class="text-slate-500 mb-4">{{ count(\App\Domain\MCP\Server\McpToolCatalog::enabledTools()) }} tools, 4 resources, OAuth 2.1 — connect any spec-compliant client.</p>
-                            <span class="text-emerald-600 font-medium group-hover:text-emerald-700">Explore MCP →</span>
+                            <h3 class="text-xl font-semibold mb-2">Model Context Protocol Tools</h3>
+                            <p class="text-slate-500 mb-4">{{ count(\App\Domain\MCP\Server\McpToolCatalog::enabledTools()) }} tools and 4 resources behind an OAuth 2.1 sign-in. Any client that follows the specification can connect.</p>
+                            <span class="text-emerald-600 font-medium group-hover:text-emerald-700">Explore the tools →</span>
                         </div>
                     </a>
 
@@ -804,7 +802,7 @@
                                 </svg>
                                 API Documentation
                             </h3>
-                            <p class="text-slate-500 mb-4">Complete reference for all API endpoints</p>
+                            <p class="text-slate-500 mb-4">The reference describes the API endpoints.</p>
                             <span class="text-indigo-600 font-medium group-hover:text-indigo-700">Explore API →</span>
                         </div>
                     </a>
@@ -820,9 +818,9 @@
                                 <svg class="w-6 h-6 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                 </svg>
-                                SDKs & Libraries
+                                Client Libraries
                             </h3>
-                            <p class="text-slate-500 mb-4">Official SDKs for popular languages</p>
+                            <p class="text-slate-500 mb-4">Official client libraries exist for JavaScript, Python and PHP.</p>
                             <span class="text-purple-600 font-medium group-hover:text-purple-700">View SDKs →</span>
                         </div>
                     </a>
@@ -840,7 +838,7 @@
                                 </svg>
                                 Code Examples
                             </h3>
-                            <p class="text-slate-500 mb-4">Real-world integration examples</p>
+                            <p class="text-slate-500 mb-4">Worked examples show common integrations.</p>
                             <span class="text-green-600 font-medium group-hover:text-green-700">See Examples →</span>
                         </div>
                     </a>
@@ -853,7 +851,7 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-8 text-center">
                     <div>
-                        <div class="text-4xl md:text-5xl font-bold mb-2">1,400+</div>
+                        <div class="text-4xl md:text-5xl font-bold mb-2">1,000+</div>
                         <p class="text-indigo-200 flex items-center justify-center">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
@@ -862,12 +860,12 @@
                         </p>
                     </div>
                     <div>
-                        <div class="text-4xl md:text-5xl font-bold mb-2">57</div>
+                        <div class="text-4xl md:text-5xl font-bold mb-2">61</div>
                         <p class="text-indigo-200 flex items-center justify-center">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
                             </svg>
-                            DDD Domains
+                            Domain Modules
                         </p>
                     </div>
                     <div>
@@ -876,7 +874,7 @@
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
                             </svg>
-                            SDKs Coming
+                            Official Libraries
                         </p>
                     </div>
                     <div>
@@ -889,12 +887,12 @@
                         </p>
                     </div>
                     <div>
-                        <div class="text-4xl md:text-5xl font-bold mb-2">24/7</div>
+                        <div class="text-4xl md:text-5xl font-bold mb-2">43</div>
                         <p class="text-indigo-200 flex items-center justify-center">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"></path>
                             </svg>
-                            Support
+                            GraphQL Domains
                         </p>
                     </div>
                 </div>
@@ -907,7 +905,7 @@
                 <div class="text-center mb-16">
                     <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Partner API Authentication</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        BaaS partners and third-party integrators use dedicated Partner API keys with scoped permissions
+                        Banking-as-a-service partners use their own client credentials. These credentials work only on the partner API.
                     </p>
                 </div>
 
@@ -921,27 +919,27 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
                                     </svg>
                                 </div>
-                                <h3 class="text-xl font-semibold">Partner API Keys</h3>
+                                <h3 class="text-xl font-semibold">Partner Credentials</h3>
                             </div>
                             <p class="text-slate-500 mb-6">
-                                Partner keys provide scoped access to BaaS endpoints, tenant provisioning, SDK generation, and white-label configuration. Keys are issued during partner onboarding.
+                                Each partner gets a client ID and a client secret during onboarding. They give access to the partner endpoints for client library generation, branding, widgets, usage and billing.
                             </p>
                             <div class="bg-slate-50 rounded-lg p-6 space-y-3">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-slate-600 font-medium">Key Prefix</span>
-                                    <code class="text-sm bg-slate-200 px-2 py-1 rounded">fpk_</code>
+                                    <span class="text-slate-600 font-medium">Base Path</span>
+                                    <code class="text-sm bg-slate-200 px-2 py-1 rounded">/api/partner/v1</code>
                                 </div>
                                 <div class="flex items-center justify-between">
-                                    <span class="text-slate-600 font-medium">Scopes</span>
-                                    <span class="text-sm text-slate-500">baas, tenants, sdk, config</span>
+                                    <span class="text-slate-600 font-medium">Areas</span>
+                                    <span class="text-sm text-slate-500">Client libraries, branding, widgets, usage and billing</span>
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <span class="text-slate-600 font-medium">Rate Limit</span>
-                                    <span class="text-sm text-slate-500">5,000 req/hour</span>
+                                    <span class="text-sm text-slate-500">60 to 1,000 requests per minute by tier</span>
                                 </div>
                                 <div class="flex items-center justify-between">
-                                    <span class="text-slate-600 font-medium">IP Whitelist</span>
-                                    <span class="text-sm text-slate-500">Required</span>
+                                    <span class="text-slate-600 font-medium">Address Allowlist</span>
+                                    <span class="text-sm text-slate-500">Applied when set</span>
                                 </div>
                             </div>
                         </div>
@@ -959,7 +957,7 @@
                                 <h3 class="text-xl font-semibold">Partner Request Example</h3>
                             </div>
                             <p class="text-slate-500 mb-6">
-                                Include the Partner API key in the <code class="bg-slate-100 px-1 rounded">X-Partner-Key</code> header alongside your standard Bearer token.
+                                Send the client ID in the <code class="bg-slate-100 px-1 rounded">X-Partner-Client-Id</code> header and the secret in the <code class="bg-slate-100 px-1 rounded">X-Partner-Client-Secret</code> header.
                             </p>
                             <div class="code-container">
                                 <div class="code-header">
@@ -978,11 +976,10 @@
                                 </div>
                                 <div class="p-4 font-mono text-sm">
                                     <div id="code-partner-auth">
-                                        <div><span class="text-gray-500">$</span> <span class="text-green-400">curl</span> <span class="text-blue-400">-X</span> <span class="text-purple-400">POST</span> <span class="text-yellow-400">"{{ config('app.url') }}/api/v2/partner/tenants"</span> <span class="text-gray-400">\</span></div>
-                                        <div>  <span class="text-blue-400">-H</span> <span class="text-yellow-400">"Authorization: Bearer YOUR_API_KEY"</span> <span class="text-gray-400">\</span></div>
-                                        <div>  <span class="text-blue-400">-H</span> <span class="text-yellow-400">"X-Partner-Key: fpk_your_partner_key"</span> <span class="text-gray-400">\</span></div>
-                                        <div>  <span class="text-blue-400">-H</span> <span class="text-yellow-400">"Content-Type: application/json"</span> <span class="text-gray-400">\</span></div>
-                                        <div>  <span class="text-blue-400">-d</span> <span class="text-yellow-400">'{"name": "Acme Bank", "plan": "enterprise"}'</span></div>
+                                        <div><span class="text-gray-500">$</span> <span class="text-green-400">curl</span> <span class="text-yellow-400">"{{ config('app.url') }}/api/partner/v1/profile"</span> <span class="text-gray-400">\</span></div>
+                                        <div>  <span class="text-blue-400">-H</span> <span class="text-yellow-400">"X-Partner-Client-Id: YOUR_CLIENT_ID"</span> <span class="text-gray-400">\</span></div>
+                                        <div>  <span class="text-blue-400">-H</span> <span class="text-yellow-400">"X-Partner-Client-Secret: YOUR_CLIENT_SECRET"</span> <span class="text-gray-400">\</span></div>
+                                        <div>  <span class="text-blue-400">-H</span> <span class="text-yellow-400">"Accept: application/json"</span></div>
                                     </div>
                                 </div>
                             </div>
@@ -995,9 +992,9 @@
         <!-- CTA -->
         <section class="py-20 bg-slate-50">
             <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-                <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-6">Ready to Build?</h2>
+                <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-6">Get an API Key</h2>
                 <p class="text-xl text-slate-500 mb-8">
-                    Join our developer community and start building the future of finance
+                    Create a sandbox account to get an API key. The source code and the issue tracker are on GitHub.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('register') }}" class="btn-primary btn-lg">
@@ -1016,7 +1013,7 @@
                 <div class="text-center mb-16">
                     <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Code Examples</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        Real-world examples to get you started quickly
+                        These examples show common requests.
                     </p>
                 </div>
 
@@ -1025,7 +1022,7 @@
                     <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                         <div class="p-6 border-b border-gray-200">
                             <h3 class="text-lg font-semibold text-slate-900">Create a New Account</h3>
-                            <p class="text-slate-500 text-sm mt-1">Initialize a new account with an initial balance</p>
+                            <p class="text-slate-500 text-sm mt-1">Open a new account with an initial balance.</p>
                         </div>
                         <div class="code-container">
                             <div class="code-header">
@@ -1067,7 +1064,7 @@
                     <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                         <div class="p-6 border-b border-gray-200">
                             <h3 class="text-lg font-semibold text-slate-900">Transfer Funds</h3>
-                            <p class="text-slate-500 text-sm mt-1">Execute a transfer between two accounts</p>
+                            <p class="text-slate-500 text-sm mt-1">Move money between two accounts.</p>
                         </div>
                         <div class="code-container">
                             <div class="code-header">
@@ -1113,8 +1110,8 @@
                     <!-- GCU Exchange Example -->
                     <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                         <div class="p-6 border-b border-gray-200">
-                            <h3 class="text-lg font-semibold text-slate-900">GCU Demo Conversion (simulated)</h3>
-                            <p class="text-slate-500 text-sm mt-1">Simulated conversion in the GCU demo — GCU has no monetary value and is not issued or sold.</p>
+                            <h3 class="text-lg font-semibold text-slate-900">Read the Global Currency Unit Demo Basket</h3>
+                            <p class="text-slate-500 text-sm mt-1">This request reads the simulated basket of the Global Currency Unit demo. The unit has no monetary value and is not issued or sold.</p>
                         </div>
                         <div class="code-container">
                             <div class="code-header">
@@ -1132,29 +1129,18 @@
                                 </button>
                             </div>
                             <pre class="p-4 code-block"><code id="code-gcu-exchange"><span class="text-purple-400">&lt;?php</span>
-<span class="text-blue-400">$api_key</span> = <span class="text-amber-400">'YOUR_API_KEY'</span>;
-<span class="text-blue-400">$endpoint</span> = <span class="text-amber-400">'{{ config('app.url') }}/api/v2/gcu/exchange'</span>;
-
-<span class="text-blue-400">$data</span> = [
-    <span class="text-amber-400">'from_currency'</span> => <span class="text-amber-400">'USD'</span>,
-    <span class="text-amber-400">'amount'</span> => <span class="text-pink-400">1000.00</span>,
-    <span class="text-amber-400">'to_currency'</span> => <span class="text-amber-400">'GCU'</span>
-];
+<span class="text-blue-400">$endpoint</span> = <span class="text-amber-400">'{{ config('app.url') }}/api/v2/gcu/composition'</span>;
 
 <span class="text-blue-400">$ch</span> = <span class="text-green-400">curl_init</span>(<span class="text-blue-400">$endpoint</span>);
 <span class="text-green-400">curl_setopt</span>(<span class="text-blue-400">$ch</span>, <span class="text-cyan-400">CURLOPT_RETURNTRANSFER</span>, <span class="text-purple-400">true</span>);
-<span class="text-green-400">curl_setopt</span>(<span class="text-blue-400">$ch</span>, <span class="text-cyan-400">CURLOPT_POST</span>, <span class="text-purple-400">true</span>);
-<span class="text-green-400">curl_setopt</span>(<span class="text-blue-400">$ch</span>, <span class="text-cyan-400">CURLOPT_POSTFIELDS</span>, <span class="text-green-400">json_encode</span>(<span class="text-blue-400">$data</span>));
-<span class="text-green-400">curl_setopt</span>(<span class="text-blue-400">$ch</span>, <span class="text-cyan-400">CURLOPT_HTTPHEADER</span>, [
-    <span class="text-amber-400">'Authorization: Bearer '</span> . <span class="text-blue-400">$api_key</span>,
-    <span class="text-amber-400">'Content-Type: application/json'</span>
-]);
+<span class="text-green-400">curl_setopt</span>(<span class="text-blue-400">$ch</span>, <span class="text-cyan-400">CURLOPT_HTTPHEADER</span>, [<span class="text-amber-400">'Accept: application/json'</span>]);
 
 <span class="text-blue-400">$response</span> = <span class="text-green-400">curl_exec</span>(<span class="text-blue-400">$ch</span>);
 <span class="text-blue-400">$result</span> = <span class="text-green-400">json_decode</span>(<span class="text-blue-400">$response</span>, <span class="text-purple-400">true</span>);
 
-<span class="text-purple-400">echo</span> <span class="text-amber-400">"Simulated GCU amount: "</span> . <span class="text-blue-400">$result</span>[<span class="text-amber-400">'gcu_amount'</span>] . <span class="text-amber-400">" GCU"</span>;
-<span class="text-purple-400">echo</span> <span class="text-amber-400">"Exchange rate: 1 USD = "</span> . <span class="text-blue-400">$result</span>[<span class="text-amber-400">'rate'</span>] . <span class="text-amber-400">" GCU"</span>;</code></pre>
+<span class="text-purple-400">foreach</span> (<span class="text-blue-400">$result</span>[<span class="text-amber-400">'data'</span>][<span class="text-amber-400">'composition'</span>] <span class="text-purple-400">as</span> <span class="text-blue-400">$component</span>) {
+    <span class="text-purple-400">echo</span> <span class="text-blue-400">$component</span>[<span class="text-amber-400">'asset_code'</span>] . <span class="text-amber-400">': '</span> . <span class="text-blue-400">$component</span>[<span class="text-amber-400">'weight'</span>] . <span class="text-amber-400">"\n"</span>;
+}</code></pre>
                         </div>
                     </div>
 
@@ -1162,7 +1148,7 @@
                     <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                         <div class="p-6 border-b border-gray-200">
                             <h3 class="text-lg font-semibold text-slate-900">Handle Webhooks</h3>
-                            <p class="text-slate-500 text-sm mt-1">Process real-time transaction notifications</p>
+                            <p class="text-slate-500 text-sm mt-1">Check the signature, then handle each transaction event.</p>
                         </div>
                         <div class="code-container">
                             <div class="code-header">
@@ -1185,9 +1171,9 @@
 <span class="text-purple-400">const</span> <span class="text-white">app</span> = <span class="text-green-400">express</span>();
 <span class="text-white">app</span>.<span class="text-green-400">use</span>(<span class="text-white">express</span>.<span class="text-green-400">json</span>());
 
-<span class="text-white">app</span>.<span class="text-green-400">post</span>(<span class="text-amber-400">'/webhooks/zelta'</span>, (<span class="text-white">req</span>, <span class="text-white">res</span>) <span class="text-blue-400">=></span> {
+<span class="text-white">app</span>.<span class="text-green-400">post</span>(<span class="text-amber-400">'/webhooks'</span>, (<span class="text-white">req</span>, <span class="text-white">res</span>) <span class="text-blue-400">=></span> {
     <span class="text-gray-400">// Verify webhook signature</span>
-    <span class="text-purple-400">const</span> <span class="text-white">signature</span> = <span class="text-white">req</span>.<span class="text-cyan-400">headers</span>[<span class="text-amber-400">'x-zelta-signature'</span>];
+    <span class="text-purple-400">const</span> <span class="text-white">signature</span> = <span class="text-white">req</span>.<span class="text-cyan-400">headers</span>[<span class="text-amber-400">'x-webhook-signature'</span>];
     <span class="text-purple-400">const</span> <span class="text-white">payload</span> = <span class="text-white">JSON</span>.<span class="text-green-400">stringify</span>(<span class="text-white">req</span>.<span class="text-cyan-400">body</span>);
     <span class="text-purple-400">const</span> <span class="text-white">secret</span> = <span class="text-white">process</span>.<span class="text-cyan-400">env</span>.<span class="text-cyan-400">WEBHOOK_SECRET</span>;
     

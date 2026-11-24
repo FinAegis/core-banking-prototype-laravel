@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Code Examples - ' . config('brand.name', 'Zelta'),
-        'description' => 'Working examples and integration patterns for common use cases with the ' . config('brand.name', 'Zelta') . ' API.',
+        'description' => 'Code examples for common tasks with the ' . config('brand.name', 'Zelta') . ' API. They cover accounts, transfers, webhooks, AI agents, cross-chain transfers and the reporting modules.',
         'keywords' => config('brand.name', 'Zelta') . ' API examples, code samples, integration patterns, developer examples',
     ])
 @endsection
@@ -86,7 +86,10 @@
                     Code Examples
                 </h1>
                 <p class="text-xl md:text-2xl text-green-100 max-w-3xl mx-auto">
-                    Working examples and integration patterns for common use cases with the {{ config('brand.name', 'Zelta') }} API.
+                    These examples show common tasks with the {{ config('brand.name', 'Zelta') }} API. Copy them as a starting point for your own code.
+                </p>
+                <p class="text-base text-green-100 max-w-3xl mx-auto mt-4">
+                    The official SDKs cover accounts, transactions, transfers, assets, exchange rates, baskets, the GCU demo and webhooks. Some JavaScript and Python examples also call helpers the SDKs do not include yet, such as waiting for a transfer, workflows and the AI and MCP clients. For those, call the REST endpoints listed in the API docs.
                 </p>
             </div>
         </div>
@@ -107,7 +110,7 @@
                         </svg>
                     </div>
                     <h3 class="font-semibold text-gray-900 mb-2">Basic Operations</h3>
-                    <p class="text-gray-600 text-sm">Account creation, balance queries, and simple transfers</p>
+                    <p class="text-gray-600 text-sm">Create accounts, read balances and send simple transfers.</p>
                 </a>
 
                 <a href="#advanced-workflows" class="group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 hover:transform hover:-translate-y-1">
@@ -117,7 +120,7 @@
                         </svg>
                     </div>
                     <h3 class="font-semibold text-gray-900 mb-2">Advanced Workflows</h3>
-                    <p class="text-gray-600 text-sm">Multi-step transactions, batch operations, and saga patterns</p>
+                    <p class="text-gray-600 text-sm">Run multi-step transactions, batch jobs and sagas.</p>
                 </a>
 
                 <a href="#webhooks" class="group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 hover:transform hover:-translate-y-1">
@@ -127,7 +130,7 @@
                         </svg>
                     </div>
                     <h3 class="font-semibold text-gray-900 mb-2">Webhooks</h3>
-                    <p class="text-gray-600 text-sm">Real-time notifications and event handling</p>
+                    <p class="text-gray-600 text-sm">Receive event notifications and handle them.</p>
                 </a>
 
                 <a href="#error-handling" class="group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 hover:transform hover:-translate-y-1">
@@ -137,7 +140,7 @@
                         </svg>
                     </div>
                     <h3 class="font-semibold text-gray-900 mb-2">Error Handling</h3>
-                    <p class="text-gray-600 text-sm">Robust error handling and retry patterns</p>
+                    <p class="text-gray-600 text-sm">Handle errors and retry failed requests.</p>
                 </a>
 
                 <a href="#ai-agent" class="group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 hover:transform hover:-translate-y-1">
@@ -147,7 +150,7 @@
                         </svg>
                     </div>
                     <h3 class="font-semibold text-gray-900 mb-2">AI Agent Integration</h3>
-                    <p class="text-gray-600 text-sm">Banking AI assistant and MCP tools</p>
+                    <p class="text-gray-600 text-sm">Use the banking AI assistant and its tools.</p>
                 </a>
 
                 <a href="#mcp-tools" class="group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 hover:transform hover:-translate-y-1">
@@ -158,7 +161,7 @@
                         </svg>
                     </div>
                     <h3 class="font-semibold text-gray-900 mb-2">MCP Tools</h3>
-                    <p class="text-gray-600 text-sm">Model Context Protocol integration</p>
+                    <p class="text-gray-600 text-sm">Connect agents through the Model Context Protocol.</p>
                 </a>
 
                 <a href="#crosschain-defi" class="group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 hover:transform hover:-translate-y-1">
@@ -167,8 +170,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                         </svg>
                     </div>
-                    <h3 class="font-semibold text-gray-900 mb-2">Cross-Chain &amp; DeFi</h3>
-                    <p class="text-gray-600 text-sm">Bridge protocols, DEX swaps, and multi-chain operations</p>
+                    <h3 class="font-semibold text-gray-900 mb-2">Cross-Chain and Decentralised Finance</h3>
+                    <p class="text-gray-600 text-sm">Bridge tokens between networks and swap on decentralised exchanges.</p>
                 </a>
 
                 <a href="#regtech-compliance" class="group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 hover:transform hover:-translate-y-1">
@@ -177,8 +180,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                         </svg>
                     </div>
-                    <h3 class="font-semibold text-gray-900 mb-2">RegTech &amp; Compliance</h3>
-                    <p class="text-gray-600 text-sm">Checks modelled on Travel Rule, MiFID II and MiCA requirements</p>
+                    <h3 class="font-semibold text-gray-900 mb-2">Reporting Modules</h3>
+                    <p class="text-gray-600 text-sm">Run the Travel Rule check before a transfer.</p>
                 </a>
 
                 <a href="#baas-partner" class="group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 hover:transform hover:-translate-y-1">
@@ -187,8 +190,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                         </svg>
                     </div>
-                    <h3 class="font-semibold text-gray-900 mb-2">BaaS &amp; Partner API</h3>
-                    <p class="text-gray-600 text-sm">Partner onboarding and Banking-as-a-Service integration</p>
+                    <h3 class="font-semibold text-gray-900 mb-2">Partner API</h3>
+                    <p class="text-gray-600 text-sm">Apply to become a partner institution.</p>
                 </a>
 
                 <a href="#ai-transactions" class="group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 hover:transform hover:-translate-y-1">
@@ -198,7 +201,7 @@
                         </svg>
                     </div>
                     <h3 class="font-semibold text-gray-900 mb-2">AI Transaction Query</h3>
-                    <p class="text-gray-600 text-sm">Natural language transaction search and analysis</p>
+                    <p class="text-gray-600 text-sm">Search transactions with a question in plain language.</p>
                 </a>
             </div>
         </div>
@@ -219,7 +222,7 @@
                             <div class="flex items-center justify-between">
                                 <div>
                                     <h3 class="text-xl font-semibold text-gray-900">Create Account and Get Balance</h3>
-                                    <p class="text-gray-600 mt-1">Initialize a new account and retrieve balance information</p>
+                                    <p class="text-gray-600 mt-1">This example creates an account and reads its balances.</p>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">POST</span>
@@ -285,7 +288,7 @@ createAccountAndCheckBalance();
                             <div id="create-py" class="tab-content animate-fade-in">
                                 <x-code-block language="python">
 # Install: pip install finaegis
-from zelta import {{ config('brand.name', 'Zelta') }}
+from finaegis import {{ config('brand.name', 'Zelta') }}
 import os
 
 client = {{ config('brand.name', 'Zelta') }}(
@@ -412,7 +415,7 @@ curl -X GET {{ config('app.url') }}/api/v2/accounts/acct_1234567890abcdef/balanc
                             <div class="flex items-center justify-between">
                                 <div>
                                     <h3 class="text-xl font-semibold text-gray-900">Simple Money Transfer</h3>
-                                    <p class="text-gray-600 mt-1">Transfer funds between accounts with automatic workflow processing</p>
+                                    <p class="text-gray-600 mt-1">This example moves funds between two accounts. A workflow processes the transfer.</p>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">POST</span>
@@ -552,7 +555,7 @@ transfer_funds(
                             <div class="flex items-center justify-between">
                                 <div>
                                     <h3 class="text-xl font-semibold text-gray-900">List Account Transactions</h3>
-                                    <p class="text-gray-600 mt-1">Retrieve transaction history with pagination and filtering</p>
+                                    <p class="text-gray-600 mt-1">This example reads the transaction history one page at a time, with filters.</p>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">GET</span>
@@ -689,7 +692,7 @@ sort=-created_at" \
                 <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                     <div class="bg-gray-50 px-6 py-4 border-b">
                         <h3 class="text-xl font-semibold text-gray-900">Multi-Currency Conversion with Transfer</h3>
-                        <p class="text-gray-600 mt-1">Convert currency and transfer in one workflow</p>
+                        <p class="text-gray-600 mt-1">This example converts a currency and sends a transfer in one workflow.</p>
                     </div>
                     
                     <div class="p-6">
@@ -768,7 +771,7 @@ convertAndTransfer(
                     <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                         <div class="bg-gray-50 px-6 py-4 border-b">
                             <h3 class="text-xl font-semibold text-gray-900">Setting Up Webhook Endpoints</h3>
-                            <p class="text-gray-600 mt-1">Handle real-time events from {{ config('brand.name', 'Zelta') }}</p>
+                            <p class="text-gray-600 mt-1">This example receives webhook events and checks their signatures.</p>
                         </div>
                         
                         <div class="p-6">
@@ -906,7 +909,7 @@ async function testWebhook(webhookId) {
                             <div class="flex items-center justify-between">
                                 <div>
                                     <h3 class="text-xl font-semibold text-gray-900">AI Banking Assistant Chat</h3>
-                                    <p class="text-gray-600 mt-1">Integrate intelligent banking conversations with context awareness</p>
+                                    <p class="text-gray-600 mt-1">This example sends chat messages to the banking AI assistant. The assistant keeps the context of the conversation.</p>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium">AI</span>
@@ -1155,7 +1158,7 @@ asyncio.run(banking_conversation())
                             <div class="flex items-center justify-between">
                                 <div>
                                     <h3 class="text-xl font-semibold text-gray-900">AI-Driven Workflow Orchestration</h3>
-                                    <p class="text-gray-600 mt-1">Complex multi-step operations with AI decision making</p>
+                                    <p class="text-gray-600 mt-1">This example lets the AI assistant decide the steps of a multi-step operation.</p>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">Workflow</span>
@@ -1271,7 +1274,7 @@ handleCustomerRequest('cust_123',
                     <!-- Live Demo Link -->
                     <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-8 text-center">
                         <h3 class="text-2xl font-bold text-gray-900 mb-4">Try the AI Agent Live</h3>
-                        <p class="text-gray-600 mb-6">Experience our banking AI assistant in action with a live demo</p>
+                        <p class="text-gray-600 mb-6">The demo page lets you try the banking AI assistant.</p>
                         <a href="{{ route('demo.ai-agent') }}" class="inline-flex items-center justify-center px-8 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all transform hover:scale-105 shadow-lg">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
@@ -1293,7 +1296,7 @@ handleCustomerRequest('cust_123',
                             <div class="flex items-center justify-between">
                                 <div>
                                     <h3 class="text-xl font-semibold text-gray-900">MCP Tool Registration and Usage</h3>
-                                    <p class="text-gray-600 mt-1">Register custom banking tools for AI agents to use</p>
+                                    <p class="text-gray-600 mt-1">This example registers your own banking tool for AI agents.</p>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">MCP</span>
@@ -1677,7 +1680,7 @@ aiClient.on('tool_executed', (event) => {
                             <div class="flex items-center justify-between">
                                 <div>
                                     <h3 class="text-xl font-semibold text-gray-900">Complex MCP Workflow Integration</h3>
-                                    <p class="text-gray-600 mt-1">Multi-tool orchestration for complex banking operations</p>
+                                    <p class="text-gray-600 mt-1">This example combines several tools in one banking operation.</p>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">Advanced</span>
@@ -1812,9 +1815,9 @@ processLoanApplication('cust_456', {
                 </div>
             </div>
 
-            <!-- Cross-Chain & DeFi -->
+            <!-- Cross-Chain and Decentralised Finance -->
             <div id="crosschain-defi" class="mb-20">
-                <h2 class="text-3xl font-bold text-gray-900 mb-8">Cross-Chain &amp; DeFi</h2>
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Cross-Chain and Decentralised Finance</h2>
 
                 <div class="space-y-12">
                     <!-- Cross-Chain Bridge Quote + Initiate -->
@@ -1823,7 +1826,7 @@ processLoanApplication('cust_456', {
                             <div class="flex items-center justify-between">
                                 <div>
                                     <h3 class="text-xl font-semibold text-gray-900">Cross-Chain Bridge: Quote and Initiate</h3>
-                                    <p class="text-gray-600 mt-1">Get a bridge quote across chains (Wormhole, LayerZero, Axelar) and initiate the transfer. Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
+                                    <p class="text-gray-600 mt-1">This example gets a bridge quote from the Wormhole, LayerZero and Axelar adapters and starts the transfer. Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span class="px-3 py-1 bg-cyan-100 text-cyan-700 rounded-full text-xs font-medium">v3.0</span>
@@ -1836,140 +1839,35 @@ processLoanApplication('cust_456', {
                             <!-- Tabs -->
                             <div class="code-tabs">
                                 <button onclick="switchTab(event, 'bridge-curl')" class="code-tab active">cURL</button>
-                                <button onclick="switchTab(event, 'bridge-js')" class="code-tab">JavaScript</button>
-                                <button onclick="switchTab(event, 'bridge-py')" class="code-tab">Python</button>
                                 <button onclick="switchTab(event, 'bridge-response')" class="code-tab">Response</button>
                             </div>
 
                             <!-- cURL -->
                             <div id="bridge-curl" class="tab-content active animate-fade-in">
                                 <x-code-block language="bash">
-# Step 1: Get a bridge quote
+# Step 1: Ask every bridge adapter for a quote
 curl -X POST {{ config('app.url') }}/api/v1/crosschain/bridge/quote \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "source_chain": "ethereum",
-    "destination_chain": "polygon",
+    "from_chain": "ethereum",
+    "to_chain": "polygon",
     "token": "USDC",
-    "amount": "1000.00",
-    "preferred_bridge": "wormhole"
+    "amount": "1000.00"
   }'
 
-# Step 2: Initiate the bridge transfer using the quote_id
+# Step 2: Start the bridge transfer
 curl -X POST {{ config('app.url') }}/api/v1/crosschain/bridge/initiate \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "quote_id": "quote_br_abc123def456",
+    "from_chain": "ethereum",
+    "to_chain": "polygon",
+    "token": "USDC",
+    "amount": "1000.00",
     "sender_address": "0x1234...abcd",
-    "recipient_address": "0x5678...efgh",
-    "slippage_tolerance": 0.005,
-    "deadline_minutes": 30
+    "recipient_address": "0x5678...efgh"
   }'
-                                </x-code-block>
-                            </div>
-
-                            <!-- JavaScript -->
-                            <div id="bridge-js" class="tab-content animate-fade-in">
-                                <x-code-block language="javascript">
-// Install: npm install @finaegis/sdk
-import { {{ config('brand.name', 'Zelta') }} } from '@finaegis/sdk';
-
-const client = new {{ config('brand.name', 'Zelta') }}({
-  apiKey: process.env.ZELTA_API_KEY,
-  baseURL: '{{ config('app.url') }}/api'
-});
-
-async function bridgeTokens(sourceChain, destChain, token, amount) {
-  try {
-    // Step 1: Get a bridge quote comparing protocols
-    const quote = await client.crosschain.bridge.quote({
-      source_chain: sourceChain,
-      destination_chain: destChain,
-      token: token,
-      amount: amount,
-      preferred_bridge: 'wormhole' // or 'layerzero', 'axelar'
-    });
-
-    console.log('Bridge Quote:');
-    console.log(`  Protocol: ${quote.data.bridge_protocol}`);
-    console.log(`  Estimated output: ${quote.data.estimated_receive_amount} ${token}`);
-    console.log(`  Fee: ${quote.data.fee_amount} ${quote.data.fee_currency}`);
-    console.log(`  Estimated time: ${quote.data.estimated_duration_seconds}s`);
-
-    // Step 2: Initiate the bridge transfer
-    const transfer = await client.crosschain.bridge.initiate({
-      quote_id: quote.data.quote_id,
-      sender_address: '0x1234...abcd',
-      recipient_address: '0x5678...efgh',
-      slippage_tolerance: 0.005,
-      deadline_minutes: 30
-    });
-
-    console.log('Bridge initiated:', transfer.data.bridge_tx_id);
-    console.log('Status:', transfer.data.status);
-
-    return transfer;
-  } catch (error) {
-    console.error('Bridge failed:', error.message);
-    throw error;
-  }
-}
-
-// Bridge 1000 USDC from Ethereum to Polygon
-bridgeTokens('ethereum', 'polygon', 'USDC', '1000.00');
-                                </x-code-block>
-                            </div>
-
-                            <!-- Python -->
-                            <div id="bridge-py" class="tab-content animate-fade-in">
-                                <x-code-block language="python">
-# Install: pip install finaegis
-from zelta import {{ config('brand.name', 'Zelta') }}
-import os
-
-client = {{ config('brand.name', 'Zelta') }}(
-    api_key=os.environ['ZELTA_API_KEY'],
-    base_url='{{ config('app.url') }}/api'
-)
-
-def bridge_tokens(source_chain, dest_chain, token, amount):
-    try:
-        # Step 1: Get a bridge quote
-        quote = client.crosschain.bridge.quote(
-            source_chain=source_chain,
-            destination_chain=dest_chain,
-            token=token,
-            amount=amount,
-            preferred_bridge='wormhole'
-        )
-
-        print(f'Bridge Quote:')
-        print(f'  Protocol: {quote.data.bridge_protocol}')
-        print(f'  Estimated output: {quote.data.estimated_receive_amount} {token}')
-        print(f'  Fee: {quote.data.fee_amount} {quote.data.fee_currency}')
-        print(f'  Estimated time: {quote.data.estimated_duration_seconds}s')
-
-        # Step 2: Initiate the bridge transfer
-        transfer = client.crosschain.bridge.initiate(
-            quote_id=quote.data.quote_id,
-            sender_address='0x1234...abcd',
-            recipient_address='0x5678...efgh',
-            slippage_tolerance=0.005,
-            deadline_minutes=30
-        )
-
-        print(f'Bridge initiated: {transfer.data.bridge_tx_id}')
-        print(f'Status: {transfer.data.status}')
-
-        return transfer
-    except Exception as error:
-        print(f'Bridge failed: {error}')
-        raise
-
-# Bridge 1000 USDC from Ethereum to Polygon
-bridge_tokens('ethereum', 'polygon', 'USDC', '1000.00')
                                 </x-code-block>
                             </div>
 
@@ -2032,13 +1930,13 @@ bridge_tokens('ethereum', 'polygon', 'USDC', '1000.00')
                         </div>
                     </div>
 
-                    <!-- DeFi Swap Quote + Execute -->
+                    <!-- Decentralised Finance Swap Quote + Execute -->
                     <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                         <div class="bg-gradient-to-r from-teal-50 to-green-50 px-6 py-5 border-b">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <h3 class="text-xl font-semibold text-gray-900">DeFi Swap: Quote and Execute</h3>
-                                    <p class="text-gray-600 mt-1">Aggregate DEX quotes (Uniswap, Curve, SushiSwap) and execute optimal swaps</p>
+                                    <h3 class="text-xl font-semibold text-gray-900">Quote and Run a Swap on a Decentralised Exchange</h3>
+                                    <p class="text-gray-600 mt-1">This example compares swap quotes across decentralised exchanges and runs the swap through the best route. The adapters cover Uniswap and Curve. Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span class="px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-xs font-medium">v3.0</span>
@@ -2051,125 +1949,36 @@ bridge_tokens('ethereum', 'polygon', 'USDC', '1000.00')
                             <!-- Tabs -->
                             <div class="code-tabs">
                                 <button onclick="switchTab(event, 'swap-curl')" class="code-tab active">cURL</button>
-                                <button onclick="switchTab(event, 'swap-js')" class="code-tab">JavaScript</button>
-                                <button onclick="switchTab(event, 'swap-py')" class="code-tab">Python</button>
                                 <button onclick="switchTab(event, 'swap-response')" class="code-tab">Response</button>
                             </div>
 
                             <!-- cURL -->
                             <div id="swap-curl" class="tab-content active animate-fade-in">
                                 <x-code-block language="bash">
-# Step 1: Get a swap quote with DEX aggregation
+# Step 1: Get the best swap quote across decentralised exchanges
 curl -X POST {{ config('app.url') }}/api/v1/defi/swap/quote \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "chain": "ethereum",
-    "token_in": "WETH",
-    "token_out": "USDC",
-    "amount_in": "2.5",
-    "slippage_tolerance": 0.005,
-    "dex_sources": ["uniswap_v3", "curve", "sushiswap"]
+    "from_token": "WETH",
+    "to_token": "USDC",
+    "amount": "2.5",
+    "slippage": 0.5
   }'
 
-# Step 2: Execute the swap with the best route
+# Step 2: Run the swap through the best route
 curl -X POST {{ config('app.url') }}/api/v1/defi/swap/execute \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "quote_id": "quote_sw_def456ghi789",
+    "chain": "ethereum",
+    "from_token": "WETH",
+    "to_token": "USDC",
+    "amount": "2.5",
     "wallet_address": "0xABCD...1234",
-    "max_gas_price_gwei": 50,
-    "deadline_minutes": 20
+    "slippage": 0.5
   }'
-                                </x-code-block>
-                            </div>
-
-                            <!-- JavaScript -->
-                            <div id="swap-js" class="tab-content animate-fade-in">
-                                <x-code-block language="javascript">
-async function swapTokens(chain, tokenIn, tokenOut, amountIn) {
-  try {
-    // Step 1: Get aggregated swap quote from multiple DEXes
-    const quote = await client.defi.swap.quote({
-      chain: chain,
-      token_in: tokenIn,
-      token_out: tokenOut,
-      amount_in: amountIn,
-      slippage_tolerance: 0.005,
-      dex_sources: ['uniswap_v3', 'curve', 'sushiswap']
-    });
-
-    console.log('Swap Quote:');
-    console.log(`  Best DEX: ${quote.data.best_route.dex}`);
-    console.log(`  Input: ${amountIn} ${tokenIn}`);
-    console.log(`  Output: ${quote.data.estimated_output} ${tokenOut}`);
-    console.log(`  Price impact: ${quote.data.price_impact_percent}%`);
-    console.log(`  Gas estimate: ${quote.data.estimated_gas_usd} USD`);
-
-    // Step 2: Execute the swap
-    const execution = await client.defi.swap.execute({
-      quote_id: quote.data.quote_id,
-      wallet_address: '0xABCD...1234',
-      max_gas_price_gwei: 50,
-      deadline_minutes: 20
-    });
-
-    console.log('Swap executed:', execution.data.tx_hash);
-    console.log('Status:', execution.data.status);
-
-    return execution;
-  } catch (error) {
-    console.error('Swap failed:', error.message);
-    throw error;
-  }
-}
-
-// Swap 2.5 WETH for USDC on Ethereum
-swapTokens('ethereum', 'WETH', 'USDC', '2.5');
-                                </x-code-block>
-                            </div>
-
-                            <!-- Python -->
-                            <div id="swap-py" class="tab-content animate-fade-in">
-                                <x-code-block language="python">
-def swap_tokens(chain, token_in, token_out, amount_in):
-    try:
-        # Step 1: Get aggregated swap quote
-        quote = client.defi.swap.quote(
-            chain=chain,
-            token_in=token_in,
-            token_out=token_out,
-            amount_in=amount_in,
-            slippage_tolerance=0.005,
-            dex_sources=['uniswap_v3', 'curve', 'sushiswap']
-        )
-
-        print(f'Swap Quote:')
-        print(f'  Best DEX: {quote.data.best_route.dex}')
-        print(f'  Input: {amount_in} {token_in}')
-        print(f'  Output: {quote.data.estimated_output} {token_out}')
-        print(f'  Price impact: {quote.data.price_impact_percent}%')
-        print(f'  Gas estimate: {quote.data.estimated_gas_usd} USD')
-
-        # Step 2: Execute the swap
-        execution = client.defi.swap.execute(
-            quote_id=quote.data.quote_id,
-            wallet_address='0xABCD...1234',
-            max_gas_price_gwei=50,
-            deadline_minutes=20
-        )
-
-        print(f'Swap executed: {execution.data.tx_hash}')
-        print(f'Status: {execution.data.status}')
-
-        return execution
-    except Exception as error:
-        print(f'Swap failed: {error}')
-        raise
-
-# Swap 2.5 WETH for USDC on Ethereum
-swap_tokens('ethereum', 'WETH', 'USDC', '2.5')
                                 </x-code-block>
                             </div>
 
@@ -2235,7 +2044,7 @@ swap_tokens('ethereum', 'WETH', 'USDC', '2.5')
 
             <!-- RegTech & Compliance -->
             <div id="regtech-compliance" class="mb-20">
-                <h2 class="text-3xl font-bold text-gray-900 mb-8">RegTech &amp; Compliance</h2>
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Reporting Modules</h2>
 
                 <div class="space-y-12">
                     <!-- Travel Rule Compliance Check -->
@@ -2244,7 +2053,7 @@ swap_tokens('ethereum', 'WETH', 'USDC', '2.5')
                             <div class="flex items-center justify-between">
                                 <div>
                                     <h3 class="text-xl font-semibold text-gray-900">Travel Rule Check</h3>
-                                    <p class="text-gray-600 mt-1">Run the data-exchange check modelled on the FATF Travel Rule before executing cross-border or virtual asset transfers; it does not by itself make a deployment compliant</p>
+                                    <p class="text-gray-600 mt-1">This example runs the data-exchange check modelled on the Travel Rule of the Financial Action Task Force before a transfer. The check does not by itself make a deployment compliant.</p>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">v2</span>
@@ -2257,160 +2066,29 @@ swap_tokens('ethereum', 'WETH', 'USDC', '2.5')
                             <!-- Tabs -->
                             <div class="code-tabs">
                                 <button onclick="switchTab(event, 'travel-curl')" class="code-tab active">cURL</button>
-                                <button onclick="switchTab(event, 'travel-js')" class="code-tab">JavaScript</button>
-                                <button onclick="switchTab(event, 'travel-py')" class="code-tab">Python</button>
                                 <button onclick="switchTab(event, 'travel-response')" class="code-tab">Response</button>
                             </div>
 
                             <!-- cURL -->
                             <div id="travel-curl" class="tab-content active animate-fade-in">
                                 <x-code-block language="bash">
-# Run a Travel Rule compliance check before a transfer
-curl -X POST {{ config('app.url') }}/api/v1/regtech/travel-rule/check \
+# Check which sender and recipient details a transfer needs
+curl -X POST {{ config('app.url') }}/api/regtech/travel-rule/check \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "transfer_id": "txfr_abc123def456",
+    "amount": 15000.00,
+    "currency": "USD",
     "originator": {
       "name": "Alice Johnson",
       "account_number": "acct_1234567890",
-      "institution_name": "{{ config('brand.name', 'Zelta') }}",
-      "institution_country": "US"
+      "address": "1 Main Street, Springfield"
     },
     "beneficiary": {
       "name": "Bob Smith",
-      "account_number": "ext_0987654321",
-      "institution_name": "Partner Bank",
-      "institution_country": "DE"
-    },
-    "transfer_details": {
-      "amount": "15000.00",
-      "currency": "USD",
-      "asset_type": "fiat",
-      "purpose": "business_payment"
-    },
-    "jurisdiction": "EU"
-  }'
-                                </x-code-block>
-                            </div>
-
-                            <!-- JavaScript -->
-                            <div id="travel-js" class="tab-content animate-fade-in">
-                                <x-code-block language="javascript">
-async function checkTravelRuleCompliance(transferData) {
-  try {
-    const result = await client.regtech.travelRule.check({
-      transfer_id: transferData.transferId,
-      originator: {
-        name: 'Alice Johnson',
-        account_number: transferData.fromAccount,
-        institution_name: config('brand.name', 'Zelta'),
-        institution_country: 'US'
-      },
-      beneficiary: {
-        name: transferData.recipientName,
-        account_number: transferData.toAccount,
-        institution_name: transferData.recipientInstitution,
-        institution_country: transferData.recipientCountry
-      },
-      transfer_details: {
-        amount: transferData.amount,
-        currency: transferData.currency,
-        asset_type: transferData.assetType || 'fiat',
-        purpose: transferData.purpose || 'business_payment'
-      },
-      jurisdiction: transferData.jurisdiction || 'EU'
-    });
-
-    console.log('Travel Rule Check:');
-    console.log(`  Compliant: ${result.data.is_compliant}`);
-    console.log(`  Risk level: ${result.data.risk_level}`);
-    console.log(`  Jurisdiction: ${result.data.applicable_jurisdiction}`);
-
-    if (!result.data.is_compliant) {
-      console.log('  Issues:');
-      result.data.compliance_issues.forEach(issue => {
-        console.log(`    - ${issue.code}: ${issue.description}`);
-      });
+      "account_number": "ext_0987654321"
     }
-
-    return result;
-  } catch (error) {
-    console.error('Compliance check failed:', error.message);
-    throw error;
-  }
-}
-
-// Check compliance before a cross-border transfer
-checkTravelRuleCompliance({
-  transferId: 'txfr_abc123def456',
-  fromAccount: 'acct_1234567890',
-  recipientName: 'Bob Smith',
-  toAccount: 'ext_0987654321',
-  recipientInstitution: 'Partner Bank',
-  recipientCountry: 'DE',
-  amount: '15000.00',
-  currency: 'USD',
-  jurisdiction: 'EU'
-});
-                                </x-code-block>
-                            </div>
-
-                            <!-- Python -->
-                            <div id="travel-py" class="tab-content animate-fade-in">
-                                <x-code-block language="python">
-def check_travel_rule_compliance(transfer_data):
-    try:
-        result = client.regtech.travel_rule.check(
-            transfer_id=transfer_data['transfer_id'],
-            originator={
-                'name': 'Alice Johnson',
-                'account_number': transfer_data['from_account'],
-                'institution_name': config('brand.name', 'Zelta'),
-                'institution_country': 'US'
-            },
-            beneficiary={
-                'name': transfer_data['recipient_name'],
-                'account_number': transfer_data['to_account'],
-                'institution_name': transfer_data['recipient_institution'],
-                'institution_country': transfer_data['recipient_country']
-            },
-            transfer_details={
-                'amount': transfer_data['amount'],
-                'currency': transfer_data['currency'],
-                'asset_type': transfer_data.get('asset_type', 'fiat'),
-                'purpose': transfer_data.get('purpose', 'business_payment')
-            },
-            jurisdiction=transfer_data.get('jurisdiction', 'EU')
-        )
-
-        print(f'Travel Rule Check:')
-        print(f'  Compliant: {result.data.is_compliant}')
-        print(f'  Risk level: {result.data.risk_level}')
-        print(f'  Jurisdiction: {result.data.applicable_jurisdiction}')
-
-        if not result.data.is_compliant:
-            print('  Issues:')
-            for issue in result.data.compliance_issues:
-                print(f'    - {issue.code}: {issue.description}')
-
-        return result
-    except Exception as error:
-        print(f'Compliance check failed: {error}')
-        raise
-
-# Check compliance before a cross-border transfer
-check_travel_rule_compliance({
-    'transfer_id': 'txfr_abc123def456',
-    'from_account': 'acct_1234567890',
-    'recipient_name': 'Bob Smith',
-    'to_account': 'ext_0987654321',
-    'recipient_institution': 'Partner Bank',
-    'recipient_country': 'DE',
-    'amount': '15000.00',
-    'currency': 'USD',
-    'jurisdiction': 'EU'
-})
+  }'
                                 </x-code-block>
                             </div>
 
@@ -2460,7 +2138,7 @@ check_travel_rule_compliance({
 
             <!-- BaaS & Partner API -->
             <div id="baas-partner" class="mb-20">
-                <h2 class="text-3xl font-bold text-gray-900 mb-8">BaaS &amp; Partner API</h2>
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Partner API</h2>
 
                 <div class="space-y-12">
                     <!-- Partner Onboarding -->
@@ -2468,8 +2146,8 @@ check_travel_rule_compliance({
                         <div class="bg-gradient-to-r from-amber-50 to-yellow-50 px-6 py-5 border-b">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <h3 class="text-xl font-semibold text-gray-900">BaaS Partner Onboarding</h3>
-                                    <p class="text-gray-600 mt-1">Onboard a new partner organization onto the Banking-as-a-Service platform with API keys and SDK access</p>
+                                    <h3 class="text-xl font-semibold text-gray-900">Partner Institution Application</h3>
+                                    <p class="text-gray-600 mt-1">This example sends an application from a financial institution that wants to become a partner. An operator reviews each application before the partner gets API credentials.</p>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">v2</span>
@@ -2482,133 +2160,45 @@ check_travel_rule_compliance({
                             <!-- Tabs -->
                             <div class="code-tabs">
                                 <button onclick="switchTab(event, 'partner-curl')" class="code-tab active">cURL</button>
-                                <button onclick="switchTab(event, 'partner-js')" class="code-tab">JavaScript</button>
-                                <button onclick="switchTab(event, 'partner-py')" class="code-tab">Python</button>
                                 <button onclick="switchTab(event, 'partner-response')" class="code-tab">Response</button>
                             </div>
 
                             <!-- cURL -->
                             <div id="partner-curl" class="tab-content active animate-fade-in">
                                 <x-code-block language="bash">
-# Onboard a new BaaS partner
-curl -X POST {{ config('app.url') }}/api/v1/partner/onboard \
-  -H "Authorization: Bearer YOUR_ADMIN_API_KEY" \
+# Send a partner institution application
+curl -X POST {{ config('app.url') }}/api/v2/financial-institutions/apply \
   -H "Content-Type: application/json" \
   -d '{
-    "organization_name": "Acme Fintech",
+    "institution_name": "Acme Fintech",
+    "legal_name": "Acme Fintech Ltd",
+    "registration_number": "12345678",
+    "tax_id": "GB123456789",
+    "country": "GB",
+    "institution_type": "payment_processor",
+    "years_in_operation": 4,
+    "contact_name": "Jane Doe",
     "contact_email": "integration@acmefintech.com",
-    "tier": "growth",
-    "modules": ["accounts", "transfers", "compliance", "crosschain"],
-    "sdk_languages": ["typescript", "python"],
-    "webhook_url": "https://acmefintech.com/webhooks/zelta",
-    "ip_whitelist": ["203.0.113.0/24"],
-    "rate_limit_override": 5000,
-    "metadata": {
-      "use_case": "neobank",
-      "expected_monthly_volume": "500000"
-    }
+    "contact_phone": "+44 20 0000 0000",
+    "contact_position": "Head of Partnerships",
+    "headquarters_address": "1 Example Street",
+    "headquarters_city": "London",
+    "headquarters_postal_code": "EC1A 1AA",
+    "headquarters_country": "GB",
+    "business_description": "At least 100 characters that describe the business, its customers and how it plans to use the platform ...",
+    "target_markets": ["GB", "EU"],
+    "product_offerings": ["accounts", "payments"],
+    "required_currencies": ["GBP", "EUR"],
+    "integration_requirements": ["rest_api", "webhooks"],
+    "has_aml_program": true,
+    "has_kyc_procedures": true,
+    "has_data_protection_policy": true,
+    "is_pci_compliant": false,
+    "is_gdpr_compliant": true
   }'
-                                </x-code-block>
-                            </div>
 
-                            <!-- JavaScript -->
-                            <div id="partner-js" class="tab-content animate-fade-in">
-                                <x-code-block language="javascript">
-async function onboardPartner(partnerDetails) {
-  try {
-    const partner = await client.partner.onboard({
-      organization_name: partnerDetails.name,
-      contact_email: partnerDetails.email,
-      tier: partnerDetails.tier || 'growth', // starter, growth, enterprise
-      modules: partnerDetails.modules,
-      sdk_languages: partnerDetails.sdkLanguages || ['typescript', 'python'],
-      webhook_url: partnerDetails.webhookUrl,
-      ip_whitelist: partnerDetails.ipWhitelist || [],
-      rate_limit_override: partnerDetails.rateLimit,
-      metadata: partnerDetails.metadata || {}
-    });
-
-    console.log('Partner Onboarded:');
-    console.log(`  Partner ID: ${partner.data.partner_id}`);
-    console.log(`  API Key: ${partner.data.api_credentials.api_key}`);
-    console.log(`  Sandbox Key: ${partner.data.api_credentials.sandbox_key}`);
-    console.log(`  Tier: ${partner.data.tier}`);
-    console.log(`  SDK Download URLs:`);
-    partner.data.sdk_packages.forEach(sdk => {
-      console.log(`    ${sdk.language}: ${sdk.download_url}`);
-    });
-
-    return partner;
-  } catch (error) {
-    console.error('Partner onboarding failed:', error.message);
-    throw error;
-  }
-}
-
-// Onboard a new fintech partner
-onboardPartner({
-  name: 'Acme Fintech',
-  email: 'integration@acmefintech.com',
-  tier: 'growth',
-  modules: ['accounts', 'transfers', 'compliance', 'crosschain'],
-  sdkLanguages: ['typescript', 'python'],
-  webhookUrl: 'https://acmefintech.com/webhooks/zelta',
-  ipWhitelist: ['203.0.113.0/24'],
-  rateLimit: 5000,
-  metadata: {
-    use_case: 'neobank',
-    expected_monthly_volume: '500000'
-  }
-});
-                                </x-code-block>
-                            </div>
-
-                            <!-- Python -->
-                            <div id="partner-py" class="tab-content animate-fade-in">
-                                <x-code-block language="python">
-def onboard_partner(partner_details):
-    try:
-        partner = client.partner.onboard(
-            organization_name=partner_details['name'],
-            contact_email=partner_details['email'],
-            tier=partner_details.get('tier', 'growth'),
-            modules=partner_details['modules'],
-            sdk_languages=partner_details.get('sdk_languages', ['typescript', 'python']),
-            webhook_url=partner_details['webhook_url'],
-            ip_whitelist=partner_details.get('ip_whitelist', []),
-            rate_limit_override=partner_details.get('rate_limit'),
-            metadata=partner_details.get('metadata', {})
-        )
-
-        print(f'Partner Onboarded:')
-        print(f'  Partner ID: {partner.data.partner_id}')
-        print(f'  API Key: {partner.data.api_credentials.api_key}')
-        print(f'  Sandbox Key: {partner.data.api_credentials.sandbox_key}')
-        print(f'  Tier: {partner.data.tier}')
-        print(f'  SDK Download URLs:')
-        for sdk in partner.data.sdk_packages:
-            print(f'    {sdk.language}: {sdk.download_url}')
-
-        return partner
-    except Exception as error:
-        print(f'Partner onboarding failed: {error}')
-        raise
-
-# Onboard a new fintech partner
-onboard_partner({
-    'name': 'Acme Fintech',
-    'email': 'integration@acmefintech.com',
-    'tier': 'growth',
-    'modules': ['accounts', 'transfers', 'compliance', 'crosschain'],
-    'sdk_languages': ['typescript', 'python'],
-    'webhook_url': 'https://acmefintech.com/webhooks/zelta',
-    'ip_whitelist': ['203.0.113.0/24'],
-    'rate_limit': 5000,
-    'metadata': {
-        'use_case': 'neobank',
-        'expected_monthly_volume': '500000'
-    }
-})
+# Check the application status later
+curl {{ config('app.url') }}/api/v2/financial-institutions/application/{applicationNumber}/status
                                 </x-code-block>
                             </div>
 
@@ -2681,8 +2271,8 @@ onboard_partner({
                         <div class="bg-gradient-to-r from-violet-50 to-purple-50 px-6 py-5 border-b">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <h3 class="text-xl font-semibold text-gray-900">AI-Powered Transaction Search</h3>
-                                    <p class="text-gray-600 mt-1">Query transactions using natural language -- the AI engine translates to structured filters</p>
+                                    <h3 class="text-xl font-semibold text-gray-900">Transaction Search in Plain Language</h3>
+                                    <p class="text-gray-600 mt-1">This example asks about transactions in plain language. The AI query endpoint turns the question into transaction filters.</p>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span class="px-3 py-1 bg-violet-100 text-violet-700 rounded-full text-xs font-medium">v2</span>
@@ -2696,125 +2286,19 @@ onboard_partner({
                             <!-- Tabs -->
                             <div class="code-tabs">
                                 <button onclick="switchTab(event, 'aitx-curl')" class="code-tab active">cURL</button>
-                                <button onclick="switchTab(event, 'aitx-js')" class="code-tab">JavaScript</button>
-                                <button onclick="switchTab(event, 'aitx-py')" class="code-tab">Python</button>
                                 <button onclick="switchTab(event, 'aitx-response')" class="code-tab">Response</button>
                             </div>
 
                             <!-- cURL -->
                             <div id="aitx-curl" class="tab-content active animate-fade-in">
                                 <x-code-block language="bash">
-# Query transactions with natural language
-curl -X POST {{ config('app.url') }}/api/v1/ai/transactions \
+# Ask about transactions in plain language
+curl -X POST {{ config('app.url') }}/api/ai/query/transactions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "query": "Show me all cross-chain transfers over $5000 in the last 7 days that had compliance flags",
-    "account_id": "acct_1234567890",
-    "options": {
-      "include_analytics": true,
-      "include_risk_scores": true,
-      "max_results": 50,
-      "format": "detailed"
-    }
+    "query": "Show me transfers over 5000 dollars in the last 7 days"
   }'
-                                </x-code-block>
-                            </div>
-
-                            <!-- JavaScript -->
-                            <div id="aitx-js" class="tab-content animate-fade-in">
-                                <x-code-block language="javascript">
-async function queryTransactionsWithAI(naturalLanguageQuery, accountId) {
-  try {
-    const result = await client.ai.transactions({
-      query: naturalLanguageQuery,
-      account_id: accountId,
-      options: {
-        include_analytics: true,
-        include_risk_scores: true,
-        max_results: 50,
-        format: 'detailed'
-      }
-    });
-
-    console.log('AI Query Interpretation:');
-    console.log(`  Parsed filters: ${JSON.stringify(result.data.interpreted_query)}`);
-    console.log(`  Confidence: ${result.data.interpretation_confidence}`);
-    console.log(`  Results found: ${result.data.total_results}`);
-
-    result.data.transactions.forEach(tx => {
-      console.log(`  ${tx.created_at}: ${tx.type} ${tx.amount} ${tx.currency}`);
-      console.log(`    Status: ${tx.status} | Risk: ${tx.risk_score}`);
-      if (tx.compliance_flags.length > 0) {
-        console.log(`    Flags: ${tx.compliance_flags.join(', ')}`);
-      }
-    });
-
-    if (result.data.analytics) {
-      console.log('\nAnalytics Summary:');
-      console.log(`  Total volume: ${result.data.analytics.total_volume}`);
-      console.log(`  Average amount: ${result.data.analytics.avg_amount}`);
-      console.log(`  Flagged count: ${result.data.analytics.flagged_count}`);
-    }
-
-    return result;
-  } catch (error) {
-    console.error('AI query failed:', error.message);
-    throw error;
-  }
-}
-
-// Natural language transaction search
-queryTransactionsWithAI(
-  'Show me all cross-chain transfers over $5000 in the last 7 days that had compliance flags',
-  'acct_1234567890'
-);
-                                </x-code-block>
-                            </div>
-
-                            <!-- Python -->
-                            <div id="aitx-py" class="tab-content animate-fade-in">
-                                <x-code-block language="python">
-def query_transactions_with_ai(natural_language_query, account_id):
-    try:
-        result = client.ai.transactions(
-            query=natural_language_query,
-            account_id=account_id,
-            options={
-                'include_analytics': True,
-                'include_risk_scores': True,
-                'max_results': 50,
-                'format': 'detailed'
-            }
-        )
-
-        print(f'AI Query Interpretation:')
-        print(f'  Parsed filters: {result.data.interpreted_query}')
-        print(f'  Confidence: {result.data.interpretation_confidence}')
-        print(f'  Results found: {result.data.total_results}')
-
-        for tx in result.data.transactions:
-            print(f'  {tx.created_at}: {tx.type} {tx.amount} {tx.currency}')
-            print(f'    Status: {tx.status} | Risk: {tx.risk_score}')
-            if tx.compliance_flags:
-                print(f'    Flags: {", ".join(tx.compliance_flags)}')
-
-        if result.data.analytics:
-            print(f'\nAnalytics Summary:')
-            print(f'  Total volume: {result.data.analytics.total_volume}')
-            print(f'  Average amount: {result.data.analytics.avg_amount}')
-            print(f'  Flagged count: {result.data.analytics.flagged_count}')
-
-        return result
-    except Exception as error:
-        print(f'AI query failed: {error}')
-        raise
-
-# Natural language transaction search
-query_transactions_with_ai(
-    'Show me all cross-chain transfers over $5000 in the last 7 days that had compliance flags',
-    'acct_1234567890'
-)
                                 </x-code-block>
                             </div>
 
@@ -2902,8 +2386,8 @@ query_transactions_with_ai(
                 
                 <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                     <div class="bg-gray-50 px-6 py-4 border-b">
-                        <h3 class="text-xl font-semibold text-gray-900">Robust Error Handling with Retries</h3>
-                        <p class="text-gray-600 mt-1">Handle failures gracefully with automatic retries</p>
+                        <h3 class="text-xl font-semibold text-gray-900">Error Handling with Retries</h3>
+                        <p class="text-gray-600 mt-1">This example retries a failed request automatically and reports the errors it cannot fix.</p>
                     </div>
                     
                     <div class="p-6">
@@ -3047,7 +2531,7 @@ async function robustTransfer(fromAccount, toAccount, amount) {
     <!-- CTA Section -->
     <section class="py-16 bg-gradient-to-br from-green-600 to-blue-600 text-white">
         <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-            <h2 class="text-3xl md:text-4xl font-bold mb-4">Start Building Today</h2>
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">Start building</h2>
             <p class="text-xl text-green-100 mb-8">Use these examples as a starting point for your {{ config('brand.name', 'Zelta') }} integration.</p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="inline-flex items-center justify-center px-8 py-3 bg-white text-green-600 rounded-lg font-semibold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg">

@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Security Architecture | ' . config('brand.name', 'Zelta'),
-        'description' => config('brand.name', 'Zelta') . ' security architecture: HMAC integrity, HSM key management, post-quantum encryption (ML-KEM-768), ZK-KYC proofs, and WebAuthn. SOC 2 / PCI-DSS readiness tooling (no certification held).',
+        'description' => 'How the ' . config('brand.name', 'Zelta') . ' open-source code protects data, keys and sign-ins. It covers tamper checks, key splitting, passkeys, zero-knowledge proofs and readiness tooling for security audits. No certification is held.',
         'keywords' => config('brand.name', 'Zelta') . ' security, blockchain security, cybersecurity, data protection',
     ])
 
@@ -36,7 +36,7 @@
                 @include('partials.breadcrumb', ['items' => [['name' => 'Security', 'url' => url('/security')]]])
                 <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Security <span class="text-gradient">Architecture</span></h1>
                 <p class="text-lg text-slate-400 max-w-2xl mx-auto">
-                    Multi-layered security with HMAC integrity verification, HSM key management, Shamir secret sharing, and comprehensive audit trails.
+                    The platform protects data in several layers. It signs records with keyed hashes to detect tampering, and it can keep keys in hardware security modules or split them with Shamir secret sharing. Every security event is written to an audit log.
                 </p>
             </div>
         </div>
@@ -53,7 +53,7 @@
                 <div>
                     <h3 class="font-display text-sm font-semibold text-slate-900">Security Implementation Status</h3>
                     <p class="text-sm text-slate-600 mt-0.5">
-                        Security patterns implemented in the open-source codebase. Features below are marked as <strong>implemented</strong> or <strong>planned</strong>.
+                        This page lists the security patterns in the open-source code. Each feature is marked as <strong>implemented</strong> or <strong>planned</strong>. Run your own security review before you use the code in production.
                     </p>
                 </div>
             </div>
@@ -64,8 +64,8 @@
     <section class="py-24 bg-white">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-14 animate-on-scroll">
-                <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Enterprise Security Standards</h2>
-                <p class="text-lg text-slate-500">Comprehensive security at every level</p>
+                <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Security Controls</h2>
+                <p class="text-lg text-slate-500">These controls cover the infrastructure and the application.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 animate-on-scroll stagger-1">
@@ -78,10 +78,10 @@
                         <h3 class="font-display text-lg font-bold text-slate-900">Infrastructure Security</h3>
                     </div>
                     <ul class="space-y-2.5 text-sm text-slate-600">
-                        <li class="list-check">End-to-end encryption (TLS 1.3)</li>
-                        <li class="list-check">DDoS protection & rate limiting</li>
-                        <li class="list-check">Multi-region deployment support</li>
-                        <li class="list-check">ISO 27001 readiness tooling (no certification held)</li>
+                        <li class="list-check">Encryption in transit, set up by the operator</li>
+                        <li class="list-check">Rate limiting and automatic blocking of network addresses</li>
+                        <li class="list-check">Data kept in separate regions when configured</li>
+                        <li class="list-check">ISO 27001 readiness tooling, with no certification held</li>
                     </ul>
                 </div>
 
@@ -94,12 +94,12 @@
                         <h3 class="font-display text-lg font-bold text-slate-900">Application Security</h3>
                     </div>
                     <ul class="space-y-2.5 text-sm text-slate-600">
-                        <li class="list-check">Multi-factor authentication (2FA)</li>
-                        <li class="list-check">Advanced password policies</li>
-                        <li class="list-check">Session security & timeout</li>
-                        <li class="list-check">CSRF & XSS protection</li>
-                        <li class="list-check">SQL injection prevention</li>
-                        <li class="list-check">API authentication & rate limiting</li>
+                        <li class="list-check">Two-factor sign-in</li>
+                        <li class="list-check">Password rules</li>
+                        <li class="list-check">Session limits and timeouts</li>
+                        <li class="list-check">Protection against forged requests and script injection</li>
+                        <li class="list-check">Protection against database injection</li>
+                        <li class="list-check">Token sign-in and rate limits for the API</li>
                     </ul>
                 </div>
             </div>
@@ -110,17 +110,17 @@
                     <div class="icon-box bg-slate-100">
                         <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                     </div>
-                    <h3 class="font-display text-lg font-bold text-slate-900">Compliance & Standards</h3>
+                    <h3 class="font-display text-lg font-bold text-slate-900">Compliance and Standards</h3>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     @php
                         $standards = [
-                            ['title' => 'GDPR Enhanced', 'desc' => 'ROPA, DPIA, breach notification, consent management v2, and data retention policies (v3.5.0)'],
-                            ['title' => 'SOC 2 Type II', 'desc' => 'Continuous control monitoring, evidence collection, and audit readiness tooling (v3.5.0)'],
-                            ['title' => 'PCI DSS Readiness', 'desc' => 'PCI DSS readiness tooling: scoping, gap analysis and remediation tracking (no certification held) (v3.5.0)'],
-                            ['title' => 'Compliance Tooling', 'desc' => 'Reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements; AML/KYC workflow modules'],
-                            ['title' => 'Multi-Region Deploy', 'desc' => 'Data-residency configuration with multi-region deployment support (v3.5.0)'],
-                            ['title' => 'Industry Standards', 'desc' => 'ISO 27001 readiness and comprehensive security framework alignment'],
+                            ['title' => 'Data Protection Tooling', 'desc' => 'Tools for the European Union General Data Protection Regulation keep records of processing, impact assessments, breach notices, consent and retention rules.'],
+                            ['title' => 'SOC 2 Type II Readiness', 'desc' => 'The tooling monitors controls and collects evidence for an audit. No certification is held.'],
+                            ['title' => 'Card Data Security Readiness', 'desc' => 'The tooling helps prepare for an audit against the Payment Card Industry Data Security Standard. It helps with scoping, gap analysis and tracking fixes. No certification is held.'],
+                            ['title' => 'Compliance Tooling', 'desc' => 'Reporting modules follow the formats of the Markets in Financial Instruments Directive, the Markets in Crypto-Assets Regulation and the Travel Rule. Workflow modules support anti-money laundering and identity checks.'],
+                            ['title' => 'Data Residency', 'desc' => 'Settings let an operator keep data in separate regions.'],
+                            ['title' => 'ISO 27001 Readiness', 'desc' => 'The tooling helps prepare for an ISO 27001 audit. No certification is held.'],
                         ];
                     @endphp
                     @foreach($standards as $item)
@@ -140,24 +140,24 @@
             <div class="text-center mb-14 animate-on-scroll">
                 <span class="badge badge-success mb-4">Currently Implemented</span>
                 <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Security Features</h2>
-                <p class="text-lg text-slate-500">Security measures implemented in the codebase</p>
+                <p class="text-lg text-slate-500">These security measures are implemented in the code.</p>
             </div>
 
             @php
                 $features = [
-                    ['title' => 'Performance Monitoring', 'desc' => 'Near real-time system monitoring with 5-minute granularity, tracking performance metrics and system health.', 'color' => 'teal', 'icon' => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'],
-                    ['title' => 'Two-Factor Authentication', 'desc' => 'Available for all users with enhanced security options for administrative accounts.', 'color' => 'blue', 'icon' => 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'],
-                    ['title' => 'Advanced Rate Limiting', 'desc' => 'Dynamic rate limiting with user trust levels and tier-aware throttling against DDoS and brute force.', 'color' => 'slate', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'],
-                    ['title' => 'IP Blocking', 'desc' => 'Automatic IP blocking after 10 failed attempts, with temporary and permanent blacklist support.', 'color' => 'red', 'icon' => 'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636'],
-                    ['title' => 'Session Security', 'desc' => 'Maximum 5 concurrent sessions per user with automatic cleanup of old sessions.', 'color' => 'amber', 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z'],
-                    ['title' => 'Audit Logging', 'desc' => 'Comprehensive audit trails for all transactions and security-relevant events.', 'color' => 'blue', 'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
-                    ['title' => 'Biometric Authentication', 'desc' => 'Fingerprint and facial recognition via BiometricAuthenticationService with JWT-based biometric tokens.', 'color' => 'teal', 'icon' => 'M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4', 'badge' => 'v2.2.0'],
-                    ['title' => 'Hardware Security Keys', 'desc' => 'FIDO2/WebAuthn hardware wallet support via HardwareWalletManager with Ledger and Trezor signing.', 'color' => 'slate', 'icon' => 'M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z', 'badge' => 'v2.1.0'],
-                    ['title' => 'Zero-Knowledge Proofs', 'desc' => 'Privacy-preserving ZK-KYC verification, Proof of Innocence, Merkle tree commitments, and delegated proofs.', 'color' => 'teal', 'icon' => 'M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z', 'badge' => 'v2.4.0'],
-                    ['title' => 'Passkey Authentication', 'desc' => 'Passwordless authentication using FIDO2 passkeys for seamless, phishing-resistant login.', 'color' => 'blue', 'icon' => 'M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z', 'badge' => 'v2.7.0'],
-                    ['title' => 'SOC 2 Type II Readiness Tooling', 'desc' => 'Continuous control monitoring, evidence collection, and audit-readiness tooling (no certification held).', 'color' => 'teal', 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'badge' => 'v3.5.0'],
-                    ['title' => 'WebAuthn Hardened', 'desc' => 'rpIdHash, UP/UV flags, COSE alg/curve validation, origin checking — full FIDO2 specification compliance.', 'color' => 'slate', 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'badge' => 'v5.9.0'],
-                    ['title' => 'Scope-Based CI Enforcement', 'desc' => 'Comprehensive Sanctum ability enforcement across all test files — read/write/delete scopes validated in CI for every endpoint.', 'color' => 'blue', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'badge' => 'v5.12.0'],
+                    ['title' => 'Performance Monitoring', 'desc' => 'Scheduled checks track performance and system health every five minutes.', 'color' => 'teal', 'icon' => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'],
+                    ['title' => 'Two-Factor Authentication', 'desc' => 'Every user can turn on two-factor sign-in. Administrator accounts have extra security options.', 'color' => 'blue', 'icon' => 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'],
+                    ['title' => 'Rate Limiting', 'desc' => 'Each type of request has its own limit, and trusted users get higher limits. This slows down flooding and password guessing.', 'color' => 'slate', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'],
+                    ['title' => 'Address Blocking', 'desc' => 'A network address is blocked after 10 failed attempts. Blocks can be temporary or permanent.', 'color' => 'red', 'icon' => 'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636'],
+                    ['title' => 'Session Security', 'desc' => 'A user can have three sessions at a time by default. Older sessions are closed automatically.', 'color' => 'amber', 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z'],
+                    ['title' => 'Audit Logging', 'desc' => 'Transactions and security events are written to an audit trail.', 'color' => 'blue', 'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
+                    ['title' => 'Biometric Authentication', 'desc' => 'The mobile app can sign people in with a fingerprint or face scan. The server then issues a signed token.', 'color' => 'teal', 'icon' => 'M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4', 'badge' => 'v2.2.0'],
+                    ['title' => 'Hardware Wallets', 'desc' => 'Ledger and Trezor hardware wallets can sign transactions, so the private key never leaves the device.', 'color' => 'slate', 'icon' => 'M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z', 'badge' => 'v2.1.0'],
+                    ['title' => 'Zero-Knowledge Proofs', 'desc' => 'Zero-knowledge proofs let a person prove identity facts without showing documents. The module also supports proofs that funds are not linked to sanctioned sources, and Merkle tree commitments.', 'color' => 'teal', 'icon' => 'M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z', 'badge' => 'v2.4.0'],
+                    ['title' => 'Passkey Authentication', 'desc' => 'People can sign in with a passkey instead of a password. Passkeys resist phishing.', 'color' => 'blue', 'icon' => 'M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z', 'badge' => 'v2.7.0'],
+                    ['title' => 'SOC 2 Type II Readiness Tooling', 'desc' => 'The tooling monitors controls and collects evidence for an audit. No certification is held.', 'color' => 'teal', 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'badge' => 'v3.5.0'],
+                    ['title' => 'Passkey Checks', 'desc' => 'Each passkey sign-in checks the site identifier, the user presence and verification flags, the key algorithm and the origin.', 'color' => 'slate', 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'badge' => 'v5.9.0'],
+                    ['title' => 'Token Permissions', 'desc' => 'Each API token carries read, write or delete permissions. A middleware checks the permission for every request, and the test suite checks it too.', 'color' => 'blue', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'badge' => 'v5.12.0'],
                 ];
             @endphp
 
@@ -188,9 +188,9 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                     @php
                         $roadmap = [
-                            ['title' => 'AI Fraud Detection', 'desc' => 'Machine learning models for real-time fraud detection and prevention.', 'label' => 'In Development'],
-                            ['title' => '24/7 Security Operations', 'desc' => 'Dedicated security operations center for incident response.', 'label' => 'Future'],
-                            ['title' => 'Real-time Monitoring', 'desc' => 'Enhance monitoring from 5-minute to sub-second granularity.', 'label' => 'Upgrade Planned'],
+                            ['title' => 'Fraud Detection with Machine Learning', 'desc' => 'Machine learning models will score transactions for fraud as they happen.', 'label' => 'In Development'],
+                            ['title' => 'Standard Post-Quantum Algorithms', 'desc' => 'The current post-quantum layer is a hybrid stand-in built from X25519, Ed25519 and a hash-based layer. It is not yet a certified ML-KEM or ML-DSA implementation. It will move to the standard algorithms when PHP supports them.', 'label' => 'Planned'],
+                            ['title' => 'Faster Monitoring', 'desc' => 'Health checks will run more often than every five minutes.', 'label' => 'Planned'],
                         ];
                     @endphp
                     @foreach($roadmap as $item)
@@ -210,14 +210,14 @@
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-14 animate-on-scroll">
                 <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Protect Your Account</h2>
-                <p class="text-lg text-slate-500">Best practices to keep your account secure</p>
+                <p class="text-lg text-slate-500">These habits keep your account safe.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-on-scroll stagger-1">
                 <div class="card-feature !p-6 border-l-4 !border-l-teal-500">
                     <h3 class="font-display text-base font-bold text-slate-900 mb-4">Do's</h3>
                     <ul class="space-y-2.5 text-sm text-slate-600">
-                        <li class="list-check">Enable two-factor authentication (2FA)</li>
+                        <li class="list-check">Turn on two-factor sign-in</li>
                         <li class="list-check">Use a unique, strong password</li>
                         <li class="list-check">Verify email sender addresses</li>
                         <li class="list-check">Keep your devices updated</li>
@@ -230,7 +230,7 @@
                     <ul class="space-y-2.5 text-sm text-slate-600">
                         <li class="flex items-start gap-3"><svg class="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>Share your password or API keys</li>
                         <li class="flex items-start gap-3"><svg class="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>Click on suspicious links</li>
-                        <li class="flex items-start gap-3"><svg class="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>Use public WiFi for banking</li>
+                        <li class="flex items-start gap-3"><svg class="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>Use public Wi-Fi for banking</li>
                         <li class="flex items-start gap-3"><svg class="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>Install unverified browser extensions</li>
                         <li class="flex items-start gap-3"><svg class="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>Ignore security warnings</li>
                     </ul>
@@ -243,13 +243,13 @@
     <section class="bg-fa-navy relative overflow-hidden">
         <div class="absolute inset-0 bg-dot-pattern"></div>
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Security First Approach</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Report a Security Issue</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                Found a security issue? Contact the security team.
+                If you find a security issue, please report it privately and not in a public issue. The security policy on GitHub explains how.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="{{ route('support') }}" class="btn-primary px-8 py-4 text-lg">
-                    Contact Security Team
+                <a href="{{ config('brand.github_url') }}/security" target="_blank" rel="noopener" class="btn-primary px-8 py-4 text-lg">
+                    Report a Vulnerability
                 </a>
                 <a href="{{ route('compliance') }}" class="btn-outline px-8 py-4 text-lg">
                     View Compliance

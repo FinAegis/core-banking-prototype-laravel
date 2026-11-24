@@ -10,12 +10,12 @@
             <!-- Header -->
             <div class="mb-8">
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">GCU governance demo</h1>
-                <p class="mt-2 text-gray-600 dark:text-gray-400">Simulated basket "votes" on the GCU demo basket.</p>
+                <p class="mt-2 text-gray-600 dark:text-gray-400">These are simulated votes on the GCU demo basket.</p>
             </div>
 
             {{-- F4 GCU demo notice (see docs/REGULATORY-CLAIMS.md) --}}
             <div class="mb-8 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-200" role="note">
-                <p class="font-semibold">Simulated demo — no real value; not an offered token.</p>
+                <p class="font-semibold">This is a simulated demo. The unit has no real value and is not an offered token.</p>
                 <p class="mt-1">The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.</p>
             </div>
 

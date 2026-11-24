@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Pricing - Flexible Plans for Every Scale | ' . config('brand.name', 'Zelta'))
+@section('title', 'Pricing - Free and Open Source | ' . config('brand.name', 'Zelta'))
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Pricing - Flexible Plans for Every Scale | ' . config('brand.name', 'Zelta'),
-        'description' => config('brand.name', 'Zelta') . ' Pricing - Start with our free open-source community edition. Scale with enterprise support, custom features, and dedicated infrastructure when ready.',
-        'keywords' => config('brand.name', 'Zelta') . ' pricing, open source banking, enterprise support, core banking pricing, fintech platform cost, free banking software',
+        'title' => 'Pricing - Free and Open Source | ' . config('brand.name', 'Zelta'),
+        'description' => config('brand.name', 'Zelta') . ' is free and open source under the Apache 2.0 license. You run it on your own servers, and help with your own deployment is available on request.',
+        'keywords' => config('brand.name', 'Zelta') . ' pricing, open source banking, free core banking software, Apache 2.0, self-hosted banking platform, deployment help',
     ])
 
     {{-- Schema.org Markup --}}
@@ -27,10 +27,10 @@
                 <div class="text-center">
                     @include('partials.breadcrumb', ['items' => [['name' => 'Pricing', 'url' => url('/pricing')]]])
                     <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">
-                        Open Source & <span class="text-gradient">Enterprise Ready</span>
+                        Free and <span class="text-gradient">Open Source</span>
                     </h1>
                     <p class="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto">
-                        Start with our community edition, scale with enterprise support when you're ready.
+                        The software is free to use under the Apache 2.0 license. You run it on your own servers, and help with a deployment is available on request.
                     </p>
                 </div>
             </div>
@@ -49,21 +49,21 @@
                                 <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
                             </div>
                             <h3 class="font-display text-xl font-bold text-slate-900 mb-1">Community</h3>
-                            <p class="text-sm text-slate-500">Free forever. Ship your first product.</p>
+                            <p class="text-sm text-slate-500">Free to use, change and share.</p>
                         </div>
                         <div class="mb-8">
                             <span class="font-display text-5xl font-extrabold text-slate-900">Free</span>
                             <span class="text-slate-500 ml-2">Open Source</span>
                         </div>
                         <ul class="space-y-3 mb-8 text-sm text-slate-600">
-                            <li class="list-check">Full source code access</li>
-                            <li class="list-check">Apache-2.0 License</li>
+                            <li class="list-check">Full source code</li>
+                            <li class="list-check">Apache 2.0 license</li>
                             <li class="list-check">All 61 domain modules</li>
-                            <li class="list-check">ISO 20022, Open Banking, Payment Rails</li>
-                            <li class="list-check">Ledger, Microfinance, Interledger</li>
-                            <li class="list-check">Community support</li>
-                            <li class="list-check">Self-hosted deployment</li>
-                            <li class="list-check">MCP server access (Claude Desktop, Cursor, any agent)</li>
+                            <li class="list-check">ISO 20022, open banking and payment rail modules</li>
+                            <li class="list-check">Ledger, microfinance and Interledger modules</li>
+                            <li class="list-check">Community support on GitHub</li>
+                            <li class="list-check">Runs on your own servers</li>
+                            <li class="list-check">Model Context Protocol server for Claude Desktop, Cursor and other agents</li>
                         </ul>
                         <a href="{{ config('brand.github_url') }}" target="_blank" class="btn-secondary w-full text-center">
                             Get Started on GitHub
@@ -76,23 +76,22 @@
                             <div class="icon-box bg-blue-50 mb-4">
                                 <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
                             </div>
-                            <h3 class="font-display text-xl font-bold text-slate-900 mb-1">Cloud Platform</h3>
-                            <p class="text-sm text-slate-500">Managed infrastructure for growing businesses</p>
+                            <h3 class="font-display text-xl font-bold text-slate-900 mb-1">Sandbox</h3>
+                            <p class="text-sm text-slate-500">Try the platform online with test data.</p>
                         </div>
                         <div class="mb-8">
-                            <span class="font-display text-5xl font-extrabold text-slate-900">Custom</span>
-                            <p class="text-sm text-slate-500 mt-1">Pay only for what you use</p>
+                            <span class="font-display text-5xl font-extrabold text-slate-900">Free</span>
+                            <p class="text-sm text-slate-500 mt-1">Hosted demo on this site</p>
                         </div>
                         <ul class="space-y-3 mb-8 text-sm text-slate-600">
-                            <li class="list-check">Everything in Community</li>
-                            <li class="list-check">Managed hosting &amp; auto-scaling</li>
-                            <li class="list-check">99.9% uptime SLA</li>
-                            <li class="list-check">Priority support (< 4h response)</li>
-                            <li class="list-check">Automatic updates &amp; patches</li>
-                            <li class="list-check">Daily backups &amp; disaster recovery</li>
+                            <li class="list-check">No installation needed</li>
+                            <li class="list-check">Test data only, no real money</li>
+                            <li class="list-check">Banking screens and the API</li>
+                            <li class="list-check">The Global Currency Unit demo with simulated votes</li>
+                            <li class="list-check">Not for production use</li>
                         </ul>
-                        <a href="{{ route('support.contact') }}" class="btn-primary w-full text-center">
-                            Get a Quote
+                        <a href="{{ route('register') }}" class="btn-primary w-full text-center">
+                            Create a Sandbox Account
                         </a>
                     </div>
 
@@ -102,24 +101,22 @@
                             <div class="icon-box bg-slate-100 mb-4">
                                 <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                             </div>
-                            <h3 class="font-display text-xl font-bold text-slate-900 mb-1">Enterprise</h3>
-                            <p class="text-sm text-slate-500">Custom solutions for large organizations</p>
+                            <h3 class="font-display text-xl font-bold text-slate-900 mb-1">Deployment Help</h3>
+                            <p class="text-sm text-slate-500">Help with your own installation.</p>
                         </div>
                         <div class="mb-8">
-                            <span class="font-display text-5xl font-extrabold text-slate-900">Enterprise</span>
-                            <p class="text-sm text-slate-500 mt-1">Dedicated infrastructure &amp; support</p>
+                            <span class="font-display text-5xl font-extrabold text-slate-900">On request</span>
+                            <p class="text-sm text-slate-500 mt-1">Scope agreed with you</p>
                         </div>
                         <ul class="space-y-3 mb-8 text-sm text-slate-600">
-                            <li class="list-check">Everything in Cloud</li>
-                            <li class="list-check">On-premise deployment</li>
-                            <li class="list-check">PSD2 module support</li>
+                            <li class="list-check">Installing and configuring the platform</li>
+                            <li class="list-check">Open banking module setup</li>
                             <li class="list-check">Custom ISO 20022 message types</li>
-                            <li class="list-check">Dedicated support team</li>
-                            <li class="list-check">Service level agreements</li>
-                            <li class="list-check">Compliance-tooling configuration support</li>
+                            <li class="list-check">Compliance-tooling configuration</li>
+                            <li class="list-check">You run and operate the deployment</li>
                         </ul>
                         <a href="{{ route('support.contact') }}" class="btn-secondary w-full text-center">
-                            Contact Enterprise Sales
+                            Contact Us
                         </a>
                     </div>
                 </div>
@@ -134,16 +131,16 @@
             <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-14">
                     <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Frequently Asked Questions</h2>
-                    <p class="text-slate-500 text-lg">Everything you need to know about our pricing</p>
+                    <p class="text-slate-500 text-lg">These answers explain what is free and what is not offered.</p>
                 </div>
 
                 <div class="space-y-4">
                     @php
                         $faqs = [
-                            ['q' => 'Is the community edition really free?', 'a' => 'Yes! Our community edition is completely free and open source under the Apache 2.0 license. You can use it for any purpose, including commercial projects.'],
-                            ['q' => "What's included in the Cloud Platform?", 'a' => 'The Cloud Platform includes managed hosting, automatic updates, daily backups, 99.9% uptime SLA, and priority support. We handle all the infrastructure so you can focus on your business.'],
-                            ['q' => 'Can I switch between plans?', 'a' => "Yes. You can start with the Community Edition and upgrade to Cloud or Enterprise at any time. We provide migration tooling and support to ensure a seamless transition."],
-                            ['q' => 'Do you offer discounts for non-profits?', 'a' => 'Yes, we offer special pricing for non-profit organizations and educational institutions. Contact our sales team for more information.'],
+                            ['q' => 'Is the software really free?', 'a' => 'Yes. The code is open source under the Apache 2.0 license. You can use it for any purpose, including commercial projects.'],
+                            ['q' => 'Is there a managed cloud version?', 'a' => 'No. There is no managed hosting and no uptime guarantee. You run the platform on your own servers. This site is only a demo with test data.'],
+                            ['q' => 'Can I get help with my own deployment?', 'a' => 'You can contact us and describe what you need. We will tell you whether we can help and agree the scope with you before any work starts.'],
+                            ['q' => 'Who is responsible for compliance?', 'a' => 'The operator of each deployment is responsible for licensing and regulatory compliance. Using the software does not make a deployment compliant, and nothing on this site is legal advice.'],
                         ];
                     @endphp
 
@@ -166,16 +163,16 @@
         <section class="bg-fa-navy relative overflow-hidden">
             <div class="absolute inset-0 bg-dot-pattern"></div>
             <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
-                <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Ready to Get Started?</h2>
+                <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Start with the Source Code</h2>
                 <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                    Start free with the Community Edition, or talk to us about managed and enterprise options.
+                    The code is free on GitHub. If you need help with your own deployment, contact us.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ config('brand.github_url') }}" target="_blank" class="btn-primary px-8 py-4 text-lg">
-                        Start with Community Edition
+                        View on GitHub
                     </a>
                     <a href="{{ route('support.contact') }}" class="btn-outline px-8 py-4 text-lg">
-                        Talk to Sales
+                        Contact Us
                     </a>
                 </div>
             </div>

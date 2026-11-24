@@ -12,19 +12,19 @@ describe('Agent Protocol Feature Page', function (): void {
         $response->assertSee('Agent Protocol');
     });
 
-    it('displays DID authentication section', function (): void {
+    it('displays decentralised identity authentication section', function (): void {
         $response = get('/features/agent-protocol');
 
         $response->assertOk();
-        $response->assertSee('DID Identity');
-        $response->assertSee('DID Challenge-Response');
+        $response->assertSee('Decentralised Identity');
+        $response->assertSee('Identifier Challenge and Response');
     });
 
-    it('displays A2A messaging section', function (): void {
+    it('displays agent-to-agent messaging section', function (): void {
         $response = get('/features/agent-protocol');
 
         $response->assertOk();
-        $response->assertSee('A2A Messaging');
+        $response->assertSee('Agent-to-Agent Messaging');
     });
 
     it('displays escrow section', function (): void {
@@ -43,7 +43,7 @@ describe('Agent Protocol Feature Page', function (): void {
         $response->assertSee('50/100');
     });
 
-    it('displays AP2 mandate types', function (): void {
+    it('displays payment mandate types', function (): void {
         $response = get('/features/agent-protocol');
 
         $response->assertOk();
@@ -52,7 +52,7 @@ describe('Agent Protocol Feature Page', function (): void {
         $response->assertSee('Payment Mandate');
     });
 
-    it('displays KYC tiers', function (): void {
+    it('displays identity check levels', function (): void {
         $response = get('/features/agent-protocol');
 
         $response->assertOk();

@@ -177,8 +177,8 @@
                                         Important Notice
                                     </h3>
                                     <p class="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
-                                        This action will mint new {{ $stablecoin }} tokens and lock collateral. 
-                                        Ensure all parameters are correct before proceeding.
+                                        This action mints new {{ $stablecoin }} tokens and locks your collateral. 
+                                        Check every value before you continue.
                                     </p>
                                 </div>
                             </div>

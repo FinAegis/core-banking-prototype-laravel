@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Governance Module Demo',
-        'description' => 'Governance module: weighted-voting proposals and tallying, shown with simulated votes in the GCU demo.',
+        'description' => 'The governance module runs proposals with weighted voting and counts the votes. The GCU demo shows it with simulated votes.',
         'keywords' => 'governance module, weighted voting, proposals, GCU demo, ' . config('brand.name', 'Zelta'),
     ])
 
@@ -28,7 +28,7 @@
             <div class="text-center">
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Governance Module</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    Governance module demo: weighted-voting proposals with transparent tallying. All votes in the demo are simulated.
+                    The governance module runs proposals with weighted voting and counts the votes openly. All votes in the demo are simulated.
                 </p>
                 {{-- F4 GCU disclaimer (see docs/REGULATORY-CLAIMS.md) --}}
                 <div class="mt-8 max-w-3xl mx-auto bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 text-sm text-slate-300 text-left" role="note">
@@ -63,7 +63,7 @@
                     <div class="text-4xl font-bold text-indigo-600 mb-4">1</div>
                     <h3 class="text-xl font-bold mb-3">Proposal Creation</h3>
                     <p class="text-slate-500">
-                        Proposals are created with a description, a rationale and proposed demo basket weights.
+                        A proposal has a description, a reason and the proposed weights for the demo basket.
                     </p>
                 </div>
                 
@@ -79,7 +79,7 @@
                     <div class="text-4xl font-bold text-green-600 mb-4">3</div>
                     <h3 class="text-xl font-bold mb-3">Simulated Voting & Tallying</h3>
                     <p class="text-slate-500">
-                        Demo accounts cast simulated votes. Results are tallied against configurable participation and approval thresholds.
+                        Demo accounts cast simulated votes. The module counts them against the participation and approval thresholds you set.
                     </p>
                 </div>
             </div>
@@ -101,7 +101,7 @@
                             </svg>
                             <div>
                                 <h4 class="font-semibold mb-1">GCU Demo Basket Composition</h4>
-                                <p class="text-slate-600">Proposed currency weightings for the demo basket (simulated votes; no monetary effect)</p>
+                                <p class="text-slate-600">A proposal sets new currency weights for the demo basket. The votes are simulated and have no monetary effect.</p>
                             </div>
                         </li>
                     </ul>
@@ -123,7 +123,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3">Public Proposals</h3>
-                    <p class="text-slate-500">All proposals and their details are publicly accessible before, during, and after voting.</p>
+                    <p class="text-slate-500">Anyone can read every proposal before, during and after the vote.</p>
                 </div>
                 
                 <div class="text-center">
@@ -133,7 +133,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3">Recorded Votes</h3>
-                    <p class="text-slate-500">Demo votes are stored in the application database with a hash signature; they are not recorded on a blockchain.</p>
+                    <p class="text-slate-500">Demo votes are stored in the application database with a hash signature. They are not recorded on a blockchain.</p>
                 </div>
                 
                 <div class="text-center">

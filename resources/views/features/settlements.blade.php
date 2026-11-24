@@ -5,8 +5,8 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Instant Settlements',
-        'description' => 'Settlement engine with sub-second ledger processing (reference implementation).',
-        'keywords' => 'instant settlements, real-time transactions, fast transfers, payment processing, ' . config('brand.name', 'Zelta'),
+        'description' => 'The settlement engine records a transfer between two ledger accounts as soon as it passes its checks. It is a reference implementation and does not connect to live payment schemes.',
+        'keywords' => 'instant settlements, ledger settlement, event sourcing, internal transfers, payment processing, ' . config('brand.name', 'Zelta'),
     ])
 
     {{-- Schema.org Markup --}}
@@ -58,7 +58,7 @@
             <div class="text-center">
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Instant Settlements</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    Say goodbye to waiting. Our advanced settlement engine processes transactions in milliseconds, not days.
+                    The settlement engine moves money between accounts on the same ledger. A transfer is recorded as soon as it passes its checks, at any hour of the day.
                 </p>
             </div>
         </div>
@@ -68,71 +68,71 @@
     <!-- Speed Comparison -->
     <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12">Speed That Matters</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12">Internal Ledger and External Rails</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                 <div>
-                    <h3 class="text-2xl font-bold mb-6">Traditional Rails vs {{ config('brand.name', 'Zelta') }} Ledger</h3>
+                    <h3 class="text-2xl font-bold mb-6">What Settles on the {{ config('brand.name', 'Zelta') }} Ledger</h3>
                     <div class="space-y-6">
                         <div>
                             <div class="flex justify-between mb-2">
-                                <span class="font-semibold">Domestic Transfers</span>
-                                <span class="text-green-600 font-bold">< 1 second</span>
+                                <span class="font-semibold">Between Ledger Accounts</span>
+                                <span class="text-green-600 font-bold">At once</span>
                             </div>
                             <div class="relative">
                                 <div class="w-full bg-gray-200 rounded-full h-3">
                                     <div class="bg-green-500 h-3 rounded-full" style="width: 95%"></div>
                                 </div>
-                                <div class="text-sm text-gray-500 mt-1">Traditional: 1-2 business days</div>
+                                <div class="text-sm text-gray-500 mt-1">Both accounts are on the same ledger, so no outside system takes part.</div>
                             </div>
                         </div>
                         
                         <div>
                             <div class="flex justify-between mb-2">
-                                <span class="font-semibold">International Transfers</span>
-                                <span class="text-green-600 font-bold">< 3 seconds</span>
+                                <span class="font-semibold">Cross-Border Models</span>
+                                <span class="text-green-600 font-bold">Modelled</span>
                             </div>
                             <div class="relative">
                                 <div class="w-full bg-gray-200 rounded-full h-3">
                                     <div class="bg-green-500 h-3 rounded-full" style="width: 90%"></div>
                                 </div>
-                                <div class="text-sm text-gray-500 mt-1">Traditional: 3-5 business days</div>
+                                <div class="text-sm text-gray-500 mt-1">The payment rail modules model these transfers. They do not connect to live schemes.</div>
                             </div>
                         </div>
                         
                         <div>
                             <div class="flex justify-between mb-2">
                                 <span class="font-semibold">Cross-Currency</span>
-                                <span class="text-green-600 font-bold">< 2 seconds</span>
+                                <span class="text-green-600 font-bold">At once</span>
                             </div>
                             <div class="relative">
                                 <div class="w-full bg-gray-200 rounded-full h-3">
                                     <div class="bg-green-500 h-3 rounded-full" style="width: 92%"></div>
                                 </div>
-                                <div class="text-sm text-gray-500 mt-1">Traditional: 2-3 business days</div>
+                                <div class="text-sm text-gray-500 mt-1">The ledger converts the amount at the current exchange rate.</div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
                 <div class="bg-gray-50 rounded-2xl p-8">
-                    <h4 class="text-xl font-bold mb-6">Performance Metrics</h4>
+                    <h4 class="text-xl font-bold mb-6">How the Ledger Keeps Records</h4>
                     <div class="grid grid-cols-2 gap-6">
                         <div class="text-center">
-                            <div class="text-4xl font-bold text-indigo-600 mb-2">< 100ms</div>
-                            <p class="text-slate-500">Average Settlement Time</p>
+                            <div class="text-4xl font-bold text-indigo-600 mb-2">Events</div>
+                            <p class="text-slate-500">Every posting is stored as an event</p>
                         </div>
                         <div class="text-center">
-                            <div class="text-4xl font-bold text-purple-600 mb-2">99.99%</div>
-                            <p class="text-slate-500">Success Rate</p>
+                            <div class="text-4xl font-bold text-purple-600 mb-2">Hashes</div>
+                            <p class="text-slate-500">Each transfer carries a hash</p>
                         </div>
                         <div class="text-center">
-                            <div class="text-4xl font-bold text-green-600 mb-2">10K+</div>
-                            <p class="text-slate-500">TPS Capacity</p>
+                            <div class="text-4xl font-bold text-green-600 mb-2">Replay</div>
+                            <p class="text-slate-500">History can be rebuilt from events</p>
                         </div>
                         <div class="text-center">
                             <div class="text-4xl font-bold text-pink-600 mb-2">24/7</div>
-                            <p class="text-slate-500">Availability</p>
+                            <p class="text-slate-500">The internal ledger runs at any hour</p>
                         </div>
                     </div>
                 </div>
@@ -143,7 +143,7 @@
     <!-- How It Works -->
     <section class="py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12">How Instant Settlement Works</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12">How a Settlement Runs</h2>
             
             <div class="max-w-3xl mx-auto">
                 <div class="space-y-8">
@@ -151,17 +151,15 @@
                         <div class="timeline-dot"></div>
                         <div class="bg-white rounded-lg p-6 shadow-md">
                             <h4 class="font-bold text-lg mb-2">1. Transaction Initiated</h4>
-                            <p class="text-slate-500">User initiates transfer through API or interface with full validation.</p>
-                            <p class="text-sm text-green-600 mt-2">Time: < 10ms</p>
+                            <p class="text-slate-500">A user starts a transfer in the app or through the API. The request is validated first.</p>
                         </div>
                     </div>
                     
                     <div class="timeline-item">
                         <div class="timeline-dot"></div>
                         <div class="bg-white rounded-lg p-6 shadow-md">
-                            <h4 class="font-bold text-lg mb-2">2. Instant Validation</h4>
-                            <p class="text-slate-500">Balance checks, compliance screening, and fraud detection in parallel.</p>
-                            <p class="text-sm text-green-600 mt-2">Time: < 20ms</p>
+                            <h4 class="font-bold text-lg mb-2">2. Checks</h4>
+                            <p class="text-slate-500">The platform checks the balance and screens the transfer for compliance and fraud.</p>
                         </div>
                     </div>
                     
@@ -169,17 +167,15 @@
                         <div class="timeline-dot"></div>
                         <div class="bg-white rounded-lg p-6 shadow-md">
                             <h4 class="font-bold text-lg mb-2">3. Atomic Processing</h4>
-                            <p class="text-slate-500">Event sourcing ensures transaction atomicity with immediate consistency.</p>
-                            <p class="text-sm text-green-600 mt-2">Time: < 30ms</p>
+                            <p class="text-slate-500">The transfer is stored as one event. Either the whole transfer is recorded or nothing is.</p>
                         </div>
                     </div>
                     
                     <div class="timeline-item">
                         <div class="timeline-dot"></div>
                         <div class="bg-white rounded-lg p-6 shadow-md">
-                            <h4 class="font-bold text-lg mb-2">4. Real-time Notification</h4>
-                            <p class="text-slate-500">Instant webhook notifications and balance updates to all parties.</p>
-                            <p class="text-sm text-green-600 mt-2">Time: < 40ms</p>
+                            <h4 class="font-bold text-lg mb-2">4. Notification</h4>
+                            <p class="text-slate-500">Balances update and webhooks tell the parties that the transfer is done.</p>
                         </div>
                     </div>
                 </div>
@@ -189,7 +185,7 @@
                         <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
-                        <span class="font-semibold">Total Time: Under 100 milliseconds</span>
+                        <span class="font-semibold">All four steps run inside the platform</span>
                     </div>
                 </div>
             </div>
@@ -209,7 +205,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3">Ledger Finality</h3>
-                    <p class="text-slate-500">Once confirmed, ledger entries are immutable.</p>
+                    <p class="text-slate-500">A confirmed ledger entry cannot be changed. A correction is a new entry.</p>
                 </div>
                 
                 <div class="text-center">
@@ -218,8 +214,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">Global Reach</h3>
-                    <p class="text-slate-500">Model cross-border transfers in the same settlement engine.</p>
+                    <h3 class="text-xl font-bold mb-3">Cross-Border Models</h3>
+                    <p class="text-slate-500">The same engine can model cross-border transfers.</p>
                 </div>
                 
                 <div class="text-center">
@@ -229,7 +225,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3">24/7 Operations</h3>
-                    <p class="text-slate-500">No banking hours, no weekends, no holidays. Always instant.</p>
+                    <p class="text-slate-500">The internal ledger does not close for weekends or holidays. External rails keep their own hours.</p>
                 </div>
             </div>
         </div>
@@ -238,7 +234,7 @@
     <!-- Technology Stack -->
     <section class="py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12">Powered by Advanced Technology</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12">How It Is Built</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
                 <div>
@@ -246,41 +242,41 @@
                     <ul class="space-y-3 text-slate-500">
                         <li class="flex items-start">
                             <span class="text-green-500 mr-2">•</span>
-                            Complete audit trail of all financial operations
+                            Every financial operation is kept in the audit trail
                         </li>
                         <li class="flex items-start">
                             <span class="text-green-500 mr-2">•</span>
-                            Immutable transaction history with cryptographic verification
+                            Transaction history cannot be changed, and each transfer carries a hash
                         </li>
                         <li class="flex items-start">
                             <span class="text-green-500 mr-2">•</span>
-                            Event replay capability for system recovery
+                            Events can be replayed to rebuild the state after a failure
                         </li>
                         <li class="flex items-start">
                             <span class="text-green-500 mr-2">•</span>
-                            Real-time event streaming for instant notifications
+                            Events are streamed so other services hear about them at once
                         </li>
                     </ul>
                 </div>
                 
                 <div>
-                    <h3 class="text-2xl font-bold mb-6">Performance Optimization</h3>
+                    <h3 class="text-2xl font-bold mb-6">Performance</h3>
                     <ul class="space-y-3 text-slate-500">
                         <li class="flex items-start">
                             <span class="text-green-500 mr-2">•</span>
-                            Redis caching for sub-millisecond data access
+                            Redis caches data that is read often
                         </li>
                         <li class="flex items-start">
                             <span class="text-green-500 mr-2">•</span>
-                            Optimized database queries with proper indexing
+                            Database tables are indexed for the common queries
                         </li>
                         <li class="flex items-start">
                             <span class="text-green-500 mr-2">•</span>
-                            Horizontal scaling for unlimited throughput
+                            You can add more application servers when load grows
                         </li>
                         <li class="flex items-start">
                             <span class="text-green-500 mr-2">•</span>
-                            Load balancing across multiple processing nodes
+                            Queue workers can run on several machines
                         </li>
                     </ul>
                 </div>
@@ -291,24 +287,24 @@
     <!-- Use Cases -->
     <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12">Perfect For</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12">Use Cases</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 <div class="bg-gray-50 rounded-xl p-6">
                     <h4 class="font-bold text-lg mb-3">E-commerce</h4>
-                    <p class="text-slate-500">Instant payment confirmation for better customer experience.</p>
+                    <p class="text-slate-500">A shop can confirm a payment between ledger accounts at once.</p>
                 </div>
                 <div class="bg-gray-50 rounded-xl p-6">
                     <h4 class="font-bold text-lg mb-3">Payroll</h4>
-                    <p class="text-slate-500">Model instant payroll runs.</p>
+                    <p class="text-slate-500">You can model a payroll run across many accounts.</p>
                 </div>
                 <div class="bg-gray-50 rounded-xl p-6">
                     <h4 class="font-bold text-lg mb-3">Trading</h4>
-                    <p class="text-slate-500">Execute trades and settle funds in real-time.</p>
+                    <p class="text-slate-500">A trade can settle on the ledger as soon as it is matched.</p>
                 </div>
                 <div class="bg-gray-50 rounded-xl p-6">
                     <h4 class="font-bold text-lg mb-3">Remittances</h4>
-                    <p class="text-slate-500">Model remittance flows.</p>
+                    <p class="text-slate-500">You can model money sent home across borders.</p>
                 </div>
             </div>
         </div>
@@ -318,9 +314,9 @@
     <section class="bg-fa-navy relative overflow-hidden">
         <div class="absolute inset-0 bg-dot-pattern"></div>
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Experience Instant Settlements</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Try the Settlement Engine</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                Explore the settlement engine in the sandbox.
+                You can try the settlement engine in the sandbox. The sandbox uses test data only.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">

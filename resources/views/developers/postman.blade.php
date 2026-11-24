@@ -2,10 +2,16 @@
 
 @section('title', 'Postman Collection - ' . config('brand.name', 'Zelta'))
 
+@php
+    // The published files keep their original names; the download attribute renames them per brand.
+    $collectionFile  = 'Zelta-API.postman_collection.json';
+    $environmentFile = 'Zelta-Environment.postman_environment.json';
+@endphp
+
 @section('seo')
     @include('partials.seo', [
         'title' => 'Postman Collection - ' . config('brand.name', 'Zelta'),
-        'description' => 'Ready-to-use Postman collection with all ' . config('brand.name', 'Zelta') . ' API endpoints pre-configured for testing.',
+        'description' => 'The ' . config('brand.name', 'Zelta') . ' Postman collection holds the documented API requests. Import it into Postman to try the API.',
         'keywords' => config('brand.name', 'Zelta') . ' API, Postman collection, API testing, developer tools',
     ])
 @endsection
@@ -20,7 +26,7 @@
                         Postman Collection
                     </h1>
                     <p class="mt-6 text-xl text-orange-100 max-w-3xl mx-auto">
-                        Ready-to-use Postman collection with all {{ config('brand.name', 'Zelta') }} API endpoints pre-configured for testing.
+                        The Postman collection holds the documented {{ config('brand.name', 'Zelta') }} API requests. Import it into Postman to try the API without writing code.
                     </p>
                 </div>
             </div>
@@ -40,15 +46,15 @@
                         </div>
                     </div>
                     <h2 class="text-3xl font-bold text-gray-900 mb-4">Download Postman Collection</h2>
-                    <p class="text-lg text-gray-600 mb-8">Get started immediately with our comprehensive API collection including examples and test scripts.</p>
+                    <p class="text-lg text-gray-600 mb-8">The collection is generated from the OpenAPI specification. The environment file holds the base address and your API key.</p>
                     
                     <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-                        <a href="/postman/{{ config('brand.name', 'Zelta') }}-API.postman_collection.json" 
+                        <a href="/postman/{{ $collectionFile }}" 
                            download="{{ config('brand.name', 'Zelta') }}-API.postman_collection.json"
                            class="bg-orange-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-orange-700 transition duration-200">
                             Download Collection
                         </a>
-                        <a href="/postman/{{ config('brand.name', 'Zelta') }}-Environment.postman_environment.json" 
+                        <a href="/postman/{{ $environmentFile }}" 
                            download="{{ config('brand.name', 'Zelta') }}-Environment.postman_environment.json"
                            class="bg-white text-orange-600 border-2 border-orange-600 px-8 py-3 rounded-lg font-semibold hover:bg-orange-50 transition duration-200">
                             Download Environment
@@ -70,7 +76,7 @@
                                 </div>
                                 <h3 class="text-xl font-semibold">Import Collection</h3>
                             </div>
-                            <p class="text-gray-600 mb-4">Open Postman and import the downloaded collection file.</p>
+                            <p class="text-gray-600 mb-4">Open Postman and import the collection file you downloaded.</p>
                             <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
                                 <div class="flex items-center space-x-2 text-sm">
                                     <span class="bg-white px-3 py-1 rounded border border-gray-300 font-medium">File</span>
@@ -91,9 +97,9 @@
                                 <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
                                     <span class="text-blue-600 font-bold">2</span>
                                 </div>
-                                <h3 class="text-xl font-semibold">Setup Environment</h3>
+                                <h3 class="text-xl font-semibold">Set Up the Environment</h3>
                             </div>
-                            <p class="text-gray-600 mb-4">Import the environment file and configure your API key.</p>
+                            <p class="text-gray-600 mb-4">Import the environment file. It holds the variables the requests use.</p>
                             <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
                                 <div class="flex items-center space-x-2 text-sm">
                                     <span class="bg-white px-3 py-1 rounded border border-gray-300 font-medium">Environments</span>
@@ -116,7 +122,7 @@
                                 </div>
                                 <h3 class="text-xl font-semibold">Configure API Key</h3>
                             </div>
-                            <p class="text-gray-600 mb-4">Set your API key in the environment variables.</p>
+                            <p class="text-gray-600 mb-4">Put your API key in the environment variables.</p>
                             <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
                                 <div class="flex items-start space-x-3">
                                     <div class="flex-shrink-0">
@@ -126,7 +132,7 @@
                                     </div>
                                     <div class="flex-1">
                                         <p class="text-sm font-medium text-gray-900">Configure API Key</p>
-                                        <p class="text-sm text-gray-600 mt-1">Replace <code class="bg-white px-2 py-1 rounded text-xs border border-gray-200">api_key</code> variable with your actual API key</p>
+                                        <p class="text-sm text-gray-600 mt-1">Replace the value of the <code class="bg-white px-2 py-1 rounded text-xs border border-gray-200">api_key</code> variable with your own API key.</p>
                                     </div>
                                 </div>
                             </div>
@@ -198,7 +204,8 @@
 
             <!-- Collection Overview -->
             <section class="mb-16">
-                <h2 class="text-3xl font-bold text-gray-900 mb-8">Collection Overview</h2>
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Collection Overview</h2>
+                <p class="text-gray-600 mb-8">The collection is grouped by API path. These are some of its folders.</p>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div class="border rounded-lg p-6">
@@ -208,8 +215,8 @@
                             </svg>
                         </div>
                         <h3 class="text-lg font-semibold mb-2">Authentication</h3>
-                        <p class="text-gray-600 text-sm mb-3">API key validation and user authentication flows</p>
-                        <span class="text-sm text-green-600 font-medium">3 requests</span>
+                        <p class="text-gray-600 text-sm mb-3">Requests for signing in, tokens, passkeys and two-factor authentication.</p>
+                        <span class="text-sm text-green-600 font-medium">Folder: auth</span>
                     </div>
 
                     <div class="border rounded-lg p-6">
@@ -219,8 +226,8 @@
                             </svg>
                         </div>
                         <h3 class="text-lg font-semibold mb-2">Accounts</h3>
-                        <p class="text-gray-600 text-sm mb-3">Account management, creation, and balance queries</p>
-                        <span class="text-sm text-blue-600 font-medium">8 requests</span>
+                        <p class="text-gray-600 text-sm mb-3">Requests that open accounts and read their balances.</p>
+                        <span class="text-sm text-blue-600 font-medium">Folder: accounts</span>
                     </div>
 
                     <div class="border rounded-lg p-6">
@@ -229,9 +236,9 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                             </svg>
                         </div>
-                        <h3 class="text-lg font-semibold mb-2">Transfers</h3>
-                        <p class="text-gray-600 text-sm mb-3">Money transfers, status tracking, and confirmations</p>
-                        <span class="text-sm text-purple-600 font-medium">12 requests</span>
+                        <h3 class="text-lg font-semibold mb-2">Wallet</h3>
+                        <p class="text-gray-600 text-sm mb-3">Requests for wallet addresses, balances, quotes and non-custodial sends.</p>
+                        <span class="text-sm text-purple-600 font-medium">Folder: v1/wallet</span>
                     </div>
 
                     <div class="border rounded-lg p-6">
@@ -240,9 +247,9 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                             </svg>
                         </div>
-                        <h3 class="text-lg font-semibold mb-2">Assets</h3>
-                        <p class="text-gray-600 text-sm mb-3">Asset management, exchange rates, and conversions</p>
-                        <span class="text-sm text-yellow-600 font-medium">6 requests</span>
+                        <h3 class="text-lg font-semibold mb-2">Exchange Rates</h3>
+                        <p class="text-gray-600 text-sm mb-3">Requests that read exchange rates and their providers.</p>
+                        <span class="text-sm text-yellow-600 font-medium">Folder: exchange-rates</span>
                     </div>
 
                     <div class="border rounded-lg p-6">
@@ -252,8 +259,8 @@
                             </svg>
                         </div>
                         <h3 class="text-lg font-semibold mb-2">Workflows</h3>
-                        <p class="text-gray-600 text-sm mb-3">Complex workflows, batch operations, and sagas</p>
-                        <span class="text-sm text-red-600 font-medium">15 requests</span>
+                        <p class="text-gray-600 text-sm mb-3">Requests that list workflows, their status and their compensation steps.</p>
+                        <span class="text-sm text-red-600 font-medium">Folder: workflows</span>
                     </div>
 
                     <div class="border rounded-lg p-6">
@@ -263,8 +270,8 @@
                             </svg>
                         </div>
                         <h3 class="text-lg font-semibold mb-2">Webhooks</h3>
-                        <p class="text-gray-600 text-sm mb-3">Webhook configuration and event management</p>
-                        <span class="text-sm text-indigo-600 font-medium">5 requests</span>
+                        <p class="text-gray-600 text-sm mb-3">Requests that set up webhooks and list their deliveries.</p>
+                        <span class="text-sm text-indigo-600 font-medium">Folder: webhooks</span>
                     </div>
 
                     <div class="border rounded-lg p-6">
@@ -274,8 +281,8 @@
                             </svg>
                         </div>
                         <h3 class="text-lg font-semibold mb-2">CrossChain</h3>
-                        <p class="text-gray-600 text-sm mb-3">Bridge protocols (Wormhole, LayerZero, Axelar), cross-chain swaps, and multi-chain portfolio tracking. Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
-                        <span class="text-sm text-cyan-600 font-medium">18 requests</span>
+                        <p class="text-gray-600 text-sm mb-3">Requests for bridge quotes, bridge transfers and swaps between networks. The bridge adapters cover Wormhole, LayerZero and Axelar. Integration adapters for third-party APIs; no partnership or endorsement implied.</p>
+                        <span class="text-sm text-cyan-600 font-medium">Folder: v1/crosschain</span>
                     </div>
 
                     <div class="border rounded-lg p-6">
@@ -284,9 +291,9 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                             </svg>
                         </div>
-                        <h3 class="text-lg font-semibold mb-2">DeFi</h3>
-                        <p class="text-gray-600 text-sm mb-3">DEX aggregation (Uniswap, Curve), lending (Aave), staking (Lido), and flash loans</p>
-                        <span class="text-sm text-emerald-600 font-medium">22 requests</span>
+                        <h3 class="text-lg font-semibold mb-2">Decentralised Finance</h3>
+                        <p class="text-gray-600 text-sm mb-3">Requests for swap quotes across decentralised exchanges, lending markets, staking and positions. The adapters cover Uniswap, Curve, Aave and Lido.</p>
+                        <span class="text-sm text-emerald-600 font-medium">Folder: v1/defi</span>
                     </div>
 
                     <div class="border rounded-lg p-6">
@@ -296,8 +303,8 @@
                             </svg>
                         </div>
                         <h3 class="text-lg font-semibold mb-2">RegTech</h3>
-                        <p class="text-gray-600 text-sm mb-3">Reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements, with jurisdiction adapters</p>
-                        <span class="text-sm text-rose-600 font-medium">14 requests</span>
+                        <p class="text-gray-600 text-sm mb-3">Requests for the reporting modules. These modules are modelled on European markets and crypto-asset rules and on the Travel Rule.</p>
+                        <span class="text-sm text-rose-600 font-medium">Folder: regtech</span>
                     </div>
 
                     <div class="border rounded-lg p-6">
@@ -306,9 +313,9 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                             </svg>
                         </div>
-                        <h3 class="text-lg font-semibold mb-2">Mobile Payment</h3>
-                        <p class="text-gray-600 text-sm mb-3">Payment intents, receipts, activity feed, receive addresses, and network availability</p>
-                        <span class="text-sm text-violet-600 font-medium">16 requests</span>
+                        <h3 class="text-lg font-semibold mb-2">Mobile</h3>
+                        <p class="text-gray-600 text-sm mb-3">Requests for the mobile app, such as devices, biometric sign-in, notifications and sessions.</p>
+                        <span class="text-sm text-violet-600 font-medium">Folder: mobile</span>
                     </div>
 
                     <div class="border rounded-lg p-6">
@@ -317,9 +324,9 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                             </svg>
                         </div>
-                        <h3 class="text-lg font-semibold mb-2">Partner BaaS</h3>
-                        <p class="text-gray-600 text-sm mb-3">Partner onboarding, SDK generation, widget deployment, and white-label configuration</p>
-                        <span class="text-sm text-amber-600 font-medium">11 requests</span>
+                        <h3 class="text-lg font-semibold mb-2">Partner API</h3>
+                        <p class="text-gray-600 text-sm mb-3">Requests for partner billing, usage, branding, SDK generation and embeddable widgets.</p>
+                        <span class="text-sm text-amber-600 font-medium">Folder: partner</span>
                     </div>
 
                     <div class="border rounded-lg p-6">
@@ -328,21 +335,22 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
                             </svg>
                         </div>
-                        <h3 class="text-lg font-semibold mb-2">AI Query</h3>
-                        <p class="text-gray-600 text-sm mb-3">Natural language transaction queries, AI-powered analytics, and intelligent reporting</p>
-                        <span class="text-sm text-sky-600 font-medium">8 requests</span>
+                        <h3 class="text-lg font-semibold mb-2">AI</h3>
+                        <p class="text-gray-600 text-sm mb-3">Requests that query transactions in plain language, analyse spending and list the agent tools.</p>
+                        <span class="text-sm text-sky-600 font-medium">Folder: ai</span>
                     </div>
                 </div>
             </section>
 
             <!-- Test Scripts -->
             <section class="mb-16">
-                <h2 class="text-3xl font-bold text-gray-900 mb-8">Built-in Test Scripts</h2>
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Adding Test Scripts</h2>
+                <p class="text-gray-600 mb-8">The collection does not include test scripts. You can add your own in Postman, as in the example below.</p>
                 
                 <div class="bg-gray-50 rounded-lg p-8">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div>
-                            <h3 class="text-lg font-semibold mb-4">Automated Testing Features</h3>
+                            <h3 class="text-lg font-semibold mb-4">What a Test Script Can Check</h3>
                             <ul class="space-y-3">
                                 <li class="flex items-start">
                                     <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -360,7 +368,7 @@
                                     <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                                     </svg>
-                                    <span class="text-gray-700">Automatic variable extraction</span>
+                                    <span class="text-gray-700">Saving response values into variables</span>
                                 </li>
                                 <li class="flex items-start">
                                     <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -400,7 +408,7 @@ pm.test("Account UUID is valid", function () {
             <section class="bg-orange-50 rounded-lg p-8">
                 <div class="text-center">
                     <h2 class="text-2xl font-bold text-gray-900 mb-4">Need Help?</h2>
-                    <p class="text-gray-600 mb-6">Having trouble with the Postman collection? We're here to help.</p>
+                    <p class="text-gray-600 mb-6">If a request in the collection does not work, check the API docs first. You can also contact us.</p>
                     <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
                         <a href="{{ route('developers.show', 'api-docs') }}" class="bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-700 transition duration-200">
                             View API Docs

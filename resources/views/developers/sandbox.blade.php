@@ -7,7 +7,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'API Sandbox - ' . $brand . ' Developer Documentation',
-        'description' => $brand . ' API Sandbox — Test API endpoints directly from your browser. No Postman or cURL needed. Live interactive API testing environment.',
+        'description' => 'The ' . $brand . ' API sandbox lets you send requests to the API from your browser. You do not need Postman or cURL to try an endpoint.',
         'keywords' => $brand . ', API sandbox, API testing, interactive, REST API, developer tools',
     ])
 @endsection
@@ -69,7 +69,7 @@
             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-white/80 border border-white/20 mb-4">Interactive Tester</span>
             <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">API Sandbox</h1>
             <p class="text-xl text-white/80 max-w-2xl mx-auto">
-                Test API endpoints directly from your browser. No Postman or cURL needed.
+                The sandbox sends API requests from your browser. You can try an endpoint without Postman or cURL.
             </p>
         </div>
     </div>
@@ -79,7 +79,7 @@
 <section class="bg-white py-16">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-3xl font-bold mb-2">Request Builder</h2>
-        <p class="text-slate-500 mb-8">Compose and send API requests live. Responses are shown below.</p>
+        <p class="text-slate-500 mb-8">Build a request and send it to the API. The response appears next to the form.</p>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- Left: form -->
@@ -102,7 +102,7 @@
 
                 <!-- Headers -->
                 <div>
-                    <label for="sb-headers" class="block text-sm font-semibold text-slate-700 mb-1">Headers <span class="text-slate-400 font-normal">(one per line, Key: Value)</span></label>
+                    <label for="sb-headers" class="block text-sm font-semibold text-slate-700 mb-1">Headers <span class="text-slate-400 font-normal">(one header per line, written as Key: Value)</span></label>
                     <textarea id="sb-headers" rows="4" class="code-font w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y">Accept: application/json
 Authorization: Bearer &lt;your-token&gt;</textarea>
                 </div>
@@ -139,7 +139,7 @@ Authorization: Bearer &lt;your-token&gt;</textarea>
 <section class="bg-slate-50 py-16">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-3xl font-bold mb-2">Quick Examples</h2>
-        <p class="text-slate-500 mb-8">Click "Try it" to load the example into the builder above, then hit Send.</p>
+        <p class="text-slate-500 mb-8">Click "Try it" to load an example into the request builder. Then click Send Request.</p>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
@@ -150,7 +150,7 @@ Authorization: Bearer &lt;your-token&gt;</textarea>
                     <span class="text-xs text-slate-500 code-font truncate">/api/v1/x402/status</span>
                 </div>
                 <h3 class="text-base font-bold text-slate-800 mb-1">x402 Status</h3>
-                <p class="text-sm text-slate-500 flex-1 mb-4">Returns the x402 payment protocol configuration and supported networks.</p>
+                <p class="text-sm text-slate-500 flex-1 mb-4">This endpoint returns the x402 payment protocol settings and the networks it supports.</p>
                 <button class="try-example-btn mt-auto w-full text-center text-sm font-semibold text-indigo-600 border border-indigo-200 rounded-lg py-2 hover:bg-indigo-50 transition-colors"
                     data-method="GET"
                     data-url="/api/v1/x402/status"
@@ -163,10 +163,10 @@ Authorization: Bearer &lt;your-token&gt;</textarea>
             <div class="example-card bg-white rounded-xl border border-slate-200 p-6 flex flex-col">
                 <div class="flex items-center gap-2 mb-3">
                     <span class="method-badge-get text-xs font-bold px-2 py-0.5 rounded-full uppercase">GET</span>
-                    <span class="text-xs text-slate-500 code-font truncate">/.well-known/mpp-configuration</span>
+                    <span class="text-xs text-slate-500 code-font truncate">/api/.well-known/mpp-configuration</span>
                 </div>
-                <h3 class="text-base font-bold text-slate-800 mb-1">MPP Discovery</h3>
-                <p class="text-sm text-slate-500 flex-1 mb-4">Multi-Party Payment protocol discovery document listing supported payment rails.</p>
+                <h3 class="text-base font-bold text-slate-800 mb-1">Machine Payments Discovery</h3>
+                <p class="text-sm text-slate-500 flex-1 mb-4">This is the discovery document of the Machine Payments Protocol. It lists the payment rails the server accepts.</p>
                 <button class="try-example-btn mt-auto w-full text-center text-sm font-semibold text-indigo-600 border border-indigo-200 rounded-lg py-2 hover:bg-indigo-50 transition-colors"
                     data-method="GET"
                     data-url="/api/.well-known/mpp-configuration"
@@ -179,10 +179,10 @@ Authorization: Bearer &lt;your-token&gt;</textarea>
             <div class="example-card bg-white rounded-xl border border-slate-200 p-6 flex flex-col">
                 <div class="flex items-center gap-2 mb-3">
                     <span class="method-badge-get text-xs font-bold px-2 py-0.5 rounded-full uppercase">GET</span>
-                    <span class="text-xs text-slate-500 code-font truncate">/.well-known/agent.json</span>
+                    <span class="text-xs text-slate-500 code-font truncate">/api/.well-known/agent.json</span>
                 </div>
-                <h3 class="text-base font-bold text-slate-800 mb-1">A2A Agent Card</h3>
-                <p class="text-sm text-slate-500 flex-1 mb-4">Agent-to-Agent protocol card exposing capabilities for AI agent orchestration.</p>
+                <h3 class="text-base font-bold text-slate-800 mb-1">Agent Card</h3>
+                <p class="text-sm text-slate-500 flex-1 mb-4">This is the agent card for Google's Agent2Agent protocol. It tells other AI agents what this server can do.</p>
                 <button class="try-example-btn mt-auto w-full text-center text-sm font-semibold text-indigo-600 border border-indigo-200 rounded-lg py-2 hover:bg-indigo-50 transition-colors"
                     data-method="GET"
                     data-url="/api/.well-known/agent.json"
@@ -206,7 +206,7 @@ Authorization: Bearer &lt;your-token&gt;</textarea>
                 </div>
                 <div>
                     <p class="font-semibold text-slate-700 mb-1">Authentication</p>
-                    Replace <code class="bg-slate-100 px-1 rounded">&lt;your-token&gt;</code> in the Authorization header with a valid API token from your dashboard.
+                    Replace <code class="bg-slate-100 px-1 rounded">&lt;your-token&gt;</code> in the Authorization header with an API token from your dashboard.
                 </div>
             </div>
             <div class="flex gap-3">
@@ -215,7 +215,7 @@ Authorization: Bearer &lt;your-token&gt;</textarea>
                 </div>
                 <div>
                     <p class="font-semibold text-slate-700 mb-1">JSON Body</p>
-                    For POST and PUT requests, enter valid JSON in the body field. The <code class="bg-slate-100 px-1 rounded">Content-Type: application/json</code> header is added automatically.
+                    For POST and PUT requests, enter valid JSON in the body field. The sandbox adds the <code class="bg-slate-100 px-1 rounded">Content-Type: application/json</code> header for you.
                 </div>
             </div>
             <div class="flex gap-3">
@@ -223,8 +223,8 @@ Authorization: Bearer &lt;your-token&gt;</textarea>
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
                 <div>
-                    <p class="font-semibold text-slate-700 mb-1">CORS</p>
-                    Requests are sent from your browser directly to the API. Ensure your token has the correct scopes. Cross-origin restrictions apply.
+                    <p class="font-semibold text-slate-700 mb-1">Cross-origin requests</p>
+                    Your browser sends each request straight to the API. Make sure your token has the scopes the endpoint needs. The browser's cross-origin rules still apply.
                 </div>
             </div>
         </div>

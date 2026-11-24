@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="Apply to become a {{ config('brand.name', 'Zelta') }} partner financial institution.">
+        <meta name="description" content="Financial institutions can use this form to tell us they would like to integrate with the {{ config('brand.name', 'Zelta') }} open-source platform. Submitting the form does not create a partnership.">
         <meta name="keywords" content="{{ config('brand.name', 'Zelta') }}, partner bank, financial institution, banking partnership">
         
         <title>Partner Institution Application - {{ config('brand.name', 'Zelta') }}</title>
@@ -28,7 +28,7 @@
                         Partner Institution Application
                     </h1>
                     <p class="text-xl text-slate-400 max-w-3xl mx-auto">
-                        Express interest in integrating your institution with the {{ config('brand.name', 'Zelta') }} open-source platform
+                        Use this form to tell us that your institution would like to integrate with the {{ config('brand.name', 'Zelta') }} open-source platform.
                     </p>
                 </div>
             </div>
@@ -63,23 +63,23 @@
                             <ul class="space-y-2 text-slate-600">
                                 <li class="flex items-start">
                                     <span class="text-indigo-600 mr-2">•</span>
-                                    Modern API infrastructure with REST/JSON support
+                                    A modern REST API that exchanges JSON data
                                 </li>
                                 <li class="flex items-start">
                                     <span class="text-indigo-600 mr-2">•</span>
-                                    Real-time transaction processing capabilities
+                                    Real-time transaction processing
                                 </li>
                                 <li class="flex items-start">
                                     <span class="text-indigo-600 mr-2">•</span>
-                                    OAuth 2.0 or similar secure authentication
+                                    Secure authentication with OAuth 2.0 or a similar standard
                                 </li>
                                 <li class="flex items-start">
                                     <span class="text-indigo-600 mr-2">•</span>
-                                    99.9% uptime SLA commitment
+                                    A service level commitment of 99.9% uptime
                                 </li>
                                 <li class="flex items-start">
                                     <span class="text-indigo-600 mr-2">•</span>
-                                    ISO 27001 or equivalent security certification
+                                    ISO 27001 or an equivalent security certification
                                 </li>
                             </ul>
                         </div>
@@ -90,28 +90,28 @@
                                 <svg class="w-6 h-6 text-indigo-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path>
                                 </svg>
-                                Juridical Requirements
+                                Legal Requirements
                             </h3>
                             <ul class="space-y-2 text-slate-600">
                                 <li class="flex items-start">
                                     <span class="text-indigo-600 mr-2">•</span>
-                                    Valid banking license in operational jurisdiction
+                                    A valid banking licence in the country where you operate
                                 </li>
                                 <li class="flex items-start">
                                     <span class="text-indigo-600 mr-2">•</span>
-                                    Regulatory compliance with local and EU banking laws
+                                    Compliance with local and European Union banking laws
                                 </li>
                                 <li class="flex items-start">
                                     <span class="text-indigo-600 mr-2">•</span>
-                                    AML/KYC procedures meeting international standards
+                                    Anti-money laundering and know your customer procedures that meet international standards
                                 </li>
                                 <li class="flex items-start">
                                     <span class="text-indigo-600 mr-2">•</span>
-                                    Data protection compliance (GDPR or equivalent)
+                                    Compliance with the European Union General Data Protection Regulation or an equivalent law
                                 </li>
                                 <li class="flex items-start">
                                     <span class="text-indigo-600 mr-2">•</span>
-                                    Cross-border payment capabilities
+                                    Cross-border payments
                                 </li>
                             </ul>
                         </div>
@@ -127,23 +127,23 @@
                             <ul class="space-y-2 text-slate-600">
                                 <li class="flex items-start">
                                     <span class="text-indigo-600 mr-2">•</span>
-                                    Minimum €100M in assets under management
+                                    At least €100 million in assets under management
                                 </li>
                                 <li class="flex items-start">
                                     <span class="text-indigo-600 mr-2">•</span>
-                                    Tier 1 capital ratio above regulatory minimums
+                                    A Tier 1 capital ratio above the regulatory minimum
                                 </li>
                                 <li class="flex items-start">
                                     <span class="text-indigo-600 mr-2">•</span>
-                                    Demonstrated liquidity management capabilities
+                                    Proven liquidity management
                                 </li>
                                 <li class="flex items-start">
                                     <span class="text-indigo-600 mr-2">•</span>
-                                    Credit rating of BBB or higher (if applicable)
+                                    A credit rating of BBB or higher, where you have a rating
                                 </li>
                                 <li class="flex items-start">
                                     <span class="text-indigo-600 mr-2">•</span>
-                                    Segregated client account capabilities
+                                    Segregated client accounts
                                 </li>
                             </ul>
                         </div>
@@ -167,7 +167,7 @@
                                 </li>
                                 <li class="flex items-start">
                                     <span class="text-indigo-600 mr-2">•</span>
-                                    Cyber security insurance coverage
+                                    Cyber security insurance
                                 </li>
                                 <li class="flex items-start">
                                     <span class="text-indigo-600 mr-2">•</span>
@@ -175,7 +175,7 @@
                                 </li>
                                 <li class="flex items-start">
                                     <span class="text-indigo-600 mr-2">•</span>
-                                    Directors & Officers liability coverage
+                                    Directors and officers liability coverage
                                 </li>
                             </ul>
                         </div>
@@ -256,7 +256,7 @@
                         <div class="bg-white border border-gray-200 rounded-xl p-6">
                             <h3 class="text-xl font-semibold text-slate-900 mb-4">Requirements Assessment</h3>
                             <p class="text-sm text-slate-500 mb-4">
-                                Please describe how your institution meets each of the partnership requirements:
+                                Please describe how your institution meets each of the partnership requirements.
                             </p>
                             
                             <div class="space-y-6">
@@ -265,7 +265,7 @@
                                         Technical Capabilities *
                                     </label>
                                     <textarea id="technical_capabilities" name="technical_capabilities" rows="4" required
-                                              placeholder="Describe your API infrastructure, security certifications, uptime guarantees, etc."
+                                              placeholder="Describe your API, your security certifications and your uptime commitments."
                                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"></textarea>
                                 </div>
                                 
@@ -274,7 +274,7 @@
                                         Regulatory Compliance *
                                     </label>
                                     <textarea id="regulatory_compliance" name="regulatory_compliance" rows="4" required
-                                              placeholder="Detail your banking licenses, regulatory compliance, AML/KYC procedures, etc."
+                                              placeholder="Describe your banking licences, how you meet regulatory requirements and your anti-money laundering and know your customer procedures."
                                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"></textarea>
                                 </div>
                                 
@@ -283,7 +283,7 @@
                                         Financial Strength *
                                     </label>
                                     <textarea id="financial_strength" name="financial_strength" rows="4" required
-                                              placeholder="Provide information about your assets under management, capital ratios, credit ratings, etc."
+                                              placeholder="Tell us about your assets under management, your capital ratios and your credit ratings."
                                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"></textarea>
                                 </div>
                                 
@@ -292,7 +292,7 @@
                                         Insurance Coverage *
                                     </label>
                                     <textarea id="insurance_coverage" name="insurance_coverage" rows="4" required
-                                              placeholder="Describe your deposit insurance, professional indemnity, cyber security, and other insurance coverage"
+                                              placeholder="Describe your deposit insurance, professional indemnity insurance, cyber security insurance and any other cover."
                                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"></textarea>
                                 </div>
                             </div>
@@ -307,7 +307,7 @@
                                     Partnership Vision
                                 </label>
                                 <textarea id="partnership_vision" name="partnership_vision" rows="4"
-                                          placeholder="Share your vision for partnering with {{ config('brand.name', 'Zelta') }} and how you see this collaboration benefiting both parties"
+                                          placeholder="Tell us how you would like to work with {{ config('brand.name', 'Zelta') }} and what both sides would gain."
                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"></textarea>
                             </div>
                         </div>
@@ -318,7 +318,7 @@
                                 <input type="checkbox" id="terms" name="terms" required
                                        class="mt-1 mr-3 h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
                                 <label for="terms" class="text-sm text-slate-600">
-                                    I confirm that the information provided is accurate and that I am authorized to submit this application on behalf of the institution. I understand that {{ config('brand.name', 'Zelta') }} will conduct due diligence and that meeting the requirements does not guarantee acceptance as a partner institution.
+                                    I confirm that the information provided is accurate. I confirm that I am authorised to submit this application on behalf of the institution. I understand that {{ config('brand.name', 'Zelta') }} will carry out due diligence. Meeting the requirements does not guarantee acceptance as a partner institution.
                                 </label>
                             </div>
                         </div>

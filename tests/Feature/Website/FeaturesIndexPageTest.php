@@ -9,7 +9,7 @@ describe('Features Index Page', function (): void {
         $response = get('/features');
 
         $response->assertOk();
-        $response->assertSee('Every Banking Capability.');
+        $response->assertSee('Each card below explains what a module does today.');
     });
 
     it('lists AI Framework feature card', function (): void {
@@ -24,7 +24,7 @@ describe('Features Index Page', function (): void {
         $response = get('/features');
 
         $response->assertOk();
-        $response->assertSee('Agent Protocol (AP2)');
+        $response->assertSee('Agent Protocol</h3>', false);
     });
 
     it('lists Machine Payments feature card', function (): void {

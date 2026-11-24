@@ -5,8 +5,8 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Features - Modern Banking Platform | ' . config('brand.name', 'Zelta'),
-        'description' => 'Explore ' . config('brand.name', 'Zelta') . '\'s 61 banking modules: GCU demo, ISO 20022, PSD2 Open Banking, multi-rail payments, DeFi, ledger, microfinance, and developer tools.',
-        'keywords' => config('brand.name', 'Zelta') . ' features, GCU, ISO 20022, PSD2, open banking, payment rails, ACH, SEPA, Interledger, ledger, microfinance, cross-chain, DeFi, privacy, x402, RegTech, BaaS',
+        'description' => 'See what the 61 modules of ' . config('brand.name', 'Zelta') . ' do. They cover payments, lending, open banking, virtual cards, digital assets, AI agents and developer tools.',
+        'keywords' => config('brand.name', 'Zelta') . ' features, GCU demo, ISO 20022, open banking, payment rails, ACH, SEPA, Interledger, ledger, microfinance, cross-chain, decentralised finance, privacy, x402, virtual cards, regulatory reporting, banking as a service',
     ])
 
     {{-- Schema.org Markup --}}
@@ -38,9 +38,9 @@
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-24">
             <div class="text-center">
                 @include('partials.breadcrumb', ['items' => [['name' => 'Features', 'url' => url('/features')]]])
-                <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Every Banking Capability. <span class="text-gradient">One Codebase.</span></h1>
+                <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Platform <span class="text-gradient">Features</span></h1>
                 <p class="text-lg text-slate-400 max-w-2xl mx-auto">
-                    61 modules spanning payments, lending, compliance tooling, DeFi, AI, and developer tools — so you ship products, not infrastructure.
+                    The platform has 61 modules in one open-source codebase. They cover payments, lending, compliance tooling, digital assets, AI agents and developer tools. Each card below explains what a module does today.
                 </p>
             </div>
         </div>
@@ -58,8 +58,8 @@
                 <div>
                     <h3 class="font-display text-sm font-semibold text-slate-900">Feature Status Guide</h3>
                     <p class="text-sm text-slate-600 mt-1">
-                        {{ config('brand.name', 'Zelta') }} is under active development with new modules shipping regularly.
-                        The demo environment lets you explore every feature without external dependencies.
+                        {{ config('brand.name', 'Zelta') }} is under active development, and new modules ship regularly.
+                        The demo runs every feature with test data and needs no outside services. Modules that follow payment and banking standards work at the message layer and do not connect to live schemes.
                     </p>
                     <div class="mt-3 flex flex-wrap gap-2">
                         <span class="badge badge-success">Available</span>
@@ -82,27 +82,27 @@
                         </div>
                         <h2 class="font-display text-4xl font-bold text-slate-900 mb-6">Global Currency Unit (GCU)</h2>
                         <p class="text-lg text-slate-500 mb-6">
-                            GCU demo — a reference implementation of a basket-referenced unit built with FinAegis.
+                            The Global Currency Unit demo is a reference implementation of a unit valued against a basket of currencies and gold, built with FinAegis.
                         </p>
                         <ul class="space-y-3 mb-8">
                             <li class="flex items-start">
                                 <svg class="w-6 h-6 text-green-500 mr-3 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span class="text-slate-600">Reference basket: USD, EUR, GBP, CHF, JPY, XAU (simulated)</span>
+                                <span class="text-slate-600">A simulated reference basket of US dollars, euros, British pounds, Swiss francs, Japanese yen and gold</span>
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-6 h-6 text-green-500 mr-3 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span class="text-slate-600">Simulated basket "votes"</span>
+                                <span class="text-slate-600">Simulated basket votes</span>
                             </li>
                         </ul>
                         <p class="text-xs text-slate-500 mb-6">
                             The Global Currency Unit (GCU) is a software demonstration — a reference implementation built with FinAegis. It is not issued, offered or sold to anyone and has no monetary value. Any GCU balances, conversions or basket "votes" shown in the demo are simulated. Offering to the public in the EU a token that references a basket of currencies and/or commodities would require authorisation as an asset-referenced token issuer under MiCA (Title III); no such authorisation is held.
                         </p>
                         <a href="{{ route('gcu') }}" class="inline-flex items-center text-indigo-600 font-semibold hover:text-indigo-700">
-                            Explore the GCU demo
+                            Explore the Global Currency Unit demo
                             <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                             </svg>
@@ -184,7 +184,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Multi-Asset Support</h3>
                     <p class="text-slate-500 mb-4">
-                        Hold and transact in multiple currencies and assets from a single account. Support for fiat, crypto, and commodities.
+                        One account can hold and move several currencies and assets. It supports national currencies, crypto assets and commodities.
                     </p>
                     <a href="{{ route('features.show', 'multi-asset') }}" class="text-purple-600 font-medium hover:text-purple-700">
                         Explore assets →
@@ -198,12 +198,12 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold mb-3">MCP Server <span class="ml-1 text-xs font-bold text-emerald-600 align-middle">NEW</span></h3>
+                    <h3 class="text-xl font-semibold mb-3">Model Context Protocol Server <span class="ml-1 text-xs font-bold text-emerald-600 align-middle">NEW</span></h3>
                     <p class="text-slate-500 mb-4">
-                        Connect Claude, Cursor, or any agent to the platform's payment, exchange and SMS APIs through one OAuth-protected endpoint.
+                        Claude, Cursor and other agents can use the payment, exchange and SMS APIs through the Model Context Protocol. They connect to one endpoint that is protected by an OAuth sign-in.
                     </p>
                     <a href="{{ route('features.show', 'mcp') }}" class="text-emerald-600 font-medium hover:text-emerald-700">
-                        Explore MCP →
+                        Explore the server →
                     </a>
                 </div>
 
@@ -214,9 +214,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold mb-3">Instant Settlements</h3>
+                    <h3 class="text-xl font-semibold mb-3">Settlements</h3>
                     <p class="text-slate-500 mb-4">
-                        Real-time transaction processing with event-sourced settlement. Configurable for instant or T+1 settlement based on your compliance requirements.
+                        Every settlement is recorded as an event. The settlement module can settle transfers in real time, in batches or as net amounts.
                     </p>
                     <a href="{{ route('features.show', 'settlements') }}" class="text-green-600 font-medium hover:text-green-700">
                         Learn more →
@@ -232,7 +232,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Governance Module</h3>
                     <p class="text-slate-500 mb-4">
-                        Weighted-voting governance module with transparent tallying and event-sourced audit trails, shown with simulated votes in the GCU demo.
+                        The governance module runs weighted votes and counts them openly. Every vote is recorded as an event. The Global Currency Unit demo uses it with simulated votes.
                     </p>
                     <a href="{{ route('features.show', 'governance') }}" class="text-yellow-600 font-medium hover:text-yellow-700">
                         Learn more →
@@ -248,7 +248,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Bank Integration Patterns</h3>
                     <p class="text-slate-500 mb-4">
-                        Open Banking-style API adapters: card-issuing integration adapter (e.g. Marqeta API), Ondato KYC and Chainalysis sanctions-screening adapters. GraphQL card operations, spend-limit enforcement, REST API with webhooks, and account verification.
+                        The banking modules follow open banking API patterns. They include adapters for card issuers, Ondato identity checks and Chainalysis sanctions screening. Card operations are available through GraphQL, and the REST API checks spending limits, verifies accounts and sends webhooks.
                     </p>
                     <a href="{{ route('features.show', 'bank-integration') }}" class="text-red-600 font-medium hover:text-red-700">
                         Explore patterns →
@@ -264,7 +264,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Developer APIs</h3>
                     <p class="text-slate-500 mb-4">
-                        Full REST coverage with OpenAPI specs, GraphQL across 45 domains with real-time subscriptions, and configurable webhooks.
+                        The REST API is described in OpenAPI. GraphQL covers 43 domains and supports live subscriptions. You can configure webhooks for the events you need.
                     </p>
                     <a href="{{ route('features.show', 'api') }}" class="text-blue-600 font-medium hover:text-blue-700">
                         View docs →
@@ -278,12 +278,12 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold mb-3">Cross-Chain & DeFi</h3>
+                    <h3 class="text-xl font-semibold mb-3">Cross-Chain and Decentralised Finance</h3>
                     <p class="text-slate-500 mb-4">
-                        Bridge assets across EVM chains and Solana. Adapters with ABI encoding and RPC integration for third-party protocols (e.g. Wormhole, Circle CCTP, Uniswap V3, Aave V3).
+                        The module moves assets between Ethereum-compatible networks and Solana. It includes adapters for third-party protocols such as Wormhole, Circle's cross-chain transfer protocol, Uniswap V3 and Aave V3.
                     </p>
                     <a href="{{ route('features.show', 'crosschain-defi') }}" class="text-cyan-600 font-medium hover:text-cyan-700">
-                        Explore DeFi →
+                        Explore cross-chain →
                     </a>
                 </div>
 
@@ -296,7 +296,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Security Tooling</h3>
                     <p class="text-slate-500 mb-4">
-                        Post-quantum encryption, multi-factor authentication, and other security controls.
+                        The platform uses multi-factor sign-in, passkeys, rate limits and audit logs. A hybrid encryption layer prepares for post-quantum standards, but it is not yet a certified ML-KEM implementation.
                     </p>
                     <a href="{{ route('security') }}" class="text-indigo-600 font-medium hover:text-indigo-700">
                         Security details →
@@ -310,12 +310,28 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold mb-3">Privacy & Identity</h3>
+                    <h3 class="text-xl font-semibold mb-3">Privacy and Identity</h3>
                     <p class="text-slate-500 mb-4">
-                        Privacy-preserving identity tooling: ZK-KYC proof modules, W3C verifiable credentials, soulbound tokens, Shamir key management, and ZK proving with 5 Circom circuits and Solidity verifier contracts.
+                        Zero-knowledge proofs let a person prove an identity fact without showing documents. Five Circom circuits with Solidity verifier contracts check age, income range, residency, identity tier and sanctions status. The module also issues verifiable credentials in the World Wide Web Consortium format and soulbound tokens and splits keys with Shamir secret sharing.
                     </p>
                     <a href="{{ route('features.show', 'privacy-identity') }}" class="text-teal-600 font-medium hover:text-teal-700">
                         Learn more →
+                    </a>
+                </div>
+
+                <!-- Virtual Cards (v7.18.0) -->
+                <div class="card-feature">
+                    <div class="w-14 h-14 bg-pink-100 rounded-lg flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Virtual Cards</h3>
+                    <p class="text-slate-500 mb-4">
+                        Version 7.18.0 added a provider-neutral card layer with Lepo Finance as the first provider. Virtual cards are built for a closed pilot and stay switched off until the pilot starts. Adding money to a card from the wallet also stays switched off for now. Card numbers are shown only on the card partner's secure page. Approval codes for online payments appear after the person confirms it is them.
+                    </p>
+                    <a href="{{ route('changelog') }}" class="text-pink-600 font-medium hover:text-pink-700">
+                        Read the release notes →
                     </a>
                 </div>
 
@@ -328,7 +344,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Mobile Payments</h3>
                     <p class="text-slate-500 mb-4">
-                        Payment intents, passkey authentication, P2P transfers, activity feed, ERC-4337 smart account abstraction, and Solana wallet integration with real-time balance monitoring.
+                        The mobile backend signs people in with passkeys and handles payment intents, peer-to-peer transfers and the activity feed. Smart accounts under ERC-4337 let the platform sponsor network fees. Solana wallets are supported, and balances update in real time.
                     </p>
                     <a href="{{ route('features.show', 'mobile-payments') }}" class="text-pink-600 font-medium hover:text-pink-700">
                         View mobile →
@@ -342,12 +358,12 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold mb-3">RegTech Tooling</h3>
+                    <h3 class="text-xl font-semibold mb-3">Regulatory Reporting Tooling</h3>
                     <p class="text-slate-500 mb-4">
-                        Reporting and data-exchange modules modelled on MiFID II, MiCA and Travel Rule requirements, with jurisdiction-specific adapters; they do not by themselves make a deployment compliant.
+                        These modules build reports in the formats of the Markets in Financial Instruments Directive, the Markets in Crypto-Assets Regulation and the Travel Rule. Each jurisdiction has its own adapter. The modules do not by themselves make a deployment compliant.
                     </p>
                     <a href="{{ route('features.show', 'regtech-compliance') }}" class="text-amber-600 font-medium hover:text-amber-700">
-                        View RegTech tooling →
+                        View reporting tooling →
                     </a>
                 </div>
 
@@ -360,10 +376,10 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Banking-as-a-Service</h3>
                     <p class="text-slate-500 mb-4">
-                        Partner APIs, official SDKs (TypeScript, Python, PHP), embeddable widgets, and usage-based billing.
+                        Partners can run the platform under their own brand. They get partner APIs, official libraries for TypeScript, Python and PHP, embeddable widgets and usage-based billing.
                     </p>
                     <a href="{{ route('features.show', 'baas-platform') }}" class="text-violet-600 font-medium hover:text-violet-700">
-                        Explore BaaS →
+                        Explore banking as a service →
                     </a>
                 </div>
 
@@ -379,7 +395,7 @@
                         <span class="inline-flex items-center px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">{{ count(\App\Domain\MCP\Server\McpToolCatalog::enabledTools()) }} Tools</span>
                     </div>
                     <p class="text-slate-500 mb-4">
-                        6 specialized agents, {{ count(\App\Domain\MCP\Server\McpToolCatalog::enabledTools()) }} OAuth-scoped MCP tools, ML anomaly detection, Temporal workflow orchestration, and multi-agent consensus engine.
+                        Six specialised agents share {{ count(\App\Domain\MCP\Server\McpToolCatalog::enabledTools()) }} Model Context Protocol tools, and each tool needs its own OAuth permission. Statistical models flag unusual transactions. Several agents can vote on a decision before it runs.
                     </p>
                     <a href="{{ route('features.show', 'ai-framework') }}" class="text-purple-600 font-medium hover:text-purple-700">
                         Explore AI →
@@ -394,14 +410,14 @@
                         </svg>
                     </div>
                     <div class="flex items-center gap-2 mb-3">
-                        <h3 class="text-xl font-semibold">Agent Protocol (AP2)</h3>
+                        <h3 class="text-xl font-semibold">Agent Protocol</h3>
                         <span class="inline-flex items-center px-2 py-0.5 bg-cyan-100 text-cyan-700 text-xs rounded-full font-medium">New</span>
                     </div>
                     <p class="text-slate-500 mb-4">
-                        DID authentication, A2A messaging, escrow with dispute resolution, reputation scoring, and AP2 payment mandates for autonomous agent commerce.
+                        Agents prove who they are with decentralised identifiers and message each other through Google's Agent2Agent protocol. Escrow with dispute resolution and reputation scores protect each trade. Payment mandates under the Agent Payments Protocol limit what an agent may spend.
                     </p>
                     <a href="{{ route('features.show', 'agent-protocol') }}" class="text-cyan-600 font-medium hover:text-cyan-700">
-                        Explore AP2 →
+                        Explore the agent protocol →
                     </a>
                 </div>
 
@@ -414,7 +430,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Multi-Tenancy</h3>
                     <p class="text-slate-500 mb-4">
-                        Team-based isolation with persistent audit logging, EnforceTenantPlanLimits middleware, soft-delete with 14-day grace period, data migration table whitelisting, and per-tenant configuration.
+                        Each team's data is kept apart from every other team, and every change is written to an audit log. Plan limits are enforced on each request. A deleted tenant can be restored for 14 days, and each tenant has its own settings.
                     </p>
                     <a href="{{ route('features.show', 'multi-tenancy') }}" class="text-emerald-600 font-medium hover:text-emerald-700">
                         Learn more &rarr;
@@ -430,7 +446,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">GraphQL API</h3>
                     <p class="text-slate-500 mb-4">
-                        Lighthouse-powered GraphQL covering 45 domains with real-time subscriptions, N+1 safe DataLoaders, and cursor-based pagination.
+                        The GraphQL API is built with Lighthouse and covers 43 domains. It supports live subscriptions and cursor pagination, and it batches database queries.
                     </p>
                     <a href="{{ route('features.show', 'api') }}" class="text-pink-600 font-medium hover:text-pink-700">
                         View API &rarr;
@@ -446,7 +462,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Plugin Marketplace</h3>
                     <p class="text-slate-500 mb-4">
-                        Extensible plugin system with sandbox execution, static security scanning, hook-based integration, and a plugin manager UI.
+                        Plugins run in a sandbox and are scanned for security problems before they load. They connect through hooks, and a manager screen installs them.
                     </p>
                     <a href="{{ route('features.show', 'plugin-marketplace') }}" class="text-violet-600 font-medium hover:text-violet-700">
                         Explore plugins &rarr;
@@ -462,7 +478,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Event Streaming</h3>
                     <p class="text-slate-500 mb-4">
-                        Redis Streams-powered event streaming with a live dashboard, consumer groups, backpressure handling, and dead-letter queues.
+                        Domain events are published to Redis Streams. Consumer groups read them, slow down when they fall behind and move failed events to a dead-letter queue. A live dashboard shows the flow.
                     </p>
                     <a href="{{ route('features') }}" class="text-teal-600 font-medium hover:text-teal-700">
                         Learn more &rarr;
@@ -481,7 +497,7 @@
                         <span class="inline-flex items-center px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium">Available</span>
                     </div>
                     <p class="text-slate-500 mb-4">
-                        HTTP-native micropayments with USDC on Base, Ethereum, and Solana. Instant settlement, AI agent autonomous payments, spending limits, and multi-network support.
+                        An API can ask for a small USDC payment before it answers a request. Payments run on Base, Ethereum, Avalanche and Solana. AI agents pay on their own within spending limits.
                     </p>
                     <a href="{{ route('features.show', 'x402-protocol') }}" class="text-emerald-600 font-medium hover:text-emerald-700">
                         Learn more &rarr;
@@ -500,7 +516,7 @@
                         <span class="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">Beta</span>
                     </div>
                     <p class="text-slate-500 mb-4">
-                        Adapter for visa-cli, a third-party card-payment CLI (third-party tool; not affiliated with or endorsed by Visa), for AI agents and developer billing: MCP tools, spending limits and invoice collection.
+                        This adapter connects to visa-cli, a third-party command-line tool for card payments. The tool is not affiliated with or endorsed by Visa. The adapter lets AI agents and developers pay and collect invoices within spending limits.
                     </p>
                     <a href="{{ route('features.show', 'visa-cli') }}" class="text-blue-600 font-medium hover:text-blue-700">
                         Learn more &rarr;
@@ -519,7 +535,7 @@
                         <span class="inline-flex items-center px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">v0.2.9</span>
                     </div>
                     <p class="text-slate-500 mb-4">
-                        Manage payments, SMS, wallets, and API monetization from the terminal. Built for humans and AI agents with dual output: tables or JSON.
+                        The Zelta CLI manages payments, SMS, wallets and paid APIs from the terminal. It prints tables for people and JSON for AI agents.
                     </p>
                     <a href="{{ route('features.show', 'zelta-cli') }}" class="text-emerald-600 font-medium hover:text-emerald-700">
                         Learn more &rarr;
@@ -538,7 +554,7 @@
                         <span class="inline-flex items-center px-2 py-0.5 bg-violet-100 text-violet-700 text-xs rounded-full font-medium">New</span>
                     </div>
                     <p class="text-slate-500 mb-4">
-                        Give autonomous AI agents programmable wallets with spending limits. Virtuals Protocol integration adapter with TrustCert identity and Pimlico-based enforcement.
+                        AI agents get programmable wallets with spending limits. The Virtuals Protocol adapter checks each agent's identity with TrustCert. Pimlico enforces the limits on the network.
                     </p>
                     <a href="{{ route('features.show', 'virtuals-protocol') }}" class="text-violet-600 font-medium hover:text-violet-700">
                         Learn more &rarr;
@@ -557,7 +573,7 @@
                         <span class="inline-flex items-center px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full font-medium">New</span>
                     </div>
                     <p class="text-slate-500 mb-4">
-                        Three payment protocols for AI agents: x402 (USDC), MPP (Stripe + Lightning + stablecoins), and AP2 enterprise mandates. Multi-rail SMS payments via VertexSMS.
+                        AI agents can pay through three protocols. x402 uses USDC, the Machine Payments Protocol supports Stripe, Lightning and stablecoins, and the Agent Payments Protocol uses spending mandates. SMS messages through VertexSMS can be paid on several rails.
                     </p>
                     <a href="{{ route('features.show', 'machine-payments') }}" class="text-orange-600 font-medium hover:text-orange-700">
                         Learn more &rarr;
@@ -573,7 +589,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Compliance Tooling</h3>
                     <p class="text-slate-500 mb-4">
-                        SOC 2 Type II and PCI DSS readiness tooling with continuous control monitoring, evidence collection, and GDPR enhanced privacy.
+                        Readiness tooling helps a team prepare for a SOC 2 Type II audit and for an audit against the Payment Card Industry Data Security Standard. It monitors controls and collects evidence. No certification is held. Privacy tooling supports the European Union General Data Protection Regulation.
                     </p>
                     <a href="{{ route('security') }}" class="text-emerald-600 font-medium hover:text-emerald-700">
                         View security &rarr;
@@ -589,7 +605,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">ISO 20022 Messaging</h3>
                     <p class="text-slate-500 mb-4">
-                        Standards-based financial messaging with 8 message types (pacs, pain, camt). Parse, generate, and validate ISO 20022 XML with REST + GraphQL APIs.
+                        The module reads, builds and validates eight ISO 20022 message types from the pacs, pain and camt families. REST and GraphQL APIs expose it. It works at the message layer and does not connect to a live scheme.
                     </p>
                     <a href="{{ route('features.show', 'iso20022') }}" class="text-blue-600 font-medium hover:text-blue-700">
                         Learn more &rarr;
@@ -603,9 +619,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold mb-3">Open Banking &amp; PSD2</h3>
+                    <h3 class="text-xl font-semibold mb-3">Open Banking</h3>
                     <p class="text-slate-500 mb-4">
-                        PSD2 consent-lifecycle modules modelled on AISP and PISP flows. Berlin Group NextGenPSD2 and UK Open Banking adapters. TPP eIDAS certificate validation.
+                        These modules follow the European Union's second Payment Services Directive. They manage consents for account information and payment initiation. They include adapters for the Berlin Group NextGenPSD2 standard and the United Kingdom Open Banking standard. They also store and check the certificates of third-party providers. They run in demo mode and do not connect to real banks.
                     </p>
                     <a href="{{ route('features.show', 'open-banking') }}" class="text-teal-600 font-medium hover:text-teal-700">
                         Learn more &rarr;
@@ -621,7 +637,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Payment Rails</h3>
                     <p class="text-slate-500 mb-4">
-                        Multi-rail payment message and routing modules: ACH (NACHA file generation), Fedwire, RTP, FedNow (ISO 20022 native), SEPA Direct Debit, and SCT Inst. Intelligent routing selects the optimal rail automatically.
+                        These modules build payment messages for Automated Clearing House files, Fedwire, Real-Time Payments, FedNow, SEPA direct debits and SEPA instant credit transfers. Routing logic picks a rail for each payment. They work at the message layer and do not settle real payments.
                     </p>
                     <a href="{{ route('features.show', 'payment-rails') }}" class="text-orange-600 font-medium hover:text-orange-700">
                         Learn more &rarr;
@@ -637,7 +653,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">ISO 8583 Card Processing</h3>
                     <p class="text-slate-500 mb-4">
-                        ISO 8583 message processing with bitmap codec: authorization, reversal, and settlement message handlers (card-network message format).
+                        ISO 8583 is the message format that card networks use. The module encodes and decodes these messages and handles authorisations, reversals and settlement messages.
                     </p>
                     <a href="{{ route('features') }}" class="text-slate-600 font-medium hover:text-slate-700">
                         Learn more &rarr;
@@ -653,7 +669,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Interledger Protocol</h3>
                     <p class="text-slate-500 mb-4">
-                        Cross-network value transfer with ILP connector, Open Payments (GNAP authorization), and cross-currency quotes.
+                        The Interledger connector moves value between networks and quotes across currencies. It supports Open Payments with its own authorisation protocol.
                     </p>
                     <a href="{{ route('features.show', 'interledger') }}" class="text-purple-600 font-medium hover:text-purple-700">
                         Learn more &rarr;
@@ -669,7 +685,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Double-Entry Ledger</h3>
                     <p class="text-slate-500 mb-4">
-                        Accounting engine with chart of accounts, journal entries, trial balance, and GL auto-posting. PHP-native default with optional TigerBeetle driver for extreme throughput.
+                        The accounting engine keeps a chart of accounts and journal entries, posts to the general ledger and produces a trial balance. It runs in PHP by default. An optional TigerBeetle driver handles very high volumes.
                     </p>
                     <a href="{{ route('features.show', 'ledger') }}" class="text-gray-600 font-medium hover:text-gray-700">
                         Learn more &rarr;
@@ -685,7 +701,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Microfinance Suite</h3>
                     <p class="text-slate-500 mb-4">
-                        Complete inclusion banking: group lending with joint liability, IFRS loan provisioning, cooperative share accounts, teller operations, field officer tools, and savings products with dormancy tracking.
+                        The microfinance module supports group loans with joint liability. It sets loan-loss provisions by how many days a loan is overdue. It also covers cooperative share accounts, teller work, field officer tools and savings accounts that track dormancy.
                     </p>
                     <a href="{{ route('features.show', 'microfinance') }}" class="text-green-600 font-medium hover:text-green-700">
                         Learn more &rarr;
@@ -701,7 +717,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Developer Experience</h3>
                     <p class="text-slate-500 mb-4">
-                        Partner sandbox provisioning with 3 seed profiles, webhook testing and replay, API key management CLI. Everything developers need to integrate quickly.
+                        Partners can create a sandbox from one of three seed profiles. Developers can test and replay webhooks and manage API keys from the command line.
                     </p>
                     <a href="{{ route('features.show', 'developer-experience') }}" class="text-indigo-600 font-medium hover:text-indigo-700">
                         Learn more &rarr;
@@ -720,7 +736,7 @@
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
             <h2 class="font-display text-4xl font-bold text-white mb-6">Explore the Demo</h2>
             <p class="text-lg mb-10 text-slate-400">
-                See these features in action. Try the demo or explore the source code on GitHub.
+                You can try these features in the demo with test data. The source code is on GitHub.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary btn-lg">

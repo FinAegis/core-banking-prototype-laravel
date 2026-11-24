@@ -2,7 +2,7 @@
     $brandName = config('brand.name', 'Zelta');
     // Brand-aware default description (finaegis.org demo/promo vs zelta.app) — see docs/REGULATORY-CLAIMS.md
     $defaultDescription = (app()->environment('demo') || config('brand.show_promo_pages'))
-        ? $brandName . ' — open-source core banking infrastructure. Apache-2.0 licensed.'
+        ? $brandName . ' is open-source core banking software. It is free to use under the Apache 2.0 license.'
         : $brandName . ' is a stablecoin wallet that you control with a passkey. It works on five networks, and you can connect your AI assistant to it.';
     // TODO(regulatory): stopgap — images/og-default.png and images/og-twitter.png show card artwork;
     // new OG artwork needed (see docs/REGULATORY-CLAIMS.md). Until then the default share image is

@@ -59,7 +59,7 @@
                                     </div>
                                     <div>
                                         <div class="text-sm font-medium text-slate-200">AI Framework</div>
-                                        <div class="text-xs text-slate-500">A2A, ML analytics</div>
+                                        <div class="text-xs text-slate-500">Agent protocols and analytics</div>
                                     </div>
                                 </a>
                                 <a href="{{ url('/features/mcp') }}" class="dropdown-link">
@@ -91,7 +91,7 @@
                                     </div>
                                     <div>
                                         <div class="text-sm font-medium text-slate-200">Developers</div>
-                                        <div class="text-xs text-slate-500">Guides, SDKs, integration</div>
+                                        <div class="text-xs text-slate-500">Guides, SDKs and integration</div>
                                     </div>
                                 </a>
                                 <a href="/api/documentation" class="dropdown-link">
@@ -109,7 +109,7 @@
                                     </div>
                                     <div>
                                         <div class="text-sm font-medium text-slate-200">Support</div>
-                                        <div class="text-xs text-slate-500">Help center & guides</div>
+                                        <div class="text-xs text-slate-500">Help center and guides</div>
                                     </div>
                                 </a>
                                 <a href="{{ route('about') }}" class="dropdown-link {{ request()->routeIs('about') ? 'dropdown-link-active' : '' }}">
@@ -118,7 +118,7 @@
                                     </div>
                                     <div>
                                         <div class="text-sm font-medium text-slate-200">About</div>
-                                        <div class="text-xs text-slate-500">Our mission</div>
+                                        <div class="text-xs text-slate-500">What the project is</div>
                                     </div>
                                 </a>
                             </div>

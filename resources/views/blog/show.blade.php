@@ -96,7 +96,7 @@
         <div class="bg-blue-900 py-16">
             <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
                 <h2 class="text-3xl font-bold text-white mb-4">Stay Updated</h2>
-                <p class="text-xl text-blue-100 mb-8">Get the latest insights and updates delivered to your inbox.</p>
+                <p class="text-xl text-blue-100 mb-8">Get new articles and release news by email.</p>
                 <form id="newsletter-form" class="max-w-md mx-auto" onsubmit="handleSubscribe(event)">
                     @csrf
                     <div class="flex">

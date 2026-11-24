@@ -104,7 +104,7 @@
                     @endif
                     <div>
                         <dt class="text-slate-500">Installed</dt>
-                        <dd class="font-medium">{{ $plugin->installed_at?->format('M j, Y') ?? 'N/A' }}</dd>
+                        <dd class="font-medium">{{ $plugin->installed_at?->format('M j, Y') ?? 'Not installed' }}</dd>
                     </div>
                     @if($plugin->activated_at)
                     <div>

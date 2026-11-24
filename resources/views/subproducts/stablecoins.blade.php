@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => config('brand.name', 'Zelta') . ' Stablecoins - Stablecoin Module Demo',
-        'description' => config('brand.name', 'Zelta') . ' Stablecoin Module - Software for modelling stablecoin issuance and reserve tracking (sandbox demo).',
+        'description' => 'The ' . config('brand.name', 'Zelta') . ' stablecoin module is software that models how a stablecoin is minted, redeemed and backed by reserves. The sandbox runs it with test data only. No token is issued or offered.',
         'keywords' => config('brand.name', 'Zelta') . ' Stablecoins, stablecoin module, issuance workflows, reserve tracking',
     ])
 
@@ -27,7 +27,7 @@
                         {{ config('brand.name', 'Zelta') }} Stablecoins
                     </h1>
                     <p class="text-xl md:text-2xl text-slate-400 max-w-3xl mx-auto mb-8">
-                        Stablecoin module: model issuance, redemption and reserve tracking (sandbox, test data only)
+                        The stablecoin module models how a token is minted, redeemed and backed by reserves. The sandbox runs it with test data only.
                     </p>
                 </div>
             </div>
@@ -46,7 +46,7 @@
                 <div class="text-center mb-16">
                     <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Stablecoin Module Features</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        Reference implementation; no token is issued or offered.
+                        This is a reference implementation. No token is issued or offered.
                     </p>
                 </div>
 
@@ -69,7 +69,7 @@
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Mint/redeem workflows
+                                Mint and redeem workflows
                             </li>
                         </ul>
                     </div>
@@ -92,7 +92,7 @@
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Price-oracle aggregation
+                                Prices combined from several price feeds
                             </li>
                         </ul>
                     </div>
@@ -103,7 +103,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-bold text-slate-900 mb-4">White Label Solution</h3>
+                        <h3 class="text-xl font-bold text-slate-900 mb-4">Your Own Brand</h3>
                         <ul class="space-y-2 text-slate-600">
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,13 +115,13 @@
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Multiple peg options
+                                Several peg options
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Full API integration
+                                Full API access
                             </li>
                         </ul>
                     </div>
@@ -135,7 +135,7 @@
             <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
                 <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Explore the Stablecoin Module</h2>
                 <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                    Model issuance and redemption in the sandbox (test data only).
+                    You can model minting and redemption in the sandbox. It uses test data only.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('dashboard') }}" class="btn-primary px-8 py-4 text-lg">

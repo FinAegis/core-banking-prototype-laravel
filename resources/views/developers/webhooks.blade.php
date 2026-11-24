@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Webhooks - ' . config('brand.name', 'Zelta') . ' Developer Documentation',
-        'description' => config('brand.name', 'Zelta') . ' Webhooks - Real-time event notifications for your application. Get instant updates on transactions, accounts, and workflows.',
+        'description' => config('brand.name', 'Zelta') . ' webhooks send an HTTP POST request to your server when an event happens. Events cover accounts, transactions, transfers and exchange rates.',
         'keywords' => config('brand.name', 'Zelta') . ', webhooks, real-time, notifications, API, events',
     ])
 @endsection
@@ -60,13 +60,13 @@
                 <div class="text-center">
                     <div class="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm mb-6">
                         <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
-                        <span>Real-time Event System</span>
+                        <span>Event notifications</span>
                     </div>
                     <h1 class="text-5xl md:text-7xl font-bold mb-6">
                         Webhooks
                     </h1>
                     <p class="text-xl md:text-2xl text-yellow-100 max-w-3xl mx-auto">
-                        Real-time notifications for account events, transaction updates, and workflow completions delivered directly to your application.
+                        A webhook sends a notification to your server when something happens on the platform. Your application learns about account, transaction and transfer events without asking for them.
                     </p>
                 </div>
             </div>
@@ -78,7 +78,7 @@
                 <div class="text-center mb-16">
                     <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">How Webhooks Work</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        Never miss an important event. Get instant HTTP POST notifications when things happen in your {{ config('brand.name', 'Zelta') }} account.
+                        The platform sends an HTTP POST request to your address for each event you subscribe to. Only platform administrators can set up webhooks, because a webhook receives every subscribed event on the platform.
                     </p>
                 </div>
 
@@ -89,10 +89,10 @@
                     <div class="grid md:grid-cols-4 gap-8 relative">
                         @php
                             $steps = [
-                                ['icon' => 'M13 10V3L4 14h7v7l9-11h-7z', 'color' => 'yellow', 'title' => 'Event Occurs', 'description' => 'Transaction completes or account changes'],
-                                ['icon' => 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', 'color' => 'orange', 'title' => 'Webhook Triggered', 'description' => 'Event queued for delivery'],
-                                ['icon' => 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z', 'color' => 'red', 'title' => 'POST Request Sent', 'description' => 'Secure HTTPS delivery to your endpoint'],
-                                ['icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'color' => 'green', 'title' => 'You Respond', 'description' => 'Process event and return 200 OK']
+                                ['icon' => 'M13 10V3L4 14h7v7l9-11h-7z', 'color' => 'yellow', 'title' => 'An Event Happens', 'description' => 'For example, a transfer completes or an account is frozen.'],
+                                ['icon' => 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', 'color' => 'orange', 'title' => 'Delivery Is Queued', 'description' => 'The platform puts the notification in a queue.'],
+                                ['icon' => 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z', 'color' => 'red', 'title' => 'POST Request Sent', 'description' => 'The platform sends the event to your HTTPS address.'],
+                                ['icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'color' => 'green', 'title' => 'You Respond', 'description' => 'Your server processes the event and returns 200 OK.']
                             ];
                         @endphp
 
@@ -121,7 +121,8 @@
                     <x-code-block language="bash">
 curl -X POST {{ config('app.url') }}/api/v2/webhooks \
   -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{"url": "https://yourapp.com/webhooks", "events": ["*"]}'
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://yourapp.com/webhooks", "events": ["account.created", "transfer.completed"]}'
                 </x-code-block>
                 </div>
             </div>
@@ -132,7 +133,7 @@ curl -X POST {{ config('app.url') }}/api/v2/webhooks \
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-16">
                     <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Available Events</h2>
-                    <p class="text-xl text-slate-500">Subscribe to exactly what you need</p>
+                    <p class="text-xl text-slate-500">You choose the events a webhook receives. The API returns the current list at <code class="code-font text-base">GET /api/v2/webhooks/events</code>.</p>
                 </div>
 
                 <div class="grid lg:grid-cols-2 gap-8">
@@ -143,12 +144,22 @@ curl -X POST {{ config('app.url') }}/api/v2/webhooks \
                                 'icon' => 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
                                 'color' => 'blue',
                                 'events' => [
-                                    ['name' => 'account.created', 'desc' => 'New account opened'],
+                                    ['name' => 'account.created', 'desc' => 'An account was opened'],
                                     ['name' => 'account.updated', 'desc' => 'Account details changed'],
-                                    ['name' => 'account.balance_updated', 'desc' => 'Balance changed'],
-                                    ['name' => 'account.frozen', 'desc' => 'Account frozen'],
-                                    ['name' => 'account.unfrozen', 'desc' => 'Account unfrozen'],
-                                    ['name' => 'account.closed', 'desc' => 'Account closed']
+                                    ['name' => 'account.frozen', 'desc' => 'An account was frozen'],
+                                    ['name' => 'account.unfrozen', 'desc' => 'An account was unfrozen'],
+                                    ['name' => 'account.closed', 'desc' => 'An account was closed']
+                                ]
+                            ],
+                            [
+                                'title' => 'Transaction Events',
+                                'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
+                                'color' => 'purple',
+                                'events' => [
+                                    ['name' => 'transaction.created', 'desc' => 'A transaction was recorded'],
+                                    ['name' => 'transaction.completed', 'desc' => 'A transaction finished'],
+                                    ['name' => 'transaction.failed', 'desc' => 'A transaction failed'],
+                                    ['name' => 'transaction.reversed', 'desc' => 'A transaction was reversed']
                                 ]
                             ],
                             [
@@ -156,90 +167,39 @@ curl -X POST {{ config('app.url') }}/api/v2/webhooks \
                                 'icon' => 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4',
                                 'color' => 'green',
                                 'events' => [
-                                    ['name' => 'transfer.created', 'desc' => 'Transfer initiated'],
-                                    ['name' => 'transfer.pending', 'desc' => 'Transfer processing'],
-                                    ['name' => 'transfer.completed', 'desc' => 'Transfer successful'],
-                                    ['name' => 'transfer.failed', 'desc' => 'Transfer failed'],
-                                    ['name' => 'transfer.reversed', 'desc' => 'Transfer reversed'],
-                                    ['name' => 'transfer.expired', 'desc' => 'Transfer expired']
+                                    ['name' => 'transfer.initiated', 'desc' => 'A transfer started'],
+                                    ['name' => 'transfer.completed', 'desc' => 'A transfer finished'],
+                                    ['name' => 'transfer.failed', 'desc' => 'A transfer failed']
                                 ]
                             ],
                             [
-                                'title' => 'Workflow Events',
-                                'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
-                                'color' => 'purple',
-                                'events' => [
-                                    ['name' => 'workflow.started', 'desc' => 'Workflow initiated'],
-                                    ['name' => 'workflow.step_completed', 'desc' => 'Step finished'],
-                                    ['name' => 'workflow.completed', 'desc' => 'Workflow finished'],
-                                    ['name' => 'workflow.failed', 'desc' => 'Workflow failed'],
-                                    ['name' => 'workflow.timeout', 'desc' => 'Workflow timed out'],
-                                    ['name' => 'workflow.compensation_executed', 'desc' => 'Rollback completed']
-                                ]
-                            ],
-                            [
-                                'title' => 'System Events',
-                                'icon' => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z',
-                                'color' => 'yellow',
-                                'events' => [
-                                    ['name' => 'system.maintenance_start', 'desc' => 'Maintenance begins'],
-                                    ['name' => 'system.maintenance_end', 'desc' => 'Maintenance ends'],
-                                    ['name' => 'system.rate_limit_warning', 'desc' => 'Approaching rate limit'],
-                                    ['name' => 'system.api_key_expiring', 'desc' => 'API key expiring soon'],
-                                    ['name' => 'system.security_alert', 'desc' => 'Security event detected'],
-                                    ['name' => 'system.status_change', 'desc' => 'System status changed']
-                                ]
-                            ],
-                            [
-                                'title' => 'CrossChain Events',
-                                'icon' => 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1',
-                                'color' => 'cyan',
-                                'events' => [
-                                    ['name' => 'bridge.initiated', 'desc' => 'Cross-chain bridge transfer started'],
-                                    ['name' => 'bridge.completed', 'desc' => 'Bridge transfer confirmed on destination chain'],
-                                    ['name' => 'bridge.failed', 'desc' => 'Bridge transfer failed or timed out'],
-                                    ['name' => 'swap.completed', 'desc' => 'Cross-chain token swap completed']
-                                ]
-                            ],
-                            [
-                                'title' => 'DeFi Events',
+                                'title' => 'Exchange Rate Events',
                                 'icon' => 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
                                 'color' => 'emerald',
                                 'events' => [
-                                    ['name' => 'position.opened', 'desc' => 'DeFi position opened (lending, staking, LP)'],
-                                    ['name' => 'position.closed', 'desc' => 'DeFi position closed and funds returned'],
-                                    ['name' => 'position.liquidation_warning', 'desc' => 'Position approaching liquidation threshold'],
-                                    ['name' => 'yield.harvested', 'desc' => 'Yield rewards harvested from protocol']
+                                    ['name' => 'rate.updated', 'desc' => 'An exchange rate changed'],
+                                    ['name' => 'rate.stale', 'desc' => 'An exchange rate is out of date']
                                 ]
                             ],
                             [
-                                'title' => 'RegTech Events',
+                                'title' => 'GCU Demo Basket Events',
+                                'icon' => 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1',
+                                'color' => 'cyan',
+                                'events' => [
+                                    ['name' => 'basket.created', 'desc' => 'A demo basket was created'],
+                                    ['name' => 'basket.rebalanced', 'desc' => 'A demo basket was rebalanced in the simulation'],
+                                    ['name' => 'basket.decomposed', 'desc' => 'A demo basket was split into its parts']
+                                ]
+                            ],
+                            [
+                                'title' => 'Governance Demo Events',
                                 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
                                 'color' => 'rose',
                                 'events' => [
-                                    ['name' => 'compliance.report.generated', 'desc' => 'Report modelled on MiFID II or MiCA requirements ready'],
-                                    ['name' => 'compliance.violation.detected', 'desc' => 'Regulatory compliance violation detected'],
-                                    ['name' => 'travel_rule.check.completed', 'desc' => 'Travel Rule verification completed']
-                                ]
-                            ],
-                            [
-                                'title' => 'Mobile Payment Events',
-                                'icon' => 'M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z',
-                                'color' => 'violet',
-                                'events' => [
-                                    ['name' => 'payment_intent.created', 'desc' => 'New payment intent initialized'],
-                                    ['name' => 'payment_intent.completed', 'desc' => 'Payment intent successfully fulfilled'],
-                                    ['name' => 'payment_intent.expired', 'desc' => 'Payment intent expired without completion']
-                                ]
-                            ],
-                            [
-                                'title' => 'Partner BaaS Events',
-                                'icon' => 'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
-                                'color' => 'amber',
-                                'events' => [
-                                    ['name' => 'partner.onboarded', 'desc' => 'New BaaS partner onboarding completed'],
-                                    ['name' => 'sdk.generated', 'desc' => 'Partner SDK build generated and ready'],
-                                    ['name' => 'widget.deployed', 'desc' => 'Embedded widget deployed to production']
+                                    ['name' => 'poll.created', 'desc' => 'A poll was created'],
+                                    ['name' => 'poll.activated', 'desc' => 'A poll opened for votes'],
+                                    ['name' => 'poll.completed', 'desc' => 'A poll closed'],
+                                    ['name' => 'vote.cast', 'desc' => 'A simulated vote was cast']
                                 ]
                             ]
                         ];
@@ -278,7 +238,7 @@ curl -X POST {{ config('app.url') }}/api/v2/webhooks \
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-16">
                     <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Implementation Guide</h2>
-                    <p class="text-xl text-slate-500 mb-8">Get up and running in minutes</p>
+                    <p class="text-xl text-slate-500 mb-8">Each delivery is signed. The <code class="code-font text-base">X-Webhook-Signature</code> header holds an HMAC SHA-256 signature of the body, made with the webhook's secret. A failed delivery is retried after 1, 5 and 15 minutes.</p>
                     <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 max-w-3xl mx-auto">
                         <div class="flex items-center justify-center mb-6">
                             <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center">
@@ -287,8 +247,8 @@ curl -X POST {{ config('app.url') }}/api/v2/webhooks \
                                 </svg>
                             </div>
                         </div>
-                        <h3 class="text-2xl font-bold text-slate-900 mb-4">Complete Code Examples Available</h3>
-                        <p class="text-slate-500 mb-6">We have comprehensive webhook implementation examples with signature verification, error handling, and idempotency patterns ready for you to use.</p>
+                        <h3 class="text-2xl font-bold text-slate-900 mb-4">Code Examples</h3>
+                        <p class="text-slate-500 mb-6">The examples page shows how to receive a webhook. It covers signature checks, error handling and safe handling of repeated deliveries.</p>
                         <a href="{{ route('developers.show', 'examples') }}#webhooks" class="inline-flex items-center bg-indigo-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition duration-200">
                             View Webhook Examples
                             <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -306,9 +266,9 @@ curl -X POST {{ config('app.url') }}/api/v2/webhooks \
         <section class="bg-fa-navy relative overflow-hidden">
             <div class="absolute inset-0 bg-dot-pattern"></div>
             <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
-                <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Ready to receive real-time events?</h2>
+                <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Set up a webhook</h2>
                 <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                    Set up your first webhook in minutes
+                    The API reference describes every webhook endpoint and field.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('developers') }}" class="btn-primary px-8 py-4 text-lg">

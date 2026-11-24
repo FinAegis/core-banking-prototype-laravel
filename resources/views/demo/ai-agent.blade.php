@@ -7,7 +7,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div class="text-center mb-8">
             <h1 class="text-4xl font-bold text-gray-900 mb-4">AI Agent Demo</h1>
-            <p class="text-xl text-gray-600">Experience intelligent financial assistance powered by AI</p>
+            <p class="text-xl text-gray-600">This demo lets you talk to the platform's AI agents. It uses test data only.</p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -18,7 +18,7 @@
                     <div class="space-y-3">
                         <button onclick="sendPredefinedMessage('What is my account balance?')" class="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition">
                             <div class="font-medium">Account Balance</div>
-                            <div class="text-sm text-gray-600">Check account balance</div>
+                            <div class="text-sm text-gray-600">Ask for your balance</div>
                         </button>
                         <button onclick="sendPredefinedMessage('Show me my recent transactions')" class="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition">
                             <div class="font-medium">Transaction History</div>
@@ -34,11 +34,11 @@
                         </button>
                         <button onclick="sendPredefinedMessage('Check my KYC compliance status')" class="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition">
                             <div class="font-medium">Compliance Status</div>
-                            <div class="text-sm text-gray-600">KYC/AML status</div>
+                            <div class="text-sm text-gray-600">Identity check status</div>
                         </button>
                         <button onclick="sendPredefinedMessage('What can you do?')" class="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition">
                             <div class="font-medium">Capabilities</div>
-                            <div class="text-sm text-gray-600">See what I can do</div>
+                            <div class="text-sm text-gray-600">See what the agent can do</div>
                         </button>
                     </div>
                 </div>
@@ -46,14 +46,14 @@
                 <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
                     <h3 class="text-lg font-semibold mb-4">Demo Mode Active</h3>
                     <p class="text-sm text-gray-600 mb-4">
-                        This is a simulated demo environment. No real transactions will be processed.
+                        This is a simulated demo environment. It processes no real transactions.
                     </p>
                     <div class="space-y-2 text-sm">
                         <div class="flex items-center">
                             <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Real agent routing &amp; tool execution</span>
+                            <span>Real agent routing and tool calls</span>
                         </div>
                         <div class="flex items-center">
                             <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -65,7 +65,7 @@
                             <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Safe to experiment</span>
+                            <span>Test data only</span>
                         </div>
                     </div>
                 </div>
@@ -77,7 +77,7 @@
                     <!-- Chat Header -->
                     <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-4 rounded-t-lg">
                         <h2 class="text-xl font-semibold">AI Financial Assistant</h2>
-                        <p class="text-sm opacity-90">Multi-agent orchestration powered by {{ config('brand.name', 'Zelta') }} AI Framework</p>
+                        <p class="text-sm opacity-90">The {{ config('brand.name', 'Zelta') }} AI framework sends each question to the right agent.</p>
                     </div>
 
                     <!-- Chat Messages -->
@@ -85,7 +85,7 @@
                         <div class="flex justify-start">
                             <div class="max-w-xs lg:max-w-md">
                                 <div class="bg-gray-100 rounded-lg px-4 py-2">
-                                    <p class="text-sm">Hello! I'm your AI financial assistant. I route your queries to specialized agents — Financial, Trading, Compliance, and Transfer. How can I help you today?</p>
+                                    <p class="text-sm">Hello, I am the demo AI assistant. I send each question to a specialised agent for finance, trading, compliance or transfers. What would you like to know?</p>
                                 </div>
                                 <p class="text-xs text-gray-500 mt-1">General Assistant</p>
                             </div>

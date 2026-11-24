@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'AI Agent Framework - Intelligent Financial Automation | ' . config('brand.name', 'Zelta'))
+@section('title', 'AI Agent Framework | ' . config('brand.name', 'Zelta'))
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'AI Agent Framework - Intelligent Financial Automation',
-        'description' => 'Experience the next generation of banking with AI-powered agents. Automate workflows, enhance decision-making, and deliver personalized financial services with ' . config('brand.name', 'Zelta') . ' AI Framework.',
-        'keywords' => 'AI agents, financial automation, machine learning, LLM integration, intelligent banking, workflow automation, AI-powered finance, conversational banking',
+        'title' => 'AI Agent Framework | ' . config('brand.name', 'Zelta'),
+        'description' => 'The ' . config('brand.name', 'Zelta') . ' AI agent framework connects large language models to banking workflows. It includes agents, workflows, a tool registry and a Model Context Protocol server, and it records every agent action as an event.',
+        'keywords' => 'AI agents, financial automation, large language models, Model Context Protocol, banking workflows, event sourcing, sagas, human approval',
     ])
 
     <script type="application/ld+json">
@@ -16,7 +16,7 @@
         "name": "{{ config('brand.name', 'Zelta') }} AI Agent Framework",
         "applicationCategory": "FinancialApplication",
         "operatingSystem": "Web",
-        "description": "Enterprise AI framework for intelligent financial automation and decision support",
+        "description": "Open-source AI agent framework that connects large language models to banking workflows, with event-sourced records of every agent action",
         "offers": {
             "@@type": "Offer",
             "availability": "https://schema.org/InStock",
@@ -24,12 +24,12 @@
             "priceCurrency": "USD"
         },
         "featureList": [
-            "Multi-LLM Provider Support",
+            "OpenAI and Anthropic Claude providers with fallback",
             "Event-Sourced Architecture",
-            "Workflow Automation",
-            "Vector Database Integration",
-            "Real-time Decision Making",
-            "Compliance-Ready AI"
+            "Workflows with human approval and compensation",
+            "Pinecone vector database adapter",
+            "Multi-agent coordination",
+            "Model Context Protocol tool server"
         ]
     }
     </script>
@@ -122,12 +122,11 @@
                     AI Agent Framework
                 </h1>
                 <p class="text-xl md:text-2xl mb-8 text-cyan-100 max-w-4xl mx-auto">
-                    Transform your financial operations with intelligent AI agents that automate workflows,
-                    enhance decision-making, and deliver personalized experiences at scale
+                    The framework lets AI agents work with banking data and operations. It includes agents, workflows, a tool registry and a Model Context Protocol server. Every agent action is recorded as an event.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('demo.ai-agent') }}" class="inline-block bg-white text-purple-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition shadow-lg hover:shadow-xl text-center">
-                        Try Live Demo
+                        Try the Demo
                     </a>
                     <a href="/api/documentation" class="inline-block border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-purple-600 transition text-center">
                         View API Docs
@@ -148,10 +147,9 @@
     <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold text-gray-900 mb-4">Intelligent Financial Automation</h2>
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">What the Framework Includes</h2>
                 <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                    Leverage state-of-the-art AI models to automate complex financial workflows
-                    while maintaining full control and transparency
+                    The framework connects large language models to banking workflows. Each step is recorded, and risky steps can wait for a person to approve them.
                 </p>
             </div>
 
@@ -163,15 +161,14 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold mb-3">Multi-LLM Provider Support</h3>
+                    <h3 class="text-xl font-semibold mb-3">Several Model Providers</h3>
                     <p class="text-gray-600 mb-4">
-                        Seamlessly switch between OpenAI GPT-4, Anthropic Claude, and other leading models
-                        based on task requirements and performance needs.
+                        The framework has providers for OpenAI and Anthropic Claude. If the primary provider fails, the request goes to the fallback provider.
                     </p>
                     <div class="flex flex-wrap gap-2">
                         <span class="tech-badge">OpenAI</span>
                         <span class="tech-badge">Claude</span>
-                        <span class="tech-badge">Custom Models</span>
+                        <span class="tech-badge">Custom Providers</span>
                     </div>
                 </div>
 
@@ -184,8 +181,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Event-Sourced Architecture</h3>
                     <p class="text-gray-600 mb-4">
-                        Every AI interaction is recorded with complete audit trails, enabling
-                        compliance, debugging, and continuous improvement.
+                        Every AI interaction is stored as an event. The record helps with audits, debugging and later analysis.
                     </p>
                     <div class="flex flex-wrap gap-2">
                         <span class="tech-badge">Audit Trail</span>
@@ -201,10 +197,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold mb-3">Intelligent Workflows</h3>
+                    <h3 class="text-xl font-semibold mb-3">Workflows</h3>
                     <p class="text-gray-600 mb-4">
-                        Create complex, multi-step workflows with AI decision points,
-                        human-in-the-loop approvals, and automatic compensation.
+                        A workflow runs several steps in order. A step can ask a model for a decision or wait for a person to approve it, and a failed step undoes the earlier ones.
                     </p>
                     <div class="flex flex-wrap gap-2">
                         <span class="tech-badge">Sagas</span>
@@ -220,15 +215,14 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold mb-3">Semantic Search & RAG</h3>
+                    <h3 class="text-xl font-semibold mb-3">Semantic Search</h3>
                     <p class="text-gray-600 mb-4">
-                        Leverage vector databases for semantic search and retrieval-augmented
-                        generation to provide accurate, contextual responses.
+                        The framework includes a Pinecone adapter for a vector database. It stores text embeddings and finds texts with a similar meaning.
                     </p>
                     <div class="flex flex-wrap gap-2">
                         <span class="tech-badge">Pinecone</span>
                         <span class="tech-badge">Embeddings</span>
-                        <span class="tech-badge">RAG</span>
+                        <span class="tech-badge">Similarity Search</span>
                     </div>
                 </div>
 
@@ -239,15 +233,14 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold mb-3">Real-time Processing</h3>
+                    <h3 class="text-xl font-semibold mb-3">Streaming and Limits</h3>
                     <p class="text-gray-600 mb-4">
-                        Stream responses for instant user feedback, with intelligent caching
-                        and rate limiting for optimal performance.
+                        The Claude provider can stream an answer while the model writes it. Redis caching and rate limits keep the load on the model providers under control.
                     </p>
                     <div class="flex flex-wrap gap-2">
                         <span class="tech-badge">Streaming</span>
                         <span class="tech-badge">Redis Cache</span>
-                        <span class="tech-badge">WebSockets</span>
+                        <span class="tech-badge">Rate Limits</span>
                     </div>
                 </div>
 
@@ -258,15 +251,14 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold mb-3">Compliance & Security</h3>
+                    <h3 class="text-xl font-semibold mb-3">Traceable Decisions</h3>
                     <p class="text-gray-600 mb-4">
-                        Built with financial regulations in mind, featuring data privacy,
-                        explainable AI, and comprehensive audit capabilities.
+                        Each AI decision is stored with its reasoning and a confidence score. A reviewer can see later how the decision was made.
                     </p>
                     <div class="flex flex-wrap gap-2">
-                        <span class="tech-badge">GDPR Ready</span>
+                        <span class="tech-badge">Reasoning</span>
                         <span class="tech-badge">Explainable</span>
-                        <span class="tech-badge">Encrypted</span>
+                        <span class="tech-badge">Confidence Scores</span>
                     </div>
                 </div>
             </div>
@@ -277,10 +269,9 @@
     <section class="py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold text-gray-900 mb-4">Enterprise-Grade Architecture</h2>
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">Architecture</h2>
                 <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                    Built on proven patterns with Domain-Driven Design, Event Sourcing,
-                    and Saga orchestration for reliability at scale
+                    The framework uses domain-driven design, event sourcing and sagas. These patterns keep long multi-step operations consistent.
                 </p>
             </div>
 
@@ -294,8 +285,8 @@
                                 <div class="flex items-start">
                                     <div class="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold mr-4 mt-1">1</div>
                                     <div>
-                                        <h4 class="font-semibold mb-2">API Gateway</h4>
-                                        <p class="text-gray-600">REST APIs and WebSocket connections for real-time AI interactions</p>
+                                        <h4 class="font-semibold mb-2">API Layer</h4>
+                                        <p class="text-gray-600">Apps and agents reach the framework through the REST API.</p>
                                     </div>
                                 </div>
                             </div>
@@ -304,7 +295,7 @@
                                     <div class="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold mr-4 mt-1">2</div>
                                     <div>
                                         <h4 class="font-semibold mb-2">AI Orchestration Layer</h4>
-                                        <p class="text-gray-600">Intelligent routing between LLM providers with fallback strategies</p>
+                                        <p class="text-gray-600">This layer sends each request to the primary model provider. It switches to the fallback provider when the first one fails.</p>
                                     </div>
                                 </div>
                             </div>
@@ -313,7 +304,7 @@
                                     <div class="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold mr-4 mt-1">3</div>
                                     <div>
                                         <h4 class="font-semibold mb-2">Event Store</h4>
-                                        <p class="text-gray-600">Immutable audit trail of all AI interactions and decisions</p>
+                                        <p class="text-gray-600">Every AI interaction and decision is stored as an event that cannot be changed.</p>
                                     </div>
                                 </div>
                             </div>
@@ -322,7 +313,7 @@
                                     <div class="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold mr-4 mt-1">4</div>
                                     <div>
                                         <h4 class="font-semibold mb-2">Vector Database</h4>
-                                        <p class="text-gray-600">Semantic search and knowledge base for contextual AI responses</p>
+                                        <p class="text-gray-600">The vector database adapter stores embeddings for semantic search.</p>
                                     </div>
                                 </div>
                             </div>
@@ -338,7 +329,7 @@
                                 <div class="flex flex-wrap gap-2">
                                     <span class="tech-badge">OpenAI Integration</span>
                                     <span class="tech-badge">Anthropic Claude</span>
-                                    <span class="tech-badge">MCP Protocol</span>
+                                    <span class="tech-badge">Model Context Protocol</span>
                                     <span class="tech-badge">Vector Store</span>
                                 </div>
                             </div>
@@ -382,7 +373,7 @@
             <div class="text-center mb-16">
                 <h2 class="text-4xl font-bold text-gray-900 mb-4">Implemented AI Workflows</h2>
                 <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                    Reference workflows with event sourcing, sagas, and MCP tool integration
+                    These reference workflows use event sourcing, sagas and the tool registry.
                 </p>
             </div>
 
@@ -398,27 +389,26 @@
                         <h3 class="text-2xl font-semibold">Customer Service Workflow</h3>
                     </div>
                     <p class="text-gray-700 mb-4">
-                        CustomerServiceWorkflow handles complex banking queries with MCP tool integration,
-                        automated account operations, and human escalation when confidence is low.
+                        CustomerServiceWorkflow answers banking questions with the help of the tools. When the model is not confident enough, it asks a person to approve the answer.
                     </p>
                     <ul class="space-y-2 text-gray-600">
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Automated response capabilities
+                            Automated answers
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Context-aware query handling
+                            Intent recognition
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Human escalation support
+                            Hand-over to a person
                         </li>
                     </ul>
                 </div>
@@ -434,8 +424,7 @@
                         <h3 class="text-2xl font-semibold">Risk Assessment Saga</h3>
                     </div>
                     <p class="text-gray-700 mb-4">
-                        RiskAssessmentSaga orchestrates FraudDetectionWorkflow, CreditRiskWorkflow,
-                        and MarketRiskWorkflow with compensation patterns for comprehensive analysis.
+                        RiskAssessmentSaga runs FraudDetectionWorkflow and CreditRiskWorkflow. If a step fails, the saga undoes the earlier steps.
                     </p>
                     <ul class="space-y-2 text-gray-600">
                         <li class="flex items-start">
@@ -448,7 +437,7 @@
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            KYC/AML integration
+                            Identity and anti-money laundering checks
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -470,27 +459,26 @@
                         <h3 class="text-2xl font-semibold">Trading Agent Workflow</h3>
                     </div>
                     <p class="text-gray-700 mb-4">
-                        TradingAgentWorkflow performs market analysis with technical indicators,
-                        generates strategies, and executes trades with confidence thresholds.
+                        TradingAgentWorkflow analyses the market with technical indicators and generates a strategy. It executes a trade only when the confidence is high enough.
                     </p>
                     <ul class="space-y-2 text-gray-600">
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            RSI, MACD, SMA indicators
+                            Relative strength index and moving average convergence divergence
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Momentum & mean reversion
+                            Momentum and mean reversion strategies
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            VaR risk assessment
+                            Value at risk calculation
                         </li>
                     </ul>
                 </div>
@@ -506,21 +494,20 @@
                         <h3 class="text-2xl font-semibold">Compliance Workflow</h3>
                     </div>
                     <p class="text-gray-700 mb-4">
-                        ComplianceWorkflow automates KYC verification and AML screening
-                        with MCP tools for regulatory compliance and audit trails.
+                        ComplianceWorkflow runs identity checks and anti-money laundering screening through the tools. It records each step for the audit trail.
                     </p>
                     <ul class="space-y-2 text-gray-600">
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            KycTool for identity verification
+                            KycTool for identity checks
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            AML screening automation
+                            AmlScreeningTool for anti-money laundering screening
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -540,16 +527,15 @@
             <div class="text-center mb-16">
                 <h2 class="text-4xl font-bold text-gray-900 mb-4">Try It Live</h2>
                 <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                    Experience the power of our AI agents with this interactive demo
+                    The demo shows an AI agent working on test data.
                 </p>
             </div>
 
             <div class="bg-white rounded-2xl shadow-xl p-8">
                 <div class="text-center">
-                    <h3 class="text-2xl font-semibold mb-4">Experience AI-Powered Banking</h3>
+                    <h3 class="text-2xl font-semibold mb-4">Talk to the Demo Agent</h3>
                     <p class="text-gray-600 mb-8 max-w-2xl mx-auto">
-                        Our interactive demo showcases how AI agents handle real banking scenarios.
-                        Try conversations about account balances, transactions, transfers, and more.
+                        The demo shows how an AI agent handles common banking requests. You can ask about balances, transactions and transfers.
                     </p>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 max-w-3xl mx-auto">
                         <div class="bg-gray-50 rounded-lg p-4">
@@ -557,28 +543,28 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-4 4z"></path>
                             </svg>
                             <h4 class="font-semibold">Natural Language</h4>
-                            <p class="text-sm text-gray-600">Chat naturally about your banking needs</p>
+                            <p class="text-sm text-gray-600">You can write in plain language.</p>
                         </div>
                         <div class="bg-gray-50 rounded-lg p-4">
                             <svg class="w-8 h-8 text-indigo-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                             </svg>
-                            <h4 class="font-semibold">Smart Context</h4>
-                            <p class="text-sm text-gray-600">AI understands banking context</p>
+                            <h4 class="font-semibold">Context</h4>
+                            <p class="text-sm text-gray-600">The agent recognises what you ask for.</p>
                         </div>
                         <div class="bg-gray-50 rounded-lg p-4">
                             <svg class="w-8 h-8 text-indigo-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                             </svg>
-                            <h4 class="font-semibold">Instant Response</h4>
-                            <p class="text-sm text-gray-600">Real-time processing with MCP tools</p>
+                            <h4 class="font-semibold">Tools</h4>
+                            <p class="text-sm text-gray-600">The agent answers with the banking tools.</p>
                         </div>
                     </div>
                     <a href="{{ route('demo.ai-agent') }}" class="inline-block bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-purple-700 hover:to-indigo-700 transition shadow-lg hover:shadow-xl">
-                        Launch Interactive Demo
+                        Open the Demo
                     </a>
                     <p class="text-sm text-gray-500 mt-4">
-                        Safe demo environment - No authentication required
+                        The demo uses test data. You do not need to sign in.
                     </p>
                 </div>
             </div>
@@ -589,9 +575,9 @@
     <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold text-gray-900 mb-4">Advanced AI Capabilities</h2>
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">More Capabilities</h2>
                 <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                    Enterprise features for complex financial operations
+                    These parts of the framework handle more complex operations.
                 </p>
             </div>
 
@@ -605,12 +591,12 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-2">Multi-Agent Coordination</h3>
                     <p class="text-gray-600 mb-4">
-                        Orchestrates multiple AI agents (Customer Service, Compliance, Risk, Trading) with consensus building and weighted voting.
+                        The coordination service runs several agents on one task. When their answers differ, it settles the conflict with a vote weighted by each agent's confidence.
                     </p>
                     <ul class="text-sm text-gray-500 space-y-1">
-                        <li>• Agent registry & discovery</li>
+                        <li>• Agent registry and discovery</li>
                         <li>• Task delegation</li>
-                        <li>• Consensus algorithms</li>
+                        <li>• Consensus building</li>
                     </ul>
                 </div>
 
@@ -623,7 +609,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-2">Human-in-the-Loop</h3>
                     <p class="text-gray-600 mb-4">
-                        HumanInTheLoopWorkflow manages AI decisions requiring oversight with configurable confidence and value thresholds.
+                        HumanInTheLoopWorkflow sends a decision to a person when the confidence is too low or the amount is too high. Both limits can be configured.
                     </p>
                     <ul class="text-sm text-gray-500 space-y-1">
                         <li>• Confidence thresholds</li>
@@ -639,14 +625,14 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold mb-2">MCP Tool Server</h3>
+                    <h3 class="text-xl font-semibold mb-2">Tool Registry</h3>
                     <p class="text-gray-600 mb-4">
-                        Model Context Protocol server exposes 15+ banking tools for account operations, transactions, and compliance.
+                        The tool registry holds 24 banking tools for the platform's own agents. The public Model Context Protocol server offers {{ count((array) config('mcp.tools')) }} tools to outside agents.
                     </p>
                     <ul class="text-sm text-gray-500 space-y-1">
-                        <li>• Account & balance tools</li>
+                        <li>• Account and balance tools</li>
                         <li>• Transaction tools</li>
-                        <li>• KYC/AML tools</li>
+                        <li>• Identity and anti-money laundering tools</li>
                     </ul>
                 </div>
 
@@ -659,7 +645,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-2">AI Event Sourcing</h3>
                     <p class="text-gray-600 mb-4">
-                        AIInteractionAggregate records every LLM interaction with complete audit trails for compliance and analytics.
+                        AIInteractionAggregate records every request to a language model and every answer. The records form an audit trail for reviews and analytics.
                     </p>
                     <ul class="text-sm text-gray-500 space-y-1">
                         <li>• Immutable event store</li>
@@ -677,12 +663,12 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-2">Technical Analysis</h3>
                     <p class="text-gray-600 mb-4">
-                        Activities for technical indicators (RSI, MACD, SMA), pattern recognition, and automated trading strategies.
+                        Workflow activities calculate technical indicators and recognise price patterns. Other activities generate trading strategies from the results.
                     </p>
                     <ul class="text-sm text-gray-500 space-y-1">
                         <li>• CalculateRSIActivity</li>
                         <li>• CalculateMACDActivity</li>
-                        <li>• VaRCalculationActivity</li>
+                        <li>• CalculateVaRActivity</li>
                     </ul>
                 </div>
 
@@ -695,7 +681,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-2">Saga Pattern</h3>
                     <p class="text-gray-600 mb-4">
-                        Complex workflows with automatic compensation for failures, ensuring data consistency across operations.
+                        A saga runs a long operation as a series of steps. When a step fails, compensation handlers undo the earlier steps, so the data stays consistent.
                     </p>
                     <ul class="text-sm text-gray-500 space-y-1">
                         <li>• Automatic rollback</li>
@@ -713,7 +699,7 @@
             <div class="text-center mb-16">
                 <h2 class="text-4xl font-bold text-gray-900 mb-4">Model Context Protocol (MCP)</h2>
                 <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                    Bridging AI models with banking operations through standardized tool interfaces
+                    The Model Context Protocol is an open standard. It lets an AI model use banking tools through one common interface.
                 </p>
             </div>
 
@@ -725,25 +711,25 @@
                         <div class="bg-white rounded-lg p-6 shadow-md">
                             <h4 class="font-semibold text-lg mb-2">1. Tool Discovery</h4>
                             <p class="text-gray-600">
-                                AI agents discover available banking tools through the MCP server, including account operations, transactions, and compliance checks.
+                                An agent asks the server for its list of tools. The list covers account operations, payments, transactions and exchange quotes.
                             </p>
                         </div>
                         <div class="bg-white rounded-lg p-6 shadow-md">
-                            <h4 class="font-semibold text-lg mb-2">2. Context Building</h4>
+                            <h4 class="font-semibold text-lg mb-2">2. Resources</h4>
                             <p class="text-gray-600">
-                                The protocol provides rich context about user permissions, account states, and regulatory requirements to the AI model.
+                                The server also offers resources, such as the user's profile, balances and recent transactions. The agent sees only what the user's token allows.
                             </p>
                         </div>
                         <div class="bg-white rounded-lg p-6 shadow-md">
                             <h4 class="font-semibold text-lg mb-2">3. Tool Execution</h4>
                             <p class="text-gray-600">
-                                AI agents execute banking operations through MCP tools with built-in validation, security checks, and audit logging.
+                                The agent then calls a tool. The server checks the input, the token scope and the spending limit before it runs the tool, and it logs the call.
                             </p>
                         </div>
                         <div class="bg-white rounded-lg p-6 shadow-md">
-                            <h4 class="font-semibold text-lg mb-2">4. Response Formatting</h4>
+                            <h4 class="font-semibold text-lg mb-2">4. Result</h4>
                             <p class="text-gray-600">
-                                Results are formatted with confidence scores, explanations, and next action suggestions for seamless user experience.
+                                The tool returns a structured result. The agent uses it to answer the user.
                             </p>
                         </div>
                     </div>
@@ -751,39 +737,39 @@
 
                 <!-- Available Tools -->
                 <div>
-                    <h3 class="text-2xl font-semibold mb-6">Banking Tools Available</h3>
+                    <h3 class="text-2xl font-semibold mb-6">Tools in the Registry</h3>
                     <div class="bg-white rounded-xl shadow-lg p-6">
                         <div class="grid grid-cols-1 gap-4">
                             <!-- Account Tools -->
                             <div class="border-l-4 border-blue-500 pl-4">
                                 <h4 class="font-semibold">Account Management</h4>
-                                <p class="text-sm text-gray-600">GetAccountBalance, CreateAccount, CloseAccount, FreezeAccount</p>
+                                <p class="text-sm text-gray-600">account.balance, account.create, account.deposit, account.withdraw</p>
                             </div>
                             <!-- Transaction Tools -->
                             <div class="border-l-4 border-green-500 pl-4">
-                                <h4 class="font-semibold">Transactions</h4>
-                                <p class="text-sm text-gray-600">TransferMoney, GetTransactionHistory, CancelTransaction, RefundTransaction</p>
+                                <h4 class="font-semibold">Payments and Transactions</h4>
+                                <p class="text-sm text-gray-600">payment.transfer, payment.status, transactions.query, transactions.spending_analysis</p>
                             </div>
                             <!-- Compliance Tools -->
                             <div class="border-l-4 border-purple-500 pl-4">
                                 <h4 class="font-semibold">Compliance</h4>
-                                <p class="text-sm text-gray-600">KycTool, AmlScreeningTool, RiskAssessmentTool, ComplianceCheckTool</p>
+                                <p class="text-sm text-gray-600">compliance.kyc, compliance.aml_screening</p>
                             </div>
                             <!-- Analytics Tools -->
                             <div class="border-l-4 border-orange-500 pl-4">
-                                <h4 class="font-semibold">Analytics</h4>
-                                <p class="text-sm text-gray-600">SpendingAnalysisTool, CashFlowTool, TrendAnalysisTool, ReportGeneratorTool</p>
+                                <h4 class="font-semibold">Agent Payments</h4>
+                                <p class="text-sm text-gray-600">agent_protocol.payment, agent_protocol.escrow, agent_protocol.mandate, x402.payment, mpp.payment</p>
                             </div>
                             <!-- Trading Tools -->
                             <div class="border-l-4 border-red-500 pl-4">
-                                <h4 class="font-semibold">Trading & Exchange</h4>
-                                <p class="text-sm text-gray-600">GetExchangeRate, ExecuteTrade, GetMarketData, PortfolioAnalysisTool</p>
+                                <h4 class="font-semibold">Exchange</h4>
+                                <p class="text-sm text-gray-600">exchange.quote, exchange.trade, exchange.liquidity_pool</p>
                             </div>
                         </div>
 
                         <div class="mt-6 p-4 bg-gray-50 rounded-lg">
                             <p class="text-sm text-gray-700">
-                                <strong>Security First:</strong> All MCP tools include built-in authentication, authorization, rate limiting, and comprehensive audit logging.
+                                On the public server, every tool call needs an OAuth token with the right scope. Calls are rate limited and logged.
                             </p>
                         </div>
                     </div>
@@ -796,7 +782,7 @@
                 <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
                     <pre class="text-sm"><code class="language-json text-gray-300"><span class="text-gray-500">// MCP Tool Definition</span>
 {
-  <span class="text-yellow-400">"name"</span>: <span class="text-green-400">"GetAccountBalance"</span>,
+  <span class="text-yellow-400">"name"</span>: <span class="text-green-400">"account.balance"</span>,
   <span class="text-yellow-400">"description"</span>: <span class="text-green-400">"Retrieve the current balance for a user's account"</span>,
   <span class="text-yellow-400">"parameters"</span>: {
     <span class="text-yellow-400">"account_id"</span>: {
@@ -826,39 +812,28 @@
     <section class="py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold text-gray-900 mb-4">Easy Integration</h2>
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">Integration</h2>
                 <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                    Get started with our AI Agent Framework in minutes
+                    This example sends one message to the AI agent service.
                 </p>
             </div>
 
             <div class="max-w-4xl mx-auto">
                 <!-- Code Example -->
                 <div class="bg-gray-900 rounded-xl p-6 overflow-x-auto">
-                    <pre class="text-sm"><code class="language-php text-gray-300"><span class="text-gray-500">// Initialize AI Agent Service</span>
+                    <pre class="text-sm"><code class="language-php text-gray-300"><span class="text-gray-500">// Resolve the AI agent service</span>
 <span class="text-purple-400">$agent</span> = <span class="text-cyan-400">app</span>(<span class="text-green-400">AIAgentService</span>::<span class="text-blue-400">class</span>);
 
-<span class="text-gray-500">// Create conversation context</span>
-<span class="text-purple-400">$context</span> = <span class="text-blue-400">new</span> <span class="text-green-400">ConversationContext</span>(
-    <span class="text-orange-400">conversationId:</span> <span class="text-green-400">Str</span>::<span class="text-cyan-400">uuid</span>(),
-    <span class="text-orange-400">userId:</span> <span class="text-cyan-400">auth</span>()-><span class="text-cyan-400">id</span>(),
-    <span class="text-orange-400">systemPrompt:</span> <span class="text-yellow-400">'You are a helpful financial assistant.'</span>
-);
-
-<span class="text-gray-500">// Send message to AI agent</span>
+<span class="text-gray-500">// Send a message to the AI agent</span>
 <span class="text-purple-400">$response</span> = <span class="text-purple-400">$agent</span>-><span class="text-cyan-400">chat</span>(
     <span class="text-orange-400">message:</span> <span class="text-yellow-400">'Analyze my spending patterns'</span>,
-    <span class="text-orange-400">context:</span> <span class="text-purple-400">$context</span>,
-    <span class="text-orange-400">options:</span> [
-        <span class="text-yellow-400">'model'</span> => <span class="text-yellow-400">'gpt-4'</span>,
-        <span class="text-yellow-400">'temperature'</span> => <span class="text-pink-400">0.7</span>,
-    ]
+    <span class="text-orange-400">conversationId:</span> (<span class="text-blue-400">string</span>) <span class="text-green-400">Str</span>::<span class="text-cyan-400">uuid</span>(),
+    <span class="text-orange-400">userId:</span> <span class="text-cyan-400">auth</span>()-><span class="text-cyan-400">id</span>(),
 );
 
-<span class="text-gray-500">// Stream responses for real-time feedback</span>
-<span class="text-blue-400">foreach</span> (<span class="text-purple-400">$agent</span>-><span class="text-cyan-400">stream</span>(<span class="text-purple-400">$message</span>, <span class="text-purple-400">$context</span>) <span class="text-blue-400">as</span> <span class="text-purple-400">$chunk</span>) {
-    <span class="text-blue-400">echo</span> <span class="text-purple-400">$chunk</span>; <span class="text-gray-500">// Display to user in real-time</span>
-}</code></pre>
+<span class="text-gray-500">// The response holds the answer, a confidence score and the tools used</span>
+<span class="text-blue-400">echo</span> <span class="text-purple-400">$response</span>[<span class="text-yellow-400">'content'</span>];
+<span class="text-blue-400">echo</span> <span class="text-purple-400">$response</span>[<span class="text-yellow-400">'confidence'</span>];</code></pre>
                 </div>
 
                 <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -867,23 +842,23 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                         </svg>
                         <h3 class="font-semibold mb-2">API Documentation</h3>
-                        <p class="text-sm text-gray-600">Complete API reference with examples</p>
+                        <p class="text-sm text-gray-600">The API reference describes the endpoints.</p>
                     </a>
 
                     <a href="{{ route('developers.show', 'sdks') }}" class="text-center p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
                         <svg class="w-12 h-12 text-purple-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
                         </svg>
-                        <h3 class="font-semibold mb-2">SDKs & Libraries</h3>
-                        <p class="text-sm text-gray-600">Client libraries for all platforms</p>
+                        <h3 class="font-semibold mb-2">Client Libraries</h3>
+                        <p class="text-sm text-gray-600">Client libraries for JavaScript, PHP and Python.</p>
                     </a>
 
-                    <a href="{{ route('about') }}" class="text-center p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                    <a href="{{ route('support.guides') }}" class="text-center p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
                         <svg class="w-12 h-12 text-purple-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
                         </svg>
                         <h3 class="font-semibold mb-2">Tutorials & Guides</h3>
-                        <p class="text-sm text-gray-600">Step-by-step implementation guides</p>
+                        <p class="text-sm text-gray-600">Guides for the sandbox and for local setup.</p>
                     </a>
                 </div>
             </div>
@@ -893,16 +868,16 @@
     <!-- CTA Section -->
     <section class="py-20 ai-gradient text-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-4xl font-bold mb-6">Ready to Transform Your Financial Services?</h2>
+            <h2 class="text-4xl font-bold mb-6">Try the AI Framework</h2>
             <p class="text-xl mb-8 text-cyan-100 max-w-3xl mx-auto">
-                Join leading financial institutions using AI to deliver exceptional experiences
+                Create a free sandbox account to try the agents on test data. You can also email us with questions.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="bg-white text-purple-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition shadow-lg hover:shadow-xl">
-                    Start Free Trial
+                    Create Sandbox Account
                 </a>
                 <a href="mailto:{{ config('brand.support_email', 'info@zelta.app') }}" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-purple-600 transition">
-                    Schedule Demo
+                    Email Us
                 </a>
             </div>
         </div>

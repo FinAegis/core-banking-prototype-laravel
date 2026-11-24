@@ -5,8 +5,8 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Multi-Tenancy',
-        'description' => 'Multi-tenancy with team-based isolation, per-tenant configuration, data migration, and the UsesTenantConnection trait powered by stancl/tenancy v3.9.',
-        'keywords' => 'multi-tenancy, tenant isolation, database scoping, enterprise, data migration, tenant configuration, stancl tenancy, ' . config('brand.name', 'Zelta'),
+        'description' => 'Multi-tenancy keeps each team\'s data apart in its own tenant database. It is built on stancl/tenancy v3.9 and adds settings, data migration and export for each tenant.',
+        'keywords' => 'multi-tenancy, tenant isolation, database scoping, data migration, tenant configuration, stancl tenancy, ' . config('brand.name', 'Zelta'),
     ])
 
     {{-- Schema.org Markup --}}
@@ -28,7 +28,7 @@
             <div class="text-center">
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Multi-Tenancy</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    Tenant isolation built on stancl/tenancy v3.9. Every team gets its own secure, configurable environment with database-level data separation and zero cross-tenant leakage.
+                    Multi-tenancy is built on stancl/tenancy v3.9. Each team is a tenant with its own database connection and its own settings. This keeps one tenant's data out of another tenant's queries.
                 </p>
             </div>
         </div>
@@ -46,7 +46,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3">Team-Based Isolation</h3>
-                    <p class="text-slate-500">Database-level scoping ensures complete data separation between tenants. Each organization operates in its own secure partition.</p>
+                    <p class="text-slate-500">Each tenant's data is scoped at the database level. An organisation works only in its own partition.</p>
                 </div>
 
                 <div class="tenant-card card-feature !p-8 text-center">
@@ -57,7 +57,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3">Per-Tenant Configuration</h3>
-                    <p class="text-slate-500">Each tenant gets independent settings for features, limits, branding, compliance rules, and integrations -- all manageable at runtime.</p>
+                    <p class="text-slate-500">Each tenant has its own settings for features, limits and compliance rules. You can change them while the platform runs.</p>
                 </div>
 
                 <div class="tenant-card card-feature !p-8 text-center">
@@ -67,7 +67,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3">Data Migration</h3>
-                    <p class="text-slate-500">Seamless tenant data migration, export, and import tooling. Move data between environments with full integrity verification.</p>
+                    <p class="text-slate-500">Commands migrate, export and import a tenant's data. Integrity checks run when data moves between environments.</p>
                 </div>
             </div>
         </div>
@@ -81,7 +81,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                 <div>
                     <p class="text-lg text-slate-500 mb-6">
-                        Built on stancl/tenancy v3.9, the {{ config('brand.name', 'Zelta') }} multi-tenancy system provides robust team-based isolation at the database level. The UsesTenantConnection trait automatically scopes all Eloquent queries, events, and jobs to the current tenant context.
+                        The {{ config('brand.name', 'Zelta') }} multi-tenancy system isolates teams at the database level. Models that use the <code>UsesTenantConnection</code> trait run their queries on the current tenant's connection. Events and jobs also carry the tenant with them.
                     </p>
                     <div class="space-y-4">
                         <div class="flex items-start">
@@ -90,7 +90,7 @@
                             </div>
                             <div>
                                 <h4 class="font-semibold mb-1">Tenant Identification</h4>
-                                <p class="text-slate-500">Middleware resolves the tenant from the request domain, header, or authentication token before any database access occurs.</p>
+                                <p class="text-slate-500">Middleware finds the tenant before any database access. It reads a request header first, then the subdomain, then the signed-in user's team.</p>
                             </div>
                         </div>
                         <div class="flex items-start">
@@ -99,7 +99,7 @@
                             </div>
                             <div>
                                 <h4 class="font-semibold mb-1">Connection Switching</h4>
-                                <p class="text-slate-500">The UsesTenantConnection trait automatically binds models to the tenant database connection, preventing any cross-tenant data access.</p>
+                                <p class="text-slate-500">The trait binds each model to the tenant's database connection. A query cannot reach another tenant's data through that model.</p>
                             </div>
                         </div>
                         <div class="flex items-start">
@@ -108,7 +108,7 @@
                             </div>
                             <div>
                                 <h4 class="font-semibold mb-1">Scoped Operations</h4>
-                                <p class="text-slate-500">Events, jobs, notifications, and cache entries are all automatically scoped to the current tenant for complete isolation.</p>
+                                <p class="text-slate-500">Stored events, queued jobs and broadcasts are scoped to the current tenant as well.</p>
                             </div>
                         </div>
                     </div>
@@ -127,7 +127,7 @@
                         </div>
                         <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                             <span class="text-slate-500">Data Export</span>
-                            <span class="text-lg font-bold text-green-600">JSON / CSV</span>
+                            <span class="text-lg font-bold text-green-600">JSON, CSV or SQL</span>
                         </div>
                         <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                             <span class="text-slate-500">Configuration Scope</span>
@@ -142,7 +142,7 @@
     <!-- Enterprise Features -->
     <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12">Enterprise Features</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12">Data and Configuration</h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="card-feature !p-8">
@@ -154,7 +154,7 @@
                             </svg>
                             <div>
                                 <h4 class="font-semibold mb-1">Tenant Data Migration</h4>
-                                <p class="text-slate-600">Move tenant data between environments with integrity checks, rollback support, and table whitelisting for safe migration scoping</p>
+                                <p class="text-slate-600">You can move a tenant's data between environments. Integrity checks run, a failed move can be rolled back, and only allowed tables are copied.</p>
                             </div>
                         </li>
                         <li class="flex items-start">
@@ -163,7 +163,7 @@
                             </svg>
                             <div>
                                 <h4 class="font-semibold mb-1">Data Export and Import</h4>
-                                <p class="text-slate-600">Full tenant data export to JSON or CSV with selective table and date range filters</p>
+                                <p class="text-slate-600">A tenant's data can be exported as JSON, CSV or SQL and imported again.</p>
                             </div>
                         </li>
                         <li class="flex items-start">
@@ -171,8 +171,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"></path>
                             </svg>
                             <div>
-                                <h4 class="font-semibold mb-1">Backup and Restore</h4>
-                                <p class="text-slate-600">Per-tenant backup scheduling with point-in-time recovery capabilities</p>
+                                <h4 class="font-semibold mb-1">Deletion With a Grace Period</h4>
+                                <p class="text-slate-600">A deleted tenant is kept for 14 days. It can be restored during that time.</p>
                             </div>
                         </li>
                     </ul>
@@ -187,7 +187,7 @@
                             </svg>
                             <div>
                                 <h4 class="font-semibold mb-1">Feature Flags</h4>
-                                <p class="text-slate-600">Enable or disable platform features per tenant without redeployment</p>
+                                <p class="text-slate-600">You can switch features on or off for one tenant without a new deployment.</p>
                             </div>
                         </li>
                         <li class="flex items-start">
@@ -196,7 +196,7 @@
                             </svg>
                             <div>
                                 <h4 class="font-semibold mb-1">Rate Limits and Quotas</h4>
-                                <p class="text-slate-600">Configurable API rate limits, storage quotas, and transaction caps per tenant</p>
+                                <p class="text-slate-600">Each tenant's plan sets its API rate limits and other caps.</p>
                             </div>
                         </li>
                         <li class="flex items-start">
@@ -205,7 +205,7 @@
                             </svg>
                             <div>
                                 <h4 class="font-semibold mb-1">Compliance Rules</h4>
-                                <p class="text-slate-600">Jurisdiction-specific compliance configuration scoped to each tenant</p>
+                                <p class="text-slate-600">Each tenant can have compliance settings for its own jurisdiction.</p>
                             </div>
                         </li>
                     </ul>
@@ -227,37 +227,37 @@
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>UsesTenantConnection trait for automatic query scoping</span>
+                            <span>The <code>UsesTenantConnection</code> trait scopes queries to the tenant</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Tenant-aware middleware with EnforceTenantPlanLimits for plan enforcement</span>
+                            <span>Middleware enforces the limits of each tenant's plan</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Database-level separation preventing cross-tenant leaks</span>
+                            <span>Separation at the database level</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Scoped cache, queues, and event broadcasting</span>
+                            <span>Queues and event broadcasts scoped to the tenant</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Tenant identification via domain, header, or token</span>
+                            <span>The tenant found from a header, a subdomain or the user's team</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Persistent audit logging scoped to tenant context</span>
+                            <span>An audit log for each tenant</span>
                         </li>
                     </ul>
                 </div>
@@ -269,37 +269,37 @@
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Artisan commands for tenant provisioning and management</span>
+                            <span>Artisan commands to set up and manage tenants</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Per-tenant database migrations with version tracking</span>
+                            <span>Database migrations run for each tenant</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>stancl/tenancy v3.9 with event-driven lifecycle hooks</span>
+                            <span>Events when a tenant is created, suspended or deleted</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Tenant health monitoring and resource usage dashboards</span>
+                            <span>Usage metering for each tenant</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Automated tenant onboarding with seed data provisioning</span>
+                            <span>New tenants set up with starting data</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Tenant soft-delete with 14-day grace period and data retention policies</span>
+                            <span>A 14-day grace period before a deleted tenant is purged</span>
                         </li>
                     </ul>
                 </div>
@@ -311,13 +311,13 @@
     <section class="bg-fa-navy relative overflow-hidden">
         <div class="absolute inset-0 bg-dot-pattern"></div>
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Scale With Confidence</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Try Multi-Tenancy</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                Whether you serve ten organizations or ten thousand, {{ config('brand.name', 'Zelta') }} multi-tenancy ensures every tenant gets isolation, performance, and control.
+                Multi-tenancy lets one {{ config('brand.name', 'Zelta') }} deployment serve many organisations. Each organisation keeps its own data and its own settings.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">
-                    Start Free Trial
+                    Create a Sandbox Account
                 </a>
                 <a href="{{ route('features') }}" class="btn-outline px-8 py-4 text-lg">
                     Explore All Features

@@ -57,7 +57,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             <p class="mt-2 text-gray-600 dark:text-gray-400">No arbitrage opportunities at the moment</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-500 mt-1">Opportunities appear when price differences exceed fees</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-500 mt-1">Opportunities appear when a price difference is larger than the fees.</p>
                         </div>
                     @else
                         <div class="space-y-4">
@@ -246,7 +246,7 @@
                 
                 <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mb-4">
                     <p class="text-sm text-amber-700 dark:text-amber-300">
-                        <strong>Risk Warning:</strong> Arbitrage trades execute across multiple exchanges. Ensure sufficient balance on both exchanges.
+                        <strong>Risk Warning:</strong> Arbitrage trades run on more than one exchange. Make sure you have enough balance on both exchanges.
                     </p>
                 </div>
                 

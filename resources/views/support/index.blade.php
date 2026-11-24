@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Support Center - ' . config('brand.name', 'Zelta'),
-        'description' => config('brand.name', 'Zelta') . ' Support Center - Get help with our open source financial platform. Documentation, guides, and community support.',
+        'description' => 'Get help with ' . config('brand.name', 'Zelta') . ', the open-source core banking platform. Read the guides and the frequently asked questions, ask the community on GitHub or send us a message.',
         'keywords' => config('brand.name', 'Zelta') . ' support, help center, documentation, guides, FAQ',
     ])
 @endsection
@@ -34,7 +34,7 @@
                         Support <span class="text-gradient">Center</span>
                     </h1>
                     <p class="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-8">
-                        Get help with {{ config('brand.name', 'Zelta') }}. From documentation to community support, we're here to assist.
+                        This page shows where to get help with {{ config('brand.name', 'Zelta') }}. You can read the guides, ask the community on GitHub or send us a message.
                     </p>
                     <div class="inline-flex items-center px-4 py-2 bg-white/[0.04] border border-white/[0.08] rounded-full">
                         <div class="w-2.5 h-2.5 bg-emerald-400 rounded-full status-badge mr-3"></div>
@@ -51,7 +51,7 @@
                 <div class="text-center mb-16">
                     <h2 class="font-display text-4xl font-bold text-slate-900 mb-4">How Can We Help?</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        Choose from our support options below or explore our documentation
+                        Pick the option that fits your question.
                     </p>
                 </div>
 
@@ -65,7 +65,7 @@
                         </div>
                         <h3 class="text-xl font-bold text-slate-900 mb-3">Documentation & Guides</h3>
                         <p class="text-slate-500 mb-4">
-                            Step-by-step guides and comprehensive documentation for the platform
+                            The guides explain how to install, run and extend the platform.
                         </p>
                         <span class="text-indigo-600 font-semibold">Browse Guides →</span>
                     </a>
@@ -79,7 +79,7 @@
                         </div>
                         <h3 class="text-xl font-bold text-slate-900 mb-3">Frequently Asked Questions</h3>
                         <p class="text-slate-500 mb-4">
-                            Find answers to common questions about {{ config('brand.name', 'Zelta') }} and the GCU demo
+                            The answers cover common questions about {{ config('brand.name', 'Zelta') }} and the GCU demo.
                         </p>
                         <span class="text-purple-600 font-semibold">View FAQ →</span>
                     </a>
@@ -93,7 +93,7 @@
                         </div>
                         <h3 class="text-xl font-bold text-slate-900 mb-3">Contact Support</h3>
                         <p class="text-slate-500 mb-4">
-                            Get in touch with our support team for feedback or questions
+                            The contact form sends your question or feedback to the project team.
                         </p>
                         <span class="text-green-600 font-semibold">Contact Us →</span>
                     </a>
@@ -108,7 +108,7 @@
                     <div>
                         <h2 class="font-display text-3xl font-bold text-slate-900 mb-6">Community Support</h2>
                         <p class="text-lg text-slate-500 mb-8">
-                            Join our open source community for help, discussions, and contributions. Community feedback drives the platform forward.
+                            The project is open source, and most help happens on GitHub. You can ask questions there, report problems and send code.
                         </p>
                         
                         <div class="space-y-4">
@@ -118,7 +118,7 @@
                                 </svg>
                                 <div>
                                     <h4 class="font-semibold text-slate-900">GitHub Discussions</h4>
-                                    <p class="text-slate-500">Ask questions and share ideas with the community</p>
+                                    <p class="text-slate-500">You can ask questions and share ideas with other users.</p>
                                 </div>
                             </div>
                             
@@ -128,7 +128,7 @@
                                 </svg>
                                 <div>
                                     <h4 class="font-semibold text-slate-900">Issue Tracker</h4>
-                                    <p class="text-slate-500">Report bugs and request features on GitHub</p>
+                                    <p class="text-slate-500">You can report bugs and ask for new features.</p>
                                 </div>
                             </div>
                             
@@ -138,7 +138,7 @@
                                 </svg>
                                 <div>
                                     <h4 class="font-semibold text-slate-900">Code Contributions</h4>
-                                    <p class="text-slate-500">Help improve the platform by contributing code</p>
+                                    <p class="text-slate-500">You can improve the platform by sending a pull request.</p>
                                 </div>
                             </div>
                         </div>
@@ -162,7 +162,7 @@
                             </div>
                             <h3 class="text-2xl font-bold text-slate-900 mb-4">Open Source Project</h3>
                             <p class="text-slate-500 mb-6">
-                                {{ config('brand.name', 'Zelta') }} is open source. View our code, report issues, and contribute on GitHub.
+                                {{ config('brand.name', 'Zelta') }} is open source under the Apache 2.0 license. The code, the issues and the discussions are on GitHub.
                             </p>
                             <a href="{{ config('brand.github_url') }}" class="btn-secondary inline-block">
                                 View on GitHub
@@ -183,7 +183,7 @@
                     <h3 class="text-2xl font-bold text-amber-900">Active Development</h3>
                 </div>
                 <p class="text-lg text-amber-800 max-w-3xl mx-auto">
-                    {{ config('brand.name', 'Zelta') }} is under active development. Features are continuously improving and expanding. Your feedback helps us build a better platform.
+                    {{ config('brand.name', 'Zelta') }} is under active development, and features change between releases. The current version is v7.18.1. Your feedback tells us what to fix and build next.
                 </p>
             </div>
         </section>
@@ -193,7 +193,7 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-12">
                     <h2 class="font-display text-3xl font-bold text-slate-900 mb-4">Developer Resources</h2>
-                    <p class="text-xl text-slate-500">Build on {{ config('brand.name', 'Zelta') }} with our comprehensive documentation</p>
+                    <p class="text-xl text-slate-500">These pages help you build on {{ config('brand.name', 'Zelta') }}.</p>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
@@ -238,7 +238,7 @@
             <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
                 <h2 class="font-display text-4xl font-bold mb-6 text-white">Still Need Help?</h2>
                 <p class="text-lg mb-10 text-slate-400">
-                    Our team and community are here to help you get the most out of {{ config('brand.name', 'Zelta') }}
+                    Send us a message through the contact form, or read the frequently asked questions first.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('support.contact') }}" class="btn-primary btn-lg">

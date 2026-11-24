@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Bank Integration',
-        'description' => 'Bank connector adapters (reference implementations). Integration adapters for third-party APIs; no partnership or endorsement implied.',
+        'description' => 'The bank connector adapters are reference implementations that show how to integrate with banks. They do not hold live bank connections. Integration adapters for third-party APIs; no partnership or endorsement implied.',
         'keywords' => 'bank integration, bank connector adapters, reference implementation, ' . config('brand.name', 'Zelta'),
     ])
 
@@ -28,7 +28,7 @@
             <div class="text-center">
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Bank Integration Adapters</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    Reference connector implementations that demonstrate bank integration patterns. Integration adapters for third-party APIs; no partnership or endorsement implied.
+                    These connectors are reference implementations. They show how a platform can integrate with banks and other financial services. Integration adapters for third-party APIs; no partnership or endorsement implied.
                 </p>
             </div>
         </div>
@@ -48,8 +48,8 @@
                     <div class="ml-3">
                         <h3 class="text-lg font-semibold text-slate-900">Integration Architecture</h3>
                         <p class="mt-2 text-slate-500">
-                            Bank integrations include adapters for third-party APIs such as a card-issuing integration adapter (e.g. Marqeta API), Ondato KYC and Chainalysis sanctions screening; no partnership or endorsement implied.
-                            Additional connectors use reference implementations that demonstrate integration patterns. Live bank connections require commercial agreements and regulatory approvals.
+                            Some adapters call third-party APIs. Ondato runs identity checks, and Chainalysis screens against sanctions lists. The card module has one provider-neutral layer with Lepo Finance as its first provider, and adapters for Marqeta, Rain and FinCard also exist. Virtual cards are built for a closed pilot and stay switched off until it starts. No partnership or endorsement is implied.
+                            The other connectors are reference implementations of common patterns. A live bank connection needs a commercial agreement and regulatory approval, and the platform holds neither.
                         </p>
                     </div>
                 </div>
@@ -66,7 +66,7 @@
                 <div>
                     <h3 class="text-2xl font-bold mb-6">Allocation Modelling</h3>
                     <p class="text-lg text-slate-500 mb-6">
-                        Multi-bank allocation module: software for modelling fund allocation across connected institutions (reference implementation).
+                        The multi-bank allocation module models how funds are split across several institutions. It is a reference implementation.
                     </p>
                     <ul class="space-y-4">
                         <li class="flex items-start">
@@ -74,8 +74,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                             </svg>
                             <div>
-                                <h4 class="font-semibold mb-1">Daily Reconciliation</h4>
-                                <p class="text-slate-500">Automated daily balance checks and audit reports</p>
+                                <h4 class="font-semibold mb-1">Reconciliation</h4>
+                                <p class="text-slate-500">The module checks balances against the bank records and writes audit reports.</p>
                             </div>
                         </li>
                         <li class="flex items-start">
@@ -84,7 +84,7 @@
                             </svg>
                             <div>
                                 <h4 class="font-semibold mb-1">Transparent Reporting</h4>
-                                <p class="text-slate-500">Real-time visibility into modelled allocation across institutions</p>
+                                <p class="text-slate-500">You can see the modelled allocation across all institutions at any time.</p>
                             </div>
                         </li>
                     </ul>
@@ -98,28 +98,28 @@
                                 <span class="font-medium">Choose Institutions</span>
                                 <span class="text-sm text-gray-500">Step 1</span>
                             </div>
-                            <p class="text-sm text-slate-500">Select from connected institutions</p>
+                            <p class="text-sm text-slate-500">You select institutions from the configured list.</p>
                         </div>
                         <div class="pb-4 border-b">
                             <div class="flex justify-between items-center mb-2">
                                 <span class="font-medium">Set Allocation</span>
                                 <span class="text-sm text-gray-500">Step 2</span>
                             </div>
-                            <p class="text-sm text-slate-500">Set allocation percentages across selected institutions (must total 100%)</p>
+                            <p class="text-sm text-slate-500">You give each institution a percentage. The percentages must add up to 100%.</p>
                         </div>
                         <div class="pb-4 border-b">
                             <div class="flex justify-between items-center mb-2">
                                 <span class="font-medium">Primary Institution</span>
                                 <span class="text-sm text-gray-500">Step 3</span>
                             </div>
-                            <p class="text-sm text-slate-500">Designate a primary institution for withdrawals</p>
+                            <p class="text-sm text-slate-500">You choose one primary institution for withdrawals.</p>
                         </div>
                         <div>
                             <div class="flex justify-between items-center mb-2">
-                                <span class="font-medium">Automatic Rebalancing</span>
+                                <span class="font-medium">Split by Percentage</span>
                                 <span class="text-sm text-gray-500">Ongoing</span>
                             </div>
-                            <p class="text-sm text-slate-500">Rebalancing logic runs automatically within the module</p>
+                            <p class="text-sm text-slate-500">The module splits each amount across the institutions by those percentages.</p>
                         </div>
                     </div>
                 </div>
@@ -130,7 +130,7 @@
     <!-- Integration Process -->
     <section class="py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12">Seamless Integration</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12">Connector Design</h2>
             
             <div class="max-w-4xl mx-auto">
                 <div class="card-feature !p-8 rounded-2xl">
@@ -139,16 +139,16 @@
                         <div>
                             <h4 class="font-bold mb-4">Technical Integration</h4>
                             <ul class="space-y-2 text-slate-500">
-                                <li>• REST API with 13 endpoints and webhook notifications</li>
-                                <li>• Account verification via micro-deposit and instant methods</li>
-                                <li>• GraphQL transfer operations with real-time subscriptions</li>
-                                <li>• Automated reconciliation systems</li>
-                                <li>• Secure multi-signature protocols</li>
-                                <li>• Daily balance verification</li>
+                                <li>• REST endpoints and webhook notifications</li>
+                                <li>• Bank account checks by micro-deposit or by instant verification</li>
+                                <li>• GraphQL operations for bank transfers</li>
+                                <li>• Reconciliation against bank records</li>
+                                <li>• Health monitoring for each connector</li>
+                                <li>• Balance checks</li>
                             </ul>
                         </div>
                         <div>
-                            <h4 class="font-bold mb-4">Operational Excellence</h4>
+                            <h4 class="font-bold mb-4">Operations</h4>
                             <ul class="space-y-2 text-slate-500">
                                 <li>• Compliance reporting tooling</li>
                             </ul>
@@ -165,7 +165,7 @@
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Explore the Connector Adapters</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                Reference implementations; integration adapters for third-party APIs; no partnership or endorsement implied.
+                The connectors are reference implementations. Integration adapters for third-party APIs; no partnership or endorsement implied.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('developers.show', 'sandbox') }}" class="btn-primary px-8 py-4 text-lg">

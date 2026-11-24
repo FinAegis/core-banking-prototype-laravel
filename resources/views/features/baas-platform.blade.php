@@ -5,8 +5,8 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Banking-as-a-Service',
-        'description' => 'Build financial products on ' . config('brand.name', 'Zelta') . ' open-source BaaS software. Partner APIs, multi-language SDK generation, embeddable widgets, and white-label branding.',
-        'keywords' => 'Banking-as-a-Service, BaaS, partner APIs, SDK generation, embeddable widgets, white-label, billing, marketplace, ' . config('brand.name', 'Zelta'),
+        'description' => 'The banking-as-a-service module lets partners build financial products on ' . config('brand.name', 'Zelta') . ' open-source software. It has partner APIs, generated client code, embeddable widgets and branding for each partner.',
+        'keywords' => 'Banking-as-a-Service, partner APIs, SDK generation, embeddable widgets, white-label, billing, marketplace, ' . config('brand.name', 'Zelta'),
     ])
 
     {{-- Schema.org Markup --}}
@@ -28,7 +28,7 @@
             <div class="text-center">
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Banking-as-a-Service Software</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    Embed open-source financial infrastructure software into your product, from partner onboarding to white-label branding.
+                    This module lets you offer the platform to partners under their own brand. It covers partner onboarding, usage billing and branding for each partner.
                 </p>
                 <p class="text-sm text-slate-500 max-w-3xl mx-auto mt-4">
                     FinAegis is open-source software. Using it does not make a deployment compliant. Licensing and regulatory compliance are the responsibility of the operator of each deployment. Nothing here is legal advice.
@@ -49,7 +49,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3">Partner APIs</h3>
-                    <p class="text-slate-500">Comprehensive onboarding, dashboard, and usage metering APIs. Everything partners need to build and scale on your platform.</p>
+                    <p class="text-slate-500">Partner APIs cover onboarding, the partner dashboard and usage metering. Partners use them to build their products on your deployment.</p>
                 </div>
 
                 <div class="baas-card card-feature !p-8 text-center">
@@ -58,8 +58,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">SDK Generation</h3>
-                    <p class="text-slate-500">Auto-generated SDKs for TypeScript, Python, Java, Go, and PHP. Keep client libraries in sync with your API automatically.</p>
+                    <h3 class="text-xl font-bold mb-3">Client Library Generation</h3>
+                    <p class="text-slate-500">The module generates client code from the OpenAPI specification. It supports TypeScript, Python, Java, Go, C# and PHP, so client code stays in step with the API.</p>
                 </div>
 
                 <div class="baas-card card-feature !p-8 text-center">
@@ -69,7 +69,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3">White-Label Branding</h3>
-                    <p class="text-slate-500">Fully customizable UI with your brand identity. Logos, colors, typography, and domain -- all configurable per tenant.</p>
+                    <p class="text-slate-500">Each partner can set its own logo, colours and custom domain. The widgets then appear in the partner's brand.</p>
                 </div>
             </div>
         </div>
@@ -83,7 +83,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                 <div>
                     <p class="text-lg text-slate-500 mb-6">
-                        The BaaS Partner Platform provides everything your partners need to integrate, monitor, and scale their financial products. Self-service onboarding reduces time to first API call to under five minutes.
+                        The partner platform lets partners connect, watch their usage and grow their products. Partners sign up by themselves and get a sandbox to test in.
                     </p>
                     <div class="space-y-4">
                         <div class="flex items-start">
@@ -92,7 +92,7 @@
                             </div>
                             <div>
                                 <h4 class="font-semibold mb-1">Partner Onboarding</h4>
-                                <p class="text-slate-500">Self-service registration with KYB verification, API key generation, and sandbox environment provisioning.</p>
+                                <p class="text-slate-500">A partner registers and goes through business verification checks. The module then issues API keys and sets up a sandbox for the partner.</p>
                             </div>
                         </div>
                         <div class="flex items-start">
@@ -101,7 +101,7 @@
                             </div>
                             <div>
                                 <h4 class="font-semibold mb-1">Partner Dashboard</h4>
-                                <p class="text-slate-500">Real-time analytics, transaction monitoring, and revenue tracking with customizable reporting.</p>
+                                <p class="text-slate-500">The dashboard shows each partner its usage, transactions and invoices.</p>
                             </div>
                         </div>
                         <div class="flex items-start">
@@ -110,39 +110,39 @@
                             </div>
                             <div>
                                 <h4 class="font-semibold mb-1">Usage Metering</h4>
-                                <p class="text-slate-500">Granular API call tracking, bandwidth monitoring, and resource consumption metrics for transparent billing.</p>
+                                <p class="text-slate-500">The module counts each partner's API calls. Billing uses those counts, so partners can see what they pay for.</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="card-feature !p-8 rounded-2xl">
-                    <h3 class="text-2xl font-bold mb-6 text-slate-900">SDK Languages</h3>
+                    <h3 class="text-2xl font-bold mb-6 text-slate-900">Generated Client Languages</h3>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="text-center p-4 bg-gray-50 rounded-lg">
                             <div class="text-2xl font-bold text-blue-600 mb-1">TS</div>
                             <p class="text-sm text-slate-500">TypeScript</p>
-                            <p class="text-xs text-gray-400 mt-1">NPM package</p>
+                            <p class="text-xs text-gray-400 mt-1">Generated client</p>
                         </div>
                         <div class="text-center p-4 bg-gray-50 rounded-lg">
                             <div class="text-2xl font-bold text-yellow-600 mb-1">Py</div>
                             <p class="text-sm text-slate-500">Python</p>
-                            <p class="text-xs text-gray-400 mt-1">PyPI package</p>
+                            <p class="text-xs text-gray-400 mt-1">Generated client</p>
                         </div>
                         <div class="text-center p-4 bg-gray-50 rounded-lg">
                             <div class="text-2xl font-bold text-red-600 mb-1">Java</div>
                             <p class="text-sm text-slate-500">Java</p>
-                            <p class="text-xs text-gray-400 mt-1">Maven Central</p>
+                            <p class="text-xs text-gray-400 mt-1">Generated client</p>
                         </div>
                         <div class="text-center p-4 bg-gray-50 rounded-lg">
                             <div class="text-2xl font-bold text-cyan-600 mb-1">Go</div>
                             <p class="text-sm text-slate-500">Go</p>
-                            <p class="text-xs text-gray-400 mt-1">Go module</p>
+                            <p class="text-xs text-gray-400 mt-1">Generated client</p>
                         </div>
                         <div class="text-center p-4 bg-gray-50 rounded-lg col-span-2">
-                            <div class="text-2xl font-bold text-purple-600 mb-1">PHP</div>
-                            <p class="text-sm text-slate-500">PHP</p>
-                            <p class="text-xs text-gray-400 mt-1">Composer package</p>
+                            <div class="text-2xl font-bold text-purple-600 mb-1">PHP and C#</div>
+                            <p class="text-sm text-slate-500">PHP and C#</p>
+                            <p class="text-xs text-gray-400 mt-1">Generated clients</p>
                         </div>
                     </div>
                 </div>
@@ -164,8 +164,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"></path>
                             </svg>
                             <div>
-                                <h4 class="font-semibold mb-1">Drop-In UI Components</h4>
-                                <p class="text-slate-600">Pre-built account opening, KYC, payment, and wallet widgets ready to embed</p>
+                                <h4 class="font-semibold mb-1">Ready-Made Widgets</h4>
+                                <p class="text-slate-600">Ready-made widgets cover a payment form, a checkout, an account balance, a transfer and an account summary.</p>
                             </div>
                         </li>
                         <li class="flex items-start">
@@ -174,7 +174,7 @@
                             </svg>
                             <div>
                                 <h4 class="font-semibold mb-1">Theme Customization</h4>
-                                <p class="text-slate-600">CSS variables and configuration API for complete visual customization</p>
+                                <p class="text-slate-600">Partners change the look through their branding settings and their own CSS.</p>
                             </div>
                         </li>
                         <li class="flex items-start">
@@ -183,7 +183,7 @@
                             </svg>
                             <div>
                                 <h4 class="font-semibold mb-1">Event Callbacks</h4>
-                                <p class="text-slate-600">JavaScript event hooks for widget lifecycle and user interaction tracking</p>
+                                <p class="text-slate-600">JavaScript events tell the partner's page what happens inside a widget.</p>
                             </div>
                         </li>
                     </ul>
@@ -198,7 +198,7 @@
                             </svg>
                             <div>
                                 <h4 class="font-semibold mb-1">Pre-Built Integrations</h4>
-                                <p class="text-slate-600">Connect with payment processors, KYC providers, and analytics tools</p>
+                                <p class="text-slate-600">The marketplace lists integrations, such as payment processors, identity-check providers and analytics tools.</p>
                             </div>
                         </li>
                         <li class="flex items-start">
@@ -206,8 +206,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"></path>
                             </svg>
                             <div>
-                                <h4 class="font-semibold mb-1">Toggle Enable/Disable</h4>
-                                <p class="text-slate-600">One-click activation and deactivation of marketplace integrations</p>
+                                <h4 class="font-semibold mb-1">Switch On and Off</h4>
+                                <p class="text-slate-600">A partner can switch each integration on or off and test its connection.</p>
                             </div>
                         </li>
                         <li class="flex items-start">
@@ -216,7 +216,7 @@
                             </svg>
                             <div>
                                 <h4 class="font-semibold mb-1">Custom Extensions</h4>
-                                <p class="text-slate-600">Build and publish your own integrations to the marketplace ecosystem</p>
+                                <p class="text-slate-600">You can add your own integrations to the marketplace list.</p>
                             </div>
                         </li>
                     </ul>
@@ -238,37 +238,37 @@
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Tier-based pricing with configurable rate cards</span>
+                            <span>Pricing by partner tier, with limits you can set</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Automated invoice generation and delivery</span>
+                            <span>Invoices generated for each billing period</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Volume discounts and commitment pricing</span>
+                            <span>Discounts for longer billing cycles</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Revenue sharing and partner payout automation</span>
+                            <span>Monthly API call allowance for each tier</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Usage alerts and budget threshold notifications</span>
+                            <span>Rate limits for each tier</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Multi-currency billing with automatic conversion</span>
+                            <span>A billing currency set by the operator</span>
                         </li>
                     </ul>
                 </div>
@@ -280,37 +280,37 @@
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Custom domain mapping with SSL provisioning</span>
+                            <span>A custom domain for each partner</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Brand asset management (logos, favicons, colors)</span>
+                            <span>Logos, favicons and colours for each partner</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Customizable email templates and notifications</span>
+                            <span>The partner's own support contact and legal links</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Per-tenant feature flags and configuration</span>
+                            <span>Features switched on by partner tier</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Localization and multi-language support</span>
+                            <span>Custom CSS and JavaScript for each partner</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Mobile app theming via remote configuration</span>
+                            <span>Widget settings for each partner</span>
                         </li>
                     </ul>
                 </div>
@@ -322,16 +322,16 @@
     <section class="bg-fa-navy relative overflow-hidden">
         <div class="absolute inset-0 bg-dot-pattern"></div>
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Launch Your Financial Product</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Build Your Own Financial Product</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                Skip years of infrastructure development. Build on {{ config('brand.name', 'Zelta') }} open-source software under your own brand. Licensing and regulatory compliance are the responsibility of the operator of each deployment.
+                You can build on {{ config('brand.name', 'Zelta') }} open-source software under your own brand. Licensing and regulatory compliance are the responsibility of the operator of each deployment.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">
-                    Become a Partner
+                    Create a Sandbox Account
                 </a>
                 <a href="{{ route('developers') }}" class="btn-outline px-8 py-4 text-lg">
-                    BaaS Documentation
+                    Partner Documentation
                 </a>
             </div>
         </div>

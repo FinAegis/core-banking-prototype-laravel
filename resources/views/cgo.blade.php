@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Continuous Growth Offering (CGO) Concept - ' . config('brand.name', 'Zelta'),
-        'description' => 'Explore the Continuous Growth Offering concept - a theoretical model for continuous community-driven funding in open-source financial platforms.',
+        'description' => 'The Continuous Growth Offering is a theoretical idea for funding open-source financial software. It describes how a community could support development over time. It is not an offer and no money is collected.',
         'keywords' => 'CGO concept, continuous growth offering, open source funding, community funding model',
     ])
 @endsection
@@ -31,7 +31,7 @@
                     Continuous Growth <span class="text-gradient-gold">Offering</span>
                 </h1>
                 <p class="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-10">
-                    A conceptual funding model for open-source financial platforms. This is <strong class="text-slate-300">not</strong> an active investment opportunity.
+                    This is a theoretical idea for funding open-source financial software. It is <strong class="text-slate-300">not</strong> an investment opportunity.
                 </p>
 
                 <!-- Important Notice -->
@@ -43,9 +43,9 @@
                         <div class="text-left">
                             <h3 class="text-sm font-bold text-amber-300 mb-1">Demonstration Only</h3>
                             <p class="text-slate-500 text-sm">
-                                This page demonstrates the CGO concept as part of the {{ config('brand.name', 'Zelta') }} platform.
-                                <strong class="text-slate-400">No real money is being collected.</strong> This is purely a conceptual exploration
-                                of alternative funding models for open-source financial platforms.
+                                This page describes the Continuous Growth Offering idea as part of the {{ config('brand.name', 'Zelta') }} project.
+                                <strong class="text-slate-400">No real money is being collected.</strong> The page only explores other ways
+                                to fund open-source financial software.
                             </p>
                         </div>
                     </div>
@@ -61,7 +61,7 @@
             <div class="text-center mb-16">
                 <h2 class="font-display text-4xl font-bold text-slate-900 mb-4">What is a Continuous Growth Offering?</h2>
                 <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                    A theoretical model that explores how open-source financial platforms could sustain development through continuous community participation.
+                    It is a theoretical model. It asks how open-source financial software could pay for its development through steady support from its community.
                 </p>
             </div>
 
@@ -73,7 +73,7 @@
                         </svg>
                     </div>
                     <h3 class="font-display text-xl font-bold text-slate-900 mb-3">Conceptual Model</h3>
-                    <p class="text-slate-500">Unlike traditional one-time funding rounds, CGO imagines continuous, small-scale participation from the community over time.</p>
+                    <p class="text-slate-500">A usual funding round happens once. This model imagines many small contributions from the community over a long time.</p>
                 </div>
 
                 <div class="card-feature text-center animate-on-scroll stagger-2">
@@ -83,7 +83,7 @@
                         </svg>
                     </div>
                     <h3 class="font-display text-xl font-bold text-slate-900 mb-3">Democratic Participation</h3>
-                    <p class="text-slate-500">The model explores how supporters could have voice in development priorities proportional to their participation.</p>
+                    <p class="text-slate-500">The model asks how supporters could have a say in development priorities. Their say would grow with how much they take part.</p>
                 </div>
 
                 <div class="card-feature text-center animate-on-scroll stagger-3">
@@ -93,7 +93,7 @@
                         </svg>
                     </div>
                     <h3 class="font-display text-xl font-bold text-slate-900 mb-3">Sustainable Funding</h3>
-                    <p class="text-slate-500">Explores alternatives to traditional VC funding that align incentives between developers and users.</p>
+                    <p class="text-slate-500">The model looks for an alternative to venture capital funding. The goal is that developers and users want the same things.</p>
                 </div>
             </div>
         </div>
@@ -104,12 +104,12 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
                 <h2 class="font-display text-4xl font-bold text-slate-900 mb-4">Conceptual Participation Tiers</h2>
-                <p class="text-xl text-slate-500">How a CGO <em>might</em> structure community participation (theoretical)</p>
+                <p class="text-xl text-slate-500">This is how the model <em>might</em> organise community support. The tiers are theoretical.</p>
             </div>
 
             <div class="bg-amber-50 border-l-4 border-amber-400 p-4 mb-8 max-w-3xl mx-auto">
                 <p class="text-amber-800">
-                    <strong>Note:</strong> These tiers are conceptual demonstrations only. This is not an active offering and no payments are accepted.
+                    <strong>Note:</strong> These tiers only illustrate the idea. This is not an offer, and no payments are accepted.
                 </p>
             </div>
 
@@ -206,7 +206,7 @@
             </div>
 
             <div class="text-center mt-12">
-                <p class="text-slate-500 mb-4">This is a demonstration of concepts only. No real funding is being collected.</p>
+                <p class="text-slate-500 mb-4">This page only describes an idea. No real funding is being collected.</p>
             </div>
         </div>
     </section>
@@ -216,7 +216,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
                 <h2 class="font-display text-3xl font-bold text-slate-900 mb-4">Want to Support {{ config('brand.name', 'Zelta') }}?</h2>
-                <p class="text-xl text-slate-500">Here's how you can actually contribute to this open-source project</p>
+                <p class="text-xl text-slate-500">These are the real ways to help this open-source project.</p>
             </div>
 
             <div class="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
@@ -227,7 +227,7 @@
                         </svg>
                     </div>
                     <h3 class="font-display text-xl font-bold text-slate-900 mb-2">Contribute Code</h3>
-                    <p class="text-slate-500">Submit PRs, fix bugs, or add features</p>
+                    <p class="text-slate-500">Send a pull request that fixes a bug or adds a feature.</p>
                 </a>
 
                 <a href="{{ config('brand.github_url') }}/issues" target="_blank" class="block card-feature text-center animate-on-scroll stagger-2">
@@ -237,7 +237,7 @@
                         </svg>
                     </div>
                     <h3 class="font-display text-xl font-bold text-slate-900 mb-2">Report Issues</h3>
-                    <p class="text-slate-500">Help improve by reporting bugs</p>
+                    <p class="text-slate-500">Tell us about a bug so we can fix it.</p>
                 </a>
 
                 <a href="{{ config('brand.github_url') }}" target="_blank" class="block card-feature text-center animate-on-scroll stagger-3">
@@ -247,7 +247,7 @@
                         </svg>
                     </div>
                     <h3 class="font-display text-xl font-bold text-slate-900 mb-2">Star the Repo</h3>
-                    <p class="text-slate-500">Show your support with a GitHub star</p>
+                    <p class="text-slate-500">Give the repository a star on GitHub to show your support.</p>
                 </a>
             </div>
         </div>
@@ -258,25 +258,25 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
                 <h2 class="font-display text-3xl font-bold text-slate-900 mb-4">Learn More About {{ config('brand.name', 'Zelta') }}</h2>
-                <p class="text-xl text-slate-500">Explore the concepts and technology behind the platform</p>
+                <p class="text-xl text-slate-500">Read about the ideas and the technology behind the platform.</p>
             </div>
 
             <div class="grid {{ $isFinAegisSite ? 'md:grid-cols-3' : 'md:grid-cols-2' }} gap-6">
                 <a href="{{ route('about') }}" class="block card-feature animate-on-scroll stagger-1">
                     <h3 class="font-display text-xl font-bold text-slate-900 mb-2">About the Project</h3>
-                    <p class="text-slate-500">Learn what {{ config('brand.name', 'Zelta') }} is and why it was built</p>
+                    <p class="text-slate-500">Learn what {{ config('brand.name', 'Zelta') }} is and why it was built.</p>
                 </a>
 
                 @if($isFinAegisSite)
                 <a href="{{ route('gcu') }}" class="block card-feature animate-on-scroll stagger-2">
                     <h3 class="font-display text-xl font-bold text-slate-900 mb-2">GCU demo</h3>
-                    <p class="text-slate-500">A software demonstration: reference implementation of a basket-referenced unit</p>
+                    <p class="text-slate-500">The Global Currency Unit is a software demonstration. It shows how a unit valued against a basket of reference assets could work.</p>
                 </a>
                 @endif
 
                 <a href="{{ route('developers') }}" class="block card-feature animate-on-scroll stagger-3">
                     <h3 class="font-display text-xl font-bold text-slate-900 mb-2">Developer Docs</h3>
-                    <p class="text-slate-500">Technical documentation and API reference</p>
+                    <p class="text-slate-500">Read the technical documentation and the API reference.</p>
                 </a>
             </div>
         </div>
@@ -289,7 +289,7 @@
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
             <h2 class="font-display text-4xl font-bold text-white mb-6">Explore the Demo</h2>
             <p class="text-lg mb-10 text-slate-400 max-w-3xl mx-auto">
-                See the GCU demo, governance, and all banking features in action. Create a demo account to explore everything—all simulated, all safe.
+                Create a demo account to try the Global Currency Unit demo, the governance module and the banking features. Everything in the demo uses simulated data.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary btn-lg">

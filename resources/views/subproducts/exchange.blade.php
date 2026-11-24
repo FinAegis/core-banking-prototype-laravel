@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => config('brand.name', 'Zelta') . ' Exchange - Exchange Module Demo',
-        'description' => config('brand.name', 'Zelta') . ' Exchange - Exchange module demo: order matching for digital and traditional assets (sandbox, test data only).',
+        'description' => 'The ' . config('brand.name', 'Zelta') . ' exchange module matches buy and sell orders for digital and traditional assets. The sandbox runs it with test data only.',
         'keywords' => config('brand.name', 'Zelta') . ' Exchange, exchange module, order matching, open-source trading engine',
     ])
 
@@ -27,7 +27,7 @@
                         {{ config('brand.name', 'Zelta') }} Exchange
                     </h1>
                     <p class="text-xl md:text-2xl text-slate-400 max-w-3xl mx-auto mb-8">
-                        Exchange module demo: order matching for digital and traditional assets (sandbox, test data only).
+                        The exchange module matches buy and sell orders for digital and traditional assets. The sandbox runs it with test data only.
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
                         @auth
@@ -66,7 +66,7 @@
                 <div class="text-center mb-16">
                     <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Module Features</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        Order matching and trading workflows in the open-source exchange module
+                        The open-source exchange module covers order matching and trading workflows.
                     </p>
                 </div>
 
@@ -83,7 +83,7 @@
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Cryptocurrencies (BTC, ETH, etc.)
+                                Cryptocurrencies such as Bitcoin and Ether
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,13 +100,13 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-bold text-slate-900 mb-4">Security Modules</h3>
+                        <h3 class="text-xl font-bold text-slate-900 mb-4">Wallet Security</h3>
                         <ul class="space-y-2 text-slate-600">
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Cold-storage integration patterns
+                                Ledger and Trezor hardware wallet integration
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -123,19 +123,19 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-bold text-slate-900 mb-4">Advanced Trading</h3>
+                        <h3 class="text-xl font-bold text-slate-900 mb-4">Trading Tools</h3>
                         <ul class="space-y-2 text-slate-600">
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Advanced order types
+                                Limit, market and stop orders
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Algorithmic trading API
+                                Trading API
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -149,18 +149,18 @@
             </div>
         </section>
 
-        <!-- DeFi Integration Callout -->
+        <!-- Decentralised Finance Integration Callout -->
         <section class="py-12 bg-white">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="bg-gradient-to-r from-orange-50 to-cyan-50 rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between">
                     <div>
-                        <h3 class="text-2xl font-bold text-slate-900 mb-2">DeFi DEX Aggregation</h3>
+                        <h3 class="text-2xl font-bold text-slate-900 mb-2">Decentralised Exchange Quotes</h3>
                         <p class="text-slate-500 max-w-xl">
-                            DEX aggregation adapters (e.g. Uniswap, Curve) compare quotes across DEX and CEX venues. Integration adapters for third-party APIs; no partnership or endorsement implied.
+                            The decentralised finance module has adapters for decentralised exchanges such as Uniswap and Curve. It asks each one for a quote and picks the best route. Integration adapters for third-party APIs; no partnership or endorsement implied.
                         </p>
                     </div>
                     <a href="{{ route('features.show', 'crosschain-defi') }}" class="mt-4 md:mt-0 inline-flex items-center px-6 py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-colors flex-shrink-0">
-                        Explore Cross-Chain & DeFi
+                        Explore Decentralised Finance
                         <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                         </svg>
@@ -175,7 +175,7 @@
             <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
                 <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Explore the Exchange Demo</h2>
                 <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                    Explore order matching in the sandbox (test data only)
+                    You can try order matching in the sandbox. It uses test data only.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     @auth

@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Developer APIs',
-        'description' => 'Comprehensive REST APIs and webhooks for seamless integration. Build powerful applications on our platform.',
+        'description' => 'The platform has REST APIs, GraphQL, webhooks and official client libraries for PHP, JavaScript and Python. Developers use them to build applications on the platform.',
         'keywords' => 'API, REST API, webhooks, developer tools, integration, ' . config('brand.name', 'Zelta') . ' API',
     ])
 
@@ -47,7 +47,7 @@
             <div class="text-center">
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Developer APIs</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    Build the future of finance with our comprehensive REST APIs, webhooks, and SDKs. Everything you need to integrate {{ config('brand.name', 'Zelta') }} into your applications.
+                    {{ config('brand.name', 'Zelta') }} has REST APIs, webhooks and official client libraries. You use them to connect your own applications to the platform.
                 </p>
             </div>
         </div>
@@ -64,8 +64,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">RESTful APIs</h3>
-                    <p class="text-slate-500">Clean, predictable REST endpoints with comprehensive documentation and examples.</p>
+                    <h3 class="text-xl font-bold mb-3">REST APIs</h3>
+                    <p class="text-slate-500">The REST endpoints follow one consistent pattern. Each one is documented with examples.</p>
                 </div>
                 
                 <div class="text-center">
@@ -74,8 +74,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">Real-time Webhooks</h3>
-                    <p class="text-slate-500">Get instant notifications for all important events in your integration.</p>
+                    <h3 class="text-xl font-bold mb-3">Webhooks</h3>
+                    <p class="text-slate-500">Webhooks tell your system when an important event happens, such as a completed transaction.</p>
                 </div>
                 
                 <div class="text-center">
@@ -84,8 +84,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">SDKs & Libraries</h3>
-                    <p class="text-slate-500">Official SDKs for PHP, JavaScript, Python, Java, and more.</p>
+                    <h3 class="text-xl font-bold mb-3">Client Libraries</h3>
+                    <p class="text-slate-500">Official client libraries exist for PHP, JavaScript and Python. A separate PHP payment library handles x402 and machine payments.</p>
                 </div>
             </div>
         </div>
@@ -100,7 +100,7 @@
                 <!-- Authentication -->
                 <div class="endpoint-card card-feature !p-8">
                     <h3 class="text-2xl font-bold mb-4">Authentication & Users</h3>
-                    <p class="text-slate-500 mb-6">Secure user authentication and profile management.</p>
+                    <p class="text-slate-500 mb-6">These endpoints sign users in and manage their profiles.</p>
                     <div class="space-y-3">
                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                             <div class="flex items-center">
@@ -126,7 +126,7 @@
                 <!-- Accounts -->
                 <div class="endpoint-card card-feature !p-8">
                     <h3 class="text-2xl font-bold mb-4">Account Management</h3>
-                    <p class="text-slate-500 mb-6">Create and manage user accounts with multi-asset support.</p>
+                    <p class="text-slate-500 mb-6">These endpoints create and manage accounts. Each account can hold several assets.</p>
                     <div class="space-y-3">
                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                             <div class="flex items-center">
@@ -152,7 +152,7 @@
                 <!-- Transactions -->
                 <div class="endpoint-card card-feature !p-8">
                     <h3 class="text-2xl font-bold mb-4">Transactions & Transfers</h3>
-                    <p class="text-slate-500 mb-6">Process payments and transfers.</p>
+                    <p class="text-slate-500 mb-6">These endpoints run payments and transfers.</p>
                     <div class="space-y-3">
                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                             <div class="flex items-center">
@@ -169,7 +169,7 @@
                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                             <div class="flex items-center">
                                 <span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">POST</span>
-                                <span class="ml-3 font-mono text-sm">/api/transactions/reverse</span>
+                                <span class="ml-3 font-mono text-sm">/api/accounts/{uuid}/transactions/reverse</span>
                             </div>
                         </div>
                     </div>
@@ -178,7 +178,7 @@
                 <!-- GCU & Voting -->
                 <div class="endpoint-card card-feature !p-8">
                     <h3 class="text-2xl font-bold mb-4">GCU demo (simulated)</h3>
-                    <p class="text-slate-500 mb-6">GCU demo endpoints — simulated balances and votes.</p>
+                    <p class="text-slate-500 mb-6">These endpoints serve the GCU demo. Balances and votes are simulated.</p>
                     <div class="space-y-3">
                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                             <div class="flex items-center">
@@ -262,7 +262,7 @@ console.log('Status:', result.status);</code></pre>
                     <div class="code-block">
                         <pre><code>// Express.js webhook handler
 app.post('/webhooks/finaegis', (req, res) => {
-  const signature = req.headers['x-finaegis-signature'];
+  const signature = req.headers['x-webhook-signature'];
   const payload = req.body;
   
   // Verify webhook signature
@@ -302,7 +302,7 @@ app.post('/webhooks/finaegis', (req, res) => {
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>RESTful design with predictable endpoints</span>
+                            <span>REST design with predictable endpoints</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -314,25 +314,25 @@ app.post('/webhooks/finaegis', (req, res) => {
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>OAuth 2.0 and JWT authentication</span>
+                            <span>Token and OAuth 2.0 authentication</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Rate limiting with clear headers</span>
+                            <span>Rate limits shown in response headers</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Idempotency support for safe retries</span>
+                            <span>Idempotency keys, so a retry does not repeat a payment</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Comprehensive error handling</span>
+                            <span>Consistent error responses</span>
                         </li>
                     </ul>
                 </div>
@@ -374,7 +374,7 @@ app.post('/webhooks/finaegis', (req, res) => {
                             <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Developer support channel</span>
+                            <span>Community support on GitHub</span>
                         </li>
                     </ul>
                 </div>
@@ -385,36 +385,36 @@ app.post('/webhooks/finaegis', (req, res) => {
     <!-- SDKs -->
     <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12">Official SDKs</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-12">Official Client Libraries</h2>
             
             <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
                 <div class="text-center">
                     <div class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                         <span class="text-2xl font-bold text-purple-600">PHP</span>
                     </div>
-                    <h4 class="font-semibold">PHP SDK</h4>
+                    <h4 class="font-semibold">PHP Library</h4>
                     <p class="text-sm text-slate-500 mt-1">Composer package</p>
                 </div>
                 <div class="text-center">
                     <div class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                         <span class="text-2xl font-bold text-yellow-600">JS</span>
                     </div>
-                    <h4 class="font-semibold">JavaScript SDK</h4>
-                    <p class="text-sm text-slate-500 mt-1">NPM package</p>
+                    <h4 class="font-semibold">JavaScript Library</h4>
+                    <p class="text-sm text-slate-500 mt-1">npm package</p>
                 </div>
                 <div class="text-center">
                     <div class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                         <span class="text-2xl font-bold text-blue-600">Py</span>
                     </div>
-                    <h4 class="font-semibold">Python SDK</h4>
+                    <h4 class="font-semibold">Python Library</h4>
                     <p class="text-sm text-slate-500 mt-1">PyPI package</p>
                 </div>
                 <div class="text-center">
                     <div class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                        <span class="text-2xl font-bold text-red-600">Java</span>
+                        <span class="text-2xl font-bold text-red-600">Pay</span>
                     </div>
-                    <h4 class="font-semibold">Java SDK</h4>
-                    <p class="text-sm text-slate-500 mt-1">Maven package</p>
+                    <h4 class="font-semibold">Payment Library</h4>
+                    <p class="text-sm text-slate-500 mt-1">Composer package</p>
                 </div>
             </div>
         </div>
@@ -424,9 +424,9 @@ app.post('/webhooks/finaegis', (req, res) => {
     <section class="bg-fa-navy relative overflow-hidden">
         <div class="absolute inset-0 bg-dot-pattern"></div>
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Start Building Today</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Connect Your Application</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                Get your API keys and start integrating {{ config('brand.name', 'Zelta') }} into your applications
+                Create a sandbox account to get API keys. You can then connect your application to {{ config('brand.name', 'Zelta') }} with test data.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">

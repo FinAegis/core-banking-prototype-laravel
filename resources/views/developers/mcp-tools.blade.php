@@ -8,6 +8,7 @@
     /** @var array<string, string> $scopes */
     $scopes      = (array) config('mcp.scopes', []);
     $resources   = (array) config('mcp.resources', []);
+    $serverName  = (string) config('mcp.server_info.name', 'Zelta');
     $mcpHost     = (string) config('mcp.host', 'mcp.zelta.app');
     $mcpUrl      = 'https://' . $mcpHost . '/mcp';
     $authServer  = (string) config('mcp.authorization_server', 'https://zelta.app');
@@ -16,12 +17,12 @@
     $asMetaUrl   = rtrim($authServer, '/') . '/.well-known/oauth-authorization-server';
 @endphp
 
-@section('title', 'MCP & AI Agent Tools - ' . $brand . ' Developer Documentation')
+@section('title', 'Model Context Protocol Server for AI Agents - ' . $brand . ' Developer Documentation')
 
 @section('seo')
     @include('partials.seo', [
-        'title'       => 'MCP & AI Agent Tools - ' . $brand . ' Developer Documentation',
-        'description' => $brand . ' Model Context Protocol — public OAuth-protected MCP server with ' . $toolCount . ' banking tools and 4 read-context resources for Claude Desktop, Cursor, and any spec-compliant AI agent.',
+        'title'       => 'Model Context Protocol Server for AI Agents - ' . $brand . ' Developer Documentation',
+        'description' => 'The public Model Context Protocol server lets AI agents such as Claude Desktop and Cursor work with an account. It offers ' . $toolCount . ' banking tools and ' . count($resources) . ' read-only resources, and every connection is protected by OAuth.',
         'keywords'    => $brand . ', MCP, Model Context Protocol, AI agent, Claude Desktop, Cursor, OAuth 2.1, RFC 7591, RFC 9728, banking API, JSON-RPC',
         'canonical'   => url('/developers/mcp-tools'),
     ])
@@ -29,9 +30,9 @@
     {
       "@@context": "https://schema.org",
       "@@type": "WebPage",
-      "name": "MCP & AI Agent Tools",
+      "name": "Model Context Protocol Server for AI Agents",
       "url":  "{{ url('/developers/mcp-tools') }}",
-      "description": "{{ $brand }} public MCP server reference: tool catalog, OAuth scopes, discovery endpoints.",
+      "description": "Reference for the public Model Context Protocol server. It lists the tools, the OAuth scopes and the discovery endpoints.",
       "mainEntity": {
         "@@type": "WebAPI",
         "name": "{{ $brand }} MCP Server",
@@ -66,17 +67,17 @@
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
         <div class="text-center">
             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-white/80 border border-white/20 mb-4">
-                {{ $toolCount }} tools · 4 resources · {{ count($scopes) }} OAuth scopes
+                {{ $toolCount }} tools · {{ count($resources) }} resources · {{ count($scopes) }} OAuth scopes
             </span>
-            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">{{ $brand }} MCP Server</h1>
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Model Context Protocol Server</h1>
             <p class="text-xl text-white/80 max-w-2xl mx-auto">
-                Connect Claude Desktop, Cursor, Continue.dev, or any spec-compliant agent to your {{ $brand }} account through one OAuth-protected JSON-RPC endpoint.
+                The Model Context Protocol server connects AI agents to a {{ $serverName }} account. Claude Desktop, Cursor, Continue.dev and other agents that follow the protocol use one endpoint, and OAuth protects every connection.
             </p>
             <div class="mt-8 inline-flex items-center gap-3 bg-black/30 rounded-lg px-5 py-3 code-font text-sm">
                 <span class="text-emerald-300">$</span>
                 <span>npx -y &#64;finaegis/mcp</span>
             </div>
-            <p class="mt-3 text-sm text-white/70">Or use the remote URL directly: <code class="code-font">{{ $mcpUrl }}</code></p>
+            <p class="mt-3 text-sm text-white/70">You can also use the remote address directly: <code class="code-font">{{ $mcpUrl }}</code></p>
         </div>
     </div>
 </section>
@@ -84,22 +85,22 @@
 <!-- Connect in 30s -->
 <section class="bg-white py-16" id="connect">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-3xl font-bold mb-2">Connect in 30 seconds</h2>
-        <p class="text-slate-600 mb-6">First launch opens a browser for OAuth consent. Token persists per-client; subsequent launches are silent.</p>
+        <h2 class="text-3xl font-bold mb-2">Connect your agent</h2>
+        <p class="text-slate-600 mb-6">The first launch opens a browser window where you approve the connection. Each client keeps its own token, so later launches connect without asking again.</p>
 
         <div class="mb-8 p-4 rounded-lg bg-emerald-50 border border-emerald-200 flex items-start gap-3">
             <svg class="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
             <div class="text-sm text-emerald-900">
-                <strong>Prerequisite:</strong> a {{ $brand }} account. Sign up free at <a href="https://zelta.app" target="_blank" rel="noopener" class="font-semibold underline hover:no-underline">zelta.app</a> — passwordless email-OTP, takes under a minute. Then come back here.
+                <strong>Before you start:</strong> you need a {{ $serverName }} account. You can sign up for free at <a href="https://zelta.app" target="_blank" rel="noopener" class="font-semibold underline hover:no-underline">zelta.app</a> with a one-time code sent to your email. Then come back here.
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="border border-slate-200 rounded-xl p-6">
                 <h3 class="font-bold text-lg mb-3">Claude Desktop</h3>
-                <p class="text-sm text-slate-600 mb-3">Add to <code class="code-font text-xs">claude_desktop_config.json</code>:</p>
+                <p class="text-sm text-slate-600 mb-3">Add this to <code class="code-font text-xs">claude_desktop_config.json</code>.</p>
                 <pre class="code-block bg-slate-900 text-slate-200 rounded-md p-3 text-xs">{
   "mcpServers": {
     "{{ strtolower($brand) }}": {
@@ -110,15 +111,15 @@
             </div>
             <div class="border border-slate-200 rounded-xl p-6">
                 <h3 class="font-bold text-lg mb-3">Cursor</h3>
-                <p class="text-sm text-slate-600 mb-3">Settings → Features → MCP → Add Server.</p>
+                <p class="text-sm text-slate-600 mb-3">Open Settings, then Features, then MCP, and choose Add Server.</p>
                 <pre class="code-block bg-slate-900 text-slate-200 rounded-md p-3 text-xs">URL: {{ $mcpUrl }}</pre>
                 <p class="text-xs text-slate-500 mt-3">Continue.dev uses the same URL under <code class="code-font">experimental.modelContextProtocolServer</code>.</p>
             </div>
             <div class="border border-slate-200 rounded-xl p-6">
-                <h3 class="font-bold text-lg mb-3">Stdio-only clients</h3>
-                <p class="text-sm text-slate-600 mb-3">For older clients without remote streamable-HTTP support:</p>
+                <h3 class="font-bold text-lg mb-3">Clients that only run local servers</h3>
+                <p class="text-sm text-slate-600 mb-3">Older clients cannot connect to a remote server over HTTP. They can run this local wrapper instead.</p>
                 <pre class="code-block bg-slate-900 text-slate-200 rounded-md p-3 text-xs">npx -y &#64;finaegis/mcp</pre>
-                <p class="text-xs text-slate-500 mt-3">Persists token in OS keychain. <code class="code-font">--logout</code> clears it.</p>
+                <p class="text-xs text-slate-500 mt-3">The wrapper keeps the token in your operating system's keychain. Run it with <code class="code-font">--logout</code> to remove the token.</p>
             </div>
         </div>
     </div>
@@ -128,22 +129,22 @@
 <section class="bg-slate-50 py-16" id="discovery">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-3xl font-bold mb-2">Discovery</h2>
-        <p class="text-slate-600 mb-8">Live OAuth metadata clients use to bootstrap the handshake.</p>
+        <p class="text-slate-600 mb-8">Clients read these live OAuth metadata documents before they connect. They tell the client where to register and where to ask for a token.</p>
         <div class="space-y-3">
             <div class="flex flex-col md:flex-row md:items-center gap-2 bg-white border border-slate-200 rounded-lg px-4 py-3">
                 <span class="code-font font-semibold text-emerald-600">GET</span>
                 <code class="code-font text-sm break-all"><a href="{{ $prmUrl }}" rel="noopener" class="hover:underline">{{ $prmUrl }}</a></code>
-                <span class="text-sm text-slate-500 md:ml-auto">RFC 9728 — protected resource metadata</span>
+                <span class="text-sm text-slate-500 md:ml-auto">Protected resource metadata (RFC 9728)</span>
             </div>
             <div class="flex flex-col md:flex-row md:items-center gap-2 bg-white border border-slate-200 rounded-lg px-4 py-3">
                 <span class="code-font font-semibold text-emerald-600">GET</span>
                 <code class="code-font text-sm break-all"><a href="{{ $asMetaUrl }}" rel="noopener" class="hover:underline">{{ $asMetaUrl }}</a></code>
-                <span class="text-sm text-slate-500 md:ml-auto">RFC 8414 — authorization server metadata</span>
+                <span class="text-sm text-slate-500 md:ml-auto">Authorization server metadata (RFC 8414)</span>
             </div>
             <div class="flex flex-col md:flex-row md:items-center gap-2 bg-white border border-slate-200 rounded-lg px-4 py-3">
                 <span class="code-font font-semibold text-orange-600">POST</span>
                 <code class="code-font text-sm break-all">{{ rtrim($authServer, '/') }}/oauth/register</code>
-                <span class="text-sm text-slate-500 md:ml-auto">RFC 7591 — dynamic client registration</span>
+                <span class="text-sm text-slate-500 md:ml-auto">Dynamic client registration (RFC 7591)</span>
             </div>
         </div>
     </div>
@@ -153,7 +154,7 @@
 <section class="bg-white py-16" id="scopes">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-3xl font-bold mb-2">Scope catalog</h2>
-        <p class="text-slate-600 mb-8">Users grant scopes on the consent screen at first connection. Each tool requires exactly one scope; <code class="code-font">mpp.discovery</code> is public.</p>
+        <p class="text-slate-600 mb-8">A scope is a permission. The user grants scopes on the consent screen the first time an agent connects. Each tool needs exactly one scope, except <code class="code-font">mpp.discovery</code>, which is public.</p>
         <div class="overflow-x-auto border border-slate-200 rounded-xl">
             <table class="w-full">
                 <thead class="bg-slate-50">
@@ -178,8 +179,8 @@
 <!-- Tool catalog -->
 <section class="bg-slate-50 py-16" id="tools">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-3xl font-bold mb-2">Tool catalog (v1)</h2>
-        <p class="text-slate-600 mb-8">{{ $toolCount }} enabled tools. Disabled tools are omitted from <code class="code-font">tools/list</code> AND return <code class="code-font">-32004</code> if invoked. Operators flip them via <code class="code-font">MCP_TOOL_*</code> env vars.</p>
+        <h2 class="text-3xl font-bold mb-2">Tool catalog</h2>
+        <p class="text-slate-600 mb-8">This server has {{ $toolCount }} tools switched on. A tool that is switched off does not appear in <code class="code-font">tools/list</code>, and calling it returns <code class="code-font">-32004</code>. Operators switch tools on and off with the <code class="code-font">MCP_TOOL_*</code> environment variables. The write tools that create accounts, send payments, trade and send text messages are off by default outside demo and test environments.</p>
         <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white">
             <table class="w-full">
                 <thead class="bg-slate-50">
@@ -223,7 +224,7 @@
             </table>
         </div>
         <p class="text-sm text-slate-500 mt-4">
-            <strong>Live schemas:</strong> call <code class="code-font">tools/list</code> on an authenticated session to fetch every tool's <code class="code-font">inputSchema</code> and <code class="code-font">outputSchema</code> — the wire is the source of truth.
+            <strong>Live schemas:</strong> call <code class="code-font">tools/list</code> in a signed-in session to get each tool's <code class="code-font">inputSchema</code> and <code class="code-font">outputSchema</code>. The server's answer is always the current definition.
         </p>
     </div>
 </section>
@@ -231,8 +232,8 @@
 <!-- Resources -->
 <section class="bg-white py-16" id="resources">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-3xl font-bold mb-2">Resources (read-context)</h2>
-        <p class="text-slate-600 mb-8">URI primitives an agent can pull into its window without a tool call — cheaper, cached, friendlier for browsing.</p>
+        <h2 class="text-3xl font-bold mb-2">Read-only resources</h2>
+        <p class="text-slate-600 mb-8">A resource is an address that an agent can read without calling a tool. Reading a resource costs less than a tool call and suits browsing.</p>
         <div class="overflow-x-auto border border-slate-200 rounded-xl">
             <table class="w-full">
                 <thead class="bg-slate-50">
@@ -258,7 +259,7 @@
 <section class="bg-slate-50 py-16" id="errors">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-3xl font-bold mb-2">JSON-RPC error codes</h2>
-        <p class="text-slate-600 mb-8">Wire-protocol errors. Tool-level failures use <code class="code-font">isError: true</code> in the result envelope, not these codes.</p>
+        <p class="text-slate-600 mb-8">These codes describe protocol errors. When a tool itself fails, the result carries <code class="code-font">isError: true</code> instead of one of these codes.</p>
         <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white">
             <table class="w-full">
                 <thead class="bg-slate-50">
@@ -269,12 +270,12 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                    <tr><td class="px-4 py-2.5"><code class="code-font">-32001</code></td><td class="px-4 py-2.5"><code class="code-font text-xs">UNAUTHENTICATED</code></td><td class="px-4 py-2.5 text-slate-600 text-sm">Missing or expired bearer; refresh and retry. Returned with 401 + <code class="code-font text-xs">WWW-Authenticate</code>.</td></tr>
-                    <tr><td class="px-4 py-2.5"><code class="code-font">-32002</code></td><td class="px-4 py-2.5"><code class="code-font text-xs">IDEMPOTENCY_KEY_REUSED</code></td><td class="px-4 py-2.5 text-slate-600 text-sm">Same key used with different args.</td></tr>
-                    <tr><td class="px-4 py-2.5"><code class="code-font">-32003</code></td><td class="px-4 py-2.5"><code class="code-font text-xs">SPENDING_LIMIT_EXCEEDED</code></td><td class="px-4 py-2.5 text-slate-600 text-sm">Daily limit hit; wait for window reset.</td></tr>
-                    <tr><td class="px-4 py-2.5"><code class="code-font">-32004</code></td><td class="px-4 py-2.5"><code class="code-font text-xs">TOOL_DISABLED</code></td><td class="px-4 py-2.5 text-slate-600 text-sm">Operator-disabled via <code class="code-font text-xs">MCP_TOOL_*</code>.</td></tr>
-                    <tr><td class="px-4 py-2.5"><code class="code-font">-32005</code></td><td class="px-4 py-2.5"><code class="code-font text-xs">IDEMPOTENCY_KEY_IN_FLIGHT</code></td><td class="px-4 py-2.5 text-slate-600 text-sm">Concurrent retry of an in-progress write; back off.</td></tr>
-                    <tr><td class="px-4 py-2.5"><code class="code-font">-32006</code></td><td class="px-4 py-2.5"><code class="code-font text-xs">USER_CONTEXT_REQUIRED</code></td><td class="px-4 py-2.5 text-slate-600 text-sm">client_credentials grant cannot call user-bound tool.</td></tr>
+                    <tr><td class="px-4 py-2.5"><code class="code-font">-32001</code></td><td class="px-4 py-2.5"><code class="code-font text-xs">UNAUTHENTICATED</code></td><td class="px-4 py-2.5 text-slate-600 text-sm">The token is missing or has expired. Refresh it and try again. The server answers with status 401 and a <code class="code-font text-xs">WWW-Authenticate</code> header.</td></tr>
+                    <tr><td class="px-4 py-2.5"><code class="code-font">-32002</code></td><td class="px-4 py-2.5"><code class="code-font text-xs">IDEMPOTENCY_KEY_REUSED</code></td><td class="px-4 py-2.5 text-slate-600 text-sm">The same idempotency key was sent with different arguments.</td></tr>
+                    <tr><td class="px-4 py-2.5"><code class="code-font">-32003</code></td><td class="px-4 py-2.5"><code class="code-font text-xs">SPENDING_LIMIT_EXCEEDED</code></td><td class="px-4 py-2.5 text-slate-600 text-sm">The daily spending limit is reached. Wait until the 24-hour window moves on.</td></tr>
+                    <tr><td class="px-4 py-2.5"><code class="code-font">-32004</code></td><td class="px-4 py-2.5"><code class="code-font text-xs">TOOL_DISABLED</code></td><td class="px-4 py-2.5 text-slate-600 text-sm">The operator has switched this tool off with <code class="code-font text-xs">MCP_TOOL_*</code>.</td></tr>
+                    <tr><td class="px-4 py-2.5"><code class="code-font">-32005</code></td><td class="px-4 py-2.5"><code class="code-font text-xs">IDEMPOTENCY_KEY_IN_FLIGHT</code></td><td class="px-4 py-2.5 text-slate-600 text-sm">A retry arrived while the first call with the same key is still running. Wait and try again.</td></tr>
+                    <tr><td class="px-4 py-2.5"><code class="code-font">-32006</code></td><td class="px-4 py-2.5"><code class="code-font text-xs">USER_CONTEXT_REQUIRED</code></td><td class="px-4 py-2.5 text-slate-600 text-sm">A token from the client credentials grant cannot call a tool that acts for a user.</td></tr>
                 </tbody>
             </table>
         </div>
@@ -288,11 +289,11 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="border border-slate-200 rounded-xl p-6">
                 <h3 class="font-bold text-lg mb-3">Spending limits</h3>
-                <p class="text-slate-600 text-sm">Per-token, not per-scope. Default <strong>${{ number_format(((int) config('mcp.spending.default_daily_limit_minor', 50000)) / 100, 2) }} / 24h rolling window</strong>. Slider on the consent screen lets the user pick a different cap. Reservations are atomic: the saga reserves before the tool runs and rolls back on any error. Applies to <code class="code-font text-xs">payment.transfer</code>, <code class="code-font text-xs">ramp.start</code> and <code class="code-font text-xs">sms.send</code> (flat per-message charge); <code class="code-font text-xs">exchange.trade</code> is not yet counted — its fiat notional isn't known until the order fills.</p>
+                <p class="text-slate-600 text-sm">Each token has its own spending limit. The default is <strong>${{ number_format(((int) config('mcp.spending.default_daily_limit_minor', 50000)) / 100, 2) }} in any 24 hours</strong>. The user can choose a different limit on the consent screen. The server reserves the amount before the tool runs and releases it if anything fails. The limit applies to <code class="code-font text-xs">payment.transfer</code>, <code class="code-font text-xs">ramp.start</code> and <code class="code-font text-xs">sms.send</code>, which costs a fixed amount per message. It does not count <code class="code-font text-xs">exchange.trade</code> yet, because the value of a trade is known only after the order fills.</p>
             </div>
             <div class="border border-slate-200 rounded-xl p-6">
                 <h3 class="font-bold text-lg mb-3">Idempotency</h3>
-                <p class="text-slate-600 text-sm">Every write tool requires <code class="code-font text-xs">idempotency_key</code> (UUID, ≤128 chars). Server caches result for 24h. Atomic Redis SET-NX lock prevents two concurrent retries from both executing.</p>
+                <p class="text-slate-600 text-sm">Every write tool needs an <code class="code-font text-xs">idempotency_key</code>, such as a UUID, of at most 128 characters. The server keeps the result for 24 hours and returns it for a repeated call. A lock in Redis stops two retries that arrive at the same time from both running.</p>
             </div>
         </div>
     </div>

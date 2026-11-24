@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Contact Us - ' . config('brand.name', 'Zelta') . ' Support',
-        'description' => 'Contact the ' . config('brand.name', 'Zelta') . ' team for technical support, partnership inquiries, or to report issues with our open-source banking platform.',
+        'description' => 'Send a question or feedback to the ' . config('brand.name', 'Zelta') . ' project team. You can also report a bug on GitHub or ask the community in GitHub Discussions.',
     ])
 @endsection
 
@@ -18,7 +18,7 @@
             <div class="text-center">
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Contact Us</h1>
                 <p class="text-xl text-slate-400 max-w-3xl mx-auto">
-                    Share your feedback, report issues, or ask questions about {{ config('brand.name', 'Zelta') }}. Our community and team are here to help.
+                    You can ask a question or send feedback about {{ config('brand.name', 'Zelta') }} here. Bugs and feature requests are best reported on GitHub, where other users can see them.
                 </p>
             </div>
         </div>
@@ -37,7 +37,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-semibold mb-2">Email Support</h3>
-                    <p class="text-slate-500 mb-2">General inquiries & support</p>
+                    <p class="text-slate-500 mb-2">For general questions</p>
                     <a href="mailto:{{ config('brand.support_email', 'info@zelta.app') }}" class="text-indigo-600 hover:text-indigo-700 font-medium">{{ config('brand.support_email', 'info@zelta.app') }}</a>
                 </div>
                 
@@ -49,7 +49,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-semibold mb-2">GitHub Issues</h3>
-                    <p class="text-slate-500 mb-2">Report bugs & features</p>
+                    <p class="text-slate-500 mb-2">For bugs and feature requests</p>
                     <a href="{{ config('brand.github_url') }}/issues" class="text-purple-600 hover:text-purple-700 font-medium">Create Issue</a>
                 </div>
                 
@@ -60,9 +60,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold mb-2">Community Forum</h3>
-                    <p class="text-slate-500 mb-2">Join discussions</p>
-                    <a href="{{ config('brand.github_url') }}/discussions" target="_blank" class="text-green-600 hover:text-green-700 font-medium">Visit Forum</a>
+                    <h3 class="text-xl font-semibold mb-2">GitHub Discussions</h3>
+                    <p class="text-slate-500 mb-2">For questions to the community</p>
+                    <a href="{{ config('brand.github_url') }}/discussions" target="_blank" class="text-green-600 hover:text-green-700 font-medium">Open Discussions</a>
                 </div>
             </div>
 
@@ -130,7 +130,7 @@
                             </label>
                             <textarea name="message" id="message" rows="6" required
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                placeholder="Please describe your issue or question in detail..."></textarea>
+                                placeholder="Please describe your question or problem."></textarea>
                         </div>
                         
                         <!-- Priority -->
@@ -166,7 +166,7 @@
                             <input type="file" name="attachment" id="attachment"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
-                            <p class="text-sm text-slate-400 mt-1">Max file size: 10MB. Accepted formats: PDF, PNG, JPG, DOC, DOCX</p>
+                            <p class="text-sm text-slate-400 mt-1">The file can be up to 10 megabytes. You can attach a PDF, PNG, JPG, DOC or DOCX file.</p>
                         </div>
                         
                         <!-- Submit Button -->
@@ -185,7 +185,7 @@
                         <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        <span class="font-semibold">Response Time:</span> We typically respond within 24-48 hours during business days.
+                        We read every message, but we cannot promise a reply time. For a bug, please open a GitHub issue as well.
                     </p>
                 </div>
             </div>
@@ -197,7 +197,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
                 <h2 class="font-display text-3xl font-bold text-slate-900 mb-4">Open Source Project</h2>
-                <p class="text-xl text-slate-500">{{ config('brand.name', 'Zelta') }} is open source and community-driven</p>
+                <p class="text-xl text-slate-500">{{ config('brand.name', 'Zelta') }} is open source, and anyone can take part.</p>
             </div>
             
             <div class="max-w-3xl mx-auto card-feature">
@@ -205,7 +205,7 @@
                     <div>
                         <h3 class="text-xl font-semibold mb-4">Contribute Code</h3>
                         <p class="text-slate-500 mb-4">
-                            Help us build the open-source platform. Review our code, submit pull requests, and improve the platform.
+                            The code is on GitHub. You can review it and send a pull request with a fix or a new feature.
                         </p>
                         <a href="{{ config('brand.github_url') }}" class="text-indigo-600 font-medium hover:text-indigo-700">
                             View Repository →
@@ -215,7 +215,7 @@
                     <div>
                         <h3 class="text-xl font-semibold mb-4">Report Issues</h3>
                         <p class="text-slate-500 mb-4">
-                            Found a bug or have a feature request? Let us know on GitHub so we can improve the platform.
+                            A GitHub issue is the place to report a bug or ask for a feature. Other users can see it and add details.
                         </p>
                         <a href="{{ config('brand.github_url') }}/issues/new" class="text-indigo-600 font-medium hover:text-indigo-700">
                             Create Issue →
@@ -225,57 +225,11 @@
                 
                 <div class="mt-8 pt-8 border-t border-gray-200 text-center">
                     <p class="text-slate-500">
-                        <span class="font-semibold">License:</span> Apache-2.0 Open Source License
+                        The code is released under the Apache 2.0 license.
                     </p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-gray-400 py-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid md:grid-cols-4 gap-8">
-                <div>
-                    <h4 class="text-white font-semibold mb-4">Platform</h4>
-                    <ul class="space-y-2">
-                        <li><a href="/platform" class="hover:text-white transition">Overview</a></li>
-                        <li><a href="/gcu" class="hover:text-white transition">GCU demo</a></li>
-                        <li><a href="/sub-products" class="hover:text-white transition">Modules</a></li>
-                        <li><a href="/pricing" class="hover:text-white transition">Pricing</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="text-white font-semibold mb-4">Developers</h4>
-                    <ul class="space-y-2">
-                        <li><a href="/developers" class="hover:text-white transition">Documentation</a></li>
-                        <li><a href="/developers/api-docs" class="hover:text-white transition">API Reference</a></li>
-                        <li><a href="/developers/sdks" class="hover:text-white transition">SDKs</a></li>
-                        <li><a href="/status" class="hover:text-white transition">System Status</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="text-white font-semibold mb-4">Resources</h4>
-                    <ul class="space-y-2">
-                        <li><a href="/support" class="hover:text-white transition">Support</a></li>
-                        <li><a href="/blog" class="hover:text-white transition">Blog</a></li>
-                        <li><a href="/partners" class="hover:text-white transition">Bank Connectors</a></li>
-                        <li><a href="/about" class="hover:text-white transition">About</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="text-white font-semibold mb-4">Legal</h4>
-                    <ul class="space-y-2">
-                        <li><a href="/legal/terms" class="hover:text-white transition">Terms</a></li>
-                        <li><a href="/legal/privacy" class="hover:text-white transition">Privacy</a></li>
-                        <li><a href="/legal/cookies" class="hover:text-white transition">Cookies</a></li>
-                        <li><a href="/support/faq" class="hover:text-white transition">FAQ</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="mt-8 pt-8 border-t border-gray-800 text-center">
-                <p>&copy; {{ date('Y') }} {{ config('brand.name', 'Zelta') }}. All rights reserved. Open Source Project.</p>
-            </div>
-        </div>
-    </footer>
 @endsection
