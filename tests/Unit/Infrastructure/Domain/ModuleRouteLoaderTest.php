@@ -119,6 +119,13 @@ describe('Zelta production surface template (.env.zelta.example)', function () {
         }
     });
 
+    it('keeps the VirtualsAgent routes off for zelta.app', function () {
+        $template = (string) file_get_contents(base_path('.env.zelta.example'));
+
+        expect(zeltaDisabledModules())->toContain('VirtualsAgent');
+        expect($template)->toMatch('/^VIRTUALS_AGENT_ENABLED=false$/m');
+    });
+
     it('disables the demo trading scheduler and GraphQL introspection', function () {
         $template = (string) file_get_contents(base_path('.env.zelta.example'));
 
