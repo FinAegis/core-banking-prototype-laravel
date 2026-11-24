@@ -45,7 +45,7 @@ it('keeps the tokens when the erasure fails', function (): void {
 
     /** @var GdprService&MockInterface $gdpr */
     $gdpr = Mockery::mock(GdprService::class);
-    $gdpr->shouldReceive('canDeleteUserData')->andReturn(['can_delete' => true, 'reasons' => []]);
+    $gdpr->shouldReceive('canDeleteUserData')->andReturn(['can_delete' => true, 'reasons' => [], 'reason_codes' => []]);
     $gdpr->shouldReceive('deleteUserData')->once()->andThrow(new RuntimeException('database went away'));
     app()->instance(GdprService::class, $gdpr);
 

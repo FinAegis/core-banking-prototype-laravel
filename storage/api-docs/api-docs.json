@@ -5706,7 +5706,55 @@
                         "description": "Unauthenticated"
                     },
                     "409": {
-                        "description": "A rule does not allow the deletion yet (error.code ACCOUNT_DELETION_BLOCKED); nothing was erased and the tokens stay valid"
+                        "description": "A rule does not allow the deletion yet (error.code ACCOUNT_DELETION_BLOCKED); nothing was erased and the tokens stay valid. error.reason_codes holds a stable code for each sentence in error.reasons: positive_balance, identity_check_in_review",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "ACCOUNT_DELETION_BLOCKED"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "The account cannot be deleted yet."
+                                                },
+                                                "reasons": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    },
+                                                    "example": [
+                                                        "User has active accounts with positive balance"
+                                                    ]
+                                                },
+                                                "reason_codes": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "positive_balance",
+                                                            "identity_check_in_review"
+                                                        ]
+                                                    },
+                                                    "example": [
+                                                        "positive_balance"
+                                                    ]
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     },
                     "422": {
                         "description": "Validation error — confirmation field is required and must be 'DELETE'"
@@ -24634,8 +24682,20 @@
                                                 "type": "string"
                                             },
                                             "example": [
-                                                "Outstanding balance",
-                                                "Active loans"
+                                                "User has active accounts with positive balance"
+                                            ]
+                                        },
+                                        "reason_codes": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "positive_balance",
+                                                    "identity_check_in_review"
+                                                ]
+                                            },
+                                            "example": [
+                                                "positive_balance"
                                             ]
                                         }
                                     },

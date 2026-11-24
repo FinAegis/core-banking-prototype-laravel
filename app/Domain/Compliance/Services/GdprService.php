@@ -1346,16 +1346,22 @@ class GdprService
     /**
      * Check if user data can be deleted.
      *
-     * @return array{can_delete: bool, reasons: array<int, string>}
+     * Each reason comes with a stable code in reason_codes, at the same
+     * position. Clients (the mobile app) branch on the codes; the sentences
+     * are for people and may be reworded.
+     *
+     * @return array{can_delete: bool, reasons: array<int, string>, reason_codes: array<int, string>}
      */
     public function canDeleteUserData(User $user): array
     {
         $reasons = [];
+        $reasonCodes = [];
 
         // Check for active accounts with balance
         $activeAccounts = $user->accounts()->where('balance', '>', 0)->count();
         if ($activeAccounts > 0) {
             $reasons[] = 'User has active accounts with positive balance';
+            $reasonCodes[] = 'positive_balance';
         }
 
         // Check for pending transactions
@@ -1364,11 +1370,13 @@ class GdprService
         // Check for legal holds
         if ($user->kyc_status === 'in_review') {
             $reasons[] = 'KYC verification is in progress';
+            $reasonCodes[] = 'identity_check_in_review';
         }
 
         return [
-            'can_delete' => empty($reasons),
-            'reasons'    => $reasons,
+            'can_delete'   => empty($reasons),
+            'reasons'      => $reasons,
+            'reason_codes' => $reasonCodes,
         ];
     }
 }

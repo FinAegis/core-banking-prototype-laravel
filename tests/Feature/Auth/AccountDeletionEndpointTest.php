@@ -134,7 +134,7 @@ it('keeps the tokens and answers an error when the erasure fails', function (): 
 
     /** @var GdprService&MockInterface $gdpr */
     $gdpr = Mockery::mock(GdprService::class);
-    $gdpr->shouldReceive('canDeleteUserData')->andReturn(['can_delete' => true, 'reasons' => []]);
+    $gdpr->shouldReceive('canDeleteUserData')->andReturn(['can_delete' => true, 'reasons' => [], 'reason_codes' => []]);
     $gdpr->shouldReceive('deleteUserData')->once()->andThrow(new RuntimeException('database went away'));
     app()->instance(GdprService::class, $gdpr);
 
@@ -159,7 +159,9 @@ it('keeps the account and the tokens when a rule blocks the deletion', function 
         ->postJson('/api/auth/delete-account', ['confirmation' => 'DELETE'])
         ->assertStatus(409)
         ->assertJsonPath('success', false)
-        ->assertJsonPath('error.code', 'ACCOUNT_DELETION_BLOCKED');
+        ->assertJsonPath('error.code', 'ACCOUNT_DELETION_BLOCKED')
+        ->assertJsonPath('error.reason_codes', ['positive_balance'])
+        ->assertJsonPath('error.reasons', ['User has active accounts with positive balance']);
 
     expect($user->tokens()->count())->toBe(1)
         ->and($user->fresh()?->name)->toBe('Ada Lovelace');

@@ -13,10 +13,13 @@ use RuntimeException;
 final class AccountClosureBlockedException extends RuntimeException
 {
     /**
-     * @param array<int, string> $reasons
+     * @param array<int, string> $reasons     sentences for people
+     * @param array<int, string> $reasonCodes stable codes for clients, at the same positions
      */
-    public function __construct(public readonly array $reasons)
-    {
+    public function __construct(
+        public readonly array $reasons,
+        public readonly array $reasonCodes = [],
+    ) {
         parent::__construct('The account cannot be deleted at this time: ' . implode('; ', $reasons));
     }
 }

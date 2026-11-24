@@ -364,7 +364,8 @@ class GdprController extends Controller
         description: 'Deletion not allowed',
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'error', type: 'string', example: 'Account cannot be deleted at this time'),
-        new OA\Property(property: 'reasons', type: 'array', example: ['Outstanding balance', 'Active loans'], items: new OA\Items(type: 'string')),
+        new OA\Property(property: 'reasons', type: 'array', example: ['User has active accounts with positive balance'], items: new OA\Items(type: 'string')),
+        new OA\Property(property: 'reason_codes', type: 'array', example: ['positive_balance'], items: new OA\Items(type: 'string', enum: ['positive_balance', 'identity_check_in_review'])),
         ])
     )]
     #[OA\Response(
@@ -396,8 +397,9 @@ class GdprController extends Controller
         } catch (AccountClosureBlockedException $e) {
             return response()->json(
                 [
-                    'error'   => 'Account cannot be deleted at this time',
-                    'reasons' => $e->reasons,
+                    'error'        => 'Account cannot be deleted at this time',
+                    'reasons'      => $e->reasons,
+                    'reason_codes' => $e->reasonCodes,
                 ],
                 400
             );

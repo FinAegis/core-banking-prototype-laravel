@@ -58,7 +58,16 @@ class AccountDeletionController extends Controller
     )]
     #[OA\Response(
         response: 409,
-        description: 'A rule does not allow the deletion yet (error.code ACCOUNT_DELETION_BLOCKED); nothing was erased and the tokens stay valid'
+        description: 'A rule does not allow the deletion yet (error.code ACCOUNT_DELETION_BLOCKED); nothing was erased and the tokens stay valid. error.reason_codes holds a stable code for each sentence in error.reasons: positive_balance, identity_check_in_review',
+        content: new OA\JsonContent(properties: [
+        new OA\Property(property: 'success', type: 'boolean', example: false),
+        new OA\Property(property: 'error', type: 'object', properties: [
+        new OA\Property(property: 'code', type: 'string', example: 'ACCOUNT_DELETION_BLOCKED'),
+        new OA\Property(property: 'message', type: 'string', example: 'The account cannot be deleted yet.'),
+        new OA\Property(property: 'reasons', type: 'array', items: new OA\Items(type: 'string'), example: ['User has active accounts with positive balance']),
+        new OA\Property(property: 'reason_codes', type: 'array', items: new OA\Items(type: 'string', enum: ['positive_balance', 'identity_check_in_review']), example: ['positive_balance']),
+        ]),
+        ])
     )]
     #[OA\Response(
         response: 422,
@@ -97,9 +106,10 @@ class AccountDeletionController extends Controller
             return response()->json([
                 'success' => false,
                 'error'   => [
-                    'code'    => 'ACCOUNT_DELETION_BLOCKED',
-                    'message' => 'The account cannot be deleted yet.',
-                    'reasons' => $e->reasons,
+                    'code'         => 'ACCOUNT_DELETION_BLOCKED',
+                    'message'      => 'The account cannot be deleted yet.',
+                    'reasons'      => $e->reasons,
+                    'reason_codes' => $e->reasonCodes,
                 ],
             ], 409);
         } catch (Throwable $e) {

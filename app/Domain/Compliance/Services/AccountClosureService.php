@@ -44,7 +44,10 @@ class AccountClosureService
     {
         $check = $this->gdprService->canDeleteUserData($user);
         if (! $check['can_delete']) {
-            throw new AccountClosureBlockedException(array_values($check['reasons']));
+            throw new AccountClosureBlockedException(
+                array_values($check['reasons']),
+                array_values($check['reason_codes']),
+            );
         }
 
         $this->gdprService->deleteUserData($user, [
