@@ -265,6 +265,7 @@ class EmailVerificationControllerTest extends ControllerTestCase
     {
         Sanctum::actingAs($this->unverifiedUser, ['read', 'write', 'delete']);
 
+        /** @var User&Mockery\MockInterface $mock */
         $mock = Mockery::mock($this->unverifiedUser)->makePartial();
         $mock->shouldReceive('sendEmailVerificationNotification')->once();
         $mock->shouldReceive('tokenCan')->andReturn(true);
