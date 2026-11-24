@@ -90,7 +90,7 @@
                                 </div>
                                 
                                 <div class="mt-4 flex space-x-2">
-                                    <a href="{{ route('custodian-integration.show', $custodian['code']) }}" 
+                                    <a href="{{ route('wallet.custodian-integration.show', $custodian['code']) }}" 
                                        class="flex-1 text-center px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
                                         View Details
                                     </a>

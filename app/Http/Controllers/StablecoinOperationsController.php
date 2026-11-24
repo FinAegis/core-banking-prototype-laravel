@@ -223,7 +223,7 @@ class StablecoinOperationsController extends Controller
             );
 
             return redirect()
-                ->route('stablecoin-operations.index')
+                ->route('wallet.stablecoin-operations.index')
                 ->with('success', "Successfully minted {$validated['amount']} {$validated['stablecoin']}");
         } catch (Exception $e) {
             DB::rollBack();
@@ -379,7 +379,7 @@ class StablecoinOperationsController extends Controller
             );
 
             return redirect()
-                ->route('stablecoin-operations.index')
+                ->route('wallet.stablecoin-operations.index')
                 ->with('success', "Successfully burned {$validated['amount']} {$validated['stablecoin']}");
         } catch (Exception $e) {
             DB::rollBack();

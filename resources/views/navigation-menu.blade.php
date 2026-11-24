@@ -246,12 +246,12 @@
                                 
                                 <x-slot name="content">
                                     @if(auth()->user()->hasRole(['super_admin', 'bank_admin', 'stablecoin_operator']))
-                                        <x-dropdown-link href="{{ route('stablecoin-operations.index') }}">
+                                        <x-dropdown-link href="{{ route('wallet.stablecoin-operations.index') }}">
                                             {{ __('Stablecoin Operations') }}
                                         </x-dropdown-link>
                                     @endif
                                     @if(auth()->user()->hasRole(['super_admin', 'bank_admin', 'operations_manager']))
-                                        <x-dropdown-link href="{{ route('custodian-integration.index') }}">
+                                        <x-dropdown-link href="{{ route('wallet.custodian-integration.index') }}">
                                             {{ __('Custodian Integration') }}
                                         </x-dropdown-link>
                                     @endif

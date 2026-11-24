@@ -5112,23 +5112,8 @@ parameters:
 			count: 1
 			path: app/Http/Controllers/CgoPaymentVerificationController.php
 
-		-
-			message: '#^Call to an undefined method App\\Domain\\Custodian\\Contracts\\ICustodianConnector\:\:testConnection\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Http/Controllers/CustodianIntegrationController.php
 
-		-
-			message: '#^Call to an undefined method App\\Domain\\Custodian\\Services\\CustodianHealthMonitor\:\:getHealth\(\)\.$#'
-			identifier: method.notFound
-			count: 3
-			path: app/Http/Controllers/CustodianIntegrationController.php
 
-		-
-			message: '#^Instantiated class App\\Jobs\\SynchronizeCustodianAccounts not found\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Http/Controllers/CustodianIntegrationController.php
 
 		-
 			message: '#^Parameter \#1 \$column of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Custodian\\Models\\CustodianAccount\>\:\:where\(\) expects array\<int\|model property of App\\Domain\\Custodian\\Models\\CustodianAccount, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Custodian\\Models\\CustodianAccount\>\)\: Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Custodian\\Models\\CustodianAccount\>\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Custodian\\Models\\CustodianAccount\>\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of App\\Domain\\Custodian\\Models\\CustodianAccount, ''custodian_code'' given\.$#'
@@ -5184,11 +5169,6 @@ parameters:
 			count: 1
 			path: app/Http/Controllers/ExternalExchangeController.php
 
-		-
-			message: '#^Call to an undefined method App\\Domain\\Exchange\\Contracts\\PriceAggregatorInterface\:\:getPriceDiscrepancies\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Http/Controllers/ExternalExchangeController.php
 
 		-
 			message: '#^Call to an undefined method App\\Domain\\Exchange\\Contracts\\PriceAggregatorInterface\:\:getPricesAcrossExchanges\(\)\.$#'
@@ -5196,23 +5176,8 @@ parameters:
 			count: 1
 			path: app/Http/Controllers/ExternalExchangeController.php
 
-		-
-			message: '#^Call to an undefined method App\\Domain\\Exchange\\Contracts\\PriceAggregatorInterface\:\:updateAlignmentSettings\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Http/Controllers/ExternalExchangeController.php
 
-		-
-			message: '#^Method App\\Domain\\Exchange\\Contracts\\ArbitrageServiceInterface\:\:executeArbitrage\(\) invoked with 3 parameters, 1 required\.$#'
-			identifier: arguments.count
-			count: 1
-			path: app/Http/Controllers/ExternalExchangeController.php
 
-		-
-			message: '#^Method App\\Domain\\Exchange\\Contracts\\ArbitrageServiceInterface\:\:findOpportunities\(\) invoked with 0 parameters, 1 required\.$#'
-			identifier: arguments.count
-			count: 1
-			path: app/Http/Controllers/ExternalExchangeController.php
 
 		-
 			message: '#^Property App\\Http\\Controllers\\ExternalExchangeController\:\:\$orderService is never read, only written\.$#'
@@ -5238,11 +5203,6 @@ parameters:
 			count: 2
 			path: app/Http/Controllers/FraudAlertsController.php
 
-		-
-			message: '#^Call to static method where\(\) on an unknown class App\\Domain\\Basket\\Models\\BasketPrice\.$#'
-			identifier: class.notFound
-			count: 2
-			path: app/Http/Controllers/GcuTradingController.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>balance" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'

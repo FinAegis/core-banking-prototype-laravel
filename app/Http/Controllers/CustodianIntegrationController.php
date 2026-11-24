@@ -10,6 +10,7 @@ use App\Domain\Custodian\Services\CustodianRegistry;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use OpenApi\Attributes as OA;
@@ -178,14 +179,13 @@ class CustodianIntegrationController extends Controller
         }
 
         try {
-            $connector = $this->custodianRegistry->get($custodianCode);
-            $result = $connector->testConnection();
+            $available = $this->custodianRegistry->get($custodianCode)->isAvailable();
 
             return response()->json(
                 [
-                    'success' => true,
-                    'message' => 'Connection successful',
-                    'data'    => $result,
+                    'success' => $available,
+                    'message' => $available ? 'Connection successful' : 'The custodian is not available',
+                    'data'    => ['available' => $available],
                 ]
             );
         } catch (Exception $e) {
@@ -227,15 +227,15 @@ class CustodianIntegrationController extends Controller
         }
 
         try {
-            // Dispatch synchronization job
-            dispatch(new \App\Jobs\SynchronizeCustodianAccounts($custodianCode));
+            // Queue the balance synchronization for this custodian's accounts
+            Artisan::queue('custodian:sync-balances', ['--custodian' => $custodianCode]);
 
             return redirect()
-                ->route('custodian-integration.show', $custodianCode)
+                ->route('wallet.custodian-integration.show', $custodianCode)
                 ->with('success', 'Synchronization initiated successfully');
         } catch (Exception $e) {
             return redirect()
-                ->route('custodian-integration.show', $custodianCode)
+                ->route('wallet.custodian-integration.show', $custodianCode)
                 ->with('error', 'Failed to initiate synchronization: ' . $e->getMessage());
         }
     }
@@ -245,11 +245,11 @@ class CustodianIntegrationController extends Controller
      */
     private function getCustodiansStatus(): array
     {
-        $custodians = config('custodians', []);
+        $custodians = config('custodians.connectors', []);
         $status = [];
 
         foreach ($custodians as $code => $config) {
-            $health = $this->healthMonitor->getHealth($code);
+            $health = $this->healthMonitor->getCustodianHealth($code);
             $accounts = CustodianAccount::where('custodian_name', $code)->count();
             $lastSync = Cache::get("custodian_last_sync_{$code}");
 
@@ -329,7 +329,7 @@ class CustodianIntegrationController extends Controller
      */
     private function getSynchronizationStatus(): array
     {
-        $custodians = config('custodians', []);
+        $custodians = config('custodians.connectors', []);
         $status = [];
 
         foreach (array_keys($custodians) as $code) {
@@ -354,11 +354,11 @@ class CustodianIntegrationController extends Controller
      */
     private function getHealthMetrics(): array
     {
-        $custodians = config('custodians', []);
+        $custodians = config('custodians.connectors', []);
         $metrics = [];
 
         foreach (array_keys($custodians) as $code) {
-            $health = $this->healthMonitor->getHealth($code);
+            $health = $this->healthMonitor->getCustodianHealth((string) $code);
             $metrics[$code] = [
                 'status'          => $health['status'] ?? 'unknown',
                 'score'           => $health['score'] ?? 0,
@@ -376,13 +376,13 @@ class CustodianIntegrationController extends Controller
      */
     private function getCustodianDetails(string $custodianCode): ?array
     {
-        $config = config("custodians.{$custodianCode}");
+        $config = config("custodians.connectors.{$custodianCode}");
 
         if (! $config) {
             return null;
         }
 
-        $health = $this->healthMonitor->getHealth($custodianCode);
+        $health = $this->healthMonitor->getCustodianHealth($custodianCode);
 
         return [
             'code'          => $custodianCode,
