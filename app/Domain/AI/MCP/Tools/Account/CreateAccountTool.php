@@ -188,11 +188,11 @@ class CreateAccountTool implements MCPToolInterface
             // Retrieve the created account model
             $account = AccountModel::where('uuid', $accountUuid)->first();
 
-            // If account not found immediately (workflow might be async), create a temporary response
+            // While the workflow waits on the queue, write the row for the
+            // response. The projector leaves an existing row as it is, and
+            // createOrFirst covers a worker that projects it in between.
             if (! $account) {
-                // Create account directly for immediate response
-                $account = AccountModel::create([
-                    'uuid'      => $accountUuid,
+                $account = AccountModel::query()->withoutGlobalScopes()->createOrFirst(['uuid' => $accountUuid], [
                     'user_uuid' => $user->uuid,
                     'name'      => $parameters['name'],
                     'balance'   => 0,

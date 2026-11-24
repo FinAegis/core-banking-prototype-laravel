@@ -36,12 +36,13 @@ class CreateAccountMutation
         $workflow = WorkflowStub::make(CreateAccountWorkflow::class);
         $workflow->start($accountData);
 
-        // Return the read-model projection (created by projector),
-        // or create a fallback record for immediate GraphQL response.
+        // Return the read-model projection (created by projector), or write
+        // the row for an immediate response while the workflow waits on the
+        // queue. The projector leaves an existing row as it is, and
+        // createOrFirst covers a worker that projects it in between.
         /** @var Account $account */
         $account = Account::where('uuid', $accountUuid)->first()
-            ?? Account::create([
-                'uuid'      => $accountUuid,
+            ?? Account::query()->withoutGlobalScopes()->createOrFirst(['uuid' => $accountUuid], [
                 'name'      => $args['name'],
                 'balance'   => 0,
                 'frozen'    => false,

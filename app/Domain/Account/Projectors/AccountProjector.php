@@ -19,6 +19,13 @@ use App\Domain\Account\Services\Cache\CacheManager;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Spatie\EventSourcing\EventHandlers\Projectors\Projector;
 
+/**
+ * Projects the account lifecycle and the per-asset balance events.
+ *
+ * This is the only projector of AssetBalanceAdded and AssetBalanceSubtracted.
+ * A second projector used to change the same account_balances row, which
+ * booked every credit and debit twice.
+ */
 class AccountProjector extends Projector implements ShouldQueue
 {
     public function onAccountCreated(AccountCreated $event): void

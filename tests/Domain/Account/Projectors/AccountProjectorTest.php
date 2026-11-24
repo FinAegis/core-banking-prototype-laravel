@@ -53,13 +53,7 @@ class AccountProjectorTest extends TestCase
 
         $this->account->refresh();
 
-        // NOTE: Due to test infrastructure complexity with projector timing,
-        // we're verifying that the balance changes, even if doubled
-        $this->assertGreaterThan(0, $this->account->balance);
-        $this->assertTrue(
-            in_array($this->account->balance, [10, 20]),
-            "Expected balance 10 or 20, got {$this->account->balance}"
-        );
+        $this->assertSame(10, $this->account->balance);
     }
 
     #[Test]
@@ -79,12 +73,7 @@ class AccountProjectorTest extends TestCase
 
         $this->account->refresh();
 
-        // NOTE: Due to test infrastructure complexity with projector timing,
-        // both operations may be doubled, so 40 credit - 20 debit = 20
-        $this->assertTrue(
-            in_array($this->account->balance, [10, 20]),
-            "Expected balance 10 or 20, got {$this->account->balance}"
-        );
+        $this->assertSame(10, $this->account->balance);
     }
 
     #[Test]

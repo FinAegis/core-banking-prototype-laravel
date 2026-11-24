@@ -133,18 +133,6 @@ parameters:
 			path: app/Domain/Account/Actions/CreditAccount.php
 
 		-
-			message: '#^Method App\\Domain\\Account\\Actions\\CreditAssetBalance\:\:__invoke\(\) should return App\\Domain\\Account\\Models\\Account but returns App\\Domain\\Account\\Models\\Account\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Domain/Account/Actions/CreditAssetBalance.php
-
-		-
-			message: '#^Parameter \#1 \$uuid of method App\\Domain\\Account\\Repositories\\AccountRepository\:\:findByUuid\(\) expects string, string\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Domain/Account/Actions/CreditAssetBalance.php
-
-		-
 			message: '#^Method App\\Domain\\Account\\Actions\\DebitAccount\:\:__invoke\(\) should return App\\Domain\\Account\\Models\\Account but returns App\\Domain\\Account\\Models\\Account\|null\.$#'
 			identifier: return.type
 			count: 1
@@ -155,18 +143,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: app/Domain/Account/Actions/DebitAccount.php
-
-		-
-			message: '#^Method App\\Domain\\Account\\Actions\\DebitAssetBalance\:\:__invoke\(\) should return App\\Domain\\Account\\Models\\Account but returns App\\Domain\\Account\\Models\\Account\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Domain/Account/Actions/DebitAssetBalance.php
-
-		-
-			message: '#^Parameter \#1 \$uuid of method App\\Domain\\Account\\Repositories\\AccountRepository\:\:findByUuid\(\) expects string, string\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Domain/Account/Actions/DebitAssetBalance.php
 
 		-
 			message: '#^Parameter \#1 \$uuid of method App\\Domain\\Account\\Repositories\\AccountRepository\:\:findByUuid\(\) expects string, string\|null given\.$#'

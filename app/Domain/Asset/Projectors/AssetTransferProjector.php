@@ -10,6 +10,7 @@ use App\Domain\Account\Models\TransactionProjection;
 use App\Domain\Asset\Events\AssetTransferCompleted;
 use App\Domain\Asset\Events\AssetTransferFailed;
 use App\Domain\Asset\Events\AssetTransferInitiated;
+use App\Domain\Shared\EventSourcing\AppliedStoredEvents;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -24,9 +25,15 @@ use Spatie\EventSourcing\EventHandlers\Projectors\Projector;
  * transfer. A completion that finds too little money throws instead of being
  * skipped, because a skipped completion would report a transfer that never
  * moved any money.
+ *
+ * Each stored completion is applied once. The same transaction claims the
+ * stored event in applied_stored_events, so a replay or a second delivery
+ * moves no money and writes no history.
  */
 class AssetTransferProjector extends Projector
 {
+    private const PROJECTION = 'asset_transfer';
+
     public function onAssetTransferInitiated(AssetTransferInitiated $event): void
     {
         Log::info('Asset transfer initiated', [
@@ -47,14 +54,20 @@ class AssetTransferProjector extends Projector
         $fromAmount = $event->fromAmount->getAmount();
         $toAmount = $event->toAmount->getAmount();
 
-        if (! Account::query()->where('uuid', $fromUuid)->exists() || ! Account::query()->where('uuid', $toUuid)->exists()) {
-            throw new RuntimeException("Account not found for asset transfer from {$fromUuid} to {$toUuid}");
-        }
+        $connection = AccountBalance::query()->getConnection();
 
         // The rows are locked in a fixed order; three attempts cover any
         // deadlock MySQL still reports, since a failed completion would leave
         // a stored "completed" event that moved no money.
-        AccountBalance::query()->getConnection()->transaction(function () use ($event, $fromUuid, $toUuid, $fromAmount, $toAmount): void {
+        $applied = $connection->transaction(function () use ($connection, $event, $fromUuid, $toUuid, $fromAmount, $toAmount): bool {
+            if (! AppliedStoredEvents::claim($connection, self::PROJECTION, $event)) {
+                return false;
+            }
+
+            if (! Account::query()->where('uuid', $fromUuid)->exists() || ! Account::query()->where('uuid', $toUuid)->exists()) {
+                throw new RuntimeException("Account not found for asset transfer from {$fromUuid} to {$toUuid}");
+            }
+
             [$fromBalance, $toBalance] = $this->lockBalances([$fromUuid, $event->fromAssetCode], [$toUuid, $event->toAssetCode]);
 
             if (! $fromBalance->hasSufficientBalance($fromAmount)) {
@@ -67,7 +80,19 @@ class AssetTransferProjector extends Projector
             $toBalance->credit($toAmount);
 
             $this->writeHistory($event, $fromUuid, $toUuid, $fromAmount, $toAmount);
+
+            return true;
         }, 3);
+
+        if (! $applied) {
+            Log::info('Asset transfer completion already applied, skipped', [
+                'stored_event_id' => $event->storedEventId(),
+                'from_account'    => $fromUuid,
+                'to_account'      => $toUuid,
+            ]);
+
+            return;
+        }
 
         Log::info('Asset transfer completed', [
             'from_account' => $fromUuid,

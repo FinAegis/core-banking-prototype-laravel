@@ -123,6 +123,7 @@ All domains have event sourcing infrastructure:
 - `snapshots` - Generic snapshots
 - `{domain}_events` - Domain-specific events
 - `{domain}_snapshots` - Domain-specific snapshots
+- `applied_stored_events` - Stored events a balance projector has already applied, so a replay does not book them again
 
 ## Tables in Central Database
 
