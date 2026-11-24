@@ -130,9 +130,7 @@ The connectors read public prices and order books. They do not hold any funds.
 
 The page at `/exchange/external` lists the connectors and has a form for API credentials. The form accepts Binance, Kraken and Coinbase, but only the Binance and Kraken connectors exist. At v7.18.1 the credentials are only checked for presence, and the connection is logged. The credentials are not stored.
 
-The page at `/exchange/external/arbitrage` shows price differences between the connected exchanges. Executing an arbitrage trade from that page does not work at v7.18.1.
-
-The page at `/exchange/external/price-alignment` shows how the internal prices compare with the external ones.
+The arbitrage and price alignment pages were removed. They read tables that no migration creates, and executing an arbitrage trade would move funds.
 
 ## API Trading
 

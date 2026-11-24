@@ -438,13 +438,15 @@ Route::middleware(['module.enabled:Cgo', 'auth', 'verified'])->prefix('cgo')->na
 // GCU Voting routes (public and authenticated, Governance domain)
 Route::prefix('gcu/voting')->name('gcu.voting.')->middleware('module.enabled:Governance')->group(function () {
     Route::get('/', [App\Http\Controllers\GcuVotingController::class, 'index'])->name('index');
-    Route::get('/{proposal}', [App\Http\Controllers\GcuVotingController::class, 'show'])->name('show');
 
+    // Registered before /{proposal}, which would otherwise capture "create".
     Route::middleware(['auth', 'verified'])->group(function () {
-        Route::post('/{proposal}/vote', [App\Http\Controllers\GcuVotingController::class, 'vote'])->name('vote');
         Route::get('/create', [App\Http\Controllers\GcuVotingController::class, 'create'])->name('create');
         Route::post('/store', [App\Http\Controllers\GcuVotingController::class, 'store'])->name('store');
+        Route::post('/{proposal}/vote', [App\Http\Controllers\GcuVotingController::class, 'vote'])->name('vote');
     });
+
+    Route::get('/{proposal}', [App\Http\Controllers\GcuVotingController::class, 'show'])->name('show');
 });
 
 // GCU Trading routes (authenticated, Basket domain)
@@ -465,13 +467,11 @@ Route::prefix('exchange')->name('exchange.')->middleware('feature:trading.enable
         Route::delete('/cancel-order/{orderId}', [App\Http\Controllers\ExchangeController::class, 'cancelOrder'])->name('cancel-order');
         Route::get('/export-trades', [App\Http\Controllers\ExchangeController::class, 'exportTrades'])->name('export-trades');
 
-        // External exchange integration routes
+        // External exchange integration routes. The arbitrage and price
+        // alignment pages were removed: they read tables that no migration
+        // creates, and arbitrage execution would move funds.
         Route::prefix('external')->name('external.')->group(function () {
             Route::get('/', [App\Http\Controllers\ExternalExchangeController::class, 'index'])->name('index');
-            Route::get('/arbitrage', [App\Http\Controllers\ExternalExchangeController::class, 'arbitrage'])->name('arbitrage');
-            Route::post('/arbitrage/execute', [App\Http\Controllers\ExternalExchangeController::class, 'executeArbitrage'])->name('arbitrage.execute');
-            Route::get('/price-alignment', [App\Http\Controllers\ExternalExchangeController::class, 'priceAlignment'])->name('price-alignment');
-            Route::put('/price-alignment', [App\Http\Controllers\ExternalExchangeController::class, 'updatePriceAlignment'])->name('price-alignment.update');
             Route::post('/connect', [App\Http\Controllers\ExternalExchangeController::class, 'connect'])->name('connect');
             Route::delete('/disconnect/{exchange}', [App\Http\Controllers\ExternalExchangeController::class, 'disconnect'])->name('disconnect');
         });

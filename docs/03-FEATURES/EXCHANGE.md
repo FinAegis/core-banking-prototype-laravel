@@ -82,12 +82,12 @@ The trading page shows the order book, buy and sell forms with market and limit 
 This page lists the person's orders with their status, and lets the person cancel open orders.
 
 ### Trades (`/exchange/trades`)
-This page lists the person's completed trades and the fees paid. The page shows CSV and PDF export buttons that call `/exchange/export-trades`, but that route points to an `ExchangeController::exportTrades` method that does not exist, so export does not work at v7.18.1.
+This page lists the person's completed trades and the fees paid. The export button downloads the same trades as a CSV file from `/exchange/export-trades`.
 
 ### External exchanges (`/exchange/external`)
 These pages show market data from the Binance and Kraken connector adapters (integration adapters for third-party APIs; no partnership or endorsement implied). See [EXTERNAL-EXCHANGE-CONNECTORS.md](EXTERNAL-EXCHANGE-CONNECTORS.md).
 
-Most of these pages do not work at v7.18.1. Connecting an exchange only logs the request and does not save the credentials. The arbitrage page and the arbitrage trade fail, because the controller calls `ArbitrageService::findOpportunities()` without a pair and passes an id where `ArbitrageService::executeArbitrage()` expects an array. The price alignment page fails, because its controller calls methods that `PriceAggregator` does not define.
+Connecting an exchange only logs the request and does not save the credentials. The arbitrage and price alignment pages were removed. They read tables that no migration creates, and executing an arbitrage trade would move funds.
 
 ## Admin Interface
 

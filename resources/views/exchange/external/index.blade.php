@@ -4,16 +4,6 @@
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 {{ __('External Exchange Integration') }}
             </h2>
-            <div class="flex space-x-2">
-                <a href="{{ route('exchange.external.arbitrage') }}" 
-                   class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-                    Arbitrage Opportunities
-                </a>
-                <a href="{{ route('exchange.external.price-alignment') }}" 
-                   class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
-                    Price Alignment
-                </a>
-            </div>
         </div>
     </x-slot>
 
@@ -186,10 +176,6 @@
                     <div class="p-6">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-semibold">Active Arbitrage Opportunities</h3>
-                            <a href="{{ route('exchange.external.arbitrage') }}" 
-                               class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
-                                View All →
-                            </a>
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -215,10 +201,6 @@
                                             <span>${{ number_format($opportunity['profit_per_unit'], 2) }}</span>
                                         </div>
                                     </div>
-                                    <a href="{{ route('exchange.external.arbitrage') }}?opportunity={{ $opportunity['id'] }}" 
-                                       class="mt-3 w-full inline-flex justify-center items-center px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition text-sm">
-                                        Execute Trade
-                                    </a>
                                 </div>
                             @endforeach
                         </div>

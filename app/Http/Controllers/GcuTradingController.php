@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Domain\Asset\Models\Asset;
-use App\Domain\Basket\Models\BasketPrice;
+use App\Domain\Account\Models\Account;
+use App\Domain\Account\Models\TransactionProjection;
+use App\Domain\Basket\Models\BasketValue;
 use App\Models\User;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(
@@ -31,68 +32,42 @@ class GcuTradingController extends Controller
         response: 500,
         description: 'Server error'
     )]
-    public function index()
+    public function index(): View
     {
-        $user = Auth::user();
         /** @var User $user */
-        $accounts = $user->accounts()->with('balances.asset')->get();
+        $user = Auth::user();
 
-        // Get GCU asset
-        /** @var Asset|null $gcuAsset */
-        $gcuAsset = Asset::where('code', 'GCU')->first();
+        // The page's buy and sell forms call POST /api/v2/gcu/buy and
+        // /api/v2/gcu/sell, which convert on the user's primary account.
+        /** @var Account|null $account */
+        $account = $user->primaryAccount();
+        $gcuBalance = $account?->getBalance('GCU') ?? 0;
+        $usdBalance = $account?->getBalance('USD') ?? 0;
 
-        // Get current GCU price
-        $currentPrice = BasketPrice::where('basket_code', 'GCU')
-            ->orderBy('created_at', 'desc')
+        // Latest calculated GCU value in USD (BasketValueCalculationService).
+        $currentValue = BasketValue::query()
+            ->where('basket_asset_code', 'GCU')
+            ->orderByDesc('calculated_at')
             ->first();
 
-        // Get user's GCU balance
-        $gcuBalance = 0;
-        $usdBalance = 0;
-
-        $mainAccount = $accounts->first();
-        if ($mainAccount !== null) {
-            $gcuBalance = $mainAccount->getBalance('GCU');
-            $usdBalance = $mainAccount->getBalance('USD');
-        }
-
-        // Get recent price history
-        $priceHistory = BasketPrice::where('basket_code', 'GCU')
-            ->orderBy('created_at', 'desc')
-            ->limit(30)
-            ->get()
-            ->reverse();
-
-        // Get recent trades
-        $recentTrades = DB::table('transaction_projections')
-            ->join('accounts', 'transaction_projections.account_uuid', '=', 'accounts.uuid')
-            ->where('accounts.user_uuid', $user->uuid)
-            ->where('transaction_projections.type', 'exchange')
-            ->where('transaction_projections.status', 'completed')
-            ->where(
-                function ($query) {
-                    $query->where('transaction_projections.currency', 'GCU')
-                        ->orWhere('transaction_projections.metadata->target_currency', 'GCU');
-                }
-            )
-            ->select(
-                'transaction_projections.*',
-                'accounts.name as account_name'
-            )
-            ->orderBy('transaction_projections.created_at', 'desc')
+        // A conversion books a transfer_out row for the asset given and a
+        // transfer_in row for the asset received (AssetTransferProjector).
+        $recentConversions = TransactionProjection::query()
+            ->whereIn('account_uuid', $user->accounts()->pluck('uuid'))
+            ->where('asset_code', 'GCU')
+            ->where('subtype', 'conversion')
+            ->where('status', 'completed')
+            ->orderByDesc('created_at')
             ->limit(10)
             ->get();
 
         return view(
             'gcu.trading',
             compact(
-                'accounts',
-                'gcuAsset',
-                'currentPrice',
+                'currentValue',
                 'gcuBalance',
                 'usdBalance',
-                'priceHistory',
-                'recentTrades'
+                'recentConversions'
             )
         );
     }
