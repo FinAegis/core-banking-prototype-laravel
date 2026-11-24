@@ -270,10 +270,9 @@ class BasketValueCalculationServiceTest extends ServiceTestCase
         // EUR: 1.1 * 0.35 = 0.385
         // Total: 0.40 + 0.385 = 0.785
 
-        // Allow for floating point differences and potential normalization differences
-        // The value should be between non-normalized (0.785) and partially normalized values
-        $this->assertGreaterThanOrEqual(0.784, $value->value);
-        $this->assertLessThanOrEqual(0.814, $value->value);
+        // Weights are shares of value and are not normalised: the active
+        // components hold 40 % + 35 % = 75 % of one dollar on a first valuation.
+        $this->assertEqualsWithDelta(0.75, $value->value, 0.0001);
 
         // Component values should not include inactive GBP
         $componentValues = $value->component_values;

@@ -80,9 +80,8 @@ it('can calculate value of a multi-currency basket', function () {
 
     $value = $this->service->calculateValue($basket);
 
-    // Just verify the calculation returns a reasonable value > 1.0 (since we have rates > 1)
-    expect($value->value)->toBeGreaterThan(1.0);
-    expect($value->value)->toBeLessThan(2.0);
+    // Weights are shares of value: a new basket starts at one US dollar.
+    expect($value->value)->toBe(1.0);
     expect($value->component_values)->toHaveCount(4); // 3 components + _metadata
     expect($value->component_values['_metadata']['total_components'])->toBe(3);
 });
@@ -340,4 +339,65 @@ it('ensures basket is registered as asset when calculating value', function () {
 
     // Verify it was created
     expect(Asset::where('code', 'ASSET_CREATE_BSK')->exists())->toBeTrue();
+});
+
+/** A new latest rate for the pair, with the service cache cleared. */
+function basketRate(string $from, string $rate): void
+{
+    ExchangeRate::create(['from_asset_code' => $from, 'to_asset_code' => 'USD', 'rate' => $rate, 'source' => 'test',
+        'valid_at'                          => now(), 'expires_at' => now()->addHour(), 'is_active' => true]);
+    Cache::forget("exchange_rate:{$from}:USD");
+}
+
+it('starts a basket at one dollar and moves it with the component prices', function () {
+    $basket = BasketAsset::create(['code' => 'SHARE_BASKET', 'name' => 'Share Basket']);
+    $basket->components()->createMany([
+        ['asset_code' => 'USD', 'weight' => 50.0],
+        ['asset_code' => 'EUR', 'weight' => 50.0],
+    ]);
+
+    expect($this->service->calculateValue($basket, false)->value)->toBe(1.0);
+
+    $this->travel(2)->seconds();
+    basketRate('EUR', '1.21'); // the euro rises 10 % from 1.10
+
+    // Half the basket rose 10 %, so the basket rose 5 %.
+    expect($this->service->calculateValue($basket->fresh(), false)->value)->toBe(1.05);
+});
+
+it('keeps a small gold weight from dominating the value', function () {
+    // The value used to add unit prices: 2 % of an ounce of gold at 2,600 USD
+    // made the basket worth more than 50 USD.
+    Asset::firstOrCreate(['code' => 'XAU'], ['name' => 'Gold', 'type' => 'commodity', 'precision' => 4]);
+    basketRate('XAU', '2600');
+    $basket = BasketAsset::create(['code' => 'GOLD_BASKET', 'name' => 'Gold Basket']);
+    $basket->components()->createMany([
+        ['asset_code' => 'USD', 'weight' => 98.0],
+        ['asset_code' => 'XAU', 'weight' => 2.0],
+    ]);
+
+    expect($this->service->calculateValue($basket, false)->value)->toBe(1.0);
+
+    $this->travel(2)->seconds();
+    basketRate('XAU', '2860'); // gold rises 10 %
+
+    expect($this->service->calculateValue($basket->fresh(), false)->value)->toBe(1.002);
+});
+
+it('does not jump when the weights change', function () {
+    $basket = BasketAsset::create(['code' => 'REBALANCED_BASKET', 'name' => 'Rebalanced Basket']);
+    $basket->components()->createMany([
+        ['asset_code' => 'USD', 'weight' => 50.0],
+        ['asset_code' => 'EUR', 'weight' => 50.0],
+    ]);
+    $this->service->calculateValue($basket, false);
+    $this->travel(2)->seconds();
+    basketRate('EUR', '1.21');
+    expect($this->service->calculateValue($basket->fresh(), false)->value)->toBe(1.05);
+
+    $basket->components()->where('asset_code', 'USD')->update(['weight' => 60.0]);
+    $basket->components()->where('asset_code', 'EUR')->update(['weight' => 40.0]);
+
+    // Same prices, new weights: the value carries over and moves from here.
+    expect($this->service->calculateValue($basket->fresh(), false)->value)->toBe(1.05);
 });
