@@ -30,7 +30,7 @@
                     <li>Open the Zelta app and sign in.</li>
                     <li>Open the <strong>Profile</strong> tab.</li>
                     <li>Scroll to the bottom. Below <strong>Sign Out</strong>, tap <strong>Delete Account</strong>.</li>
-                    <li>Read the confirmation and confirm the deletion.</li>
+                    <li>A window called <strong>Delete Account</strong> opens. Read it, then tap <strong>Delete My Account</strong>.</li>
                 </ol>
                 <p>The deletion cannot be undone. The app signs you out straight away. We also end your sign-in on your other devices.</p>
                 <p>Before you delete your account, move all the money in your wallet to another wallet that you control. After the deletion, you cannot open this wallet in the app again.</p>

@@ -31,6 +31,7 @@ describe('Zelta account deletion page', function (): void {
         $response->assertOk();
         $response->assertSee('Open the <strong>Profile</strong> tab.', false);
         $response->assertSee('Scroll to the bottom. Below <strong>Sign Out</strong>, tap <strong>Delete Account</strong>.', false);
+        $response->assertSee('A window called <strong>Delete Account</strong> opens. Read it, then tap <strong>Delete My Account</strong>.', false);
         $response->assertDontSee('Auto-Lock');
         $response->assertSee('After the deletion, you cannot open this wallet in the app again.');
         $response->assertSee('The deletion cannot be undone.');
