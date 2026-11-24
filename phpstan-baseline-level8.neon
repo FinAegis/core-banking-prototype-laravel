@@ -1747,18 +1747,6 @@ parameters:
 			path: app/Filament/Admin/Resources/PollResource/Pages/CreatePoll.php
 
 		-
-			message: '#^Parameter \$initiator of method App\\Domain\\Cgo\\Actions\\RequestRefundAction\:\:execute\(\) expects App\\Models\\User, App\\Models\\User\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Filament/Resources/CgoInvestmentResource.php
-
-		-
-			message: '#^Cannot access property \$id on Illuminate\\Database\\Eloquent\\Model\|int\|string\|null\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: app/Filament/Resources/CgoPricingRoundResource/Pages/EditCgoPricingRound.php
-
-		-
 			message: '#^Cannot access property \$code on App\\Domain\\Asset\\Models\\Asset\|null\.$#'
 			identifier: property.nonObject
 			count: 1
@@ -3881,18 +3869,6 @@ parameters:
 			identifier: method.nonObject
 			count: 2
 			path: tests/Feature/RemoveTeamMemberTest.php
-
-		-
-			message: '#^Cannot access property \$abilities on Laravel\\Sanctum\\PersonalAccessToken\|null\.$#'
-			identifier: property.nonObject
-			count: 3
-			path: tests/Feature/Security/ComprehensiveSecurityTest.php
-
-		-
-			message: '#^Parameter \#2 \$haystack of function in_array expects array, array\|null given\.$#'
-			identifier: argument.type
-			count: 3
-			path: tests/Feature/Security/ComprehensiveSecurityTest.php
 
 		-
 			message: '#^Cannot access property \$name on Laravel\\Sanctum\\PersonalAccessToken\|null\.$#'
