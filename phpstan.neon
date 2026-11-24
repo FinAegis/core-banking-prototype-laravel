@@ -1,5 +1,9 @@
 includes:
     - ./vendor/larastan/larastan/extension.neon
+    # Mockery 1.6.15 dropped the generic return type of Mockery::mock(), so
+    # mocks became plain MockInterface; this extension types them as
+    # Foo&MockInterface again.
+    - ./vendor/phpstan/phpstan-mockery/extension.neon
     - phpstan-baseline.neon
     # PHPStan 2.2 bump (2026-06): the upgraded analyzer added the
     # array<model property of X, mixed> check on Eloquent create()/update()

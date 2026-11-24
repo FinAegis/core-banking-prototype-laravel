@@ -26,7 +26,7 @@ it('creates a portfolio with investment strategy', function () {
         5.0, // 5% rebalance threshold
         0.08, // 8% target return
         ['max_single_asset' => 0.3],
-        ['manager'          => 'AI Portfolio Manager']
+        ['manager' => 'AI Portfolio Manager']
     );
 
     PortfolioAggregate::fake($portfolioId)

@@ -130,6 +130,9 @@ class AwsKmsHsmProvider implements HsmProviderInterface
 
         try {
             $hashBytes = hex2bin(substr($messageHash, 2));
+            if ($hashBytes === false) {
+                throw new RuntimeException('Invalid message hash format. Expected 32-byte hex with 0x prefix.');
+            }
 
             $result = $this->kmsClient->sign([
                 'KeyId'            => $this->resolveSigningKeyArn($keyId),

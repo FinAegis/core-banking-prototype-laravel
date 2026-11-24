@@ -730,7 +730,7 @@ describe('C30 BaaS onboarding application access', function (): void {
         $response = $this->post(
             "/api/v2/financial-institutions/application/{$application->application_number}/documents",
             ['document_type' => 'regulatory_license', 'document' => UploadedFile::fake()->create('forged.pdf', 10)],
-            ['Accept'        => 'application/json', 'X-Application-Token' => 'wrong-token'],
+            ['Accept' => 'application/json', 'X-Application-Token' => 'wrong-token'],
         );
 
         $response->assertNotFound();
@@ -758,7 +758,7 @@ describe('C30 BaaS onboarding application access', function (): void {
         $this->post(
             "/api/v2/financial-institutions/application/{$number}/documents",
             ['document_type' => 'regulatory_license', 'document' => UploadedFile::fake()->create('license.pdf', 10)],
-            ['Accept'        => 'application/json', 'X-Application-Token' => $token],
+            ['Accept' => 'application/json', 'X-Application-Token' => $token],
         )->assertOk()->assertJsonPath('data.uploaded', true);
     });
 

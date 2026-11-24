@@ -17,7 +17,7 @@ describe('ZK Proof Roundtrip (DemoZkProver)', function (): void {
         $proof = $this->prover->generateProof(
             ProofType::AGE_VERIFICATION,
             ['date_of_birth' => '1990-01-01', 'minimum_age' => 18],
-            ['user_id_hash'  => hash('sha256', 'user-roundtrip-1'), 'minimum_age' => 18],
+            ['user_id_hash' => hash('sha256', 'user-roundtrip-1'), 'minimum_age' => 18],
         );
 
         expect($proof)->toBeInstanceOf(ZkProof::class)
@@ -29,7 +29,7 @@ describe('ZK Proof Roundtrip (DemoZkProver)', function (): void {
     it('generates and verifies residency proof roundtrip', function (): void {
         $proof = $this->prover->generateProof(
             ProofType::RESIDENCY,
-            ['country'      => 'US', 'region' => 'CA'],
+            ['country' => 'US', 'region' => 'CA'],
             ['user_id_hash' => hash('sha256', 'user-roundtrip-2')],
         );
 
@@ -41,7 +41,7 @@ describe('ZK Proof Roundtrip (DemoZkProver)', function (): void {
     it('generates and verifies KYC tier proof roundtrip', function (): void {
         $proof = $this->prover->generateProof(
             ProofType::KYC_TIER,
-            ['kyc_tier'     => 3, 'kyc_provider' => 'jumio'],
+            ['kyc_tier' => 3, 'kyc_provider' => 'jumio'],
             ['user_id_hash' => hash('sha256', 'user-roundtrip-3'), 'minimum_tier' => 2],
         );
 
@@ -54,7 +54,7 @@ describe('ZK Proof Roundtrip (DemoZkProver)', function (): void {
         $proof = $this->prover->generateProof(
             ProofType::SANCTIONS_CLEAR,
             ['identity_hash' => hash('sha256', 'identity-1'), 'sanctions_list_hash' => hash('sha256', 'sanctions-list')],
-            ['user_id_hash'  => hash('sha256', 'user-roundtrip-4')],
+            ['user_id_hash' => hash('sha256', 'user-roundtrip-4')],
         );
 
         expect($proof)->toBeInstanceOf(ZkProof::class)
@@ -66,7 +66,7 @@ describe('ZK Proof Roundtrip (DemoZkProver)', function (): void {
         $proof = $this->prover->generateProof(
             ProofType::INCOME_RANGE,
             ['income_range_min' => 50000, 'income_range_max' => 100000],
-            ['user_id_hash'     => hash('sha256', 'user-roundtrip-5')],
+            ['user_id_hash' => hash('sha256', 'user-roundtrip-5')],
         );
 
         expect($proof)->toBeInstanceOf(ZkProof::class)
@@ -96,7 +96,7 @@ describe('ZK Proof Roundtrip (DemoZkProver)', function (): void {
         $proof = $this->prover->generateProof(
             ProofType::AGE_VERIFICATION,
             ['date_of_birth' => '1990-01-01', 'minimum_age' => 18],
-            ['minimum_age'   => 18],
+            ['minimum_age' => 18],
         );
 
         expect($proof->metadata)->toHaveKey('provider')
@@ -108,7 +108,7 @@ describe('ZK Proof Roundtrip (DemoZkProver)', function (): void {
         $proof = $this->prover->generateProof(
             ProofType::AGE_VERIFICATION,
             ['date_of_birth' => '1990-01-01', 'minimum_age' => 18],
-            ['user_id_hash'  => hash('sha256', 'user-serialize'), 'minimum_age' => 18],
+            ['user_id_hash' => hash('sha256', 'user-serialize'), 'minimum_age' => 18],
         );
 
         $array = $proof->toArray();
@@ -129,11 +129,11 @@ describe('ZK Proof Roundtrip (DemoZkProver)', function (): void {
     it('supports all proof types for roundtrip', function (): void {
         $testCases = [
             [ProofType::AGE_VERIFICATION, ['date_of_birth' => '1990-01-01', 'minimum_age' => 18]],
-            [ProofType::RESIDENCY, ['country'                        => 'US', 'region' => 'CA']],
-            [ProofType::KYC_TIER, ['kyc_tier'                        => 3, 'kyc_provider' => 'jumio']],
+            [ProofType::RESIDENCY, ['country' => 'US', 'region' => 'CA']],
+            [ProofType::KYC_TIER, ['kyc_tier' => 3, 'kyc_provider' => 'jumio']],
             [ProofType::ACCREDITED_INVESTOR, ['accreditation_status' => 'approved', 'jurisdiction' => 'US']],
-            [ProofType::SANCTIONS_CLEAR, ['identity_hash'            => 'hash1', 'sanctions_list_hash' => 'hash2']],
-            [ProofType::INCOME_RANGE, ['income_range_min'            => 50000, 'income_range_max' => 100000]],
+            [ProofType::SANCTIONS_CLEAR, ['identity_hash' => 'hash1', 'sanctions_list_hash' => 'hash2']],
+            [ProofType::INCOME_RANGE, ['income_range_min' => 50000, 'income_range_max' => 100000]],
         ];
 
         foreach ($testCases as [$proofType, $privateInputs]) {

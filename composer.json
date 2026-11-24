@@ -93,6 +93,7 @@
         "pestphp/pest-plugin-laravel": "^3.0",
         "pestphp/pest-plugin-livewire": "^3.0",
         "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-mockery": "^2.0",
         "squizlabs/php_codesniffer": "^4.0"
     },
     "autoload": {

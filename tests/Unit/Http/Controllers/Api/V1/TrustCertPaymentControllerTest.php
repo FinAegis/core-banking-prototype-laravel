@@ -43,6 +43,7 @@ beforeEach(function (): void {
 
 /**
  * @param array<string, mixed> $data
+ * @param int<0, max> $userId
  */
 function makePaymentRequest(string $uri, string $method = 'POST', array $data = [], int $userId = 1): Request
 {

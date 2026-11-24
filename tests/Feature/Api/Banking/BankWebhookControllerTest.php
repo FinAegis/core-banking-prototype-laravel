@@ -271,7 +271,7 @@ it('rejects account-update with bad HMAC signature', function (): void {
 
     $this->postJson(
         '/api/webhooks/bank/paysera/account-update',
-        ['event_type'          => 'account.updated', 'account_id' => 'acc_456'],
+        ['event_type' => 'account.updated', 'account_id' => 'acc_456'],
         ['X-Webhook-Signature' => 'wrong-hash'],
     )->assertUnauthorized();
 });

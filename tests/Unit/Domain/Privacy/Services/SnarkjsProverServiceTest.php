@@ -62,7 +62,7 @@ describe('SnarkjsProverService', function (): void {
             $service->generateProof(
                 ProofType::AGE_VERIFICATION,
                 ['date_of_birth' => '1990-01-01'],
-                ['minimum_age'   => 18],
+                ['minimum_age' => 18],
             );
         })->throws(CircuitNotFoundException::class);
 
@@ -73,7 +73,7 @@ describe('SnarkjsProverService', function (): void {
             $service->generateProof(
                 ProofType::AGE_VERIFICATION,
                 ['date_of_birth' => '1990-01-01'],
-                ['minimum_age'   => 18],
+                ['minimum_age' => 18],
             );
         })->throws(CircuitNotFoundException::class);
 
@@ -91,7 +91,7 @@ describe('SnarkjsProverService', function (): void {
                 $service->generateProof(
                     ProofType::AGE_VERIFICATION,
                     ['date_of_birth' => '1990-01-01'],
-                    ['minimum_age'   => 18],
+                    ['minimum_age' => 18],
                 );
                 $this->fail('Expected SnarkjsException');
             } catch (SnarkjsException $e) {
