@@ -71,9 +71,11 @@ class SystemHealthCheck extends Model
     }
 
     /**
-     * Calculate uptime percentage for a service.
+     * Share of operational checks for a service, in percent. Returns null
+     * when the service has no recorded check in the period, so no figure is
+     * shown for a service that nothing checks.
      */
-    public static function calculateUptime(string $service, int $days = 30)
+    public static function calculateUptime(string $service, int $days = 30): ?float
     {
         $startDate = now()->subDays($days);
 
@@ -82,7 +84,7 @@ class SystemHealthCheck extends Model
             ->count();
 
         if ($totalChecks === 0) {
-            return 100.0;
+            return null;
         }
 
         $operationalChecks = self::forService($service)
