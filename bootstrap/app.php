@@ -207,6 +207,7 @@ return Application::configure(basePath: is_string($_appBasePath) ? $_appBasePath
         // Note: env() is used here because config() is not available during middleware registration
         if (env('APP_ENV') === 'demo') {
             $middleware->appendToGroup('web', App\Http\Middleware\DemoMode::class);
+            $middleware->appendToGroup('web', App\Http\Middleware\InjectDemoBanner::class);
         }
 
         // Saves the MCP consent screen's daily spending limit on approval.
