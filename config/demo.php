@@ -8,8 +8,8 @@ return [
     | Demo Mode
     |--------------------------------------------------------------------------
     |
-    | Read by the DemoMode middleware, which bootstrap/app.php adds to the web
-    | group only when APP_ENV=demo. On by default in the demo environment;
+    | Read by the DemoMode middleware, which DemoServiceProvider adds to the
+    | web group only when APP_ENV=demo. On by default in the demo environment;
     | DEMO_MODE overrides it. ops:verify-env fails production when it is true.
     |
     */

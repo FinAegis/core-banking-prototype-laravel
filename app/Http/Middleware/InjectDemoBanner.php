@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Adds a dismissible demo notice at the top of every HTML page.
  *
- * bootstrap/app.php adds it to the web group only when APP_ENV=demo; the
+ * DemoServiceProvider adds it to the web group only when APP_ENV=demo; the
  * environment check below is a second guard. DEMO_SHOW_BANNER=false
  * (`demo.ui.show_banner`) turns it off.
  */
