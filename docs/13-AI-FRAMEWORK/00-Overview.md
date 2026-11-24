@@ -147,9 +147,8 @@ The tool's `getName()`, `getCategory()`, `getInputSchema()` and `getOutputSchema
 - `GET /api/ai/mcp/tools` lists tools.
 - `GET /api/ai/mcp/tools/{tool}` returns tool details.
 - `POST /api/ai/mcp/tools/{tool}/execute` runs a tool.
-- `POST /api/ai/mcp/register` registers a tool.
 
-These four endpoints are a demo. They list six sample tools and return fixed sample data. They do not use `ToolRegistry`.
+These three endpoints are a demo. They list six sample tools and return fixed sample data. They do not use `ToolRegistry`.
 
 ## Testing
 

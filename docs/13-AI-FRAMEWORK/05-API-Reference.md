@@ -226,30 +226,6 @@ POST /api/ai/mcp/tools/{tool}/execute
 
 The balance figures are fixed sample values. An unknown tool returns `404` with `{"success": false, "error": "Tool not found"}`.
 
-### Register Custom Tool
-
-```http
-POST /api/ai/mcp/register
-```
-
-#### Request Body
-
-```json
-{
-  "name": "custom_analytics",
-  "description": "Custom analytics for user transactions",
-  "endpoint": "https://api.example.com/analytics",
-  "parameters": {
-    "user_id": {"type": "integer", "required": true}
-  },
-  "category": "analytics",
-  "requires_auth": true,
-  "rate_limit": 100
-}
-```
-
-The controller would answer `201` with a generated `tool_id` and would not store the tool. In practice the request fails first. Its validation checks the name against an `mcp_tools` table, and no migration creates that table, so the request ends in a server error.
-
 ## Error Responses
 
 Laravel returns its standard error shapes.
