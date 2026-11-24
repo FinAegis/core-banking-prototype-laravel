@@ -6,6 +6,7 @@ namespace App\Domain\AgentProtocol\Services;
 
 use App\Domain\AgentProtocol\Models\Agent;
 use Exception;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
@@ -18,6 +19,17 @@ use Illuminate\Support\Facades\Log;
  */
 class DigitalSignatureService
 {
+    /**
+     * Longest time after signing that a signature still verifies, whatever
+     * the (unsigned) expires_at says. Matches the default signature TTL.
+     */
+    public const MAX_SIGNATURE_AGE_MINUTES = 60;
+
+    /**
+     * How far in the future a signing time may be (clock skew).
+     */
+    private const MAX_CLOCK_SKEW_SECONDS = 300;
+
     public function __construct(
         private readonly SignatureService $signatureService,
         private readonly EncryptionService $encryptionService
@@ -37,8 +49,11 @@ class DigitalSignatureService
             // Get agent's private key
             $privateKey = $this->getAgentPrivateKey($agentId);
 
-            // Add transaction metadata for non-repudiation
-            $dataToSign = $this->prepareTransactionData($transactionId, $agentId, $transactionData);
+            // Add transaction metadata for non-repudiation. The signing time
+            // is part of the signed data and travels with the signature as
+            // signed_at, so verification rebuilds exactly the same payload.
+            $signedAt = now()->toIso8601String();
+            $dataToSign = $this->prepareTransactionData($transactionId, $agentId, $transactionData, $signedAt);
 
             // Determine signature algorithm based on security level
             $algorithm = $options['algorithm'] ?? $this->selectAlgorithm($options['security_level'] ?? 'standard');
@@ -53,6 +68,7 @@ class DigitalSignatureService
             // Add additional security metadata
             $signature['transaction_id'] = $transactionId;
             $signature['agent_id'] = $agentId;
+            $signature['signed_at'] = $signedAt;
             $signature['nonce'] = $this->generateNonce();
             $signature['expires_at'] = now()->addMinutes($options['ttl'] ?? 60)->toIso8601String();
 
@@ -89,8 +105,15 @@ class DigitalSignatureService
         array $metadata
     ): array {
         try {
+            // The signing time is covered by the signature, so it is safe to
+            // take from the metadata; a changed value fails verification.
+            // Signatures made before signed_at existed fall back to now().
+            $signedAt = is_string($metadata['signed_at'] ?? null)
+                ? $metadata['signed_at']
+                : now()->toIso8601String();
+
             // Check signature expiration
-            if ($this->isSignatureExpired($metadata)) {
+            if ($this->isSignatureExpired($metadata) || $this->isSigningTimeOutOfRange($signedAt)) {
                 return [
                     'is_valid'       => false,
                     'reason'         => 'Signature has expired',
@@ -102,7 +125,7 @@ class DigitalSignatureService
             $publicKey = $this->getAgentPublicKey($agentId);
 
             // Prepare data for verification
-            $dataToVerify = $this->prepareTransactionData($transactionId, $agentId, $transactionData);
+            $dataToVerify = $this->prepareTransactionData($transactionId, $agentId, $transactionData, $signedAt);
 
             // Verify signature
             $isValid = $this->signatureService->verifySignature(
@@ -162,7 +185,8 @@ class DigitalSignatureService
             $signatures = [];
 
             foreach ($participatingAgents as $agentId => $privateKey) {
-                $dataToSign = $this->prepareTransactionData($transactionId, $agentId, $transactionData);
+                $signedAt = now()->toIso8601String();
+                $dataToSign = $this->prepareTransactionData($transactionId, $agentId, $transactionData, $signedAt);
 
                 $signature = $this->signatureService->signTransaction(
                     $dataToSign,
@@ -174,6 +198,7 @@ class DigitalSignatureService
                     'signature' => $signature['signature'],
                     'algorithm' => $signature['algorithm'],
                     'timestamp' => $signature['timestamp'],
+                    'signed_at' => $signedAt,
                     'agent_id'  => $agentId,
                 ];
             }
@@ -323,15 +348,33 @@ class DigitalSignatureService
     private function prepareTransactionData(
         string $transactionId,
         string $agentId,
-        array $transactionData
+        array $transactionData,
+        string $signedAt
     ): array {
         return [
             'transaction_id' => $transactionId,
             'agent_id'       => $agentId,
             'data'           => $transactionData,
-            'timestamp'      => now()->toIso8601String(),
+            'timestamp'      => $signedAt,
             'version'        => '1.0',
         ];
+    }
+
+    /**
+     * The nonce and expires_at are not signed, so a replayed signature could
+     * carry a fresh nonce and no expiry. The signed signing time bounds how
+     * long a signature verifies.
+     */
+    private function isSigningTimeOutOfRange(string $signedAt): bool
+    {
+        try {
+            $signed = Carbon::parse($signedAt);
+        } catch (Exception) {
+            return true;
+        }
+
+        return $signed->lt(now()->subMinutes(self::MAX_SIGNATURE_AGE_MINUTES))
+            || $signed->gt(now()->addSeconds(self::MAX_CLOCK_SKEW_SECONDS));
     }
 
     /**
