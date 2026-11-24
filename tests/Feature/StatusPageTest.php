@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\SystemHealthCheck;
+use Illuminate\Support\Facades\DB;
 
 /*
  * The status page shows a status only for services that something really
@@ -90,6 +91,31 @@ describe('Status page', function (): void {
         $website = statusPageService($response->json('services'), 'Website');
         expect($website['status'])->toBe('operational')
             ->and($website['uptime'])->toBe('100%');
+    });
+
+    it('writes no health check rows when people view the page', function (): void {
+        $this->get('/status')->assertOk();
+        $this->get('/status')->assertOk();
+        $this->getJson('/api/status')->assertOk();
+
+        expect(SystemHealthCheck::query()->count())->toBe(0);
+    });
+
+    it('reuses the live check results for 60 seconds', function (): void {
+        $pings = 0;
+        DB::listen(function ($query) use (&$pings): void {
+            if (strtolower(trim($query->sql)) === 'select 1') {
+                $pings++;
+            }
+        });
+
+        $this->get('/status')->assertOk();
+        $this->get('/status')->assertOk();
+        expect($pings)->toBe(1);
+
+        $this->travel(61)->seconds();
+        $this->get('/status')->assertOk();
+        expect($pings)->toBe(2);
     });
 
     it('does not report an uptime figure without checks', function (): void {

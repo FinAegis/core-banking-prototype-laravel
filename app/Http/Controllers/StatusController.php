@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\SystemHealthCheck;
 use App\Models\SystemIncident;
 use Exception;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use OpenApi\Attributes as OA;
+use Throwable;
 
 #[OA\Tag(
     name: 'System Status',
@@ -17,7 +19,9 @@ use OpenApi\Attributes as OA;
 class StatusController extends Controller
 {
     /**
-     * Services checked live on every request to this page.
+     * Services checked live when the page is viewed. The results are cached
+     * for LIVE_CHECK_CACHE_SECONDS and never written to
+     * system_health_checks; only the scheduled command writes rows.
      */
     private const LIVE_CHECKED = ['database', 'cache', 'queue', 'storage'];
 
@@ -32,10 +36,9 @@ class StatusController extends Controller
      */
     private const SCHEDULED_CHECK_MAX_AGE_MINUTES = 15;
 
-    /**
-     * Statuses the system_health_checks.status column accepts.
-     */
-    private const RECORDABLE_STATUSES = ['operational', 'degraded', 'down'];
+    private const LIVE_CHECK_CACHE_KEY = 'status-page:live-checks';
+
+    private const LIVE_CHECK_CACHE_SECONDS = 60;
 
         #[OA\Get(
             path: '/status',
@@ -93,38 +96,17 @@ class StatusController extends Controller
     }
 
     /**
-     * @return array{overall: string, checks: array<string, array<string, mixed>>, response_time: float|null, last_checked: \Illuminate\Support\Carbon}
+     * @return array{overall: string, checks: array<string, array<string, mixed>>, response_time: float|null, last_checked: Carbon}
      */
     private function checkSystemStatus(): array
     {
         $names = collect($this->serviceDefinitions())->map(fn (array $service): string => $service['name']);
 
-        // Perform real-time checks for the services that can be checked cheaply
-        $realtimeChecks = [
-            'database' => $this->checkDatabase(),
-            'cache'    => $this->checkCache(),
-            'queue'    => $this->checkQueue(),
-            'storage'  => $this->checkStorage(),
-        ];
+        $live = $this->liveChecks();
 
         $checks = [];
-        foreach ($realtimeChecks as $service => $check) {
+        foreach ($live['checks'] as $service => $check) {
             $checks[$service] = ['name' => $names[$service]] + $check;
-
-            // Record the check. "unknown" means the check itself could not
-            // run; the status column has no such value, so it is not stored.
-            if (in_array($check['status'], self::RECORDABLE_STATUSES, true)) {
-                SystemHealthCheck::create(
-                    [
-                        'service'       => $service,
-                        'check_type'    => 'realtime',
-                        'status'        => $check['status'],
-                        'response_time' => $check['response_time'] ?? null,
-                        'error_message' => $check['status'] !== 'operational' ? ($check['message'] ?? null) : null,
-                        'checked_at'    => now(),
-                    ]
-                );
-            }
         }
 
         // Add the recent results of the scheduled checks. Older results and
@@ -153,8 +135,49 @@ class StatusController extends Controller
         return [
             'overall'       => $hasDown ? 'down' : ($allOperational ? 'operational' : 'degraded'),
             'checks'        => $checks,
-            'response_time' => $this->measureResponseTime(),
-            'last_checked'  => now(),
+            'response_time' => $live['checks']['database']['response_time'] ?? null,
+            'last_checked'  => Carbon::createFromTimestamp($live['checked_at']),
+        ];
+    }
+
+    /**
+     * The live checks, reused for LIVE_CHECK_CACHE_SECONDS so that page views
+     * do not query the database, cache, queue and disk every time. Page views
+     * never write health check rows.
+     *
+     * @return array{checked_at: int, checks: array<string, array<string, mixed>>}
+     */
+    private function liveChecks(): array
+    {
+        try {
+            /** @var array{checked_at: int, checks: array<string, array<string, mixed>>} $live */
+            $live = Cache::remember(
+                self::LIVE_CHECK_CACHE_KEY,
+                self::LIVE_CHECK_CACHE_SECONDS,
+                fn (): array => $this->runLiveChecks()
+            );
+
+            return $live;
+        } catch (Throwable) {
+            // The cache store itself failed. Check without it; the cache
+            // check below then reports the problem.
+            return $this->runLiveChecks();
+        }
+    }
+
+    /**
+     * @return array{checked_at: int, checks: array<string, array<string, mixed>>}
+     */
+    private function runLiveChecks(): array
+    {
+        return [
+            'checked_at' => now()->getTimestamp(),
+            'checks'     => [
+                'database' => $this->checkDatabase(),
+                'cache'    => $this->checkCache(),
+                'queue'    => $this->checkQueue(),
+                'storage'  => $this->checkStorage(),
+            ],
         ];
     }
 
@@ -261,19 +284,6 @@ class StatusController extends Controller
                 'message' => 'We could not check the file storage.',
             ];
         }
-    }
-
-    /**
-     * Average database response time over the last hour, or null without data.
-     */
-    private function measureResponseTime(): ?float
-    {
-        $avgResponseTime = SystemHealthCheck::where('service', 'database')
-            ->where('checked_at', '>=', now()->subHour())
-            ->whereNotNull('response_time')
-            ->avg('response_time');
-
-        return $avgResponseTime === null ? null : round((float) $avgResponseTime, 2);
     }
 
     /**
