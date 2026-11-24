@@ -7,6 +7,7 @@ namespace App\Http\Middleware;
 use App\Domain\MCP\Policy\ConsentSpendingPolicy;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use League\OAuth2\Server\RequestTypes\AuthorizationRequest;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -18,6 +19,12 @@ use Throwable;
  * client of the pending authorization from the session before Passport
  * consumes it, and saves the limit only when Passport accepted the approval
  * (it answers with a redirect carrying the code).
+ *
+ * Passport also skips the consent screen when the user already holds a live
+ * token for the app. An approval without a saved limit (one made before
+ * limits were saved) would then never get one, so the authorize request asks
+ * for consent again until it has a limit. A client that sent prompt=none
+ * keeps that choice.
  */
 final class CaptureMcpConsentLimit
 {
@@ -27,6 +34,12 @@ final class CaptureMcpConsentLimit
 
     public function handle(Request $request, Closure $next): Response
     {
+        if ($request->isMethod('GET') && $request->routeIs('passport.authorizations.authorize')) {
+            $this->askForConsentWithoutLimit($request);
+
+            return $next($request);
+        }
+
         if (! $request->isMethod('POST') || ! $request->routeIs('passport.authorizations.approve')) {
             return $next($request);
         }
@@ -45,6 +58,26 @@ final class CaptureMcpConsentLimit
         }
 
         return $response;
+    }
+
+    private function askForConsentWithoutLimit(Request $request): void
+    {
+        $userId = $request->user()?->getAuthIdentifier();
+        $clientId = $request->query('client_id');
+        if ((! is_int($userId) && ! is_string($userId)) || ! is_string($clientId) || $clientId === '') {
+            return;
+        }
+
+        $prompts = array_values(array_filter(explode(' ', (string) $request->query('prompt', ''))));
+        if (in_array('none', $prompts, true) || in_array('consent', $prompts, true)) {
+            return;
+        }
+
+        if (DB::table('mcp_token_policies')->where('token_id', ConsentSpendingPolicy::key($clientId, $userId))->exists()) {
+            return;
+        }
+
+        $request->query->set('prompt', implode(' ', [...$prompts, 'consent']));
     }
 
     /**
