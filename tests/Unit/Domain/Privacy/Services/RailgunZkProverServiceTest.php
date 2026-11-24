@@ -70,7 +70,7 @@ class RailgunZkProverServiceTest extends TestCase
 
         $proof = $this->service->generateProof(
             ProofType::SANCTIONS_CLEAR,
-            ['wallet_id'     => 'wallet-1'],
+            ['wallet_id' => 'wallet-1'],
             ['token_address' => '0xtoken', 'amount' => '100', 'network' => 'polygon'],
         );
 
@@ -115,7 +115,7 @@ class RailgunZkProverServiceTest extends TestCase
 
         $proof = $this->service->generateProof(
             ProofType::AGE_VERIFICATION,
-            ['wallet_id'                 => 'wallet-1', 'encryption_key' => 'enc-key'],
+            ['wallet_id' => 'wallet-1', 'encryption_key' => 'enc-key'],
             ['recipient_railgun_address' => '0zk_recipient', 'token_address' => '0xtoken', 'amount' => '25', 'network' => 'polygon'],
         );
 

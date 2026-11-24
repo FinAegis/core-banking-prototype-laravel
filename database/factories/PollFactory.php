@@ -149,7 +149,7 @@ class PollFactory extends Factory
                 'description' => fake()->optional(0.7)->sentence(8),
                 'metadata'    => fake()->optional(0.3)->randomElement([
                     ['impact' => 'high'],
-                    ['cost'       => 'low'],
+                    ['cost' => 'low'],
                     ['complexity' => 'medium'],
                 ]),
             ];

@@ -38,7 +38,7 @@ class KycService
                     'kyc.submitted',
                     $user,
                     null,
-                    ['documents'      => count($documents)],
+                    ['documents' => count($documents)],
                     ['document_types' => array_column($documents, 'type')],
                     'kyc,compliance'
                 );
@@ -110,8 +110,8 @@ class KycService
                 AuditLog::log(
                     'kyc.approved',
                     $user,
-                    ['kyc_status'  => $oldStatus],
-                    ['kyc_status'  => 'approved', 'kyc_level' => $user->kyc_level],
+                    ['kyc_status' => $oldStatus],
+                    ['kyc_status' => 'approved', 'kyc_level' => $user->kyc_level],
                     ['verified_by' => $verifiedBy, 'options' => $options],
                     'kyc,compliance,verification'
                 );
@@ -149,8 +149,8 @@ class KycService
                 AuditLog::log(
                     'kyc.rejected',
                     $user,
-                    ['kyc_status'  => $oldStatus],
-                    ['kyc_status'  => 'rejected'],
+                    ['kyc_status' => $oldStatus],
+                    ['kyc_status' => 'rejected'],
                     ['rejected_by' => $rejectedBy, 'reason' => $reason],
                     'kyc,compliance,rejection'
                 );

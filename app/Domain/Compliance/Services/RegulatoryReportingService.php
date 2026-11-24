@@ -83,7 +83,7 @@ class RegulatoryReportingService
             null,
             null,
             ['transaction_count' => $largeTransactions->count()],
-            ['date'              => $date->toDateString(), 'filename' => $filename],
+            ['date' => $date->toDateString(), 'filename' => $filename],
             'regulatory,compliance,ctr'
         );
 
@@ -116,7 +116,7 @@ class RegulatoryReportingService
             null,
             null,
             ['candidate_count' => $suspiciousPatterns->count()],
-            ['start_date'      => $startDate->toDateString(), 'end_date' => $endDate->toDateString(), 'filename' => $filename],
+            ['start_date' => $startDate->toDateString(), 'end_date' => $endDate->toDateString(), 'filename' => $filename],
             'regulatory,compliance,sar'
         );
 
@@ -153,7 +153,7 @@ class RegulatoryReportingService
             'regulatory.compliance_summary_generated',
             null,
             null,
-            ['month'    => $month->format('Y-m')],
+            ['month' => $month->format('Y-m')],
             ['filename' => $filename],
             'regulatory,compliance,summary'
         );

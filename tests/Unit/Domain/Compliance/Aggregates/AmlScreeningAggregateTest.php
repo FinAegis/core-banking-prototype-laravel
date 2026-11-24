@@ -51,7 +51,7 @@ class AmlScreeningAggregateTest extends DomainTestCase
 
         $aggregate->recordResults(
             ['matches' => 0],
-            ['is_pep'   => false],
+            ['is_pep' => false],
             ['articles' => []],
             [],
             0,
@@ -63,7 +63,7 @@ class AmlScreeningAggregateTest extends DomainTestCase
         $aggregate->assertRecorded([
             new AmlScreeningResultsRecorded(
                 ['matches' => 0],
-                ['is_pep'   => false],
+                ['is_pep' => false],
                 ['articles' => []],
                 [],
                 0,
@@ -196,7 +196,7 @@ class AmlScreeningAggregateTest extends DomainTestCase
         // Record results
         $aggregate->recordResults(
             ['matches' => 2],
-            ['is_pep'   => true],
+            ['is_pep' => true],
             ['articles' => []],
             [],
             2,

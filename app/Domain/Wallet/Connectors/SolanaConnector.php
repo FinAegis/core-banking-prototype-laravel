@@ -74,7 +74,7 @@ class SolanaConnector implements BlockchainConnector
             $response = $this->rpcCall('getTokenAccountsByOwner', [
                 $address,
                 ['programId' => 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'],
-                ['encoding'  => 'jsonParsed'],
+                ['encoding' => 'jsonParsed'],
             ]);
 
             $accounts = $response['result']['value'] ?? [];

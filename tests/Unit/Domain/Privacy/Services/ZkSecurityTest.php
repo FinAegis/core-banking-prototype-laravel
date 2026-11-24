@@ -54,7 +54,7 @@ describe('Finding #4 — temp file cleanup', function (): void {
             $service->generateProof(
                 ProofType::AGE_VERIFICATION,
                 ['date_of_birth' => '1990-01-01'],
-                ['minimum_age'   => 18],
+                ['minimum_age' => 18],
             );
         } catch (Throwable) {
             // Expected — binary does not exist
@@ -83,7 +83,7 @@ describe('Finding #4 — temp file cleanup', function (): void {
             $service->generateProof(
                 ProofType::AGE_VERIFICATION,
                 ['date_of_birth' => '1990-01-01'],
-                ['minimum_age'   => 18],
+                ['minimum_age' => 18],
             );
         } catch (Throwable) {
             // Expected
@@ -126,7 +126,7 @@ describe('Finding #6 — concurrency semaphore', function (): void {
         expect(fn () => $service->generateProof(
             ProofType::AGE_VERIFICATION,
             ['date_of_birth' => '1990-01-01'],
-            ['minimum_age'   => 18],
+            ['minimum_age' => 18],
         ))->toThrow(RuntimeException::class, 'ZK proof generation at capacity');
 
         $slot0->release();
@@ -151,7 +151,7 @@ describe('Finding #6 — concurrency semaphore', function (): void {
             $service->generateProof(
                 ProofType::AGE_VERIFICATION,
                 ['date_of_birth' => '1990-01-01'],
-                ['minimum_age'   => 18],
+                ['minimum_age' => 18],
             );
         } catch (App\Domain\Privacy\Exceptions\SnarkjsException $e) {
             expect($e->getMessage())->not->toContain('at capacity');
@@ -234,7 +234,7 @@ describe('Finding #13 — circuit integrity verification', function (): void {
             $service->generateProof(
                 ProofType::AGE_VERIFICATION,
                 ['date_of_birth' => '1990-01-01'],
-                ['minimum_age'   => 18],
+                ['minimum_age' => 18],
             );
         } catch (App\Domain\Privacy\Exceptions\SnarkjsException | CircuitNotFoundException $e) {
             // Expected — binary missing, not integrity
@@ -278,7 +278,7 @@ describe('Finding #13 — circuit integrity verification', function (): void {
         expect(fn () => $service->generateProof(
             ProofType::AGE_VERIFICATION,
             ['date_of_birth' => '1990-01-01'],
-            ['minimum_age'   => 18],
+            ['minimum_age' => 18],
         ))->toThrow(RuntimeException::class, 'integrity');
     });
 
@@ -308,7 +308,7 @@ describe('Finding #13 — circuit integrity verification', function (): void {
             $service->generateProof(
                 ProofType::AGE_VERIFICATION,
                 ['date_of_birth' => '1990-01-01'],
-                ['minimum_age'   => 18],
+                ['minimum_age' => 18],
             );
         } catch (App\Domain\Privacy\Exceptions\SnarkjsException $e) {
             expect($e->getMessage())->not->toContain('integrity');
