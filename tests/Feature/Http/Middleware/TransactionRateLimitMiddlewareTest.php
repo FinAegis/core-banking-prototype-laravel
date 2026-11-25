@@ -383,4 +383,69 @@ class TransactionRateLimitMiddlewareTest extends TestCase
             ->assertStatus(429)
             ->assertJsonPath('limit_details.current_amount', 99999);
     }
+
+    #[Test]
+    public function test_an_unknown_asset_code_shares_the_one_counter(): void
+    {
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+
+        $this->postJson('/test-deposit', ['amount' => 999.99, 'asset_code' => 'USD'])->assertOk();
+
+        $this->postJson('/test-deposit', ['amount' => 0.02, 'asset_code' => 'NOT-AN-ASSET'])
+            ->assertStatus(429)
+            ->assertJsonPath('limit_details.current_amount', 99999);
+    }
+
+    #[Test]
+    public function test_a_lower_case_asset_code_shares_the_one_counter(): void
+    {
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+
+        $this->postJson('/test-deposit', ['amount' => 999.99, 'asset_code' => 'USD'])->assertOk();
+
+        $this->postJson('/test-deposit', ['amount' => 0.02, 'asset_code' => 'usd'])
+            ->assertStatus(429)
+            ->assertJsonPath('limit_details.asset_code', 'USD');
+    }
+
+    #[Test]
+    public function test_switching_to_another_asset_does_not_escape_the_limit(): void
+    {
+        Asset::firstOrCreate(['code' => 'EUR'], ['name' => 'Euro', 'type' => 'fiat', 'precision' => 2, 'is_active' => true]);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+
+        $this->postJson('/test-deposit', ['amount' => 999.99, 'asset_code' => 'USD'])->assertOk();
+
+        $this->postJson('/test-deposit', ['amount' => 0.02, 'asset_code' => 'EUR'])
+            ->assertStatus(429)
+            ->assertJsonPath('limit_details.current_amount', 99999);
+    }
+
+    #[Test]
+    public function test_conflicting_asset_fields_are_refused(): void
+    {
+        Asset::firstOrCreate(['code' => 'EUR'], ['name' => 'Euro', 'type' => 'fiat', 'precision' => 2, 'is_active' => true]);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+
+        $this->postJson('/test-deposit', ['amount' => 10, 'asset_code' => 'USD', 'currency' => 'EUR'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['asset_code']);
+
+        // The same asset named twice, in any case, is not a conflict.
+        $this->postJson('/test-deposit', ['amount' => 10, 'asset_code' => 'USD', 'currency' => 'usd'])
+            ->assertOk();
+    }
+
+    #[Test]
+    public function test_an_asset_with_fewer_decimals_does_not_shrink_the_count(): void
+    {
+        // A 0-decimal asset named in the request must not make 1500 count as
+        // 1500 units instead of 150000 hundredths.
+        Asset::firstOrCreate(['code' => 'JPY'], ['name' => 'Yen', 'type' => 'fiat', 'precision' => 0, 'is_active' => true]);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+
+        $this->postJson('/test-deposit', ['amount' => 1500, 'asset_code' => 'JPY'])
+            ->assertStatus(429)
+            ->assertJsonPath('limit_details.requested_amount', 150000);
+    }
 }

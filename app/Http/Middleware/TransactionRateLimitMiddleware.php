@@ -65,10 +65,11 @@ class TransactionRateLimitMiddleware
             'daily_window'      => 86400,
             'progressive_delay' => false,
         ],
-        // Amounts count in minor units of the asset named in the request
-        // (asset_code, currency, ...; 2 decimals when none is named), with
-        // one counter per asset. The caps above are written for 2-decimal
-        // currencies.
+        // amount_limit is one hourly total per transaction type, written in
+        // cents of a 2-decimal currency. All assets share that one counter.
+        // An amount counts in minor units of the asset the request names,
+        // but never in fewer than hundredths of a unit (see extractAmount),
+        // so naming another asset can only make the count larger.
         // Mobile wallet payment intent submissions (P2P sends, merchant payments).
         // Count-based only: amount is in token-native units that vary per token
         // (USDC=6dp, SOL=9dp, ETH=18dp, fiat=2dp). Without a spot-price oracle in
@@ -134,7 +135,21 @@ class TransactionRateLimitMiddleware
         }
 
         // Check amount-based limits if applicable
-        $amount = isset($config['amount_limit']) ? $this->extractAmount($request) : null;
+        $amount = null;
+        if (isset($config['amount_limit'])) {
+            $asset = $this->resolveAsset($request);
+            if ($asset === false) {
+                return response()->json(
+                    [
+                        'message' => 'The request names more than one asset.',
+                        'errors'  => ['asset_code' => ['The request names more than one asset.']],
+                    ],
+                    422
+                );
+            }
+
+            $amount = $this->extractAmount($request, $asset);
+        }
         if ($amount !== null) {
             $amountCheck = $this->checkAmountLimit($amount, $userId, $transactionType, $config);
             if ($amountCheck !== true) {
@@ -152,7 +167,7 @@ class TransactionRateLimitMiddleware
 
         $response = $next($request);
 
-        return $this->addTransactionHeaders($response, $userId, $transactionType, $config, $amount);
+        return $this->addTransactionHeaders($response, $userId, $transactionType, $config);
     }
 
     /**
@@ -226,7 +241,7 @@ class TransactionRateLimitMiddleware
      */
     private function checkAmountLimit(array $amount, int $userId, string $transactionType, array $config): true|JsonResponse
     {
-        $key = $this->amountKey($userId, $transactionType, $amount['asset']);
+        $key = $this->amountKey($userId, $transactionType);
         $currentAmount = (int) Cache::get($key, 0);
         $limit = (int) $config['amount_limit'];
 
@@ -255,9 +270,11 @@ class TransactionRateLimitMiddleware
                     'retry_after'   => $retryAfter,
                     'limit_type'    => 'hourly_amount',
                     'limit_details' => [
-                        // All values are integers in minor units of asset_code
-                        // (cents for USD and EUR; 2 decimals when the request
-                        // names no asset). Each asset has its own counter.
+                        // One hourly total for all assets, as integers in minor
+                        // units: cents for 2-decimal assets, satoshis for BTC;
+                        // never fewer than hundredths of a unit. asset_code is
+                        // the asset of this request (null when it names none
+                        // or an unknown one).
                         'limit'            => $limit,
                         'limit_unit'       => 'minor_units',
                         'asset_code'       => $amount['asset'],
@@ -311,22 +328,58 @@ class TransactionRateLimitMiddleware
     }
 
     /**
-     * Request fields that name the asset of the amount, in order of use.
+     * Request fields that name the asset of the amount. Controllers book one
+     * of them (deposit, withdraw and transfer: asset_code; bank transfers,
+     * GCU trades and agent payments: currency; conversion: from_currency).
+     * Every field present must name the same asset.
      */
     private const ASSET_FIELDS = ['asset_code', 'currency', 'from_currency', 'asset', 'from_asset'];
 
     /**
-     * Extract the transaction amount from the request in minor units of its
-     * asset, with bcmath. The asset is the first of ASSET_FIELDS the request
-     * names; its precision comes from the assets table (2 when the request
-     * names no asset or an unknown one). An amount with more decimals than
-     * the asset has counts as the next whole minor unit, so the count never
-     * comes out low; validating such an amount is the controller's job.
-     * Zero and negative amounts are not counted.
+     * The asset the request names, upper-cased and resolved against the
+     * assets table: its code and precision. Null when the request names no
+     * asset or an unknown one. False when the fields name different assets.
      *
+     * @return array{code: string, precision: int}|false|null
+     */
+    private function resolveAsset(Request $request): array|false|null
+    {
+        $codes = [];
+        foreach (self::ASSET_FIELDS as $field) {
+            $value = $request->input($field);
+            if (is_string($value) && trim($value) !== '') {
+                $codes[strtoupper(trim($value))] = true;
+            }
+        }
+
+        if (count($codes) > 1) {
+            return false;
+        }
+
+        if ($codes === []) {
+            return null;
+        }
+
+        $code = (string) array_key_first($codes);
+        $precision = Asset::query()->where('code', $code)->value('precision');
+
+        return $precision === null ? null : ['code' => $code, 'precision' => (int) $precision];
+    }
+
+    /**
+     * Extract the transaction amount from the request in minor units of its
+     * asset, with bcmath, for the one shared counter. The precision is the
+     * asset's, but at least 2: an asset with fewer decimals (or none, or an
+     * unknown one) counts in hundredths of a unit, so naming it can never
+     * lower the count. An amount with more decimals than that counts as the
+     * next whole unit, so the count never comes out low; validating such an
+     * amount is the controller's job. Zero and negative amounts are not
+     * counted.
+     *
+     * @param  array{code: string, precision: int}|null  $asset
      * @return array{asset: string|null, minor: numeric-string}|null
      */
-    private function extractAmount(Request $request): ?array
+    private function extractAmount(Request $request, ?array $asset): ?array
     {
         // Try common amount field names
         $amountFields = ['amount', 'value', 'quantity', 'sum'];
@@ -346,18 +399,7 @@ class TransactionRateLimitMiddleware
                 return null;
             }
 
-            $asset = null;
-            foreach (self::ASSET_FIELDS as $assetField) {
-                $value = $request->input($assetField);
-                if (is_string($value) && $value !== '') {
-                    $asset = $value;
-                    break;
-                }
-            }
-
-            $precision = $asset !== null
-                ? (int) (Asset::query()->where('code', $asset)->value('precision') ?? 2)
-                : 2;
+            $precision = max(2, $asset['precision'] ?? 2);
 
             $minor = DecimalString::toMinorUnits($amount, $precision);
             if ($minor === null) {
@@ -369,15 +411,15 @@ class TransactionRateLimitMiddleware
                 $minor = bcadd($truncated, '1', 0);
             }
 
-            return ['asset' => $asset, 'minor' => $minor];
+            return ['asset' => $asset['code'] ?? null, 'minor' => $minor];
         }
 
         return null;
     }
 
-    private function amountKey(int $userId, string $transactionType, ?string $asset): string
+    private function amountKey(int $userId, string $transactionType): string
     {
-        return "tx_amount_limit:{$userId}:{$transactionType}:" . ($asset ?? 'default') . ':hourly';
+        return "tx_amount_limit:{$userId}:{$transactionType}:hourly";
     }
 
     /**
@@ -402,7 +444,7 @@ class TransactionRateLimitMiddleware
         // is at most the limit and fits in an int. Cache::add + increment, so
         // concurrent requests never lose a count.
         if (isset($config['amount_limit']) && $amount !== null) {
-            $amountKey = $this->amountKey($userId, $transactionType, $amount['asset']);
+            $amountKey = $this->amountKey($userId, $transactionType);
             Cache::add($amountKey, 0, $config['window']);
             Cache::increment($amountKey, (int) $amount['minor']);
         }
@@ -423,10 +465,7 @@ class TransactionRateLimitMiddleware
     /**
      * Add transaction-specific headers to response.
      */
-    /**
-     * @param  array{asset: string|null, minor: numeric-string}|null  $amount
-     */
-    private function addTransactionHeaders(SymfonyResponse $response, int $userId, string $transactionType, array $config, ?array $amount): SymfonyResponse
+    private function addTransactionHeaders(SymfonyResponse $response, int $userId, string $transactionType, array $config): SymfonyResponse
     {
         $hourlyKey = "tx_rate_limit:{$userId}:{$transactionType}:hourly";
         $dailyKey = "tx_rate_limit:{$userId}:{$transactionType}:daily";
@@ -446,7 +485,7 @@ class TransactionRateLimitMiddleware
         $response->headers->set('X-Transaction-Daily-Remaining', (string) max(0, $config['daily_limit'] - $dailyCount));
 
         if (isset($config['amount_limit'])) {
-            $amountKey = $this->amountKey($userId, $transactionType, $amount['asset'] ?? null);
+            $amountKey = $this->amountKey($userId, $transactionType);
             $currentAmount = (int) Cache::get($amountKey, 0);
 
             $response->headers->set('X-Transaction-Amount-Limit', (string) $config['amount_limit']);
