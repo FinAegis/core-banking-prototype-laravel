@@ -25,7 +25,13 @@ beforeEach(function (): void {
         'privy.web_login_enabled'      => true,
         'registration.api_enabled'     => true,
         'registration.api_invite_only' => false,
+        'cache.limiter'                => 'array',
     ]);
+    // The rate limiter is a singleton built at boot on the configured store,
+    // which is Redis in some CI jobs; Redis ignores travel() and keeps keys
+    // between tests. Rebuild it on the array store.
+    app()->singleton(Illuminate\Cache\RateLimiter::class, fn ($app) => new Illuminate\Cache\RateLimiter($app->make('cache')->store('array')));
+    Illuminate\Support\Facades\RateLimiter::clearResolvedInstance(Illuminate\Cache\RateLimiter::class);
 });
 
 /**
