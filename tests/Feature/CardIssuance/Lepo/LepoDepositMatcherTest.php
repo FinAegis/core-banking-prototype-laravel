@@ -108,10 +108,52 @@ it('ignores a deposit that is not completed or not to this address', function (a
         ->and($topup->fresh()?->status)->toBe('awaiting_deposit');
 })->with([
     'pending'       => [['status' => 'PENDING']],
+    'running'       => [['status' => 'RUNNING']],
+    'processing'    => [['status' => 'PROCESSING']],
+    'on hold'       => [['status' => 'ONHOLD']],
     'other address' => [['destination' => ['address' => '0xsomeoneelse']]],
     'other network' => [['destination' => ['chain' => 'POLYGON']]],
-    'other asset'   => [['amount' => ['currency' => 'USDT']]],
+    'not a deposit' => [['type' => 'crypto_withdrawal']],
 ]);
+
+it('never lets a zero-value or dust row reach a top-up, even with the right hash', function (float $amount): void {
+    $hash = '0x' . str_repeat('a', 64);
+    $topup = dmTopUp(dmCard(), ['tx_hash' => $hash]);
+    Http::fake(['lepo.test/api/v2/transfers/crypto-transactions*' => Http::response(['transfers' => [dmDeposit(['amount' => ['amount' => $amount], 'transactionHash' => $hash])]])]);
+
+    expect(app(LepoDepositMatcher::class)->detect($topup))->toBeFalse()
+        ->and($topup->fresh()?->status)->toBe('awaiting_deposit');
+    expect(app(LepoDepositMatcher::class)->findUnmatched($topup->card()->firstOrFail()->cardholder()->firstOrFail()))->toBe([]);
+})->with([
+    'zero'      => [0.0],
+    'dust'      => [0.000001],
+    'below one' => [0.99],
+]);
+
+it('sends a positive deposit in another currency to an operator instead of ignoring it', function (): void {
+    $hash = '0x' . str_repeat('9', 64);
+    $topup = dmTopUp(dmCard(), ['tx_hash' => $hash]);
+    Http::fake(['lepo.test/api/v2/transfers/crypto-transactions*' => Http::response(['transfers' => [dmDeposit(['amount' => ['currency' => 'USDT'], 'transactionHash' => $hash])]])]);
+
+    expect(app(LepoDepositMatcher::class)->detect($topup))->toBeTrue();
+
+    $fresh = $topup->fresh();
+    expect($fresh?->status)->toBe('needs_attention')
+        ->and($fresh?->last_error)->toBe('WRONG_CURRENCY')
+        ->and($fresh?->asset)->toBe('USDT')
+        ->and($fresh?->provider_deposit_id)->toBe('dep-1')
+        ->and($fresh?->received_amount)->toBe('25.000000');
+});
+
+it('takes the whole amount that reached the wallet, with nothing subtracted for fees', function (): void {
+    $topup = dmTopUp(dmCard());
+    Http::fake(['lepo.test/api/v2/transfers/crypto-transactions*' => Http::response(['transfers' => [
+        dmDeposit(['fees' => [['amount' => 0.2, 'currency' => 'USDC', 'type' => 'network']]]),
+    ]])]);
+
+    expect(app(LepoDepositMatcher::class)->detect($topup))->toBeTrue()
+        ->and($topup->fresh()?->received_amount)->toBe('25.000000');
+});
 
 it('never links one deposit to two top-ups', function (): void {
     $card = dmCard();
@@ -206,6 +248,6 @@ it('lists deposits that belong to no top-up', function (): void {
 
     $holder = $card->cardholder()->firstOrFail();
     expect(app(LepoDepositMatcher::class)->findUnmatched($holder))->toBe([
-        ['id' => 'dep-2', 'amount' => '40.123456', 'network' => 'arbitrum', 'address' => DM_ADDRESS],
+        ['id' => 'dep-2', 'amount' => '40.123456', 'currency' => 'USDC', 'network' => 'arbitrum', 'address' => DM_ADDRESS],
     ]);
 });

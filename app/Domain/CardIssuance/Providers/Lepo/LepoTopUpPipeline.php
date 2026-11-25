@@ -14,6 +14,7 @@ use App\Infrastructure\Lepo\LepoClient;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * Moves a received deposit onto the card: converts the USDC to US dollars
@@ -21,10 +22,14 @@ use Illuminate\Support\Facades\Log;
  * takes the 1 USD issue fee from that money) and loads the dollars onto the
  * card from the account's USD balance.
  *
- * Lepo's conversion and card-load calls take no idempotency key and no
- * client reference, so neither is ever repeated: each is recorded
+ * The conversion and the card load each send an Idempotency-Key header,
+ * generated once per top-up and saved before the first call, so a call sent
+ * again for the same top-up repeats the key. The header is a best-effort
+ * extra: nothing here depends on the provider honouring it. The protection
+ * is that neither call is repeated after an unclear answer: each is recorded
  * (status + step_started_at) before the call, and a failure or an unclear
- * answer stops the top-up in needs_attention for an operator. The steps
+ * answer stops the top-up in needs_attention for an operator to reconcile
+ * against the provider's records. The steps
  * between the two calls (waiting for the conversion, opening the card,
  * reading the balance) are safe to repeat, so they are retried for up to an
  * hour. While any top-up of the user has an unclear money outcome, the user's
@@ -33,10 +38,10 @@ use Illuminate\Support\Facades\Log;
  */
 final class LepoTopUpPipeline
 {
-    /** Lepo's card-load minimum (USD). */
-    private const LOAD_MINIMUM = '5.00';
+    /** The smallest conversion the provider makes (USD); below it nothing is converted. */
+    public const CONVERSION_MINIMUM = '0.50';
 
-    /** Room for the conversion and load fees when checking a deposit. */
+    /** Room for the conversion fee and the rate when checking a deposit. */
     private const FEE_MARGIN = '0.50';
 
     /** A Lepo call left in flight longer than this was interrupted. */
@@ -121,8 +126,17 @@ final class LepoTopUpPipeline
             return $this->stop($topup, $reason);
         }
 
+        // Credit only what reached the wallet: the whole received amount is
+        // converted, nothing is subtracted for deposit fees.
         $received = LepoTopUps::number((string) $topup->received_amount);
-        $needed = bcadd(bcadd(self::LOAD_MINIMUM, self::FEE_MARGIN, 2), $card->isOpenAtProvider() ? '0' : '1.00', 2);
+        if (bccomp($received, self::CONVERSION_MINIMUM, 6) === -1) {
+            return $this->stop($topup, 'BELOW_CONVERSION_MINIMUM');
+        }
+
+        // Enough to load the card minimum after the load fee, the issue fee on
+        // the first top-up, and room for the conversion fee.
+        $issuance = $card->isOpenAtProvider() ? '0' : bcdiv((string) LepoCardFees::issuanceFeeCents(), '100', 2);
+        $needed = bcadd(bcadd(LepoCardFees::grossForNet(LepoCardFees::LOAD_MINIMUM, LepoCardFees::topUpFeeFraction()), self::FEE_MARGIN, 2), $issuance, 2);
         if (bccomp($received, $needed, 6) === -1) {
             return $this->stop($topup, 'BELOW_MINIMUM');
         }
@@ -136,9 +150,13 @@ final class LepoTopUpPipeline
             return $this->retry($topup, 'CONVERSION_QUEUED', false);
         }
 
-        $this->mark($topup, CardTopUp::STATUS_CONVERTING, ['conversion_requested_at' => now()]);
+        // The key is saved with the mark, before the call; a later call for
+        // this top-up (after a rate limit) sends the same key. Best effort
+        // only: an unclear answer still stops for an operator below.
+        $key = $topup->conversion_idempotency_key ?? (string) Str::uuid();
+        $this->mark($topup, CardTopUp::STATUS_CONVERTING, ['conversion_requested_at' => now(), 'conversion_idempotency_key' => $key]);
         try {
-            $converted = $this->client->convertCryptoToUsd($userId, 'USDC', $received);
+            $converted = $this->client->convertCryptoToUsd($userId, 'USDC', $received, $key);
         } catch (LepoApiException $e) {
             // 429 is Lepo's rate limit: the conversion did not happen.
             return $e->httpStatus() === 429
@@ -207,7 +225,7 @@ final class LepoTopUpPipeline
             }
 
             // Recorded at once, so a later run knows the fee was taken here.
-            $topup->forceFill(['issuance_fee_cents' => LepoTopUps::ISSUANCE_FEE_CENTS])->save();
+            $topup->forceFill(['issuance_fee_cents' => LepoCardFees::issuanceFeeCents()])->save();
         }
 
         $available = $this->availableUsd($this->lepoUserId($card));
@@ -222,13 +240,15 @@ final class LepoTopUpPipeline
             $cap = bcsub($cap, bcdiv((string) $topup->issuance_fee_cents, '100', 2), 2);
         }
         $value = bccomp($available, $cap, 2) === 1 ? $cap : $available;
-        if (bccomp($value, self::LOAD_MINIMUM, 2) === -1) {
+        // The card-load minimum applies to what the card receives after the load fee.
+        if (bccomp(LepoCardFees::netOfLoad($value, LepoCardFees::topUpFeeFraction()), LepoCardFees::LOAD_MINIMUM, 2) === -1) {
             return $this->stop($topup, 'BELOW_LOAD_MINIMUM');
         }
 
-        $this->mark($topup, CardTopUp::STATUS_LOADING);
+        $key = $topup->load_idempotency_key ?? (string) Str::uuid();
+        $this->mark($topup, CardTopUp::STATUS_LOADING, ['load_idempotency_key' => $key]);
         try {
-            $loaded = $this->client->topUpCard((string) $card->issuer_card_token, $value, 'USD');
+            $loaded = $this->client->topUpCard((string) $card->issuer_card_token, $value, $key, 'USD');
         } catch (LepoApiException) {
             return $this->stop($topup, 'LOAD_UNCLEAR');
         }

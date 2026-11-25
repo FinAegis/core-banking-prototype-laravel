@@ -400,3 +400,88 @@ it('makes a card cancel wait for the money lock', function (): void {
     Http::assertNothingSent();
     $lock->release();
 });
+
+it('sends one idempotency key per money call and keeps each on the top-up', function (): void {
+    $topup = plTopUp();
+    plLepo();
+
+    $done = app(LepoTopUpPipeline::class)->advance($topup);
+
+    $conversionKey = $done->conversion_idempotency_key;
+    $loadKey = $done->load_idempotency_key;
+    expect($done->status)->toBe('completed')
+        ->and(Illuminate\Support\Str::isUuid((string) $conversionKey))->toBeTrue()
+        ->and(Illuminate\Support\Str::isUuid((string) $loadKey))->toBeTrue()
+        ->and($conversionKey)->not->toBe($loadKey);
+    Http::assertSent(fn (Request $r): bool => str_contains($r->url(), 'crypto-to-quantum-transfer') && $r->header('Idempotency-Key') === [$conversionKey]);
+    Http::assertSent(fn (Request $r): bool => str_ends_with($r->url(), '/cards/topup') && $r->header('Idempotency-Key') === [$loadKey]);
+});
+
+it('stores the conversion key before the call and reuses it when the conversion is sent again', function (): void {
+    $topup = plTopUp('active', '777');
+    $seen = [];
+    $calls = 0;
+    Http::fake(function (Request $r) use (&$seen, &$calls, $topup) {
+        if (str_contains($r->url(), 'crypto-to-quantum-transfer')) {
+            // The key is on the record before Lepo hears about it.
+            $seen[] = [$r->header('Idempotency-Key')[0] ?? null, CardTopUp::query()->whereKey($topup->id)->value('conversion_idempotency_key')];
+
+            return ++$calls === 1 ? Http::response(['message' => 'slow down'], 429) : Http::response(['success' => true, 'transferId' => 'tr-1']);
+        }
+
+        return Http::response(['assets' => []]);
+    });
+
+    $first = app(LepoTopUpPipeline::class)->advance($topup);
+    expect($first->status)->toBe('deposit_received')->and($first->last_error)->toBe('CONVERSION_RATE_LIMITED');
+
+    Cache::lock(LepoTopUpPipeline::CONVERSION_SLOT_KEY)->forceRelease();
+    app(LepoTopUpPipeline::class)->advance($first->fresh() ?? $first);
+
+    expect($seen)->toHaveCount(2)
+        ->and($seen[0][0])->not->toBeNull()
+        ->and($seen[0][0])->toBe($seen[0][1])
+        ->and($seen[1][0])->toBe($seen[0][0]);
+});
+
+it('keeps the key and asks an operator when the conversion times out', function (): void {
+    $topup = plTopUp();
+    plLepo(['convert' => Http::response(['message' => 'gateway timeout'], 504)]);
+
+    $stopped = app(LepoTopUpPipeline::class)->advance($topup);
+
+    expect($stopped->status)->toBe('needs_attention')
+        ->and($stopped->last_error)->toBe('CONVERSION_UNCLEAR')
+        ->and($stopped->fresh()?->conversion_idempotency_key)->not->toBeNull();
+});
+
+it('does not convert a deposit below the conversion minimum', function (): void {
+    $topup = plTopUp();
+    $topup->forceFill(['received_amount' => '0.400000'])->save();
+    plLepo();
+
+    $stopped = app(LepoTopUpPipeline::class)->advance($topup);
+
+    expect($stopped->status)->toBe('needs_attention')->and($stopped->last_error)->toBe('BELOW_CONVERSION_MINIMUM')
+        ->and(plCalls('/transfers/crypto-to-quantum-transfer'))->toBe(0);
+});
+
+it('does not load the card when less than 5 USD would arrive after the load fee', function (): void {
+    // 5.05 loaded less the 1.5 % fee (0.08) leaves 4.97 on the card.
+    $topup = plTopUp('active', '777');
+    plLepo(['usd' => '5.05']);
+
+    $stopped = app(LepoTopUpPipeline::class)->advance($topup);
+
+    expect($stopped->status)->toBe('needs_attention')->and($stopped->last_error)->toBe('BELOW_LOAD_MINIMUM')
+        ->and(plCalls('/cards/topup'))->toBe(0);
+});
+
+it('loads the card when exactly 5 USD arrives after the load fee', function (): void {
+    // 5.08 less 0.08 (1.5 %, rounded up) leaves 5.00.
+    $topup = plTopUp('active', '777');
+    plLepo(['usd' => '5.08']);
+
+    expect(app(LepoTopUpPipeline::class)->advance($topup)->status)->toBe('completed');
+    Http::assertSent(fn (Request $r): bool => str_ends_with($r->url(), '/cards/topup') && $r['value'] === '5.08');
+});

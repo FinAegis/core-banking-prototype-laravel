@@ -341,3 +341,49 @@ it('limits names to the 50 characters Lepo accepts', function (): void {
         ->assertStatus(422)
         ->assertJsonValidationErrors(['first_name']);
 });
+
+it('shows the card fees at every onboarding step', function (?string $status, string $step): void {
+    $user = pilotUser();
+    if ($status !== null) {
+        endpointCardholder($user, $status);
+    }
+
+    $this->getJson('/api/v1/cards/onboarding')
+        ->assertOk()
+        ->assertJsonPath('data.step', $step)
+        ->assertJsonPath('data.card_fees', ['issuance_fee_cents' => 100, 'monthly_fee_cents' => 100, 'topup_fee_percent' => '1.5']);
+})->with([
+    'cardholder'          => [null, 'cardholder'],
+    'kyc'                 => ['pending', 'kyc'],
+    'kyc_review'          => ['in_review', 'kyc_review'],
+    'kyc_action_required' => ['action_required', 'kyc_action_required'],
+    'kyc_rejected'        => ['rejected', 'kyc_rejected'],
+    'funding_pending'     => ['verified', 'funding_pending'],
+]);
+
+it('writes the top-up fee as a percentage', function (string $fraction, string $percent): void {
+    pilotUser();
+    config(['cardissuance.issuers.lepo.fees.topup_fee_fraction' => $fraction]);
+
+    $this->getJson('/api/v1/cards/onboarding')->assertJsonPath('data.card_fees.topup_fee_percent', $percent);
+})->with([['0.015', '1.5'], ['0.0150', '1.5'], ['0.02', '2'], ['0', '0'], ['0.0125', '1.25']]);
+
+it('sends null card fees when there is no fee data, never a partial object', function (array $fees): void {
+    pilotUser();
+    config(['cardissuance.issuers.lepo.fees' => $fees]);
+
+    $response = $this->getJson('/api/v1/cards/onboarding')->assertOk()->assertJsonPath('data.card_fees', null);
+    expect(array_key_exists('card_fees', (array) $response->json('data')))->toBeTrue();
+})->with([
+    'no config'       => [[]],
+    'missing monthly' => [['issuance_fee_cents' => 100, 'topup_fee_fraction' => '0.015']],
+    'not a number'    => [['issuance_fee_cents' => 100, 'monthly_fee_cents' => 100, 'topup_fee_fraction' => 'abc']],
+]);
+
+it('includes the card fees key when cards are not available', function (): void {
+    Sanctum::actingAs(User::factory()->create(), ['read', 'write', 'delete']);
+
+    $response = $this->getJson('/api/v1/cards/onboarding')->assertOk()->assertJsonPath('data.available', false);
+    expect(array_key_exists('card_fees', (array) $response->json('data')))->toBeTrue()
+        ->and($response->json('data.card_fees'))->toBeNull();
+});

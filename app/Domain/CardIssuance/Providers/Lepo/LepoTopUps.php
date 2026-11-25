@@ -27,8 +27,12 @@ final class LepoTopUps
     /** Cards in these statuses cannot receive money. */
     private const CLOSED_CARD_STATUSES = [Card::STATUS_CANCELLED, Card::STATUS_EXPIRED, Card::STATUS_FAILED, Card::STATUS_BLOCKED];
 
-    /** Lepo takes this from the user's balance when it opens the card. */
-    public const ISSUANCE_FEE_CENTS = 100;
+    /**
+     * A top-up waits at least this long for its deposit: a Polygon deposit
+     * takes about 25 minutes to complete (Arbitrum about 3), then it is
+     * converted and loaded.
+     */
+    public const MIN_WAIT_MINUTES = 60;
 
     public function __construct(private readonly LepoClient $client)
     {
@@ -73,7 +77,9 @@ final class LepoTopUps
     /**
      * What the card receives for this USDC amount, from Lepo's quote: the
      * USDC→USD rate and conversion fee, Lepo's top-up fee, and the one-time
-     * issuance fee when the card is not open yet.
+     * issuance fee when the card is not open yet. min_amount is the larger of
+     * the configured floor and the amount that still leaves the card-load
+     * minimum on the card after every fee (see minimumFor()).
      *
      * @return array{amount: string, asset: string, network: string, credited_cents: int, fee_cents: int, issuance_fee_cents: int, min_amount: string, max_amount: string}
      */
@@ -82,23 +88,10 @@ final class LepoTopUps
         $amount = self::number($amount);
         $this->assertCanTopUp($card, $amount, $network);
 
-        try {
-            $quote = $this->client->estimateCardTopup(['userId' => $this->lepoUserId($card), 'amount' => $amount]);
-        } catch (LepoApiException $e) {
-            throw CardProviderException::providerUnavailable('lepo', $e->lepoCode());
-        }
-
-        $leg = is_array($quote['usdcToUsd'] ?? null) ? $quote['usdcToUsd'] : [];
-        $rate = $this->decimal($leg['rate'] ?? null);
-        if ($rate === null || bccomp($rate, '0', 8) !== 1) {
-            throw CardProviderException::providerUnavailable('lepo', 'NO_QUOTE');
-        }
-
-        $conversionFee = $this->decimal($leg['fee'] ?? null) ?? '0';
-        if (in_array(strtoupper((string) ($leg['feeCurrency'] ?? 'USD')), ['USDC', 'USDT'], true)) {
-            $conversionFee = bcmul($conversionFee, $rate, 8);
-        }
-        $issuance = $card->isOpenAtProvider() ? 0 : self::ISSUANCE_FEE_CENTS;
+        $quote = $this->quote($card, $amount);
+        ['rate' => $rate, 'conversion_fee' => $conversionFee, 'topup_fee_percent' => $topUpFeePercent, 'topup_fee' => $fixedTopUpFee] = $quote;
+        $first = ! $card->isOpenAtProvider();
+        $issuance = $first ? LepoCardFees::issuanceFeeCents() : 0;
 
         // Dollars after the conversion, less the issue fee on the first
         // top-up: that is what gets loaded onto the card.
@@ -109,10 +102,9 @@ final class LepoTopUps
         // fraction (0.015 = 1.5 %). Rounded up here, so the estimate never
         // promises more than the card receives. Only without a percentage is
         // topupfee used, as a fixed fee, so the fee is never counted twice.
-        $topUpFeePercent = $this->decimal($quote['topupfeepercent'] ?? null) ?? '0';
         $topUpFee = bccomp($topUpFeePercent, '0', 8) === 1
-            ? self::centsUp(bcmul(bccomp($loaded, '0', 8) === 1 ? $loaded : '0', $topUpFeePercent, 8))
-            : ($this->decimal($quote['topupfee'] ?? null) ?? '0');
+            ? LepoCardFees::centsUp(bcmul(bccomp($loaded, '0', 8) === 1 ? $loaded : '0', $topUpFeePercent, 8))
+            : $fixedTopUpFee;
 
         $credited = max(0, (int) bcmul(bcsub($loaded, $topUpFee, 8), '100', 0));
 
@@ -123,14 +115,68 @@ final class LepoTopUps
             'credited_cents'     => $credited,
             'fee_cents'          => max(0, (int) bcmul(bcadd($conversionFee, $topUpFee, 8), '100', 0)),
             'issuance_fee_cents' => $issuance,
-            'min_amount'         => self::minimum(),
+            'min_amount'         => self::minimumForQuote($first, $quote),
             'max_amount'         => self::maximum(),
         ];
+    }
+
+    /**
+     * The top-up minimum for a quote, shown by the estimate and enforced by
+     * start(): the larger of the configured floor and minimumFor() with the
+     * quote's load-fee model (its percentage, else its fixed fee, else the
+     * configured percentage; never both).
+     *
+     * @param  array{rate: numeric-string, conversion_fee: numeric-string, topup_fee_percent: numeric-string, topup_fee: numeric-string}  $quote
+     * @return numeric-string
+     */
+    public static function minimumForQuote(bool $first, array $quote): string
+    {
+        [$fraction, $fixed] = match (true) {
+            bccomp($quote['topup_fee_percent'], '0', 8) === 1 => [$quote['topup_fee_percent'], '0'],
+            bccomp($quote['topup_fee'], '0', 8) === 1         => ['0', $quote['topup_fee']],
+            default                                           => [LepoCardFees::topUpFeeFraction(), '0'],
+        };
+        $minimum = self::minimumFor($first, $quote['rate'], $quote['conversion_fee'], $fraction, $fixed);
+
+        return bccomp($minimum, self::minimum(), 2) === 1 ? $minimum : self::minimum();
+    }
+
+    /**
+     * The smallest USDC amount that still leaves the card-load minimum (5 USD)
+     * on the card. A later top-up pays the conversion fee and the load fee. A
+     * first top-up also pays the issuance fee and keeps the first monthly
+     * fee, which is taken from the card balance within a day of issuance.
+     * Rounded up to the cent.
+     *
+     * @param  numeric-string  $rate  USD per USDC
+     * @param  numeric-string  $conversionFee  USD
+     * @param  numeric-string  $fraction  load fee as a fraction of the load
+     * @param  numeric-string  $fixed  fixed load fee, USD
+     * @return numeric-string
+     */
+    public static function minimumFor(bool $first, string $rate, string $conversionFee, string $fraction, string $fixed = '0'): string
+    {
+        $onCard = $first
+            ? bcadd(LepoCardFees::LOAD_MINIMUM, bcdiv((string) LepoCardFees::monthlyFeeCents(), '100', 2), 2)
+            : LepoCardFees::LOAD_MINIMUM;
+        $load = LepoCardFees::grossForNet($onCard, $fraction, $fixed);
+        $usd = bcadd(bcadd($load, $first ? bcdiv((string) LepoCardFees::issuanceFeeCents(), '100', 2) : '0', 2), $conversionFee, 8);
+
+        return LepoCardFees::centsUp(bcdiv($usd, $rate, 8));
     }
 
     public function start(Card $card, string $amount, string $network): CardTopUp
     {
         $amount = self::number($amount);
+
+        // The same minimum the estimate shows, from the live quote. Without a
+        // quote the top-up is refused (provider unavailable), never let through.
+        // Read before the start lock: the quote is a network call.
+        $this->assertCanTopUp($card, $amount, $network);
+        $minimum = self::minimumForQuote(! $card->isOpenAtProvider(), $this->quote($card, $amount));
+        if (bccomp($amount, $minimum, 6) === -1) {
+            throw CardProviderException::belowMinimum($minimum);
+        }
 
         // One start per user at a time, so two taps cannot open two top-ups.
         return Cache::lock("cards:lepo:topup-start:{$card->user_id}", 10)->block(5, function () use ($card, $amount, $network): CardTopUp {
@@ -153,7 +199,7 @@ final class LepoTopUps
                 'amount'             => bcadd($amount, '0', 6),
                 'deposit_address'    => $address,
                 'status'             => CardTopUp::STATUS_AWAITING_DEPOSIT,
-                'expires_at'         => now()->addMinutes(max(5, (int) config('cardissuance.providers.lepo_topup_ttl_minutes', 60))),
+                'expires_at'         => now()->addMinutes(max(self::MIN_WAIT_MINUTES, (int) config('cardissuance.providers.lepo_topup_ttl_minutes', 60))),
             ])->save();
 
             $this->announce($topup);
@@ -164,16 +210,20 @@ final class LepoTopUps
 
     /**
      * The hash of the wallet send that funds the top-up (optional; it lets the
-     * deposit be matched exactly). Recorded once.
+     * deposit be matched exactly). Recorded once. The send is on its way, so
+     * the top-up waits at least another hour for it to complete on chain.
      */
     public function attachTxHash(CardTopUp $topup, string $txHash): CardTopUp
     {
+        $wait = now()->addMinutes(self::MIN_WAIT_MINUTES);
+        $expires = $topup->expires_at->greaterThan($wait) ? $topup->expires_at : $wait;
+
         // A conditional write: the deposit may be detected at the same moment.
         try {
             $changed = CardTopUp::query()->whereKey($topup->id)
                 ->where('status', CardTopUp::STATUS_AWAITING_DEPOSIT)
                 ->whereNull('tx_hash')
-                ->update(['tx_hash' => strtolower($txHash), 'updated_at' => now()]);
+                ->update(['tx_hash' => strtolower($txHash), 'expires_at' => $expires, 'updated_at' => now()]);
         } catch (UniqueConstraintViolationException) {
             $changed = 0;
         }
@@ -268,6 +318,41 @@ final class LepoTopUps
         return $address;
     }
 
+    /**
+     * Lepo's quote for this amount: the USDC→USD rate, the conversion fee in
+     * USD, and the load fee as a fraction and as a fixed amount (0 when
+     * absent). No quote, or no positive rate, is "provider unavailable".
+     *
+     * @param  numeric-string  $amount
+     * @return array{rate: numeric-string, conversion_fee: numeric-string, topup_fee_percent: numeric-string, topup_fee: numeric-string}
+     */
+    private function quote(Card $card, string $amount): array
+    {
+        try {
+            $quote = $this->client->estimateCardTopup(['userId' => $this->lepoUserId($card), 'amount' => $amount]);
+        } catch (LepoApiException $e) {
+            throw CardProviderException::providerUnavailable('lepo', $e->lepoCode());
+        }
+
+        $leg = is_array($quote['usdcToUsd'] ?? null) ? $quote['usdcToUsd'] : [];
+        $rate = $this->decimal($leg['rate'] ?? null);
+        if ($rate === null || bccomp($rate, '0', 8) !== 1) {
+            throw CardProviderException::providerUnavailable('lepo', 'NO_QUOTE');
+        }
+
+        $conversionFee = $this->decimal($leg['fee'] ?? null) ?? '0';
+        if (in_array(strtoupper((string) ($leg['feeCurrency'] ?? 'USD')), ['USDC', 'USDT'], true)) {
+            $conversionFee = bcmul($conversionFee, $rate, 8);
+        }
+
+        return [
+            'rate'              => $rate,
+            'conversion_fee'    => $conversionFee,
+            'topup_fee_percent' => $this->decimal($quote['topupfeepercent'] ?? null) ?? '0',
+            'topup_fee'         => $this->decimal($quote['topupfee'] ?? null) ?? '0',
+        ];
+    }
+
     private function lepoUserId(Card $card): string
     {
         $holder = $card->cardholder()->first();
@@ -291,22 +376,5 @@ final class LepoTopUps
         $text = is_string($value) || is_int($value) ? trim((string) $value) : '';
 
         return preg_match('/^-?\d+(\.\d+)?$/', $text) === 1 && is_numeric($text) ? bcadd($text, '0', 8) : null;
-    }
-
-    /**
-     * A non-negative amount rounded up to the cent.
-     *
-     * @param  numeric-string  $amount
-     * @return numeric-string
-     */
-    private static function centsUp(string $amount): string
-    {
-        $cents = bcmul($amount, '100', 8);
-        $whole = bcadd($cents, '0', 0);
-        if (bccomp($cents, $whole, 8) === 1) {
-            $whole = bcadd($whole, '1', 0);
-        }
-
-        return bcdiv($whole, '100', 2);
     }
 }

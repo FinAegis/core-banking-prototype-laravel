@@ -13875,7 +13875,7 @@
                     "Cards"
                 ],
                 "summary": "Card onboarding state for the current user",
-                "description": "In the steps kyc and kyc_action_required it returns `kyc_submitted` (true once the identity-check page reported a submission Lepo has not answered). In the steps funding_pending and ready it also returns `card` {id, status, last4} of the current card, or null. Whether cards are available, the provider, the next step (cardholder, kyc, kyc_review, kyc_action_required, kyc_rejected, funding_pending, ready), the identity-check method (hosted_url or sumsub_sdk) and the deposit networks [{network, asset, default}]. In the steps cardholder, kyc and kyc_action_required it also returns `form` {fields, options, prefill}: the whole cardholder form for a new user, or only the questionnaire while the answers can still be corrected. Field names are the request keys and the keys of 422 validation errors.",
+                "description": "At every step it returns `card_fees` {issuance_fee_cents, monthly_fee_cents, topup_fee_percent}: the one-time card fee and the monthly card fee in US cents, and the card-load fee as a percentage string (\"1.5\" is 1.5 %). It is null when the fees are not known, never a partial object. In the steps kyc and kyc_action_required it returns `kyc_submitted` (true once the identity-check page reported a submission Lepo has not answered). In the steps funding_pending and ready it also returns `card` {id, status, last4} of the current card, or null. Whether cards are available, the provider, the next step (cardholder, kyc, kyc_review, kyc_action_required, kyc_rejected, funding_pending, ready), the identity-check method (hosted_url or sumsub_sdk) and the deposit networks [{network, asset, default}]. In the steps cardholder, kyc and kyc_action_required it also returns `form` {fields, options, prefill}: the whole cardholder form for a new user, or only the questionnaire while the answers can still be corrected. Field names are the request keys and the keys of 422 validation errors.",
                 "operationId": "v1CardsOnboarding",
                 "responses": {
                     "200": {
@@ -13986,7 +13986,7 @@
                     "Cards"
                 ],
                 "summary": "Estimate a top-up",
-                "description": "Query: amount (USDC, decimal string) and network. Returns {amount, asset, network, credited_cents, fee_cents, issuance_fee_cents, min_amount, max_amount}.",
+                "description": "Query: amount (USDC, decimal string) and network. Returns {amount, asset, network, credited_cents, fee_cents, issuance_fee_cents, min_amount, max_amount}. min_amount is the smallest USDC amount that still leaves 5 USD on the card after the conversion fee and the load fee; on the first top-up also after the issuance fee and the first monthly fee. Read it from here; do not hard-code it.",
                 "operationId": "v1CardsTopUpEstimate",
                 "responses": {
                     "200": {
@@ -14026,7 +14026,7 @@
                     "Cards"
                 ],
                 "summary": "Start a top-up",
-                "description": "Body: {amount (USDC decimal string), asset: USDC, network}. Returns the top-up with the deposit address to send USDC to.",
+                "description": "Body: {amount (USDC decimal string), asset: USDC, network}. Returns the top-up with the deposit address to send USDC to. The amount must reach the same min_amount the estimate returns (it reads the live quote); below it the answer is ERR_CARDS_028 with that min_amount, and without a quote ERR_CARDS_016.",
                 "operationId": "v1CardsTopUpStart",
                 "responses": {
                     "201": {
@@ -14037,6 +14037,9 @@
                     },
                     "422": {
                         "description": "ERR_CARDS_028: amount outside the limits (with min_amount, max_amount); ERR_CARDS_029: network not supported"
+                    },
+                    "502": {
+                        "description": "ERR_CARDS_016: the quote for the minimum could not be read"
                     },
                     "503": {
                         "description": "ERR_CARDS_027: top-ups are not available yet"

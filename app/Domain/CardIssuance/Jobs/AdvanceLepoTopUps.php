@@ -47,9 +47,6 @@ final class AdvanceLepoTopUps implements ShouldQueue, ShouldBeUnique
 
     public int $uniqueFor = 300;
 
-    /** Deposits below this are address-poisoning dust, not top-ups. */
-    private const DUST = '1.00';
-
     public function __construct(public readonly ?string $lepoUserId = null)
     {
     }
@@ -135,11 +132,12 @@ final class AdvanceLepoTopUps implements ShouldQueue, ShouldBeUnique
     }
 
     /**
-     * @param  array{id: string, amount: string, network: string, address: string}  $deposit
+     * @param  array{id: string, amount: string, currency: string, network: string, address: string}  $deposit
      */
     private function external(Cardholder $holder, array $deposit): ?CardTopUp
     {
-        if (bccomp(LepoTopUps::number($deposit['amount']), self::DUST, 6) === -1) {
+        // The matcher drops dust already; this guards the money path anyway.
+        if (bccomp(LepoTopUps::number($deposit['amount']), LepoDepositMatcher::DUST, 6) === -1) {
             Log::info('Lepo dust deposit ignored', ['cardholder_id' => $holder->id, 'deposit_id' => $deposit['id']]);
 
             return null;
@@ -153,13 +151,19 @@ final class AdvanceLepoTopUps implements ShouldQueue, ShouldBeUnique
             ->first();
 
         $reason = null;
-        try {
-            $card ??= app(LepoCardLifecycle::class)->createPending($holder);
-        } catch (CardProviderException | LockTimeoutException) {
-            // No card can take it (for example the only card is blocked): the
-            // deposit is still recorded, without a card, for an operator.
-            $card = null;
-            $reason = 'NO_LOADABLE_CARD';
+        if ($deposit['currency'] !== LepoDepositMatcher::CURRENCY) {
+            // Only USDC is converted: any other currency is recorded for an
+            // operator, and no card is opened for it.
+            $reason = 'WRONG_CURRENCY';
+        } else {
+            try {
+                $card ??= app(LepoCardLifecycle::class)->createPending($holder);
+            } catch (CardProviderException | LockTimeoutException) {
+                // No card can take it (for example the only card is blocked): the
+                // deposit is still recorded, without a card, for an operator.
+                $card = null;
+                $reason = 'NO_LOADABLE_CARD';
+            }
         }
 
         $topup = new CardTopUp();
@@ -172,7 +176,7 @@ final class AdvanceLepoTopUps implements ShouldQueue, ShouldBeUnique
                     : CardFundingAccount::query()->where('cardholder_id', $holder->id)->value('id'),
                 'provider'            => 'lepo',
                 'source'              => CardTopUp::SOURCE_EXTERNAL,
-                'asset'               => 'USDC',
+                'asset'               => $deposit['currency'],
                 'network'             => $deposit['network'],
                 'amount'              => $deposit['amount'],
                 'received_amount'     => $deposit['amount'],

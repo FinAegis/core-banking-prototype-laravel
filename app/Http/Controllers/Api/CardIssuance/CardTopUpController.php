@@ -30,7 +30,7 @@ final class CardTopUpController extends Controller
     {
     }
 
-    #[OA\Get(path: '/api/v1/cards/issued/{card}/topups/estimate', operationId: 'v1CardsTopUpEstimate', tags: ['Cards'], summary: 'Estimate a top-up', description: 'Query: amount (USDC, decimal string) and network. Returns {amount, asset, network, credited_cents, fee_cents, issuance_fee_cents, min_amount, max_amount}.', security: [['sanctum' => []]])]
+    #[OA\Get(path: '/api/v1/cards/issued/{card}/topups/estimate', operationId: 'v1CardsTopUpEstimate', tags: ['Cards'], summary: 'Estimate a top-up', description: 'Query: amount (USDC, decimal string) and network. Returns {amount, asset, network, credited_cents, fee_cents, issuance_fee_cents, min_amount, max_amount}. min_amount is the smallest USDC amount that still leaves 5 USD on the card after the conversion fee and the load fee; on the first top-up also after the issuance fee and the first monthly fee. Read it from here; do not hard-code it.', security: [['sanctum' => []]])]
     #[OA\Response(response: 200, description: 'Estimate')]
     #[OA\Response(response: 503, description: 'ERR_CARDS_027: top-ups are not available yet')]
     public function estimate(Request $request, string $card): JsonResponse
@@ -62,10 +62,11 @@ final class CardTopUpController extends Controller
         });
     }
 
-    #[OA\Post(path: '/api/v1/cards/issued/{card}/topups', operationId: 'v1CardsTopUpStart', tags: ['Cards'], summary: 'Start a top-up', description: 'Body: {amount (USDC decimal string), asset: USDC, network}. Returns the top-up with the deposit address to send USDC to.', security: [['sanctum' => []]])]
+    #[OA\Post(path: '/api/v1/cards/issued/{card}/topups', operationId: 'v1CardsTopUpStart', tags: ['Cards'], summary: 'Start a top-up', description: 'Body: {amount (USDC decimal string), asset: USDC, network}. Returns the top-up with the deposit address to send USDC to. The amount must reach the same min_amount the estimate returns (it reads the live quote); below it the answer is ERR_CARDS_028 with that min_amount, and without a quote ERR_CARDS_016.', security: [['sanctum' => []]])]
     #[OA\Response(response: 201, description: 'Top-up {id, card_id, source, status, amount, asset, network, deposit_address, tx_hash, credited_cents, fee_cents, issuance_fee_cents, expires_at, created_at, completed_at}')]
     #[OA\Response(response: 409, description: 'ERR_CARDS_030: card cannot be topped up; ERR_CARDS_031: another top-up is in progress')]
     #[OA\Response(response: 422, description: 'ERR_CARDS_028: amount outside the limits (with min_amount, max_amount); ERR_CARDS_029: network not supported')]
+    #[OA\Response(response: 502, description: 'ERR_CARDS_016: the quote for the minimum could not be read')]
     #[OA\Response(response: 503, description: 'ERR_CARDS_027: top-ups are not available yet')]
     public function store(Request $request, string $card): JsonResponse
     {
@@ -150,7 +151,7 @@ final class CardTopUpController extends Controller
         } catch (CardProviderException $e) {
             return match ($e->reason()) {
                 'topups_disabled'     => ErrorResponse::make('ERR_CARDS_027'),
-                'amount_out_of_range' => ErrorResponse::make('ERR_CARDS_028', null, ['min_amount' => LepoTopUps::minimum(), 'max_amount' => LepoTopUps::maximum()]),
+                'amount_out_of_range' => ErrorResponse::make('ERR_CARDS_028', null, ['min_amount' => $e->minimum() ?? LepoTopUps::minimum(), 'max_amount' => LepoTopUps::maximum()]),
                 'network_unsupported' => ErrorResponse::make('ERR_CARDS_029'),
                 'card_unavailable'    => ErrorResponse::make('ERR_CARDS_030'),
                 'topup_in_progress'   => ErrorResponse::make('ERR_CARDS_031'),
