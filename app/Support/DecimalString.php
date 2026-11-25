@@ -22,6 +22,10 @@ use Brick\Math\RoundingMode;
  * toMinorUnits() turns such a value into the minor units of an asset
  * (cents for a 2-decimal currency) and refuses, rather than rounds, a value
  * with more decimals than the asset has.
+ *
+ * toHundredthsRoundedUp() is the unit that amount caps count in (the
+ * transaction rate limiter and the API key money limits): the value times
+ * 100, rounded up, whatever the asset.
  */
 final class DecimalString
 {
@@ -86,6 +90,35 @@ final class DecimalString
         }
 
         return (int) $minor;
+    }
+
+    /**
+     * Counts an untrusted major-unit amount in hundredths of its unit, exact
+     * and rounded up (towards positive infinity), whatever the asset: 128.14
+     * is "12814", 1 is "100", 0.001 is "1". The value is first truncated to
+     * 30 decimals like fromNumeric(). Returns null when the value is not a
+     * finite, well-formed number. Callers decide what zero and negative
+     * amounts mean.
+     *
+     * @return numeric-string|null
+     */
+    public static function toHundredthsRoundedUp(mixed $value): ?string
+    {
+        $amount = self::fromNumeric($value, 30);
+
+        if ($amount === null) {
+            return null;
+        }
+
+        $hundredths = bcmul($amount, '100', 30);
+        $whole = bcadd($hundredths, '0', 0);
+
+        if (bccomp($hundredths, $whole, 30) === 0 || bccomp($hundredths, '0', 30) < 0) {
+            // Exact, or negative (truncation already rounded it up).
+            return $whole;
+        }
+
+        return bcadd($whole, '1', 0);
     }
 
     private static function parse(mixed $value): ?BigDecimal

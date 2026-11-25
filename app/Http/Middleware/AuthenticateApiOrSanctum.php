@@ -11,6 +11,13 @@ use Symfony\Component\HttpFoundation\Response;
 class AuthenticateApiOrSanctum
 {
     /**
+     * Request attribute that holds the ApiKey when the request was
+     * authenticated by an API key. EnforceApiKeyMoneyLimits reads it; it is
+     * never set for Sanctum (app) sign-ins.
+     */
+    public const API_KEY_ATTRIBUTE = 'authenticated_api_key';
+
+    /**
      * Handle an incoming request.
      *
      * @param  Closure(Request): (Response)  $next
@@ -87,6 +94,8 @@ class AuthenticateApiOrSanctum
 
         // Record usage
         $apiKey->recordUsage($request->ip());
+
+        $request->attributes->set(self::API_KEY_ATTRIBUTE, $apiKey);
 
         // Set the user resolver
         $request->setUserResolver(

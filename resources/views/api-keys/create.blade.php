@@ -144,6 +144,8 @@
                     @enderror
                 </div>
 
+                @include('api-keys.partials.money-limits')
+
                 <!-- Security Notice -->
                 <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                     <div class="flex">

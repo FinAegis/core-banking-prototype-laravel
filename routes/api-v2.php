@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V2\FinancialInstitutionController;
 use App\Http\Controllers\Api\V2\GCUController;
 use App\Http\Controllers\Api\V2\PublicApiController;
 use App\Http\Controllers\Api\V2\WebhookController;
+use App\Http\Middleware\EnforceApiKeyMoneyLimits;
 use App\Infrastructure\Domain\DomainManager;
 use Illuminate\Support\Facades\Route;
 
@@ -116,6 +117,11 @@ Route::middleware(['auth.api_or_sanctum:read'])->group(function () {
     // 5xx, so a retry replays the first response instead of running again.
     // Requests without the header are not affected. It runs before the
     // transaction rate limiter, so a replay does not count as a new transfer.
+    //
+    // Every route that moves money also carries EnforceApiKeyMoneyLimits,
+    // after `idempotency` and the write check: a request signed with an API
+    // key must stay within the key's per-transfer and daily limits and may
+    // only move money from the owner's (pinned) accounts.
 
     // User profile endpoint
     Route::get('/profile', function (Illuminate\Http\Request $request) {
@@ -155,8 +161,8 @@ Route::middleware(['auth.api_or_sanctum:read'])->group(function () {
 
         // Multi-asset operations
         Route::get('/{uuid}/balances', [App\Http\Controllers\Api\AccountBalanceController::class, 'show']);
-        Route::post('/{uuid}/deposit', [App\Http\Controllers\Api\TransactionController::class, 'deposit'])->middleware(['feature:ledger.direct_funding_enabled', 'idempotency', 'auth.api_or_sanctum:write']);
-        Route::post('/{uuid}/withdraw', [App\Http\Controllers\Api\TransactionController::class, 'withdraw'])->middleware(['feature:ledger.direct_funding_enabled', 'idempotency', 'auth.api_or_sanctum:write']);
+        Route::post('/{uuid}/deposit', [App\Http\Controllers\Api\TransactionController::class, 'deposit'])->middleware(['feature:ledger.direct_funding_enabled', 'idempotency', 'auth.api_or_sanctum:write', EnforceApiKeyMoneyLimits::on(EnforceApiKeyMoneyLimits::ACCOUNT)]);
+        Route::post('/{uuid}/withdraw', [App\Http\Controllers\Api\TransactionController::class, 'withdraw'])->middleware(['feature:ledger.direct_funding_enabled', 'idempotency', 'auth.api_or_sanctum:write', EnforceApiKeyMoneyLimits::on(EnforceApiKeyMoneyLimits::ACCOUNT)]);
         Route::get('/{uuid}/transactions', [App\Http\Controllers\Api\TransactionController::class, 'history']);
         Route::get('/{uuid}/transfers', [App\Http\Controllers\Api\TransferController::class, 'history']);
 
@@ -164,8 +170,8 @@ Route::middleware(['auth.api_or_sanctum:read'])->group(function () {
         if (! DomainManager::isDisabledByConfig('Basket')) {
             Route::prefix('{uuid}/baskets')->group(function () {
                 Route::get('/', [App\Http\Controllers\Api\BasketAccountController::class, 'getBasketHoldings']);
-                Route::post('/decompose', [App\Http\Controllers\Api\BasketAccountController::class, 'decompose'])->middleware(['idempotency', 'auth.api_or_sanctum:write']);
-                Route::post('/compose', [App\Http\Controllers\Api\BasketAccountController::class, 'compose'])->middleware(['idempotency', 'auth.api_or_sanctum:write']);
+                Route::post('/decompose', [App\Http\Controllers\Api\BasketAccountController::class, 'decompose'])->middleware(['idempotency', 'auth.api_or_sanctum:write', EnforceApiKeyMoneyLimits::on(EnforceApiKeyMoneyLimits::BASKET)]);
+                Route::post('/compose', [App\Http\Controllers\Api\BasketAccountController::class, 'compose'])->middleware(['idempotency', 'auth.api_or_sanctum:write', EnforceApiKeyMoneyLimits::on(EnforceApiKeyMoneyLimits::BASKET)]);
             });
         }
     });
@@ -186,7 +192,7 @@ Route::middleware(['auth.api_or_sanctum:read'])->group(function () {
 
     // Transfers
     Route::prefix('transfers')->group(function () {
-        Route::post('/', [App\Http\Controllers\Api\TransferController::class, 'store'])->middleware(['idempotency', 'transaction.rate_limit:transfer', 'auth.api_or_sanctum:write']);
+        Route::post('/', [App\Http\Controllers\Api\TransferController::class, 'store'])->middleware(['idempotency', 'transaction.rate_limit:transfer', 'auth.api_or_sanctum:write', EnforceApiKeyMoneyLimits::on(EnforceApiKeyMoneyLimits::TRANSFER)]);
         Route::get('/{uuid}', [App\Http\Controllers\Api\TransferController::class, 'show']);
     });
 
@@ -230,7 +236,9 @@ Route::middleware(['auth.api_or_sanctum:read'])->group(function () {
 
             // Balances and transfers
             Route::get('/balance/aggregate', [BankIntegrationController::class, 'getAggregatedBalance']);
-            Route::post('/transfer', [BankIntegrationController::class, 'initiateTransfer'])->middleware(['idempotency', 'transaction.rate_limit:transfer']);
+            // Moves money, so it needs write permission like the other
+            // money routes (the group only checks read).
+            Route::post('/transfer', [BankIntegrationController::class, 'initiateTransfer'])->middleware(['idempotency', 'transaction.rate_limit:transfer', 'auth.api_or_sanctum:write', EnforceApiKeyMoneyLimits::on(EnforceApiKeyMoneyLimits::BANK)]);
         });
     }
 });

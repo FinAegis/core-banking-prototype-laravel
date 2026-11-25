@@ -336,10 +336,7 @@ class TransactionRateLimitMiddleware
                 return null;
             }
 
-            $hundredths = bcmul($amount, '100', 30);
-            $whole = bcadd($hundredths, '0', 0);
-
-            return bccomp($hundredths, $whole, 30) === 0 ? $whole : bcadd($whole, '1', 0);
+            return DecimalString::toHundredthsRoundedUp($amount);
         }
 
         return null;
