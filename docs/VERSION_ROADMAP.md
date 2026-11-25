@@ -3252,6 +3252,18 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 
 ---
 
+## Version 7.18.6 — Backups Off the Server, Limits for API Keys (November 2026)
+
+**Theme**: The nightly database backup leaves the server encrypted, API keys move money only within their owner's limits, and the demo AI endpoints are closed in production.
+
+### Delivered Features
+- **Off-server encrypted backups:** a dedicated S3-compatible disk, an archive password, and a deploy check that blocks backups which would stay on the server (#1282).
+- **API key money limits:** a per-transfer limit, a daily limit and account pinning, set by the key's owner (#1280).
+- **AI endpoints closed in production:** template-only endpoints answer 404, and AI demo mode is off by default (#1279).
+- **Dependency advisories cleared:** passkey verification libraries updated (#1283).
+
+---
+
 ## Version 7.18.5 — Password Sign-in Off, Money Back From a Card (November 2026)
 
 **Theme**: Password sign-in is off in production without locking out admins, and the code for sending money from a card back to the user's own wallet is in place behind a switch.
@@ -3543,5 +3555,5 @@ Embeddable JS widget that renders Zelta's 402 payment flow inside the partner's 
 
 ---
 
-*Document Version: 7.18.5*
-*Updated: November 25, 2026 (v7.18.5 password sign-in off in production, card withdrawals behind a switch)*
+*Document Version: 7.18.6*
+*Updated: November 26, 2026 (v7.18.6 off-server encrypted backups, API key money limits, AI endpoints closed in production)*

@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Changelog | ' . config('brand.name', 'Zelta'),
-        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.18.5.',
+        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.18.6.',
         'keywords' => 'changelog, release notes, updates, ' . config('brand.name', 'Zelta') . ', version history, core banking',
     ])
 
@@ -43,6 +43,19 @@
 
             @php
                 $releases = [
+                    [
+                        'version' => 'v7.18.6',
+                        'date' => 'November 26, 2026',
+                        'label' => 'Safer Backups and Keys',
+                        'label_color' => 'slate',
+                        'badge_color' => 'bg-slate-100 text-slate-700 border-slate-200',
+                        'dot_color' => 'bg-slate-500',
+                        'items' => [
+                            'Backups are kept away from the server. Every night we encrypt a copy of the database and store it with a separate provider.',
+                            'API keys have spending limits. You can set how much a key may move in one payment and in one day, and which accounts it may use.',
+                            'Unused test features are switched off. Parts of the service that only gave sample answers no longer respond on zelta.app.',
+                        ],
+                    ],
                     [
                         'version' => 'v7.18.5',
                         'date' => 'November 25, 2026',

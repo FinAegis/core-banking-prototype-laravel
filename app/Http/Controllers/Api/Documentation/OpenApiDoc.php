@@ -8,7 +8,7 @@ use OpenApi\Attributes as OA;
 // then run `php artisan l5-swagger:generate` and commit the regenerated
 // storage/api-docs/api-docs.json — CI's "OpenAPI Drift Check" fails otherwise.
 #[OA\Info(
-    version: '7.18.5',
+    version: '7.18.6',
     title: 'Zelta API',
     description: 'Open-source core banking software API — non-custodial wallet, card-issuing integration adapters, ISO 20022, Open Banking, US Payment Rails, Interledger, and Microfinance modules. Built with Laravel 12, featuring 61 DDD domains, event sourcing, CQRS, and privacy-preserving architecture. Integration adapters for third-party APIs; no partnership or endorsement implied.',
     contact: new OA\Contact(email: 'support@finaegis.org', name: 'Zelta Support'),

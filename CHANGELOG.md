@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 >
 > Entries below describe software changes. Named third-party providers are integration adapters for third-party APIs; no partnership or endorsement implied. Mentions of the Global Currency Unit (GCU) refer to a software demonstration that is not issued, offered or sold to anyone and has no monetary value.
 
+## [7.18.6] - 2026-11-26
+
+**Backups off the server, and limits for API keys.** Every night the database backup is now encrypted and sent to storage outside the server. API keys can only move money within limits that their owner sets. The demo AI endpoints are closed in production, and the passkey libraries are updated.
+
+### Security
+- The `api/ai/*` endpoints answer 404 in production. They only ever returned template answers, and no Zelta client used them. `AI_DEMO_MODE` is off by default in production. A route hidden in production now answers 404 before authentication, so a guest cannot tell it exists (#1279).
+- API keys have three money controls (#1280):
+  - a per-transfer limit, 1,000 by default;
+  - a daily limit, 5,000 by default;
+  - an optional list of accounts the key may use.
+  
+  The owner sets them on the key's page, up to a ceiling of 50,000. Refusals use `API_KEY_ACCOUNT_NOT_ALLOWED` (403), `API_KEY_TRANSFER_LIMIT_EXCEEDED` and `API_KEY_DAILY_LIMIT_EXCEEDED` (422). Starting a bank transfer with an API key now needs write permission.
+- The passkey verification libraries and `league/csv` are updated, which clears all 41 published advisories (#1283).
+
+### Changed
+- Nightly backups go to a dedicated S3-compatible `backups` disk with its own credentials. Each dump is encrypted with `BACKUP_ARCHIVE_PASSWORD` before upload. `ops:verify-env` blocks a production deploy in three cases: the backups would stay on the server, the storage credentials are missing, or the archive password is empty (#1282).
+
 ## [7.18.5] - 2026-11-25
 
 **Password sign-in off, and money back from a card.** Password sign-in can now be switched off, and it is off by default in production, because everyone signs in with Privy. Admins keep their access through the email code. The code for sending money from a virtual card back to the user's own wallet is in place. It stays switched off until it is tested with the card partner.
