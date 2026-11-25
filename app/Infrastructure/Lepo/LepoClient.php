@@ -172,18 +172,21 @@ final class LepoClient
     }
 
     /**
-     * Converts a crypto balance into the user's USD funding balance.
+     * Converts a crypto balance into the user's USD funding balance. The
+     * idempotency key (a UUID per conversion) is sent as a header so that a
+     * repeated call can return the first conversion. It is a best-effort
+     * extra: callers must not rely on it and must reconcile unclear results.
      *
      * @param  numeric-string  $amount
      * @return array<string, mixed>
      */
-    public function convertCryptoToUsd(string $userId, string $sourceCurrency, string $amount): array
+    public function convertCryptoToUsd(string $userId, string $sourceCurrency, string $amount, string $idempotencyKey): array
     {
         return $this->write('POST', '/transfers/crypto-to-quantum-transfer', [], [
             'sourceCurrency'      => $sourceCurrency,
             'destinationCurrency' => 'USD',
             'amount'              => $amount,
-        ], ['userId' => $userId]);
+        ], ['userId' => $userId], $idempotencyKey);
     }
 
     /**
@@ -254,19 +257,22 @@ final class LepoClient
     }
 
     /**
-     * Loads the card from the user's funding balance.
+     * Loads the card from the user's funding balance. The idempotency key (a
+     * UUID per card load) is sent as a header so that a repeated call can
+     * return the first load. It is a best-effort extra: callers must not rely
+     * on it and must reconcile unclear results.
      *
      * @param  numeric-string  $value
      * @return array<string, mixed>
      */
-    public function topUpCard(string $cardId, string $value, ?string $token = null): array
+    public function topUpCard(string $cardId, string $value, string $idempotencyKey, ?string $token = null): array
     {
         $body = ['cardId' => $cardId, 'value' => $value];
         if ($token !== null) {
             $body['token'] = $token;
         }
 
-        return $this->write('POST', '/cards/topup', [], $body);
+        return $this->write('POST', '/cards/topup', [], $body, [], $idempotencyKey);
     }
 
     /**
@@ -312,9 +318,14 @@ final class LepoClient
      * @param  array<string, scalar>  $query
      * @return array<string, mixed>
      */
-    private function write(string $method, string $template, array $params = [], array $body = [], array $query = []): array
+    private function write(string $method, string $template, array $params = [], array $body = [], array $query = [], ?string $idempotencyKey = null): array
     {
-        return $this->send($this->http(), $method, $template, $params, $body, $query);
+        $request = $this->http();
+        if ($idempotencyKey !== null) {
+            $request = $request->withHeaders(['Idempotency-Key' => $idempotencyKey]);
+        }
+
+        return $this->send($request, $method, $template, $params, $body, $query);
     }
 
     /**

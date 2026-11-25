@@ -104,7 +104,7 @@ it('retries idempotent reads but not writes', function (): void {
     expect(LepoClient::fromConfig()->getCryptoAddresses('u1'))->toBe(['userId' => 'u1', 'addresses' => []])
         ->and($reads)->toBe(2);
 
-    expect(fn () => LepoClient::fromConfig()->topUpCard('c1', '10.00'))->toThrow(LepoApiException::class);
+    expect(fn () => LepoClient::fromConfig()->topUpCard('c1', '10.00', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'))->toThrow(LepoApiException::class);
     expect($writes)->toBe(1);
 });
 
@@ -119,7 +119,7 @@ it('refuses to call out without an api key', function (): void {
 it('raises when a successful response is not json', function (): void {
     Http::fake(['lepo.test/*' => Http::response('<html>proxy page</html>', 200, ['Content-Type' => 'text/html'])]);
 
-    expect(fn () => LepoClient::fromConfig()->topUpCard('c1', '10.00'))->toThrow(LepoApiException::class);
+    expect(fn () => LepoClient::fromConfig()->topUpCard('c1', '10.00', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'))->toThrow(LepoApiException::class);
 });
 
 it('accepts an empty successful response', function (): void {
@@ -163,4 +163,17 @@ it('returns null when no user has our external id', function (): void {
     Http::fake(['lepo.test/*' => Http::response(['users' => [], 'total' => 0])]);
 
     expect(LepoClient::fromConfig()->findUserByExternalId('ext-2'))->toBeNull();
+});
+
+it('sends the idempotency key on the conversion and the card load, and on nothing else', function (): void {
+    Http::fake(['lepo.test/*' => Http::response(['success' => true])]);
+    $client = LepoClient::fromConfig();
+
+    $client->convertCryptoToUsd('u1', 'USDC', '25.000000', '11111111-1111-4111-8111-111111111111');
+    $client->topUpCard('c1', '10.00', '22222222-2222-4222-8222-222222222222', 'USD');
+    $client->getAssets('u1');
+
+    Http::assertSent(fn (Request $r): bool => str_contains($r->url(), 'crypto-to-quantum-transfer') && $r->header('Idempotency-Key') === ['11111111-1111-4111-8111-111111111111']);
+    Http::assertSent(fn (Request $r): bool => str_ends_with($r->url(), '/cards/topup') && $r->header('Idempotency-Key') === ['22222222-2222-4222-8222-222222222222']);
+    Http::assertSent(fn (Request $r): bool => str_contains($r->url(), '/assets') && ! $r->hasHeader('Idempotency-Key'));
 });

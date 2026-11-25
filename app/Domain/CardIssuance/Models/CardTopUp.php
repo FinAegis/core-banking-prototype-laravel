@@ -34,6 +34,8 @@ use Illuminate\Support\Carbon;
  * @property string|null $provider_deposit_id
  * @property string|null $provider_conversion_id
  * @property string|null $provider_load_id
+ * @property string|null $conversion_idempotency_key sent with the conversion; saved before the call
+ * @property string|null $load_idempotency_key sent with the card load; saved before the call
  * @property Carbon|null $step_started_at
  * @property Carbon|null $conversion_requested_at
  * @property Carbon|null $converted_at
@@ -80,7 +82,7 @@ class CardTopUp extends Model
     protected $fillable = [
         'user_id', 'card_id', 'funding_account_id', 'provider', 'source', 'asset', 'network', 'amount', 'received_amount',
         'deposit_address', 'tx_hash', 'status', 'credited_cents', 'fee_cents', 'issuance_fee_cents', 'provider_deposit_id',
-        'provider_conversion_id', 'provider_load_id', 'step_started_at', 'conversion_requested_at', 'converted_at', 'last_error', 'expires_at', 'completed_at',
+        'provider_conversion_id', 'provider_load_id', 'conversion_idempotency_key', 'load_idempotency_key', 'step_started_at', 'conversion_requested_at', 'converted_at', 'last_error', 'expires_at', 'completed_at',
     ];
 
     protected function casts(): array

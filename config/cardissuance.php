@@ -138,6 +138,15 @@ return [
             'card_type_id_virtual' => env('LEPO_CARD_TYPE_ID_VIRTUAL'),
             'tier_id'              => env('LEPO_TIER_ID'),
             'timeout_seconds'      => (int) env('LEPO_TIMEOUT_SECONDS', 15),
+            // The card's fees, shown to the app at onboarding and used for the
+            // top-up minimum: a one-time issuance fee and a monthly fee (USD
+            // cents, both taken by the provider) and the card-load fee as a
+            // fraction of the loaded amount (0.015 = 1.5 %).
+            'fees' => [
+                'issuance_fee_cents' => (int) env('LEPO_CARD_ISSUANCE_FEE_CENTS', 100),
+                'monthly_fee_cents'  => (int) env('LEPO_CARD_MONTHLY_FEE_CENTS', 100),
+                'topup_fee_fraction' => (string) env('LEPO_CARD_TOPUP_FEE_FRACTION', '0.015'),
+            ],
             // Interlace Widget.js for the card-details page (staging:
             // https://staging-static.univisioncard.com/api/sdk/card/1.0.0/index.min.js).
             'widget_script_url' => env('LEPO_WIDGET_SCRIPT_URL') ?: 'https://static.univisioncard.com/api/sdk/card/1.0.0/index.min.js',
