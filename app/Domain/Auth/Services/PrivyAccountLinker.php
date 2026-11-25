@@ -69,7 +69,7 @@ final class PrivyAccountLinker
 
         $user = $this->findByPrivyId($privyUserId);
         if ($user instanceof User) {
-            return $user;
+            return $this->markEmailVerified($user);
         }
 
         // An erased account's address is never matched or claimed.
@@ -89,7 +89,7 @@ final class PrivyAccountLinker
             // inserted its row first. Use that row instead of failing.
             $user = $this->findByPrivyId($privyUserId);
             if ($user instanceof User) {
-                return $user;
+                return $this->markEmailVerified($user);
             }
 
             $matches = $this->findByEmail($email);
@@ -99,6 +99,30 @@ final class PrivyAccountLinker
 
             throw $e;
         }
+    }
+
+    /**
+     * A returning Privy identity has just proved its email address through
+     * Privy. Accounts linked before the linker set email_verified_at (or made
+     * by older code) still have it NULL; fill it once, keeping an earlier
+     * verification time. The update only touches a NULL column, so
+     * concurrent sign-ins cannot overwrite each other.
+     */
+    private function markEmailVerified(User $user): User
+    {
+        if ($user->email_verified_at !== null) {
+            return $user;
+        }
+
+        $now = now();
+        User::query()
+            ->whereKey($user->getKey())
+            ->whereNull('email_verified_at')
+            ->update(['email_verified_at' => $now]);
+
+        $user->forceFill(['email_verified_at' => $now])->syncOriginalAttribute('email_verified_at');
+
+        return $user;
     }
 
     private function findByPrivyId(string $privyUserId): ?User

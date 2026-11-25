@@ -43,6 +43,10 @@ return [
             // middleware, this delegates auth and permission checks to the field level.
             Nuwave\Lighthouse\Http\Middleware\AttemptAuthentication::class,
 
+            // A signed-in account with an unverified email is refused while
+            // AUTH_REQUIRE_VERIFIED_EMAIL is on.
+            App\Http\Middleware\EnsureVerifiedEmail::class,
+
             // GraphQL-specific rate limiting (separate from REST API rate limits).
             App\Http\Middleware\GraphQLRateLimitMiddleware::class,
 
@@ -235,9 +239,12 @@ return [
     */
 
     'security' => [
-        'max_query_complexity'  => env('LIGHTHOUSE_MAX_QUERY_COMPLEXITY', 200),
-        'max_query_depth'       => env('LIGHTHOUSE_MAX_QUERY_DEPTH', 10),
-        'disable_introspection' => (bool) env('LIGHTHOUSE_SECURITY_DISABLE_INTROSPECTION', false)
+        'max_query_complexity' => env('LIGHTHOUSE_MAX_QUERY_COMPLEXITY', 200),
+        'max_query_depth'      => env('LIGHTHOUSE_MAX_QUERY_DEPTH', 10),
+        // Introspection publishes the whole schema. Off by default for every
+        // APP_ENV except local, testing and demo (production included); an
+        // explicit LIGHTHOUSE_SECURITY_DISABLE_INTROSPECTION value wins.
+        'disable_introspection' => (bool) env('LIGHTHOUSE_SECURITY_DISABLE_INTROSPECTION', ! in_array(env('APP_ENV', 'production'), ['local', 'testing', 'demo'], true))
             ? GraphQL\Validator\Rules\DisableIntrospection::ENABLED
             : GraphQL\Validator\Rules\DisableIntrospection::DISABLED,
     ],

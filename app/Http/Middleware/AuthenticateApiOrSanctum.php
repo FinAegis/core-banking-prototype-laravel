@@ -80,6 +80,11 @@ class AuthenticateApiOrSanctum
             );
         }
 
+        // The key's owner must have a verified email (AUTH_REQUIRE_VERIFIED_EMAIL).
+        if (EnsureVerifiedEmail::refuses($apiKey->user)) {
+            return EnsureVerifiedEmail::refusal();
+        }
+
         // Record usage
         $apiKey->recordUsage($request->ip());
 
@@ -113,6 +118,10 @@ class AuthenticateApiOrSanctum
                         ],
                         401
                     );
+                }
+
+                if (EnsureVerifiedEmail::refuses(auth('sanctum')->user())) {
+                    return EnsureVerifiedEmail::refusal();
                 }
 
                 // Set the authenticated user on the request

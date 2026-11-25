@@ -67,6 +67,11 @@ class AuthenticateApiKey
             );
         }
 
+        // The key's owner must have a verified email (AUTH_REQUIRE_VERIFIED_EMAIL).
+        if (EnsureVerifiedEmail::refuses($apiKey->user)) {
+            return EnsureVerifiedEmail::refusal();
+        }
+
         // Record usage
         $apiKey->recordUsage($request->ip());
 

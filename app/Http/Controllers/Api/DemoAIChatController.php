@@ -26,7 +26,7 @@ class DemoAIChatController extends Controller
             operationId: 'demoAiChat',
             tags: ['Demo AI Chat'],
             summary: 'Send a message to the demo AI agent',
-            description: 'Public endpoint for demo AI chat. No authentication required. Rate limited to 60 requests/minute.',
+            description: 'Public endpoint for demo AI chat on demo deployments. No authentication required. Rate limited to 60 requests/minute. Answers 404 in production.',
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['message'], properties: [
             new OA\Property(property: 'message', type: 'string', maxLength: 500, example: 'What is my account balance?'),
             ]))

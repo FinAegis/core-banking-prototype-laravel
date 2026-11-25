@@ -31,9 +31,9 @@ Route::prefix('ai')->middleware(['auth:sanctum', 'api.rate_limit:private'])->gro
     });
 });
 
-// Demo AI chat endpoint (public, rate-limited)
+// Demo AI chat endpoint (public, rate-limited). Demo only: 404 in production.
 Route::post('/demo/ai-chat', [DemoAIChatController::class, 'chat'])
-    ->middleware('throttle:60,1')
+    ->middleware(['not.production', 'throttle:60,1'])
     ->name('api.demo.ai.chat');
 
 // AGENTS.md Discovery endpoints (public for AI tools)

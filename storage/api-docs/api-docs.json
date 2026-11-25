@@ -7173,7 +7173,7 @@
                         }
                     },
                     "403": {
-                        "description": "Registration closed (ERR_REG_001, REGISTRATION_API_ENABLED=false) or invite-only without a pending invitation for this email and its invitation_token (ERR_REG_002)",
+                        "description": "Registration closed (ERR_REG_001, REGISTRATION_API_ENABLED=false or REGISTRATION_PASSWORD_API_ENABLED=false) or invite-only without a pending invitation for this email and its invitation_token (ERR_REG_002)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -20846,7 +20846,7 @@
                     "Demo AI Chat"
                 ],
                 "summary": "Send a message to the demo AI agent",
-                "description": "Public endpoint for demo AI chat. No authentication required. Rate limited to 60 requests/minute.",
+                "description": "Public endpoint for demo AI chat on demo deployments. No authentication required. Rate limited to 60 requests/minute. Answers 404 in production.",
                 "operationId": "demoAiChat",
                 "requestBody": {
                     "required": true,

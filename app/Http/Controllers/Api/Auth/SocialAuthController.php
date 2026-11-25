@@ -154,8 +154,9 @@ class SocialAuthController extends Controller
                     return response()->json(['message' => 'Authentication failed', 'error' => null], 400);
                 }
 
-                // New account: REGISTRATION_API_ENABLED / REGISTRATION_API_INVITE_ONLY.
-                $invitation = $registrationGate->admit($email);
+                // New account: REGISTRATION_API_ENABLED, REGISTRATION_PASSWORD_API_ENABLED
+                // (legacy non-Privy sign-up) and REGISTRATION_API_INVITE_ONLY.
+                $invitation = $registrationGate->admitLegacy($email);
 
                 // Create new user
                 $user = User::create(

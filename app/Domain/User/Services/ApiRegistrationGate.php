@@ -23,6 +23,16 @@ class ApiRegistrationGate
         return (bool) config('registration.api_enabled', false);
     }
 
+    /**
+     * Whether the legacy sign-ups that Privy does not verify (email and
+     * password, social login) may create an account. They need both
+     * REGISTRATION_API_ENABLED and REGISTRATION_PASSWORD_API_ENABLED.
+     */
+    public function isLegacyOpen(): bool
+    {
+        return $this->isOpen() && (bool) config('registration.password_api_enabled', false);
+    }
+
     public function isInviteOnly(): bool
     {
         return (bool) config('registration.api_invite_only', false);
@@ -39,6 +49,32 @@ class ApiRegistrationGate
         if (! $this->isOpen()) {
             throw RegistrationNotAllowedException::closed();
         }
+    }
+
+    /**
+     * Throw unless the legacy (non-Privy) sign-ups are enabled. Used before
+     * request validation, like {@see ensureOpen()}.
+     *
+     * @throws RegistrationNotAllowedException
+     */
+    public function ensureLegacyOpen(): void
+    {
+        if (! $this->isLegacyOpen()) {
+            throw RegistrationNotAllowedException::closed();
+        }
+    }
+
+    /**
+     * Admit a new account from a legacy social login: the legacy switch
+     * first, then the same rules as {@see admit()}.
+     *
+     * @throws RegistrationNotAllowedException
+     */
+    public function admitLegacy(string $email): ?UserInvitation
+    {
+        $this->ensureLegacyOpen();
+
+        return $this->admit($email);
     }
 
     /**
@@ -85,15 +121,15 @@ class ApiRegistrationGate
     }
 
     /**
-     * Admit a password sign-up. Its email address is only what the caller
-     * typed, so in invite-only mode the invitation token (from the
+     * Admit a password sign-up (legacy switch included). Its email address
+     * is only what the caller typed, so in invite-only mode the invitation token (from the
      * invitation link) must match a pending invitation for that email too.
      *
      * @throws RegistrationNotAllowedException
      */
     public function admitWithToken(string $email, ?string $invitationToken): ?UserInvitation
     {
-        $this->ensureOpen();
+        $this->ensureLegacyOpen();
 
         if (! $this->isInviteOnly()) {
             return null;
