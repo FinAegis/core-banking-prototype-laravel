@@ -247,3 +247,20 @@ it('shows a user\'s top-ups to the operator', function (): void {
     expect($exit)->toBe(0)
         ->and($output)->toContain($topup->id)->toContain('needs_attention')->toContain('LOAD_UNCLEAR')->toContain('verified');
 });
+
+it('records a deposit in another currency for an operator without converting it', function (): void {
+    [, $holder] = atHolder();
+    atLepo([['id' => 'dep-usdt', 'status' => 'COMPLETED', 'destination' => ['chain' => 'ARBITRUM', 'address' => AT_ADDRESS], 'amount' => ['amount' => 40.0, 'currency' => 'USDT']]]);
+
+    (new AdvanceLepoTopUps('12345'))->handle();
+
+    $row = CardTopUp::query()->where('provider_deposit_id', 'dep-usdt')->firstOrFail();
+    expect($row->status)->toBe('needs_attention')->and($row->last_error)->toBe('WRONG_CURRENCY')
+        ->and($row->asset)->toBe('USDT')->and($row->received_amount)->toBe('40.000000')
+        ->and(Card::query()->where('cardholder_id', $holder->id)->count())->toBe(0);
+    expect(collect(Http::recorded())->filter(fn (array $p): bool => str_contains($p[0]->url(), 'crypto-to-quantum'))->count())->toBe(0);
+});
+
+it('does not hold the user\'s other top-ups behind a deposit in another currency', function (): void {
+    expect(LepoTopUpPipeline::UNCLEAR)->not->toContain('WRONG_CURRENCY')->not->toContain('BELOW_CONVERSION_MINIMUM');
+});

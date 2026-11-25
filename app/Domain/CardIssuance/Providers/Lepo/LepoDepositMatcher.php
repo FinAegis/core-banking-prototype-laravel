@@ -13,19 +13,35 @@ use App\Infrastructure\Lepo\LepoApiException;
 use App\Infrastructure\Lepo\LepoClient;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Finds the USDC deposit that funds a top-up in Lepo's crypto transfers.
  *
- * A deposit counts only when Lepo reports it completed, it went to the
- * top-up's deposit address on the top-up's network, and it is USDC. With
- * the wallet's transaction hash the match is exact; without it, the amount
- * must be within 1% of the top-up (a deposit outside that is picked up as
- * an external deposit instead). One deposit never funds two top-ups.
+ * A deposit counts only when Lepo reports it completed (one still confirming
+ * on chain waits), it is a deposit, it is positive and not dust, and it went
+ * to the top-up's deposit address on the top-up's network. Zero-value and
+ * dust rows (address poisoning) are dropped before anything else sees them.
+ * A USDC deposit is credited; a deposit in any other currency is linked too,
+ * but sent to an operator (needs_attention) instead of being converted.
+ * With the wallet's transaction hash the match is exact; without it, the
+ * amount must be within 1% of the top-up (a deposit outside that is picked
+ * up as an external deposit instead). One deposit never funds two top-ups.
+ * The amount is what reached the wallet: fees are listed apart from it and
+ * nothing is subtracted.
  */
 final class LepoDepositMatcher
 {
     private const COMPLETED = ['completed', 'complete', 'success', 'succeeded'];
+
+    /** Row types that are an incoming crypto deposit (when a row names its type). */
+    private const DEPOSIT_TYPES = ['crypto_deposit', 'deposit'];
+
+    /** Deposits below this (USDC or any other currency) are address-poisoning dust. */
+    public const DUST = '1.00';
+
+    /** The only currency that is converted and loaded onto the card. */
+    public const CURRENCY = 'USDC';
 
     /** Amount tolerance when there is no transaction hash: 1%. */
     private const TOLERANCE = '0.01';
@@ -83,7 +99,10 @@ final class LepoDepositMatcher
      * Links the deposit with a conditional write, so a top-up cancelled at the
      * same moment, or a deposit another top-up claimed, is never overwritten.
      *
-     * @param  array{id: string, amount: numeric-string, network: string|null, address: string, hash: string|null}  $deposit
+     * A deposit in another currency is linked as well, so it is never picked
+     * up again, but it waits in needs_attention for an operator.
+     *
+     * @param  array{id: string, amount: numeric-string, currency: string, network: string|null, address: string, hash: string|null}  $deposit
      */
     private function claim(CardTopUp $topup, array $deposit): bool
     {
@@ -91,16 +110,19 @@ final class LepoDepositMatcher
             return false;
         }
 
+        $usdc = $deposit['currency'] === self::CURRENCY;
+
         try {
             $changed = CardTopUp::query()->whereKey($topup->id)
                 ->whereIn('status', [CardTopUp::STATUS_AWAITING_DEPOSIT, CardTopUp::STATUS_EXPIRED])
                 ->whereNull('provider_deposit_id')
                 ->update([
-                    'status'              => CardTopUp::STATUS_DEPOSIT_RECEIVED,
+                    'status'              => $usdc ? CardTopUp::STATUS_DEPOSIT_RECEIVED : CardTopUp::STATUS_NEEDS_ATTENTION,
+                    'asset'               => $deposit['currency'],
                     'provider_deposit_id' => $deposit['id'],
                     'received_amount'     => $deposit['amount'],
                     'step_started_at'     => null,
-                    'last_error'          => null,
+                    'last_error'          => $usdc ? null : 'WRONG_CURRENCY',
                     'updated_at'          => now(),
                 ]);
         } catch (UniqueConstraintViolationException) {
@@ -111,6 +133,10 @@ final class LepoDepositMatcher
             return false;
         }
 
+        if (! $usdc) {
+            Log::error('Lepo top-up needs attention', ['topup_id' => $topup->id, 'reason' => 'WRONG_CURRENCY']);
+        }
+
         $topup->refresh();
         $this->topups->announce($topup);
 
@@ -118,11 +144,12 @@ final class LepoDepositMatcher
     }
 
     /**
-     * Completed USDC deposits no top-up has claimed, to any address the
-     * cardholder was ever given (a retired address still belongs to them),
-     * since their funding account was opened, across all pages.
+     * Completed deposits no top-up has claimed, to any address the cardholder
+     * was ever given (a retired address still belongs to them), since their
+     * funding account was opened, across all pages. Deposits in another
+     * currency are listed too, with their currency, for an operator.
      *
-     * @return list<array{id: string, amount: string, network: string, address: string}>
+     * @return list<array{id: string, amount: string, currency: string, network: string, address: string}>
      */
     public function findUnmatched(Cardholder $cardholder, ?Carbon $since = null): array
     {
@@ -152,7 +179,7 @@ final class LepoDepositMatcher
         foreach ($rows as $deposit) {
             foreach ($addresses as $address) {
                 if ($this->isFor($deposit, $address->address, $address->network) && ! $this->linked($deposit['id'])) {
-                    $found[] = ['id' => $deposit['id'], 'amount' => $deposit['amount'], 'network' => $address->network, 'address' => $address->address];
+                    $found[] = ['id' => $deposit['id'], 'amount' => $deposit['amount'], 'currency' => $deposit['currency'], 'network' => $address->network, 'address' => $address->address];
 
                     break;
                 }
@@ -163,12 +190,14 @@ final class LepoDepositMatcher
     }
 
     /**
-     * Completed USDC transfers, normalised.
+     * Completed, positive deposits above dust, normalised. Everything else
+     * (still confirming, zero-value, dust, not a deposit, no currency) is
+     * dropped here, so it never reaches a top-up or the user.
      *
      * @param  array<string, scalar>  $filters
      * @param  int|null  $raw  set to the number of rows Lepo returned (for paging)
      * @param-out int  $raw
-     * @return list<array{id: string, amount: numeric-string, network: string|null, address: string, hash: string|null}>
+     * @return list<array{id: string, amount: numeric-string, currency: string, network: string|null, address: string, hash: string|null}>
      */
     private function deposits(string $userId, array $filters, ?int &$raw = null): array
     {
@@ -189,10 +218,14 @@ final class LepoDepositMatcher
             $destination = is_array($row['destination'] ?? null) ? $row['destination'] : [];
             $amount = is_array($row['amount'] ?? null) ? $row['amount'] : [];
             $value = $this->decimal($amount['amount'] ?? null);
+            $currency = strtoupper(trim(is_scalar($amount['currency'] ?? null) ? (string) $amount['currency'] : ''));
+            $type = is_scalar($row['type'] ?? null) ? strtolower(trim((string) $row['type'])) : '';
 
             if (
                 ! is_scalar($id) || (string) $id === '' || $value === null
-                || strtoupper((string) ($amount['currency'] ?? '')) !== 'USDC'
+                || bccomp($value, self::DUST, 6) === -1
+                || $currency === '' || strlen($currency) > 16
+                || ($type !== '' && ! in_array($type, self::DEPOSIT_TYPES, true))
                 || ! in_array(strtolower((string) ($row['status'] ?? '')), self::COMPLETED, true)
             ) {
                 continue;
@@ -203,11 +236,12 @@ final class LepoDepositMatcher
             $hash = $row['transactionHash'] ?? $row['txHash'] ?? $row['hash'] ?? $metadata['transaction_hash'] ?? null;
 
             $deposits[] = [
-                'id'      => (string) $id,
-                'amount'  => $value,
-                'network' => LepoCardOnboarding::NETWORKS[strtolower(trim((string) ($destination['chain'] ?? '')))] ?? null,
-                'address' => strtolower(trim((string) ($destination['address'] ?? ''))),
-                'hash'    => is_string($hash) && trim($hash) !== '' ? strtolower(trim($hash)) : null,
+                'id'       => (string) $id,
+                'amount'   => $value,
+                'currency' => $currency,
+                'network'  => LepoCardOnboarding::NETWORKS[strtolower(trim((string) ($destination['chain'] ?? '')))] ?? null,
+                'address'  => strtolower(trim((string) ($destination['address'] ?? ''))),
+                'hash'     => is_string($hash) && trim($hash) !== '' ? strtolower(trim($hash)) : null,
             ];
         }
 
@@ -215,7 +249,7 @@ final class LepoDepositMatcher
     }
 
     /**
-     * @param  array{id: string, amount: numeric-string, network: string|null, address: string, hash: string|null}  $deposit
+     * @param  array{id: string, amount: numeric-string, currency: string, network: string|null, address: string, hash: string|null}  $deposit
      */
     private function isFor(array $deposit, string $address, string $network): bool
     {
