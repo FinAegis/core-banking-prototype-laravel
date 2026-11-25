@@ -5,6 +5,7 @@ namespace App\Domain\Batch\Actions;
 use App\Domain\Batch\Events\BatchJobCancelled;
 use App\Domain\Batch\Models\BatchJob;
 use App\Domain\Batch\Models\BatchJobItem;
+use Illuminate\Support\Carbon;
 
 class CancelBatchJob
 {
@@ -21,7 +22,7 @@ class CancelBatchJob
         $batchJob->update(
             [
                 'status'       => 'cancelled',
-                'completed_at' => $event->cancelledAt,
+                'completed_at' => Carbon::parse($event->cancelledAt),
                 'metadata'     => array_merge(
                     $batchJob->metadata ?? [],
                     [
