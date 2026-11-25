@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Models\Account;
+use App\Domain\Asset\Models\Asset;
 use App\Domain\Custodian\Exceptions\CustodianNotAvailableException;
 use App\Domain\Custodian\Exceptions\CustodianNotFoundException;
 use App\Domain\Custodian\Models\CustodianAccount;
@@ -14,12 +15,14 @@ use App\Domain\Custodian\Models\CustodianTransfer;
 use App\Domain\Custodian\Services\CustodianRegistry;
 use App\Domain\Custodian\Workflows\CustodianTransferWorkflow;
 use App\Http\Controllers\Controller;
+use App\Support\DecimalString;
 use App\Support\SecretRedactor;
 use App\Support\StaffRoles;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
 use Workflow\WorkflowStub;
 
@@ -207,7 +210,7 @@ class CustodianController extends Controller
                         'account_id'        => $validated['account_id'],
                         'asset_code'        => $validated['asset_code'],
                         'balance'           => $balance->getAmount(),
-                        'formatted_balance' => number_format($balance->getAmount() / 100, 2),
+                        'formatted_balance' => $this->formatMinorUnits($balance->getAmount(), $this->precisionOf($validated['asset_code'])),
                     ],
                 ]
             );
@@ -275,6 +278,16 @@ class CustodianController extends Controller
             ]
         );
 
+        // Exact minor units of the asset. An amount with more decimals than
+        // the asset has is refused, not rounded.
+        $precision = $this->precisionOf($validated['asset_code']);
+        $amountMinor = DecimalString::toMinorUnitsInt($validated['amount'], $precision);
+        if ($amountMinor === null) {
+            throw ValidationException::withMessages([
+                'amount' => ["The amount can have at most {$precision} decimal places for {$validated['asset_code']}."],
+            ]);
+        }
+
         // Only the owner of the internal account may move funds in or out of it
         // (same response as the REST account endpoints).
         if (Account::findOwnedBy($validated['internal_account_uuid'], $request->user()) === null) {
@@ -326,7 +339,7 @@ class CustodianController extends Controller
                 new AccountUuid($validated['internal_account_uuid']),
                 $validated['custodian_account_id'],
                 $validated['asset_code'],
-                new Money((int) ($validated['amount'] * 100)),
+                new Money($amountMinor),
                 $custodian,
                 $validated['direction'],
                 $validated['reference'] ?? null
@@ -337,7 +350,7 @@ class CustodianController extends Controller
                 'status'         => 'completed',
                 'transaction_id' => 'mock-tx-' . uniqid(),
                 'direction'      => $validated['direction'],
-                'amount'         => (int) ($validated['amount'] * 100),
+                'amount'         => $amountMinor,
                 'asset_code'     => $validated['asset_code'],
             ];
 
@@ -510,6 +523,25 @@ class CustodianController extends Controller
                 400
             );
         }
+    }
+
+    private function precisionOf(string $assetCode): int
+    {
+        return (int) (Asset::query()->where('code', $assetCode)->value('precision') ?? 2);
+    }
+
+    /**
+     * Minor units as a decimal string in the asset's precision, with a comma
+     * between thousands ("1,500.00", "0.10000000"), without float division.
+     */
+    private function formatMinorUnits(int $minor, int $precision): string
+    {
+        $decimal = bcdiv((string) $minor, bcpow('10', (string) $precision), $precision);
+        $negative = str_starts_with($decimal, '-');
+        $parts = explode('.', ltrim($decimal, '-'), 2);
+        $grouped = strrev(implode(',', str_split(strrev($parts[0]), 3)));
+
+        return ($negative ? '-' : '') . $grouped . (isset($parts[1]) ? '.' . $parts[1] : '');
     }
 
     /**
