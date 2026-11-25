@@ -122,3 +122,66 @@ it('rejects invalid idempotency key format', function () {
     $response->assertStatus(400);
     $response->assertJsonPath('error', 'Invalid idempotency key format');
 });
+
+it('answers 409 while another request with the same key is still running', function () {
+    $idempotencyKey = Str::uuid()->toString();
+
+    // The other request holds the lock for this user, path and key.
+    $lock = Cache::lock("idempotency:{$this->user->id}:test/idempotency:{$idempotencyKey}:lock", 30);
+    expect($lock->get())->toBeTrue();
+
+    $response = $this->postJson('/test/idempotency', ['amount' => 100], [
+        'Idempotency-Key' => $idempotencyKey,
+    ]);
+
+    $response->assertStatus(409);
+    $response->assertJsonPath('error', 'Request in progress');
+
+    $lock->release();
+});
+
+it('replays instead of running again when the same key finished while this request waited for the lock', function () {
+    $idempotencyKey = Str::uuid()->toString();
+    $runs = 0;
+
+    $request = Illuminate\Http\Request::create(
+        '/test/idempotency',
+        'POST',
+        server: ['HTTP_IDEMPOTENCY_KEY' => $idempotencyKey, 'CONTENT_TYPE' => 'application/json'],
+        content: (string) json_encode(['amount' => 100]),
+    );
+    $request->setUserResolver(fn () => $this->user);
+
+    $stored = [
+        'request' => [
+            'method'    => 'POST',
+            'body'      => ['amount' => 100],
+            'timestamp' => now()->toIso8601String(),
+        ],
+        'response' => [
+            'content' => ['id' => 'first-run'],
+            'status'  => 201,
+            'headers' => [],
+        ],
+    ];
+
+    // The first read misses because the other request has not stored its
+    // response yet. It stores it and releases the lock before this request
+    // takes the lock, so the read after taking the lock finds it.
+    $lock = Mockery::mock(Illuminate\Contracts\Cache\Lock::class);
+    $lock->shouldReceive('get')->once()->andReturnTrue();
+    $lock->shouldReceive('release')->once()->andReturnTrue();
+    Cache::shouldReceive('get')->twice()->andReturn(null, $stored);
+    Cache::shouldReceive('lock')->once()->andReturn($lock);
+
+    $response = (new App\Http\Middleware\IdempotencyMiddleware())->handle($request, function () use (&$runs) {
+        $runs++;
+
+        return response()->json(['id' => 'second-run'], 201);
+    });
+
+    expect($runs)->toBe(0)
+        ->and($response->getStatusCode())->toBe(201)
+        ->and(json_decode((string) $response->getContent(), true))->toBe(['id' => 'first-run'])
+        ->and($response->headers->get('X-Idempotency-Replayed'))->toBe('true');
+});

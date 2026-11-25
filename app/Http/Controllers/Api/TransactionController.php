@@ -13,6 +13,7 @@ use App\Domain\Account\Workflows\WithdrawAccountWorkflow;
 use App\Domain\Asset\Models\Asset;
 use App\Domain\Asset\Workflows\AssetDepositWorkflow;
 use App\Domain\Asset\Workflows\AssetWithdrawWorkflow;
+use App\Http\Controllers\Concerns\ConvertsMajorUnitAmounts;
 use App\Http\Controllers\Controller;
 use DB;
 use Exception;
@@ -23,6 +24,8 @@ use Workflow\WorkflowStub;
 
 class TransactionController extends Controller
 {
+    use ConvertsMajorUnitAmounts;
+
         #[OA\Post(
             path: '/api/accounts/{uuid}/deposit',
             operationId: 'depositToAccount',
@@ -33,8 +36,9 @@ class TransactionController extends Controller
             parameters: [
             new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
             ],
-            requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['amount'], properties: [
-            new OA\Property(property: 'amount', type: 'integer', example: 10000, minimum: 1, description: 'Amount in cents'),
+            requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['amount', 'asset_code'], properties: [
+            new OA\Property(property: 'amount', type: 'string', format: 'decimal', example: '100.00', description: 'Amount in major units of the asset, for example 100.00 for 100 US dollars. It can have at most as many decimals as the asset has; an amount with more decimals is refused with 422.'),
+            new OA\Property(property: 'asset_code', type: 'string', example: 'USD'),
             new OA\Property(property: 'description', type: 'string', example: 'Monthly salary', maxLength: 255),
             ]))
         )]
@@ -53,7 +57,7 @@ class TransactionController extends Controller
     )]
     #[OA\Response(
         response: 422,
-        description: 'Cannot deposit to frozen account',
+        description: 'The account is frozen, or the amount has more decimals than the asset has',
         content: new OA\JsonContent(ref: '#/components/schemas/Error')
     )]
     #[OA\Response(
@@ -95,7 +99,7 @@ class TransactionController extends Controller
         }
 
         $asset = Asset::where('code', $validated['asset_code'])->firstOrFail();
-        $amountInMinorUnits = (int) round($validated['amount'] * (10 ** $asset->precision));
+        $amountInMinorUnits = $this->minorUnitsOrFail($validated['amount'], $asset);
 
         $accountUuid = new AccountUuid($uuid);
 
@@ -128,8 +132,9 @@ class TransactionController extends Controller
             parameters: [
             new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
             ],
-            requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['amount'], properties: [
-            new OA\Property(property: 'amount', type: 'integer', example: 5000, minimum: 1, description: 'Amount in cents'),
+            requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['amount', 'asset_code'], properties: [
+            new OA\Property(property: 'amount', type: 'string', format: 'decimal', example: '50.00', description: 'Amount in major units of the asset, for example 50.00 for 50 US dollars. It can have at most as many decimals as the asset has; an amount with more decimals is refused with 422.'),
+            new OA\Property(property: 'asset_code', type: 'string', example: 'USD'),
             new OA\Property(property: 'description', type: 'string', example: 'ATM withdrawal', maxLength: 255),
             ]))
         )]
@@ -148,7 +153,7 @@ class TransactionController extends Controller
     )]
     #[OA\Response(
         response: 422,
-        description: 'Insufficient balance or frozen account',
+        description: 'Insufficient balance, a frozen account, or an amount with more decimals than the asset has',
         content: new OA\JsonContent(ref: '#/components/schemas/Error')
     )]
     #[OA\Response(
@@ -190,7 +195,7 @@ class TransactionController extends Controller
         }
 
         $asset = Asset::where('code', $validated['asset_code'])->firstOrFail();
-        $amountInMinorUnits = (int) round($validated['amount'] * (10 ** $asset->precision));
+        $amountInMinorUnits = $this->minorUnitsOrFail($validated['amount'], $asset);
 
         // Check sufficient balance
         $balance = $account->getBalance($validated['asset_code']);

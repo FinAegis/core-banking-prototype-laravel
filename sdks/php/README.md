@@ -37,19 +37,20 @@ foreach ($accounts->data as $account) {
 // Create a new account
 $account = $client->accounts->create(
     'user-uuid',
-    'My Savings Account',
-    10000  // Initial balance in cents
+    'My Savings Account'  // accounts open empty; fund them with a deposit
 );
 
 // Make a transfer
 $transfer = $client->transfers->create(
     'from-account-uuid',
     'to-account-uuid',
-    5000,  // Amount in cents
+    50.25,  // 50.25 US dollars, in major units
     'USD',
     'Payment for services'
 );
 ```
+
+Amounts are in major units of the asset, for example 50.25 for 50.25 US dollars, not cents. The API refuses an amount with more decimals than the asset has, such as 10.005 for USD.
 
 ## Configuration
 
@@ -59,11 +60,30 @@ $transfer = $client->transfers->create(
 $client = new Client('your-api-key', [
     'environment' => 'production',  // 'production' | 'sandbox' | 'local'
     'timeout' => 30,               // Request timeout in seconds
-    'max_retries' => 3,            // Number of retries for failed requests
+    'max_retries' => 3,            // Retries after a connection error, a 5xx or a 429; 0 turns them off
     'base_url' => null,            // Custom API base URL (optional)
     'logger' => $logger            // PSR-3 compatible logger (optional)
 ]);
 ```
+
+### Retries and Idempotency
+
+The client sends a failed request again after a connection error, a timeout, a 5xx or a 429 answer. Every POST carries an `Idempotency-Key` header, and a retry sends the same key. The API then returns the first answer instead of running the call again, so a retried transfer moves money only once.
+
+The client makes a new key for each call. Pass your own key when you may repeat the same call later, for example after your process restarts:
+
+```php
+$transfer = $client->transfers->create(
+    'account-uuid-1',
+    'account-uuid-2',
+    100.00,
+    'USD',
+    'Invoice #123',
+    'order-1234-payout'   // Idempotency-Key
+);
+```
+
+The same key with a different body is refused with HTTP 409. A key must be a UUID, or 16 to 64 letters, digits, dashes or underscores.
 
 ### Environment Variables
 
@@ -94,7 +114,7 @@ $account = $client->accounts->get('account-uuid');
 $account = $client->accounts->create(
     'user-uuid',
     'Account Name',
-    10000,  // Initial balance in cents
+    0,      // Initial balance: must be 0; fund the account with a deposit
     'USD'   // Asset code
 );
 
@@ -109,7 +129,7 @@ $balances = $client->accounts->getBalances('account-uuid');
 // Deposit funds
 $transaction = $client->accounts->deposit(
     'account-uuid',
-    10000,  // Amount in cents
+    100.00,  // 100 US dollars, in major units
     'USD',
     'Deposit reference'
 );
@@ -117,7 +137,7 @@ $transaction = $client->accounts->deposit(
 // Withdraw funds
 $transaction = $client->accounts->withdraw(
     'account-uuid',
-    5000,   // Amount in cents
+    50.00,   // 50 US dollars, in major units
     'USD',
     'Withdrawal reference'
 );
@@ -143,7 +163,7 @@ $transfers = $client->accounts->getTransfers('account-uuid');
 $transfer = $client->transfers->create(
     'from-account-uuid',
     'to-account-uuid',
-    10000,  // Amount in cents
+    100.00,  // 100 US dollars, in major units
     'USD',
     'Invoice #123'
 );
@@ -402,8 +422,8 @@ echo "Received {$data['event']} event\n";
 ```php
 function processPayment($client, $fromAccountId, $toAccountId, $amountUsd) {
     try {
-        // Convert dollars to cents
-        $amountCents = (int)($amountUsd * 100);
+        // Balances come back in cents; the transfer amount goes in dollars.
+        $amountCents = (int) bcmul((string) $amountUsd, '100', 0);
         
         // Check sender balance
         $balances = $client->accounts->getBalances($fromAccountId);
@@ -424,7 +444,7 @@ function processPayment($client, $fromAccountId, $toAccountId, $amountUsd) {
         $transfer = $client->transfers->create(
             $fromAccountId,
             $toAccountId,
-            $amountCents,
+            (float) $amountUsd,
             'USD',
             "Payment on " . date('Y-m-d H:i:s')
         );

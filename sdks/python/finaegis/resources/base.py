@@ -18,9 +18,14 @@ class BaseResource:
         """Make a GET request."""
         return self.client.get(path, params=params)
     
-    def _post(self, path: str, data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """Make a POST request."""
-        return self.client.post(path, json=data)
+    def _post(
+        self,
+        path: str,
+        data: Optional[Dict[str, Any]] = None,
+        idempotency_key: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Make a POST request. The client adds an Idempotency-Key when none is given."""
+        return self.client.post(path, json=data, idempotency_key=idempotency_key)
     
     def _put(self, path: str, data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Make a PUT request."""

@@ -4,8 +4,10 @@ import {
   CreateAccountParams, 
   ApiResponse, 
   PaginatedResponse,
-  ListParams 
+  ListParams,
+  RequestOptions
 } from '../types';
+import { idempotencyConfig } from '../idempotency';
 
 export class Accounts {
   constructor(private client: AxiosInstance) {}
@@ -85,24 +87,28 @@ export class Accounts {
   }
 
   /**
-   * Deposit funds to an account
+   * Deposit funds to an account. A retry carries the same Idempotency-Key.
+   * The amount is in major units of the asset, for example 100 for 100 US
+   * dollars, not cents.
    */
-  async deposit(uuid: string, amount: number, assetCode: string = 'USD'): Promise<ApiResponse<Transaction>> {
+  async deposit(uuid: string, amount: number, assetCode: string = 'USD', options?: RequestOptions): Promise<ApiResponse<Transaction>> {
     const response = await this.client.post(`/accounts/${uuid}/deposit`, {
       amount,
       asset_code: assetCode
-    });
+    }, idempotencyConfig(options));
     return response.data;
   }
 
   /**
-   * Withdraw funds from an account
+   * Withdraw funds from an account. A retry carries the same Idempotency-Key.
+   * The amount is in major units of the asset, for example 50 for 50 US
+   * dollars, not cents.
    */
-  async withdraw(uuid: string, amount: number, assetCode: string = 'USD'): Promise<ApiResponse<Transaction>> {
+  async withdraw(uuid: string, amount: number, assetCode: string = 'USD', options?: RequestOptions): Promise<ApiResponse<Transaction>> {
     const response = await this.client.post(`/accounts/${uuid}/withdraw`, {
       amount,
       asset_code: assetCode
-    });
+    }, idempotencyConfig(options));
     return response.data;
   }
 

@@ -15,7 +15,7 @@ class Webhooks extends BaseResource
      */
     public function list(int $page = 1, int $perPage = 20): PaginatedResponse
     {
-        $response = $this->get('/webhooks', ['page' => $page, 'per_page' => $perPage]);
+        $response = $this->httpGet('/webhooks', ['page' => $page, 'per_page' => $perPage]);
 
         return new PaginatedResponse($response, Webhook::class);
     }
@@ -50,7 +50,7 @@ class Webhooks extends BaseResource
             $data['secret'] = $secret;
         }
 
-        $response = $this->post('/webhooks', $data);
+        $response = $this->httpPost('/webhooks', $data);
 
         return new Webhook($response['data']);
     }
@@ -62,7 +62,7 @@ class Webhooks extends BaseResource
      */
     public function get(string $webhookId): Webhook
     {
-        $response = $this->get("/webhooks/{$webhookId}");
+        $response = $this->httpGet("/webhooks/{$webhookId}");
 
         return new Webhook($response['data']);
     }
@@ -75,7 +75,7 @@ class Webhooks extends BaseResource
      */
     public function update(string $webhookId, array $data): Webhook
     {
-        $response = $this->put("/webhooks/{$webhookId}", $data);
+        $response = $this->httpPut("/webhooks/{$webhookId}", $data);
 
         return new Webhook($response['data']);
     }
@@ -87,7 +87,7 @@ class Webhooks extends BaseResource
      */
     public function delete(string $webhookId): array
     {
-        return $this->delete("/webhooks/{$webhookId}");
+        return $this->httpDelete("/webhooks/{$webhookId}");
     }
 
     /**
@@ -99,7 +99,7 @@ class Webhooks extends BaseResource
      */
     public function getDeliveries(string $webhookId, int $page = 1, int $perPage = 20): array
     {
-        return $this->get("/webhooks/{$webhookId}/deliveries", ['page' => $page, 'per_page' => $perPage]);
+        return $this->httpGet("/webhooks/{$webhookId}/deliveries", ['page' => $page, 'per_page' => $perPage]);
     }
 
     /**
@@ -107,7 +107,7 @@ class Webhooks extends BaseResource
      */
     public function getEvents(): array
     {
-        $response = $this->get('/webhooks/events');
+        $response = $this->httpGet('/webhooks/events');
 
         return $response['data'];
     }

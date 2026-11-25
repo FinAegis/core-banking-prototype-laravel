@@ -18,7 +18,7 @@ class Accounts extends BaseResource
      */
     public function list(int $page = 1, int $perPage = 20): PaginatedResponse
     {
-        $response = $this->get('/accounts', ['page' => $page, 'per_page' => $perPage]);
+        $response = $this->httpGet('/accounts', ['page' => $page, 'per_page' => $perPage]);
 
         return new PaginatedResponse($response, Account::class);
     }
@@ -28,12 +28,12 @@ class Accounts extends BaseResource
      *
      * @param  string  $userUuid  User UUID
      * @param  string  $name  Account name
-     * @param  float  $initialBalance  Initial balance in cents
+     * @param  float  $initialBalance  Must be 0. Accounts open empty; fund them with a deposit.
      * @param  string  $assetCode  Asset code (default: USD)
      */
     public function create(string $userUuid, string $name, float $initialBalance = 0, string $assetCode = 'USD'): Account
     {
-        $response = $this->post('/accounts', [
+        $response = $this->httpPost('/accounts', [
             'user_uuid' => $userUuid,
             'name' => $name,
             'initial_balance' => $initialBalance,
@@ -50,7 +50,7 @@ class Accounts extends BaseResource
      */
     public function get(string $accountId): Account
     {
-        $response = $this->get("/accounts/{$accountId}");
+        $response = $this->httpGet("/accounts/{$accountId}");
 
         return new Account($response['data']);
     }
@@ -63,7 +63,7 @@ class Accounts extends BaseResource
      */
     public function update(string $accountId, array $data): Account
     {
-        $response = $this->put("/accounts/{$accountId}", $data);
+        $response = $this->httpPut("/accounts/{$accountId}", $data);
 
         return new Account($response['data']);
     }
@@ -75,7 +75,7 @@ class Accounts extends BaseResource
      */
     public function getBalances(string $accountId): array
     {
-        $response = $this->get("/accounts/{$accountId}/balances");
+        $response = $this->httpGet("/accounts/{$accountId}/balances");
 
         return $response;
     }
@@ -84,12 +84,19 @@ class Accounts extends BaseResource
      * Deposit funds to account.
      *
      * @param  string  $accountId  Account UUID
-     * @param  float  $amount  Amount in cents
+     * @param  float  $amount  Amount in major units of the asset, for example 100.00 for 100 US dollars
      * @param  string  $assetCode  Asset code
      * @param  string|null  $reference  Optional reference
+     * @param  string|null  $idempotencyKey  Optional Idempotency-Key. The client makes one
+     *                                         when it is left out and repeats it on retries.
      */
-    public function deposit(string $accountId, float $amount, string $assetCode, ?string $reference = null): Transaction
-    {
+    public function deposit(
+        string $accountId,
+        float $amount,
+        string $assetCode,
+        ?string $reference = null,
+        ?string $idempotencyKey = null
+    ): Transaction {
         $data = [
             'amount' => $amount,
             'asset_code' => $assetCode,
@@ -99,7 +106,7 @@ class Accounts extends BaseResource
             $data['reference'] = $reference;
         }
 
-        $response = $this->post("/accounts/{$accountId}/deposit", $data);
+        $response = $this->httpPost("/accounts/{$accountId}/deposit", $data, $idempotencyKey);
 
         return new Transaction($response['data']);
     }
@@ -108,12 +115,19 @@ class Accounts extends BaseResource
      * Withdraw funds from account.
      *
      * @param  string  $accountId  Account UUID
-     * @param  float  $amount  Amount in cents
+     * @param  float  $amount  Amount in major units of the asset, for example 100.00 for 100 US dollars
      * @param  string  $assetCode  Asset code
      * @param  string|null  $reference  Optional reference
+     * @param  string|null  $idempotencyKey  Optional Idempotency-Key. The client makes one
+     *                                         when it is left out and repeats it on retries.
      */
-    public function withdraw(string $accountId, float $amount, string $assetCode, ?string $reference = null): Transaction
-    {
+    public function withdraw(
+        string $accountId,
+        float $amount,
+        string $assetCode,
+        ?string $reference = null,
+        ?string $idempotencyKey = null
+    ): Transaction {
         $data = [
             'amount' => $amount,
             'asset_code' => $assetCode,
@@ -123,7 +137,7 @@ class Accounts extends BaseResource
             $data['reference'] = $reference;
         }
 
-        $response = $this->post("/accounts/{$accountId}/withdraw", $data);
+        $response = $this->httpPost("/accounts/{$accountId}/withdraw", $data, $idempotencyKey);
 
         return new Transaction($response['data']);
     }
@@ -136,7 +150,7 @@ class Accounts extends BaseResource
      */
     public function freeze(string $accountId, string $reason): Account
     {
-        $response = $this->post("/accounts/{$accountId}/freeze", ['reason' => $reason]);
+        $response = $this->httpPost("/accounts/{$accountId}/freeze", ['reason' => $reason]);
 
         return new Account($response['data']);
     }
@@ -149,7 +163,7 @@ class Accounts extends BaseResource
      */
     public function unfreeze(string $accountId, string $reason): Account
     {
-        $response = $this->post("/accounts/{$accountId}/unfreeze", ['reason' => $reason]);
+        $response = $this->httpPost("/accounts/{$accountId}/unfreeze", ['reason' => $reason]);
 
         return new Account($response['data']);
     }
@@ -162,7 +176,7 @@ class Accounts extends BaseResource
      */
     public function close(string $accountId, string $reason): Account
     {
-        $response = $this->post("/accounts/{$accountId}/close", ['reason' => $reason]);
+        $response = $this->httpPost("/accounts/{$accountId}/close", ['reason' => $reason]);
 
         return new Account($response['data']);
     }
@@ -176,7 +190,7 @@ class Accounts extends BaseResource
      */
     public function getTransactions(string $accountId, int $page = 1, int $perPage = 20): PaginatedResponse
     {
-        $response = $this->get("/accounts/{$accountId}/transactions", ['page' => $page, 'per_page' => $perPage]);
+        $response = $this->httpGet("/accounts/{$accountId}/transactions", ['page' => $page, 'per_page' => $perPage]);
 
         return new PaginatedResponse($response, Transaction::class);
     }
@@ -190,7 +204,7 @@ class Accounts extends BaseResource
      */
     public function getTransfers(string $accountId, int $page = 1, int $perPage = 20): PaginatedResponse
     {
-        $response = $this->get("/accounts/{$accountId}/transfers", ['page' => $page, 'per_page' => $perPage]);
+        $response = $this->httpGet("/accounts/{$accountId}/transfers", ['page' => $page, 'per_page' => $perPage]);
 
         return new PaginatedResponse($response, Transfer::class);
     }

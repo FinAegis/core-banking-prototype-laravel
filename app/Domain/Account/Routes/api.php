@@ -39,15 +39,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/accounts/{uuid}/transactions', [TransactionController::class, 'history'])->middleware('scope:read');
     });
 
+    // Money routes. `idempotency` runs before the transaction rate limiter,
+    // so a request replayed with the same Idempotency-Key is answered from
+    // the stored response and does not count against the limits again.
+
     // Transaction endpoints (direct ledger funding — ledger.direct_funding_enabled)
     Route::post('/accounts/{uuid}/deposit', [TransactionController::class, 'deposit'])
-        ->middleware(['feature:ledger.direct_funding_enabled', 'transaction.rate_limit:deposit', 'idempotency', 'scope:write']);
+        ->middleware(['feature:ledger.direct_funding_enabled', 'idempotency', 'transaction.rate_limit:deposit', 'scope:write']);
     Route::post('/accounts/{uuid}/withdraw', [TransactionController::class, 'withdraw'])
-        ->middleware(['feature:ledger.direct_funding_enabled', 'transaction.rate_limit:withdraw', 'idempotency', 'scope:write']);
+        ->middleware(['feature:ledger.direct_funding_enabled', 'idempotency', 'transaction.rate_limit:withdraw', 'scope:write']);
 
     // Transfer endpoints
     Route::post('/transfers', [TransferController::class, 'store'])
-        ->middleware(['transaction.rate_limit:transfer', 'idempotency', 'scope:write']);
+        ->middleware(['idempotency', 'transaction.rate_limit:transfer', 'scope:write']);
     Route::middleware('api.rate_limit:query')->group(function () {
         Route::get('/transfers/{uuid}', [TransferController::class, 'show']);
         Route::get('/accounts/{uuid}/transfers', [TransferController::class, 'history']);

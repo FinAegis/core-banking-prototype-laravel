@@ -27,19 +27,20 @@ const accounts = await client.accounts.list();
 // Create a new account
 const account = await client.accounts.create({
   user_uuid: 'user-uuid',
-  name: 'My Savings Account',
-  initial_balance: 10000 // in cents
+  name: 'My Savings Account' // accounts open empty; fund them with a deposit
 });
 
 // Make a transfer
 const transfer = await client.transfers.create({
   from_account: 'account-uuid-1',
   to_account: 'account-uuid-2',
-  amount: 5000, // in cents
+  amount: 50.25, // 50.25 US dollars, in major units
   asset_code: 'USD',
   reference: 'Payment for services'
 });
 ```
+
+Amounts are in major units of the asset, for example 50.25 for 50.25 US dollars, not cents. The API refuses an amount with more decimals than the asset has, such as 10.005 for USD.
 
 ## Configuration
 
@@ -48,9 +49,24 @@ const client = new FinAegis({
   apiKey: 'your-api-key',
   environment: 'production', // 'production' | 'sandbox' | 'local'
   timeout: 30000, // Request timeout in milliseconds
-  maxRetries: 3 // Number of retries for failed requests
+  maxRetries: 3 // Retries after a network error or a 5xx; 0 turns retries off
 });
 ```
+
+### Retries and idempotency
+
+The SDK sends a failed request again after a network error or a 5xx answer. Every POST carries an `Idempotency-Key` header, and a retry sends the same key. The API then returns the first answer instead of running the call again, so a retried transfer moves money only once.
+
+The SDK makes a new key for each call. Pass your own key when you may repeat the same call later, for example after your process restarts:
+
+```typescript
+await client.transfers.create(
+  { from_account: 'account-uuid-1', to_account: 'account-uuid-2', amount: 100, asset_code: 'USD' },
+  { idempotencyKey: 'order-1234-payout' }
+);
+```
+
+The same key with a different body is refused with HTTP 409. A key must be a UUID, or 16 to 64 letters, digits, dashes or underscores.
 
 ## Resources
 
@@ -70,10 +86,10 @@ const account = await client.accounts.get('account-uuid');
 const balances = await client.accounts.getBalances('account-uuid');
 
 // Deposit funds
-const deposit = await client.accounts.deposit('account-uuid', 10000, 'USD');
+const deposit = await client.accounts.deposit('account-uuid', 100, 'USD'); // 100 US dollars
 
 // Withdraw funds
-const withdrawal = await client.accounts.withdraw('account-uuid', 5000, 'USD');
+const withdrawal = await client.accounts.withdraw('account-uuid', 50, 'USD'); // 50 US dollars
 
 // Freeze/unfreeze account
 await client.accounts.freeze('account-uuid', 'Suspicious activity');
@@ -87,7 +103,7 @@ await client.accounts.unfreeze('account-uuid', 'Investigation completed');
 const transfer = await client.transfers.create({
   from_account: 'account-uuid-1',
   to_account: 'account-uuid-2',
-  amount: 10000,
+  amount: 100, // 100 US dollars
   asset_code: 'USD',
   reference: 'Invoice #123'
 });
@@ -227,7 +243,7 @@ async function processPayment(fromAccountId: string, toAccountId: string, amount
     const transfer = await client.transfers.create({
       from_account: fromAccountId,
       to_account: toAccountId,
-      amount: amount * 100, // Convert to cents
+      amount, // in US dollars; the API takes major units, not cents
       asset_code: 'USD',
       reference: `Payment on ${new Date().toISOString()}`
     });

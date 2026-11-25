@@ -3,9 +3,11 @@
 namespace FinAegis;
 
 use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
+use GuzzleHttp\Promise\PromiseInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
@@ -13,6 +15,9 @@ use Psr\Log\NullLogger;
 
 class Client
 {
+    /** The HTTP header the API reads to recognise a repeated request. */
+    public const IDEMPOTENCY_HEADER = 'Idempotency-Key';
+
     private HttpClient $httpClient;
 
     private string $apiKey;
@@ -24,6 +29,9 @@ class Client
     private int $maxRetries;
 
     private float $timeout;
+
+    /** @var callable|null */
+    private $handler;
 
     // Resource properties
     public Resources\Accounts $accounts;
@@ -43,6 +51,11 @@ class Client
     /**
      * FinAegis API client constructor.
      *
+     * Options: environment, base_url, timeout, logger, max_retries (how many
+     * times a request is sent again after a connection error, a 5xx or a
+     * 429; 0 turns retries off; default 3) and handler (a Guzzle handler,
+     * for example a MockHandler in tests).
+     *
      * @param  string  $apiKey  API key for authentication
      * @param  array  $options  Configuration options
      */
@@ -60,6 +73,7 @@ class Client
         $this->maxRetries = $options['max_retries'] ?? 3;
         $this->timeout = $options['timeout'] ?? 30.0;
         $this->logger = $options['logger'] ?? new NullLogger;
+        $this->handler = $options['handler'] ?? null;
 
         // Create HTTP client with middleware
         $this->httpClient = $this->createHttpClient();
@@ -101,29 +115,46 @@ class Client
      */
     private function createHttpClient(): HttpClient
     {
-        $stack = HandlerStack::create();
+        $stack = HandlerStack::create($this->handler);
 
         // Add retry middleware
         $stack->push(Middleware::retry(
-            function ($retries, RequestInterface $request, ?ResponseInterface $response = null, ?RequestException $exception = null) {
+            // Guzzle passes a ConnectException (not a RequestException) when a
+            // connection fails or times out, so accept any Throwable here.
+            function (
+                $retries,
+                RequestInterface $request,
+                ?ResponseInterface $response = null,
+                ?\Throwable $exception = null
+            ) {
                 // Don't retry if we've exceeded max retries
                 if ($retries >= $this->maxRetries) {
                     return false;
                 }
 
-                // Retry on connection errors
-                if ($exception instanceof RequestException) {
-                    if ($exception->hasResponse()) {
-                        $statusCode = $exception->getResponse()->getStatusCode();
-
-                        // Retry on 5xx errors and rate limits
-                        return $statusCode >= 500 || $statusCode === 429;
-                    }
-
-                    return true;
+                // A POST can move money. Send it again only with the same
+                // Idempotency-Key, so the API can recognise the repeat and
+                // answer with the first result instead of running it twice.
+                $unsafeMethod = in_array(strtoupper($request->getMethod()), ['POST', 'PATCH'], true);
+                if ($unsafeMethod && $request->getHeaderLine(self::IDEMPOTENCY_HEADER) === '') {
+                    return false;
                 }
 
-                return false;
+                // The http_errors middleware sits outside this one, so an error
+                // status arrives here as a response, not as an exception.
+                if ($response === null && $exception instanceof RequestException && $exception->hasResponse()) {
+                    $response = $exception->getResponse();
+                }
+
+                // Retry on 5xx errors and rate limits
+                if ($response !== null) {
+                    $statusCode = $response->getStatusCode();
+
+                    return $statusCode >= 500 || $statusCode === 429;
+                }
+
+                // Retry on connection errors and timeouts
+                return $exception instanceof RequestException || $exception instanceof ConnectException;
             },
             function ($retries) {
                 // Exponential backoff with jitter
@@ -139,11 +170,16 @@ class Client
                     'uri' => (string) $request->getUri(),
                 ]);
             },
-            function (RequestInterface $request, array $options, ResponseInterface $response) {
-                $this->logger->debug('FinAegis API Response', [
-                    'status' => $response->getStatusCode(),
-                    'uri' => (string) $request->getUri(),
-                ]);
+            // Guzzle passes the response promise here, not the response.
+            function (RequestInterface $request, array $options, PromiseInterface $promise) {
+                $promise->then(function (ResponseInterface $response) use ($request) {
+                    $this->logger->debug('FinAegis API Response', [
+                        'status' => $response->getStatusCode(),
+                        'uri' => (string) $request->getUri(),
+                    ]);
+
+                    return $response;
+                });
             }
         ));
 
@@ -163,6 +199,11 @@ class Client
     /**
      * Make a request to the API.
      *
+     * Every POST carries an Idempotency-Key header. The client makes a new
+     * key for each call and sends the same key when it retries the call.
+     * Set the `idempotency_key` option to use your own key, or to false to
+     * send none; a POST without a key is never retried.
+     *
      * @param  string  $method  HTTP method
      * @param  string  $path  API path
      * @param  array  $options  Request options
@@ -172,6 +213,16 @@ class Client
      */
     public function request(string $method, string $path, array $options = []): array
     {
+        $idempotencyKey = $options['idempotency_key'] ?? null;
+        unset($options['idempotency_key']);
+
+        $wantsKey = strtoupper($method) === 'POST' && $idempotencyKey !== false;
+        if ($wantsKey && ! $this->hasHeader($options, self::IDEMPOTENCY_HEADER)) {
+            $options['headers'][self::IDEMPOTENCY_HEADER] = is_string($idempotencyKey) && $idempotencyKey !== ''
+                ? $idempotencyKey
+                : self::generateIdempotencyKey();
+        }
+
         try {
             $response = $this->httpClient->request($method, $path, $options);
             $body = (string) $response->getBody();
@@ -189,7 +240,37 @@ class Client
             return $data;
         } catch (RequestException $e) {
             throw $this->handleRequestException($e);
+        } catch (ConnectException $e) {
+            throw new Exceptions\NetworkException($e->getMessage(), 0, $e);
         }
+    }
+
+    /**
+     * Create a random version 4 UUID to use as an Idempotency-Key.
+     */
+    public static function generateIdempotencyKey(): string
+    {
+        $bytes = random_bytes(16);
+        $bytes[6] = chr((ord($bytes[6]) & 0x0F) | 0x40);
+        $bytes[8] = chr((ord($bytes[8]) & 0x3F) | 0x80);
+
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($bytes), 4));
+    }
+
+    /**
+     * Whether the request options already set the given header.
+     *
+     * @param  array<string, mixed>  $options
+     */
+    private function hasHeader(array $options, string $name): bool
+    {
+        foreach (array_keys($options['headers'] ?? []) as $header) {
+            if (strcasecmp((string) $header, $name) === 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

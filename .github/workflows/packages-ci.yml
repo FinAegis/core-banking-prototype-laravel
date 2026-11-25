@@ -4,10 +4,9 @@ name: Packages CI
 # standalone — i.e. the way a consumer installs them — so endpoint or
 # dependency drift fails the PR instead of the published artifact.
 #
-# Packages with NO tests are intentionally NOT given fake-green jobs:
-#   - sdks/javascript  (@finaegis/sdk): jest is configured but no *.test.ts files exist
-#   - sdks/python      (finaegis on PyPI): no tests/ directory exists
-# Add a job here the moment either package gains real tests.
+# The three client SDKs (sdks/javascript, sdks/php, sdks/python) are tested
+# too: their unit tests cover retries and the Idempotency-Key that keeps a
+# retried transfer from running twice.
 
 on:
   pull_request:
@@ -96,3 +95,68 @@ jobs:
       - name: Run tests
         working-directory: packages/finaegis-mcp-stdio
         run: npm test
+
+  sdk-javascript:
+    name: sdk-javascript (Jest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: sdks/javascript/package-lock.json
+
+      - name: Install dependencies
+        working-directory: sdks/javascript
+        run: npm ci
+
+      - name: Type-check
+        working-directory: sdks/javascript
+        run: npx tsc --noEmit
+
+      - name: Run tests
+        working-directory: sdks/javascript
+        run: npm test
+
+  sdk-php:
+    name: sdk-php (PHPUnit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer
+          extensions: json, mbstring
+
+      - name: Install dependencies
+        working-directory: sdks/php
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run tests
+        working-directory: sdks/php
+        run: vendor/bin/phpunit
+
+  sdk-python:
+    name: sdk-python (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+
+      - name: Install the package and pytest
+        working-directory: sdks/python
+        run: pip install . pytest
+
+      - name: Run tests
+        working-directory: sdks/python
+        run: python -m pytest -q tests

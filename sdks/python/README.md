@@ -27,19 +27,20 @@ for account in accounts.data:
 # Create a new account
 account = client.accounts.create(
     user_uuid='user-uuid',
-    name='My Savings Account',
-    initial_balance=10000  # in cents
+    name='My Savings Account'  # accounts open empty; fund them with a deposit
 )
 
 # Make a transfer
 transfer = client.transfers.create(
     from_account='account-uuid-1',
     to_account='account-uuid-2',
-    amount=5000,  # in cents
+    amount='50.25',  # 50.25 US dollars, in major units
     asset_code='USD',
     reference='Payment for services'
 )
 ```
+
+Amounts are in major units of the asset, for example '50.25' for 50.25 US dollars, not cents. Passing the amount as a string keeps every decimal exact. The API refuses an amount with more decimals than the asset has, such as '10.005' for USD.
 
 ## Configuration
 
@@ -50,7 +51,7 @@ client = FinAegis(
     api_key='your-api-key',
     environment='production',  # 'production' | 'sandbox' | 'local'
     timeout=30,  # Request timeout in seconds
-    max_retries=3  # Number of retries for failed requests
+    max_retries=3  # Retries after a connection error, a timeout, a 429 or a 5xx; 0 turns them off
 )
 ```
 
@@ -83,10 +84,10 @@ account = client.accounts.get('account-uuid')
 balances = client.accounts.get_balances('account-uuid')
 
 # Deposit funds
-deposit = client.accounts.deposit('account-uuid', 10000, 'USD')
+deposit = client.accounts.deposit('account-uuid', '100.00', 'USD')  # 100 US dollars
 
 # Withdraw funds
-withdrawal = client.accounts.withdraw('account-uuid', 5000, 'USD')
+withdrawal = client.accounts.withdraw('account-uuid', '50.00', 'USD')  # 50 US dollars
 
 # Freeze/unfreeze account
 client.accounts.freeze('account-uuid', 'Suspicious activity')
@@ -103,7 +104,7 @@ transactions = client.accounts.get_transactions('account-uuid')
 transfer = client.transfers.create(
     from_account='account-uuid-1',
     to_account='account-uuid-2',
-    amount=10000,
+    amount='100.00',  # 100 US dollars
     asset_code='USD',
     reference='Invoice #123'
 )
@@ -323,16 +324,37 @@ client = FinAegis(
 )
 ```
 
+### Retries and Idempotency
+
+The client sends a failed request again after a connection error, a timeout, a 5xx or a 429 answer. Every POST carries an `Idempotency-Key` header, and a retry sends the same key. The API then returns the first answer instead of running the call again, so a retried transfer moves money only once.
+
+The client makes a new key for each call. Pass your own key when you may repeat the same call later, for example after your process restarts:
+
+```python
+transfer = client.transfers.create(
+    from_account='account-uuid-1',
+    to_account='account-uuid-2',
+    amount=100,
+    asset_code='USD',
+    idempotency_key='order-1234-payout',
+)
+```
+
+The same key with a different body is refused with HTTP 409. A key must be a UUID, or 16 to 64 letters, digits, dashes or underscores.
+
 ## Examples
 
 ### Complete Payment Flow
 
 ```python
-def process_payment(client: FinAegis, from_account_id: str, to_account_id: str, amount_usd: float):
+from datetime import datetime
+from decimal import Decimal
+
+def process_payment(client: FinAegis, from_account_id: str, to_account_id: str, amount_usd: str):
     """Process a payment between two accounts."""
     try:
-        # Convert dollars to cents
-        amount_cents = int(amount_usd * 100)
+        # Balances come back in cents; the transfer amount goes in dollars.
+        amount_cents = int(Decimal(str(amount_usd)) * 100)
         
         # Check sender balance
         balances = client.accounts.get_balances(from_account_id)
@@ -348,7 +370,7 @@ def process_payment(client: FinAegis, from_account_id: str, to_account_id: str, 
         transfer = client.transfers.create(
             from_account=from_account_id,
             to_account=to_account_id,
-            amount=amount_cents,
+            amount=str(amount_usd),
             asset_code='USD',
             reference=f"Payment on {datetime.now().isoformat()}"
         )

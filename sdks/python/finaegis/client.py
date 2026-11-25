@@ -1,5 +1,7 @@
 import os
-from typing import Optional, Dict, Any
+import time
+import uuid
+from typing import Optional, Dict, Any, Union
 from urllib.parse import urljoin
 
 import requests
@@ -18,6 +20,39 @@ from .resources import (
     ExchangeRatesResource,
     GCUResource,
 )
+
+#: The HTTP header the API reads to recognise a repeated request.
+IDEMPOTENCY_HEADER = 'Idempotency-Key'
+
+#: Answers after which a request is sent again.
+RETRY_STATUSES = (429, 500, 502, 503, 504)
+
+#: Methods that can move money or create something, so they are only sent
+#: again when they carry an Idempotency-Key.
+_UNSAFE_METHODS = frozenset(['POST', 'PATCH'])
+
+
+class _IdempotentMethodsRetry(Retry):
+    """
+    Transport-level retries that never resend a POST or a PATCH.
+
+    urllib3 retries a failed connection for every method. The client retries
+    POST and PATCH itself in FinAegis.request(), with the same Idempotency-Key,
+    so the transport gives up on them at once instead of retrying them too.
+    """
+
+    def increment(self, method=None, url=None, *args, **kwargs):
+        if method is not None and method.upper() in _UNSAFE_METHODS:
+            return Retry.increment(self.new(total=0), method, url, *args, **kwargs)
+        return super().increment(method, url, *args, **kwargs)
+
+
+def _header(headers: Dict[str, Any], name: str) -> Optional[Any]:
+    """Read a header value regardless of the case of its name."""
+    for key, value in headers.items():
+        if key.lower() == name.lower():
+            return value
+    return None
 
 
 class FinAegis:
@@ -53,7 +88,9 @@ class FinAegis:
             environment: The API environment to use ('production', 'sandbox', 'local')
             base_url: Override the base URL (optional)
             timeout: Request timeout in seconds
-            max_retries: Maximum number of retries for failed requests
+            max_retries: How many times a failed request is sent again after a
+                connection error, a timeout or a 429/5xx answer. 0 turns retries
+                off. A POST is only sent again with the same Idempotency-Key.
             verify_ssl: Whether to verify SSL certificates
         """
         self.api_key = api_key or os.environ.get('FINAEGIS_API_KEY')
@@ -62,6 +99,7 @@ class FinAegis:
         
         self.base_url = base_url or self.ENVIRONMENTS.get(environment, self.ENVIRONMENTS['production'])
         self.timeout = timeout
+        self.max_retries = max_retries
         self.verify_ssl = verify_ssl
         
         # Setup session with retry logic
@@ -73,12 +111,13 @@ class FinAegis:
             'User-Agent': f'FinAegis-Python-SDK/{__version__}',
         })
         
-        # Configure retries
-        retry_strategy = Retry(
+        # Configure retries for idempotent methods. POST and PATCH are
+        # retried in request(), and only with an Idempotency-Key.
+        retry_strategy = _IdempotentMethodsRetry(
             total=max_retries,
             backoff_factor=1,
-            status_forcelist=[429, 500, 502, 503, 504],
-            allowed_methods=["HEAD", "GET", "POST", "PUT", "DELETE", "OPTIONS", "TRACE"]
+            status_forcelist=list(RETRY_STATUSES),
+            allowed_methods=["HEAD", "GET", "PUT", "DELETE", "OPTIONS", "TRACE"]
         )
         adapter = HTTPAdapter(max_retries=retry_strategy)
         self.session.mount("http://", adapter)
@@ -100,16 +139,23 @@ class FinAegis:
         path: str,
         params: Optional[Dict[str, Any]] = None,
         json: Optional[Dict[str, Any]] = None,
+        idempotency_key: Union[str, bool, None] = None,
         **kwargs
     ) -> Dict[str, Any]:
         """
         Make a request to the FinAegis API.
+        
+        Every POST carries an Idempotency-Key header. The client makes a new
+        key for each call and sends the same key when it retries the call, so
+        the API runs it at most once. A POST without a key is never retried.
         
         Args:
             method: HTTP method (GET, POST, PUT, DELETE, etc.)
             path: API endpoint path
             params: Query parameters
             json: JSON body data
+            idempotency_key: Your own Idempotency-Key for a POST, or False to
+                send none. The client makes one when it is left out.
             **kwargs: Additional arguments to pass to requests
             
         Returns:
@@ -119,16 +165,45 @@ class FinAegis:
             FinAegisError: If the request fails
         """
         url = urljoin(self.base_url, path.lstrip('/'))
+        method = method.upper()
+        headers = dict(kwargs.pop('headers', None) or {})
         
-        response = self.session.request(
-            method=method,
-            url=url,
-            params=params,
-            json=json,
-            timeout=self.timeout,
-            verify=self.verify_ssl,
-            **kwargs
-        )
+        if method == 'POST' and idempotency_key is not False and not _header(headers, IDEMPOTENCY_HEADER):
+            headers[IDEMPOTENCY_HEADER] = idempotency_key or str(uuid.uuid4())
+        
+        # The transport retries the other methods. POST and PATCH are retried
+        # here, and only when they carry an Idempotency-Key.
+        retries = 0
+        if method in _UNSAFE_METHODS and _header(headers, IDEMPOTENCY_HEADER):
+            retries = self.max_retries
+        
+        attempt = 0
+        while True:
+            try:
+                response = self.session.request(
+                    method=method,
+                    url=url,
+                    params=params,
+                    json=json,
+                    headers=headers,
+                    timeout=self.timeout,
+                    verify=self.verify_ssl,
+                    **kwargs
+                )
+            except (requests.ConnectionError, requests.Timeout):
+                if attempt >= retries:
+                    raise
+                retry_after = None
+            else:
+                if response.status_code not in RETRY_STATUSES or attempt >= retries:
+                    break
+                retry_after = response.headers.get('Retry-After')
+            
+            delay = float(2 ** attempt)
+            if retry_after is not None and str(retry_after).isdigit():
+                delay = max(delay, float(retry_after))
+            time.sleep(delay)
+            attempt += 1
         
         # Handle errors
         if not response.ok:
@@ -141,9 +216,15 @@ class FinAegis:
         """Make a GET request."""
         return self.request('GET', path, params=params, **kwargs)
     
-    def post(self, path: str, json: Optional[Dict[str, Any]] = None, **kwargs) -> Dict[str, Any]:
-        """Make a POST request."""
-        return self.request('POST', path, json=json, **kwargs)
+    def post(
+        self,
+        path: str,
+        json: Optional[Dict[str, Any]] = None,
+        idempotency_key: Union[str, bool, None] = None,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """Make a POST request. It carries an Idempotency-Key; see request()."""
+        return self.request('POST', path, json=json, idempotency_key=idempotency_key, **kwargs)
     
     def put(self, path: str, json: Optional[Dict[str, Any]] = None, **kwargs) -> Dict[str, Any]:
         """Make a PUT request."""

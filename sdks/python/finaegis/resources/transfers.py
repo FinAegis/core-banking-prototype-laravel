@@ -2,7 +2,7 @@
 Transfers resource for the FinAegis SDK
 """
 
-from typing import Optional
+from typing import Optional, Union
 from ..types import Transfer
 from .base import BaseResource
 
@@ -14,21 +14,28 @@ class TransfersResource(BaseResource):
         self,
         from_account: str,
         to_account: str,
-        amount: int,
+        amount: Union[int, float, str],
         asset_code: str = 'USD',
         reference: Optional[str] = None,
-        workflow_enabled: bool = True
+        workflow_enabled: bool = True,
+        idempotency_key: Optional[str] = None
     ) -> Transfer:
         """
         Create a new transfer.
         
+        The request carries an Idempotency-Key, so a retry does not create a
+        second transfer. Pass idempotency_key to choose the key yourself, for
+        example to repeat the same transfer safely after a restart.
+        
         Args:
             from_account: Source account UUID
             to_account: Destination account UUID
-            amount: Amount in cents
+            amount: Amount in major units of the asset, for example '25.50'
+                for 25.50 US dollars. A string keeps every decimal exact.
             asset_code: Asset code (default: USD)
             reference: Optional reference for the transfer
             workflow_enabled: Whether to enable workflow processing
+            idempotency_key: Optional Idempotency-Key for this transfer
             
         Returns:
             Transfer object
@@ -43,7 +50,7 @@ class TransfersResource(BaseResource):
         if reference:
             data['reference'] = reference
             
-        response = self._post('/transfers', data)
+        response = self._post('/transfers', data, idempotency_key)
         return Transfer.from_dict(response['data'])
     
     def get(self, uuid: str) -> Transfer:

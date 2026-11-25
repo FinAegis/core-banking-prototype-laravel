@@ -44584,14 +44584,19 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "amount"
+                                    "amount",
+                                    "asset_code"
                                 ],
                                 "properties": {
                                     "amount": {
-                                        "description": "Amount in cents",
-                                        "type": "integer",
-                                        "example": 10000,
-                                        "minimum": 1
+                                        "description": "Amount in major units of the asset, for example 100.00 for 100 US dollars. It can have at most as many decimals as the asset has; an amount with more decimals is refused with 422.",
+                                        "type": "string",
+                                        "format": "decimal",
+                                        "example": "100.00"
+                                    },
+                                    "asset_code": {
+                                        "type": "string",
+                                        "example": "USD"
                                     },
                                     "description": {
                                         "type": "string",
@@ -44643,7 +44648,7 @@
                         }
                     },
                     "422": {
-                        "description": "Cannot deposit to frozen account",
+                        "description": "The account is frozen, or the amount has more decimals than the asset has",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -44696,14 +44701,19 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "amount"
+                                    "amount",
+                                    "asset_code"
                                 ],
                                 "properties": {
                                     "amount": {
-                                        "description": "Amount in cents",
-                                        "type": "integer",
-                                        "example": 5000,
-                                        "minimum": 1
+                                        "description": "Amount in major units of the asset, for example 50.00 for 50 US dollars. It can have at most as many decimals as the asset has; an amount with more decimals is refused with 422.",
+                                        "type": "string",
+                                        "format": "decimal",
+                                        "example": "50.00"
+                                    },
+                                    "asset_code": {
+                                        "type": "string",
+                                        "example": "USD"
                                     },
                                     "description": {
                                         "type": "string",
@@ -44755,7 +44765,7 @@
                         }
                     },
                     "422": {
-                        "description": "Insufficient balance or frozen account",
+                        "description": "Insufficient balance, a frozen account, or an amount with more decimals than the asset has",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -45849,8 +45859,22 @@
                     "Transfers"
                 ],
                 "summary": "Create a money transfer",
-                "description": "Transfers money from one account to another",
+                "description": "Transfers money from one account to another. Send an Idempotency-Key header to make a retry safe: a repeat with the same key and the same body returns the first response and does not move money again.",
                 "operationId": "createTransfer",
+                "parameters": [
+                    {
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "description": "A key you choose for this transfer, such as a UUID. Send the same key when you retry the same transfer. The server keeps it for 24 hours.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "7f1c2a9e-4b1d-4c8e-9a51-2d3f6b7e8c90",
+                            "maxLength": 64,
+                            "minLength": 16
+                        }
+                    }
+                ],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -45859,7 +45883,8 @@
                                 "required": [
                                     "from_account_uuid",
                                     "to_account_uuid",
-                                    "amount"
+                                    "amount",
+                                    "asset_code"
                                 ],
                                 "properties": {
                                     "from_account_uuid": {
@@ -45873,10 +45898,14 @@
                                         "example": "660e8400-e29b-41d4-a716-446655440000"
                                     },
                                     "amount": {
-                                        "description": "Amount in cents",
-                                        "type": "integer",
-                                        "example": 5000,
-                                        "minimum": 1
+                                        "description": "Amount in major units of the asset, for example 25.00 for 25 US dollars. It can have at most as many decimals as the asset has; an amount with more decimals is refused with 422.",
+                                        "type": "string",
+                                        "format": "decimal",
+                                        "example": "25.00"
+                                    },
+                                    "asset_code": {
+                                        "type": "string",
+                                        "example": "USD"
                                     },
                                     "description": {
                                         "type": "string",
@@ -45911,8 +45940,9 @@
                                                     "format": "uuid"
                                                 },
                                                 "amount": {
-                                                    "type": "integer",
-                                                    "example": 5000
+                                                    "description": "The amount as sent, in major units of the asset.",
+                                                    "type": "string",
+                                                    "example": "25.00"
                                                 },
                                                 "status": {
                                                     "type": "string",
@@ -45931,8 +45961,14 @@
                             }
                         }
                     },
+                    "400": {
+                        "description": "The Idempotency-Key header has an invalid format. It must be a UUID or 16 to 64 letters, digits, dashes or underscores."
+                    },
+                    "409": {
+                        "description": "The Idempotency-Key was already used with a different body, or a request with the same key is still running."
+                    },
                     "422": {
-                        "description": "Validation error or business rule violation",
+                        "description": "Validation error or business rule violation, for example an amount with more decimals than the asset has",
                         "content": {
                             "application/json": {
                                 "schema": {

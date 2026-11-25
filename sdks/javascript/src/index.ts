@@ -1,6 +1,7 @@
 export { FinAegis } from './client';
 export * from './types';
 export * from './errors';
+export { IDEMPOTENCY_HEADER, generateIdempotencyKey } from './idempotency';
 
 // Resource exports
 export * from './resources/accounts';

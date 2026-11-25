@@ -2,7 +2,7 @@
 Accounts resource for the FinAegis SDK
 """
 
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Union
 from ..types import Account, Transaction, Transfer, PaginatedResponse
 from .base import BaseResource
 
@@ -36,7 +36,8 @@ class AccountsResource(BaseResource):
         Args:
             user_uuid: UUID of the user
             name: Account name
-            initial_balance: Initial balance in cents
+            initial_balance: Leave it out or pass 0. Accounts open empty;
+                fund them with a deposit.
             
         Returns:
             Created Account object
@@ -125,14 +126,23 @@ class AccountsResource(BaseResource):
         response = self._get(f'/accounts/{uuid}/balances')
         return response['data']
     
-    def deposit(self, uuid: str, amount: int, asset_code: str = 'USD') -> Transaction:
+    def deposit(
+        self,
+        uuid: str,
+        amount: Union[int, float, str],
+        asset_code: str = 'USD',
+        idempotency_key: Optional[str] = None
+    ) -> Transaction:
         """
         Deposit funds to an account.
         
         Args:
             uuid: Account UUID
-            amount: Amount in cents
+            amount: Amount in major units of the asset, for example '100.00'
+                for 100 US dollars. A string keeps every decimal exact.
             asset_code: Asset code (default: USD)
+            idempotency_key: Optional Idempotency-Key; the client makes one
+                when it is left out and repeats it on retries
             
         Returns:
             Transaction object
@@ -140,17 +150,26 @@ class AccountsResource(BaseResource):
         response = self._post(f'/accounts/{uuid}/deposit', {
             'amount': amount,
             'asset_code': asset_code
-        })
+        }, idempotency_key)
         return Transaction.from_dict(response['data'])
     
-    def withdraw(self, uuid: str, amount: int, asset_code: str = 'USD') -> Transaction:
+    def withdraw(
+        self,
+        uuid: str,
+        amount: Union[int, float, str],
+        asset_code: str = 'USD',
+        idempotency_key: Optional[str] = None
+    ) -> Transaction:
         """
         Withdraw funds from an account.
         
         Args:
             uuid: Account UUID
-            amount: Amount in cents
+            amount: Amount in major units of the asset, for example '100.00'
+                for 100 US dollars. A string keeps every decimal exact.
             asset_code: Asset code (default: USD)
+            idempotency_key: Optional Idempotency-Key; the client makes one
+                when it is left out and repeats it on retries
             
         Returns:
             Transaction object
@@ -158,7 +177,7 @@ class AccountsResource(BaseResource):
         response = self._post(f'/accounts/{uuid}/withdraw', {
             'amount': amount,
             'asset_code': asset_code
-        })
+        }, idempotency_key)
         return Transaction.from_dict(response['data'])
     
     def get_transactions(self, uuid: str, page: int = 1, per_page: int = 20) -> PaginatedResponse:
