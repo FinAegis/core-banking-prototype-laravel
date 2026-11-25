@@ -17,7 +17,9 @@ return [
 
     'fallback_provider' => env('AI_FALLBACK_PROVIDER', 'anthropic'),
 
-    'demo_mode' => env('AI_DEMO_MODE', true),
+    // Template answers instead of a language model. Off by default in
+    // production, where the AI endpoints are closed anyway.
+    'demo_mode' => (bool) env('AI_DEMO_MODE', env('APP_ENV', 'production') !== 'production'),
 
     'vector_db_provider' => env('AI_VECTOR_DB_PROVIDER', 'pinecone'),
 

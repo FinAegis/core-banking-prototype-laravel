@@ -106,6 +106,13 @@ return Application::configure(basePath: is_string($_appBasePath) ? $_appBasePath
         'middleware' => ['api', 'auth:sanctum'],
     ])
     ->withMiddleware(function (Middleware $middleware) {
+        // A route hidden in production answers 404 before authentication, so
+        // a guest cannot tell it exists (api/ai/*, api/demo/*).
+        $middleware->prependToPriorityList(
+            Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests::class,
+            App\Http\Middleware\DenyInProduction::class,
+        );
+
         // Register rate limiting middleware
         $middleware->alias([
             'api.rate_limit'         => App\Http\Middleware\ApiRateLimitMiddleware::class,

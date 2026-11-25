@@ -9,8 +9,10 @@ use App\Http\Controllers\Api\DemoAIChatController;
 use App\Http\Controllers\Api\MCPToolsController;
 use Illuminate\Support\Facades\Route;
 
-// AI Agent endpoints (protected)
-Route::prefix('ai')->middleware(['auth:sanctum', 'api.rate_limit:private'])->group(function () {
+// AI Agent endpoints (protected). They only return template answers (the
+// MCP tool runner is a demo), and no Zelta client calls them: 404 in
+// production, before authentication, like api/demo/*.
+Route::prefix('ai')->middleware(['not.production', 'auth:sanctum', 'api.rate_limit:private'])->group(function () {
     Route::post('/chat', [AIAgentController::class, 'chat'])->name('api.ai.chat');
     Route::get('/conversations', [AIAgentController::class, 'conversations'])->name('api.ai.conversations');
     Route::get('/conversations/{conversationId}', [AIAgentController::class, 'getConversation'])->name('api.ai.conversation');
