@@ -97,10 +97,10 @@ it('filters balances on the exact number of cents', function (int $balance, stri
         ->filterTable('balance', ['balance_operator' => $operator, 'balance_amount' => $amount])
         ->{$seesMatch ? 'assertCanSeeTableRecords' : 'assertCanNotSeeTableRecords'}([$match]);
 })->with([
-    'equal to 128.14'                   => [12814, '=', '128.14', true],
-    'less than 128.14'                  => [12814, '<', '128.14', false],
-    'equal to 21,474,836.47'            => [2147483647, '=', '21474836.47', true],
-    'greater than 21,474,836.46'        => [2147483647, '>', '21474836.46', true],
-    'equal to 128.145'                  => [12814, '=', '128.145', false],
-    'less than 128.145'                 => [12814, '<', '128.145', true],
+    'equal to 128.14'            => [12814, '=', '128.14', true],
+    'less than 128.14'           => [12814, '<', '128.14', false],
+    'equal to 21,474,836.47'     => [2147483647, '=', '21474836.47', true],
+    'greater than 21,474,836.46' => [2147483647, '>', '21474836.46', true],
+    'equal to 128.145'           => [12814, '=', '128.145', false],
+    'less than 128.145'          => [12814, '<', '128.145', true],
 ]);
