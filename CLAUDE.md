@@ -180,11 +180,12 @@ Non-custodial flow. Privy holds the keys (passkey-controlled smart accounts on E
 
 ## Card Issuing — Lepo Finance (v7.18.0+)
 
-Virtual consumer cards. Lepo Finance is the first provider (issuer Interlace, identity checks by SumSub); FinCard moves onto the same layer later. Domain: `app/Domain/CardIssuance/` (Lepo code in `Providers/Lepo/`). API: `/api/v1/cards/onboarding`, `/api/v1/cards/issued`, `/api/v1/cards/issued/{id}/topups`, `GET /api/v1/cards/issued/{id}/3ds/code`; Lepo webhooks at `POST /api/v1/webhooks/lepo`. The partner documentation and keys live outside the repo — never commit them.
+Virtual consumer cards. Lepo Finance is the first provider (issuer Interlace, identity checks by SumSub); FinCard moves onto the same layer later. Domain: `app/Domain/CardIssuance/` (Lepo code in `Providers/Lepo/`). API: `/api/v1/cards/onboarding`, `/api/v1/cards/issued`, `/api/v1/cards/issued/{id}/topups`, `/api/v1/cards/issued/{id}/withdrawals` (estimate, start, `{w}/confirm`, `{w}/resend-code`), `GET /api/v1/cards/issued/{id}/3ds/code`; Lepo webhooks at `POST /api/v1/webhooks/lepo`. The partner documentation and keys live outside the repo — never commit them.
 
-- Switches: `CARD_PROVIDERS_ENABLED` (empty = cards off), `CARD_PROVIDER_LEPO_PILOT_ONLY` + `CARD_PROVIDER_LEPO_PILOT_USERS`, `CARD_TOPUPS_ENABLED` (off until Lepo confirms the money path). Do not set `CARD_ISSUER=lepo`; that switch belongs to the older JIT issuers.
-- Operator commands: `php artisan cards:inspect-user {email}`, `php artisan cards:resolve-topup {topup} {outcome} --credited-cents= --note=` (after checking the top-up at Lepo).
+- Switches: `CARD_PROVIDERS_ENABLED` (empty = cards off), `CARD_PROVIDER_LEPO_PILOT_ONLY` + `CARD_PROVIDER_LEPO_PILOT_USERS`, `CARD_TOPUPS_ENABLED` (off until Lepo confirms the money path), `CARD_WITHDRAWALS_ENABLED` (off; also needs `LEPO_WITHDRAWAL_CHAIN_CODES` from the read-only pilot probe). Do not set `CARD_ISSUER=lepo`; that switch belongs to the older JIT issuers.
+- Operator commands: `php artisan cards:inspect-user {email}`, `php artisan cards:resolve-topup {topup} {outcome} --credited-cents= --note=` (after checking the top-up at Lepo), `php artisan cards:inspect-withdrawal {id}`, `php artisan cards:resolve-withdrawal {id} completed|failed|resume --note= --operator-email=`.
 - Top-ups: `AdvanceLepoTopUps` runs every minute (and on deposit webhooks) under the per-user money lock `cards:lepo:money:{user_id}`; it returns at once while the switch is off.
+- Withdrawals ("Send to wallet", `card_withdrawals` + append-only `card_withdrawal_events`): unload → exchange to USDC → withdrawal request (emailed 8-character code) → confirm in the user's request → delivery seen by our EVM mirror or Lepo. `AdvanceLepoWithdrawals` runs every minute (and on `card.unload` / `wallet.withdrawal` webhooks) even while the switch is off, so rows past the unload finish. One money flow per user: top-ups and withdrawals block each other under the same money lock.
 
 | Pitfall | Fix |
 |---|---|
@@ -197,6 +198,8 @@ Virtual consumer cards. Lepo Finance is the first provider (issuer Interlace, id
 | Page numbers | Card transaction pages start from 0; crypto-transaction pages from 1 |
 | Test fakes for an outage | `LepoClient::read()` retries twice, so a fake needs three failures; `Http::fake()` stubs accumulate (first match wins), so use one fake with response sequences |
 | Calling the production Lepo API | Read-only checks only; there is no sandbox |
+| Withdrawal destination | Server-picked from `blockchain_addresses` (`user_uuid`, Privy `privy_smart_account`, newest; 24 h cool-down) and copied onto the row; a request body with `destination_address`/`address`/`to` is refused (`ERR_CARDS_036`). Never read the address from anywhere but the row after the start |
+| Withdrawal money calls | Unload, exchange, request and confirm each save a UUID key before the call and are never repeated after an unclear answer: reads decide (15 min), else `needs_attention`. A timed-out request needs `cards:resolve-withdrawal resume` (repeats once, same key). The emailed code is never stored, logged or queued; Telescope ignores the confirm path |
 | Creating a same-named event | `card.state_changed` already exists for FinCard (`{card_id, status, balance_cents}`); reuse events by name |
 
 ## IAP / Subscriptions (v7.13.0+)

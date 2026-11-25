@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Domain\CardIssuance\Providers\CardProviderSelector;
+use App\Domain\CardIssuance\Providers\Lepo\LepoWithdrawals;
 use App\Domain\Wallet\Services\Send\SolanaSponsorSigner;
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Application;
@@ -383,6 +384,18 @@ class OpsVerifyEnvCommand extends Command
             $this->add(self::CATEGORY_CONDITIONAL, 'cards.lepo', self::WARN, 'Lepo cards are on in pilot mode but CARD_PROVIDER_LEPO_PILOT_USERS is empty, so nobody can get a card. Add the pilot users or set CARD_PROVIDER_LEPO_PILOT_ONLY=false.');
 
             return;
+        }
+
+        if (LepoWithdrawals::enabled()) {
+            $missing = array_values(array_filter(
+                CardProviderSelector::listFromConfig('cardissuance.providers.lepo_withdrawal_networks'),
+                static fn (string $network): bool => LepoWithdrawals::chainCode($network) === null,
+            ));
+            if ($missing !== []) {
+                $this->add(self::CATEGORY_CONDITIONAL, 'cards.lepo', self::WARN, sprintf('CARD_WITHDRAWALS_ENABLED is on but LEPO_WITHDRAWAL_CHAIN_CODES has no chain code for %s, so withdrawals on that network are refused. Set the codes confirmed with the pilot user.', implode(', ', $missing)));
+
+                return;
+            }
         }
 
         $this->add(self::CATEGORY_CONDITIONAL, 'cards.lepo', self::PASS);
