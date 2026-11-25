@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Middleware;
 
+use App\Domain\Asset\Models\Asset;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
@@ -321,8 +322,65 @@ class TransactionRateLimitMiddlewareTest extends TestCase
 
         $response->assertStatus(429)
             ->assertJsonPath('limit_type', 'hourly_amount')
-            ->assertJsonPath('limit_details.limit_unit', 'minor_units_x100')
+            ->assertJsonPath('limit_details.limit_unit', 'minor_units')
             ->assertJsonPath('limit_details.limit', 100000)
             ->assertJsonPath('limit_details.requested_amount', 150000); // 1500 * 100
+    }
+
+    #[Test]
+    public function test_counts_amounts_in_exact_minor_units(): void
+    {
+        // (int) (128.14 * 100) is 12813: the old count let a deposit past the
+        // $1000 cap by a cent.
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+
+        $this->postJson('/test-deposit', ['amount' => 871.86])->assertOk();
+        $this->postJson('/test-deposit', ['amount' => 128.14])->assertOk();
+
+        $this->postJson('/test-deposit', ['amount' => 0.01])
+            ->assertStatus(429)
+            ->assertJsonPath('limit_details.current_amount', 100000)
+            ->assertJsonPath('limit_details.requested_amount', 1);
+    }
+
+    #[Test]
+    public function test_counts_amounts_in_the_minor_units_of_the_asset(): void
+    {
+        Asset::firstOrCreate(['code' => 'BTC'], ['name' => 'Bitcoin', 'type' => 'crypto', 'precision' => 8, 'is_active' => true]);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+
+        // 0.00100001 BTC is 100001 satoshis, above the 100000 cap. The old
+        // count treated it as 0 cents.
+        $this->postJson('/test-deposit', ['amount' => '0.00100001', 'asset_code' => 'BTC'])
+            ->assertStatus(429)
+            ->assertJsonPath('limit_details.asset_code', 'BTC')
+            ->assertJsonPath('limit_details.requested_amount', 100001);
+    }
+
+    #[Test]
+    public function test_rounds_extra_decimals_up_when_counting(): void
+    {
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+
+        $this->postJson('/test-deposit', ['amount' => 999.99])->assertOk();
+
+        // 0.001 USD has more decimals than USD; it counts as one whole cent.
+        $this->postJson('/test-deposit', ['amount' => '0.001'])->assertOk();
+        $this->postJson('/test-deposit', ['amount' => '0.001'])
+            ->assertStatus(429)
+            ->assertJsonPath('limit_details.requested_amount', 1);
+    }
+
+    #[Test]
+    public function test_a_negative_amount_does_not_lower_the_count(): void
+    {
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+
+        $this->postJson('/test-deposit', ['amount' => 999.99])->assertOk();
+        $this->postJson('/test-deposit', ['amount' => -500])->assertOk();
+
+        $this->postJson('/test-deposit', ['amount' => 0.02])
+            ->assertStatus(429)
+            ->assertJsonPath('limit_details.current_amount', 99999);
     }
 }
