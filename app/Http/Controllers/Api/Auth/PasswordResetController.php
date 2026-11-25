@@ -49,6 +49,18 @@ class PasswordResetController extends Controller
         new OA\Property(property: 'message', type: 'string', example: 'Too many requests. Please try again later.'),
         ])
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Password reset is turned off (AUTH_PASSWORD_LOGIN_ENABLED=false). Sign in with the Privy email code instead. No email is sent.',
+        content: new OA\JsonContent(properties: [
+        new OA\Property(property: 'success', type: 'boolean', example: false),
+        new OA\Property(property: 'error', type: 'object', properties: [
+        new OA\Property(property: 'code', type: 'string', example: 'ERR_AUTH_008'),
+        new OA\Property(property: 'message', type: 'string'),
+        new OA\Property(property: 'reason', type: 'string', example: 'PASSWORD_RESET_DISABLED'),
+        ]),
+        ])
+    )]
     public function forgotPassword(Request $request)
     {
         $request->validate(['email' => 'required|email']);
@@ -129,6 +141,18 @@ class PasswordResetController extends Controller
         response: 422,
         description: 'Validation error or invalid token',
         content: new OA\JsonContent(ref: '#/components/schemas/ValidationError')
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Password reset is turned off (AUTH_PASSWORD_LOGIN_ENABLED=false). Sign in with the Privy email code instead.',
+        content: new OA\JsonContent(properties: [
+        new OA\Property(property: 'success', type: 'boolean', example: false),
+        new OA\Property(property: 'error', type: 'object', properties: [
+        new OA\Property(property: 'code', type: 'string', example: 'ERR_AUTH_008'),
+        new OA\Property(property: 'message', type: 'string'),
+        new OA\Property(property: 'reason', type: 'string', example: 'PASSWORD_RESET_DISABLED'),
+        ]),
+        ])
     )]
     public function resetPassword(Request $request)
     {

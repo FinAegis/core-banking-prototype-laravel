@@ -49,9 +49,14 @@ function opsVerifyEnvAllGoodConfig(): void
         'wallet.solana.sponsor.secret_key' => '',
         'services.helius.api_key'          => 'test-helius-key',
         'mobile.attestation.enabled'       => false,
-        'privy.web_login_enabled'          => false,
-        'backup.backup.destination.disks'  => ['s3'],
-        'relayer.pimlico.bundler_url'      => '',
+        // The web email-code login is on: with password sign-in off it is
+        // how admins sign in (auth.admin_sign_in).
+        'privy.web_login_enabled'         => true,
+        'privy.app_id'                    => 'test-privy-app',
+        'privy.app_secret'                => 'test-privy-secret',
+        'privy.jwks_url'                  => 'https://auth.privy.io/api/v1/apps/test-privy-app/jwks.json',
+        'backup.backup.destination.disks' => ['s3'],
+        'relayer.pimlico.bundler_url'     => '',
 
         // switches (testing defaults several of these to on)
         'ledger.direct_funding_enabled'      => false,
@@ -64,6 +69,7 @@ function opsVerifyEnvAllGoodConfig(): void
         'sms.enabled'                        => false,
         'trading.enabled'                    => false,
         'modules.runtime_management_enabled' => false,
+        'auth.password_login_enabled'        => false,
 
         // files — the repo ships storage/app/apple/AppleRootCA-G3.cer, whose
         // sha256 matches the default pinned fingerprint in config/subscription.php.
@@ -154,6 +160,7 @@ const OPS_VERIFY_ENV_SWITCHES = [
     'trading.enabled'                    => 'TRADING_ENABLED',
     'modules.runtime_management_enabled' => 'ADMIN_RUNTIME_MANAGEMENT_ENABLED',
     'registration.password_api_enabled'  => 'REGISTRATION_PASSWORD_API_ENABLED',
+    'auth.password_login_enabled'        => 'AUTH_PASSWORD_LOGIN_ENABLED',
 ];
 
 const OPS_VERIFY_ENV_MCP_TOOLS = [
@@ -887,6 +894,65 @@ describe('Card providers', function (): void {
     });
 });
 
+describe('admin sign-in while password sign-in is off', function (): void {
+    beforeEach(function (): void {
+        Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+    });
+
+    it('passes in production when admins can sign in with the email code', function (): void {
+        opsVerifyEnvAllGoodConfig();
+        App\Models\User::factory()->create()->assignRole('admin');
+        app()->detectEnvironment(fn () => 'production');
+
+        [$exitCode, $checks] = opsVerifyEnvRun();
+
+        expect($exitCode)->toBe(0)
+            ->and($checks['auth.admin_sign_in']['result'])->toBe('PASS');
+    });
+
+    it('fails in production when the web email-code login is off too', function (): void {
+        opsVerifyEnvAllGoodConfig();
+        config(['privy.web_login_enabled' => false]);
+        app()->detectEnvironment(fn () => 'production');
+
+        [$exitCode, $checks] = opsVerifyEnvRun();
+
+        expect($exitCode)->toBe(1)
+            ->and($checks['auth.admin_sign_in']['result'])->toBe('FAIL')
+            ->and($checks['auth.admin_sign_in']['detail'])->toContain('MCP_WEB_PRIVY_LOGIN');
+    });
+
+    it('fails in production for an admin with two-factor on and no Privy identity', function (): void {
+        opsVerifyEnvAllGoodConfig();
+        $lockedOut = App\Models\User::factory()->create(['two_factor_confirmed_at' => now(), 'privy_user_id' => null]);
+        $lockedOut->assignRole('admin');
+        // Already linked to Privy: the email code signs it in.
+        App\Models\User::factory()->create(['two_factor_confirmed_at' => now(), 'privy_user_id' => 'did:privy:linked-admin'])->assignRole('admin');
+        // Not an admin: not counted.
+        App\Models\User::factory()->create(['two_factor_confirmed_at' => now(), 'privy_user_id' => null]);
+        app()->detectEnvironment(fn () => 'production');
+
+        [$exitCode, $checks] = opsVerifyEnvRun();
+
+        expect($exitCode)->toBe(1)
+            ->and($checks['auth.admin_sign_in']['result'])->toBe('FAIL')
+            ->and($checks['auth.admin_sign_in']['detail'])->toContain('1 admin account(s) (user id ' . $lockedOut->id . ')');
+    });
+
+    it('skips while password sign-in is on', function (): void {
+        opsVerifyEnvAllGoodConfig();
+        config(['auth.password_login_enabled' => true, 'privy.web_login_enabled' => false]);
+        app()->detectEnvironment(fn () => 'production');
+
+        [$exitCode, $checks] = opsVerifyEnvRun();
+
+        expect($exitCode)->toBe(0)
+            ->and($checks['auth.admin_sign_in']['result'])->toBe('SKIP')
+            ->and($checks['auth.password_login_enabled']['result'])->toBe('WARN')
+            ->and($checks['auth.password_login_enabled']['detail'])->toContain('AUTH_PASSWORD_LOGIN_ENABLED is ON');
+    });
+});
+
 describe('env templates', function (): void {
     // The privacy and backup values a production template ships must pass
     // the deploy gate as written. The values go through the real config
@@ -916,4 +982,16 @@ describe('env templates', function (): void {
             ->and($checks['backup.destination']['result'])->toBe('PASS')
             ->and($exitCode)->toBe(0);
     })->with(['.env.zelta.example', '.env.production.example']);
+
+    it('ships password sign-in off', function (string $file): void {
+        $template = Dotenv\Dotenv::parse((string) file_get_contents(base_path($file)));
+
+        expect($template['AUTH_PASSWORD_LOGIN_ENABLED'] ?? null)->toBe('false');
+    })->with(['.env.zelta.example', '.env.production.example']);
+
+    it('keeps the web email-code login on for zelta.app, so admins can sign in', function (): void {
+        $template = Dotenv\Dotenv::parse((string) file_get_contents(base_path('.env.zelta.example')));
+
+        expect($template['MCP_WEB_PRIVY_LOGIN'] ?? null)->toBe('true');
+    });
 });

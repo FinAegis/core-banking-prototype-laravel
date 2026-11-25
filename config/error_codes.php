@@ -109,6 +109,12 @@ return [
     // `error.reason` carries EMAIL_NOT_VERIFIED.
     'ERR_REG_003' => ['http' => 403, 'description' => 'Verify your email address before you use this account.'],
 
+    // ─── Password sign-in switch (auth.password_login_enabled) ─────────────
+    // Password login and password reset are off; sign in with the Privy
+    // email code. `error.reason` carries PASSWORD_LOGIN_DISABLED or
+    // PASSWORD_RESET_DISABLED.
+    'ERR_AUTH_008' => ['http' => 403, 'description' => 'Signing in with a password is turned off. Sign in with the code we send to your email.'],
+
     // ─── Generic relayer sponsorship (SponsorshipRequestValidator) ────────
     // REST POST /api/v1/relayer/sponsor; GraphQL sponsorTransaction returns
     // the same messages as errors.

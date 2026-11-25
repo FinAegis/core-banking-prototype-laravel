@@ -56,6 +56,17 @@ class AccountFlagsService
         return $hit;
     }
 
+    /**
+     * Whether the user has an active reviewer flag (set, not disabled, not
+     * expired).
+     */
+    public function isActiveReviewAccount(User|int $user): bool
+    {
+        $flag = $this->forUser($user);
+
+        return $flag !== null && $flag->isActive();
+    }
+
     public function shouldSuppressNotifications(User|int $user): bool
     {
         $flag = $this->forUser($user);

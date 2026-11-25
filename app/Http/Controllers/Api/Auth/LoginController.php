@@ -82,6 +82,18 @@ class LoginController extends Controller
         ]),
         ])
     )]
+    #[OA\Response(
+        response: 403,
+        description: 'Password sign-in is turned off (AUTH_PASSWORD_LOGIN_ENABLED=false). Sign in with the Privy email code (POST /api/v1/auth/privy-login) instead. Active app-store reviewer accounts are exempt.',
+        content: new OA\JsonContent(properties: [
+        new OA\Property(property: 'success', type: 'boolean', example: false),
+        new OA\Property(property: 'error', type: 'object', properties: [
+        new OA\Property(property: 'code', type: 'string', example: 'ERR_AUTH_008'),
+        new OA\Property(property: 'message', type: 'string'),
+        new OA\Property(property: 'reason', type: 'string', example: 'PASSWORD_LOGIN_DISABLED'),
+        ]),
+        ])
+    )]
     public function login(Request $request): JsonResponse
     {
         $request->validate(

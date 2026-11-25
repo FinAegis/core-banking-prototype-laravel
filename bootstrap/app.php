@@ -166,6 +166,8 @@ return Application::configure(basePath: is_string($_appBasePath) ? $_appBasePath
             'module.enabled' => App\Http\Middleware\EnsureModuleEnabled::class,
             // Demo-only routes answer 404 in production
             'not.production' => App\Http\Middleware\DenyInProduction::class,
+            // AUTH_PASSWORD_LOGIN_ENABLED gate (`password.signin:login|reset`)
+            'password.signin' => App\Http\Middleware\RefusePasswordSignIn::class,
         ]);
 
         // Prepend CORS middleware to handle it before other middleware
@@ -218,6 +220,10 @@ return Application::configure(basePath: is_string($_appBasePath) ? $_appBasePath
         // An account with an unverified email cannot use signed-in pages
         // (including the OAuth consent) while AUTH_REQUIRE_VERIFIED_EMAIL is on.
         $middleware->appendToGroup('web', App\Http\Middleware\EnsureVerifiedEmail::class);
+
+        // Refuses the Fortify password login, two-factor step and password
+        // reset routes while AUTH_PASSWORD_LOGIN_ENABLED is off.
+        $middleware->appendToGroup('web', App\Http\Middleware\RefusePasswordSignIn::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Treat 'demo' environment as production for error handling
