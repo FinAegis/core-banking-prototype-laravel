@@ -164,6 +164,8 @@ return Application::configure(basePath: is_string($_appBasePath) ? $_appBasePath
             'feature' => App\Http\Middleware\EnsureFeatureEnabled::class,
             // MODULES_DISABLED gate for routes outside the module route loader
             'module.enabled' => App\Http\Middleware\EnsureModuleEnabled::class,
+            // Demo-only routes answer 404 in production
+            'not.production' => App\Http\Middleware\DenyInProduction::class,
         ]);
 
         // Prepend CORS middleware to handle it before other middleware

@@ -20846,7 +20846,7 @@
                     "Demo AI Chat"
                 ],
                 "summary": "Send a message to the demo AI agent",
-                "description": "Public endpoint for demo AI chat. No authentication required. Rate limited to 60 requests/minute.",
+                "description": "Public endpoint for demo AI chat on demo deployments. No authentication required. Rate limited to 60 requests/minute. Answers 404 in production.",
                 "operationId": "demoAiChat",
                 "requestBody": {
                     "required": true,
