@@ -43,6 +43,10 @@ return [
             // middleware, this delegates auth and permission checks to the field level.
             Nuwave\Lighthouse\Http\Middleware\AttemptAuthentication::class,
 
+            // A signed-in account with an unverified email is refused while
+            // AUTH_REQUIRE_VERIFIED_EMAIL is on.
+            App\Http\Middleware\EnsureVerifiedEmail::class,
+
             // GraphQL-specific rate limiting (separate from REST API rate limits).
             App\Http\Middleware\GraphQLRateLimitMiddleware::class,
 

@@ -88,6 +88,10 @@ class UserInvitationService
                 'password' => Hash::make($password),
             ]);
 
+            // The invitation link was emailed to this address, so opening
+            // it proves the person controls the address.
+            $user->forceFill(['email_verified_at' => now()])->save();
+
             Role::firstOrCreate(['name' => $invitation->role, 'guard_name' => 'web']);
             $user->assignRole($invitation->role);
 

@@ -104,6 +104,10 @@ return [
     // `error.reason` carries REGISTRATION_CLOSED / INVITATION_REQUIRED.
     'ERR_REG_001' => ['http' => 403, 'description' => 'New account registration is currently closed.'],
     'ERR_REG_002' => ['http' => 403, 'description' => 'Registration is by invitation only. Use the email address and link from your invitation.'],
+    // Signed-in account whose email address is not verified
+    // (AUTH_REQUIRE_VERIFIED_EMAIL, App\Http\Middleware\EnsureVerifiedEmail).
+    // `error.reason` carries EMAIL_NOT_VERIFIED.
+    'ERR_REG_003' => ['http' => 403, 'description' => 'Verify your email address before you use this account.'],
 
     // ─── Generic relayer sponsorship (SponsorshipRequestValidator) ────────
     // REST POST /api/v1/relayer/sponsor; GraphQL sponsorTransaction returns

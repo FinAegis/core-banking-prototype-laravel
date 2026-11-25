@@ -187,6 +187,9 @@ return Application::configure(basePath: is_string($_appBasePath) ? $_appBasePath
             App\Http\Middleware\QueryPerformanceMiddleware::class,
             App\Http\Middleware\CachePerformance::class,
             App\Http\Middleware\TracingMiddleware::class,
+            // An account with an unverified email cannot use signed-in routes
+            // while AUTH_REQUIRE_VERIFIED_EMAIL is on.
+            App\Http\Middleware\EnsureVerifiedEmail::class,
         ]);
 
         // Apply security headers to web routes
@@ -209,6 +212,10 @@ return Application::configure(basePath: is_string($_appBasePath) ? $_appBasePath
 
         // Saves the MCP consent screen's daily spending limit on approval.
         $middleware->appendToGroup('web', App\Http\Middleware\CaptureMcpConsentLimit::class);
+
+        // An account with an unverified email cannot use signed-in pages
+        // (including the OAuth consent) while AUTH_REQUIRE_VERIFIED_EMAIL is on.
+        $middleware->appendToGroup('web', App\Http\Middleware\EnsureVerifiedEmail::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Treat 'demo' environment as production for error handling

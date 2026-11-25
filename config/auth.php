@@ -130,4 +130,20 @@ return [
 
     'max_concurrent_sessions' => env('AUTH_MAX_CONCURRENT_SESSIONS', 3),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Verified Email Required
+    |--------------------------------------------------------------------------
+    |
+    | When on, an account whose email address is not verified cannot use any
+    | route that requires a signed-in user (web pages, the REST API, GraphQL
+    | and the OAuth consent). It can only verify its address, sign out or
+    | delete itself (App\Http\Middleware\EnsureVerifiedEmail). Privy sign-ups
+    | are verified by Privy. Secure by default: ON for every APP_ENV except
+    | local, testing and demo; AUTH_REQUIRE_VERIFIED_EMAIL always wins.
+    |
+    */
+
+    'verified_email_required' => (bool) env('AUTH_REQUIRE_VERIFIED_EMAIL', ! in_array(env('APP_ENV', 'production'), ['local', 'testing', 'demo'], true)),
+
 ];
