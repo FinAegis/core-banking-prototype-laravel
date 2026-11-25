@@ -124,7 +124,11 @@ it('never lets a zero-value or dust row reach a top-up, even with the right hash
     expect(app(LepoDepositMatcher::class)->detect($topup))->toBeFalse()
         ->and($topup->fresh()?->status)->toBe('awaiting_deposit');
     expect(app(LepoDepositMatcher::class)->findUnmatched($topup->card()->firstOrFail()->cardholder()->firstOrFail()))->toBe([]);
-})->with([0.0, 0.000001, 0.99]);
+})->with([
+    'zero'      => [0.0],
+    'dust'      => [0.000001],
+    'below one' => [0.99],
+]);
 
 it('sends a positive deposit in another currency to an operator instead of ignoring it', function (): void {
     $hash = '0x' . str_repeat('9', 64);
