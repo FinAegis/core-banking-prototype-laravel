@@ -673,7 +673,9 @@ it('keeps the code out of the error trace of a failed request', function (): voi
     $request = Illuminate\Http\Request::create('/api/v1/cards/issued/x/withdrawals/y/confirm', 'POST', ['code' => 'LEAK1234', 'note' => 'kept']);
 
     expect(fn () => app(App\Http\Middleware\TracingMiddleware::class)->handle($request, fn () => throw new RuntimeException('boom')))->toThrow(RuntimeException::class);
-    expect(implode("\n", $logged))->toContain('kept')->not->toContain('LEAK1234');
+    $log = implode("\n", $logged);
+    expect($log)->toContain('kept');
+    expect(str_contains($log, 'LEAK1234'))->toBeFalse();
 });
 
 it('keeps the confirm request out of Telescope', function (): void {
