@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Changelog | ' . config('brand.name', 'Zelta'),
-        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.18.3.',
+        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.18.4.',
         'keywords' => 'changelog, release notes, updates, ' . config('brand.name', 'Zelta') . ', version history, core banking',
     ])
 
@@ -43,6 +43,21 @@
 
             @php
                 $releases = [
+                    [
+                        'version' => 'v7.18.4',
+                        'date' => 'November 25, 2026',
+                        'label' => 'Safer Sign-in and Exact Money',
+                        'label_color' => 'slate',
+                        'badge_color' => 'bg-slate-100 text-slate-700 border-slate-200',
+                        'dot_color' => 'bg-slate-500',
+                        'items' => [
+                            'Safer sign-in. Accounts must have a verified email to use the app&rsquo;s signed-in features. The old password sign-up is closed, and login-code emails are limited for each address.',
+                            'Account deletion that works. Deleting your account now erases your personal data right away. If something blocks the deletion, you stay signed in and see the reason.',
+                            'Safe retries. When an app retries a payment request, the money moves only once.',
+                            'Exact amounts. Every payment path now counts money in exact cents, with no rounding errors.',
+                            'Card top-ups follow the card partner&rsquo;s rules. The app now shows the card fees, and the Terms list the monthly card fee. Adding money to a card stays switched off for now.',
+                        ],
+                    ],
                     [
                         'version' => 'v7.18.3',
                         'date' => 'November 24, 2026',

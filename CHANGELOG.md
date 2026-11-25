@@ -9,6 +9,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 >
 > Entries below describe software changes. Named third-party providers are integration adapters for third-party APIs; no partnership or endorsement implied. Mentions of the Global Currency Unit (GCU) refer to a software demonstration that is not issued, offered or sold to anyone and has no monetary value.
 
+## [7.18.4] - 2026-11-25
+
+**Safer sign-in, exact money and safe retries.** This release closes the gaps that a probe of zelta.app showed. It makes account deletion erase personal data as promised, and it makes retried money requests safe. Amounts are booked with exact decimal maths everywhere, and event projections book each event only once. The card top-up path follows the card partner's latest answers. Card top-ups stay switched off.
+
+### Security
+- The old email-and-password API registration has its own switch, `REGISTRATION_PASSWORD_API_ENABLED`, which is off in production. Before, the Privy sign-up switch also opened it (#1274).
+- Accounts with an unverified email can no longer use signed-in pages, API tokens, API keys, AI app approvals or GraphQL. Before, the `verified` checks did nothing, because the user model did not declare email verification. Accounts linked to Privy count as verified (#1274).
+- Login-code emails are limited to 3 an hour and 10 a day per address, whatever the number of senders (#1274).
+- GraphQL introspection is off by default in production, and a test checks that no root field answers without sign-in (#1274).
+- `/api/demo/*` answers 404 in production (#1274).
+- A Privy session issued before an account was deleted can no longer open a new account. `privy-login` answers 401 `ACCOUNT_DELETED` (#1265).
+
+### Fixed
+- **Account deletion.** `POST /api/auth/delete-account` signed the user out first and then failed for anyone with an account record, so nothing was deleted. The app, the GDPR endpoint and the web profile now erase through one service, and sign-ins end only after the erasure has succeeded. A blocked deletion answers 409 `ACCOUNT_DELETION_BLOCKED` with stable `reason_codes`. Users without a password can delete their account on the web (#1265).
+- **Status page.** Each view wrote health check rows; checks are now cached for 60 seconds (#1265).
+- **Safe retries.**
+  - v2 POSTs, GCU buy and sell, and bank transfers are deduplicated on `Idempotency-Key`.
+  - Idempotency runs before the rate limiter, so a replay does not count twice.
+  - The JavaScript, PHP and Python SDKs send one key per POST and reuse it on retries (#1269).
+- **Exact amounts.**
+  - Transfers, deposits and withdrawals convert amounts with exact decimal maths and the asset's precision. An amount with too many decimals gets a 422 instead of being rounded.
+  - The same fix covers custodian transfers, stablecoin mint and burn, batch items, webhook balances, the MCP withdraw tool, the admin balance filter and the transaction rate limiter.
+  - Transaction reversal works again (#1269, #1272).
+- **Event projections.** One balance credit no longer counts twice. A redelivered or replayed event changes nothing. A refused debit writes no withdrawal history. `event:replay` filters now work (#1270).
+- **Broken routes.** Every route that pointed at missing code is fixed or removed, and a test guards this. The Operations menu works for staff roles again. Public demo pages no longer fail for guests (#1267).
+- **Eleven smaller defects:**
+  - the Helius reconcile exit code;
+  - the OAuth metadata;
+  - the SMS tool text;
+  - the OpenAPI version;
+  - read-only admin pages for KYC documents, CGO investments and order books;
+  - the webhook replay signature;
+  - the removed MCP tool registration;
+  - the demo deploy job;
+  - demo mode and banner registration;
+  - agent signature timing;
+  - the AI provider configuration (#1268).
+- **Production safety:** the arbitrage boot step, the VirtualsAgent gate, the env templates and the admin money fields (#1264).
+
+### Changed
+- **Card top-ups** follow the card partner's answers of 25 November (#1273). Top-ups stay off.
+  - Conversions and card loads send an idempotency key.
+  - Only completed, positive USDC deposits are converted.
+  - `min_amount` leaves 5 USD on the card after every fee.
+  - Card onboarding returns `card_fees`.
+  - The Terms describe the 1 USD monthly card fee.
+  - Top-ups wait at least 60 minutes for a deposit.
+- **SDKs.** Methods for routes that never existed are deprecated (#1271).
+- **Dependencies.** 31 minor and patch updates, with PHPStan support for Mockery 1.6.15 (#1253, #1266).
+
 ## [7.18.3] - 2026-11-24
 
 **GCU value on the demo site.** The demo's GCU basket now has a sensible value, and its composition page answers again.

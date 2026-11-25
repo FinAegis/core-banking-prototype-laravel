@@ -3252,6 +3252,21 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 
 ---
 
+## Version 7.18.4 — Safer Sign-in, Exact Money and Safe Retries (November 2026)
+
+**Theme**: The gaps a probe of zelta.app showed are closed, account deletion erases as promised, retried money requests cannot move money twice, and every money path books exact amounts.
+
+### Delivered Features
+- **Sign-in hardening:** a separate switch for password registration, verified email required on signed-in routes, a per-address limit on login codes, GraphQL introspection off in production and demo routes off in production (#1274).
+- **Account deletion:** it erases through one service, with stable blocked-reason codes. An old session cannot reopen a deleted account (#1265).
+- **Idempotency:** `Idempotency-Key` deduplication on v2, GCU and bank-transfer POSTs, and the SDKs send one key per POST (#1269).
+- **Exact amounts:** decimal maths with asset precision on every money path (#1269, #1272).
+- **Projections:** each stored event is applied once, and `event:replay` filters work (#1270).
+- **Routes:** a route resolution guard, with broken routes fixed or removed (#1267).
+- **Card top-ups:** the path follows the partner's answers, `card_fees` appears in onboarding and the monthly fee is in the Terms. Top-ups stay off (#1273).
+
+---
+
 ## Version 7.18.3 — GCU Value on the Demo Site (November 2026)
 
 **Theme**: The demo's GCU basket is valued by value shares, so a small gold weight no longer dominates it, and the composition endpoint works again.
@@ -3518,5 +3533,5 @@ Embeddable JS widget that renders Zelta's 402 payment flow inside the partner's 
 
 ---
 
-*Document Version: 7.18.3*
-*Updated: November 24, 2026 (v7.18.3 GCU basket valued by value shares, composition endpoint fixed)*
+*Document Version: 7.18.4*
+*Updated: November 25, 2026 (v7.18.4 sign-in hardening, account deletion, safe retries, exact money paths)*
