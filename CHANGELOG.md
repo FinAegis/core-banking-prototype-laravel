@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 >
 > Entries below describe software changes. Named third-party providers are integration adapters for third-party APIs; no partnership or endorsement implied. Mentions of the Global Currency Unit (GCU) refer to a software demonstration that is not issued, offered or sold to anyone and has no monetary value.
 
+## [7.18.5] - 2026-11-25
+
+**Password sign-in off, and money back from a card.** Password sign-in can now be switched off, and it is off by default in production, because everyone signs in with Privy. Admins keep their access through the email code. The code for sending money from a virtual card back to the user's own wallet is in place. It stays switched off until it is tested with the card partner.
+
+### Security
+- `AUTH_PASSWORD_LOGIN_ENABLED` turns off every password sign-in path. That covers the web login and its two-factor step, the admin panel's password form, the API logins and password reset. It is off by default in production. A refused request gets 403 `ERR_AUTH_008`, which says to sign in with the email code (#1277).
+- Admins sign in with the email code on `/login` and then open `/admin`. `ops:verify-env` blocks a deploy when the email-code login is off, or when an admin with two-factor is not yet linked to Privy (#1277).
+- App-store reviewer accounts keep password sign-in while their reviewer flag is active (#1277).
+
+### Added
+- **Send to wallet** (#1276), behind `CARD_WITHDRAWALS_ENABLED`, which is off by default.
+  - The flow: the card balance is unloaded, exchanged to USDC and sent to the user's own registered wallet address, after the user enters an emailed code.
+  - The limits: 5 to 1,000 USD per withdrawal, at most 2,000 USD and 3 withdrawals a day.
+  - A wallet address must be 24 hours old before it can receive money.
+  - Each user has one money movement at a time.
+  - Each partner call stores its own key. Unclear outcomes go to an operator queue (`cards:inspect-withdrawal`, `cards:resolve-withdrawal`).
+- The tracing middleware no longer copies passwords or one-time codes into error logs (#1276).
+
 ## [7.18.4] - 2026-11-25
 
 **Safer sign-in, exact money and safe retries.** This release closes the gaps that a probe of zelta.app showed. It makes account deletion erase personal data as promised, and it makes retried money requests safe. Amounts are booked with exact decimal maths everywhere, and event projections book each event only once. The card top-up path follows the card partner's latest answers. Card top-ups stay switched off.

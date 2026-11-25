@@ -3252,6 +3252,16 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 
 ---
 
+## Version 7.18.5 — Password Sign-in Off, Money Back From a Card (November 2026)
+
+**Theme**: Password sign-in is off in production without locking out admins, and the code for sending money from a card back to the user's own wallet is in place behind a switch.
+
+### Delivered Features
+- **Password sign-in switch:** off by default in production. It comes with an admin sign-in deploy check and an exception for reviewer accounts (#1277).
+- **Card withdrawals ("Send to wallet"):** unload, exchange and send with an emailed code, to the user's own wallet only. Off by default (#1276).
+
+---
+
 ## Version 7.18.4 — Safer Sign-in, Exact Money and Safe Retries (November 2026)
 
 **Theme**: The gaps a probe of zelta.app showed are closed, account deletion erases as promised, retried money requests cannot move money twice, and every money path books exact amounts.
@@ -3533,5 +3543,5 @@ Embeddable JS widget that renders Zelta's 402 payment flow inside the partner's 
 
 ---
 
-*Document Version: 7.18.4*
-*Updated: November 25, 2026 (v7.18.4 sign-in hardening, account deletion, safe retries, exact money paths)*
+*Document Version: 7.18.5*
+*Updated: November 25, 2026 (v7.18.5 password sign-in off in production, card withdrawals behind a switch)*
