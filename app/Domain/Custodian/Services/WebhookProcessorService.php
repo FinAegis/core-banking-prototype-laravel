@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Custodian\Services;
 
+use App\Domain\Asset\Models\Asset;
 use App\Domain\Custodian\Events\AccountBalanceUpdated;
 use App\Domain\Custodian\Events\TransactionStatusUpdated;
 use App\Domain\Custodian\Models\CustodianAccount;
 use App\Domain\Custodian\Models\CustodianWebhook;
+use App\Support\DecimalString;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
@@ -298,13 +300,22 @@ class WebhookProcessorService
     }
 
     /**
-     * Parse Santander balance format.
+     * Parse Santander balance format: major units per currency, converted to
+     * exact minor units of each currency. A balance with more decimals than
+     * the currency has is refused, not rounded.
      */
     private function parseSantanderBalances(array $balances): array
     {
         $result = [];
         foreach ($balances as $currency => $amount) {
-            $result[$currency] = (int) ($amount * 100); // Convert to cents
+            $precision = (int) (Asset::query()->where('code', (string) $currency)->value('precision') ?? 2);
+            $minor = DecimalString::toMinorUnitsInt($amount, $precision);
+
+            if ($minor === null) {
+                throw new RuntimeException("Santander balance for {$currency} is not a valid amount with at most {$precision} decimal places");
+            }
+
+            $result[$currency] = $minor;
         }
 
         return $result;
