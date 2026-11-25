@@ -59,6 +59,7 @@ function opsVerifyEnvAllGoodConfig(): void
         'cards.waitlist_deposit_enabled'     => false,
         'relayer.generic_sponsor_enabled'    => false,
         'registration.api_enabled'           => false,
+        'registration.password_api_enabled'  => false,
         'investor.page_enabled'              => false,
         'sms.enabled'                        => false,
         'trading.enabled'                    => false,
@@ -152,6 +153,7 @@ const OPS_VERIFY_ENV_SWITCHES = [
     'sms.enabled'                        => 'SMS_ENABLED',
     'trading.enabled'                    => 'TRADING_ENABLED',
     'modules.runtime_management_enabled' => 'ADMIN_RUNTIME_MANAGEMENT_ENABLED',
+    'registration.password_api_enabled'  => 'REGISTRATION_PASSWORD_API_ENABLED',
 ];
 
 const OPS_VERIFY_ENV_MCP_TOOLS = [

@@ -28,6 +28,16 @@ declare(strict_types=1);
 | production deploy that does not set it. When off, new-account requests
 | answer 403 ERR_REG_001.
 |
+| password_api_enabled: an extra switch for the legacy sign-ups that do not
+| go through Privy: the email and password sign-up (POST /api/auth/register,
+| POST /api/v2/auth/register) and the first social login. Their email address
+| is not verified by Privy, so production keeps them closed while Privy
+| sign-ups stay open. Same secure default as api_enabled: ON only for
+| APP_ENV=local, testing or demo; an explicit
+| REGISTRATION_PASSWORD_API_ENABLED value always wins. These paths need BOTH
+| switches on; when either is off they answer 403 ERR_REG_001. Privy sign-up
+| (mobile and web) only follows api_enabled.
+|
 | api_invite_only: only applies while api_enabled is on. A new account then
 | needs a pending, unexpired invitation (user_invitations, created by an
 | admin) for the same email address — for Privy and social login, the
@@ -47,6 +57,8 @@ return [
     // it, because after `php artisan config:cache` the .env file is no
     // longer loaded and an unset value would go unnoticed.
     'api_enabled_explicit' => env('REGISTRATION_API_ENABLED') !== null,
+
+    'password_api_enabled' => (bool) env('REGISTRATION_PASSWORD_API_ENABLED', in_array(env('APP_ENV', 'production'), ['local', 'testing', 'demo'], true)),
 
     'api_invite_only' => (bool) env('REGISTRATION_API_INVITE_ONLY', false),
 ];

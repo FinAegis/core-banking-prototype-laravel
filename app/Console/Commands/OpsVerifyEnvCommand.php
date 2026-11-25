@@ -28,8 +28,8 @@ use RuntimeException;
  * The `switches` category lists the production switches for demo-only or
  * platform-billed surfaces (direct ledger funding, mock custodian, card
  * waitlist deposits, the investor page, generic gas sponsorship, SMS, the
- * MCP money and SMS tools, the trading engine) and runtime module and plugin
- * management by admins. Each WARNs while it is on or while its env var is
+ * MCP money and SMS tools, the trading engine, the legacy email and password
+ * sign-up) and runtime module and plugin management by admins. Each WARNs while it is on or while its env var is
  * not set explicitly, so the operator sees the effective value. Two of them
  * block a production deploy while on, unless an acknowledgement confirms
  * them: direct ledger funding (LEDGER_DIRECT_FUNDING_ACKNOWLEDGED=true) and
@@ -88,6 +88,7 @@ class OpsVerifyEnvCommand extends Command
         'sms.enabled'                        => ['SMS_ENABLED', 'POST /api/v1/sms/send and MCP sms.send send SMS billed to the platform'],
         'trading.enabled'                    => ['TRADING_ENABLED', 'the demo trading engine (order book, liquidity pools, GraphQL placeOrder, MCP exchange.trade) is live'],
         'modules.runtime_management_enabled' => ['ADMIN_RUNTIME_MANAGEMENT_ENABLED', 'admins can enable or disable modules and plugins at runtime (REST /api/v2/modules and /api/v2/plugins, GraphQL plugin mutations, admin panel), and a runtime module change overrides MODULES_DISABLED'],
+        'registration.password_api_enabled'  => ['REGISTRATION_PASSWORD_API_ENABLED', 'the legacy email and password sign-up (POST /api/auth/register, /api/v2/auth/register) and social sign-up create accounts whose email nobody verified, while REGISTRATION_API_ENABLED is on'],
     ];
 
     /**

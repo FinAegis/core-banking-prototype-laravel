@@ -81,7 +81,7 @@ class RegisterController extends Controller
     )]
     #[OA\Response(
         response: 403,
-        description: 'Registration closed (ERR_REG_001, REGISTRATION_API_ENABLED=false) or invite-only without a pending invitation for this email and its invitation_token (ERR_REG_002)',
+        description: 'Registration closed (ERR_REG_001, REGISTRATION_API_ENABLED=false or REGISTRATION_PASSWORD_API_ENABLED=false) or invite-only without a pending invitation for this email and its invitation_token (ERR_REG_002)',
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'success', type: 'boolean', example: false),
         new OA\Property(property: 'error', type: 'object', properties: [
@@ -93,10 +93,11 @@ class RegisterController extends Controller
     )]
     public function register(Request $request): JsonResponse
     {
-        // REGISTRATION_API_ENABLED: refuse before validation so a closed
-        // endpoint does not reveal which email addresses are taken.
+        // REGISTRATION_API_ENABLED and REGISTRATION_PASSWORD_API_ENABLED:
+        // refuse before validation so a closed endpoint does not reveal which
+        // email addresses are taken.
         try {
-            $this->registrationGate->ensureOpen();
+            $this->registrationGate->ensureLegacyOpen();
         } catch (RegistrationNotAllowedException $e) {
             return $e->toResponse();
         }
