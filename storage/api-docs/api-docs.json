@@ -10675,8 +10675,9 @@
                                                                 "example": 40
                                                             },
                                                             "amount": {
-                                                                "type": "number",
-                                                                "example": 400
+                                                                "description": "Decimal string in the precision of the asset",
+                                                                "type": "string",
+                                                                "example": "400.00"
                                                             },
                                                             "is_primary": {
                                                                 "type": "boolean",
