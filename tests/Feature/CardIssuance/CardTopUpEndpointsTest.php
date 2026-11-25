@@ -239,3 +239,74 @@ it('lists the card\'s top-ups newest first', function (): void {
     $this->getJson("/api/v1/cards/issued/{$card->id}/topups")->assertOk()
         ->assertJsonPath('data.items.0.id', $second)->assertJsonPath('data.items.1.id', $first);
 });
+
+it('asks a first top-up for enough to keep 5 USD on the card after every fee', function (): void {
+    // With a low configured floor the fees decide the minimum. The card must keep
+    // 5.00 after the first 1.00 monthly fee, so 6.00 must arrive after the 1.5 % load
+    // fee: 6.10 loaded (fee 0.10). Add the 1.00 issuance fee and the 0.05 conversion
+    // fee: 7.15 USD, at 0.999 USD per USDC 7.157157..., rounded up to 7.16 USDC.
+    config(['cardissuance.providers.lepo_topup_min' => '1.00']);
+    $card = tuCard();
+    Http::fake(['lepo.test/api/v2/cards/quantum-topup/estimate*' => Http::response(tuEstimate(topupFeePercent: '0.015'))]);
+
+    $this->getJson("/api/v1/cards/issued/{$card->id}/topups/estimate?amount=25.00&network=arbitrum")
+        ->assertOk()->assertJsonPath('data.min_amount', '7.16');
+});
+
+it('asks a later top-up only for the conversion fee, the load fee and 5 USD', function (): void {
+    // 5.08 loaded less 0.08 (1.5 %, rounded up) leaves 5.00; plus the 0.05
+    // conversion fee is 5.13 USD, at 0.999 USD per USDC 5.135135..., so 5.14 USDC.
+    config(['cardissuance.providers.lepo_topup_min' => '1.00']);
+    $card = tuCard('active', '777');
+    Http::fake(['lepo.test/api/v2/cards/quantum-topup/estimate*' => Http::response(tuEstimate(topupFeePercent: '0.015'))]);
+
+    $this->getJson("/api/v1/cards/issued/{$card->id}/topups/estimate?amount=25.00&network=arbitrum")
+        ->assertOk()->assertJsonPath('data.min_amount', '5.14');
+});
+
+it('never offers a minimum below the configured floor', function (): void {
+    $card = tuCard();
+    Http::fake(['lepo.test/api/v2/cards/quantum-topup/estimate*' => Http::response(tuEstimate(topupFeePercent: '0.015'))]);
+
+    $this->getJson("/api/v1/cards/issued/{$card->id}/topups/estimate?amount=25.00&network=arbitrum")
+        ->assertOk()->assertJsonPath('data.min_amount', '10.00');
+});
+
+it('waits at least an hour for a deposit, whatever the configured time', function (): void {
+    // A Polygon deposit takes about 25 minutes to complete, then it is converted.
+    config(['cardissuance.providers.lepo_topup_ttl_minutes' => 5]);
+    $card = tuCard();
+    $before = now()->startOfSecond();
+
+    $expires = Illuminate\Support\Carbon::parse((string) tuStart($this, $card)->json('data.expires_at'));
+
+    expect($expires->greaterThanOrEqualTo($before->copy()->addMinutes(60)))->toBeTrue();
+});
+
+it('gives a top-up an hour from the moment the user reports the send', function (): void {
+    $card = tuCard();
+    $id = (string) tuStart($this, $card)->json('data.id');
+    CardTopUp::query()->whereKey($id)->update(['expires_at' => now()->addMinutes(2)]);
+    $before = now()->startOfSecond();
+
+    $response = $this->withHeader('Idempotency-Key', (string) Str::uuid())
+        ->patchJson("/api/v1/cards/issued/{$card->id}/topups/{$id}", ['tx_hash' => '0x' . str_repeat('b', 64)])->assertOk();
+
+    expect(Illuminate\Support\Carbon::parse((string) $response->json('data.expires_at'))->greaterThanOrEqualTo($before->copy()->addMinutes(60)))->toBeTrue();
+});
+
+it('asks only for native USDC on the networks the top-up offers', function (): void {
+    // Bridged USDC.e (Polygon 0x2791...) is not credited by the card partner.
+    $native = ['polygon' => [137, '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359'], 'arbitrum' => [42161, '0xaf88d065e77c8cc2239327c5edb3a432268e5831']];
+    $offered = App\Domain\CardIssuance\Providers\CardProviderSelector::listFromConfig('cardissuance.providers.lepo_deposit_networks');
+
+    expect($offered)->toBe(['arbitrum', 'polygon']);
+    foreach ($offered as $network) {
+        expect(App\Domain\Wallet\Constants\EvmTokens::NETWORK_CHAIN_IDS[$network])->toBe($native[$network][0])
+            ->and(App\Domain\Wallet\Constants\EvmTokens::contractFor('USDC', $network))->toBe($native[$network][1]);
+    }
+    expect(array_map('strtolower', App\Domain\Wallet\Constants\EvmTokens::USDC))->not->toContain('0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
+
+    // The top-up only takes the asset USDC.
+    tuStart($this, tuCard(), ['amount' => '25.00', 'network' => 'arbitrum', 'asset' => 'USDC.e'])->assertStatus(422)->assertJsonValidationErrors(['asset']);
+});

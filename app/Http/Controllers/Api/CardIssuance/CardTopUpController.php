@@ -30,7 +30,7 @@ final class CardTopUpController extends Controller
     {
     }
 
-    #[OA\Get(path: '/api/v1/cards/issued/{card}/topups/estimate', operationId: 'v1CardsTopUpEstimate', tags: ['Cards'], summary: 'Estimate a top-up', description: 'Query: amount (USDC, decimal string) and network. Returns {amount, asset, network, credited_cents, fee_cents, issuance_fee_cents, min_amount, max_amount}.', security: [['sanctum' => []]])]
+    #[OA\Get(path: '/api/v1/cards/issued/{card}/topups/estimate', operationId: 'v1CardsTopUpEstimate', tags: ['Cards'], summary: 'Estimate a top-up', description: 'Query: amount (USDC, decimal string) and network. Returns {amount, asset, network, credited_cents, fee_cents, issuance_fee_cents, min_amount, max_amount}. min_amount is the smallest USDC amount that still leaves 5 USD on the card after the conversion fee and the load fee; on the first top-up also after the issuance fee and the first monthly fee. Read it from here; do not hard-code it.', security: [['sanctum' => []]])]
     #[OA\Response(response: 200, description: 'Estimate')]
     #[OA\Response(response: 503, description: 'ERR_CARDS_027: top-ups are not available yet')]
     public function estimate(Request $request, string $card): JsonResponse
