@@ -694,9 +694,13 @@ class OpsVerifyEnvCommand extends Command
     /**
      * Backup destination sanity. Cheap config checks only: the nightly
      * `backup:run --only-db` job (routes/console.php) writes to the disks in
-     * backup.backup.destination.disks. A local-ONLY destination in production
-     * FAILs the gate (dumps die with the box — no offsite copy); other issues
-     * (empty/undefined disk) WARN. No live S3 call — that's the restore drill.
+     * backup.backup.destination.disks. Backups must live on another server,
+     * so in production (or with --strict) these FAIL the gate: no disk off
+     * the box (every disk uses the local driver), an off-server disk without
+     * its bucket or credentials, or no archive password (the dump would
+     * leave the box unencrypted). Outside production they WARN. An empty or
+     * undefined disk always WARNs. No live storage call: that is the
+     * restore drill.
      */
     private function checkBackupDestination(): void
     {
@@ -709,10 +713,19 @@ class OpsVerifyEnvCommand extends Command
         }
 
         $undefined = [];
+        $offServer = [];
 
         foreach ($disks as $disk) {
-            if (! is_string($disk) || $disk === '' || ! is_array(config('filesystems.disks.' . $disk))) {
+            $definition = is_string($disk) && $disk !== '' ? config('filesystems.disks.' . $disk) : null;
+
+            if (! is_array($definition)) {
                 $undefined[] = is_string($disk) ? $disk : gettype($disk);
+
+                continue;
+            }
+
+            if (($definition['driver'] ?? null) !== 'local') {
+                $offServer[(string) $disk] = $definition;
             }
         }
 
@@ -725,20 +738,52 @@ class OpsVerifyEnvCommand extends Command
             return;
         }
 
-        if ($disks === ['local']) {
-            // Local-only dumps die with the box (no offsite copy): block a
-            // production deploy; warn (non-blocking) outside production.
-            $result = ($this->laravel->environment('production') || (bool) $this->option('strict'))
-                ? self::FAIL
-                : self::WARN;
-            $this->add(self::CATEGORY_CONDITIONAL, 'backup.destination', $result, 'Backup destination is the local disk only — database dumps never leave the box. Set BACKUP_DISK=s3 (+ bucket credentials) in production and run one restore drill.');
+        $blocking = ($this->laravel->environment('production') || (bool) $this->option('strict'))
+            ? self::FAIL
+            : self::WARN;
+
+        if ($offServer === []) {
+            $this->add(self::CATEGORY_CONDITIONAL, 'backup.destination', $blocking, 'Backup destination is the local disk only — database dumps never leave the server. Set BACKUP_DISK=backups with its BACKUP_S3_* credentials in production and run one restore drill.');
+
+            return;
+        }
+
+        $missing = [];
+
+        foreach ($offServer as $name => $definition) {
+            if (($definition['driver'] ?? null) !== 's3') {
+                continue;
+            }
+
+            foreach (['bucket', 'key', 'secret'] as $field) {
+                $value = $definition[$field] ?? null;
+
+                if (! is_string($value) || trim($value) === '') {
+                    $missing[] = "{$name}.{$field}";
+                }
+            }
+        }
+
+        if ($missing !== []) {
+            $this->add(self::CATEGORY_CONDITIONAL, 'backup.destination', $blocking, sprintf(
+                'Off-server backup disk is missing %s — the nightly upload would fail and the dump would stay nowhere. Fill in the BACKUP_S3_* values.',
+                implode(', ', $missing),
+            ));
+
+            return;
+        }
+
+        $password = config('backup.backup.password');
+
+        if (! is_string($password) || trim($password) === '') {
+            $this->add(self::CATEGORY_CONDITIONAL, 'backup.destination', $blocking, 'BACKUP_ARCHIVE_PASSWORD is empty — database dumps would leave the server unencrypted. Set a long random password and keep a copy outside the server, or the backups cannot be restored.');
 
             return;
         }
 
         $this->add(self::CATEGORY_CONDITIONAL, 'backup.destination', self::PASS, sprintf(
-            'Nightly DB backup writes to disk(s): %s.',
-            implode(', ', array_map('strval', $disks)),
+            'Nightly DB backup is encrypted and written off the server to disk(s): %s.',
+            implode(', ', array_keys($offServer)),
         ));
     }
 

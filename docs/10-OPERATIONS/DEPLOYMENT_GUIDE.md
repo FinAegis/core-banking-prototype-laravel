@@ -229,7 +229,7 @@ On a deployment that uses separate tenant databases, also run `php artisan tenan
 
 ### Backups
 
-In production the scheduler runs `backup:run --only-db` every day at 01:30 UTC and `backup:clean` at 02:30 UTC. `BACKUP_DISK` sets where the dumps go, and both production templates still ship with `BACKUP_DISK=local`. In production, `ops:verify-env` fails and blocks the deploy when the local disk is the only destination, because the dumps would never leave the server. Set `BACKUP_DISK=s3` with the bucket credentials and test a restore at least once.
+In production the scheduler runs `backup:run --only-db` every day at 01:30 UTC and `backup:clean` at 02:30 UTC. `BACKUP_DISK` sets where the dumps go. Backups must live on another server, so both production templates ship with `BACKUP_DISK=backups`. That is an S3-compatible disk with its own `BACKUP_S3_*` credentials, and every dump is encrypted with `BACKUP_ARCHIVE_PASSWORD` before upload. In production, `ops:verify-env` blocks the deploy in three cases: the dumps would stay on the server, the bucket or its credentials are empty, or the archive password is empty. Use a storage provider other than the app server's host, keep a copy of the archive password outside the server, and test a restore at least once.
 
 A plain `mysqldump` also works as an extra copy:
 

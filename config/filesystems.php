@@ -44,6 +44,26 @@ return [
             'throw'      => false,
         ],
 
+        /*
+        | Off-server store for the nightly database backups (BACKUP_DISK=backups).
+        | Any S3-compatible service works (Cloudflare R2, Hetzner, Backblaze B2,
+        | AWS S3). It has its own credentials, so a token limited to the backup
+        | bucket never doubles as the app's file storage key. Write errors are
+        | thrown, so a failed upload fails backup:run instead of passing silently.
+        */
+        'backups' => [
+            'driver'                  => 's3',
+            'key'                     => env('BACKUP_S3_ACCESS_KEY_ID'),
+            'secret'                  => env('BACKUP_S3_SECRET_ACCESS_KEY'),
+            'region'                  => env('BACKUP_S3_REGION', 'auto'),
+            'bucket'                  => env('BACKUP_S3_BUCKET'),
+            'endpoint'                => env('BACKUP_S3_ENDPOINT'),
+            'use_path_style_endpoint' => (bool) env('BACKUP_S3_USE_PATH_STYLE_ENDPOINT', true),
+            'root'                    => env('BACKUP_S3_ROOT', ''),
+            'visibility'              => 'private',
+            'throw'                   => true,
+        ],
+
         's3' => [
             'driver'                  => 's3',
             'key'                     => env('AWS_ACCESS_KEY_ID'),

@@ -51,12 +51,16 @@ function opsVerifyEnvAllGoodConfig(): void
         'mobile.attestation.enabled'       => false,
         // The web email-code login is on: with password sign-in off it is
         // how admins sign in (auth.admin_sign_in).
-        'privy.web_login_enabled'         => true,
-        'privy.app_id'                    => 'test-privy-app',
-        'privy.app_secret'                => 'test-privy-secret',
-        'privy.jwks_url'                  => 'https://auth.privy.io/api/v1/apps/test-privy-app/jwks.json',
-        'backup.backup.destination.disks' => ['s3'],
-        'relayer.pimlico.bundler_url'     => '',
+        'privy.web_login_enabled'          => true,
+        'privy.app_id'                     => 'test-privy-app',
+        'privy.app_secret'                 => 'test-privy-secret',
+        'privy.jwks_url'                   => 'https://auth.privy.io/api/v1/apps/test-privy-app/jwks.json',
+        'backup.backup.destination.disks'  => ['backups'],
+        'backup.backup.password'           => 'test-archive-password',
+        'filesystems.disks.backups.key'    => 'test-backup-key',
+        'filesystems.disks.backups.secret' => 'test-backup-secret',
+        'filesystems.disks.backups.bucket' => 'test-backup-bucket',
+        'relayer.pimlico.bundler_url'      => '',
 
         // switches (testing defaults several of these to on)
         'ledger.direct_funding_enabled'      => false,
@@ -394,7 +398,12 @@ it('only warns (never blocks) when the backup destination disk is not defined in
 
 it('passes the backup check when the destination is a defined non-local disk', function (): void {
     opsVerifyEnvAllGoodConfig();
-    config(['backup.backup.destination.disks' => ['s3']]);
+    config([
+        'backup.backup.destination.disks' => ['s3'],
+        'filesystems.disks.s3.key'        => 'test-key',
+        'filesystems.disks.s3.secret'     => 'test-secret',
+        'filesystems.disks.s3.bucket'     => 'test-bucket',
+    ]);
     app()->detectEnvironment(fn () => 'production');
 
     $exitCode = Artisan::call('ops:verify-env', ['--json' => true]);
@@ -404,6 +413,73 @@ it('passes the backup check when the destination is a defined non-local disk', f
     expect($exitCode)->toBe(0)
         ->and($check)->not->toBeNull()
         ->and($check['result'])->toBe('PASS');
+});
+
+it('defines the backups disk as an S3-compatible store that reports write failures', function (): void {
+    expect(config('filesystems.disks.backups.driver'))->toBe('s3')
+        ->and(config('filesystems.disks.backups.throw'))->toBeTrue()
+        ->and(config('filesystems.disks.backups.visibility'))->toBe('private');
+
+    // The S3 adapter package must be installed, or the nightly job fails
+    // when it first opens the disk.
+    $disk = Illuminate\Support\Facades\Storage::build(array_merge(config('filesystems.disks.backups'), [
+        'key'      => 'k',
+        'secret'   => 's',
+        'bucket'   => 'b',
+        'endpoint' => 'https://storage.example.test',
+    ]));
+
+    expect($disk)->toBeInstanceOf(Illuminate\Filesystem\AwsS3V3Adapter::class);
+});
+
+it('treats any disk with the local driver as local-only, whatever its name', function (): void {
+    opsVerifyEnvAllGoodConfig();
+    config([
+        'filesystems.disks.box-copy'      => ['driver' => 'local', 'root' => storage_path('app/box-copy')],
+        'backup.backup.destination.disks' => ['box-copy'],
+    ]);
+    app()->detectEnvironment(fn () => 'production');
+
+    [$exitCode, $checks] = opsVerifyEnvRun();
+
+    expect($exitCode)->toBe(1)
+        ->and($checks['backup.destination']['result'])->toBe('FAIL')
+        ->and($checks['backup.destination']['detail'])->toContain('never leave the server');
+});
+
+it('blocks the deploy in production when the off-server backup disk has no credentials', function (string $missing): void {
+    opsVerifyEnvAllGoodConfig();
+    config(["filesystems.disks.backups.{$missing}" => '']);
+    app()->detectEnvironment(fn () => 'production');
+
+    [$exitCode, $checks] = opsVerifyEnvRun();
+
+    expect($exitCode)->toBe(1)
+        ->and($checks['backup.destination']['result'])->toBe('FAIL')
+        ->and($checks['backup.destination']['detail'])->toContain('backups')
+        ->and($checks['backup.destination']['detail'])->toContain($missing);
+})->with(['bucket', 'key', 'secret']);
+
+it('blocks the deploy in production when backups would leave the server without an archive password', function (): void {
+    opsVerifyEnvAllGoodConfig();
+    config(['backup.backup.password' => null]);
+    app()->detectEnvironment(fn () => 'production');
+
+    [$exitCode, $checks] = opsVerifyEnvRun();
+
+    expect($exitCode)->toBe(1)
+        ->and($checks['backup.destination']['result'])->toBe('FAIL')
+        ->and($checks['backup.destination']['detail'])->toContain('BACKUP_ARCHIVE_PASSWORD');
+});
+
+it('only warns about a missing archive password outside production', function (): void {
+    opsVerifyEnvAllGoodConfig();
+    config(['backup.backup.password' => '']);
+
+    [$exitCode, $checks] = opsVerifyEnvRun();
+
+    expect($exitCode)->toBe(0)
+        ->and($checks['backup.destination']['result'])->toBe('WARN');
 });
 
 it('only warns (never blocks) on a missing Helius API key', function (): void {
@@ -961,6 +1037,10 @@ describe('env templates', function (): void {
         $template = Dotenv\Dotenv::parse((string) file_get_contents(base_path($file)));
         $keys = ['ZK_PROVIDER', 'MERKLE_PROVIDER', 'RAILGUN_BRIDGE_SECRET', 'BACKUP_DISK'];
 
+        // The template points backups at the off-server disk; the operator
+        // fills in its credentials and the archive password.
+        expect($template['BACKUP_DISK'] ?? null)->toBe('backups');
+
         foreach ($keys as $key) {
             expect($template)->toHaveKey($key);
         }
@@ -972,6 +1052,12 @@ describe('env templates', function (): void {
         config([
             'privacy' => opsVerifyEnvWithConfigFile('privacy', $env),
             'backup'  => opsVerifyEnvWithConfigFile('backup', $env),
+        ]);
+        config([
+            'backup.backup.password'           => 'filled-in-archive-password',
+            'filesystems.disks.backups.key'    => 'filled-in-key',
+            'filesystems.disks.backups.secret' => 'filled-in-secret',
+            'filesystems.disks.backups.bucket' => 'filled-in-bucket',
         ]);
         app()->detectEnvironment(fn () => 'production');
 
