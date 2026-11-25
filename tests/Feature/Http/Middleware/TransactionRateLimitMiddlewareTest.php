@@ -322,7 +322,7 @@ class TransactionRateLimitMiddlewareTest extends TestCase
 
         $response->assertStatus(429)
             ->assertJsonPath('limit_type', 'hourly_amount')
-            ->assertJsonPath('limit_details.limit_unit', 'minor_units')
+            ->assertJsonPath('limit_details.limit_unit', 'minor_units_x100')
             ->assertJsonPath('limit_details.limit', 100000)
             ->assertJsonPath('limit_details.requested_amount', 150000); // 1500 * 100
     }
@@ -341,20 +341,6 @@ class TransactionRateLimitMiddlewareTest extends TestCase
             ->assertStatus(429)
             ->assertJsonPath('limit_details.current_amount', 100000)
             ->assertJsonPath('limit_details.requested_amount', 1);
-    }
-
-    #[Test]
-    public function test_counts_amounts_in_the_minor_units_of_the_asset(): void
-    {
-        Asset::firstOrCreate(['code' => 'BTC'], ['name' => 'Bitcoin', 'type' => 'crypto', 'precision' => 8, 'is_active' => true]);
-        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
-
-        // 0.00100001 BTC is 100001 satoshis, above the 100000 cap. The old
-        // count treated it as 0 cents.
-        $this->postJson('/test-deposit', ['amount' => '0.00100001', 'asset_code' => 'BTC'])
-            ->assertStatus(429)
-            ->assertJsonPath('limit_details.asset_code', 'BTC')
-            ->assertJsonPath('limit_details.requested_amount', 100001);
     }
 
     #[Test]
@@ -385,7 +371,7 @@ class TransactionRateLimitMiddlewareTest extends TestCase
     }
 
     #[Test]
-    public function test_an_unknown_asset_code_shares_the_one_counter(): void
+    public function test_an_unknown_asset_code_counts_like_any_other(): void
     {
         Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
@@ -397,7 +383,7 @@ class TransactionRateLimitMiddlewareTest extends TestCase
     }
 
     #[Test]
-    public function test_a_lower_case_asset_code_shares_the_one_counter(): void
+    public function test_a_lower_case_asset_code_counts_like_any_other(): void
     {
         Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
@@ -405,7 +391,7 @@ class TransactionRateLimitMiddlewareTest extends TestCase
 
         $this->postJson('/test-deposit', ['amount' => 0.02, 'asset_code' => 'usd'])
             ->assertStatus(429)
-            ->assertJsonPath('limit_details.asset_code', 'USD');
+            ->assertJsonPath('limit_details.current_amount', 99999);
     }
 
     #[Test]
@@ -422,30 +408,27 @@ class TransactionRateLimitMiddlewareTest extends TestCase
     }
 
     #[Test]
-    public function test_conflicting_asset_fields_are_refused(): void
+    public function test_counts_every_asset_in_hundredths_of_a_unit(): void
     {
-        Asset::firstOrCreate(['code' => 'EUR'], ['name' => 'Euro', 'type' => 'fiat', 'precision' => 2, 'is_active' => true]);
+        // The cap is written in cents. Every amount counts in hundredths of
+        // its unit whatever the asset, so 1 ETH counts 100, not 10^18 wei.
+        Asset::firstOrCreate(['code' => 'ETH'], ['name' => 'Ether', 'type' => 'crypto', 'precision' => 18, 'is_active' => true]);
         Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
-        $this->postJson('/test-deposit', ['amount' => 10, 'asset_code' => 'USD', 'currency' => 'EUR'])
-            ->assertStatus(422)
-            ->assertJsonValidationErrors(['asset_code']);
-
-        // The same asset named twice, in any case, is not a conflict.
-        $this->postJson('/test-deposit', ['amount' => 10, 'asset_code' => 'USD', 'currency' => 'usd'])
-            ->assertOk();
+        $this->postJson('/test-deposit', ['amount' => 1, 'asset_code' => 'ETH'])
+            ->assertOk()
+            ->assertHeader('X-Transaction-Amount-Remaining', '99900');
     }
 
     #[Test]
-    public function test_an_asset_with_fewer_decimals_does_not_shrink_the_count(): void
+    public function test_rounds_a_small_crypto_amount_up_to_one_hundredth(): void
     {
-        // A 0-decimal asset named in the request must not make 1500 count as
-        // 1500 units instead of 150000 hundredths.
-        Asset::firstOrCreate(['code' => 'JPY'], ['name' => 'Yen', 'type' => 'fiat', 'precision' => 0, 'is_active' => true]);
+        // 0.001 BTC is 0.1 hundredths; it counts as 1.
+        Asset::firstOrCreate(['code' => 'BTC'], ['name' => 'Bitcoin', 'type' => 'crypto', 'precision' => 8, 'is_active' => true]);
         Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
-        $this->postJson('/test-deposit', ['amount' => 1500, 'asset_code' => 'JPY'])
-            ->assertStatus(429)
-            ->assertJsonPath('limit_details.requested_amount', 150000);
+        $this->postJson('/test-deposit', ['amount' => '0.001', 'asset_code' => 'BTC'])
+            ->assertOk()
+            ->assertHeader('X-Transaction-Amount-Remaining', '99999');
     }
 }
