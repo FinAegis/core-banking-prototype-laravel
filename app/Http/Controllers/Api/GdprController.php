@@ -365,7 +365,7 @@ class GdprController extends Controller
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'error', type: 'string', example: 'Account cannot be deleted at this time'),
         new OA\Property(property: 'reasons', type: 'array', example: ['User has active accounts with positive balance'], items: new OA\Items(type: 'string')),
-        new OA\Property(property: 'reason_codes', type: 'array', example: ['positive_balance'], items: new OA\Items(type: 'string', enum: ['positive_balance', 'identity_check_in_review'])),
+        new OA\Property(property: 'reason_codes', type: 'array', example: ['positive_balance'], items: new OA\Items(type: 'string', enum: ['positive_balance', 'card_withdrawal_in_progress', 'identity_check_in_review'])),
         ])
     )]
     #[OA\Response(

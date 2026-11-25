@@ -121,6 +121,8 @@ return [
         // The waiting 3-D Secure code and the signed card pages (SumSub and
         // Widget.js tokens) must never reach telescope_entries.
         'api/v1/cards/issued/*/3ds/code',
+        // The emailed withdrawal code passes through this request only.
+        'api/v1/cards/issued/*/withdrawals/*/confirm',
         'cards/kyc/*',
         'cards/details/*',
     ],

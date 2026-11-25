@@ -232,6 +232,16 @@ Schedule::job(new App\Domain\CardIssuance\Jobs\AdvanceLepoTopUps())
     ->description('Advance Lepo card top-ups')
     ->withoutOverlapping();
 
+// Lepo cards - "Send to wallet": pick up withdrawals left between steps, watch
+// confirmed transfers until they arrive, and move a code nobody entered for
+// 72 hours to an operator. Runs while CARD_WITHDRAWALS_ENABLED is off too, so
+// rows past the unload always finish; rows that have not reached the unload
+// are cancelled while it is off (nothing has moved for them).
+Schedule::job(new App\Domain\CardIssuance\Jobs\AdvanceLepoWithdrawals())
+    ->everyMinute()
+    ->description('Advance Lepo card withdrawals')
+    ->withoutOverlapping();
+
 // Mobile Payment - Expire stale payment intents every minute
 Schedule::job(new App\Domain\MobilePayment\Jobs\ExpireStalePaymentIntents())
     ->everyMinute()

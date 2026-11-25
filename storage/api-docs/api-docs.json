@@ -5706,7 +5706,7 @@
                         "description": "Unauthenticated"
                     },
                     "409": {
-                        "description": "A rule does not allow the deletion yet (error.code ACCOUNT_DELETION_BLOCKED); nothing was erased and the tokens stay valid. error.reason_codes holds a stable code for each sentence in error.reasons: positive_balance, identity_check_in_review",
+                        "description": "A rule does not allow the deletion yet (error.code ACCOUNT_DELETION_BLOCKED); nothing was erased and the tokens stay valid. error.reason_codes holds a stable code for each sentence in error.reasons: positive_balance, card_withdrawal_in_progress, identity_check_in_review",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -5740,6 +5740,7 @@
                                                         "type": "string",
                                                         "enum": [
                                                             "positive_balance",
+                                                            "card_withdrawal_in_progress",
                                                             "identity_check_in_review"
                                                         ]
                                                     },
@@ -13813,7 +13814,7 @@
                         "description": "Card"
                     },
                     "409": {
-                        "description": "ERR_CARDS_025: the card still holds money"
+                        "description": "ERR_CARDS_025: the card still holds money (available_cents, withdrawals_enabled); ERR_CARDS_039: a withdrawal from the card is in progress (kind: withdrawal)"
                     }
                 },
                 "security": [
@@ -13875,7 +13876,7 @@
                     "Cards"
                 ],
                 "summary": "Card onboarding state for the current user",
-                "description": "At every step it returns `card_fees` {issuance_fee_cents, monthly_fee_cents, topup_fee_percent}: the one-time card fee and the monthly card fee in US cents, and the card-load fee as a percentage string (\"1.5\" is 1.5 %). It is null when the fees are not known, never a partial object. In the steps kyc and kyc_action_required it returns `kyc_submitted` (true once the identity-check page reported a submission Lepo has not answered). In the steps funding_pending and ready it also returns `card` {id, status, last4} of the current card, or null. Whether cards are available, the provider, the next step (cardholder, kyc, kyc_review, kyc_action_required, kyc_rejected, funding_pending, ready), the identity-check method (hosted_url or sumsub_sdk) and the deposit networks [{network, asset, default}]. In the steps cardholder, kyc and kyc_action_required it also returns `form` {fields, options, prefill}: the whole cardholder form for a new user, or only the questionnaire while the answers can still be corrected. Field names are the request keys and the keys of 422 validation errors.",
+                "description": "At every step it returns `card_fees` {issuance_fee_cents, monthly_fee_cents, topup_fee_percent}: the one-time card fee and the monthly card fee in US cents, and the card-load fee as a percentage string (\"1.5\" is 1.5 %). It is null when the fees are not known, never a partial object. In the steps kyc and kyc_action_required it returns `kyc_submitted` (true once the identity-check page reported a submission Lepo has not answered). In the steps funding_pending and ready it also returns `card` {id, status, last4} of the current card, or null. `withdrawals_enabled` says whether \"Send to wallet\" (card back to the wallet) is available to this user. Whether cards are available, the provider, the next step (cardholder, kyc, kyc_review, kyc_action_required, kyc_rejected, funding_pending, ready), the identity-check method (hosted_url or sumsub_sdk) and the deposit networks [{network, asset, default}]. In the steps cardholder, kyc and kyc_action_required it also returns `form` {fields, options, prefill}: the whole cardholder form for a new user, or only the questionnaire while the answers can still be corrected. Field names are the request keys and the keys of 422 validation errors.",
                 "operationId": "v1CardsOnboarding",
                 "responses": {
                     "200": {
@@ -14146,6 +14147,372 @@
                         "description": "Webhook processed"
                     }
                 }
+            }
+        },
+        "/api/v1/cards/issued/{card}/withdrawals/estimate": {
+            "get": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Estimate sending money from the card to the wallet",
+                "description": "Query: amount (USD decimal string, at most 2 decimals) or all=1 (the whole available balance), and network (arbitrum or polygon). Returns {amount, withdraw_all, network, asset, destination_address, available_cents, unload_fee_cents, conversion_fee_cents, withdrawal_fee, receive_amount, min_amount, max_amount, daily_remaining, quote_expires_at}. receive_amount is never more than what reaches the wallet. destination_address is the user's own wallet address that will receive the money. Read min_amount from here; do not hard-code it.",
+                "operationId": "v1CardsWithdrawalEstimate",
+                "parameters": [
+                    {
+                        "name": "card",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "amount",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "50.00"
+                        }
+                    },
+                    {
+                        "name": "all",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "enum": [
+                                1
+                            ]
+                        }
+                    },
+                    {
+                        "name": "network",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "arbitrum"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Estimate"
+                    },
+                    "409": {
+                        "description": "ERR_CARDS_037: no wallet address on the network; ERR_CARDS_038: the card cannot send money (reason); ERR_CARDS_045: the address was added recently (available_at)"
+                    },
+                    "422": {
+                        "description": "ERR_CARDS_035: amount outside the limits (min_amount, max_amount); ERR_CARDS_036: network not supported"
+                    },
+                    "502": {
+                        "description": "ERR_CARDS_016: the card balance, quote or fee could not be read"
+                    },
+                    "503": {
+                        "description": "ERR_CARDS_034: not available yet"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/cards/issued/{card}/withdrawals": {
+            "get": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "The card's withdrawals, newest first (page from 0, 20 per page)",
+                "operationId": "v1CardsWithdrawalIndex",
+                "parameters": [
+                    {
+                        "name": "card",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Withdrawals {items, has_more, page}"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Send money from the card to the wallet",
+                "description": "Header Idempotency-Key (required). Body: {amount (USD decimal string) | withdraw_all: true, network, close_card (optional, only with withdraw_all)}. There is no address field: a body with destination_address, address or to is refused with ERR_CARDS_036. Answers 201 with the withdrawal in status unloading; follow card.withdrawal.updated or poll. When it reaches awaiting_code, the user received an 8-character code by e-mail; pass it to /confirm. One money transfer per user at a time.",
+                "operationId": "v1CardsWithdrawalStart",
+                "parameters": [
+                    {
+                        "name": "card",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "amount": {
+                                        "type": "string",
+                                        "example": "50.00"
+                                    },
+                                    "withdraw_all": {
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "network": {
+                                        "type": "string",
+                                        "example": "arbitrum"
+                                    },
+                                    "close_card": {
+                                        "type": "boolean",
+                                        "example": false
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Withdrawal {id, card_id, status (unloading|converting|awaiting_code|sending|completed|cancelled|failed|needs_attention), amount (USD leaving the card, 2 decimals), withdraw_all, close_card, network, asset (USDC), destination_address, unloaded_cents, unload_fee_cents, conversion_fee_cents, withdrawal_fee (USDC, 2 decimals, rounded up), received_amount (USDC, 2 decimals, rounded down), estimated_receive_amount, tx_hash, code_sent_to (masked e-mail, while awaiting_code), code_expires_at, code_attempts_left, card_closed, failure_reason (card_frozen_by_support|card_frozen|card_closed|card_not_ready|balance_changed|refused|code_locked|code_not_entered|withdrawals_disabled|checking), created_at, completed_at}"
+                    },
+                    "409": {
+                        "description": "ERR_CARDS_037: no wallet address on the network; ERR_CARDS_038: the card cannot send money (reason: frozen, frozen_by_support, card_closed, card_not_ready); ERR_CARDS_039: another money transfer is in progress (kind: topup, withdrawal); ERR_CARDS_045: the address was added recently (available_at)"
+                    },
+                    "422": {
+                        "description": "ERR_CARDS_035: amount outside the limits (min_amount, max_amount); ERR_CARDS_036: network not supported or an address in the body; ERR_CARDS_040: more than the card holds (available_cents)"
+                    },
+                    "429": {
+                        "description": "ERR_CARDS_044: today's limit reached (daily_limit, daily_remaining, daily_count_limit, daily_count_remaining)"
+                    },
+                    "502": {
+                        "description": "ERR_CARDS_016: the card balance, quote or fee could not be read"
+                    },
+                    "503": {
+                        "description": "ERR_CARDS_034: not available yet"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/cards/issued/{card}/withdrawals/{withdrawal}": {
+            "get": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "One withdrawal",
+                "operationId": "v1CardsWithdrawalShow",
+                "parameters": [
+                    {
+                        "name": "card",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "withdrawal",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Withdrawal {id, card_id, status (unloading|converting|awaiting_code|sending|completed|cancelled|failed|needs_attention), amount (USD leaving the card, 2 decimals), withdraw_all, close_card, network, asset (USDC), destination_address, unloaded_cents, unload_fee_cents, conversion_fee_cents, withdrawal_fee (USDC, 2 decimals, rounded up), received_amount (USDC, 2 decimals, rounded down), estimated_receive_amount, tx_hash, code_sent_to (masked e-mail, while awaiting_code), code_expires_at, code_attempts_left, card_closed, failure_reason (card_frozen_by_support|card_frozen|card_closed|card_not_ready|balance_changed|refused|code_locked|code_not_entered|withdrawals_disabled|checking), created_at, completed_at}"
+                    },
+                    "404": {
+                        "description": "ERR_CARDS_015: not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/cards/issued/{card}/withdrawals/{withdrawal}/confirm": {
+            "post": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Confirm the withdrawal with the code from the e-mail",
+                "description": "Header Idempotency-Key (required; a new key for each code typed). Body: {code}: the 8-character code from the e-mail; spaces are ignored. 200: the code was accepted and the money is on its way (status sending). 202: the answer is being checked (status sending, failure_reason checking); do not send the code again. A code of the wrong length is refused without using an attempt. At most 5 tries per withdrawal in 10 minutes.",
+                "operationId": "v1CardsWithdrawalConfirm",
+                "parameters": [
+                    {
+                        "name": "card",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "withdrawal",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "example": "AB12CD34"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Withdrawal {id, card_id, status (unloading|converting|awaiting_code|sending|completed|cancelled|failed|needs_attention), amount (USD leaving the card, 2 decimals), withdraw_all, close_card, network, asset (USDC), destination_address, unloaded_cents, unload_fee_cents, conversion_fee_cents, withdrawal_fee (USDC, 2 decimals, rounded up), received_amount (USDC, 2 decimals, rounded down), estimated_receive_amount, tx_hash, code_sent_to (masked e-mail, while awaiting_code), code_expires_at, code_attempts_left, card_closed, failure_reason (card_frozen_by_support|card_frozen|card_closed|card_not_ready|balance_changed|refused|code_locked|code_not_entered|withdrawals_disabled|checking), created_at, completed_at}"
+                    },
+                    "202": {
+                        "description": "The answer is being checked: the withdrawal in status sending with failure_reason checking"
+                    },
+                    "409": {
+                        "description": "ERR_CARDS_043: too many wrong codes (the withdrawal waits for our support team); ERR_CARDS_046: the withdrawal is not waiting for a code"
+                    },
+                    "410": {
+                        "description": "ERR_CARDS_042: the code expired; ask for a new code"
+                    },
+                    "422": {
+                        "description": "ERR_CARDS_041: the code is not correct (code_attempts_left; null when the code had the wrong length)"
+                    },
+                    "429": {
+                        "description": "ERR_CARDS_047: too many tries; wait (retry_after_seconds)"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/cards/issued/{card}/withdrawals/{withdrawal}/resend-code": {
+            "post": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Send a new code by e-mail",
+                "description": "Header Idempotency-Key (required). Empty body. Once a minute, at most 5 times per withdrawal. The new expiry is code_expires_at.",
+                "operationId": "v1CardsWithdrawalResendCode",
+                "parameters": [
+                    {
+                        "name": "card",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "withdrawal",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Withdrawal {id, card_id, status (unloading|converting|awaiting_code|sending|completed|cancelled|failed|needs_attention), amount (USD leaving the card, 2 decimals), withdraw_all, close_card, network, asset (USDC), destination_address, unloaded_cents, unload_fee_cents, conversion_fee_cents, withdrawal_fee (USDC, 2 decimals, rounded up), received_amount (USDC, 2 decimals, rounded down), estimated_receive_amount, tx_hash, code_sent_to (masked e-mail, while awaiting_code), code_expires_at, code_attempts_left, card_closed, failure_reason (card_frozen_by_support|card_frozen|card_closed|card_not_ready|balance_changed|refused|code_locked|code_not_entered|withdrawals_disabled|checking), created_at, completed_at}"
+                    },
+                    "409": {
+                        "description": "ERR_CARDS_046: the withdrawal is not waiting for a code"
+                    },
+                    "429": {
+                        "description": "ERR_CARDS_047: wait before asking again (retry_after_seconds; null after the fifth resend)"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/api/v1/cardholders": {
@@ -24695,6 +25062,7 @@
                                                 "type": "string",
                                                 "enum": [
                                                     "positive_balance",
+                                                    "card_withdrawal_in_progress",
                                                     "identity_check_in_review"
                                                 ]
                                             },

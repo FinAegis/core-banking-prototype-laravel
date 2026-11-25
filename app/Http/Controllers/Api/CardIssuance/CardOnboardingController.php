@@ -15,6 +15,7 @@ use App\Domain\CardIssuance\Providers\Lepo\LepoCardFees;
 use App\Domain\CardIssuance\Providers\Lepo\LepoCardholderForm;
 use App\Domain\CardIssuance\Providers\Lepo\LepoCardOnboarding;
 use App\Domain\CardIssuance\Providers\Lepo\LepoTopUps;
+use App\Domain\CardIssuance\Providers\Lepo\LepoWithdrawals;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CardIssuance\CardholderQuestionnaireRequest;
 use App\Http\Requests\CardIssuance\CreateCardholderRequest;
@@ -44,7 +45,7 @@ final class CardOnboardingController extends Controller
         operationId: 'v1CardsOnboarding',
         tags: ['Cards'],
         summary: 'Card onboarding state for the current user',
-        description: 'At every step it returns `card_fees` {issuance_fee_cents, monthly_fee_cents, topup_fee_percent}: the one-time card fee and the monthly card fee in US cents, and the card-load fee as a percentage string ("1.5" is 1.5 %). It is null when the fees are not known, never a partial object. In the steps kyc and kyc_action_required it returns `kyc_submitted` (true once the identity-check page reported a submission Lepo has not answered). In the steps funding_pending and ready it also returns `card` {id, status, last4} of the current card, or null. Whether cards are available, the provider, the next step (cardholder, kyc, kyc_review, kyc_action_required, kyc_rejected, funding_pending, ready), the identity-check method (hosted_url or sumsub_sdk) and the deposit networks [{network, asset, default}]. In the steps cardholder, kyc and kyc_action_required it also returns `form` {fields, options, prefill}: the whole cardholder form for a new user, or only the questionnaire while the answers can still be corrected. Field names are the request keys and the keys of 422 validation errors.',
+        description: 'At every step it returns `card_fees` {issuance_fee_cents, monthly_fee_cents, topup_fee_percent}: the one-time card fee and the monthly card fee in US cents, and the card-load fee as a percentage string ("1.5" is 1.5 %). It is null when the fees are not known, never a partial object. In the steps kyc and kyc_action_required it returns `kyc_submitted` (true once the identity-check page reported a submission Lepo has not answered). In the steps funding_pending and ready it also returns `card` {id, status, last4} of the current card, or null. `withdrawals_enabled` says whether "Send to wallet" (card back to the wallet) is available to this user. Whether cards are available, the provider, the next step (cardholder, kyc, kyc_review, kyc_action_required, kyc_rejected, funding_pending, ready), the identity-check method (hosted_url or sumsub_sdk) and the deposit networks [{network, asset, default}]. In the steps cardholder, kyc and kyc_action_required it also returns `form` {fields, options, prefill}: the whole cardholder form for a new user, or only the questionnaire while the answers can still be corrected. Field names are the request keys and the keys of 422 validation errors.',
         security: [['sanctum' => []]],
     )]
     #[OA\Response(response: 200, description: 'Onboarding state')]
@@ -66,13 +67,15 @@ final class CardOnboardingController extends Controller
         $networks = $this->depositNetworks();
 
         $data = [
-            'available'        => true,
-            'provider'         => $provider,
-            'step'             => $step,
-            'kyc_method'       => LepoCardOnboarding::kycMethod(),
-            'topups_enabled'   => LepoTopUps::enabled(),
-            'card_fees'        => LepoCardFees::describe(),
-            'deposit_networks' => array_map(
+            'available'      => true,
+            'provider'       => $provider,
+            'step'           => $step,
+            'kyc_method'     => LepoCardOnboarding::kycMethod(),
+            'topups_enabled' => LepoTopUps::enabled(),
+            // "Send to wallet" (money from the card back to the wallet).
+            'withdrawals_enabled' => LepoWithdrawals::availableFor($user),
+            'card_fees'           => LepoCardFees::describe(),
+            'deposit_networks'    => array_map(
                 static fn (string $network, int $i): array => ['network' => $network, 'asset' => 'USDC', 'default' => $i === 0],
                 $networks,
                 array_keys($networks),

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\CardIssuance\Webhooks;
 
 use App\Domain\CardIssuance\Jobs\AdvanceLepoTopUps;
+use App\Domain\CardIssuance\Jobs\AdvanceLepoWithdrawals;
 use App\Domain\CardIssuance\Providers\Lepo\LepoCardWebhookHandler;
 use App\Domain\CardIssuance\Providers\Lepo\LepoOnboardingWebhookHandler;
 use App\Domain\CardIssuance\Providers\Lepo\LepoThreeDsCodes;
@@ -25,6 +26,9 @@ final class LepoWebhookRouter
 
     /** Events that can mean a deposit or a card load for a user. */
     private const DEPOSIT_TYPES = ['wallet.topped_up', 'card.topup'];
+
+    /** Events that can mean money left a card or a wallet for a user. */
+    private const WITHDRAWAL_TYPES = ['card.unload', 'wallet.withdrawal'];
 
     /** Identity-check events; their payloads only identify the user. */
     private const KYC_TYPES = ['kyc.verified', 'kyc.update', 'user.kyc.updated', 'kyc.resubmission_required', 'kyc.interlace_submission_failed'];
@@ -50,6 +54,22 @@ final class LepoWebhookRouter
         }
     }
 
+    /**
+     * Lepo reports money leaving a card or a wallet: advance that user's
+     * withdrawals now. The event never changes a withdrawal by itself; it can
+     * arrive twice, late, or for something we did not start, and it carries
+     * no transaction hash.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function wakeWithdrawals(array $data): void
+    {
+        $userId = $data['userId'] ?? null;
+        if (is_scalar($userId) && (string) $userId !== '') {
+            AdvanceLepoWithdrawals::dispatch((string) $userId);
+        }
+    }
+
     public static function carriesSecureCode(string $type): bool
     {
         return in_array($type, self::SECURE_CODE_TYPES, true);
@@ -68,6 +88,7 @@ final class LepoWebhookRouter
             in_array($type, LepoCardWebhookHandler::TYPES, true) => $this->cards->handle($data, $eventId, $type),
             self::carriesSecureCode($type)                       => $this->threeDs->announce($data),
             in_array($type, self::DEPOSIT_TYPES, true)           => $this->wakeTopUps($data),
+            in_array($type, self::WITHDRAWAL_TYPES, true)        => $this->wakeWithdrawals($data),
             default                                              => null,
         };
     }

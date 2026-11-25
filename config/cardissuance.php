@@ -62,6 +62,20 @@ return [
         'lepo_topup_min'         => (string) env('CARD_TOPUP_MIN', '10.00'),
         'lepo_topup_max'         => (string) env('CARD_TOPUP_MAX', '1000.00'),
         'lepo_topup_ttl_minutes' => (int) env('CARD_TOPUP_TTL_MINUTES', 60),
+        // "Send to wallet" (money from the card back to the user's own wallet):
+        // off until the read-only probe with the pilot user has set the chain
+        // codes. Rows already past the unload keep being reconciled while off.
+        // Limits are US-dollar decimal strings leaving the card.
+        'lepo_withdrawals_enabled' => (bool) env('CARD_WITHDRAWALS_ENABLED', false),
+        'lepo_withdrawal_networks' => env('LEPO_WITHDRAWAL_NETWORKS', 'arbitrum,polygon'),
+        // Our network name to the provider's chain code ("arbitrum:ARB,polygon:MATIC").
+        // A network without a code cannot be used.
+        'lepo_withdrawal_chain_codes'   => env('LEPO_WITHDRAWAL_CHAIN_CODES', ''),
+        'lepo_withdrawal_min'           => (string) env('CARD_WITHDRAWAL_MIN', '5.00'),
+        'lepo_withdrawal_max'           => (string) env('CARD_WITHDRAWAL_MAX', '1000.00'),
+        'lepo_withdrawal_daily_max'     => (string) env('CARD_WITHDRAWAL_DAILY_MAX', '2000.00'),
+        'lepo_withdrawal_daily_count'   => (int) env('CARD_WITHDRAWAL_DAILY_COUNT', 3),
+        'lepo_withdrawal_address_hours' => (int) env('CARD_WITHDRAWAL_NEW_ADDRESS_HOURS', 24),
     ],
 
     /*

@@ -15,6 +15,7 @@ use App\Domain\CardIssuance\Models\CardDepositAddress;
 use App\Domain\CardIssuance\Models\CardFundingAccount;
 use App\Domain\CardIssuance\Models\Cardholder;
 use App\Domain\CardIssuance\Models\CardTopUp;
+use App\Domain\CardIssuance\Models\CardWithdrawal;
 use App\Domain\Compliance\Kyc\Models\BridgeCustomer;
 use App\Domain\Compliance\Models\AuditLog;
 use App\Domain\Mobile\Models\BiometricChallenge;
@@ -157,6 +158,7 @@ class GdprService
         'card_waitlist'                => self::EXCL_LEGACY,
         'card_waitlist_deposits'       => self::EXCL_LEGACY,
         'card_topups'                  => 'Card top-ups: USDC deposits converted and loaded onto a card (amounts, network, transaction hash, status). Financial records retained under Art. 17(3)(b); no direct identifiers beyond the user FK. Exported with the card data.',
+        'card_withdrawals'             => 'Card withdrawals: money sent from a card to the user\'s own wallet (amounts, network, destination address, transaction hash, status). Financial records retained under Art. 17(3)(b); no direct identifiers beyond the user FK. Exported with the card data.',
         'card_funding_accounts'        => 'Card funding account at the card provider (Lepo): status, currency and balance of the money loaded for cards. A financial-account record retained under Art. 17(3)(b); no direct identifiers beyond the user FK and the provider account id. Exported with the cardholder data.',
         'certificates'                 => self::EXCL_LEGACY,
         'cgo_investments'              => self::EXCL_LEGACY,
@@ -1063,6 +1065,19 @@ class GdprService
                     'completed_at'   => $topup->completed_at,
                 ]
             )->all(),
+            'withdrawals' => CardWithdrawal::query()->where('user_id', $user->id)->orderBy('created_at')->get()->map(
+                fn (CardWithdrawal $withdrawal): array => [
+                    'id'                  => $withdrawal->id,
+                    'status'              => $withdrawal->status,
+                    'amount'              => $withdrawal->amount,
+                    'network'             => $withdrawal->network,
+                    'destination_address' => $withdrawal->destination_address,
+                    'received_amount'     => $withdrawal->received_amount,
+                    'tx_hash'             => $withdrawal->tx_hash,
+                    'created_at'          => $withdrawal->created_at,
+                    'completed_at'        => $withdrawal->completed_at,
+                ]
+            )->all(),
             'funding_accounts' => CardFundingAccount::query()->where('user_id', $user->id)->with('depositAddresses')->get()->map(
                 fn (CardFundingAccount $account): array => [
                     'provider'            => $account->provider,
@@ -1374,6 +1389,13 @@ class GdprService
 
         // Check for pending transactions
         // This would need to check the event store
+
+        // Money from a card is between steps on its way to the wallet: the
+        // record must stay complete until it has finished.
+        if (CardWithdrawal::query()->where('user_id', $user->id)->whereIn('status', CardWithdrawal::ACTIVE)->exists()) {
+            $reasons[] = 'A card withdrawal is still in progress';
+            $reasonCodes[] = 'card_withdrawal_in_progress';
+        }
 
         // Check for legal holds
         if ($user->kyc_status === 'in_review') {

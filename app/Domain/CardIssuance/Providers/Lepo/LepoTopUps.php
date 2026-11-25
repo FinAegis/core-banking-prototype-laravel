@@ -9,6 +9,7 @@ use App\Domain\CardIssuance\Models\Card;
 use App\Domain\CardIssuance\Models\CardDepositAddress;
 use App\Domain\CardIssuance\Models\Cardholder;
 use App\Domain\CardIssuance\Models\CardTopUp;
+use App\Domain\CardIssuance\Models\CardWithdrawal;
 use App\Domain\CardIssuance\Providers\CardProviderException;
 use App\Domain\CardIssuance\Providers\CardProviderSelector;
 use App\Infrastructure\Lepo\LepoApiException;
@@ -182,7 +183,10 @@ final class LepoTopUps
         return Cache::lock("cards:lepo:topup-start:{$card->user_id}", 10)->block(5, function () use ($card, $amount, $network): CardTopUp {
             $address = $this->assertCanTopUp($card, $amount, $network);
 
-            $open = CardTopUp::query()->where('user_id', $card->user_id)->whereIn('status', CardTopUp::OPEN)->exists();
+            // One money flow per user: no top-up while a withdrawal is active
+            // or waits for an operator.
+            $open = CardTopUp::query()->where('user_id', $card->user_id)->whereIn('status', CardTopUp::OPEN)->exists()
+                || CardWithdrawal::query()->where('user_id', $card->user_id)->whereIn('status', CardWithdrawal::ACTIVE)->exists();
             if ($open) {
                 throw CardProviderException::topUp('topup_in_progress');
             }

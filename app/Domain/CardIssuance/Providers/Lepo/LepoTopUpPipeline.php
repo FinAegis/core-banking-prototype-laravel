@@ -8,6 +8,7 @@ use App\Domain\CardIssuance\Models\Card;
 use App\Domain\CardIssuance\Models\Cardholder;
 use App\Domain\CardIssuance\Models\CardStaffFreeze;
 use App\Domain\CardIssuance\Models\CardTopUp;
+use App\Domain\CardIssuance\Models\CardWithdrawal;
 use App\Domain\CardIssuance\Providers\CardProviderException;
 use App\Infrastructure\Lepo\LepoApiException;
 use App\Infrastructure\Lepo\LepoClient;
@@ -334,6 +335,12 @@ final class LepoTopUpPipeline
 
     private function hasUnclearMoney(CardTopUp $topup): bool
     {
+        // A withdrawal moves money through the same balances at Lepo: the
+        // user's top-ups wait until it has finished or an operator closed it.
+        if (CardWithdrawal::query()->where('user_id', $topup->user_id)->whereIn('status', CardWithdrawal::ACTIVE)->exists()) {
+            return true;
+        }
+
         return CardTopUp::query()
             ->where('user_id', $topup->user_id)
             ->whereKeyNot($topup->id)
