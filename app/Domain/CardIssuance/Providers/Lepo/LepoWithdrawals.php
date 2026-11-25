@@ -62,6 +62,7 @@ final class LepoWithdrawals
         CardWithdrawal::STATUS_AWAITING_CODE   => 'Check your email for a code to finish sending money to your wallet.',
         CardWithdrawal::STATUS_COMPLETED       => 'The money from your card is in your wallet.',
         CardWithdrawal::STATUS_NEEDS_ATTENTION => 'Your transfer from the card is taking longer than usual. We are checking it.',
+        CardWithdrawal::STATUS_CANCELLED       => 'Your transfer was stopped before any money left the card. The money is still on your card.',
     ];
 
     /** Short user-safe reasons; anything else that needs an operator reads as "checking". */
@@ -75,6 +76,7 @@ final class LepoWithdrawals
         'UNLOAD_REFUSED'         => 'refused',
         'CODE_LOCKED'            => 'code_locked',
         'CODE_NOT_ENTERED'       => 'code_not_entered',
+        'WITHDRAWALS_DISABLED'   => 'withdrawals_disabled',
     ];
 
     public function __construct(

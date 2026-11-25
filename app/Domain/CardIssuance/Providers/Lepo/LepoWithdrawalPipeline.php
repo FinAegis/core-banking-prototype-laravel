@@ -122,9 +122,12 @@ final class LepoWithdrawalPipeline
 
     private function unload(CardWithdrawal $withdrawal): void
     {
-        // Rows past the unload keep going while the switch is off; a row that
-        // has not started yet waits.
+        // The switch is off and no money has moved for this row yet: it ends
+        // here, so it no longer holds the user's other money flows. Rows past
+        // the unload keep going while the switch is off.
         if (! LepoWithdrawals::enabled()) {
+            $this->withdrawals->cancel($withdrawal, 'WITHDRAWALS_DISABLED');
+
             return;
         }
 

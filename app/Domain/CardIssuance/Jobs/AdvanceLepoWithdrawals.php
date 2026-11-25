@@ -24,7 +24,7 @@ use Throwable;
  * the start request and the card.unload / wallet.withdrawal webhooks queue
  * the job for their user. Jobs are unique per user. It runs whether or not
  * the switch is on: rows already past the unload must always finish; the
- * pipeline does not start new ones while it is off.
+ * pipeline cancels rows that have not reached the unload while it is off.
  */
 final class AdvanceLepoWithdrawals implements ShouldQueue, ShouldBeUnique
 {

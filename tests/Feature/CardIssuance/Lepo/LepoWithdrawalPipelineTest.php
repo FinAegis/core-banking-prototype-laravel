@@ -105,6 +105,9 @@ function pwLepo(array $over = []): void
         if (str_ends_with($path, '/transfers/withdrawals/fee-and-quota')) {
             return $next('fee') ?? Http::response(['code' => '0', 'data' => ['fees' => [['amount' => '1.000000', 'currency' => 'USDC', 'type' => 'network']]]]);
         }
+        if (str_ends_with($path, '/cards/quantum-topup/estimate')) {
+            return Http::response(['success' => true, 'topupfee' => '0', 'topupfeepercent' => '0.015', 'usdcToUsd' => ['rate' => '0.999', 'fee' => '0.05', 'feeCurrency' => 'USD']]);
+        }
         if (str_ends_with($path, '/transactions')) {
             return $next('transactions') ?? Http::response(['data' => [], 'pagination' => ['page' => 1, 'hasNext' => false]]);
         }
@@ -323,17 +326,45 @@ it('goes straight to sending when no code is required', function (): void {
     expect(pwRun($w)->status)->toBe('sending')->and($w->confirmed_at)->not->toBeNull()->and($w->code_sent_at)->toBeNull();
 });
 
-it('does not start a new row while the switch is off but finishes rows past the unload', function (): void {
-    config(['cardissuance.providers.lepo_withdrawals_enabled' => false]);
-    $new = pwWithdrawal();
+it('cancels a withdrawal that has not reached the unload when the switch is off, and frees the user for a top-up', function (): void {
+    config(['cardissuance.providers.lepo_withdrawals_enabled' => false, 'cardissuance.providers.enabled' => 'lepo', 'cardissuance.providers.lepo_pilot_only' => false,
+        'cardissuance.providers.lepo_deposit_networks'        => 'arbitrum', 'cardissuance.providers.lepo_topup_min' => '10.00']);
+    $w = pwWithdrawal();
     pwLepo();
+    $this->push->shouldReceive('sendToUser')->once()->withArgs(fn ($u, string $type, $title, string $body, array $data): bool => $type === 'card.withdrawal.updated'
+        && str_contains($body, 'still on your card') && $data['withdrawal_id'] === $w->id)->andReturn([]);
 
-    expect(pwRun($new)->status)->toBe('unloading');
+    $w = pwRun($w);
+
+    expect($w->status)->toBe('cancelled')->and($w->last_error)->toBe('WITHDRAWALS_DISABLED')
+        ->and(App\Domain\CardIssuance\Providers\Lepo\LepoWithdrawals::present($w)['failure_reason'])->toBe('withdrawals_disabled');
     expect(pwCalls('/cards/unload-card'))->toBe(0);
+    Event::assertDispatched(CardWithdrawalUpdated::class, fn (CardWithdrawalUpdated $e): bool => $e->withdrawalId === $w->id && $e->status === 'cancelled');
 
-    $new->forceFill(['status' => 'converting', 'unloaded_cents' => 5000, 'unloaded_at' => now()])->save();
-    expect(pwRun($new)->status)->toBe('awaiting_code');
+    // The user's top-ups are no longer blocked.
+    $card = $w->card()->firstOrFail();
+    CardFundingAccount::query()->whereKey($card->funding_account_id)->firstOrFail()
+        ->depositAddresses()->create(['provider' => 'lepo', 'network' => 'arbitrum', 'asset' => 'USDC', 'address' => '0x' . str_repeat('a', 40), 'is_active' => true]);
+    Sanctum::actingAs($w->user()->firstOrFail(), ['read', 'write', 'delete']);
+    $this->withHeader('Idempotency-Key', (string) Str::uuid())->postJson("/api/v1/cards/issued/{$card->id}/topups", ['amount' => '25.00', 'network' => 'arbitrum'])
+        ->assertCreated()->assertJsonPath('data.status', 'awaiting_deposit');
 });
+
+it('keeps finishing rows past the unload while the switch is off', function (array $row, string $expected): void {
+    config(['cardissuance.providers.lepo_withdrawals_enabled' => false]);
+    $w = pwWithdrawal($row);
+    pwLepo(['crypto' => Http::response(['transfers' => [['id' => 'il-1', 'status' => 'COMPLETED', 'amount' => ['amount' => 48.65], 'destination' => ['address' => PW_ADDRESS]]]])]);
+    if ($expected === 'needs_attention') {
+        $this->travel(73)->hours();
+    }
+
+    expect(pwRun($w)->status)->toBe($expected);
+})->with([
+    'unload call in flight' => [['step_started_at' => now(), 'unload_requested_at' => now(), 'card_balance_before_cents' => 6210], 'unloading'],
+    'converting'            => [['status' => 'converting', 'unloaded_cents' => 5000, 'unloaded_at' => now()], 'awaiting_code'],
+    'awaiting_code'         => [['status' => 'awaiting_code', 'code_sent_at' => now(), 'provider_verification_token' => 'tok-1'], 'needs_attention'],
+    'sending'               => [['status' => 'sending', 'withdrawal_amount' => '49.650500', 'provider_transfer_id' => 'il-1', 'confirm_requested_at' => now()], 'completed'],
+]);
 
 it('cancels before the unload when support froze the card meanwhile', function (): void {
     $w = pwWithdrawal(cardStatus: 'frozen');
