@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Changelog | ' . config('brand.name', 'Zelta'),
-        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.18.4.',
+        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.18.5.',
         'keywords' => 'changelog, release notes, updates, ' . config('brand.name', 'Zelta') . ', version history, core banking',
     ])
 
@@ -43,6 +43,18 @@
 
             @php
                 $releases = [
+                    [
+                        'version' => 'v7.18.5',
+                        'date' => 'November 25, 2026',
+                        'label' => 'Email-code Sign-in Only',
+                        'label_color' => 'slate',
+                        'badge_color' => 'bg-slate-100 text-slate-700 border-slate-200',
+                        'dot_color' => 'bg-slate-500',
+                        'items' => [
+                            'Sign in with an email code only. On zelta.app, a password no longer signs anyone in. You sign in with the code we email you.',
+                            'Money back from your card, coming soon. The app will let you send money from your card back to your own wallet. This stays switched off until it is fully tested.',
+                        ],
+                    ],
                     [
                         'version' => 'v7.18.4',
                         'date' => 'November 25, 2026',
