@@ -7,11 +7,19 @@ namespace App\Http\Middleware;
 use App\Domain\Monitoring\Services\TracingService;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 class TracingMiddleware
 {
+    /**
+     * Request fields never copied into an error trace or its log line:
+     * passwords, one-time codes (the card withdrawal code among them) and
+     * secrets.
+     */
+    private const REDACTED = ['password', 'password_confirmation', 'current_password', 'code', 'otp', 'otp_code', 'pin', 'cvv', 'token', 'secret'];
+
     public function __construct(
         private readonly TracingService $tracingService
     ) {
@@ -67,7 +75,7 @@ class TracingMiddleware
                 'request' => [
                     'method' => $request->method(),
                     'path'   => $request->path(),
-                    'input'  => $request->all(),
+                    'input'  => Arr::except($request->all(), self::REDACTED),
                 ],
             ]);
 

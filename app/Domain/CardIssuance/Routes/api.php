@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\CardIssuance\CardIssuedController;
 use App\Http\Controllers\Api\CardIssuance\CardOnboardingController;
 use App\Http\Controllers\Api\CardIssuance\CardTopUpController;
 use App\Http\Controllers\Api\CardIssuance\CardTransactionWebhookController;
+use App\Http\Controllers\Api\CardIssuance\CardWithdrawalController;
 use App\Http\Controllers\Api\CardIssuance\FinCardAccountController;
 use App\Http\Controllers\Api\CardIssuance\FinCardCardController;
 use App\Http\Controllers\Api\CardIssuance\FinCardDevController;
@@ -91,6 +92,9 @@ Route::prefix('v1/cards')->name('api.cards.fincard.')
             Route::get('/{card}/topups/estimate', [CardTopUpController::class, 'estimate'])->name('topups.estimate');
             Route::get('/{card}/topups', [CardTopUpController::class, 'index'])->name('topups.index');
             Route::get('/{card}/topups/{topup}', [CardTopUpController::class, 'show'])->name('topups.show');
+            Route::get('/{card}/withdrawals/estimate', [CardWithdrawalController::class, 'estimate'])->name('withdrawals.estimate');
+            Route::get('/{card}/withdrawals', [CardWithdrawalController::class, 'index'])->name('withdrawals.index');
+            Route::get('/{card}/withdrawals/{withdrawal}', [CardWithdrawalController::class, 'show'])->name('withdrawals.show');
             Route::middleware(['idempotency.required', 'api.rate_limit:mutation'])->group(function (): void {
                 Route::post('/{card}/freeze', [CardIssuedController::class, 'freeze'])->name('freeze');
                 Route::post('/{card}/unfreeze', [CardIssuedController::class, 'unfreeze'])->name('unfreeze');
@@ -98,6 +102,9 @@ Route::prefix('v1/cards')->name('api.cards.fincard.')
                 Route::post('/{card}/topups', [CardTopUpController::class, 'store'])->name('topups.store');
                 Route::patch('/{card}/topups/{topup}', [CardTopUpController::class, 'update'])->name('topups.update');
                 Route::post('/{card}/topups/{topup}/cancel', [CardTopUpController::class, 'cancel'])->name('topups.cancel');
+                Route::post('/{card}/withdrawals', [CardWithdrawalController::class, 'store'])->name('withdrawals.store');
+                Route::post('/{card}/withdrawals/{withdrawal}/confirm', [CardWithdrawalController::class, 'confirm'])->name('withdrawals.confirm');
+                Route::post('/{card}/withdrawals/{withdrawal}/resend-code', [CardWithdrawalController::class, 'resendCode'])->name('withdrawals.resend-code');
             });
         });
 
