@@ -62,6 +62,8 @@ class ExchangeRatesResource(BaseResource):
         
         Returns:
             Dictionary with refresh status
+
+        .. deprecated:: The server has no such route (it never worked and was removed in FinAegis v7.18.4). This method will be removed in the next major version.
         """
         response = self._post('/exchange-rates/refresh')
         return response['data']

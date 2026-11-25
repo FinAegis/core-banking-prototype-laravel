@@ -22,6 +22,8 @@ export class Assets {
 
   /**
    * Create a new asset
+   *
+   * @deprecated The server has no such route (it never worked and was removed in FinAegis v7.18.4). This method will be removed in the next major version.
    */
   async create(data: {
     code: string;
@@ -35,6 +37,8 @@ export class Assets {
 
   /**
    * Update an asset
+   *
+   * @deprecated The server has no such route (it never worked and was removed in FinAegis v7.18.4). This method will be removed in the next major version.
    */
   async update(code: string, data: Partial<{
     name: string;
@@ -48,6 +52,8 @@ export class Assets {
 
   /**
    * Delete an asset
+   *
+   * @deprecated The server has no such route (it never worked and was removed in FinAegis v7.18.4). This method will be removed in the next major version.
    */
   async delete(code: string): Promise<ApiResponse<{ message: string }>> {
     const response = await this.client.delete(`/assets/${code}`);

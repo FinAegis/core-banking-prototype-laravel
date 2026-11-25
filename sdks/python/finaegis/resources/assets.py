@@ -55,6 +55,8 @@ class AssetsResource(BaseResource):
             
         Returns:
             Created Asset object
+
+        .. deprecated:: The server has no such route (it never worked and was removed in FinAegis v7.18.4). This method will be removed in the next major version.
         """
         response = self._post('/assets', {
             'code': code,
@@ -84,6 +86,8 @@ class AssetsResource(BaseResource):
             
         Returns:
             Updated Asset object
+
+        .. deprecated:: The server has no such route (it never worked and was removed in FinAegis v7.18.4). This method will be removed in the next major version.
         """
         data: Dict[str, Any] = {}
         if name is not None:
@@ -107,5 +111,7 @@ class AssetsResource(BaseResource):
             
         Returns:
             Success message
+
+        .. deprecated:: The server has no such route (it never worked and was removed in FinAegis v7.18.4). This method will be removed in the next major version.
         """
         return self._delete(f'/assets/{code}')
