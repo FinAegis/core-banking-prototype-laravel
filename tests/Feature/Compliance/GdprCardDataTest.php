@@ -107,3 +107,37 @@ it('erases the personal data of a cardholder and keeps the provider record', fun
         ->and($card->issuer_card_token)->toBe('555')
         ->and($card->status)->toBe('active');
 });
+
+function gdprWithdrawal(User $user, string $status): void
+{
+    $withdrawal = new App\Domain\CardIssuance\Models\CardWithdrawal();
+    $withdrawal->forceFill([
+        'user_id'             => $user->id, 'card_id' => Card::query()->where('user_id', $user->id)->value('id'), 'provider' => 'lepo', 'network' => 'arbitrum', 'asset' => 'USDC',
+        'destination_address' => '0x' . str_repeat('7', 40), 'destination_address_uuid' => (string) Illuminate\Support\Str::uuid(), 'amount' => '50.00', 'status' => $status,
+        'received_amount'     => '48.650000', 'tx_hash' => '0x' . str_repeat('d', 64), 'provider_verification_token' => 'tok-x', 'completed_at' => now(),
+    ])->save();
+}
+
+it('exports card withdrawals without provider secrets', function (): void {
+    $user = User::factory()->create();
+    gdprCardholder($user);
+    gdprWithdrawal($user, 'completed');
+
+    $cards = app(GdprService::class)->exportUserData($user)['cards'];
+
+    expect($cards['withdrawals'][0])->toMatchArray(['status' => 'completed', 'amount' => '50.00', 'network' => 'arbitrum', 'destination_address' => '0x' . str_repeat('7', 40),
+        'received_amount'                                    => '48.650000', 'tx_hash' => '0x' . str_repeat('d', 64)])
+        ->and(array_keys($cards['withdrawals'][0]))->toBe(['id', 'status', 'amount', 'network', 'destination_address', 'received_amount', 'tx_hash', 'created_at', 'completed_at']);
+});
+
+it('refuses erasure while a card withdrawal is active', function (): void {
+    $user = User::factory()->create();
+    gdprCardholder($user);
+    gdprWithdrawal($user, 'awaiting_code');
+
+    $check = app(GdprService::class)->canDeleteUserData($user);
+    expect($check['can_delete'])->toBeFalse()->and($check['reason_codes'])->toContain('card_withdrawal_in_progress');
+
+    App\Domain\CardIssuance\Models\CardWithdrawal::query()->update(['status' => 'completed']);
+    expect(app(GdprService::class)->canDeleteUserData($user)['reason_codes'])->not->toContain('card_withdrawal_in_progress');
+});
