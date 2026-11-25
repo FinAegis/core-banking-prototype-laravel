@@ -88,9 +88,9 @@ it('withdraws the exact number of cents', function (float|string $amount, int $c
 ]);
 
 it('filters balances on the exact number of cents', function (int $balance, string $operator, string $amount, bool $seesMatch): void {
-    // The filter compared against $amount * 100, a float. PHP turns that
-    // float into a 14-digit string for the query, so a balance of
-    // 1,234,567,890,123.45 was compared as 123456789012340 cents.
+    // The filter compared against $amount * 100, a float. The comparison
+    // is now made in exact cents, up to the largest balance the column
+    // holds (a signed 32-bit integer: 21,474,836.47).
     $match = Account::factory()->createOne(['balance' => $balance]);
 
     Livewire::test(ListAccounts::class)
@@ -99,8 +99,8 @@ it('filters balances on the exact number of cents', function (int $balance, stri
 })->with([
     'equal to 128.14'                   => [12814, '=', '128.14', true],
     'less than 128.14'                  => [12814, '<', '128.14', false],
-    'equal to 1,234,567,890,123.45'     => [123456789012345, '=', '1234567890123.45', true],
-    'greater than 1,234,567,890,123.44' => [123456789012345, '>', '1234567890123.44', true],
+    'equal to 21,474,836.47'            => [2147483647, '=', '21474836.47', true],
+    'greater than 21,474,836.46'        => [2147483647, '>', '21474836.46', true],
     'equal to 128.145'                  => [12814, '=', '128.145', false],
     'less than 128.145'                 => [12814, '<', '128.145', true],
 ]);
