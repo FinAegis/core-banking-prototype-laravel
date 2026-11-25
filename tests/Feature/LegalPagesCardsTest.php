@@ -29,6 +29,8 @@ describe('Zelta legal pages', function (): void {
         $response->assertSee('Send at least the minimum amount shown in the app. A smaller amount is not loaded to your card automatically.');
         $response->assertSee('A card that still holds money cannot be cancelled in the app.');
         $response->assertSee('Never share this code with anyone.');
+        $response->assertSee('The card has a monthly fee of 1 US dollar. The partner takes it from your card balance for the month ahead.');
+        $response->assertSee('The first monthly fee is taken within a day after the card is opened. After that it is taken once a month.');
     });
 
     it('says in the Privacy Policy what card data goes to the card partner', function (): void {

@@ -4,7 +4,7 @@
         <div class="bg-gray-50 border-b">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <h1 class="text-4xl font-bold text-gray-900">Terms of Service</h1>
-                <p class="mt-4 text-lg text-gray-600">Last updated: November 23, 2026</p>
+                <p class="mt-4 text-lg text-gray-600">Last updated: November 25, 2026</p>
             </div>
         </div>
 
@@ -71,6 +71,7 @@
                 <p>When you apply, we send your details to the partner so that it can open your card and check your identity. Our <a href="{{ route('legal.privacy') }}">Privacy Policy</a> explains which details we send.</p>
                 <p>You add money by sending USDC from your own Zelta wallet to your card account at the partner. You confirm every send yourself. The partner changes the USDC to US dollars and adds it to your card.</p>
                 <p>Before you confirm, the app shows the partner&rsquo;s fees and about how much your card will receive. The final amount can differ a little because of the exchange rate. Your first top-up also pays the card opening fee shown in the app.</p>
+                <p>The card has a monthly fee of 1 US dollar. The partner takes it from your card balance for the month ahead. The first monthly fee is taken within a day after the card is opened. After that it is taken once a month.</p>
                 <p>Send only USDC on a network shown in the app. Other tokens, or tokens sent on another network, may not be credited and may be lost.</p>
                 <p>Send at least the minimum amount shown in the app. A smaller amount is not loaded to your card automatically.</p>
                 <p>A card that still holds money cannot be cancelled in the app. Moving money from the card back to your wallet is not available at this time.</p>
