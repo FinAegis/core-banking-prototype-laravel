@@ -8,7 +8,7 @@ use RuntimeException;
 
 final class CardProviderException extends RuntimeException
 {
-    private function __construct(string $message, private readonly string $reason)
+    private function __construct(string $message, private readonly string $reason, private readonly ?string $minimum = null)
     {
         parent::__construct($message);
     }
@@ -48,6 +48,15 @@ final class CardProviderException extends RuntimeException
         return new self("The top-up was refused: {$reason}.", $reason);
     }
 
+    /**
+     * The amount is below the top-up minimum for this card (USDC, 2 decimals);
+     * refused like any amount outside the limits, with that minimum.
+     */
+    public static function belowMinimum(string $minimum): self
+    {
+        return new self("The top-up was refused: amount below {$minimum}.", 'amount_out_of_range', $minimum);
+    }
+
     public static function providerUnavailable(string $provider, ?string $code): self
     {
         $label = $code !== null && $code !== '' ? " [{$code}]" : '';
@@ -58,5 +67,13 @@ final class CardProviderException extends RuntimeException
     public function reason(): string
     {
         return $this->reason;
+    }
+
+    /**
+     * The minimum that refused the amount, when it is not the configured one.
+     */
+    public function minimum(): ?string
+    {
+        return $this->minimum;
     }
 }

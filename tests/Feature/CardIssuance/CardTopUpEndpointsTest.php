@@ -24,6 +24,7 @@ beforeEach(function (): void {
         'cardissuance.providers.lepo_topup_max'         => '1000.00',
         'cardissuance.providers.lepo_topup_ttl_minutes' => 60,
     ]);
+    Http::preventStrayRequests();
 });
 
 function tuCard(string $status = 'pending', ?string $token = null, ?User $user = null): Card
@@ -56,6 +57,9 @@ function tuEstimate(string $rate = '0.999', string $fee = '0.05', string $topupF
 function tuStart(PHPUnit\Framework\TestCase $test, Card $card, array $body = ['amount' => '25.00', 'network' => 'arbitrum', 'asset' => 'USDC']): Illuminate\Testing\TestResponse
 {
     assert($test instanceof Tests\TestCase);
+    // Starting a top-up reads the live quote for its minimum. A quote faked
+    // by the test itself comes first and wins.
+    Http::fake(['lepo.test/api/v2/cards/quantum-topup/estimate*' => Http::response(tuEstimate())]);
 
     return $test->withHeader('Idempotency-Key', (string) Str::uuid())->postJson("/api/v1/cards/issued/{$card->id}/topups", $body);
 }
@@ -127,7 +131,6 @@ it('estimates no issuance fee once the card is open', function (): void {
 
 it('starts a top-up with the deposit address', function (): void {
     $card = tuCard();
-    Http::fake();
 
     $response = tuStart($this, $card)->assertCreated()
         ->assertJsonPath('data.card_id', $card->id)
@@ -139,7 +142,9 @@ it('starts a top-up with the deposit address', function (): void {
         ->assertJsonPath('data.tx_hash', null);
 
     expect($response->json('data.expires_at'))->toBeString();
-    Http::assertNothingSent();
+    // Only the quote for the minimum is read; no money moves.
+    Http::assertSentCount(1);
+    Http::assertSent(fn (Illuminate\Http\Client\Request $r): bool => str_contains($r->url(), '/cards/quantum-topup/estimate'));
 });
 
 it('refuses an amount outside the limits', function (string $amount): void {
@@ -310,3 +315,38 @@ it('asks only for native USDC on the networks the top-up offers', function (): v
     // The top-up only takes the asset USDC.
     tuStart($this, tuCard(), ['amount' => '25.00', 'network' => 'arbitrum', 'asset' => 'USDC.e'])->assertStatus(422)->assertJsonValidationErrors(['asset']);
 });
+
+it('refuses to start a top-up below the same fee-based minimum the estimate shows', function (string $status, ?string $token, string $amount, ?string $minimum): void {
+    // The test quote: 0.999 USD per USDC, 0.05 conversion fee, 1.5 % load fee.
+    // First top-up minimum 7.16, later top-up minimum 5.14 (see the estimate tests).
+    config(['cardissuance.providers.lepo_topup_min' => '1.00']);
+    $card = tuCard($status, $token);
+    Http::fake(['lepo.test/api/v2/cards/quantum-topup/estimate*' => Http::response(tuEstimate(topupFeePercent: '0.015'))]);
+
+    $response = tuStart($this, $card, ['amount' => $amount, 'network' => 'arbitrum', 'asset' => 'USDC']);
+
+    if ($minimum === null) {
+        $response->assertCreated()->assertJsonPath('data.amount', $amount);
+
+        return;
+    }
+    $response->assertStatus(422)->assertJsonPath('error.code', 'ERR_CARDS_028')
+        ->assertJsonPath('error.min_amount', $minimum)->assertJsonPath('error.max_amount', '1000.00');
+    expect(CardTopUp::query()->where('card_id', $card->id)->count())->toBe(0);
+})->with([
+    'first, 7.15 refused'  => ['pending', null, '7.15', '7.16'],
+    'first, 7.16 accepted' => ['pending', null, '7.16', null],
+    'later, 5.13 refused'  => ['active', '777', '5.13', '5.14'],
+    'later, 5.14 accepted' => ['active', '777', '5.14', null],
+]);
+
+it('refuses to start a top-up when the quote cannot be read', function (mixed $quote): void {
+    $card = tuCard();
+    Http::fake(['lepo.test/api/v2/cards/quantum-topup/estimate*' => $quote]);
+
+    tuStart($this, $card)->assertStatus(502)->assertJsonPath('error.code', 'ERR_CARDS_016');
+    expect(CardTopUp::query()->where('card_id', $card->id)->count())->toBe(0);
+})->with([
+    'provider down' => [fn () => Http::response(['message' => 'unavailable'], 503)],
+    'no rate'       => [fn () => Http::response(['success' => true, 'usdcToUsd' => ['fee' => '0.05']])],
+]);

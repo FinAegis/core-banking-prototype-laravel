@@ -14025,7 +14025,7 @@
                     "Cards"
                 ],
                 "summary": "Start a top-up",
-                "description": "Body: {amount (USDC decimal string), asset: USDC, network}. Returns the top-up with the deposit address to send USDC to.",
+                "description": "Body: {amount (USDC decimal string), asset: USDC, network}. Returns the top-up with the deposit address to send USDC to. The amount must reach the same min_amount the estimate returns (it reads the live quote); below it the answer is ERR_CARDS_028 with that min_amount, and without a quote ERR_CARDS_016.",
                 "operationId": "v1CardsTopUpStart",
                 "responses": {
                     "201": {
@@ -14036,6 +14036,9 @@
                     },
                     "422": {
                         "description": "ERR_CARDS_028: amount outside the limits (with min_amount, max_amount); ERR_CARDS_029: network not supported"
+                    },
+                    "502": {
+                        "description": "ERR_CARDS_016: the quote for the minimum could not be read"
                     },
                     "503": {
                         "description": "ERR_CARDS_027: top-ups are not available yet"

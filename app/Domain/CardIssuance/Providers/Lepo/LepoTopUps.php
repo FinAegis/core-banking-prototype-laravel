@@ -88,22 +88,8 @@ final class LepoTopUps
         $amount = self::number($amount);
         $this->assertCanTopUp($card, $amount, $network);
 
-        try {
-            $quote = $this->client->estimateCardTopup(['userId' => $this->lepoUserId($card), 'amount' => $amount]);
-        } catch (LepoApiException $e) {
-            throw CardProviderException::providerUnavailable('lepo', $e->lepoCode());
-        }
-
-        $leg = is_array($quote['usdcToUsd'] ?? null) ? $quote['usdcToUsd'] : [];
-        $rate = $this->decimal($leg['rate'] ?? null);
-        if ($rate === null || bccomp($rate, '0', 8) !== 1) {
-            throw CardProviderException::providerUnavailable('lepo', 'NO_QUOTE');
-        }
-
-        $conversionFee = $this->decimal($leg['fee'] ?? null) ?? '0';
-        if (in_array(strtoupper((string) ($leg['feeCurrency'] ?? 'USD')), ['USDC', 'USDT'], true)) {
-            $conversionFee = bcmul($conversionFee, $rate, 8);
-        }
+        $quote = $this->quote($card, $amount);
+        ['rate' => $rate, 'conversion_fee' => $conversionFee, 'topup_fee_percent' => $topUpFeePercent, 'topup_fee' => $fixedTopUpFee] = $quote;
         $first = ! $card->isOpenAtProvider();
         $issuance = $first ? LepoCardFees::issuanceFeeCents() : 0;
 
@@ -116,22 +102,11 @@ final class LepoTopUps
         // fraction (0.015 = 1.5 %). Rounded up here, so the estimate never
         // promises more than the card receives. Only without a percentage is
         // topupfee used, as a fixed fee, so the fee is never counted twice.
-        $topUpFeePercent = $this->decimal($quote['topupfeepercent'] ?? null) ?? '0';
-        $fixedTopUpFee = $this->decimal($quote['topupfee'] ?? null) ?? '0';
         $topUpFee = bccomp($topUpFeePercent, '0', 8) === 1
             ? LepoCardFees::centsUp(bcmul(bccomp($loaded, '0', 8) === 1 ? $loaded : '0', $topUpFeePercent, 8))
             : $fixedTopUpFee;
 
         $credited = max(0, (int) bcmul(bcsub($loaded, $topUpFee, 8), '100', 0));
-
-        // The load-fee model of this quote: its percentage, else its fixed fee,
-        // else the configured percentage. Never both, as above.
-        [$fraction, $fixed] = match (true) {
-            bccomp($topUpFeePercent, '0', 8) === 1 => [$topUpFeePercent, '0'],
-            bccomp($fixedTopUpFee, '0', 8) === 1   => ['0', $fixedTopUpFee],
-            default                                => [LepoCardFees::topUpFeeFraction(), '0'],
-        };
-        $minimum = self::minimumFor($first, $rate, $conversionFee, $fraction, $fixed);
 
         return [
             'amount'             => bcadd($amount, '0', 2),
@@ -140,9 +115,30 @@ final class LepoTopUps
             'credited_cents'     => $credited,
             'fee_cents'          => max(0, (int) bcmul(bcadd($conversionFee, $topUpFee, 8), '100', 0)),
             'issuance_fee_cents' => $issuance,
-            'min_amount'         => bccomp($minimum, self::minimum(), 2) === 1 ? $minimum : self::minimum(),
+            'min_amount'         => self::minimumForQuote($first, $quote),
             'max_amount'         => self::maximum(),
         ];
+    }
+
+    /**
+     * The top-up minimum for a quote, shown by the estimate and enforced by
+     * start(): the larger of the configured floor and minimumFor() with the
+     * quote's load-fee model (its percentage, else its fixed fee, else the
+     * configured percentage; never both).
+     *
+     * @param  array{rate: numeric-string, conversion_fee: numeric-string, topup_fee_percent: numeric-string, topup_fee: numeric-string}  $quote
+     * @return numeric-string
+     */
+    public static function minimumForQuote(bool $first, array $quote): string
+    {
+        [$fraction, $fixed] = match (true) {
+            bccomp($quote['topup_fee_percent'], '0', 8) === 1 => [$quote['topup_fee_percent'], '0'],
+            bccomp($quote['topup_fee'], '0', 8) === 1         => ['0', $quote['topup_fee']],
+            default                                           => [LepoCardFees::topUpFeeFraction(), '0'],
+        };
+        $minimum = self::minimumFor($first, $quote['rate'], $quote['conversion_fee'], $fraction, $fixed);
+
+        return bccomp($minimum, self::minimum(), 2) === 1 ? $minimum : self::minimum();
     }
 
     /**
@@ -172,6 +168,15 @@ final class LepoTopUps
     public function start(Card $card, string $amount, string $network): CardTopUp
     {
         $amount = self::number($amount);
+
+        // The same minimum the estimate shows, from the live quote. Without a
+        // quote the top-up is refused (provider unavailable), never let through.
+        // Read before the start lock: the quote is a network call.
+        $this->assertCanTopUp($card, $amount, $network);
+        $minimum = self::minimumForQuote(! $card->isOpenAtProvider(), $this->quote($card, $amount));
+        if (bccomp($amount, $minimum, 6) === -1) {
+            throw CardProviderException::belowMinimum($minimum);
+        }
 
         // One start per user at a time, so two taps cannot open two top-ups.
         return Cache::lock("cards:lepo:topup-start:{$card->user_id}", 10)->block(5, function () use ($card, $amount, $network): CardTopUp {
@@ -311,6 +316,41 @@ final class LepoTopUps
         }
 
         return $address;
+    }
+
+    /**
+     * Lepo's quote for this amount: the USDC→USD rate, the conversion fee in
+     * USD, and the load fee as a fraction and as a fixed amount (0 when
+     * absent). No quote, or no positive rate, is "provider unavailable".
+     *
+     * @param  numeric-string  $amount
+     * @return array{rate: numeric-string, conversion_fee: numeric-string, topup_fee_percent: numeric-string, topup_fee: numeric-string}
+     */
+    private function quote(Card $card, string $amount): array
+    {
+        try {
+            $quote = $this->client->estimateCardTopup(['userId' => $this->lepoUserId($card), 'amount' => $amount]);
+        } catch (LepoApiException $e) {
+            throw CardProviderException::providerUnavailable('lepo', $e->lepoCode());
+        }
+
+        $leg = is_array($quote['usdcToUsd'] ?? null) ? $quote['usdcToUsd'] : [];
+        $rate = $this->decimal($leg['rate'] ?? null);
+        if ($rate === null || bccomp($rate, '0', 8) !== 1) {
+            throw CardProviderException::providerUnavailable('lepo', 'NO_QUOTE');
+        }
+
+        $conversionFee = $this->decimal($leg['fee'] ?? null) ?? '0';
+        if (in_array(strtoupper((string) ($leg['feeCurrency'] ?? 'USD')), ['USDC', 'USDT'], true)) {
+            $conversionFee = bcmul($conversionFee, $rate, 8);
+        }
+
+        return [
+            'rate'              => $rate,
+            'conversion_fee'    => $conversionFee,
+            'topup_fee_percent' => $this->decimal($quote['topupfeepercent'] ?? null) ?? '0',
+            'topup_fee'         => $this->decimal($quote['topupfee'] ?? null) ?? '0',
+        ];
     }
 
     private function lepoUserId(Card $card): string
