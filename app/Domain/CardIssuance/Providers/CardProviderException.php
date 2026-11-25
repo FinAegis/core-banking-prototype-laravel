@@ -33,6 +33,15 @@ final class CardProviderException extends RuntimeException
         return new self('The user already holds the allowed number of cards.', 'card_limit');
     }
 
+    /**
+     * The card has a withdrawal moving money or waiting for an operator, so
+     * it cannot be cancelled now.
+     */
+    public static function withdrawalInProgress(): self
+    {
+        return new self('A withdrawal from this card is still in progress.', 'withdrawal_in_progress');
+    }
+
     public static function holdsMoney(): self
     {
         return new self('The card still holds money, so it cannot be cancelled.', 'holds_money');

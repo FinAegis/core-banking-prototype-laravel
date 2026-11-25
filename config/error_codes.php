@@ -140,4 +140,20 @@ return [
     'ERR_CARDS_031' => ['http' => 409, 'description' => 'Another top-up is still in progress.'],
     'ERR_CARDS_032' => ['http' => 409, 'description' => 'This top-up can no longer be changed.'],
     'ERR_CARDS_033' => ['http' => 404, 'description' => 'No verification code is waiting.'],
+
+    // ─── Card withdrawals: money from the card back to the user's wallet ───
+    'ERR_CARDS_034' => ['http' => 503, 'description' => 'Sending money from your card to your wallet is not available yet.'],
+    'ERR_CARDS_035' => ['http' => 422, 'description' => 'The amount is outside the allowed range.'],
+    'ERR_CARDS_036' => ['http' => 422, 'description' => 'This network is not supported for sending money to your wallet.'],
+    'ERR_CARDS_037' => ['http' => 409, 'description' => 'Your wallet has no address on this network yet. Open your wallet once and try again.'],
+    'ERR_CARDS_038' => ['http' => 409, 'description' => 'Money cannot be sent from this card right now.'],
+    'ERR_CARDS_039' => ['http' => 409, 'description' => 'Another money transfer for your card is still in progress.'],
+    'ERR_CARDS_040' => ['http' => 422, 'description' => 'The card does not hold enough money for this amount.'],
+    'ERR_CARDS_041' => ['http' => 422, 'description' => 'The code is not correct.'],
+    'ERR_CARDS_042' => ['http' => 410, 'description' => 'The code has expired. Ask for a new code.'],
+    'ERR_CARDS_043' => ['http' => 409, 'description' => 'Too many wrong codes. Our support team will contact you.'],
+    'ERR_CARDS_044' => ['http' => 429, 'description' => "You have reached today's limit for sending money from your card."],
+    'ERR_CARDS_045' => ['http' => 409, 'description' => 'This wallet address was added recently. You can send money to it after the waiting time.'],
+    'ERR_CARDS_046' => ['http' => 409, 'description' => 'This transfer is not waiting for a code.'],
+    'ERR_CARDS_047' => ['http' => 429, 'description' => 'Please wait before asking for a new code.'],
 ];

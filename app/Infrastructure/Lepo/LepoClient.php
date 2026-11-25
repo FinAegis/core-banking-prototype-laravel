@@ -276,6 +276,121 @@ final class LepoClient
     }
 
     /**
+     * Unloads US dollars from the card to the user's USD balance at Lepo.
+     * Moves money. The idempotency key is sent as a header and stored by the
+     * caller before the call; nothing relies on Lepo honouring it.
+     *
+     * @param  numeric-string  $value
+     * @return array<string, mixed>
+     */
+    public function unloadCard(string $cardId, string $value, string $idempotencyKey): array
+    {
+        return $this->write('POST', '/cards/unload-card', [], ['cardId' => $cardId, 'currency' => 'USD', 'value' => $value], [], $idempotencyKey);
+    }
+
+    /**
+     * Exchanges US dollars on the user's USD balance into a stablecoin on the
+     * user's crypto balance. Moves money; same key rule as unloadCard().
+     *
+     * @param  numeric-string  $amount
+     * @return array<string, mixed>
+     */
+    public function exchangeUsdToCrypto(string $userId, string $currency, string $amount, string $idempotencyKey): array
+    {
+        return $this->write('POST', '/transfers/quantum-usd-to-crypto-exchange', [], ['currency' => $currency, 'amount' => $amount], ['userId' => $userId], $idempotencyKey);
+    }
+
+    /**
+     * The fee and quota of a withdrawal of this amount to this address.
+     *
+     * @return array<string, mixed>
+     */
+    public function getWithdrawalFeeAndQuota(string $userId, string $chain, string $address, string $currency, string $amount): array
+    {
+        return $this->read('/transfers/withdrawals/fee-and-quota', [], [
+            'userId'   => $userId,
+            'chain'    => $chain,
+            'address'  => $address,
+            'currency' => $currency,
+            'amount'   => $amount,
+        ]);
+    }
+
+    /**
+     * How much the user can withdraw (stablecoin balances).
+     *
+     * @return array<string, mixed>
+     */
+    public function getWithdrawalAvailableBalance(string $userId): array
+    {
+        return $this->read('/transfers/withdrawals/available-balance', [], ['userId' => $userId]);
+    }
+
+    /**
+     * Asks Lepo to send a stablecoin to an external address. Lepo e-mails a
+     * code to the user unless the answer says otherwise; the answer's
+     * verification token is needed to confirm. Same key rule as unloadCard().
+     *
+     * @return array<string, mixed>
+     */
+    public function createCryptoWithdrawal(string $userId, string $currency, string $chain, string $amount, string $destinationAddress, string $idempotencyKey): array
+    {
+        return $this->write('POST', '/transfers/withdrawals/crypto', [], [
+            'userId'              => (int) $userId,
+            'currency'            => $currency,
+            'chain'               => $chain,
+            'amount'              => $amount,
+            'destinationAddress'  => $destinationAddress,
+            'confirmExchangeRate' => false,
+        ], [], $idempotencyKey);
+    }
+
+    /**
+     * Confirms a withdrawal with the code the user typed. Moves money. The
+     * code is passed through and never logged or kept.
+     *
+     * @return array<string, mixed>
+     */
+    public function confirmCryptoWithdrawal(string $userId, string $verificationToken, string $code, string $idempotencyKey): array
+    {
+        return $this->write('POST', '/transfers/withdrawals/crypto/confirm', [], [
+            'userId'            => (int) $userId,
+            'verificationToken' => $verificationToken,
+            'otpCode'           => $code,
+        ], [], $idempotencyKey);
+    }
+
+    /**
+     * Sends a new withdrawal code to the user.
+     *
+     * @return array<string, mixed>
+     */
+    public function resendCryptoWithdrawalCode(string $userId, string $verificationToken): array
+    {
+        return $this->write('POST', '/transfers/withdrawals/crypto/resend', [], [
+            'userId'            => (int) $userId,
+            'verificationToken' => $verificationToken,
+        ]);
+    }
+
+    /**
+     * The user's transactions, newest first. Pages start at 1 here. Types
+     * repeat the query parameter (types=a&types=b).
+     *
+     * @param  list<string>  $types
+     * @return array<string, mixed>
+     */
+    public function getTransactions(string $userId, array $types, ?string $startDate = null, int $pageSize = 50): array
+    {
+        $query = ['userId' => $userId, 'pageSize' => $pageSize, 'page' => 1];
+        if ($startDate !== null) {
+            $query['startDate'] = $startDate;
+        }
+
+        return $this->send($this->http()->retry(2, 200, throw: false), 'GET', '/transactions', [], [], $query, null, $types);
+    }
+
+    /**
      * Pages start at 0 (Lepo documentation).
      *
      * @return array<string, mixed>
@@ -332,16 +447,22 @@ final class LepoClient
      * @param  array<string, string>  $params
      * @param  array<string, mixed>  $body
      * @param  array<string, scalar>  $query
+     * @param  list<string>  $types  repeated `types` query parameters
      * @return array<string, mixed>
      */
-    private function send(PendingRequest $request, string $method, string $template, array $params, array $body, array $query, ?callable $acceptFailureBody = null): array
+    private function send(PendingRequest $request, string $method, string $template, array $params, array $body, array $query, ?callable $acceptFailureBody = null, array $types = []): array
     {
         $path = $template;
         foreach ($params as $name => $value) {
             $path = str_replace('{' . $name . '}', rawurlencode($value), $path);
         }
 
-        $url = $this->baseUrl . $path . ($query === [] ? '' : '?' . http_build_query($query));
+        $queryString = http_build_query($query);
+        foreach ($types as $type) {
+            $queryString .= ($queryString === '' ? '' : '&') . 'types=' . rawurlencode($type);
+        }
+
+        $url = $this->baseUrl . $path . ($queryString === '' ? '' : '?' . $queryString);
 
         try {
             /** @var Response $response */
@@ -380,7 +501,7 @@ final class LepoClient
         }
 
         if ($status >= 400) {
-            throw LepoApiException::business($template, $this->errorCode($data), $status);
+            throw LepoApiException::business($template, $this->errorCode($data), $status, $this->codeDetails($data));
         }
 
         if (($data['success'] ?? null) === false && ! ($acceptFailureBody !== null && $acceptFailureBody($data))) {
@@ -389,6 +510,27 @@ final class LepoClient
 
         /** @var array<string, mixed> $data */
         return $data;
+    }
+
+    /**
+     * The typed fields of a refused withdrawal code, and nothing else.
+     *
+     * @param  array<mixed>  $data
+     * @return array{remainingAttempts?: int, isExpired?: bool, isLocked?: bool}
+     */
+    private function codeDetails(array $data): array
+    {
+        $details = [];
+        if (is_int($data['remainingAttempts'] ?? null) || (is_string($data['remainingAttempts'] ?? null) && ctype_digit($data['remainingAttempts']))) {
+            $details['remainingAttempts'] = (int) $data['remainingAttempts'];
+        }
+        foreach (['isExpired', 'isLocked'] as $flag) {
+            if (is_bool($data[$flag] ?? null)) {
+                $details[$flag] = $data[$flag];
+            }
+        }
+
+        return $details;
     }
 
     /**
