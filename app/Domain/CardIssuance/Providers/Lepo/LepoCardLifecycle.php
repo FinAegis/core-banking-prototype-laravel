@@ -9,6 +9,7 @@ use App\Domain\CardIssuance\Models\Card;
 use App\Domain\CardIssuance\Models\Cardholder;
 use App\Domain\CardIssuance\Models\CardStaffFreeze;
 use App\Domain\CardIssuance\Models\CardTopUp;
+use App\Domain\CardIssuance\Models\CardWithdrawal;
 use App\Domain\CardIssuance\Providers\CardProviderException;
 use App\Infrastructure\Lepo\LepoApiException;
 use App\Infrastructure\Lepo\LepoClient;
@@ -234,8 +235,8 @@ final class LepoCardLifecycle
 
     /**
      * Never while a top-up moves money for this user, and never while the
-     * card has a top-up waiting, moving or unresolved: a load landing on a
-     * deleted card would be lost.
+     * card has a top-up waiting, moving or unresolved, or a withdrawal
+     * between steps: money landing on a deleted card would be lost.
      *
      * @param  callable(): Card  $cancel
      */
@@ -253,6 +254,15 @@ final class LepoCardLifecycle
                 ->exists();
             if ($busy) {
                 throw CardProviderException::topUp('topup_in_progress');
+            }
+
+            // Nor while money from this card is between steps of a withdrawal.
+            $withdrawing = CardWithdrawal::query()
+                ->where('card_id', $card->id)
+                ->whereIn('status', CardWithdrawal::ACTIVE)
+                ->exists();
+            if ($withdrawing) {
+                throw CardProviderException::withdrawalInProgress();
             }
 
             return $cancel();

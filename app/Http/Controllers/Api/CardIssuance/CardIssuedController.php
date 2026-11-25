@@ -12,6 +12,7 @@ use App\Domain\CardIssuance\Providers\CardProviderException;
 use App\Domain\CardIssuance\Providers\CardProviderSelector;
 use App\Domain\CardIssuance\Providers\Lepo\LepoCardLifecycle;
 use App\Domain\CardIssuance\Providers\Lepo\LepoThreeDsCodes;
+use App\Domain\CardIssuance\Providers\Lepo\LepoWithdrawals;
 use App\Domain\CardIssuance\Support\PublicLink;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -162,7 +163,7 @@ final class CardIssuedController extends Controller
         security: [['sanctum' => []]],
     )]
     #[OA\Response(response: 200, description: 'Card')]
-    #[OA\Response(response: 409, description: 'ERR_CARDS_025: the card still holds money')]
+    #[OA\Response(response: 409, description: 'ERR_CARDS_025: the card still holds money (available_cents, withdrawals_enabled); ERR_CARDS_039: a withdrawal from the card is in progress (kind: withdrawal)')]
     public function cancel(Request $request, string $card): JsonResponse
     {
         return $this->withCard($request, $card, 'cancel', function (Card $owned): JsonResponse {
@@ -291,18 +292,35 @@ final class CardIssuedController extends Controller
         try {
             return response()->json(['success' => true, 'data' => self::present($action($card))]);
         } catch (CardProviderException $e) {
-            return $this->providerError($e);
+            return $this->providerError($e, $card);
         }
     }
 
-    private function providerError(CardProviderException $e): JsonResponse
+    private function providerError(CardProviderException $e, ?Card $card = null): JsonResponse
     {
         return match ($e->reason()) {
-            'holds_money'       => ErrorResponse::make('ERR_CARDS_025'),
-            'card_limit'        => ErrorResponse::make('ERR_CARDS_026'),
-            'topup_in_progress' => ErrorResponse::make('ERR_CARDS_031'),
-            default             => ErrorResponse::make('ERR_CARDS_016'),
+            'holds_money'            => $this->holdsMoney($card),
+            'card_limit'             => ErrorResponse::make('ERR_CARDS_026'),
+            'topup_in_progress'      => ErrorResponse::make('ERR_CARDS_031'),
+            'withdrawal_in_progress' => ErrorResponse::make('ERR_CARDS_039', null, ['kind' => 'withdrawal']),
+            default                  => ErrorResponse::make('ERR_CARDS_016'),
         };
+    }
+
+    /**
+     * When "Send to wallet" is available, the app can offer to empty the card
+     * first, so the message says so.
+     */
+    private function holdsMoney(?Card $card): JsonResponse
+    {
+        $owner = $card?->user()->first();
+        $withdrawals = $owner instanceof User && LepoWithdrawals::availableFor($owner);
+
+        return ErrorResponse::make(
+            'ERR_CARDS_025',
+            $withdrawals ? 'This card still holds money. Send the money to your wallet first, then close the card.' : null,
+            ['available_cents' => (int) ($card?->fresh()->balance_cents ?? 0), 'withdrawals_enabled' => $withdrawals],
+        );
     }
 
     /**
