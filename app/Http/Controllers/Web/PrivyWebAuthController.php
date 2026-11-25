@@ -18,6 +18,7 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Timebox;
 
 /**
@@ -38,6 +39,11 @@ final class PrivyWebAuthController extends Controller
 {
     use ProvisionsPersonalTeam;
 
+    /** Login codes one email address may receive per hour and per day. */
+    private const CODES_PER_ADDRESS_PER_HOUR = 3;
+
+    private const CODES_PER_ADDRESS_PER_DAY = 10;
+
     public function __construct(
         private readonly PrivyEmailOtpClient $privy,
         private readonly RateLimiter $rateLimiter,
@@ -56,7 +62,7 @@ final class PrivyWebAuthController extends Controller
         $validated = $request->validate([
             'email' => ['required', 'string', 'email:rfc', 'max:191'],
         ]);
-        $email = strtolower((string) $validated['email']);
+        $email = strtolower(trim((string) $validated['email']));
 
         $throttleKey = 'privy-web-login:send:' . sha1($email . '|' . (string) $request->ip());
         if ($this->rateLimiter->tooManyAttempts($throttleKey, 5)) {
@@ -67,15 +73,39 @@ final class PrivyWebAuthController extends Controller
         $this->rateLimiter->hit($throttleKey, 60);
 
         // Every address gets the same answer. The code is requested from
-        // Privy only for an address that could sign in or sign up, after the
-        // response has been sent.
-        if ($this->maySignIn($email)) {
+        // Privy only for an address that could sign in or sign up and has not
+        // used up its own limit, after the response has been sent.
+        if ($this->withinAddressLimit($email) && $this->maySignIn($email)) {
             $this->sendCodeAfterResponse($email);
         }
 
         return redirect()
             ->route('login', ['email' => $email, 'step' => 'verify'])
             ->with('status', __('If this email can sign in, a 6-digit code is on its way to :email.', ['email' => $email]));
+    }
+
+    /**
+     * Count a code request for this address and say whether it is within the
+     * per-address limit (3 an hour, 10 a day), whatever the IP. The per-IP
+     * throttle alone let rotating IPs flood one inbox. The counters are keyed
+     * on a keyed hash of the address, never the address itself. Each request
+     * increments atomically and reads the new count, so concurrent requests
+     * cannot all slip under the limit.
+     */
+    private function withinAddressLimit(string $email): bool
+    {
+        $hash = hash_hmac('sha256', $email, (string) config('app.key'));
+        // A request refused by the hourly limit does not use up the daily one.
+        $allowed = $this->rateLimiter->hit('privy-web-login:send-email:hour:' . $hash, 3600) <= self::CODES_PER_ADDRESS_PER_HOUR
+            && $this->rateLimiter->hit('privy-web-login:send-email:day:' . $hash, 86400) <= self::CODES_PER_ADDRESS_PER_DAY;
+
+        if (! $allowed) {
+            Log::info('Privy web login code not sent: per-address limit reached', ['address_hash' => substr($hash, 0, 16)]);
+
+            return false;
+        }
+
+        return true;
     }
 
     /**
