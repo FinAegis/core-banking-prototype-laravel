@@ -86,14 +86,14 @@ Route::prefix('websocket')->name('api.websocket.')
 // Authentication endpoints (public)
 Route::prefix('auth')->middleware('api.rate_limit:auth')->group(function () {
     Route::post('/register', [RegisterController::class, 'register']);
-    Route::post('/login', [LoginController::class, 'login']);
+    Route::post('/login', [LoginController::class, 'login'])->middleware('password.signin:login');
 
     // Token refresh (public — accepts refresh token in body or Authorization header)
     Route::post('/refresh', [LoginController::class, 'refresh'])->middleware('throttle:20,1');
 
     // Password reset endpoints (public)
-    Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword']);
-    Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
+    Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword'])->middleware('password.signin:reset');
+    Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])->middleware('password.signin:reset');
 
     // Email verification endpoints
     Route::get('/verify-email/{id}/{hash}', [EmailVerificationController::class, 'verify'])

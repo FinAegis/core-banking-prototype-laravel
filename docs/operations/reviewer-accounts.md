@@ -64,6 +64,10 @@ Running the command again with the same `--email` is idempotent. When you did no
 
 Copy the whole JSON into a new 1Password item titled `reviewer:<email>`, and share the vault entry with the mobile team. **Never paste the password or the `mobile_token` into email, Slack, Linear, Jira or commit logs.** Both are shown once and cannot be recovered.
 
+## Password sign-in while it is off for everyone else
+
+Production turns password sign-in off with `AUTH_PASSWORD_LOGIN_ENABLED=false`. Everyone else then signs in with the Privy email code. A reviewer address ends in `.invalid` and never receives that code, so an active reviewer account keeps its password sign-in on the web login form and on `POST /api/auth/login`. The exception ends when the account is disabled, purged or past its `expires_at`. Password reset stays off for reviewer accounts too, so rotate the password with `--rotate-password` instead.
+
 ## Issuing a mobile reviewer token
 
 ### Why this exists

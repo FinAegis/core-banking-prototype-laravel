@@ -34,7 +34,7 @@ Route::get('/status', [PublicApiController::class, 'status']);
 // Authentication endpoints (public)
 Route::prefix('auth')->middleware('api.rate_limit:auth')->group(function () {
     Route::post('/register', [App\Http\Controllers\Api\Auth\RegisterController::class, 'register']);
-    Route::post('/login', [App\Http\Controllers\Api\Auth\LoginController::class, 'login']);
+    Route::post('/login', [App\Http\Controllers\Api\Auth\LoginController::class, 'login'])->middleware('password.signin:login');
 
     // Token refresh (public — accepts refresh token in body or Authorization header)
     Route::post('/refresh', [App\Http\Controllers\Api\Auth\LoginController::class, 'refresh'])->middleware('throttle:20,1');

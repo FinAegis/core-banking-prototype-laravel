@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Admin\Pages\Dashboard;
+use App\Filament\Auth\AdminLogin;
 use App\Filament\Http\Middleware\RedirectNonAdmins;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -24,7 +25,9 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->id('admin')
             ->path('admin')
-            ->login()
+            // Filament's password form while AUTH_PASSWORD_LOGIN_ENABLED is
+            // on; otherwise it hands over to the email-code login on /login.
+            ->login(AdminLogin::class)
             ->brandName($this->getBrandName())
             ->colors(
                 [

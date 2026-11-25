@@ -6,11 +6,14 @@ namespace App\Console\Commands;
 
 use App\Domain\CardIssuance\Providers\CardProviderSelector;
 use App\Domain\CardIssuance\Providers\Lepo\LepoWithdrawals;
+use App\Domain\User\Values\UserRoles;
 use App\Domain\Wallet\Services\Send\SolanaSponsorSigner;
+use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Env;
 use RuntimeException;
+use Throwable;
 
 /**
  * ops:verify-env — deploy-time production preflight gate.
@@ -46,6 +49,13 @@ use RuntimeException;
  * check reads registration.api_enabled_explicit. The switches are checked
  * whenever APP_ENV is not local, testing or demo (the environments where
  * they default to on), or with --strict.
+ *
+ * Password sign-in (AUTH_PASSWORD_LOGIN_ENABLED) is one of the production
+ * switches. While it is off, `auth.admin_sign_in` checks that admins can
+ * still sign in with the email code: it FAILs when the web email-code login
+ * (MCP_WEB_PRIVY_LOGIN) is off, and when an admin has confirmed two-factor
+ * authentication but no Privy identity yet, because the email code never
+ * links such an account.
  */
 class OpsVerifyEnvCommand extends Command
 {
@@ -90,6 +100,7 @@ class OpsVerifyEnvCommand extends Command
         'trading.enabled'                    => ['TRADING_ENABLED', 'the demo trading engine (order book, liquidity pools, GraphQL placeOrder, MCP exchange.trade) is live'],
         'modules.runtime_management_enabled' => ['ADMIN_RUNTIME_MANAGEMENT_ENABLED', 'admins can enable or disable modules and plugins at runtime (REST /api/v2/modules and /api/v2/plugins, GraphQL plugin mutations, admin panel), and a runtime module change overrides MODULES_DISABLED'],
         'registration.password_api_enabled'  => ['REGISTRATION_PASSWORD_API_ENABLED', 'the legacy email and password sign-up (POST /api/auth/register, /api/v2/auth/register) and social sign-up create accounts whose email nobody verified, while REGISTRATION_API_ENABLED is on'],
+        'auth.password_login_enabled'        => ['AUTH_PASSWORD_LOGIN_ENABLED', 'anyone can sign in and reset a password with an email address and a password (web /login, /admin/login, POST /api/auth/login and /api/v2/auth/login), next to the Privy email code'],
     ];
 
     /**
@@ -149,6 +160,7 @@ class OpsVerifyEnvCommand extends Command
         $this->checkLepoCardProvider();
         $this->checkFiles();
         $this->checkProductionSwitches();
+        $this->checkAdminSignIn();
 
         $failed = array_values(array_filter(
             $this->checks,
@@ -877,6 +889,62 @@ class OpsVerifyEnvCommand extends Command
 
             $this->checkSwitch($name, $envName, $enabled, $whenOn, ' Env templates of v7.16.0 and earlier set it to true, and an explicit value overrides the production-off default.');
         }
+    }
+
+    /**
+     * While password sign-in is off, admins sign in with the email code on
+     * /login and the admin panel uses that web session. FAIL when that
+     * cannot work: the web email-code login is off, or an admin has
+     * confirmed two-factor authentication and no Privy identity (the email
+     * code never links such an account, see PrivyAccountLinker).
+     */
+    private function checkAdminSignIn(): void
+    {
+        $name = 'auth.admin_sign_in';
+
+        if (! (bool) $this->option('strict') && $this->laravel->environment(['local', 'testing', 'demo'])) {
+            $this->add(self::CATEGORY_SWITCHES, $name, self::SKIP, 'Not checked for APP_ENV=local, testing or demo (pass --strict to check).');
+
+            return;
+        }
+
+        if ((bool) config('auth.password_login_enabled')) {
+            $this->add(self::CATEGORY_SWITCHES, $name, self::SKIP, 'Password sign-in is on, so admins can still use the admin panel login form.');
+
+            return;
+        }
+
+        if (! (bool) config('privy.web_login_enabled')) {
+            $this->add(self::CATEGORY_SWITCHES, $name, self::FAIL, 'AUTH_PASSWORD_LOGIN_ENABLED is off and MCP_WEB_PRIVY_LOGIN is off, so nobody can sign in on the web, admins included. Set MCP_WEB_PRIVY_LOGIN=true, or AUTH_PASSWORD_LOGIN_ENABLED=true.');
+
+            return;
+        }
+
+        try {
+            $lockedOut = User::query()
+                ->whereRelation('roles', 'name', UserRoles::ADMIN->value)
+                ->whereNotNull('two_factor_confirmed_at')
+                ->where(static fn ($query) => $query->whereNull('privy_user_id')->orWhere('privy_user_id', ''))
+                ->orderBy('id')
+                ->pluck('id')
+                ->all();
+        } catch (Throwable $e) {
+            $this->add(self::CATEGORY_SWITCHES, $name, self::WARN, 'Could not check the admin accounts: ' . $e->getMessage());
+
+            return;
+        }
+
+        if ($lockedOut !== []) {
+            $this->add(self::CATEGORY_SWITCHES, $name, self::FAIL, sprintf(
+                'AUTH_PASSWORD_LOGIN_ENABLED is off, but %d admin account(s) (user id %s) have two-factor authentication turned on and are not linked to Privy yet, so the email code cannot sign them in. Set AUTH_PASSWORD_LOGIN_ENABLED=true for now. Each of these admins turns off two-factor authentication in their profile and then signs in once with the email code, which links the account.',
+                count($lockedOut),
+                implode(', ', $lockedOut),
+            ));
+
+            return;
+        }
+
+        $this->add(self::CATEGORY_SWITCHES, $name, self::PASS, 'Password sign-in is off. Admins sign in with the email code on /login, and the admin panel uses that session.');
     }
 
     private function checkSwitch(string $name, string $envName, mixed $value, string $whenOn, string $whenOnNote = ''): void

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Http\Middleware;
 
+use App\Domain\Auth\Services\PasswordSignInGate;
 use Filament\Facades\Filament;
 use Filament\Http\Middleware\Authenticate as FilamentAuthenticate;
 use Filament\Models\Contracts\FilamentUser;
@@ -14,8 +15,10 @@ use Illuminate\Http\Request;
 /**
  * Drop-in replacement for Filament's bundled Authenticate middleware that
  * redirects authenticated users without admin access to /dashboard instead
- * of returning a bare 403. Unauthenticated users follow the standard
- * redirect-to-login flow inherited from the framework.
+ * of returning a bare 403. Unauthenticated users go to the panel login
+ * page, or, while password sign-in is off (AUTH_PASSWORD_LOGIN_ENABLED), to
+ * the email-code login on /login. Either way the framework remembers the
+ * admin page as the one to return to after signing in.
  */
 class RedirectNonAdmins extends FilamentAuthenticate
 {
@@ -58,6 +61,18 @@ class RedirectNonAdmins extends FilamentAuthenticate
                 $this->buildRedirect($request)
             );
         }
+    }
+
+    /**
+     * @param  Request  $request
+     */
+    protected function redirectTo($request): ?string
+    {
+        if (! app(PasswordSignInGate::class)->enabled()) {
+            return route('login');
+        }
+
+        return parent::redirectTo($request);
     }
 
     private function buildRedirect(Request $request): RedirectResponse

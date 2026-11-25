@@ -146,4 +146,26 @@ return [
 
     'verified_email_required' => (bool) env('AUTH_REQUIRE_VERIFIED_EMAIL', ! in_array(env('APP_ENV', 'production'), ['local', 'testing', 'demo'], true)),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Password Sign-In
+    |--------------------------------------------------------------------------
+    |
+    | Whether anyone can sign in or reset a password with an email address and
+    | a password: the web login form and its two-factor step (Fortify), the
+    | admin panel login form, POST /api/auth/login and /api/v2/auth/login,
+    | and password reset on the web and the API. When off, people sign in
+    | with the Privy email code instead (web /login, mobile
+    | POST /api/v1/auth/privy-login), and the admin panel uses that web
+    | session. JSON requests get 403 ERR_AUTH_008. Active app-store reviewer
+    | accounts (account_flags.is_review_account) keep their password sign-in,
+    | because their .invalid addresses never receive the code. Secure by
+    | default: ON only for APP_ENV=local, testing and demo;
+    | AUTH_PASSWORD_LOGIN_ENABLED always wins
+    | (App\Http\Middleware\RefusePasswordSignIn).
+    |
+    */
+
+    'password_login_enabled' => (bool) env('AUTH_PASSWORD_LOGIN_ENABLED', in_array(env('APP_ENV', 'production'), ['local', 'testing', 'demo'], true)),
+
 ];

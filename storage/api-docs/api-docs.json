@@ -6025,6 +6025,38 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Password sign-in is turned off (AUTH_PASSWORD_LOGIN_ENABLED=false). Sign in with the Privy email code (POST /api/v1/auth/privy-login) instead. Active app-store reviewer accounts are exempt.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "ERR_AUTH_008"
+                                                },
+                                                "message": {
+                                                    "type": "string"
+                                                },
+                                                "reason": {
+                                                    "type": "string",
+                                                    "example": "PASSWORD_LOGIN_DISABLED"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -6939,6 +6971,38 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Password reset is turned off (AUTH_PASSWORD_LOGIN_ENABLED=false). Sign in with the Privy email code instead. No email is sent.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "ERR_AUTH_008"
+                                                },
+                                                "message": {
+                                                    "type": "string"
+                                                },
+                                                "reason": {
+                                                    "type": "string",
+                                                    "example": "PASSWORD_RESET_DISABLED"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -7011,6 +7075,38 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Password reset is turned off (AUTH_PASSWORD_LOGIN_ENABLED=false). Sign in with the Privy email code instead.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "ERR_AUTH_008"
+                                                },
+                                                "message": {
+                                                    "type": "string"
+                                                },
+                                                "reason": {
+                                                    "type": "string",
+                                                    "example": "PASSWORD_RESET_DISABLED"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
