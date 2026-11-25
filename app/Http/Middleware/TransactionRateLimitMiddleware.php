@@ -327,19 +327,30 @@ class TransactionRateLimitMiddleware
                 continue;
             }
 
-            $amount = DecimalString::fromNumeric($request->input($field), 30);
-            if ($amount === null) {
+            if (DecimalString::fromNumeric($request->input($field), 30) === null) {
                 continue;
             }
 
-            if (bccomp($amount, '0', 30) <= 0) {
-                return null;
-            }
-
-            return DecimalString::toHundredthsRoundedUp($amount);
+            return self::hundredthsOf($request->input($field));
         }
 
         return null;
+    }
+
+    /**
+     * The amount times 100, exact and rounded up; null for zero, negative or
+     * non-numeric amounts, which are not counted.
+     *
+     * @return numeric-string|null
+     */
+    private static function hundredthsOf(mixed $value): ?string
+    {
+        $amount = DecimalString::fromNumeric($value, 30);
+        if ($amount === null || bccomp($amount, '0', 30) <= 0) {
+            return null;
+        }
+
+        return DecimalString::toHundredthsRoundedUp($amount);
     }
 
     private function amountKey(int $userId, string $transactionType): string
@@ -452,6 +463,84 @@ class TransactionRateLimitMiddleware
         }
 
         return true;
+    }
+
+    /**
+     * Count several transactions of one type at once, for a request that
+     * makes more than one (a transfer batch). Each amount counts as one
+     * transaction against the hourly and daily limits and adds to the hourly
+     * amount total, on the same counters handle() keeps, so a batch cannot
+     * move more than the same transfers sent one by one.
+     *
+     * Either every transaction is counted or none: when one limit would be
+     * passed, the counts already added are taken back and the reason is
+     * returned. Returns null when all are counted. Amounts are in major units,
+     * as the request field handle() reads. Follows the same enabled and
+     * testing switches as handle().
+     *
+     * @param  list<mixed>  $amounts
+     */
+    public static function consumeMany(int $userId, string $transactionType, array $amounts): ?string
+    {
+        if (! config('rate_limiting.enabled', true)) {
+            return null;
+        }
+
+        if (app()->environment('testing') && ! config('rate_limiting.force_in_tests', false)) {
+            return null;
+        }
+
+        $config = self::TRANSACTION_LIMITS[$transactionType] ?? self::TRANSACTION_LIMITS['transfer'];
+        $count = count($amounts);
+        if ($count === 0) {
+            return null;
+        }
+
+        /** @var list<array{string, int}> $taken */
+        $taken = [];
+        $refuse = function (string $reason) use (&$taken): string {
+            foreach ($taken as [$key, $by]) {
+                Cache::decrement($key, $by);
+            }
+
+            return $reason;
+        };
+
+        $periods = [
+            'hourly' => [$config['limit'], $config['window']],
+            'daily'  => [$config['daily_limit'], $config['daily_window']],
+        ];
+
+        foreach ($periods as $period => [$limit, $window]) {
+            $key = "tx_rate_limit:{$userId}:{$transactionType}:{$period}";
+            Cache::add($key, 0, $window);
+            $taken[] = [$key, $count];
+
+            if ((int) Cache::increment($key, $count) > $limit) {
+                return $refuse("You have exceeded the {$period} limit of {$limit} {$transactionType} transactions.");
+            }
+        }
+
+        if (isset($config['amount_limit'])) {
+            $total = '0';
+            foreach ($amounts as $amount) {
+                $total = bcadd($total, self::hundredthsOf($amount) ?? '0', 0);
+            }
+
+            if (bccomp($total, (string) $config['amount_limit'], 0) > 0) {
+                return $refuse('This transaction would exceed your hourly amount limit.');
+            }
+
+            $key = "tx_amount_limit:{$userId}:{$transactionType}:hourly";
+            Cache::add($key, 0, $config['window']);
+            $taken[] = [$key, (int) $total];
+
+            if ((int) Cache::increment($key, (int) $total) > (int) $config['amount_limit']) {
+                return $refuse('This transaction would exceed your hourly amount limit.');
+            }
+        }
+
+        return null;
     }
 
     /**

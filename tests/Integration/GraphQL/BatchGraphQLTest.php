@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Domain\Account\Models\Account;
+use App\Domain\Account\Models\AccountBalance;
+use App\Domain\Asset\Models\Asset;
 use App\Domain\Batch\Models\BatchJob;
 use App\Models\User;
 use Illuminate\Support\Str;
@@ -99,6 +102,11 @@ describe('GraphQL Batch API', function () {
 
     it('creates a batch job via mutation', function () {
         $user = User::factory()->create();
+        Asset::firstOrCreate(['code' => 'USD'], ['name' => 'US Dollar', 'type' => 'fiat', 'precision' => 2, 'is_active' => true]);
+        $from = Account::factory()->create(['uuid' => Str::uuid()->toString(), 'user_uuid' => $user->uuid, 'frozen' => false]);
+        $to = Account::factory()->create(['uuid' => Str::uuid()->toString(), 'frozen' => false]);
+        AccountBalance::query()->updateOrCreate(['account_uuid' => $from->uuid, 'asset_code' => 'USD'], ['balance' => 1_000]);
+        $item = ['from_account' => $from->uuid, 'to_account' => $to->uuid, 'amount' => '1.00', 'currency' => 'USD'];
 
         $response = $this->actingAs($user, 'sanctum')
             ->postJson('/graphql', [
@@ -116,7 +124,7 @@ describe('GraphQL Batch API', function () {
                     'input' => [
                         'name'  => 'Payroll Batch',
                         'type'  => 'payment',
-                        'items' => ['item-1', 'item-2', 'item-3'],
+                        'items' => [json_encode($item), json_encode($item), json_encode($item)],
                     ],
                 ],
             ]);
@@ -127,5 +135,19 @@ describe('GraphQL Batch API', function () {
         $data = $response->json('data.createBatchJob');
         expect($data['name'])->toBe('Payroll Batch');
         expect($data['type'])->toBe('payment');
+    });
+
+    it('refuses batch items that are not transfer objects', function () {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->postJson('/graphql', [
+                'query'     => 'mutation ($input: CreateBatchJobInput!) { createBatchJob(input: $input) { id } }',
+                'variables' => ['input' => ['name' => 'Payroll Batch', 'type' => 'payment', 'items' => ['item-1']]],
+            ]);
+
+        $response->assertOk();
+        expect($response->json('errors.0.extensions.validation'))->toHaveKey('items.0');
+        expect(BatchJob::query()->count())->toBe(0);
     });
 });

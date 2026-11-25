@@ -12,10 +12,16 @@ use App\Domain\Batch\Events\BatchJobCancelled;
 use App\Domain\Batch\Events\BatchJobCompleted;
 use App\Domain\Batch\Events\BatchJobCreated;
 use App\Domain\Batch\Events\BatchJobStarted;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Spatie\EventSourcing\EventHandlers\Projectors\Projector;
 
-class BatchProjector extends Projector implements ShouldQueue
+/**
+ * Keeps batch_jobs and batch_job_items in step with the batch events.
+ *
+ * It runs in the same request as the event, not on a queue: the service
+ * returns the new batch row right after recording it, and the workflow reads
+ * the items from these rows when it starts.
+ */
+class BatchProjector extends Projector
 {
     public function onBatchJobCreated(BatchJobCreated $event): void
     {

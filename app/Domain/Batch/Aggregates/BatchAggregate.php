@@ -23,6 +23,9 @@ class BatchAggregate extends AggregateRoot
 
     protected array $items = [];
 
+    /** @var array<int, true> indexes of the items already recorded */
+    protected array $processedIndexes = [];
+
     /**
      * @throws \Illuminate\Contracts\Container\BindingResolutionException
      */
@@ -127,6 +130,20 @@ class BatchAggregate extends AggregateRoot
         return $this;
     }
 
+    public function getStatus(): string
+    {
+        return $this->status;
+    }
+
+    /**
+     * Whether the outcome of the item at this index is already recorded, so a
+     * retried activity does not record it a second time.
+     */
+    public function hasProcessedItem(int $itemIndex): bool
+    {
+        return isset($this->processedIndexes[$itemIndex]);
+    }
+
     // Apply methods for events
 
     protected function applyBatchJobCreated(BatchJobCreated $event): void
@@ -142,6 +159,7 @@ class BatchAggregate extends AggregateRoot
 
     protected function applyBatchItemProcessed(BatchItemProcessed $event): void
     {
+        $this->processedIndexes[$event->itemIndex] = true;
         $this->processedItems++;
         if ($event->status === 'failed') {
             $this->failedItems++;
