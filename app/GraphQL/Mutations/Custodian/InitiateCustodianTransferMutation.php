@@ -6,9 +6,11 @@ namespace App\GraphQL\Mutations\Custodian;
 
 use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Models\Account;
+use App\Domain\Asset\Models\Asset;
 use App\Domain\Custodian\Models\CustodianAccount;
 use App\Domain\Custodian\Models\CustodianTransfer;
 use App\Domain\Custodian\Services\CustodianAccountService;
+use App\Support\DecimalString;
 use GraphQL\Error\Error;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
@@ -69,11 +71,26 @@ final class InitiateCustodianTransferMutation
             throw new Error('The destination account has no active link with this custodian.');
         }
 
+        // Exact minor units of the asset (its precision, 2 when the asset is
+        // unknown). An amount with more decimals than the asset has is
+        // refused, not rounded.
+        $assetCode = (string) $args['asset_code'];
+        $precision = (int) (Asset::query()->where('code', $assetCode)->value('precision') ?? 2);
+        $amountMinor = DecimalString::toMinorUnitsInt($args['amount'], $precision);
+
+        if ($amountMinor === null) {
+            throw new Error("The amount can have at most {$precision} decimal places for {$assetCode}.");
+        }
+
+        if ($amountMinor <= 0) {
+            throw new Error('The amount must be greater than zero.');
+        }
+
         $transferId = $this->custodianAccountService->initiateTransfer(
             fromAccount: $fromAccount,
             toAccount: $toAccount,
-            amount: new Money((int) ($args['amount'] * 100)),
-            assetCode: $args['asset_code'],
+            amount: new Money($amountMinor),
+            assetCode: $assetCode,
             reference: $args['reference'] ?? '',
         );
 

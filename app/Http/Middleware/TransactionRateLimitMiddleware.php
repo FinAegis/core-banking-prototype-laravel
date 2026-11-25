@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\DecimalString;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -63,6 +64,9 @@ class TransactionRateLimitMiddleware
             'daily_window'      => 86400,
             'progressive_delay' => false,
         ],
+        // amount_limit is one hourly total per transaction type, written in
+        // cents. Every amount counts in hundredths of its unit whatever the
+        // asset (see extractAmount): a fair cap per asset would need a price.
         // Mobile wallet payment intent submissions (P2P sends, merchant payments).
         // Count-based only: amount is in token-native units that vary per token
         // (USDC=6dp, SOL=9dp, ETH=18dp, fiat=2dp). Without a spot-price oracle in
@@ -128,8 +132,9 @@ class TransactionRateLimitMiddleware
         }
 
         // Check amount-based limits if applicable
-        if (isset($config['amount_limit'])) {
-            $amountCheck = $this->checkAmountLimit($request, $userId, $transactionType, $config);
+        $amount = isset($config['amount_limit']) ? $this->extractAmount($request) : null;
+        if ($amount !== null) {
+            $amountCheck = $this->checkAmountLimit($amount, $userId, $transactionType, $config);
             if ($amountCheck !== true) {
                 return $amountCheck;
             }
@@ -141,7 +146,7 @@ class TransactionRateLimitMiddleware
         }
 
         // Increment counters and proceed
-        $this->incrementCounters($userId, $transactionType, $request);
+        $this->incrementCounters($userId, $transactionType, $request, $amount);
 
         $response = $next($request);
 
@@ -214,26 +219,26 @@ class TransactionRateLimitMiddleware
 
     /**
      * Check amount-based rate limits.
+     *
+     * @param  numeric-string  $amount  hundredths of a unit
      */
-    private function checkAmountLimit(Request $request, int $userId, string $transactionType, array $config): true|JsonResponse
+    private function checkAmountLimit(string $amount, int $userId, string $transactionType, array $config): true|JsonResponse
     {
-        $amount = $this->extractAmount($request);
-        if ($amount === null) {
-            return true; // No amount to check
-        }
+        $key = $this->amountKey($userId, $transactionType);
+        $currentAmount = (int) Cache::get($key, 0);
+        $limit = (int) $config['amount_limit'];
 
-        $key = "tx_amount_limit:{$userId}:{$transactionType}:hourly";
-        $currentAmount = Cache::get($key, 0);
+        if (bccomp(bcadd((string) $currentAmount, $amount, 0), (string) $limit, 0) > 0) {
+            $requested = bccomp($amount, (string) PHP_INT_MAX, 0) <= 0 ? (int) $amount : $amount;
 
-        if (($currentAmount + $amount) > $config['amount_limit']) {
             Log::warning(
                 'Transaction amount limit exceeded',
                 [
                     'user_id'          => $userId,
                     'transaction_type' => $transactionType,
-                    'amount'           => $amount,
+                    'amount'           => $requested,
                     'current_amount'   => $currentAmount,
-                    'limit'            => $config['amount_limit'],
+                    'limit'            => $limit,
                 ]
             );
 
@@ -247,23 +252,23 @@ class TransactionRateLimitMiddleware
                     'retry_after'   => $retryAfter,
                     'limit_type'    => 'hourly_amount',
                     'limit_details' => [
-                        // All limit values are integers in minor units (e.g. cents
-                        // for USD/EUR-denominated routes). The middleware multiplies
-                        // a major-unit decimal request amount (e.g. "1.50" → 150) by
-                        // 100 — see extractAmount(). Clients can use limit_unit to
-                        // disambiguate when surfacing this to users.
-                        'limit'            => $config['amount_limit'],
+                        // All values are integers in hundredths of a unit of
+                        // the request amount (cents for USD and EUR), whatever
+                        // the asset: the request amount times 100, rounded up
+                        // (see extractAmount()). Clients can use limit_unit
+                        // to read them.
+                        'limit'            => $limit,
                         'limit_unit'       => 'minor_units_x100',
                         'current_amount'   => $currentAmount,
-                        'requested_amount' => $amount,
-                        'remaining_amount' => max(0, $config['amount_limit'] - $currentAmount),
+                        'requested_amount' => $requested,
+                        'remaining_amount' => max(0, $limit - $currentAmount),
                     ],
                 ],
                 429,
                 [
                     'X-Transaction-AmountLimit-Exceeded' => 'true',
-                    'X-Transaction-AmountLimit'          => $config['amount_limit'],
-                    'X-Transaction-AmountRemaining'      => max(0, $config['amount_limit'] - $currentAmount),
+                    'X-Transaction-AmountLimit'          => $limit,
+                    'X-Transaction-AmountRemaining'      => max(0, $limit - $currentAmount),
                 ]
             );
         }
@@ -304,31 +309,54 @@ class TransactionRateLimitMiddleware
     }
 
     /**
-     * Extract transaction amount from request.
+     * Extract the transaction amount from the request in hundredths of a unit
+     * (the amount times 100), exact with bcmath and rounded up, whatever the
+     * asset: 128.14 counts 12814, 1 ETH counts 100, 0.001 BTC counts 1. The
+     * caps are written in cents, so no request field changes how much is
+     * counted. Zero and negative amounts are not counted.
+     *
+     * @return numeric-string|null
      */
-    private function extractAmount(Request $request): ?int
+    private function extractAmount(Request $request): ?string
     {
         // Try common amount field names
         $amountFields = ['amount', 'value', 'quantity', 'sum'];
 
         foreach ($amountFields as $field) {
-            if ($request->has($field)) {
-                $amount = $request->input($field);
-
-                // Convert to integer (cents) if it's a decimal
-                if (is_numeric($amount)) {
-                    return (int) ($amount * 100);
-                }
+            if (! $request->has($field)) {
+                continue;
             }
+
+            $amount = DecimalString::fromNumeric($request->input($field), 30);
+            if ($amount === null) {
+                continue;
+            }
+
+            if (bccomp($amount, '0', 30) <= 0) {
+                return null;
+            }
+
+            $hundredths = bcmul($amount, '100', 30);
+            $whole = bcadd($hundredths, '0', 0);
+
+            return bccomp($hundredths, $whole, 30) === 0 ? $whole : bcadd($whole, '1', 0);
         }
 
         return null;
     }
 
+    private function amountKey(int $userId, string $transactionType): string
+    {
+        return "tx_amount_limit:{$userId}:{$transactionType}:hourly";
+    }
+
     /**
      * Increment transaction counters.
      */
-    private function incrementCounters(int $userId, string $transactionType, Request $request): void
+    /**
+     * @param  numeric-string|null  $amount  hundredths of a unit
+     */
+    private function incrementCounters(int $userId, string $transactionType, Request $request, ?string $amount): void
     {
         $config = self::TRANSACTION_LIMITS[$transactionType] ?? self::TRANSACTION_LIMITS['transfer'];
 
@@ -340,13 +368,13 @@ class TransactionRateLimitMiddleware
         $dailyKey = "tx_rate_limit:{$userId}:{$transactionType}:daily";
         Cache::put($dailyKey, Cache::get($dailyKey, 0) + 1, $config['daily_window']);
 
-        // Track amount if applicable
-        if (isset($config['amount_limit'])) {
-            $amount = $this->extractAmount($request);
-            if ($amount !== null) {
-                $amountKey = "tx_amount_limit:{$userId}:{$transactionType}:hourly";
-                Cache::put($amountKey, Cache::get($amountKey, 0) + $amount, $config['window']);
-            }
+        // Track amount if applicable. The check above passed, so the amount
+        // is at most the limit and fits in an int. Cache::add + increment, so
+        // concurrent requests never lose a count.
+        if (isset($config['amount_limit']) && $amount !== null) {
+            $amountKey = $this->amountKey($userId, $transactionType);
+            Cache::add($amountKey, 0, $config['window']);
+            Cache::increment($amountKey, (int) $amount);
         }
 
         // Log transaction attempt for audit
@@ -356,7 +384,7 @@ class TransactionRateLimitMiddleware
                 'user_id'          => $userId,
                 'transaction_type' => $transactionType,
                 'endpoint'         => $request->path(),
-                'amount'           => $this->extractAmount($request),
+                'amount'           => $amount,
             ]
         );
     }
@@ -384,8 +412,8 @@ class TransactionRateLimitMiddleware
         $response->headers->set('X-Transaction-Daily-Remaining', (string) max(0, $config['daily_limit'] - $dailyCount));
 
         if (isset($config['amount_limit'])) {
-            $amountKey = "tx_amount_limit:{$userId}:{$transactionType}:hourly";
-            $currentAmount = Cache::get($amountKey, 0);
+            $amountKey = $this->amountKey($userId, $transactionType);
+            $currentAmount = (int) Cache::get($amountKey, 0);
 
             $response->headers->set('X-Transaction-Amount-Limit', (string) $config['amount_limit']);
             $response->headers->set('X-Transaction-Amount-Remaining', (string) max(0, $config['amount_limit'] - $currentAmount));

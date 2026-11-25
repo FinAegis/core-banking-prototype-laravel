@@ -168,12 +168,17 @@ describe('Transaction Rate Limiting', function () {
         // Test with amount field
         $request1 = Request::create('/test', 'POST', ['amount' => 100.50]);
         $amount1 = $method->invoke($middleware, $request1);
-        expect($amount1)->toBe(10050); // Converted to cents
+        // Hundredths of a unit as an exact numeric string (bcmath).
+        expect($amount1)->toBe('10050');
 
         // Test with value field
         $request2 = Request::create('/test', 'POST', ['value' => 25.75]);
         $amount2 = $method->invoke($middleware, $request2);
-        expect($amount2)->toBe(2575);
+        expect($amount2)->toBe('2575');
+
+        // (int) (128.14 * 100) was 12813; extra decimals round up.
+        expect($method->invoke($middleware, Request::create('/test', 'POST', ['amount' => 128.14])))->toBe('12814')
+            ->and($method->invoke($middleware, Request::create('/test', 'POST', ['amount' => '0.005'])))->toBe('1');
 
         // Test with no amount
         $request3 = Request::create('/test', 'POST', []);

@@ -7,14 +7,17 @@ use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\TransactionProjection;
 use App\Domain\Account\Workflows\TransactionReversalWorkflow;
+use App\Domain\Asset\Models\Asset;
 use App\Domain\Subscription\Models\ProcessedWebhookEvent;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\DecimalString;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
 use Throwable;
 use Workflow\WorkflowStub;
@@ -91,6 +94,25 @@ class TransactionReversalController extends Controller
             ]
         );
 
+        // The reversal workflow books on the account's USD ledger (Money has
+        // no asset), as the USD deposit and withdraw do. Another asset would
+        // be booked there in the wrong unit, so it is refused.
+        if ($validated['asset_code'] !== 'USD') {
+            throw ValidationException::withMessages([
+                'asset_code' => ['Reversals are available for USD only.'],
+            ]);
+        }
+
+        // Exact cents. An amount with more decimals than the asset has is
+        // refused, not rounded.
+        $precision = (int) (Asset::query()->where('code', $validated['asset_code'])->value('precision') ?? 2);
+        $amountMinor = DecimalString::toMinorUnitsInt($validated['amount'], $precision);
+        if ($amountMinor === null) {
+            throw ValidationException::withMessages([
+                'amount' => ["The amount can have at most {$precision} decimal places for {$validated['asset_code']}."],
+            ]);
+        }
+
         $account = Account::where('uuid', $uuid)->firstOrFail();
 
         // Only the account owner may reverse a transaction on it.
@@ -121,12 +143,13 @@ class TransactionReversalController extends Controller
         try {
             $accountUuid = AccountUuid::fromString($account->uuid);
 
-            // Convert amount to Money object with proper precision
-            $amount = Money::fromFloat($validated['amount'], $validated['asset_code']);
+            $amount = new Money($amountMinor);
 
-            // Start the transaction reversal workflow
+            // Start the transaction reversal workflow. (execute() on the stub
+            // started nothing: WorkflowStub only forwards signal, query and
+            // update methods.)
             $workflow = WorkflowStub::make(TransactionReversalWorkflow::class);
-            $result = $workflow->execute(
+            $workflow->start(
                 $accountUuid,
                 $amount,
                 $validated['transaction_type'],

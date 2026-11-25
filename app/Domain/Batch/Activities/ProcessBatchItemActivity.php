@@ -6,7 +6,9 @@ use App\Domain\Account\Aggregates\TransferAggregate;
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Models\Account;
+use App\Domain\Asset\Models\Asset;
 use App\Domain\Batch\Aggregates\BatchAggregate;
+use App\Support\DecimalString;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Throwable;
@@ -56,7 +58,7 @@ class ProcessBatchItemActivity extends Activity
 
         // Check balance
         $balance = $fromAccount->getBalance($item['currency']);
-        $amount = (int) ($item['amount'] * 100); // Convert to cents
+        $amount = $this->toMinorUnits($item['amount'], $item['currency']);
 
         if ($balance < $amount) {
             throw new InvalidArgumentException('Insufficient balance');
@@ -101,7 +103,7 @@ class ProcessBatchItemActivity extends Activity
 
         // Check balance for from currency
         $balance = $account->getBalance($item['from_currency']);
-        $amount = (int) ($item['amount'] * 100); // Convert to cents
+        $amount = $this->toMinorUnits($item['amount'], $item['from_currency']);
 
         if ($balance < $amount) {
             throw new InvalidArgumentException('Insufficient balance');
@@ -109,14 +111,19 @@ class ProcessBatchItemActivity extends Activity
 
         // Calculate conversion (simplified)
         $rates = [
-            'USD' => ['EUR' => 0.92, 'GBP' => 0.79, 'PHP' => 56.25],
-            'EUR' => ['USD' => 1.09, 'GBP' => 0.86, 'PHP' => 61.20],
-            'GBP' => ['USD' => 1.27, 'EUR' => 1.16, 'PHP' => 71.15],
-            'PHP' => ['USD' => 0.018, 'EUR' => 0.016, 'GBP' => 0.014],
+            'USD' => ['EUR' => '0.92', 'GBP' => '0.79', 'PHP' => '56.25'],
+            'EUR' => ['USD' => '1.09', 'GBP' => '0.86', 'PHP' => '61.20'],
+            'GBP' => ['USD' => '1.27', 'EUR' => '1.16', 'PHP' => '71.15'],
+            'PHP' => ['USD' => '0.018', 'EUR' => '0.016', 'GBP' => '0.014'],
         ];
 
-        $rate = $rates[$item['from_currency']][$item['to_currency']] ?? 1;
-        $convertedAmount = (int) ($amount * $rate);
+        $rate = $rates[$item['from_currency']][$item['to_currency']] ?? '1';
+
+        // bcmath in each currency's own minor units, rounded down.
+        $fromPrecision = $this->precisionOf($item['from_currency']);
+        $toPrecision = $this->precisionOf($item['to_currency']);
+        $major = bcdiv((string) $amount, bcpow('10', (string) $fromPrecision), $fromPrecision);
+        $convertedAmount = (int) bcmul(bcmul($major, $rate, 18), bcpow('10', (string) $toPrecision), 0);
 
         // Execute conversion using events
         // In production, this would use a proper ExchangeAggregate
@@ -125,7 +132,28 @@ class ProcessBatchItemActivity extends Activity
         return [
             'conversion_id'    => $conversionUuid,
             'converted_amount' => $convertedAmount,
-            'rate'             => $rate,
+            'rate'             => (float) $rate,
         ];
+    }
+
+    /**
+     * Exact minor units of the currency. An amount with more decimals than the
+     * currency has is refused, not rounded.
+     */
+    private function toMinorUnits(mixed $amount, string $currency): int
+    {
+        $precision = $this->precisionOf($currency);
+        $minor = DecimalString::toMinorUnitsInt($amount, $precision);
+
+        if ($minor === null) {
+            throw new InvalidArgumentException("The amount can have at most {$precision} decimal places for {$currency}");
+        }
+
+        return $minor;
+    }
+
+    private function precisionOf(string $currency): int
+    {
+        return (int) (Asset::query()->where('code', $currency)->value('precision') ?? 2);
     }
 }

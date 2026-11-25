@@ -9,6 +9,7 @@ use App\Domain\Account\Services\AccountService;
 use App\Domain\AI\Contracts\MCPToolInterface;
 use App\Domain\AI\ValueObjects\ToolExecutionResult;
 use App\Domain\Asset\Models\Asset;
+use App\Support\DecimalString;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -77,9 +78,9 @@ class WithdrawTool implements MCPToolInterface
             'properties' => [
                 'transaction_id'    => ['type' => 'string'],
                 'account_uuid'      => ['type' => 'string'],
-                'amount'            => ['type' => 'number'],
+                'amount'            => ['type' => 'string', 'description' => 'Decimal string in the precision of the asset'],
                 'currency'          => ['type' => 'string'],
-                'new_balance'       => ['type' => 'number'],
+                'new_balance'       => ['type' => 'string', 'description' => 'Decimal string in the precision of the asset'],
                 'formatted_balance' => ['type' => 'string'],
                 'timestamp'         => ['type' => 'string'],
                 'reference'         => ['type' => 'string'],
@@ -92,7 +93,7 @@ class WithdrawTool implements MCPToolInterface
     {
         try {
             $accountUuid = $parameters['account_uuid'];
-            $amount = (float) $parameters['amount'];
+            $amount = $parameters['amount'];
             $currency = $parameters['currency'];
             $reference = $parameters['reference'] ?? null;
             $destination = $parameters['destination'] ?? 'bank_account';
@@ -122,8 +123,13 @@ class WithdrawTool implements MCPToolInterface
                 return ToolExecutionResult::failure("Invalid currency: {$currency}");
             }
 
-            // Convert amount to smallest unit (e.g., cents)
-            $amountInCents = (int) ($amount * 100);
+            // Exact minor units of the asset. An amount with more decimals
+            // than the asset has is refused, not rounded.
+            $precision = (int) $asset->precision;
+            $amountInCents = DecimalString::toMinorUnitsInt($amount, $precision);
+            if ($amountInCents === null) {
+                return ToolExecutionResult::failure("The amount can have at most {$precision} decimal places for {$currency}.");
+            }
 
             // Check sufficient balance
             $currentBalance = $account->getBalance($currency);
@@ -131,7 +137,7 @@ class WithdrawTool implements MCPToolInterface
                 return ToolExecutionResult::failure(
                     sprintf(
                         'Insufficient balance. Available: %s %s',
-                        number_format($currentBalance / 100, 2),
+                        $this->toMajorUnits($currentBalance, $precision),
                         $currency
                     )
                 );
@@ -155,10 +161,10 @@ class WithdrawTool implements MCPToolInterface
             $response = [
                 'transaction_id'    => $result['transaction_id'],
                 'account_uuid'      => $accountUuid,
-                'amount'            => $amount,
+                'amount'            => $this->toMajorUnits($amountInCents, $precision),
                 'currency'          => $currency,
-                'new_balance'       => $result['new_balance'] / 100, // Convert back to major units
-                'formatted_balance' => $this->formatMoney($result['new_balance'], $currency),
+                'new_balance'       => $this->toMajorUnits($result['new_balance'], $precision),
+                'formatted_balance' => $currency . ' ' . $this->toMajorUnits($result['new_balance'], $precision),
                 'timestamp'         => now()->toIso8601String(),
                 'reference'         => $reference,
                 'status'            => 'completed',
@@ -264,12 +270,12 @@ class WithdrawTool implements MCPToolInterface
         return false;
     }
 
-    private function formatMoney(float $amount, string $currency): string
+    /**
+     * Minor units as a decimal string in the asset's precision, without float
+     * division.
+     */
+    private function toMajorUnits(int $minor, int $precision): string
     {
-        // Simple money formatting
-        $decimals = in_array($currency, ['BTC', 'ETH']) ? 8 : 2;
-        $formatted = number_format($amount / 100, $decimals);
-
-        return $currency . ' ' . $formatted;
+        return bcdiv((string) $minor, bcpow('10', (string) $precision), $precision);
     }
 }

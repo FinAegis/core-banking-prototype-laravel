@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\Models\Account;
+use App\Domain\Asset\Models\Asset;
 use App\Domain\Stablecoin\Models\StablecoinOperation;
 use App\Domain\Stablecoin\Workflows\BurnStablecoinWorkflow;
 use App\Domain\Stablecoin\Workflows\MintStablecoinWorkflow;
 use App\Models\User;
+use App\Support\DecimalString;
 use App\Support\StaffRoles;
 use Exception;
 use Illuminate\Http\Request;
@@ -162,17 +164,33 @@ class StablecoinOperationsController extends Controller
             return back()->withErrors(['authorization_code' => 'Invalid authorization code']);
         }
 
+        // Exact minor units of each asset. An amount with more decimals than
+        // the asset has is refused, not rounded.
+        $mintPrecision = $this->precisionOf($validated['stablecoin']);
+        $mintAmount = DecimalString::toMinorUnitsInt($validated['amount'], $mintPrecision);
+        if ($mintAmount === null) {
+            return back()->withErrors(['amount' => "The amount can have at most {$mintPrecision} decimal places for {$validated['stablecoin']}."]);
+        }
+
+        $collateralPrecision = $this->precisionOf($validated['collateral_asset']);
+        $collateralAmount = DecimalString::toMinorUnitsInt($validated['collateral_amount'], $collateralPrecision);
+        if ($collateralAmount === null) {
+            return back()->withErrors(['collateral_amount' => "The collateral amount can have at most {$collateralPrecision} decimal places for {$validated['collateral_asset']}."]);
+        }
+
         // Check collateral ratio
         $requiredCollateral = $this->calculateRequiredCollateral(
             $validated['stablecoin'],
-            $validated['amount'],
+            $mintAmount,
             $validated['collateral_asset']
         );
 
-        if ($validated['collateral_amount'] < $requiredCollateral) {
+        if ($collateralAmount < $requiredCollateral) {
+            $required = bcdiv((string) $requiredCollateral, bcpow('10', (string) $collateralPrecision), $collateralPrecision);
+
             return back()->withErrors(
                 [
-                    'collateral_amount' => "Insufficient collateral. Required: {$requiredCollateral} {$validated['collateral_asset']}",
+                    'collateral_amount' => "Insufficient collateral. Required: {$required} {$validated['collateral_asset']}",
                 ]
             );
         }
@@ -185,10 +203,6 @@ class StablecoinOperationsController extends Controller
             if (! $recipientAccount) {
                 return back()->withErrors(['recipient_account' => 'Invalid recipient account']);
             }
-
-            // Convert amounts to cents
-            $mintAmount = (int) ($validated['amount'] * 100);
-            $collateralAmount = (int) ($validated['collateral_amount'] * 100);
 
             // Execute mint workflow
             $workflow = WorkflowStub::make(MintStablecoinWorkflow::class);
@@ -322,8 +336,15 @@ class StablecoinOperationsController extends Controller
             return back()->withErrors(['source_account' => 'Invalid account']);
         }
 
+        // Exact minor units of the stablecoin. An amount with more decimals
+        // than it has is refused, not rounded.
+        $burnPrecision = $this->precisionOf($validated['stablecoin']);
+        $amountInCents = DecimalString::toMinorUnitsInt($validated['amount'], $burnPrecision);
+        if ($amountInCents === null) {
+            return back()->withErrors(['amount' => "The amount can have at most {$burnPrecision} decimal places for {$validated['stablecoin']}."]);
+        }
+
         $balance = $sourceAccount->getBalance($validated['stablecoin']);
-        $amountInCents = $validated['amount'] * 100;
 
         if ($balance < $amountInCents) {
             return back()->withErrors(['amount' => 'Insufficient balance']);
@@ -335,7 +356,7 @@ class StablecoinOperationsController extends Controller
             if ($validated['return_collateral']) {
                 $collateralReturn = $this->calculateCollateralReturn(
                     $validated['stablecoin'],
-                    $validated['amount'],
+                    $amountInCents,
                     $validated['collateral_asset']
                 );
             }
@@ -351,7 +372,7 @@ class StablecoinOperationsController extends Controller
                 $positionUuid,
                 $validated['stablecoin'],
                 $amountInCents,
-                $collateralReturn * 100, // Convert to cents
+                $collateralReturn,
                 false // Don't close position
             );
 
@@ -364,7 +385,7 @@ class StablecoinOperationsController extends Controller
                     'stablecoin'        => $validated['stablecoin'],
                     'amount'            => $amountInCents,
                     'collateral_asset'  => $validated['collateral_asset'] ?? null,
-                    'collateral_return' => $collateralReturn > 0 ? (int) ($collateralReturn * 100) : null,
+                    'collateral_return' => $collateralReturn > 0 ? $collateralReturn : null,
                     'source_account'    => $validated['source_account'],
                     'operator_uuid'     => $user->uuid,
                     'position_uuid'     => $positionUuid,
@@ -499,11 +520,13 @@ class StablecoinOperationsController extends Controller
             ->get()
             ->map(
                 function ($operation) {
+                    $precision = $this->precisionOf($operation->stablecoin);
+
                     return [
                         'id'         => $operation->uuid,
                         'type'       => $operation->type,
                         'stablecoin' => $operation->stablecoin,
-                        'amount'     => $operation->amount / 100, // Convert cents to dollars for display
+                        'amount'     => bcdiv((string) $operation->amount, bcpow('10', (string) $precision), $precision),
                         'operator'   => $operation->operator->name ?? 'Unknown',
                         'status'     => $operation->status,
                         'created_at' => $operation->created_at,
@@ -606,33 +629,48 @@ class StablecoinOperationsController extends Controller
     }
 
     /**
-     * Calculate required collateral.
+     * Required collateral for $mintAmount (minor units of the stablecoin), in
+     * minor units of the collateral asset, rounded half up like the old
+     * round(..., 2). bcmath only: no float touches the amounts.
      */
-    private function calculateRequiredCollateral($stablecoin, $amount, $collateralAsset)
+    private function calculateRequiredCollateral(string $stablecoin, int $mintAmount, string $collateralAsset): int
     {
         $stablecoinInfo = $this->getStablecoinInfo($stablecoin);
-        $collateralRatio = $stablecoinInfo['collateral_ratio'] / 100;
+        $collateralRatio = DecimalString::fromNumeric($stablecoinInfo['collateral_ratio'] ?? 100, 8) ?? '100';
 
-        // Convert based on exchange rates
+        // Units of the collateral asset per unit of the stablecoin.
         $rates = [
-            'USD' => 1,
-            'EUR' => 0.92,
-            'GBP' => 0.79,
+            'USD' => '1',
+            'EUR' => '0.92',
+            'GBP' => '0.79',
         ];
+        $rate = $rates[$collateralAsset] ?? '1';
 
-        $baseAmount = $amount * $collateralRatio;
-        $rate = $rates[$collateralAsset] ?? 1;
+        $stablecoinPrecision = $this->precisionOf($stablecoin);
+        $collateralPrecision = $this->precisionOf($collateralAsset);
 
-        return round($baseAmount / $rate, 2);
+        $amount = bcdiv((string) $mintAmount, bcpow('10', (string) $stablecoinPrecision), $stablecoinPrecision);
+        $baseAmount = bcdiv(bcmul($amount, $collateralRatio, 18), '100', 18);
+        $required = bcmul(bcdiv($baseAmount, $rate, 18), bcpow('10', (string) $collateralPrecision), 18);
+
+        return (int) bcadd($required, '0.5', 0);
     }
 
     /**
-     * Calculate collateral return.
+     * Collateral returned on a burn of $burnAmount (minor units of the
+     * stablecoin): 95 % of the required collateral (a 5 % fee), in minor
+     * units of the collateral asset, rounded down.
      */
-    private function calculateCollateralReturn($stablecoin, $amount, $collateralAsset)
+    private function calculateCollateralReturn(string $stablecoin, int $burnAmount, string $collateralAsset): int
     {
-        // Return 95% of collateral value (5% fee)
-        return $this->calculateRequiredCollateral($stablecoin, $amount, $collateralAsset) * 0.95;
+        $required = $this->calculateRequiredCollateral($stablecoin, $burnAmount, $collateralAsset);
+
+        return (int) bcdiv(bcmul((string) $required, '95', 0), '100', 0);
+    }
+
+    private function precisionOf(string $assetCode): int
+    {
+        return (int) (Asset::query()->where('code', $assetCode)->value('precision') ?? 2);
     }
 
     /**

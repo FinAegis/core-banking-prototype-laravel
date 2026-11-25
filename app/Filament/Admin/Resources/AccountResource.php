@@ -175,15 +175,21 @@ class AccountResource extends Resource
                         )
                         ->query(
                             function (Builder $query, array $data): Builder {
-                                return $query
-                                    ->when(
-                                        $data['balance_amount'] ?? null,
-                                        fn (Builder $query, $amount): Builder => $query->where(
-                                            'balance',
-                                            $data['balance_operator'] ?? '>',
-                                            $amount * 100
-                                        ),
-                                    );
+                                // Compare against the exact number of cents,
+                                // worked out with bcmath. A float product
+                                // reaches the query as a 14-digit string, so
+                                // large balances compared wrongly.
+                                $amount = DecimalString::fromNumeric($data['balance_amount'] ?? null, 8);
+                                if ($amount === null || bccomp($amount, '0', 8) === 0) {
+                                    return $query;
+                                }
+
+                                $cents = bcmul($amount, '100', 6);
+                                if (bccomp($cents, bcadd($cents, '0', 0), 6) === 0) {
+                                    $cents = bcadd($cents, '0', 0);
+                                }
+
+                                return $query->where('balance', $data['balance_operator'] ?? '>', $cents);
                             }
                         )
                         ->indicateUsing(

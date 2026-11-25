@@ -45,3 +45,51 @@ it('returns null for values bcmath cannot take', function (mixed $input): void {
     'bool'               => [true],
     'array'              => [['1']],
 ]);
+
+it('converts a major-unit amount to exact minor units', function (mixed $input, int $precision, string $expected): void {
+    expect(DecimalString::toMinorUnits($input, $precision))->toBe($expected);
+})->with([
+    // (int) (0.29 * 100) is 28 and (int) (128.14 * 100) is 12813.
+    'float 0.29 at 2'        => [0.29, 2, '29'],
+    'float 128.14 at 2'      => [128.14, 2, '12814'],
+    'string 128.14 at 2'     => ['128.14', 2, '12814'],
+    'integer at 2'           => [50, 2, '5000'],
+    'trailing zeros allowed' => ['1.2300', 2, '123'],
+    '1.1 at 18 decimals'     => [1.1, 18, '1100000000000000000'],
+    '1.1 at 8 decimals'      => ['1.1', 8, '110000000'],
+    'zero precision'         => ['7', 0, '7'],
+    'negative'               => ['-0.29', 2, '-29'],
+    'exponent float'         => [0.000001, 6, '1'],
+    'larger than an int'     => ['100', 18, '100000000000000000000'],
+]);
+
+it('refuses an amount with more decimals than the asset has', function (mixed $input, int $precision): void {
+    expect(DecimalString::toMinorUnits($input, $precision))->toBeNull()
+        ->and(DecimalString::toMinorUnitsInt($input, $precision))->toBeNull();
+})->with([
+    'three decimals at 2' => ['0.295', 2],
+    'float at 2'          => [128.145, 2],
+    'any decimal at 0'    => ['7.5', 0],
+    'nine decimals at 8'  => ['0.000000001', 8],
+]);
+
+it('refuses values that are not finite, well-formed numbers', function (mixed $input): void {
+    expect(DecimalString::toMinorUnits($input, 2))->toBeNull()
+        ->and(DecimalString::toMinorUnitsInt($input, 2))->toBeNull();
+})->with([
+    'INF'          => [INF],
+    'NAN'          => [NAN],
+    'whitespace'   => [' 12'],
+    'empty string' => [''],
+    'word'         => ['abc'],
+    'null'         => [null],
+    'bool'         => [true],
+]);
+
+it('gives minor units as an int only when they fit in one', function (): void {
+    expect(DecimalString::toMinorUnitsInt(0.29, 2))->toBe(29)
+        ->and(DecimalString::toMinorUnitsInt('1.1', 18))->toBe(1100000000000000000)
+        // 10 units of an 18-decimal asset is 10^19, above PHP_INT_MAX.
+        ->and(DecimalString::toMinorUnitsInt('10', 18))->toBeNull()
+        ->and(DecimalString::toMinorUnitsInt('-10', 18))->toBeNull();
+});

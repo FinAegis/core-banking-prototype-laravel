@@ -4723,12 +4723,6 @@ parameters:
 			path: app/Http/Controllers/Api/Relayer/MobileRelayerController.php
 
 		-
-			message: '#^Call to an undefined static method App\\Domain\\Account\\DataObjects\\Money\:\:fromFloat\(\)\.$#'
-			identifier: staticMethod.notFound
-			count: 1
-			path: app/Http/Controllers/Api/TransactionReversalController.php
-
-		-
 			message: '#^Cannot access property \$id on App\\Models\\User\|null\.$#'
 			identifier: property.nonObject
 			count: 11
