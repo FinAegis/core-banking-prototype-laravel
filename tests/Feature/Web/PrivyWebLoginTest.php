@@ -89,6 +89,25 @@ it('signs up a new user when verifyCode resolves a Privy DID with no existing re
         ->and($user->privy_linked_at)->not->toBeNull();
 });
 
+it('signs a user in with the email code while password sign-in is off', function (): void {
+    config(['auth.password_login_enabled' => false]);
+    $user = User::factory()->create(['email' => 'nopass-web@example.com']);
+    mock_privy_otp_client(function (MockInterface $m): void {
+        $m->shouldReceive('sendCode')->once()->with('nopass-web@example.com');
+        $m->shouldReceive('loginWithCode')
+            ->once()
+            ->with('nopass-web@example.com', '123456')
+            ->andReturn(['id' => 'did:privy:nopassweb', 'email' => 'nopass-web@example.com']);
+    });
+
+    $this->post(route('login.privy.send'), ['email' => 'nopass-web@example.com'])
+        ->assertSessionHasNoErrors();
+    $this->post(route('login.privy.verify'), ['email' => 'nopass-web@example.com', 'code' => '123456'])
+        ->assertRedirect(route('dashboard'));
+
+    $this->assertAuthenticatedAs($user);
+});
+
 it('provisions a personal team for a brand-new Privy web signup', function (): void {
     mock_privy_otp_client(function (MockInterface $m): void {
         $m->shouldReceive('loginWithCode')

@@ -155,6 +155,22 @@ it('records the time of a Privy app sign-in', function (): void {
     expect($user->fresh()?->last_login_at)->not->toBeNull();
 });
 
+it('signs in a returning user while password sign-in is off', function (): void {
+    config(['auth.password_login_enabled' => false]);
+    $user = User::factory()->create(['privy_user_id' => 'did:privy:nopassword0123456', 'email' => 'nopass@example.com']);
+    $token = privy_login_jwt([
+        'sub'             => 'did:privy:nopassword0123456',
+        'linked_accounts' => [['type' => 'email', 'address' => 'nopass@example.com', 'verified_at' => time() - 100]],
+    ], $this);
+
+    $this->postJson('/api/v1/auth/privy-login', ['privy_token' => $token])
+        ->assertOk()
+        ->assertJsonPath('success', true)
+        ->assertJsonPath('data.user.email', 'nopass@example.com');
+
+    expect($user->tokens()->count())->toBe(1);
+});
+
 it('provisions a personal team for a brand-new Privy mobile signup', function (): void {
     $token = privy_login_jwt([
         'sub'             => 'did:privy:mobileteam',
