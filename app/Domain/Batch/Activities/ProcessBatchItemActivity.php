@@ -77,6 +77,12 @@ class ProcessBatchItemActivity extends Activity
             return $this->result($transferId, (int) $booked->getFromAmount()?->getAmount(), (string) $booked->getFromAssetCode());
         }
 
+        // Checked when the item runs, not only when the batch was created: a
+        // batch queued before the switch went off must not pay.
+        if (! config('ledger.batch_processing_enabled')) {
+            throw new BatchItemRefused('Batch processing is not available (BATCH_PROCESSING_ENABLED is off); no money was moved.');
+        }
+
         $status = BatchAggregate::retrieve((string) $batch->uuid)->getStatus();
         if ($status !== 'processing') {
             throw new BatchItemRefused("The batch is {$status}; no more items are processed.");

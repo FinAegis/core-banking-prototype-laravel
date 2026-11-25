@@ -7,6 +7,7 @@ namespace App\GraphQL\Mutations\Batch;
 use App\Domain\Batch\Models\BatchJob;
 use App\Domain\Batch\Services\BatchProcessingService;
 use App\Models\User;
+use GraphQL\Error\Error;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Support\Facades\Auth;
@@ -31,6 +32,11 @@ class CreateBatchJobMutation
      */
     public function __invoke(mixed $rootValue, array $args): BatchJob
     {
+        // Batches are a demo feature (BATCH_PROCESSING_ENABLED).
+        if (! config('ledger.batch_processing_enabled')) {
+            throw new Error('This operation is not available.');
+        }
+
         $user = Auth::user();
 
         if (! $user instanceof User) {

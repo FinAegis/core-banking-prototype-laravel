@@ -766,8 +766,8 @@ Route::middleware([
         Route::get('/historical', [App\Http\Controllers\ExchangeRateViewController::class, 'historical'])->name('historical');
     });
 
-    // Batch Processing Routes
-    Route::prefix('batch-processing')->name('batch-processing.')->group(function () {
+    // Batch transfers and payments (demo feature — BATCH_PROCESSING_ENABLED)
+    Route::prefix('batch-processing')->name('batch-processing.')->middleware('feature:ledger.batch_processing_enabled')->group(function () {
         Route::get('/', [App\Http\Controllers\BatchProcessingController::class, 'index'])->name('index');
         Route::get('/create', [App\Http\Controllers\BatchProcessingController::class, 'create'])->name('create');
         Route::post('/', [App\Http\Controllers\BatchProcessingController::class, 'store'])->name('store');
