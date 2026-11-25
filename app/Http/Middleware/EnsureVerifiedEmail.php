@@ -93,13 +93,16 @@ final class EnsureVerifiedEmail
     /**
      * Whether the switch is on and this signed-in user has not verified the
      * email address. Also used by the API key middlewares, which resolve
-     * their user themselves.
+     * their user themselves. An account linked to Privy counts as verified:
+     * Privy verified the address, even where email_verified_at is still NULL
+     * (linked before the linker set it, or created by older code).
      */
     public static function refuses(mixed $user): bool
     {
         return (bool) config('auth.verified_email_required', true)
             && $user instanceof User
-            && ! $user->hasVerifiedEmail();
+            && ! $user->hasVerifiedEmail()
+            && (string) $user->privy_user_id === '';
     }
 
     /**

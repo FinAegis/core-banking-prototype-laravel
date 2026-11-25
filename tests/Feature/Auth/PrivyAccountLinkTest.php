@@ -478,7 +478,7 @@ describe('mobile Privy login links an existing account', function (): void {
         expect(User::query()->where('email', 'invite-new@example.com')->exists())->toBeFalse();
     });
 
-    it('leaves a returning Privy user unchanged', function (): void {
+    it('leaves a returning Privy user unchanged apart from marking the email verified', function (): void {
         $user = palLegacyUser([
             'email'             => 'returning@example.com',
             'email_verified_at' => null,
@@ -495,7 +495,8 @@ describe('mobile Privy login links an existing account', function (): void {
 
         $fresh = $user->fresh();
         expect(palStored($user, 'privy_linked_at'))->toBe($linkedAt)
-            ->and($fresh?->email_verified_at)->toBeNull()
+            // Privy verified the address; the column is filled on sign-in.
+            ->and($fresh?->email_verified_at)->not->toBeNull()
             ->and(Hash::check('legacy-password', (string) $fresh?->password))->toBeTrue()
             ->and(palEarlierAccessKept($user, $access))->toBeTrue()
             ->and(palLinkAudits($user))->toBe(0);
@@ -753,7 +754,7 @@ describe('web email-code login links an existing account', function (): void {
             ->and(User::query()->where('privy_user_id', 'did:privy:palwebclosednew')->exists())->toBeFalse();
     });
 
-    it('leaves a returning Privy user unchanged', function (): void {
+    it('leaves a returning Privy user unchanged apart from marking the email verified', function (): void {
         $user = palLegacyUser([
             'email'             => 'web-returning@example.com',
             'email_verified_at' => null,
@@ -770,6 +771,7 @@ describe('web email-code login links an existing account', function (): void {
         $this->assertAuthenticatedAs($user);
         $fresh = $user->fresh();
         expect(palStored($user, 'privy_linked_at'))->toBe($linkedAt)
+            ->and($fresh?->email_verified_at)->not->toBeNull()
             ->and(Hash::check('legacy-password', (string) $fresh?->password))->toBeTrue()
             ->and(palEarlierAccessKept($user, $access))->toBeTrue()
             ->and(palLinkAudits($user))->toBe(0);
