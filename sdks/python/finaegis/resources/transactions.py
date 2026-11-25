@@ -19,6 +19,8 @@ class TransactionsResource(BaseResource):
             
         Returns:
             PaginatedResponse containing Transaction objects
+
+        .. deprecated:: The server has no such route (it never worked and was removed in FinAegis v7.18.4). This method will be removed in the next major version.
         """
         response = self._get('/transactions', params={'page': page, 'per_page': per_page})
         return PaginatedResponse.from_dict(response, Transaction)
@@ -32,6 +34,8 @@ class TransactionsResource(BaseResource):
             
         Returns:
             Transaction object
+
+        .. deprecated:: The server has no such route (it never worked and was removed in FinAegis v7.18.4). This method will be removed in the next major version.
         """
         response = self._get(f'/transactions/{transaction_id}')
         return Transaction.from_dict(response['data'])

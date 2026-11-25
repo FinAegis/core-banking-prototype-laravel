@@ -189,8 +189,6 @@ echo "1 USD = {$rate->getRate()} EUR\n";
 $conversion = $client->exchangeRates->convert('USD', 'EUR', 100);
 echo "\${$conversion['from_amount']} = €{$conversion['to_amount']}\n";
 
-// Refresh rates
-$result = $client->exchangeRates->refresh();
 ```
 
 ### GCU demo (Global Currency Unit)

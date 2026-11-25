@@ -39,6 +39,8 @@ export class ExchangeRates {
 
   /**
    * Refresh exchange rates
+   *
+   * @deprecated The server has no such route (it never worked and was removed in FinAegis v7.18.4). This method will be removed in the next major version.
    */
   async refresh(): Promise<ApiResponse<{ message: string; updated_count: number }>> {
     const response = await this.client.post('/exchange-rates/refresh');

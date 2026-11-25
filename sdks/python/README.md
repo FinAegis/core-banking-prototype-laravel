@@ -124,8 +124,6 @@ print(f"1 USD = {rate.rate} EUR")
 conversion = client.exchange_rates.convert('USD', 'EUR', 100)
 print(f"${conversion['from_amount']} = €{conversion['to_amount']}")
 
-# Refresh rates
-client.exchange_rates.refresh()
 ```
 
 ### GCU demo (Global Currency Unit)
