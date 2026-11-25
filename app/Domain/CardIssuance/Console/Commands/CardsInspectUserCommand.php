@@ -8,19 +8,20 @@ use App\Domain\CardIssuance\Models\Card;
 use App\Domain\CardIssuance\Models\CardFundingAccount;
 use App\Domain\CardIssuance\Models\Cardholder;
 use App\Domain\CardIssuance\Models\CardTopUp;
+use App\Domain\CardIssuance\Models\CardWithdrawal;
 use App\Models\User;
 use Illuminate\Console\Command;
 
 /**
  * Support view of a user's Lepo card setup: cardholder, funding account,
- * cards and top-ups with their needs_attention reasons. Prints no personal
+ * cards, top-ups and withdrawals with their needs_attention reasons. Prints no personal
  * data beyond the e-mail asked for and no card numbers or codes.
  */
 final class CardsInspectUserCommand extends Command
 {
     protected $signature = 'cards:inspect-user {email : User email to look up}';
 
-    protected $description = 'Print a user\'s Lepo cardholder, funding account, cards and top-ups (no secrets)';
+    protected $description = 'Print a user\'s Lepo cardholder, funding account, cards, top-ups and withdrawals (no secrets)';
 
     public function handle(): int
     {
@@ -56,6 +57,15 @@ final class CardsInspectUserCommand extends Command
                 ->map(fn (CardTopUp $topup): array => [
                     $topup->id, $topup->source, $topup->status, (string) $topup->amount, $topup->network,
                     $topup->credited_cents === null ? '-' : (string) $topup->credited_cents, $topup->last_error ?? '-', (string) $topup->created_at,
+                ])->all(),
+        );
+
+        $this->table(
+            ['Withdrawal', 'Status', 'Amount (USD)', 'Network', 'Received (USDC)', 'Reason', 'Created'],
+            CardWithdrawal::query()->where('user_id', $user->id)->orderByDesc('created_at')->limit(50)->get()
+                ->map(fn (CardWithdrawal $withdrawal): array => [
+                    $withdrawal->id, $withdrawal->status, (string) $withdrawal->amount, $withdrawal->network,
+                    $withdrawal->received_amount === null ? '-' : (string) $withdrawal->received_amount, $withdrawal->last_error ?? '-', (string) $withdrawal->created_at,
                 ])->all(),
         );
 
