@@ -255,4 +255,27 @@ return [
         'enforce_monthly_limits' => env('PARTNER_ENFORCE_MONTHLY_LIMITS', true),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | API Key Money Limits
+    |--------------------------------------------------------------------------
+    |
+    | Money controls for user API keys (App\Models\ApiKey), enforced by
+    | App\Http\Middleware\EnforceApiKeyMoneyLimits on every v2 route that
+    | moves money. They apply only to requests authenticated by an API key and
+    | are NOT switched off by RATE_LIMITING_ENABLED or in tests.
+    |
+    | Values are major units with up to two decimals, and amounts count in
+    | hundredths of their unit whatever the asset (like the transaction rate
+    | limiter). A key without its own limit uses the default; no key, and no
+    | default, goes above limit_max.
+    |
+    */
+
+    'api_key_money' => [
+        'transfer_limit_default' => env('API_KEY_TRANSFER_LIMIT_DEFAULT', '1000'),
+        'daily_limit_default'    => env('API_KEY_DAILY_LIMIT_DEFAULT', '5000'),
+        'limit_max'              => env('API_KEY_LIMIT_MAX', '50000'),
+    ],
+
 ];

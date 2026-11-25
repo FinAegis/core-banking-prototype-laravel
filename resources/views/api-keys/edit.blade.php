@@ -124,6 +124,8 @@
                     @enderror
                 </div>
 
+                @include('api-keys.partials.money-limits')
+
                 <!-- Current Settings Info -->
                 <div class="bg-gray-50 rounded-lg p-4">
                     <h3 class="text-sm font-medium text-gray-900 mb-2">Current Settings</h3>

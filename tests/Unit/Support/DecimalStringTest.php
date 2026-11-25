@@ -93,3 +93,18 @@ it('gives minor units as an int only when they fit in one', function (): void {
         ->and(DecimalString::toMinorUnitsInt('10', 18))->toBeNull()
         ->and(DecimalString::toMinorUnitsInt('-10', 18))->toBeNull();
 });
+
+it('counts an amount in hundredths of its unit, rounded up', function (mixed $input, ?string $expected): void {
+    expect(DecimalString::toHundredthsRoundedUp($input))->toBe($expected);
+})->with([
+    'two decimals'      => ['128.14', '12814'],
+    'whole unit'        => [1, '100'],
+    'below a hundredth' => ['0.001', '1'],
+    'just above'        => ['10.501', '1051'],
+    'float'             => [0.29, '29'],
+    'exponent float'    => [1.0E-6, '1'],
+    'zero'              => ['0', '0'],
+    'negative'          => ['-0.005', '0'],
+    'word'              => ['abc', null],
+    'INF'               => [INF, null],
+]);

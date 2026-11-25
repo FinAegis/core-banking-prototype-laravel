@@ -142,6 +142,59 @@
                     </dl>
                 </div>
 
+                <!-- Money Limits -->
+                <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
+                    <h2 class="text-lg font-semibold text-gray-900">Money Limits</h2>
+                    <p class="mt-1 text-sm text-gray-600">
+                        These limits apply whenever this key moves money.
+                        Amounts count in whole units of the currency being moved.
+                    </p>
+                    <dl class="mt-4 space-y-4">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Largest single amount</dt>
+                            <dd class="mt-1 text-sm text-gray-900">
+                                {{ \App\Models\ApiKey::displayAmount($apiKey->effectiveTransferLimit()) }}
+                                @if($apiKey->transfer_limit === null)
+                                    <span class="text-gray-500">(the standard limit)</span>
+                                @endif
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Largest total per day</dt>
+                            <dd class="mt-1 text-sm text-gray-900">
+                                {{ \App\Models\ApiKey::displayAmount($apiKey->effectiveDailyLimit()) }}
+                                @if($apiKey->daily_limit === null)
+                                    <span class="text-gray-500">(the standard limit)</span>
+                                @endif
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Moved today</dt>
+                            <dd class="mt-1 text-sm text-gray-900">
+                                {{ \App\Models\ApiKey::displayAmount($apiKey->movedToday()) }}
+                                <span class="text-gray-500">The daily total starts again at midnight, Coordinated Universal Time.</span>
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Accounts this key can move money from</dt>
+                            <dd class="mt-1 text-sm text-gray-900">
+                                @if(! $apiKey->isPinnedToAccounts())
+                                    All of your accounts.
+                                @elseif($pinnedAccounts->isEmpty())
+                                    This key is limited to accounts you no longer have.
+                                    It cannot move money until you choose one of your accounts.
+                                @else
+                                    <ul class="space-y-1">
+                                        @foreach($pinnedAccounts as $account)
+                                            <li>{{ $account->name }}</li>
+                                        @endforeach
+                                    </ul>
+                                @endif
+                            </dd>
+                        </div>
+                    </dl>
+                </div>
+
                 <!-- Recent Activity -->
                 <div class="bg-white overflow-hidden shadow-sm rounded-lg">
                     <div class="p-6 border-b border-gray-200">

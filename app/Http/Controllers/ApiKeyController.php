@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Account\Models\Account;
 use App\Models\ApiKey;
 use App\Models\User;
+use App\Support\DecimalString;
+use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use OpenApi\Attributes as OA;
 
@@ -62,7 +66,9 @@ class ApiKeyController extends Controller
     )]
     public function create()
     {
-        return view('api-keys.create');
+        $accounts = $this->ownAccounts(Auth::user());
+
+        return view('api-keys.create', compact('accounts'));
     }
 
         #[OA\Post(
@@ -91,7 +97,8 @@ class ApiKeyController extends Controller
                 'permissions.*' => 'in:read,write,delete,*',
                 'expires_in'    => 'nullable|in:30,90,365,never',
                 'ip_whitelist'  => 'nullable|string',
-            ]
+            ] + $this->moneyControlRules(Auth::user()),
+            $this->moneyControlMessages(),
         );
 
         // Process expiration
@@ -116,7 +123,7 @@ class ApiKeyController extends Controller
                 'permissions' => $validated['permissions'],
                 'allowed_ips' => $allowedIps,
                 'expires_at'  => $expiresAt,
-            ]
+            ] + $this->moneyControls($validated)
         );
 
         // Store the API key in session to show it once
@@ -177,7 +184,11 @@ class ApiKeyController extends Controller
             ->limit(20)
             ->get();
 
-        return view('api-keys.show', compact('apiKey', 'stats', 'recentLogs'));
+        $pinnedAccounts = $this->ownAccounts(Auth::user())
+            ->whereIn('uuid', $apiKey->pinnedAccountUuids())
+            ->values();
+
+        return view('api-keys.show', compact('apiKey', 'stats', 'recentLogs', 'pinnedAccounts'));
     }
 
         #[OA\Get(
@@ -206,7 +217,9 @@ class ApiKeyController extends Controller
             abort(403);
         }
 
-        return view('api-keys.edit', compact('apiKey'));
+        $accounts = $this->ownAccounts(Auth::user());
+
+        return view('api-keys.edit', compact('apiKey', 'accounts'));
     }
 
         #[OA\Put(
@@ -242,7 +255,8 @@ class ApiKeyController extends Controller
                 'permissions'   => 'required|array',
                 'permissions.*' => 'in:read,write,delete,*',
                 'ip_whitelist'  => 'nullable|string',
-            ]
+            ] + $this->moneyControlRules(Auth::user()),
+            $this->moneyControlMessages(),
         );
 
         // Process IP whitelist
@@ -258,7 +272,7 @@ class ApiKeyController extends Controller
                 'description' => $validated['description'] ?? null,
                 'permissions' => $validated['permissions'],
                 'allowed_ips' => $allowedIps,
-            ]
+            ] + $this->moneyControls($validated)
         );
 
         return redirect()->route('api-keys.show', $apiKey)
@@ -335,6 +349,10 @@ class ApiKeyController extends Controller
                 'permissions' => $apiKey->permissions,
                 'allowed_ips' => $apiKey->allowed_ips,
                 'expires_at'  => $apiKey->expires_at,
+                // The new key keeps the old key's money controls.
+                'transfer_limit'        => $apiKey->transfer_limit,
+                'daily_limit'           => $apiKey->daily_limit,
+                'allowed_account_uuids' => $apiKey->allowed_account_uuids,
             ]
         );
 
@@ -343,5 +361,104 @@ class ApiKeyController extends Controller
 
         return redirect()->route('api-keys.show', $result['api_key'])
             ->with('success', 'API key regenerated successfully. Please copy the new key as it won\'t be shown again.');
+    }
+
+    /**
+     * The owner's accounts, for the account picker.
+     *
+     * @return Collection<int, Account>
+     */
+    private function ownAccounts(?User $user): Collection
+    {
+        if (! $user instanceof User) {
+            return collect();
+        }
+
+        return Account::query()
+            ->where('user_uuid', $user->uuid)
+            ->orderBy('name')
+            ->get(['uuid', 'name']);
+    }
+
+    /**
+     * Validation for the money limits and the account picker. Limits are
+     * optional (empty = the standard limit), positive, at most two decimals
+     * and not above the ceiling; picked accounts must be the owner's.
+     *
+     * @return array<string, mixed>
+     */
+    private function moneyControlRules(?User $user): array
+    {
+        $limitRule = function (string $attribute, mixed $value, Closure $fail): void {
+            $amount = is_string($value) && preg_match('/^\d{1,15}(\.\d{1,2})?$/', $value) === 1
+                ? DecimalString::fromNumeric($value, 2)
+                : null;
+
+            if ($amount === null) {
+                $fail('Enter the limit as a number with no more than two digits after the decimal point, for example 250 or 250.50.');
+
+                return;
+            }
+
+            if (bccomp($amount, '0', 2) <= 0) {
+                $fail('The limit must be more than zero.');
+
+                return;
+            }
+
+            $ceiling = ApiKey::limitCeiling();
+            if (bccomp($amount, $ceiling, 2) > 0) {
+                $fail('The limit cannot be more than ' . ApiKey::displayAmount($ceiling) . '.');
+            }
+        };
+
+        $ownUuids = $this->ownAccounts($user)->pluck('uuid')->map(fn ($uuid): string => (string) $uuid)->all();
+
+        return [
+            'transfer_limit'          => ['nullable', $limitRule],
+            'daily_limit'             => ['nullable', $limitRule],
+            'allowed_account_uuids'   => ['nullable', 'array'],
+            'allowed_account_uuids.*' => [
+                'string',
+                function (string $attribute, mixed $value, Closure $fail) use ($ownUuids): void {
+                    if (! in_array($value, $ownUuids, true)) {
+                        $fail('You can only choose your own accounts.');
+                    }
+                },
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function moneyControlMessages(): array
+    {
+        return [
+            'allowed_account_uuids.array'    => 'You can only choose your own accounts.',
+            'allowed_account_uuids.*.string' => 'You can only choose your own accounts.',
+        ];
+    }
+
+    /**
+     * The money controls to store, from validated input.
+     *
+     * @param  array<string, mixed>  $validated
+     * @return array{transfer_limit: string|null, daily_limit: string|null, allowed_account_uuids: list<string>|null}
+     */
+    private function moneyControls(array $validated): array
+    {
+        $limit = fn (mixed $value): ?string => DecimalString::fromNumeric($value, 2);
+
+        $accounts = array_values(array_unique(array_filter(
+            (array) ($validated['allowed_account_uuids'] ?? []),
+            fn ($uuid): bool => is_string($uuid) && $uuid !== '',
+        )));
+
+        return [
+            'transfer_limit'        => $limit($validated['transfer_limit'] ?? null),
+            'daily_limit'           => $limit($validated['daily_limit'] ?? null),
+            'allowed_account_uuids' => $accounts === [] ? null : $accounts,
+        ];
     }
 }
