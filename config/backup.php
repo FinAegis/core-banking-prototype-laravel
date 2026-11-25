@@ -165,9 +165,12 @@ return [
             /*
              * The disk names on which the backups will be stored.
              *
-             * Defaults to `local` so the job works out of the box; production
-             * must set BACKUP_DISK=s3 (plus the AWS_* bucket credentials in
-             * config/filesystems.php) so dumps leave the box. See
+             * Defaults to `local` so the job works out of the box. Production
+             * must keep backups on another server: BACKUP_DISK=backups (the
+             * off-server S3-compatible disk in config/filesystems.php, with
+             * its BACKUP_S3_* credentials) and BACKUP_ARCHIVE_PASSWORD set,
+             * so every dump is encrypted before it leaves the box.
+             * ops:verify-env blocks a production deploy otherwise. See
              * docs/10-OPERATIONS/PRODUCTION_READINESS_CHECKLIST.md §9.
              */
             'disks' => [

@@ -667,9 +667,11 @@ kubectl get services -n finaegis
 #### Step 2: Database Recovery
 
 ```bash
-# Fetch the latest backup zip from the BACKUP_DISK destination (manual).
-# spatie/laravel-backup zips hold db-dumps/mysql-<database>.sql.
-unzip -p latest_backup.zip 'db-dumps/*.sql' > database.sql
+# Fetch the latest backup zip from the off-server BACKUP_DISK destination (manual).
+# spatie/laravel-backup zips hold db-dumps/mysql-<database>.sql and are
+# AES-256 encrypted with BACKUP_ARCHIVE_PASSWORD; plain unzip cannot read
+# them, 7-Zip can.
+7z e -so -p"$BACKUP_ARCHIVE_PASSWORD" latest_backup.zip 'db-dumps/*.sql' > database.sql
 
 # Import to new database
 mysql -h $NEW_DB_HOST -u root -p <database> < database.sql
@@ -716,8 +718,11 @@ php artisan reconciliation:daily --force
 > - `php artisan backup:monitor` — health-check backups against `config/backup.php`
 >   `monitor_backups` (max age 1 day, max storage); non-zero output = unhealthy
 >
-> Destination disk is `BACKUP_DISK` (default `local`; production must use `s3` —
-> see the Production Readiness Checklist §9). Restoration is still a manual drill:
+> Destination disk is `BACKUP_DISK` (default `local`). Production must keep backups
+> on another server: `BACKUP_DISK=backups` (the S3-compatible `backups` disk with its
+> `BACKUP_S3_*` credentials) and `BACKUP_ARCHIVE_PASSWORD` set, so dumps are encrypted
+> before they leave the box. `ops:verify-env` blocks a production deploy otherwise (see the
+> Production Readiness Checklist §9). Restoration is still a manual drill:
 
 ```bash
 # Daily/weekly verification (real artisan commands)
@@ -728,9 +733,10 @@ php artisan backup:monitor
 # 1. Start a throwaway database on port 3307
 docker run -d --name finaegis-restore-test -e MYSQL_ROOT_PASSWORD=restore-test -p 3307:3306 mysql:8.0
 
-# 2. Fetch the latest backup zip from the BACKUP_DISK destination
-#    (spatie zips contain db-dumps/mysql-<database>.sql), then restore:
-unzip -p latest_backup.zip db-dumps/*.sql | mysql -h localhost -P 3307 -u root -p
+# 2. Fetch the latest backup zip from the off-server BACKUP_DISK destination
+#    (spatie zips contain db-dumps/mysql-<database>.sql, AES-256 encrypted
+#    with BACKUP_ARCHIVE_PASSWORD), then restore:
+7z e -so -p"$BACKUP_ARCHIVE_PASSWORD" latest_backup.zip 'db-dumps/*.sql' | mysql -h localhost -P 3307 -u root -p
 
 # 3. Run verification queries against the restored copy (manual SQL — adjust to your data):
 #    confirm row counts and the latest transaction timestamp look sane, then spot-check
