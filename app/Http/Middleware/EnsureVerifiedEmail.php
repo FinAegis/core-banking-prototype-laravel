@@ -9,6 +9,7 @@ use App\Support\ErrorResponse;
 use Closure;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
@@ -20,7 +21,9 @@ use Symfony\Component\HttpFoundation\Response;
  * route that requires a signed-in user, while auth.verified_email_required
  * (AUTH_REQUIRE_VERIFIED_EMAIL) is on.
  *
- * It runs in the web and api route groups and on the GraphQL route. A route
+ * It runs in the web and api route groups and on the GraphQL route; the
+ * API key middlewares (auth.apikey, auth.api_or_sanctum) apply the same
+ * rule through refuses(). A route
  * counts as signed-in when it carries an authenticating middleware (`auth`,
  * `auth:<guard>`) or Lighthouse's AttemptAuthentication; the user is read
  * from that middleware's guards, so the order of the middleware does not
@@ -76,16 +79,35 @@ final class EnsureVerifiedEmail
             return $next($request);
         }
 
-        $user = $this->resolveUser($guards);
-        if (! $user instanceof User || $user->hasVerifiedEmail()) {
+        if (! self::refuses($this->resolveUser($guards))) {
             return $next($request);
         }
 
         if ($request->expectsJson() || $request->is('api/*', 'graphql')) {
-            return ErrorResponse::make('ERR_REG_003', null, ['reason' => 'EMAIL_NOT_VERIFIED']);
+            return self::refusal();
         }
 
         return redirect()->guest(route('verification.notice'));
+    }
+
+    /**
+     * Whether the switch is on and this signed-in user has not verified the
+     * email address. Also used by the API key middlewares, which resolve
+     * their user themselves.
+     */
+    public static function refuses(mixed $user): bool
+    {
+        return (bool) config('auth.verified_email_required', true)
+            && $user instanceof User
+            && ! $user->hasVerifiedEmail();
+    }
+
+    /**
+     * The JSON answer for a refused account: 403 ERR_REG_003.
+     */
+    public static function refusal(): JsonResponse
+    {
+        return ErrorResponse::make('ERR_REG_003', null, ['reason' => 'EMAIL_NOT_VERIFIED']);
     }
 
     /**
@@ -106,8 +128,15 @@ final class EnsureVerifiedEmail
             [$class, $parameters] = array_pad(explode(':', $middleware, 2), 2, '');
 
             if ($class === AttemptAuthentication::class) {
+                // The schema's @guard directives use the sanctum guard, which
+                // AttemptAuthentication does not try while lighthouse.guards
+                // is null, so check it as well.
                 $configured = config('lighthouse.guards');
-                $guards = array_merge($guards ?? [], is_array($configured) && $configured !== [] ? array_values(array_map('strval', $configured)) : [null]);
+                $guards = array_merge(
+                    $guards ?? [],
+                    is_array($configured) && $configured !== [] ? array_values(array_map('strval', $configured)) : [null],
+                    ['sanctum'],
+                );
 
                 continue;
             }

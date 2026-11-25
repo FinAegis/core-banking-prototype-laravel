@@ -179,6 +179,61 @@ describe('API routes for an unverified account', function (): void {
     });
 });
 
+describe('API keys of an unverified account', function (): void {
+    it('refuses an API key whose owner has not verified the email', function (): void {
+        $plain = App\Models\ApiKey::createForUser(pueUnverifiedUser(), ['name' => 'probe', 'permissions' => ['read']])['plain_key'];
+
+        $this->withHeader('Authorization', 'Bearer ' . $plain)
+            ->getJson('/api/v2/profile')
+            ->assertForbidden()
+            ->assertJsonPath('error.code', 'ERR_REG_003');
+    });
+
+    it('refuses a Sanctum token of an unverified account on the API-key-or-token routes', function (): void {
+        $token = pueUnverifiedUser()->createToken('probe', ['read', 'write', 'delete'])->plainTextToken;
+
+        $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->getJson('/api/v2/profile')
+            ->assertForbidden()
+            ->assertJsonPath('error.code', 'ERR_REG_003');
+    });
+
+    it('serves an API key of a verified account', function (): void {
+        $plain = App\Models\ApiKey::createForUser(User::factory()->create(), ['name' => 'ok', 'permissions' => ['read']])['plain_key'];
+
+        $this->withHeader('Authorization', 'Bearer ' . $plain)
+            ->getJson('/api/v2/profile')
+            ->assertOk();
+    });
+});
+
+describe('GraphQL for an unverified account', function (): void {
+    it('refuses a Sanctum user whose email is not verified', function (): void {
+        Sanctum::actingAs(pueUnverifiedUser(), ['read', 'write', 'delete']);
+
+        $this->postJson('/graphql', ['query' => '{ accounts(first: 1) { data { id } } }'])
+            ->assertForbidden()
+            ->assertJsonPath('error.code', 'ERR_REG_003');
+    });
+
+    it('refuses a real bearer token of an unverified account', function (): void {
+        $token = pueUnverifiedUser()->createToken('probe', ['read', 'write', 'delete'])->plainTextToken;
+
+        $this->withHeader('Authorization', 'Bearer ' . $token)->postJson('/graphql', ['query' => '{ accounts(first: 1) { data { id } } }'])
+            ->assertForbidden()
+            ->assertJsonPath('error.code', 'ERR_REG_003');
+    });
+
+    it('serves a verified Sanctum user', function (): void {
+        Sanctum::actingAs(User::factory()->create(), ['read', 'write', 'delete']);
+
+        $response = $this->postJson('/graphql', ['query' => '{ accounts(first: 1) { data { id } } }']);
+
+        $response->assertOk();
+        expect($response->json('data.accounts'))->not->toBeNull();
+    });
+});
+
 describe('admin invitation', function (): void {
     it('counts the emailed invitation link as proof of the address', function (): void {
         $invitation = UserInvitation::query()->create([
