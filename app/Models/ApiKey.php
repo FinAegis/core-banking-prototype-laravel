@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -33,6 +35,11 @@ use Illuminate\Support\Str;
 class ApiKey extends Model
 {
     use HasFactory;
+
+    /**
+     * Request attribute set once this request's use of the key is counted.
+     */
+    public const USAGE_RECORDED_ATTRIBUTE = 'api_key_usage_recorded';
 
     protected $fillable = [
         'uuid',
@@ -157,9 +164,9 @@ class ApiKey extends Model
             )
             ->first();
 
+        // Looking a key up is not a use of it: the auth middleware records
+        // usage once the request is accepted.
         if ($apiKey && Hash::check($plainKey, $apiKey->key_hash)) {
-            $apiKey->recordUsage(request()->ip() ?? '127.0.0.1');
-
             return $apiKey;
         }
 
@@ -351,17 +358,38 @@ class ApiKey extends Model
     }
 
     /**
-     * Record API key usage.
+     * Record one accepted request. The count is raised in the database, so
+     * concurrent requests never lose one.
      */
     public function recordUsage(string $ip): void
     {
-        $this->update(
-            [
-            'last_used_at'  => now(),
+        $now = now();
+
+        static::query()->whereKey($this->getKey())->update([
+            'last_used_at'  => $now,
             'last_used_ip'  => $ip,
-            'request_count' => $this->request_count + 1,
-            ]
-        );
+            'request_count' => DB::raw('request_count + 1'),
+        ]);
+
+        $this->forceFill([
+            'last_used_at'  => $now,
+            'last_used_ip'  => $ip,
+            'request_count' => (int) $this->request_count + 1,
+        ])->syncOriginal();
+    }
+
+    /**
+     * Record usage once per request, even when the request passes the key
+     * check more than once (the v2 group checks read, a route can add write).
+     */
+    public function recordUsageOnce(Request $request): void
+    {
+        if ($request->attributes->get(self::USAGE_RECORDED_ATTRIBUTE) === $this->getKey()) {
+            return;
+        }
+
+        $this->recordUsage((string) ($request->ip() ?? '127.0.0.1'));
+        $request->attributes->set(self::USAGE_RECORDED_ATTRIBUTE, $this->getKey());
     }
 
     /**

@@ -72,8 +72,7 @@ class AuthenticateApiKey
             return EnsureVerifiedEmail::refusal();
         }
 
-        // Record usage
-        $apiKey->recordUsage($request->ip());
+        $apiKey->recordUsageOnce($request);
 
         // Add API key and user to request
         $request->merge(['api_key' => $apiKey]);

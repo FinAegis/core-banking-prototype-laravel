@@ -178,3 +178,38 @@ it('shows the current limits and pinned accounts on the key page', function (): 
     $unpinned = ApiKey::createForUser($this->owner, ['name' => 'k2', 'permissions' => ['read']])['api_key'];
     $this->get(route('api-keys.show', $unpinned))->assertOk()->assertSee('All of your accounts.');
 });
+
+it('refuses a per-transfer limit above the daily limit', function (array $limits): void {
+    $this->post(route('api-keys.store'), akmfForm($limits))
+        ->assertSessionHasErrors(['transfer_limit' => 'The limit for one transfer cannot be more than the daily limit.']);
+
+    expect(ApiKey::query()->where('user_uuid', $this->owner->uuid)->count())->toBe(0);
+})->with([
+    'both set'         => [['transfer_limit' => '1500', 'daily_limit' => '1000']],
+    'daily left empty' => [['transfer_limit' => '6000', 'daily_limit' => '']],
+]);
+
+it('accepts a daily limit below the standard per-transfer limit when no per-transfer limit is entered', function (): void {
+    $this->post(route('api-keys.store'), akmfForm(['transfer_limit' => '', 'daily_limit' => '500']))
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    expect(akmfLatestKey($this->owner)->daily_limit)->toBe('500.00');
+});
+
+it('accepts a per-transfer limit equal to the daily limit', function (): void {
+    $this->post(route('api-keys.store'), akmfForm(['transfer_limit' => '800', 'daily_limit' => '800.00']))
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    expect(akmfLatestKey($this->owner)->transfer_limit)->toBe('800.00');
+});
+
+it('refuses a per-transfer limit above the daily limit on edit too', function (): void {
+    $key = ApiKey::createForUser($this->owner, ['name' => 'edit me', 'permissions' => ['read']])['api_key'];
+
+    $this->put(route('api-keys.update', $key), akmfForm(['transfer_limit' => '300', 'daily_limit' => '200']))
+        ->assertSessionHasErrors('transfer_limit');
+
+    expect($key->fresh()->transfer_limit)->toBeNull();
+});

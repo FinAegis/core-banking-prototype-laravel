@@ -92,8 +92,7 @@ class AuthenticateApiOrSanctum
             return EnsureVerifiedEmail::refusal();
         }
 
-        // Record usage
-        $apiKey->recordUsage($request->ip());
+        $apiKey->recordUsageOnce($request);
 
         $request->attributes->set(self::API_KEY_ATTRIBUTE, $apiKey);
 
