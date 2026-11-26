@@ -3252,6 +3252,17 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 
 ---
 
+## Version 7.18.7 — Batch Transfers Checked, Files in the Backup (November 2026)
+
+**Theme**: Batch transfers check ownership and move exact money once, and they stay off in production; the nightly backup also holds the stored report files; API keys are counted once and read-only keys cannot change anything.
+
+### Delivered Features
+- **Batch transfer ownership and exact amounts:** every item is checked like a single transfer and booked once; `BATCH_PROCESSING_ENABLED` is off by default in production (#1285).
+- **Stored files in the nightly backup:** regulatory and reconciliation reports, contracts and public uploads go into the encrypted archive (#1286).
+- **API key usage and write checks:** one count per request, write permission on every v2 route that changes something, and the per-transfer limit kept within the daily limit (#1287).
+
+---
+
 ## Version 7.18.6 — Backups Off the Server, Limits for API Keys (November 2026)
 
 **Theme**: The nightly database backup leaves the server encrypted, API keys move money only within their owner's limits, and the demo AI endpoints are closed in production.
@@ -3555,5 +3566,5 @@ Embeddable JS widget that renders Zelta's 402 payment flow inside the partner's 
 
 ---
 
-*Document Version: 7.18.6*
-*Updated: November 26, 2026 (v7.18.6 off-server encrypted backups, API key money limits, AI endpoints closed in production)*
+*Document Version: 7.18.7*
+*Updated: November 26, 2026 (v7.18.7 batch transfers checked and off in production, stored files in the backup, API key usage and write checks)*

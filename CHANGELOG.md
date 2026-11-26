@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 >
 > Entries below describe software changes. Named third-party providers are integration adapters for third-party APIs; no partnership or endorsement implied. Mentions of the Global Currency Unit (GCU) refer to a software demonstration that is not issued, offered or sold to anyone and has no monetary value.
 
+## [7.18.7] - 2026-11-26
+
+**Batch transfers checked and off in production, files in the backup, API keys tightened.** Batch transfers now check who owns the money and move exact amounts once, and they are switched off on zelta.app. The nightly backup now also holds the reports and uploads stored as files. API key use is counted once per request, and a key that may only read can no longer change anything.
+
+### Security
+- Batch transfers check that the user owns every source account, as single transfers do. Each item counts against the same transfer limits and moves its exact amount once, even when a step is retried. Before this change batches could not run at all, but the fix for that alone would have let anyone spend from any account. `BATCH_PROCESSING_ENABLED` switches batches off, and it is off by default in production: the web pages answer 404, the GraphQL `createBatchJob` mutation is refused, and a batch queued earlier moves no money (#1285).
+- Six v2 routes that change something now need write permission: starting an identity check, uploading identity documents and selfies, requesting an AML screening, and connecting, syncing or disconnecting a bank. Before, a read-only API key could call them. A test now fails if a route in the read group changes something without asking for more (#1287).
+
+### Fixed
+- An API key was counted up to four times per request, and also on requests it was refused on. It is now counted once, after the key is accepted, and the count is raised in the database (#1287).
+- The API key form refuses a per-transfer limit above the daily limit (#1287).
+
+### Changed
+- The nightly backup now also holds the regulatory and reconciliation reports, generated contracts and public uploads stored under `storage/app`, encrypted in the same archive as the database. Short-lived identity documents and personal data exports are left out on purpose (#1286).
+
 ## [7.18.6] - 2026-11-26
 
 **Backups off the server, and limits for API keys.** Every night the database backup is now encrypted and sent to storage outside the server. API keys can only move money within limits that their owner sets. The demo AI endpoints are closed in production, and the passkey libraries are updated.
