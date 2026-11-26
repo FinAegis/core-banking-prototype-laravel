@@ -25,12 +25,27 @@ return [
                 /*
                  * The list of directories and files that will be included in the backup.
                  *
-                 * Intentionally empty: this platform is event-sourced, so the
-                 * database IS the ledger. The scheduled job runs
-                 * `backup:run --only-db` (routes/console.php) — file backups
-                 * are a deploy-artifact concern, not a data-recovery one.
+                 * The database is the ledger (event-sourced), but some records
+                 * exist only as files: regulatory reports, daily reconciliation
+                 * reports, generated contracts and user uploads on the public
+                 * disk (avatars). The nightly `backup:run` (routes/console.php)
+                 * puts them in the same encrypted archive as the dump.
+                 *
+                 * Left out on purpose: kyc-temp and gdpr-exports (short-lived
+                 * copies of identity documents and personal data exports, which
+                 * a backup would keep for months), livewire-tmp and backup-temp
+                 * (scratch), the old local backup folder named after APP_NAME,
+                 * and apple and circuits (shipped in the repository).
+                 *
+                 * A new folder that holds records nobody can regenerate must be
+                 * added here. Folders that do not exist are skipped.
                  */
-                'include' => [],
+                'include' => [
+                    storage_path('app/regulatory'),
+                    storage_path('app/reconciliation'),
+                    storage_path('app/contracts'),
+                    storage_path('app/public'),
+                ],
 
                 /*
                  * These directories and files will be excluded from the backup.
@@ -58,7 +73,7 @@ return [
                  * Set to `null` to include complete absolute path
                  * Example: base_path()
                  */
-                'relative_path' => null,
+                'relative_path' => base_path(),
             ],
 
             /*

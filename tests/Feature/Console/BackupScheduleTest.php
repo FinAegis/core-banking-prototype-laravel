@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule;
+use Spatie\Backup\Tasks\Backup\FileSelection;
 
 /**
- * The 15-minute RPO claim is only as real as the scheduled job behind it.
- * These tests pin the spatie/laravel-backup wiring: the nightly DB-only
- * backup + retention cleanup must stay registered, production-gated, and
- * DB-only (the event store is the ledger; files are deploy artifacts).
+ * The RPO claim is only as real as the scheduled job behind it. These tests
+ * pin the spatie/laravel-backup wiring: the nightly backup and the retention
+ * cleanup must stay registered and production-gated. The backup holds the
+ * database (the event store is the ledger) and the files the app writes that
+ * exist nowhere else: regulatory reports, reconciliation reports, contracts
+ * and user uploads on the public disk.
  */
 function backupScheduleEvent(string $needle): Event
 {
@@ -26,10 +29,11 @@ function backupScheduleEvent(string $needle): Event
     return $match;
 }
 
-it('registers backup:run --only-db daily at 01:30 UTC, production-only', function (): void {
+it('registers backup:run with files daily at 01:30 UTC, production-only', function (): void {
     $event = backupScheduleEvent('backup:run');
 
-    expect($event->command)->toContain('--only-db');
+    expect($event->command)->not->toContain('--only-db');
+    expect($event->command)->not->toContain('--only-files');
     expect($event->expression)->toBe('30 1 * * *');
     expect($event->timezone)->toBe('UTC');
     expect($event->environments)->toBe(['production']);
@@ -43,11 +47,65 @@ it('registers backup:clean daily at 02:30 UTC, production-only', function (): vo
     expect($event->environments)->toBe(['production']);
 });
 
-it('configures DB-only backups (no file sources)', function (): void {
-    expect(config('backup.backup.source.files.include'))->toBe([]);
+it('backs up the database and the stored report, contract and upload folders', function (): void {
+    expect(config('backup.backup.source.files.include'))->toBe([
+        storage_path('app/regulatory'),
+        storage_path('app/reconciliation'),
+        storage_path('app/contracts'),
+        storage_path('app/public'),
+    ]);
 
     $databases = config('backup.backup.source.databases');
     expect($databases)->toBeArray()->not->toBeEmpty();
+});
+
+it('selects the stored files and leaves out temporary files and old local backups', function (): void {
+    $marker = 'backup-selection-' . bin2hex(random_bytes(4));
+    $keep = [
+        storage_path("app/regulatory/{$marker}.json"),
+        storage_path("app/reconciliation/{$marker}.json"),
+        storage_path("app/contracts/{$marker}.pdf"),
+        storage_path("app/public/avatars/{$marker}.png"),
+    ];
+    $skip = [
+        storage_path("app/Zelta/{$marker}.zip"),
+        storage_path("app/backup-temp/{$marker}.sql"),
+        storage_path("app/kyc-temp/{$marker}.jpg"),
+        storage_path("app/gdpr-exports/{$marker}.json.enc"),
+        storage_path("app/livewire-tmp/{$marker}.tmp"),
+        storage_path("framework/cache/{$marker}"),
+    ];
+
+    $made = [];
+    foreach ([...$keep, ...$skip] as $file) {
+        $dir = dirname($file);
+        if (! is_dir($dir)) {
+            mkdir($dir, 0775, true);
+            $made[] = $dir;
+        }
+        file_put_contents($file, 'x');
+    }
+
+    try {
+        $files = config('backup.backup.source.files');
+        $selected = collect(iterator_to_array(
+            FileSelection::create($files['include'])->excludeFilesFrom($files['exclude'])->selectedFiles(),
+            false,
+        ))->filter(fn (string $path): bool => str_contains($path, $marker))->sort()->values()->all();
+
+        expect($selected)->toBe(collect($keep)->sort()->values()->all());
+    } finally {
+        foreach ([...$keep, ...$skip] as $file) {
+            @unlink($file);
+        }
+        foreach (array_reverse($made) as $dir) {
+            @rmdir($dir);
+        }
+    }
+});
+
+it('stores the files in the zip under paths relative to the app root', function (): void {
+    expect(config('backup.backup.source.files.relative_path'))->toBe(base_path());
 });
 
 it('routes the backup destination through BACKUP_DISK with a local default', function (): void {

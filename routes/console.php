@@ -406,22 +406,24 @@ Schedule::command('fincard:reconcile-balances')
     ->appendOutputTo(storage_path('logs/fincard-reconcile.log'))
     ->withoutOverlapping();
 
-// Nightly database backup (spatie/laravel-backup, DB-only — for an
-// event-sourced platform the event store IS the ledger). Destination disk is
-// BACKUP_DISK (default `local`; production must point it at s3 — see
-// docs/10-OPERATIONS/PRODUCTION_READINESS_CHECKLIST.md §9). Production-only:
+// Nightly backup (spatie/laravel-backup): the database dump (the event store
+// is the ledger) plus the stored files listed in config/backup.php
+// (regulatory and reconciliation reports, contracts, public uploads), in one
+// archive encrypted with BACKUP_ARCHIVE_PASSWORD. Destination disk is
+// BACKUP_DISK (default `local`; production must point it at an off-server
+// disk — see docs/10-OPERATIONS/PRODUCTION_READINESS_CHECKLIST.md). Production-only:
 // dev/demo boxes don't need nightly dumps and lack the bucket credentials.
 // Failures hit Log::critical, which reaches Slack via the LOG stack when
 // LOG_SLACK_WEBHOOK_URL is set (PR #1133).
-Schedule::command('backup:run --only-db')
+Schedule::command('backup:run')
     ->dailyAt('01:30')
     ->timezone('UTC')
     ->environments(['production'])
-    ->description('Nightly DB-only backup to the BACKUP_DISK destination (spatie/laravel-backup)')
+    ->description('Nightly database and stored-files backup to the BACKUP_DISK destination (spatie/laravel-backup)')
     ->appendOutputTo(storage_path('logs/backup-run.log'))
     ->withoutOverlapping()
     ->onFailure(function () {
-        Log::critical('backup:run failed — nightly database backup did not complete. The stated RPO is unbacked until this is fixed.');
+        Log::critical('backup:run failed — nightly database and files backup did not complete. The stated RPO is unbacked until this is fixed.');
     });
 
 // Prune old backups per the retention strategy in config/backup.php

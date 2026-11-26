@@ -693,7 +693,7 @@ class OpsVerifyEnvCommand extends Command
 
     /**
      * Backup destination sanity. Cheap config checks only: the nightly
-     * `backup:run --only-db` job (routes/console.php) writes to the disks in
+     * `backup:run` job (routes/console.php) writes to the disks in
      * backup.backup.destination.disks. Backups must live on another server,
      * so in production (or with --strict) these FAIL the gate: no disk off
      * the box (every disk uses the local driver), an off-server disk without
@@ -782,7 +782,7 @@ class OpsVerifyEnvCommand extends Command
         }
 
         $this->add(self::CATEGORY_CONDITIONAL, 'backup.destination', self::PASS, sprintf(
-            'Nightly DB backup is encrypted and written off the server to disk(s): %s.',
+            'Nightly backup (database and stored files) is encrypted and written off the server to disk(s): %s.',
             implode(', ', array_keys($offServer)),
         ));
     }
