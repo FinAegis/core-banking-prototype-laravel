@@ -709,8 +709,8 @@ php artisan reconciliation:daily --force
 
 ### Backup Verification
 
-> Scheduled DB backups run via **spatie/laravel-backup**: `backup:run --only-db`
-> daily at 01:30 UTC and `backup:clean` at 02:30 UTC (`routes/console.php`,
+> Scheduled backups run via **spatie/laravel-backup**: `backup:run` (the database
+> dump plus the stored files listed in `config/backup.php`) daily at 01:30 UTC and `backup:clean` at 02:30 UTC (`routes/console.php`,
 > production-only, `Log::critical` on failure → Slack via the LOG stack).
 > There is no `backup:verify` command — the real commands are:
 >
@@ -737,6 +737,12 @@ docker run -d --name finaegis-restore-test -e MYSQL_ROOT_PASSWORD=restore-test -
 #    (spatie zips contain db-dumps/mysql-<database>.sql, AES-256 encrypted
 #    with BACKUP_ARCHIVE_PASSWORD), then restore:
 7z e -so -p"$BACKUP_ARCHIVE_PASSWORD" latest_backup.zip 'db-dumps/*.sql' | mysql -h localhost -P 3307 -u root -p
+
+#    The same zip holds the stored files under storage/app/ (regulatory,
+#    reconciliation, contracts, public). Check they open:
+7z l -p"$BACKUP_ARCHIVE_PASSWORD" latest_backup.zip 'storage/app/*'
+#    To restore them on a rebuilt server, extract into the app root:
+#    7z x -p"$BACKUP_ARCHIVE_PASSWORD" latest_backup.zip 'storage/app/*' -o/srv/zelta
 
 # 3. Run verification queries against the restored copy (manual SQL — adjust to your data):
 #    confirm row counts and the latest transaction timestamp look sane, then spot-check
