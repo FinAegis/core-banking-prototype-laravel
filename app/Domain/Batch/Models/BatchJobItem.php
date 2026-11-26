@@ -75,6 +75,17 @@ class BatchJobItem extends Model
     }
 
     /**
+     * The item type (transfer, payment) kept in the item data; the table has
+     * no type column. The batch views and the CSV export read it.
+     */
+    public function getTypeAttribute(): ?string
+    {
+        $type = is_array($this->data) ? ($this->data['type'] ?? null) : null;
+
+        return is_string($type) ? $type : null;
+    }
+
+    /**
      * Check if the item is pending.
      */
     public function isPending(): bool

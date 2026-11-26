@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Domain\Batch\Models\BatchItem;
 use App\Domain\Batch\Models\BatchJob;
 use App\Domain\Batch\Services\BatchProcessingService;
+use App\Domain\Batch\Services\BatchTransferGuard;
 use App\Models\User;
-use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use InvalidArgumentException;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(
@@ -125,65 +124,34 @@ class BatchProcessingController extends Controller
     {
         $validated = $request->validate(
             [
-                'name'                 => 'required|string|max:255',
-                'type'                 => 'required|in:transfer,payment,conversion',
-                'schedule_at'          => 'nullable|date|after:now',
-                'items'                => 'required|array|min:1',
-                'items.*.from_account' => 'required_if:type,transfer|uuid',
-                'items.*.to_account'   => 'required_if:type,transfer|uuid',
-                'items.*.amount'       => 'required|numeric|min:0.01',
-                'items.*.currency'     => 'required|string|size:3',
-                'items.*.description'  => 'nullable|string|max:255',
-            ]
+                'name'        => 'required|string|max:255',
+                'type'        => 'required|in:transfer,payment',
+                'schedule_at' => 'nullable|date|after:now',
+                'items'       => 'required|array|min:1|max:' . BatchTransferGuard::MAX_ITEMS,
+            ],
+            ['type.in' => 'Batches can only hold transfers and payments.']
         );
 
-        DB::beginTransaction();
-        try {
-            // Create batch job
-            $batchJob = BatchJob::create(
-                [
-                    'uuid'            => Str::uuid(),
-                    'user_uuid'       => Auth::user()->uuid,
-                    'name'            => $validated['name'],
-                    'type'            => $validated['type'],
-                    'status'          => 'pending',
-                    'total_items'     => count($validated['items']),
-                    'processed_items' => 0,
-                    'failed_items'    => 0,
-                    'scheduled_at'    => $validated['schedule_at'] ?? now(),
-                ]
-            );
+        /** @var User $user */
+        $user = Auth::user();
 
-            // Create batch items
-            foreach ($validated['items'] as $index => $item) {
-                BatchItem::create(
-                    [
-                        'batch_job_id' => $batchJob->id,
-                        'sequence'     => $index + 1,
-                        'type'         => $validated['type'],
-                        'status'       => 'pending',
-                        'data'         => $item,
-                    ]
-                );
-            }
+        /** @var array<mixed> $items */
+        $items = $request->input('items', []);
 
-            DB::commit();
+        // The service checks every item as a single transfer is checked (403
+        // for another user's source account, 422 for an invalid item) and
+        // counts each item against the user's transfer limits (429).
+        $batchJob = $this->batchService->createBatchJob(
+            userUuid: (string) $user->uuid,
+            name: $validated['name'],
+            type: $validated['type'],
+            items: $items,
+            scheduledAt: $validated['schedule_at'] ?? null,
+        );
 
-            // Queue for processing if not scheduled
-            if (! isset($validated['schedule_at'])) {
-                $this->batchService->processBatch($batchJob);
-            }
-
-            return redirect()
-                ->route('batch-processing.show', $batchJob)
-                ->with('success', 'Batch job created successfully');
-        } catch (Exception $e) {
-            DB::rollBack();
-
-            return back()
-                ->withInput()
-                ->withErrors(['error' => 'Failed to create batch job: ' . $e->getMessage()]);
-        }
+        return redirect()
+            ->route('batch-processing.show', $batchJob)
+            ->with('success', 'Batch job created successfully');
     }
 
         #[OA\Get(
@@ -259,12 +227,14 @@ class BatchProcessingController extends Controller
             return back()->withErrors(['error' => 'Cannot cancel this batch job']);
         }
 
-        $batchJob->update(['status' => 'cancelled']);
-
-        // Cancel all pending items
-        $batchJob->items()
-            ->where('status', 'pending')
-            ->update(['status' => 'cancelled']);
+        // Through the batch aggregate, so the workflow sees the cancellation
+        // and moves no money for the items it has not reached yet. Its
+        // projector marks the batch and its pending items cancelled.
+        try {
+            $this->batchService->cancelBatchJob((string) $batchJob->uuid, 'Cancelled by the user');
+        } catch (InvalidArgumentException) {
+            return back()->withErrors(['error' => 'Cannot cancel this batch job']);
+        }
 
         return back()->with('success', 'Batch job cancelled');
     }
@@ -295,35 +265,17 @@ class BatchProcessingController extends Controller
             abort(403);
         }
 
-        $failedItems = $batchJob->items()->where('status', 'failed')->count();
+        // The failed items run again as a new batch, with the same checks and
+        // limits as any new batch. A failed item moved no money.
+        $retry = $this->batchService->retryFailedItems((string) $batchJob->uuid);
 
-        if ($failedItems === 0) {
+        if ($retry === null) {
             return back()->withErrors(['error' => 'No failed items to retry']);
         }
 
-        // Reset failed items
-        $batchJob->items()
-            ->where('status', 'failed')
-            ->update(
-                [
-                    'status'        => 'pending',
-                    'error_message' => null,
-                    'processed_at'  => null,
-                ]
-            );
-
-        // Update batch job
-        $batchJob->update(
-            [
-                'status'       => 'processing',
-                'failed_items' => 0,
-            ]
-        );
-
-        // Queue for reprocessing
-        $this->batchService->processBatch($batchJob);
-
-        return back()->with('success', "Retrying {$failedItems} failed items");
+        return redirect()
+            ->route('batch-processing.show', $retry)
+            ->with('success', "Retrying {$retry->total_items} failed items");
     }
 
         #[OA\Get(
@@ -470,13 +422,6 @@ class BatchProcessingController extends Controller
                 'description' => 'Bulk payments to suppliers and vendors',
                 'type'        => 'payment',
                 'icon'        => 'shopping-cart',
-            ],
-            [
-                'id'          => 'currency_conversion',
-                'name'        => 'Currency Conversion',
-                'description' => 'Bulk currency conversion operations',
-                'type'        => 'conversion',
-                'icon'        => 'refresh',
             ],
             [
                 'id'          => 'dividend_distribution',

@@ -43,6 +43,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Batch processing (demo feature)
+    |--------------------------------------------------------------------------
+    |
+    | Bulk transfers and payments from the web /batch-processing pages and
+    | the GraphQL createBatchJob mutation. Zelta does not offer batches.
+    | While off, the web routes answer 404, createBatchJob returns "This
+    | operation is not available." and the batch item activity refuses to
+    | move money, so a batch queued earlier cannot pay.
+    | Secure by default: on only for APP_ENV=local, testing or demo; every
+    | other value (production, staging, unset) turns it off. An explicit
+    | BATCH_PROCESSING_ENABLED value always wins.
+    |
+    */
+    'batch_processing_enabled' => (bool) env('BATCH_PROCESSING_ENABLED', in_array(env('APP_ENV', 'production'), ['local', 'testing', 'demo'], true)),
+
+    /*
+    |--------------------------------------------------------------------------
     | Web wallet card deposits (Stripe / HyperSwitch)
     |--------------------------------------------------------------------------
     |

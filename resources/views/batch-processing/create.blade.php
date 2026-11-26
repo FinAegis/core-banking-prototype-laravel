@@ -42,7 +42,6 @@
                                     <option value="">Select Type</option>
                                     <option value="transfer" {{ old('type', $template['type'] ?? '') === 'transfer' ? 'selected' : '' }}>Transfer</option>
                                     <option value="payment" {{ old('type', $template['type'] ?? '') === 'payment' ? 'selected' : '' }}>Payment</option>
-                                    <option value="conversion" {{ old('type', $template['type'] ?? '') === 'conversion' ? 'selected' : '' }}>Currency Conversion</option>
                                 </select>
                                 @error('type')
                                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
