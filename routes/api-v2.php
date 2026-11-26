@@ -207,14 +207,17 @@ Route::middleware(['auth.api_or_sanctum:read'])->group(function () {
     // Compliance and KYC/AML
     Route::prefix('compliance')->group(function () {
         Route::get('/kyc/status', [ComplianceController::class, 'getKycStatus']);
-        Route::post('/kyc/start', [ComplianceController::class, 'startVerification']);
-        Route::post('/kyc/{verificationId}/document', [ComplianceController::class, 'uploadDocument']);
-        Route::post('/kyc/{verificationId}/selfie', [ComplianceController::class, 'uploadSelfie']);
+        // Starting a check and uploading documents change the user's
+        // records, so they need write permission (the group only checks read).
+        Route::post('/kyc/start', [ComplianceController::class, 'startVerification'])->middleware('auth.api_or_sanctum:write');
+        Route::post('/kyc/{verificationId}/document', [ComplianceController::class, 'uploadDocument'])->middleware('auth.api_or_sanctum:write');
+        Route::post('/kyc/{verificationId}/selfie', [ComplianceController::class, 'uploadSelfie'])->middleware('auth.api_or_sanctum:write');
 
         Route::get('/aml/status', [ComplianceController::class, 'getScreeningStatus']);
-        Route::post('/aml/request-screening', [ComplianceController::class, 'requestScreening']);
+        Route::post('/aml/request-screening', [ComplianceController::class, 'requestScreening'])->middleware('auth.api_or_sanctum:write');
 
         Route::get('/risk-profile', [ComplianceController::class, 'getRiskProfile']);
+        // A question with a body; it stores nothing, so read is enough.
         Route::post('/check-transaction', [ComplianceController::class, 'checkTransactionEligibility']);
     });
 
@@ -227,12 +230,12 @@ Route::middleware(['auth.api_or_sanctum:read'])->group(function () {
 
             // User bank connections
             Route::get('/connections', [BankIntegrationController::class, 'getUserConnections']);
-            Route::post('/connect', [BankIntegrationController::class, 'connectBank']);
-            Route::delete('/disconnect/{bankCode}', [BankIntegrationController::class, 'disconnectBank']);
+            Route::post('/connect', [BankIntegrationController::class, 'connectBank'])->middleware('auth.api_or_sanctum:write');
+            Route::delete('/disconnect/{bankCode}', [BankIntegrationController::class, 'disconnectBank'])->middleware('auth.api_or_sanctum:delete');
 
             // Bank accounts
             Route::get('/accounts', [BankIntegrationController::class, 'getBankAccounts']);
-            Route::post('/accounts/sync/{bankCode}', [BankIntegrationController::class, 'syncAccounts']);
+            Route::post('/accounts/sync/{bankCode}', [BankIntegrationController::class, 'syncAccounts'])->middleware('auth.api_or_sanctum:write');
 
             // Balances and transfers
             Route::get('/balance/aggregate', [BankIntegrationController::class, 'getAggregatedBalance']);

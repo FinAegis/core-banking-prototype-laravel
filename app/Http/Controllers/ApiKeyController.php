@@ -10,6 +10,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(
@@ -100,6 +101,7 @@ class ApiKeyController extends Controller
             ] + $this->moneyControlRules(Auth::user()),
             $this->moneyControlMessages(),
         );
+        $this->ensureTransferLimitWithinDailyLimit($validated);
 
         // Process expiration
         $expiresAt = null;
@@ -258,6 +260,7 @@ class ApiKeyController extends Controller
             ] + $this->moneyControlRules(Auth::user()),
             $this->moneyControlMessages(),
         );
+        $this->ensureTransferLimitWithinDailyLimit($validated);
 
         // Process IP whitelist
         $allowedIps = null;
@@ -438,6 +441,33 @@ class ApiKeyController extends Controller
             'allowed_account_uuids.array'    => 'You can only choose your own accounts.',
             'allowed_account_uuids.*.string' => 'You can only choose your own accounts.',
         ];
+    }
+
+    /**
+     * A per-transfer limit the owner entered cannot be more than the daily
+     * limit (the one entered, or the standard one when that is left empty).
+     *
+     * @param  array<string, mixed>  $validated
+     *
+     * @throws ValidationException
+     */
+    private function ensureTransferLimitWithinDailyLimit(array $validated): void
+    {
+        $transfer = DecimalString::fromNumeric($validated['transfer_limit'] ?? null, 2);
+
+        if ($transfer === null) {
+            return;
+        }
+
+        $daily = DecimalString::fromNumeric($validated['daily_limit'] ?? null, 2)
+            ?? DecimalString::fromNumeric(ApiKey::defaultDailyLimit(), 2)
+            ?? '0';
+
+        if (bccomp($transfer, $daily, 2) > 0) {
+            throw ValidationException::withMessages([
+                'transfer_limit' => 'The limit for one transfer cannot be more than the daily limit.',
+            ]);
+        }
     }
 
     /**
