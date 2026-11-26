@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Changelog | ' . config('brand.name', 'Zelta'),
-        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.18.6.',
+        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.18.7.',
         'keywords' => 'changelog, release notes, updates, ' . config('brand.name', 'Zelta') . ', version history, core banking',
     ])
 
@@ -43,6 +43,19 @@
 
             @php
                 $releases = [
+                    [
+                        'version' => 'v7.18.7',
+                        'date' => 'November 26, 2026',
+                        'label' => 'Tighter Checks',
+                        'label_color' => 'slate',
+                        'badge_color' => 'bg-slate-100 text-slate-700 border-slate-200',
+                        'dot_color' => 'bg-slate-500',
+                        'items' => [
+                            'Your stored reports are now in the nightly backup. They are encrypted together with the database and kept with a separate provider.',
+                            'API keys that may only read cannot change anything. Starting an identity check or uploading documents now needs a key that may write.',
+                            'API key usage is counted correctly. Each request now counts once on the key\'s page.',
+                        ],
+                    ],
                     [
                         'version' => 'v7.18.6',
                         'date' => 'November 26, 2026',
