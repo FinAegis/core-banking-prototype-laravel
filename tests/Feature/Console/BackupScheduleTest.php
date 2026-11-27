@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule;
+use Spatie\Backup\Tasks\Backup\DbDumperFactory;
 use Spatie\Backup\Tasks\Backup\FileSelection;
+use Spatie\DbDumper\Databases\MySql;
 
 /**
  * The RPO claim is only as real as the scheduled job behind it. These tests
@@ -124,3 +126,34 @@ it('keeps the package mail/slack notification channels off by default', function
         expect($channels)->toBe([], "Backup notification {$class} should not use mail/slack — alerting goes via Log::critical → LOG stack (Slack).");
     }
 });
+
+/*
+ * The nightly dump keeps every table's structure but skips the rows of the
+ * Pulse and Telescope monitoring tables. Those rows are short-lived request
+ * metrics, and they made up most of the uncompressed dump. The dump also runs
+ * in one consistent read so it never locks the live tables.
+ */
+dataset('backupConnections', ['mysql', 'mariadb']);
+
+it('dumps in one consistent read and skips only the monitoring table rows', function (string $connection): void {
+    config(["database.connections.{$connection}.database" => 'zelta']);
+
+    $dumper = DbDumperFactory::createFromConnection($connection);
+    expect($dumper)->toBeInstanceOf(MySql::class);
+    assert($dumper instanceof MySql);
+
+    $command = $dumper->getDumpCommand('dump.sql', 'credentials.cnf');
+
+    expect($command)->toContain('--single-transaction');
+    expect($command)->not->toContain('--ignore-table=');
+
+    preg_match_all('/--ignore-table-data=zelta\.(\w+)/', $command, $matches);
+    expect($matches[1])->toEqualCanonicalizing([
+        'pulse_aggregates',
+        'pulse_entries',
+        'pulse_values',
+        'telescope_entries',
+        'telescope_entries_tags',
+        'telescope_monitoring',
+    ]);
+})->with('backupConnections');

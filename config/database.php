@@ -2,6 +2,26 @@
 
 use Illuminate\Support\Str;
 
+/*
+ * How the nightly backup (spatie/laravel-backup) dumps MySQL and MariaDB.
+ * The dump runs in one consistent read, so it never locks the live tables.
+ * It keeps the structure of every table but skips the rows of the Pulse and
+ * Telescope monitoring tables: those rows are short-lived request metrics,
+ * and they made up most of the uncompressed dump. After a restore these
+ * tables are empty and fill again on their own.
+ */
+$backupDump = [
+    'useSingleTransaction' => true,
+    'exclude_tables_data'  => [
+        'pulse_aggregates',
+        'pulse_entries',
+        'pulse_values',
+        'telescope_entries',
+        'telescope_entries_tags',
+        'telescope_monitoring',
+    ],
+];
+
 return [
 
     /*
@@ -143,6 +163,7 @@ return [
             'options'        => extension_loaded('pdo_mysql') ? array_filter([
                 Pdo\Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
+            'dump' => $backupDump,
         ],
 
         'mariadb' => [
@@ -163,6 +184,7 @@ return [
             'options'        => extension_loaded('pdo_mysql') ? array_filter([
                 Pdo\Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
+            'dump' => $backupDump,
         ],
 
         'pgsql' => [
