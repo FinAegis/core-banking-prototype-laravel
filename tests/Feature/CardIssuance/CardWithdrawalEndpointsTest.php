@@ -439,9 +439,11 @@ it('does not count a cancelled withdrawal against the daily limits', function ()
 // ─── Estimate ──────────────────────────────────────────────────────────────
 
 it('estimates with a fee in US dollars, to the cent', function (): void {
+    // Set the clock before the card exists: wdCard() dates the address two
+    // days before "now", and moving the clock back afterwards made it look new.
+    $this->travelTo(Carbon\Carbon::parse('2026-11-25T12:00:00Z'));
     $card = wdCard();
     wdLepo();
-    $this->travelTo(Carbon\Carbon::parse('2026-11-25T12:00:00Z'));
 
     // (50.00 - 0.25) x 0.998 = 49.6505 USDC; less the 1.00 network fee = 48.6505, shown as 48.65.
     $this->getJson("/api/v1/cards/issued/{$card->id}/withdrawals/estimate?amount=50.00&network=arbitrum")->assertOk()->assertJsonPath('data', [
