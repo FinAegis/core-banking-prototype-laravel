@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Account\Models\TransactionProjection;
@@ -23,10 +24,11 @@ use App\Domain\Exchange\Services\ExchangeService;
 use App\Domain\MCP\Server\JsonRpcRouter;
 use App\Domain\MCP\Server\McpRequestContext;
 use App\Domain\MCP\Server\McpToolCatalog;
-use App\Domain\Payment\Services\TransferService;
 use App\Domain\SMS\Services\SmsPricingService;
 use App\Domain\SMS\Services\SmsSendBudget;
 use App\Domain\SMS\Services\SmsService;
+use App\Domain\Wallet\Workflows\WalletDepositWorkflow;
+use App\Domain\Wallet\Workflows\WalletWithdrawWorkflow;
 use App\Models\Agent;
 use App\Models\AgentApiKey;
 use App\Models\AgentSession;
@@ -39,6 +41,7 @@ use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 use Mockery\MockInterface;
 use Spatie\Permission\Models\Role;
+use Workflow\WorkflowStub;
 
 /*
 | GHSA-385w-q6j4-5qw6, Agent Protocol and MCP cluster:
@@ -581,12 +584,11 @@ describe('C59: MCP account tools are owner-only', function (): void {
         AccountBalance::query()->create(['account_uuid' => $account->uuid, 'asset_code' => 'USD', 'balance' => 100000]);
         $this->actingAs(ghsaAgentsUser('admin'));
 
-        $transfers = Mockery::mock(TransferService::class);
-        $transfers->shouldNotReceive('transfer');
+        WorkflowStub::fake();
         $exchange = Mockery::mock(ExchangeService::class);
         $exchange->shouldNotReceive('placeOrder');
 
-        $transfer = (new TransferTool($transfers))->execute([
+        $transfer = (new TransferTool())->execute([
             'from_account_uuid' => $account->uuid,
             'to_account_uuid'   => $destination->uuid,
             'amount'            => 10,
@@ -607,6 +609,7 @@ describe('C59: MCP account tools are owner-only', function (): void {
             ->and($trade->isSuccess())->toBeFalse()
             ->and($trade->getError())->toBe("Account not found: {$account->uuid}")
             ->and((int) AccountBalance::query()->where('account_uuid', $account->uuid)->value('balance'))->toBe(100000);
+        WorkflowStub::assertNothingDispatched();
     });
 
     it('lets the owner transfer from and trade on its own account', function (): void {
@@ -619,12 +622,13 @@ describe('C59: MCP account tools are owner-only', function (): void {
         AccountBalance::query()->create(['account_uuid' => $account->uuid, 'asset_code' => 'USD', 'balance' => 100000]);
         $this->actingAs($owner);
 
-        $transfers = Mockery::mock(TransferService::class);
-        $transfers->shouldReceive('transfer')->once();
+        WorkflowStub::fake();
+        WorkflowStub::mock(WalletWithdrawWorkflow::class, true);
+        WorkflowStub::mock(WalletDepositWorkflow::class, true);
         $exchange = Mockery::mock(ExchangeService::class);
         $exchange->shouldReceive('placeOrder')->once()->andReturn(['order_id' => 'order-1', 'status' => 'pending']);
 
-        $transfer = (new TransferTool($transfers))->execute([
+        $transfer = (new TransferTool())->execute([
             'from_account_uuid' => $account->uuid,
             'to_account_uuid'   => $destination->uuid,
             'amount'            => 10,
@@ -640,6 +644,7 @@ describe('C59: MCP account tools are owner-only', function (): void {
             'price'          => '1',
         ]);
 
+        WorkflowStub::assertDispatched(WalletWithdrawWorkflow::class, fn (AccountUuid $uuid, string $asset, int $units): bool => $uuid->getUuid() === $account->uuid && $units === 1000);
         expect($transfer->isSuccess())->toBeTrue()
             ->and($trade->isSuccess())->toBeTrue()
             ->and($trade->getData()['order_id'] ?? null)->toBe('order-1');

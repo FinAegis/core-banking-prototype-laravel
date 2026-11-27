@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace App\Domain\AI\MCP\Tools\Account;
 
+use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Services\AccountService;
 use App\Domain\AI\Contracts\MCPToolInterface;
 use App\Domain\AI\ValueObjects\ToolExecutionResult;
 use App\Domain\Asset\Models\Asset;
+use App\Domain\Asset\Workflows\AssetWithdrawWorkflow;
 use App\Support\DecimalString;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Workflow\WorkflowStub;
 
 class WithdrawTool implements MCPToolInterface
 {
@@ -91,6 +94,12 @@ class WithdrawTool implements MCPToolInterface
 
     public function execute(array $parameters, ?string $conversationId = null): ToolExecutionResult
     {
+        // A withdrawal takes money out of the ledger, so it follows the same
+        // switch as the REST withdraw endpoint (off in production).
+        if (! config('ledger.direct_funding_enabled')) {
+            return ToolExecutionResult::failure('This operation is not available.');
+        }
+
         try {
             $accountUuid = $parameters['account_uuid'];
             $amount = $parameters['amount'];
@@ -130,6 +139,9 @@ class WithdrawTool implements MCPToolInterface
             if ($amountInCents === null) {
                 return ToolExecutionResult::failure("The amount can have at most {$precision} decimal places for {$currency}.");
             }
+            if ($amountInCents <= 0) {
+                return ToolExecutionResult::failure('The amount must be more than zero.');
+            }
 
             // Check sufficient balance
             $currentBalance = $account->getBalance($currency);
@@ -143,12 +155,13 @@ class WithdrawTool implements MCPToolInterface
                 );
             }
 
-            // Use AccountService to trigger the withdrawal workflow
-            // This will handle event sourcing and domain events
-            $this->accountService->withdraw($accountUuid, [
-                'amount'   => $amountInCents,
-                'currency' => $currency,
-            ]);
+            // The same workflows as the REST withdraw endpoint.
+            if ($currency === 'USD') {
+                $this->accountService->withdraw($accountUuid, $amountInCents);
+            } else {
+                WorkflowStub::make(AssetWithdrawWorkflow::class)
+                    ->start(new AccountUuid($accountUuid), $currency, $amountInCents);
+            }
 
             // After workflow execution, get the new balance
             $newBalance = $account->fresh()?->getBalance($currency) ?? 0;

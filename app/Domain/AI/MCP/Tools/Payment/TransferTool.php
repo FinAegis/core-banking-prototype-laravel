@@ -4,22 +4,20 @@ declare(strict_types=1);
 
 namespace App\Domain\AI\MCP\Tools\Payment;
 
+use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\Models\Account;
 use App\Domain\AI\Contracts\MCPToolInterface;
 use App\Domain\AI\ValueObjects\ToolExecutionResult;
 use App\Domain\Asset\Models\Asset;
-use App\Domain\Payment\Services\TransferService;
+use App\Domain\Wallet\Workflows\WalletTransferWorkflow;
+use App\Support\DecimalString;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Workflow\WorkflowStub;
 
 class TransferTool implements MCPToolInterface
 {
-    public function __construct(
-        private readonly TransferService $transferService
-    ) {
-    }
-
     public function getName(): string
     {
         return 'payment.transfer';
@@ -83,16 +81,16 @@ class TransferTool implements MCPToolInterface
                 'transfer_id'            => ['type' => 'string'],
                 'from_account_uuid'      => ['type' => 'string'],
                 'to_account_uuid'        => ['type' => 'string'],
-                'amount'                 => ['type' => 'number'],
+                'amount'                 => ['type' => 'string', 'description' => 'Decimal string in the precision of the asset'],
                 'currency'               => ['type' => 'string'],
-                'from_new_balance'       => ['type' => 'number'],
-                'to_new_balance'         => ['type' => 'number'],
+                'from_new_balance'       => ['type' => 'string', 'description' => 'Decimal string in the precision of the asset'],
+                'to_new_balance'         => ['type' => 'string', 'description' => 'Decimal string in the precision of the asset'],
                 'formatted_from_balance' => ['type' => 'string'],
                 'formatted_to_balance'   => ['type' => 'string'],
                 'timestamp'              => ['type' => 'string'],
                 'reference'              => ['type' => 'string'],
                 'status'                 => ['type' => 'string'],
-                'fee'                    => ['type' => 'number'],
+                'fee'                    => ['type' => 'string', 'description' => 'No fee is charged, so this is always 0'],
             ],
         ];
     }
@@ -102,7 +100,7 @@ class TransferTool implements MCPToolInterface
         try {
             $fromAccountUuid = $parameters['from_account_uuid'];
             $toAccountUuid = $parameters['to_account_uuid'];
-            $amount = (float) $parameters['amount'];
+            $amount = $parameters['amount'];
             $currency = $parameters['currency'];
             $reference = $parameters['reference'] ?? null;
             $description = $parameters['description'] ?? null;
@@ -127,61 +125,62 @@ class TransferTool implements MCPToolInterface
                 return ToolExecutionResult::failure("Destination account not found: {$toAccountUuid}");
             }
 
-            // Validate currency/asset exists
+            if ($fromAccount->frozen) {
+                return ToolExecutionResult::failure('The source account is frozen.');
+            }
+            if ($toAccount->frozen) {
+                return ToolExecutionResult::failure('The destination account is frozen.');
+            }
+
             $asset = Asset::where('code', $currency)->first();
             if (! $asset) {
                 return ToolExecutionResult::failure("Invalid currency: {$currency}");
             }
 
-            // Convert amount to smallest unit (e.g., cents)
-            $amountInCents = (int) ($amount * 100);
+            // Exact minor units of the asset. An amount with more decimals
+            // than the asset has is refused, not rounded.
+            $precision = (int) $asset->precision;
+            $amountInMinorUnits = DecimalString::toMinorUnitsInt($amount, $precision);
+            if ($amountInMinorUnits === null) {
+                return ToolExecutionResult::failure("The amount can have at most {$precision} decimal places for {$currency}.");
+            }
+            if ($amountInMinorUnits <= 0) {
+                return ToolExecutionResult::failure('The amount must be more than zero.');
+            }
 
-            // Check sufficient balance
             $currentBalance = $fromAccount->getBalance($currency);
-            if ($currentBalance < $amountInCents) {
+            if ($currentBalance < $amountInMinorUnits) {
                 return ToolExecutionResult::failure(
-                    sprintf(
-                        'Insufficient balance. Available: %s %s',
-                        number_format($currentBalance / 100, 2),
-                        $currency
-                    )
+                    sprintf('Insufficient balance. Available: %s %s', $this->toMajorUnits($currentBalance, $precision), $currency)
                 );
             }
 
-            // Calculate fee (example: 0.1% of transfer amount, minimum 10 cents)
-            $fee = max(10, (int) ($amountInCents * 0.001));
+            // The same workflow as the REST transfer endpoint, for every asset.
+            WorkflowStub::make(WalletTransferWorkflow::class)->start(
+                new AccountUuid((string) $fromAccountUuid),
+                new AccountUuid((string) $toAccountUuid),
+                $currency,
+                $amountInMinorUnits,
+                $reference !== null ? (string) $reference : null
+            );
 
-            // Use TransferService to trigger the transfer workflow
-            // This will handle event sourcing and domain events
-            $this->transferService->transfer($fromAccountUuid, $toAccountUuid, [
-                'amount'   => $amountInCents,
-                'currency' => $currency,
-            ]);
-
-            // After workflow execution, get the new balances
             $fromNewBalance = $fromAccount->fresh()?->getBalance($currency) ?? 0;
             $toNewBalance = $toAccount->fresh()?->getBalance($currency) ?? 0;
 
-            $result = [
-                'transfer_id'      => \Illuminate\Support\Str::uuid()->toString(),
-                'from_new_balance' => $fromNewBalance,
-                'to_new_balance'   => $toNewBalance,
-            ];
-
             $response = [
-                'transfer_id'            => $result['transfer_id'],
+                'transfer_id'            => \Illuminate\Support\Str::uuid()->toString(),
                 'from_account_uuid'      => $fromAccountUuid,
                 'to_account_uuid'        => $toAccountUuid,
-                'amount'                 => $amount,
+                'amount'                 => $this->toMajorUnits($amountInMinorUnits, $precision),
                 'currency'               => $currency,
-                'from_new_balance'       => $result['from_new_balance'] / 100,
-                'to_new_balance'         => $result['to_new_balance'] / 100,
-                'formatted_from_balance' => $this->formatMoney($result['from_new_balance'], $currency),
-                'formatted_to_balance'   => $this->formatMoney($result['to_new_balance'], $currency),
+                'from_new_balance'       => $this->toMajorUnits($fromNewBalance, $precision),
+                'to_new_balance'         => $this->toMajorUnits($toNewBalance, $precision),
+                'formatted_from_balance' => $currency . ' ' . $this->toMajorUnits($fromNewBalance, $precision),
+                'formatted_to_balance'   => $currency . ' ' . $this->toMajorUnits($toNewBalance, $precision),
                 'timestamp'              => now()->toIso8601String(),
                 'reference'              => $reference,
                 'status'                 => 'completed',
-                'fee'                    => $fee / 100,
+                'fee'                    => '0',
             ];
 
             return ToolExecutionResult::success($response);
@@ -264,12 +263,11 @@ class TransferTool implements MCPToolInterface
         return true;
     }
 
-    private function formatMoney(float $amount, string $currency): string
+    /**
+     * Minor units back to a decimal string in the precision of the asset.
+     */
+    private function toMajorUnits(int $minor, int $precision): string
     {
-        // Simple money formatting
-        $decimals = in_array($currency, ['BTC', 'ETH']) ? 8 : 2;
-        $formatted = number_format($amount / 100, $decimals);
-
-        return $currency . ' ' . $formatted;
+        return bcdiv((string) $minor, bcpow('10', (string) $precision), $precision);
     }
 }
