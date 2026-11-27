@@ -734,9 +734,11 @@ php artisan backup:monitor
 docker run -d --name finaegis-restore-test -e MYSQL_ROOT_PASSWORD=restore-test -p 3307:3306 mysql:8.0
 
 # 2. Fetch the latest backup zip from the off-server BACKUP_DISK destination
-#    (spatie zips contain db-dumps/mysql-<database>.sql, AES-256 encrypted
+#    (spatie zips contain db-dumps/<driver>-<database>.sql, AES-256 encrypted
 #    with BACKUP_ARCHIVE_PASSWORD), then restore:
 7z e -so -p"$BACKUP_ARCHIVE_PASSWORD" latest_backup.zip 'db-dumps/*.sql' | mysql -h localhost -P 3307 -u root -p
+#    The Pulse and Telescope monitoring tables come back empty on purpose:
+#    the dump keeps their structure but not their rows.
 
 #    The same zip holds the stored files under storage/app/ (regulatory,
 #    reconciliation, contracts, public). Check they open:
