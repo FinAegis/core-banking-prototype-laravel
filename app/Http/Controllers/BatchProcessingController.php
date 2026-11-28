@@ -187,11 +187,14 @@ class BatchProcessingController extends Controller
             'success_rate' => $batchJob->total_items > 0
                 ? round((($batchJob->processed_items - $batchJob->failed_items) / $batchJob->total_items) * 100, 1)
                 : 0,
-            'avg_processing_time' => $batchJob->items()
-                ->whereNotNull('processed_at')
-                ->selectRaw('AVG(TIMESTAMPDIFF(SECOND, created_at, processed_at)) as avg_time')
-                ->toBase()
-                ->value('avg_time') ?? 0,
+            // Worked out from the loaded items rather than with MySQL's
+            // TIMESTAMPDIFF, so the page works on every database.
+            'avg_processing_time' => $batchJob->items
+                ->map(fn ($item): ?int => $item->processed_at !== null && $item->created_at !== null
+                    ? abs($item->processed_at->getTimestamp() - $item->created_at->getTimestamp())
+                    : null)
+                ->filter(fn (?int $seconds): bool => $seconds !== null)
+                ->avg() ?? 0,
         ];
 
         return view('batch-processing.show', compact('batchJob', 'stats'));
