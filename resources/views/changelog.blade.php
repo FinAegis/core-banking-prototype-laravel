@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Changelog | ' . config('brand.name', 'Zelta'),
-        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.18.7.',
+        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.18.8.',
         'keywords' => 'changelog, release notes, updates, ' . config('brand.name', 'Zelta') . ', version history, core banking',
     ])
 
@@ -43,6 +43,18 @@
 
             @php
                 $releases = [
+                    [
+                        'version' => 'v7.18.8',
+                        'date' => 'November 28, 2026',
+                        'label' => 'Steadier Limits',
+                        'label_color' => 'slate',
+                        'badge_color' => 'bg-slate-100 text-slate-700 border-slate-200',
+                        'dot_color' => 'bg-slate-500',
+                        'items' => [
+                            'Your transfer limits now hold when several transfers are sent at the same moment. Each transfer is counted before it is checked.',
+                            'The nightly backup is smaller and more reliable. It reads your data in one consistent pass and leaves out internal monitoring logs.',
+                        ],
+                    ],
                     [
                         'version' => 'v7.18.7',
                         'date' => 'November 26, 2026',
