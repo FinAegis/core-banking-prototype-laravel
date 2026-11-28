@@ -119,34 +119,47 @@ class TransactionRateLimitMiddleware
             return response()->json(['error' => 'Authentication required for transaction rate limiting'], 401);
         }
 
-        // Check hourly limits
+        // Each check takes this request's share of its counter first and
+        // compares after (Cache::add + increment), so requests at the same
+        // moment cannot all pass a limit only one of them fits under. When a
+        // later check refuses, the shares already taken are given back.
+        /** @var list<array{string, int}> $taken */
+        $taken = [];
+        $refuse = static function (JsonResponse $refusal) use (&$taken): JsonResponse {
+            foreach ($taken as [$key, $by]) {
+                Cache::decrement($key, $by);
+            }
+
+            return $refusal;
+        };
+
         $hourlyCheck = $this->checkRateLimit($userId, $transactionType, 'hourly', $config['limit'], $config['window']);
         if ($hourlyCheck !== true) {
             return $hourlyCheck;
         }
+        $taken[] = [self::countKey($userId, $transactionType, 'hourly'), 1];
 
-        // Check daily limits
         $dailyCheck = $this->checkRateLimit($userId, $transactionType, 'daily', $config['daily_limit'], $config['daily_window']);
         if ($dailyCheck !== true) {
-            return $dailyCheck;
+            return $refuse($dailyCheck);
         }
+        $taken[] = [self::countKey($userId, $transactionType, 'daily'), 1];
 
-        // Check amount-based limits if applicable
         $amount = isset($config['amount_limit']) ? $this->extractAmount($request) : null;
         if ($amount !== null) {
             $amountCheck = $this->checkAmountLimit($amount, $userId, $transactionType, $config);
             if ($amountCheck !== true) {
-                return $amountCheck;
+                return $refuse($amountCheck);
             }
         }
 
-        // Apply progressive delay if enabled
+        // The delay runs after the counts are taken, never between a check
+        // and its count.
         if ($config['progressive_delay']) {
             $this->applyProgressiveDelay($userId, $transactionType);
         }
 
-        // Increment counters and proceed
-        $this->incrementCounters($userId, $transactionType, $request, $amount);
+        $this->logPassedCheck($userId, $transactionType, $request, $amount);
 
         $response = $next($request);
 
@@ -158,10 +171,13 @@ class TransactionRateLimitMiddleware
      */
     private function checkRateLimit(int $userId, string $transactionType, string $period, int $limit, int $window): true|JsonResponse
     {
-        $key = "tx_rate_limit:{$userId}:{$transactionType}:{$period}";
-        $currentCount = Cache::get($key, 0);
+        $key = self::countKey($userId, $transactionType, $period);
+        Cache::add($key, 0, $window);
+        $currentCount = (int) Cache::increment($key) - 1;
 
         if ($currentCount >= $limit) {
+            Cache::decrement($key);
+
             Log::warning(
                 'Transaction rate limit exceeded',
                 [
@@ -225,55 +241,64 @@ class TransactionRateLimitMiddleware
     private function checkAmountLimit(string $amount, int $userId, string $transactionType, array $config): true|JsonResponse
     {
         $key = $this->amountKey($userId, $transactionType);
-        $currentAmount = (int) Cache::get($key, 0);
         $limit = (int) $config['amount_limit'];
 
-        if (bccomp(bcadd((string) $currentAmount, $amount, 0), (string) $limit, 0) > 0) {
-            $requested = bccomp($amount, (string) PHP_INT_MAX, 0) <= 0 ? (int) $amount : $amount;
-
-            Log::warning(
-                'Transaction amount limit exceeded',
-                [
-                    'user_id'          => $userId,
-                    'transaction_type' => $transactionType,
-                    'amount'           => $requested,
-                    'current_amount'   => $currentAmount,
-                    'limit'            => $limit,
-                ]
-            );
-
-            // Calculate retry after seconds
-            $retryAfter = $config['window'] - (time() % $config['window']);
-
-            return response()->json(
-                [
-                    'error'         => 'Transaction amount limit exceeded',
-                    'message'       => 'This transaction would exceed your hourly amount limit.',
-                    'retry_after'   => $retryAfter,
-                    'limit_type'    => 'hourly_amount',
-                    'limit_details' => [
-                        // All values are integers in hundredths of a unit of
-                        // the request amount (cents for USD and EUR), whatever
-                        // the asset: the request amount times 100, rounded up
-                        // (see extractAmount()). Clients can use limit_unit
-                        // to read them.
-                        'limit'            => $limit,
-                        'limit_unit'       => 'minor_units_x100',
-                        'current_amount'   => $currentAmount,
-                        'requested_amount' => $requested,
-                        'remaining_amount' => max(0, $limit - $currentAmount),
-                    ],
-                ],
-                429,
-                [
-                    'X-Transaction-AmountLimit-Exceeded' => 'true',
-                    'X-Transaction-AmountLimit'          => $limit,
-                    'X-Transaction-AmountRemaining'      => max(0, $limit - $currentAmount),
-                ]
-            );
+        // An amount above the whole limit is refused without touching the
+        // counter (it may not even fit in an int). Otherwise take it first,
+        // then compare, and give it back when it does not fit.
+        if (bccomp($amount, (string) $limit, 0) > 0) {
+            $currentAmount = (int) Cache::get($key, 0);
+        } else {
+            Cache::add($key, 0, $config['window']);
+            $currentAmount = (int) Cache::increment($key, (int) $amount) - (int) $amount;
+            if ($currentAmount + (int) $amount <= $limit) {
+                return true;
+            }
+            Cache::decrement($key, (int) $amount);
         }
 
-        return true;
+        $requested = bccomp($amount, (string) PHP_INT_MAX, 0) <= 0 ? (int) $amount : $amount;
+
+        Log::warning(
+            'Transaction amount limit exceeded',
+            [
+                'user_id'          => $userId,
+                'transaction_type' => $transactionType,
+                'amount'           => $requested,
+                'current_amount'   => $currentAmount,
+                'limit'            => $limit,
+            ]
+        );
+
+        // Calculate retry after seconds
+        $retryAfter = $config['window'] - (time() % $config['window']);
+
+        return response()->json(
+            [
+                'error'         => 'Transaction amount limit exceeded',
+                'message'       => 'This transaction would exceed your hourly amount limit.',
+                'retry_after'   => $retryAfter,
+                'limit_type'    => 'hourly_amount',
+                'limit_details' => [
+                    // All values are integers in hundredths of a unit of
+                    // the request amount (cents for USD and EUR), whatever
+                    // the asset: the request amount times 100, rounded up
+                    // (see extractAmount()). Clients can use limit_unit
+                    // to read them.
+                    'limit'            => $limit,
+                    'limit_unit'       => 'minor_units_x100',
+                    'current_amount'   => $currentAmount,
+                    'requested_amount' => $requested,
+                    'remaining_amount' => max(0, $limit - $currentAmount),
+                ],
+            ],
+            429,
+            [
+                'X-Transaction-AmountLimit-Exceeded' => 'true',
+                'X-Transaction-AmountLimit'          => $limit,
+                'X-Transaction-AmountRemaining'      => max(0, $limit - $currentAmount),
+            ]
+        );
     }
 
     /**
@@ -353,38 +378,24 @@ class TransactionRateLimitMiddleware
         return DecimalString::toHundredthsRoundedUp($amount);
     }
 
+    private static function countKey(int $userId, string $transactionType, string $period): string
+    {
+        return "tx_rate_limit:{$userId}:{$transactionType}:{$period}";
+    }
+
     private function amountKey(int $userId, string $transactionType): string
     {
         return "tx_amount_limit:{$userId}:{$transactionType}:hourly";
     }
 
     /**
-     * Increment transaction counters.
-     */
-    /**
+     * Log a request that passed every check. The counts were taken by the
+     * checks themselves.
+     *
      * @param  numeric-string|null  $amount  hundredths of a unit
      */
-    private function incrementCounters(int $userId, string $transactionType, Request $request, ?string $amount): void
+    private function logPassedCheck(int $userId, string $transactionType, Request $request, ?string $amount): void
     {
-        $config = self::TRANSACTION_LIMITS[$transactionType] ?? self::TRANSACTION_LIMITS['transfer'];
-
-        // Increment hourly counter
-        $hourlyKey = "tx_rate_limit:{$userId}:{$transactionType}:hourly";
-        Cache::put($hourlyKey, Cache::get($hourlyKey, 0) + 1, $config['window']);
-
-        // Increment daily counter
-        $dailyKey = "tx_rate_limit:{$userId}:{$transactionType}:daily";
-        Cache::put($dailyKey, Cache::get($dailyKey, 0) + 1, $config['daily_window']);
-
-        // Track amount if applicable. The check above passed, so the amount
-        // is at most the limit and fits in an int. Cache::add + increment, so
-        // concurrent requests never lose a count.
-        if (isset($config['amount_limit']) && $amount !== null) {
-            $amountKey = $this->amountKey($userId, $transactionType);
-            Cache::add($amountKey, 0, $config['window']);
-            Cache::increment($amountKey, (int) $amount);
-        }
-
         // Log transaction attempt for audit
         Log::info(
             'Transaction rate limit check passed',
@@ -453,11 +464,20 @@ class TransactionRateLimitMiddleware
             'daily'  => [$config['daily_limit'], $config['daily_window']],
         ];
 
+        /** @var list<string> $taken */
+        $taken = [];
+
         foreach ($periods as $period => [$limit, $window]) {
-            $key = "tx_rate_limit:{$userId}:{$transactionType}:{$period}";
+            $key = self::countKey($userId, $transactionType, $period);
             Cache::add($key, 0, $window);
+            $taken[] = $key;
 
             if ((int) Cache::increment($key) > $limit) {
+                // A refused call counts against no limit.
+                foreach ($taken as $takenKey) {
+                    Cache::decrement($takenKey);
+                }
+
                 return false;
             }
         }
