@@ -3252,6 +3252,18 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 
 ---
 
+## Version 7.18.8 — Transfer Limits Under Load, Smaller Backups (November 2026)
+
+**Theme**: The transaction limiter holds when transfers arrive at the same moment, the nightly backup reads consistently and skips monitoring rows, and the AI money tools and scheduled batches work.
+
+### Delivered Features
+- **Limiter counts before checking:** concurrent transfers can no longer pass the hourly count and amount limits together (#1294).
+- **Consistent, smaller backup:** single-transaction dump without Pulse and Telescope rows (#1289).
+- **AI ledger tools:** exact amounts and working deposit, withdraw and transfer calls, gated like the REST API (#1291).
+- **Scheduled batches and batch page:** scheduled batches start once on time; the detail page works on every database (#1292, #1293).
+
+---
+
 ## Version 7.18.7 — Batch Transfers Checked, Files in the Backup (November 2026)
 
 **Theme**: Batch transfers check ownership and move exact money once, and they stay off in production; the nightly backup also holds the stored report files; API keys are counted once and read-only keys cannot change anything.
@@ -3566,5 +3578,5 @@ Embeddable JS widget that renders Zelta's 402 payment flow inside the partner's 
 
 ---
 
-*Document Version: 7.18.7*
-*Updated: November 26, 2026 (v7.18.7 batch transfers checked and off in production, stored files in the backup, API key usage and write checks)*
+*Document Version: 7.18.8*
+*Updated: November 28, 2026 (v7.18.8 transaction limits under load, consistent smaller backups, AI ledger tools, scheduled batches)*

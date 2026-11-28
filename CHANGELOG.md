@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 >
 > Entries below describe software changes. Named third-party providers are integration adapters for third-party APIs; no partnership or endorsement implied. Mentions of the Global Currency Unit (GCU) refer to a software demonstration that is not issued, offered or sold to anyone and has no monetary value.
 
+## [7.18.8] - 2026-11-28
+
+**Transfer limits hold under load, smaller backups, working AI money tools.** Transfers sent at the same moment can no longer slip past the hourly count and amount limits. The nightly backup reads the database in one consistent pass and leaves out monitoring log rows. The AI deposit, withdraw and transfer tools now work and use exact amounts.
+
+### Security
+- The transaction limiter now takes each request's count and amount before it checks them, and gives them back when it refuses. Before, several transfers sent at once could all read the same count and all pass the hourly limit, and the progressive delay widened that gap by up to five seconds (#1294).
+
+### Fixed
+- The AI deposit, withdraw and transfer tools failed on every successful call, and they read amounts as floating point numbers, so 0.29 USD became 28 cents. They now use exact amounts in the asset's own precision and the same paths as the REST API. Deposit and withdraw stay off while `ledger.direct_funding_enabled` is off (#1291).
+- A batch job scheduled for later now starts when its time comes, once. A batch more than a day overdue is left for an operator and logged instead of moving money late. Batches remain off in production (#1292).
+- The batch detail page worked out the average item time with MySQL-only SQL. It now works on every supported database (#1293).
+- A card withdrawal test depended on the current date and failed from 2026-11-28 (#1290).
+
+### Changed
+- The nightly database dump reads in one transaction, so it no longer locks live tables. It keeps the structure of the Pulse and Telescope monitoring tables but not their rows, which were most of the archive. A restored database has these tables empty (#1289).
+
 ## [7.18.7] - 2026-11-26
 
 **Batch transfers checked and off in production, files in the backup, API keys tightened.** Batch transfers now check who owns the money and move exact amounts once, and they are switched off on zelta.app. The nightly backup now also holds the reports and uploads stored as files. API key use is counted once per request, and a key that may only read can no longer change anything.
