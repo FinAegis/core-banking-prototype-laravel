@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace App\Domain\AI\MCP\Tools\Account;
 
+use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Services\AccountService;
 use App\Domain\AI\Contracts\MCPToolInterface;
 use App\Domain\AI\ValueObjects\ToolExecutionResult;
 use App\Domain\Asset\Models\Asset;
+use App\Domain\Asset\Workflows\AssetDepositWorkflow;
+use App\Support\DecimalString;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Workflow\WorkflowStub;
 
 class DepositTool implements MCPToolInterface
 {
@@ -77,9 +81,9 @@ class DepositTool implements MCPToolInterface
             'properties' => [
                 'transaction_id'    => ['type' => 'string'],
                 'account_uuid'      => ['type' => 'string'],
-                'amount'            => ['type' => 'number'],
+                'amount'            => ['type' => 'string', 'description' => 'Decimal string in the precision of the asset'],
                 'currency'          => ['type' => 'string'],
-                'new_balance'       => ['type' => 'number'],
+                'new_balance'       => ['type' => 'string', 'description' => 'Decimal string in the precision of the asset'],
                 'formatted_balance' => ['type' => 'string'],
                 'timestamp'         => ['type' => 'string'],
                 'reference'         => ['type' => 'string'],
@@ -90,9 +94,15 @@ class DepositTool implements MCPToolInterface
 
     public function execute(array $parameters, ?string $conversationId = null): ToolExecutionResult
     {
+        // A deposit creates money in the ledger, so it follows the same
+        // switch as the REST deposit endpoint (off in production).
+        if (! config('ledger.direct_funding_enabled')) {
+            return ToolExecutionResult::failure('This operation is not available.');
+        }
+
         try {
             $accountUuid = $parameters['account_uuid'];
-            $amount = (float) $parameters['amount'];
+            $amount = $parameters['amount'];
             $currency = $parameters['currency'];
             $reference = $parameters['reference'] ?? null;
             $source = $parameters['source'] ?? 'bank_transfer';
@@ -122,31 +132,34 @@ class DepositTool implements MCPToolInterface
                 return ToolExecutionResult::failure("Invalid currency: {$currency}");
             }
 
-            // Convert amount to smallest unit (e.g., cents)
-            $amountInCents = (int) ($amount * 100);
+            // Exact minor units of the asset. An amount with more decimals
+            // than the asset has is refused, not rounded.
+            $precision = (int) $asset->precision;
+            $amountInMinorUnits = DecimalString::toMinorUnitsInt($amount, $precision);
+            if ($amountInMinorUnits === null) {
+                return ToolExecutionResult::failure("The amount can have at most {$precision} decimal places for {$currency}.");
+            }
+            if ($amountInMinorUnits <= 0) {
+                return ToolExecutionResult::failure('The amount must be more than zero.');
+            }
 
-            // Use AccountService to trigger the deposit workflow
-            // This will handle event sourcing and domain events
-            $this->accountService->deposit($accountUuid, [
-                'amount'   => $amountInCents,
-                'currency' => $currency,
-            ]);
+            // The same workflows as the REST deposit endpoint.
+            if ($currency === 'USD') {
+                $this->accountService->deposit($accountUuid, $amountInMinorUnits);
+            } else {
+                WorkflowStub::make(AssetDepositWorkflow::class)
+                    ->start(new AccountUuid($accountUuid), $currency, $amountInMinorUnits);
+            }
 
-            // After workflow execution, get the new balance
             $newBalance = $account->fresh()?->getBalance($currency) ?? 0;
 
-            $result = [
-                'transaction_id' => \Illuminate\Support\Str::uuid()->toString(),
-                'new_balance'    => $newBalance,
-            ];
-
             $response = [
-                'transaction_id'    => $result['transaction_id'],
+                'transaction_id'    => \Illuminate\Support\Str::uuid()->toString(),
                 'account_uuid'      => $accountUuid,
-                'amount'            => $amount,
+                'amount'            => $this->toMajorUnits($amountInMinorUnits, $precision),
                 'currency'          => $currency,
-                'new_balance'       => $result['new_balance'] / 100, // Convert back to major units
-                'formatted_balance' => $this->formatMoney($result['new_balance'], $currency),
+                'new_balance'       => $this->toMajorUnits($newBalance, $precision),
+                'formatted_balance' => $currency . ' ' . $this->toMajorUnits($newBalance, $precision),
                 'timestamp'         => now()->toIso8601String(),
                 'reference'         => $reference,
                 'status'            => 'completed',
@@ -256,12 +269,11 @@ class DepositTool implements MCPToolInterface
         return false;
     }
 
-    private function formatMoney(float $amount, string $currency): string
+    /**
+     * Minor units back to a decimal string in the precision of the asset.
+     */
+    private function toMajorUnits(int $minor, int $precision): string
     {
-        // Simple money formatting
-        $decimals = in_array($currency, ['BTC', 'ETH']) ? 8 : 2;
-        $formatted = number_format($amount / 100, $decimals);
-
-        return $currency . ' ' . $formatted;
+        return bcdiv((string) $minor, bcpow('10', (string) $precision), $precision);
     }
 }
