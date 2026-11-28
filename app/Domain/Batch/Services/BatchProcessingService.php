@@ -96,12 +96,61 @@ class BatchProcessingService
     }
 
     /**
-     * Process a batch job.
+     * How long after its time a scheduled batch may still start on its own.
+     * An older one waits for an operator instead of moving money late.
      */
-    public function processBatch(string $batchJobUuid): void
+    public const SCHEDULED_START_WINDOW_HOURS = 24;
+
+    /**
+     * Start the workflow for a batch job, at most once per batch: the batch
+     * starts when it is created, or later from startDueScheduledBatches(),
+     * and both go through here. Returns false when it was already started.
+     */
+    public function processBatch(string $batchJobUuid): bool
     {
+        if (! Cache::add("batch-job-start:{$batchJobUuid}", true, now()->addDays(7))) {
+            return false;
+        }
+
         $workflow = WorkflowStub::make(ProcessBatchJobWorkflow::class);
         $workflow->start($batchJobUuid);
+
+        return true;
+    }
+
+    /**
+     * Start every pending batch whose time has come within the last
+     * SCHEDULED_START_WINDOW_HOURS. Returns the started and the too-late
+     * batches, so the caller can report them.
+     *
+     * @return array{started: list<string>, too_late: list<string>}
+     */
+    public function startDueScheduledBatches(): array
+    {
+        $started = [];
+        $tooLate = [];
+        $windowStart = now()->subHours(self::SCHEDULED_START_WINDOW_HOURS);
+
+        BatchJob::query()
+            ->where('status', 'pending')
+            // The older EOD batch endpoint keeps its own queue and statuses.
+            ->where('type', '!=', 'batch_operations')
+            ->whereNotNull('scheduled_at')
+            ->where('scheduled_at', '<=', now())
+            ->orderBy('scheduled_at')
+            ->each(function (BatchJob $batchJob) use ($windowStart, &$started, &$tooLate): void {
+                if ($batchJob->scheduled_at !== null && $batchJob->scheduled_at->lessThan($windowStart)) {
+                    $tooLate[] = $batchJob->uuid;
+
+                    return;
+                }
+
+                if ($this->processBatch($batchJob->uuid)) {
+                    $started[] = $batchJob->uuid;
+                }
+            });
+
+        return ['started' => $started, 'too_late' => $tooLate];
     }
 
     /**

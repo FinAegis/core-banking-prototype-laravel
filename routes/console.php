@@ -269,6 +269,13 @@ Schedule::command('trustcert:check-expired')
         Log::warning('TrustCert expiry check failed to run');
     });
 
+// Scheduled batch jobs: start each pending batch once its time has come.
+// Does nothing while ledger.batch_processing_enabled is off.
+Schedule::command('batch:start-scheduled')
+    ->everyMinute()
+    ->description('Start the batch jobs whose scheduled time has come')
+    ->withoutOverlapping();
+
 // Wallet send (EVM) confirmation polling — every minute.
 Schedule::job(new App\Domain\Wallet\Jobs\PollEvmWalletSendConfirmations())
     ->everyMinute()
